@@ -1,5 +1,6 @@
 ﻿using LagoVista.Core.Models.Drawing;
 using LagoVista.GCode;
+using LagoVista.Manufacturing.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

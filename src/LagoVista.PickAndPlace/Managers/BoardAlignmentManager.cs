@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using LagoVista.Core;
 using System.Diagnostics;
+using LagoVista.Manufacturing.Models;
 
 namespace LagoVista.PickAndPlace.Managers
 {

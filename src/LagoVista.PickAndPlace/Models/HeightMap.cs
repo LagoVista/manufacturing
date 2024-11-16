@@ -3,6 +3,7 @@ using System.Linq;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.Core.PlatformSupport;
+using LagoVista.Manufacturing.Models;
 
 namespace LagoVista.PickAndPlace.Models
 {

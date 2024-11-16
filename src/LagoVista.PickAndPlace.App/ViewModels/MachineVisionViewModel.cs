@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PCB.Eagle.Models;
+using LagoVista.Manufacturing.Models;
 
 namespace LagoVista.PickAndPlace.App.ViewModels
 {

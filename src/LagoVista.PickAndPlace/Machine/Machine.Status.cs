@@ -1,5 +1,6 @@
 ﻿using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.PlatformSupport;
+using LagoVista.Manufacturing.Models;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace

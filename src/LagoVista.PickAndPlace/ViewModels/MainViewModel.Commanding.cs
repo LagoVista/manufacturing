@@ -1,4 +1,5 @@
 ﻿using LagoVista.Core.Commanding;
+using LagoVista.Manufacturing.Models;
 using System;
 
 namespace LagoVista.PickAndPlace.ViewModels

@@ -11,8 +11,8 @@ namespace LagoVista.Manufacturing.Models
 {
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Feeder_Title, ManufacturingResources.Names.Feeder_Description,
             ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-searching-2", Cloneable: true,
-            SaveUrl: "/api/mfg/Feeder/", GetUrl: "/api/mfg/Feeder//{id}", GetListUrl: "/api/mfg/Feeder/s", FactoryUrl: "/api/mfg/Feeder//factory",
-            DeleteUrl: "/api/mfg/Feeder//{id}", ListUIUrl: "/mfg/Feeder/s", EditUIUrl: "/mfg/Feeder//{id}", CreateUIUrl: "/mfg/Feeder//add")]
+            SaveUrl: "/api/mfg/feeder", GetUrl: "/api/mfg/Feeder/{id}", GetListUrl: "/api/mfg/feeders", FactoryUrl: "/api/mfg/feeder/factory",
+            DeleteUrl: "/api/mfg/feeder/{id}", ListUIUrl: "/mfg/fFeeders", EditUIUrl: "/mfg/feeder/{id}", CreateUIUrl: "/mfg/feeder/add")]
     public class Feeder : MfgModelBase, IValidateable, IFormDescriptor, ISummaryFactory, IIDEntity
     {
 
@@ -51,8 +51,8 @@ namespace LagoVista.Manufacturing.Models
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Feeders_Title, ManufacturingResources.Names.Feeder_Description,
             ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-stamp-2", Cloneable: true,
-            SaveUrl: "/api/mfg/feeder", GetUrl: "/api/mfg/feeder/{id}", GetListUrl: "/api/mfg/feeder", FactoryUrl: "/api/feeder/factory",
-            DeleteUrl: "/api/mfg/feeder/{id}", ListUIUrl: "/mfg/feeders", EditUIUrl: "/mfg/feeder/{id}", CreateUIUrl: "/mfg/feeder/add")]
+            SaveUrl: "/api/mfg/feeder", GetUrl: "/api/mfg/feeder/{id}", GetListUrl: "/api/mfg/feeders", FactoryUrl: "/api/mfg/feeder/factory",
+            DeleteUrl: "/api/mfg/feeder/{id}", ListUIUrl: "/mfg/fFeeders", EditUIUrl: "/mfg/feeder/{id}", CreateUIUrl: "/mfg/feeder/add")]
     public class FeederSummary : SummaryData
     {
 

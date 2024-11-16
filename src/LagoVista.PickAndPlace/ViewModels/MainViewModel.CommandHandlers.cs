@@ -1,4 +1,5 @@
 ﻿using LagoVista.GCode;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PCB.Eagle.Managers;
 using LagoVista.PickAndPlace.Models;
 using System;

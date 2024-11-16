@@ -2,6 +2,7 @@
 using LagoVista.Core.PlatformSupport;
 using LagoVista.GCode.Commands;
 using LagoVista.GCode.Parser;
+using LagoVista.Manufacturing.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

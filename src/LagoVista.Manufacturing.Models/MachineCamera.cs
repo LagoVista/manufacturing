@@ -1,15 +1,17 @@
-﻿using LagoVista.Core.Models;
-using LagoVista.Core.Models.Drawing;
+﻿using LagoVista.Core.Models.Drawing;
+using LagoVista.Core.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using LagoVista.Core;
 
-namespace LagoVista.PickAndPlace.Models
+namespace LagoVista.Manufacturing.Models
 {
-    public class Camera : ModelBase
+    public class MachineCamera : ModelBase
     {
+        public MachineCamera()
+        {
+            Id = Guid.NewGuid().ToId();
+        }
+
         public String Id { get; set; }
         public int CameraIndex { get; set; }
         public String Name { get; set; }
@@ -22,7 +24,7 @@ namespace LagoVista.PickAndPlace.Models
         public Point2D<double> Tool1Offset
         {
             get { return _tool1Offset; }
-            set { Set(ref _tool1Offset, value);  }
+            set { Set(ref _tool1Offset, value); }
         }
 
 

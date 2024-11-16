@@ -15,6 +15,7 @@ namespace LagoVista.Manufacturing.Models
             IsValid = true;
         }
 
+
         [CloneOptions(false)]
         [FormField(LabelResource: ManufacturingResources.Names.Common_IsValid, FieldType: FieldTypes.Bool, IsUserEditable: false, ResourceType: typeof(ManufacturingResources))]
         public bool IsValid { get; set; }

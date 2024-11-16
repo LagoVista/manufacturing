@@ -2,7 +2,7 @@
 using LagoVista.Manufacturing.Repo.Repos;
 using LagoVista.Core.Interfaces;
 
-namespace LagoVista.Manufacturing.Models
+namespace LagoVista.Manufacturing.Repos
 {
     public static class Startup
     {
@@ -13,6 +13,7 @@ namespace LagoVista.Manufacturing.Models
             services.AddTransient<IComponentPackageRepo, ComponentPackageRepo>();
             services.AddTransient<IPartPackRepo, PartPackRepo>();
             services.AddTransient<IFeederRepo, FeederRepo>();
+            services.AddTransient<IMachineRepo, MachineRepo>();
             services.AddTransient<IPickAndPlaceJobRepo, PickAndPlaceJobRepo>();
         }
     }

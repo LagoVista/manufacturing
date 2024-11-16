@@ -1,4 +1,5 @@
 ﻿using LagoVista.Core.PlatformSupport;
+using LagoVista.Manufacturing.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace LagoVista.PickAndPlace
         public const string FileName = "Machines.json";
 
         public string CurrentMachineId { get; set; }
-        public List<MachineSettings> Machines { get; set; }
+        public List<LagoVista.Manufacturing.Models.Machine> Machines { get; set; }
 
 
         public async static Task<MachinesRepo> LoadAsync()
@@ -34,7 +35,7 @@ namespace LagoVista.PickAndPlace
             }
         }
 
-        public MachineSettings GetCurrentMachine()
+        public LagoVista.Manufacturing.Models.Machine GetCurrentMachine()
         {
             return Machines.Where(machine => machine.Id == CurrentMachineId).First();
         }
@@ -44,8 +45,8 @@ namespace LagoVista.PickAndPlace
             get
             {
                 var repo = new MachinesRepo();
-                repo.Machines = new List<MachineSettings>();
-                var defaultMachine = MachineSettings.Default;
+                repo.Machines = new List<LagoVista.Manufacturing.Models.Machine>();
+                var defaultMachine = LagoVista.Manufacturing.Models.Machine.Default;
                 repo.Machines.Add(defaultMachine);
                 repo.CurrentMachineId = defaultMachine.Id;
 

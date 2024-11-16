@@ -1,4 +1,5 @@
 ﻿using LagoVista.GCode.Commands;
+using LagoVista.Manufacturing.Models;
 using System.Threading;
 using System.Threading.Tasks;
 

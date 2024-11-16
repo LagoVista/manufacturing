@@ -2,6 +2,7 @@
 using LagoVista.Core.IOC;
 using LagoVista.Core.Models;
 using LagoVista.Core.PlatformSupport;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,7 @@ namespace LagoVista.PickAndPlace.ViewModels
 {
     public partial class SettingsViewModel : INotifyPropertyChanged
     {
-        MachineSettings _settings;
+        LagoVista.Manufacturing.Models.Machine _settings;
         IMachine _machine;
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -27,10 +28,10 @@ namespace LagoVista.PickAndPlace.ViewModels
             );
         }
 
-        public SettingsViewModel(IMachine machine, MachineSettings settings) //: base(machine)
+        public SettingsViewModel(IMachine machine, LagoVista.Manufacturing.Models.Machine settings) //: base(machine)
         {
 
-            Cameras = new List<Models.Camera>();
+            Cameras = new List<MachineCamera>();
             _settings = settings;
             _machine = machine;
             InitComamnds();

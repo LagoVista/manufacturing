@@ -1,6 +1,7 @@
 ﻿using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.PlatformSupport;
 using LagoVista.GCode;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using System;
 using System.Threading;

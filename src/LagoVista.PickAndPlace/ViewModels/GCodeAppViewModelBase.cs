@@ -1,5 +1,6 @@
 ﻿using LagoVista.Core.Commanding;
 using LagoVista.Core.ViewModels;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using System;
 using System.Collections.Generic;

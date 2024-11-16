@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using LagoVista.Core;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.GCode;
+using LagoVista.Manufacturing.Models;
 
 namespace LagoVista.PickAndPlace
 {

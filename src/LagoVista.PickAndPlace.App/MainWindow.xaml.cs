@@ -12,6 +12,7 @@ using LagoVista.PickAndPlace.App.ViewModels;
 using LagoVista.PickAndPlace.App.Views;
 using LagoVista.PickAndPlace.Util;
 using LagoVista.PCB.Eagle.Models;
+using LagoVista.Manufacturing.Models;
 
 namespace LagoVista.PickAndPlace.App
 {
@@ -259,7 +260,7 @@ namespace LagoVista.PickAndPlace.App
 
         private async void NewMachinePRofile_Click(object sender, RoutedEventArgs e)
         {
-            var settings = MachineSettings.Default;
+            var settings = LagoVista.Manufacturing.Models.Machine.Default;
             settings.MachineName = String.Empty;
 
             var dlg = new SettingsWindow(ViewModel.Machine, settings);

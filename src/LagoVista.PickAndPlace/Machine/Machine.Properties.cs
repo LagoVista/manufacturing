@@ -1,4 +1,5 @@
-﻿using LagoVista.PickAndPlace.Interfaces;
+﻿using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.Interfaces;
 using System.Collections.ObjectModel;
 
 namespace LagoVista.PickAndPlace
@@ -210,8 +211,8 @@ namespace LagoVista.PickAndPlace
             get { return _machineRepo; }
         }
 
-        MachineSettings _settings;
-        public MachineSettings Settings
+        LagoVista.Manufacturing.Models.Machine _settings;
+        public LagoVista.Manufacturing.Models.Machine Settings
         {
             get { return _settings; }
             set

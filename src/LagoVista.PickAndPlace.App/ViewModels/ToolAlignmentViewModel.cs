@@ -1,5 +1,7 @@
 ﻿using LagoVista.Core.Commanding;
 using LagoVista.Core.Models.Drawing;
+using LagoVista.GCode.Sender;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using System;
 using System.Linq;
@@ -69,7 +71,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         public void AddNozzle()
         {
-            Machine.Settings.CurrentNozzle = new Models.ToolNozzle();
+            Machine.Settings.CurrentNozzle = new ToolNozzle();
             Machine.Settings.CurrentNozzle.Name = "-new nozzle-";
             Machine.Settings.Nozzles.Add(Machine.Settings.CurrentNozzle);
             IsDirty = true;
@@ -114,7 +116,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         public void SetTopCameraLocation()
         {
-            if (Machine.Settings.MachineType == FirmwareTypes.LagoVista_PnP)
+            if (Machine.Settings.MachineType == Manufacturing.Models.FirmwareTypes.LagoVista_PnP)
             {
                 Machine.SendCommand("M75");
             }

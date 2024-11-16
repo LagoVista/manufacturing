@@ -1,4 +1,6 @@
 ﻿
+using LagoVista.Manufacturing.Models;
+
 namespace LagoVista.PickAndPlace.ViewModels
 {
     public partial class JobControlViewModel

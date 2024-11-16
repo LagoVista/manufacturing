@@ -1,4 +1,4 @@
-﻿/*11/16/2024 4:21:15 PM*/
+﻿/*11/16/2024 6:13:10 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -278,6 +278,15 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Feeders_Title
 
 		public static string Feeders_Title { get { return GetResourceString("Feeders_Title"); } }
+//Resources:ManufacturingResources:Machine_Description
+
+		public static string Machine_Description { get { return GetResourceString("Machine_Description"); } }
+//Resources:ManufacturingResources:Machine_Title
+
+		public static string Machine_Title { get { return GetResourceString("Machine_Title"); } }
+//Resources:ManufacturingResources:Machines_Title
+
+		public static string Machines_Title { get { return GetResourceString("Machines_Title"); } }
 //Resources:ManufacturingResources:PackAndPlace_Description
 
 		public static string PackAndPlace_Description { get { return GetResourceString("PackAndPlace_Description"); } }
@@ -392,6 +401,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Feeder_Description = "Feeder_Description";
 			public const string Feeder_Title = "Feeder_Title";
 			public const string Feeders_Title = "Feeders_Title";
+			public const string Machine_Description = "Machine_Description";
+			public const string Machine_Title = "Machine_Title";
+			public const string Machines_Title = "Machines_Title";
 			public const string PackAndPlace_Description = "PackAndPlace_Description";
 			public const string PartPack_Description = "PartPack_Description";
 			public const string PartPack_Title = "PartPack_Title";

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LagoVista.Core;
+using LagoVista.Manufacturing.Models;
 
 namespace LagoVista.PickAndPlace.Managers
 {

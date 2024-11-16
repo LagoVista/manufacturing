@@ -374,4 +374,13 @@
   <data name="StripFeederRow_Description" xml:space="preserve">
     <value>A row within a strip feeder</value>
   </data>
+  <data name="Machine_Title" xml:space="preserve">
+    <value>Machine</value>
+  </data>
+  <data name="Machine_Description" xml:space="preserve">
+    <value>Machine are XY, GCode based such as a Pick and Place Machine, a Laser Cutter or CNC Machine</value>
+  </data>
+  <data name="Machines_Title" xml:space="preserve">
+    <value>Machines</value>
+  </data>
 </root>

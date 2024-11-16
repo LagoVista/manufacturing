@@ -1,20 +1,149 @@
-﻿using LagoVista.Core.Models;
-using LagoVista.Core.Models.Drawing;
+﻿using LagoVista.Core.Models.Drawing;
+using LagoVista.Core.Models;
 using LagoVista.Core.PlatformSupport;
-using LagoVista.PickAndPlace.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
+using LagoVista.Core.Attributes;
+using LagoVista.Manufacturing.Models.Resources;
+using LagoVista.Core.Interfaces;
 
-namespace LagoVista.PickAndPlace
+namespace LagoVista.Manufacturing.Models
 {
-    public class MachineSettings : ModelBase, INotifyPropertyChanged
+    public enum JogDirections
     {
-        public string Id { get; set; }
+        YPlus,
+        YMinus,
+        XPlus,
+        XMinus,
+        ZPlus,
+        ZMinus,
+        T0Plus,
+        T0Minus,
+        T1Plus,
+        T1Minus,
+        CPlus,
+        CMinus,
+    }
+
+    public enum MachineOrigin
+    {
+        Top_Left,
+        Bottom_Left,
+        Top_Right,
+        Bottom_Right,
+    }
+
+    public enum ConnectionTypes
+    {
+        Serial_Port,
+        Network
+    }
+
+    public enum JogGCodeCommand
+    {
+        G0,
+        G1
+    }
+
+    public enum Axis
+    {
+        XY,
+        Z
+    }
+
+    public enum ViewTypes
+    {
+        Camera,
+        Tool1,
+        Tool2
+    }
+
+    public enum ResetAxis
+    {
+        X,
+        Y,
+        Z,
+        T0,
+        T1,
+        C,
+        All
+    }
+
+    public enum HomeAxis
+    {
+        X,
+        Y,
+        Z,
+        T0,
+        T1,
+        C,
+        All
+    }
+
+
+    public enum StepModes
+    {
+        Micro,
+        Small,
+        Medium,
+        Large,
+        XLarge
+    }
+
+    public enum FirmwareTypes
+    {
+        GRBL1_1,
+        Marlin,
+        Marlin_Laser,
+        LagoVista,
+        LagoVista_PnP,
+        SimulatedMachine,
+        Repeteir_PnP,
+    }
+
+    public enum OperatingMode
+    {
+        Manual,
+        Alarm,
+        SendingGCodeFile,
+        PendingToolChange,
+        ProbingHeightMap,
+        ProbingHeight,
+        AligningBoard,
+        Disconnected
+    }
+
+
+    public enum StatusMessageTypes
+    {
+        ReceivedLine,
+        SentLine,
+        SentLinePriority,
+        Info,
+        Warning,
+        FatalError
+    }
+
+    public enum MessageVerbosityLevels
+    {
+        Diagnostics,
+        Verbose,
+        Normal,
+        Quiet,
+    }
+
+    [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Machine_Title, ManufacturingResources.Names.Machine_Description,
+        ManufacturingResources.Names.Machine_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-searching-2", Cloneable: true,
+        SaveUrl: "/api/mfg/machine/settings", GetUrl: "/api/mfg/machine/settings/{id}", GetListUrl: "/api/mfg/machine/settings", FactoryUrl: "/api/mfg/machine/settings/factory",
+        DeleteUrl: "/api/machine/settings/{id}", ListUIUrl: "/mfg/machinesettings", EditUIUrl: "/mfg/machinesettings/{id}", CreateUIUrl: "/mfg/machinesettings/add")]
+    public class Machine : MfgModelBase, ISummaryFactory, INotifyPropertyChanged
+    {
 
         public int StatusPollIntervalIdle { get; set; }
         public int StatusPollIntervalRunning { get; set; }
@@ -139,10 +268,10 @@ namespace LagoVista.PickAndPlace
             get { return _currentNozzle; }
             set
             {
-                if(_currentNozzle != null)
+                if (_currentNozzle != null)
                 {
                     var currentNozzle = Nozzles.Where(noz => noz.Id == _currentNozzle.Id).FirstOrDefault();
-                    if(currentNozzle != null)
+                    if (currentNozzle != null)
                     {
                         currentNozzle.Name = _currentNozzle.Name;
                         currentNozzle.BoardHeight = _currentNozzle.BoardHeight;
@@ -150,7 +279,7 @@ namespace LagoVista.PickAndPlace
                         currentNozzle.SafeMoveHeight = _currentNozzle.SafeMoveHeight;
                     }
 
-                    _currentNozzle = value;                    
+                    _currentNozzle = value;
                     RaisePropertyChanged(nameof(CurrentNozzle));
                     RaisePropertyChanged(nameof(ToolPickHeight));
                     RaisePropertyChanged(nameof(ToolBoardHeight));
@@ -181,6 +310,11 @@ namespace LagoVista.PickAndPlace
                 RaisePropertyChanged(nameof(ToolBoardHeight));
             }
         }
+
+
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
+        public string Icon { get; set; } = "icon-fo-folders";
+
 
         public string DefaultPnPMachineFile { get; set; }
 
@@ -275,15 +409,15 @@ namespace LagoVista.PickAndPlace
             set { Set(ref _zStepMode, value); }
         }
 
-        Camera _positioningCamera;
-        public Camera PositioningCamera
+        MachineCamera _positioningCamera;
+        public MachineCamera PositioningCamera
         {
             get { return _positioningCamera; }
             set { Set(ref _positioningCamera, value); }
         }
 
-        Camera _partInspectionCamera;
-        public Camera PartInspectionCamera
+        MachineCamera _partInspectionCamera;
+        public MachineCamera PartInspectionCamera
         {
             get { return _partInspectionCamera; }
             set { Set(ref _partInspectionCamera, value); }
@@ -291,7 +425,7 @@ namespace LagoVista.PickAndPlace
 
 
         private double _maxX;
-        public double MaxX 
+        public double MaxX
         {
             get => _maxX;
             set => Set(ref _maxX, value);
@@ -322,13 +456,13 @@ namespace LagoVista.PickAndPlace
 
         private string _settingsName;
 
-        public async static Task<MachineSettings> LoadAsync(string settingsName)
+        public async static Task<Machine> LoadAsync(string settingsName)
         {
             try
             {
-                var settings = await Services.Storage.GetAsync<MachineSettings>("settingsName.json");
+                var settings = await Services.Storage.GetAsync<Machine>("settingsName.json");
                 if (settings == null)
-                    settings = MachineSettings.Default;
+                    settings = Machine.Default;
 
                 settings._settingsName = settingsName;
 
@@ -336,7 +470,7 @@ namespace LagoVista.PickAndPlace
             }
             catch (Exception)
             {
-                return MachineSettings.Default;
+                return Machine.Default;
             }
         }
 
@@ -354,16 +488,30 @@ namespace LagoVista.PickAndPlace
 
         public double ProbeOffset { get; set; }
 
-        public MachineSettings Clone()
+        public Machine Clone()
         {
-            return this.MemberwiseClone() as MachineSettings;
+            return this.MemberwiseClone() as Machine;
         }
 
-        public static MachineSettings Default
+        public MachineSummary CreateSummary()
+        {
+            return new MachineSummary()
+            {
+                Id = Id,
+                Icon = Icon,
+            };
+        }
+
+        ISummaryData ISummaryFactory.CreateSummary()
+        {
+            return CreateSummary();
+        }
+
+        public static Machine Default
         {
             get
             {
-                return new MachineSettings()
+                return new Machine()
                 {
                     Id = Guid.NewGuid().ToString(),
                     MachineName = "Machine 1",
@@ -393,6 +541,11 @@ namespace LagoVista.PickAndPlace
                 };
             }
         }
+
+    }
+
+    public class MachineSummary : SummaryData
+    {
 
     }
 }

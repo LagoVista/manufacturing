@@ -1,11 +1,9 @@
 ﻿using LagoVista.Core.Models;
-using LagoVista.PickAndPlace.Models;
+using LagoVista.Manufacturing.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels
 {
@@ -93,7 +91,7 @@ namespace LagoVista.PickAndPlace.ViewModels
             }
         }
 
-        public List<Camera> Cameras { get; private set; }
+        public List<MachineCamera> Cameras { get; private set; }
 
         public String PositioningCameraId
         {
@@ -139,7 +137,7 @@ namespace LagoVista.PickAndPlace.ViewModels
             set { Settings.MachineType = (FirmwareTypes)Enum.Parse(typeof(FirmwareTypes), value.Replace(".", "_")); }
         }
 
-        public MachineSettings Settings
+        public LagoVista.Manufacturing.Models.Machine Settings
         {
             get { return _settings; }
         }
@@ -148,12 +146,12 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         public bool CanSetIPAddress
         {
-            get { return Settings.ConnectionType == LagoVista.PickAndPlace.ConnectionTypes.Network && CanChangeMachineConfig; }
+            get { return Settings.ConnectionType == Manufacturing.Models.ConnectionTypes.Network && CanChangeMachineConfig; }
         }
 
         public bool CanSelectSerialPort
         {
-            get { return Settings.ConnectionType == LagoVista.PickAndPlace.ConnectionTypes.Serial_Port && CanChangeMachineConfig; }
+            get { return Settings.ConnectionType == Manufacturing.Models.ConnectionTypes.Serial_Port && CanChangeMachineConfig; }
         }
     }
 }

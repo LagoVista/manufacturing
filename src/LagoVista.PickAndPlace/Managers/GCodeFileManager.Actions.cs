@@ -1,4 +1,5 @@
 ﻿using LagoVista.GCode.Commands;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Models;
 
 namespace LagoVista.PickAndPlace.Managers

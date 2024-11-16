@@ -1,4 +1,5 @@
 ﻿using DirectShowLib;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.ViewModels;
 using System;
@@ -12,9 +13,9 @@ namespace LagoVista.PickAndPlace.App
     public partial class SettingsWindow : Window
 	{
 
-        MachineSettings _settings;
+        LagoVista.Manufacturing.Models.Machine _settings;
 
-        public SettingsWindow(IMachine machine, MachineSettings settings, int index = 0)
+        public SettingsWindow(IMachine machine, LagoVista.Manufacturing.Models.Machine settings, int index = 0)
 		{
             _settings = settings;
 
@@ -23,7 +24,7 @@ namespace LagoVista.PickAndPlace.App
             var cameras = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
             var idx = 0;
 
-            ViewModel.Cameras.Add(new Models.Camera()
+            ViewModel.Cameras.Add(new MachineCamera()
             {
                 Id = "-1",
                 Name = "none",
@@ -32,7 +33,7 @@ namespace LagoVista.PickAndPlace.App
 
             foreach (var camera in cameras)
             {
-                ViewModel.Cameras.Add(new Models.Camera()
+                ViewModel.Cameras.Add(new MachineCamera()
                 {
                     Id = camera.DevicePath,
                     Name = camera.Name,

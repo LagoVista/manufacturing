@@ -1,6 +1,7 @@
 ﻿using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.PlatformSupport;
 using LagoVista.GCode;
+using LagoVista.Manufacturing.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -259,7 +260,7 @@ namespace LagoVista.PickAndPlace.Interfaces
         /// <summary>
         /// Current settings as to be used by the machine.
         /// </summary>
-        MachineSettings Settings { get; set; }
+        LagoVista.Manufacturing.Models.Machine Settings { get; set; }
 
         ObservableCollection<string> PendingQueue { get; }
     }

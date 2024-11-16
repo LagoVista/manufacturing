@@ -1,5 +1,6 @@
 ﻿
 
+using LagoVista.Manufacturing.Models;
 using System.Collections.Generic;
 
 namespace LagoVista.PickAndPlace.ViewModels

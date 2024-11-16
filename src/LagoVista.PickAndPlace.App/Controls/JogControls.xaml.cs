@@ -1,4 +1,5 @@
-﻿using LagoVista.PickAndPlace.ViewModels;
+﻿using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.ViewModels;
 using SharpDX.XInput;
 using System.Threading;
 using System.Windows;

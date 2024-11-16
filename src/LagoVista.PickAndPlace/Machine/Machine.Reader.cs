@@ -1,4 +1,5 @@
 ﻿using LagoVista.Core.PlatformSupport;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Util;
 using System;
 using System.Diagnostics;

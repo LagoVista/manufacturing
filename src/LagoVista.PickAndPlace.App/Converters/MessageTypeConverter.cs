@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LagoVista.Manufacturing.Models;
+using System;
 using System.Drawing;
 using System.Globalization;
 using System.Windows.Data;

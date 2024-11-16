@@ -1,5 +1,6 @@
 ﻿using LagoVista.Core.IOC;
 using LagoVista.Core.PlatformSupport;
+using LagoVista.Manufacturing.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +35,7 @@ namespace LagoVista.PickAndPlace.Models
             }
         }
 
-        public static async Task<HeightMap> OpenAsync(MachineSettings settings)
+        public static async Task<HeightMap> OpenAsync(LagoVista.Manufacturing.Models.Machine settings)
         {
             var popupService = SLWIOC.Get<IPopupServices>();
             var fileName = await popupService.ShowSaveFileAsync(Constants.FileFilterHeightMap);

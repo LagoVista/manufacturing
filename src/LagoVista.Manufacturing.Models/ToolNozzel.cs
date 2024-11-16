@@ -1,17 +1,18 @@
-﻿using System;
+﻿using LagoVista.Core;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace LagoVista.PickAndPlace.Models
+namespace LagoVista.Manufacturing.Models
 {
     public class ToolNozzle
     {
         public ToolNozzle()
         {
-            Id = Guid.NewGuid();
+            Id = Guid.NewGuid().ToId();
         }
 
-        public Guid Id { get; set; }
+        public string Id { get; set; }
 
         public string Name { get; set; }
         public double SafeMoveHeight { get; set; }
