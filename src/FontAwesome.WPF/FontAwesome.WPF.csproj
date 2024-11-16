@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="FontAwesome.otf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="FontAwesome.otf" />
+  </ItemGroup>
+
+</Project>
