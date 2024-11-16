@@ -95,8 +95,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             await Machine.MachineRepo.SaveAsync();
         }
 
-        Component _selectedComponent;
-        public Component SelectedComponent
+        PcbComponent _selectedComponent;
+        public PcbComponent SelectedComponent
         {
             set
             {
@@ -107,8 +107,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             get { return _selectedComponent; }
         }
 
-        List<Component> _partsList;
-        public List<Component> PartsList
+        List<PcbComponent> _partsList;
+        public List<PcbComponent> PartsList
         {
             get { return _partsList; }
             set { Set(ref _partsList, value); }

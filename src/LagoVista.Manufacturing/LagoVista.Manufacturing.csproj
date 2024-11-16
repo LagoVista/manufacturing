@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <VersionPrefix>2.0</VersionPrefix>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyVersion>1.2.211.1114</AssemblyVersion>
+    <FileVersion>1.2.211.1114</FileVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="LagoVista.UserAdmin" Version="3.0.2740.1702" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LagoVista.Manufacturing.Models\LagoVista.Manufacturing.Models.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+</Project>

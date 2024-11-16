@@ -1,0 +1,81 @@
+﻿using LagoVista.Core.Models.UIMetaData;
+using LagoVista.Core.Validation;
+using LagoVista.Manufacturing.Interfaces.Managers;
+using LagoVista.Manufacturing.Models;
+using LagoVista.IoT.Logging.Loggers;
+using LagoVista.IoT.Web.Common.Attributes;
+using LagoVista.IoT.Web.Common.Controllers;
+using LagoVista.UserAdmin.Models.Users;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
+
+namespace LagoVista.Manufacturing.Rest.Controllers
+{
+    [ConfirmedUser]
+    [Authorize]
+    public class ComponentPackageController : LagoVistaBaseController
+    {
+        private readonly IComponentPackageManager _mgr;
+
+        public ComponentPackageController(UserManager<AppUser> userManager, IAdminLogger logger, IComponentPackageManager mgr) : base(userManager, logger)
+        {
+            _mgr = mgr;
+        }
+
+        [HttpGet("/api/mfg/component/package/{id}")]
+        public async Task<DetailResponse<ComponentPackage>> GetComponentPackage(string id)
+        {
+            return DetailResponse<ComponentPackage>.Create( await _mgr.GetComponentPackageAsync(id, OrgEntityHeader, UserEntityHeader));
+        }
+
+        [HttpGet("/api/mfg/component/package/factory")]
+        public DetailResponse<ComponentPackage> CreateComponentPackage()
+        {
+            var form = DetailResponse<ComponentPackage>.Create();
+            SetAuditProperties(form.Model);
+            SetOwnedProperties(form.Model);
+            return form;
+        }
+
+        [HttpDelete("/api/mfg/component/package/{id}")]
+        public async Task<InvokeResult> DeleteComponentPackage(string id)
+        {
+            return await _mgr.DeleteCommponentPackageAsync(id, OrgEntityHeader, UserEntityHeader);
+        }
+
+        /// <summary>
+        /// ComponentPackage - Add
+        /// </summary>
+        /// <param name="ComponentPackage"></param>
+        [HttpPost("/api/mfg/component/package")]
+        public Task<InvokeResult> AddComponentPackageAsync([FromBody] ComponentPackage ComponentPackage)
+        {
+            return _mgr.AddComponentPackageAsync(ComponentPackage, OrgEntityHeader, UserEntityHeader);
+        }
+
+        /// <summary>
+        /// ComponentPackage - Update
+        /// </summary>
+        /// <param name="ComponentPackage"></param>
+        /// <returns></returns>
+        [HttpPut("/api/mfg/component/package")]
+        public Task<InvokeResult> UpdateComponentPackage([FromBody] ComponentPackage ComponentPackage)
+        {
+            SetUpdatedProperties(ComponentPackage);
+            return _mgr.UpdateComponentPackageAsync(ComponentPackage, OrgEntityHeader, UserEntityHeader);
+        }
+
+        /// <summary>
+        /// ComponentPackage - Get for Current Org
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("/api/mfg/component/packages")]
+        public Task<ListResponse<ComponentPackageSummary>> GetEquomentForOrg()
+        {
+            return _mgr.GetComponentPackagesSummariesAsync(GetListRequestFromHeader(), OrgEntityHeader, UserEntityHeader);
+        }
+
+    }
+}

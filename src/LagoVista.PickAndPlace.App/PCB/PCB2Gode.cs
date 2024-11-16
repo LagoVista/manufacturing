@@ -8,9 +8,10 @@ namespace LagoVista.PickAndPlace.App.PCB
     public class PCB2Gode
     {
         static Process _eagleULPProcess;
-        static PCBProject _project;
+        static PcbProject _project;
 
-        public static void CreateGCode(String boardFile, PCBProject project)
+
+        public static void CreateGCode(String boardFile, PcbProject project)
         {
             if (String.IsNullOrEmpty(project.EagleBRDFilePath))
             {

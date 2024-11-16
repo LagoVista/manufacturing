@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata>
+    <id>LagoVista.Manufacturing</id>
+    <version>3.0.2740.1702</version>
+    <authors>Software Logistics, LLC</authors>
+    <owners>Software Logistics, LLC</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectUrl>https://www.nuviot.com</projectUrl>
+    <iconUrl>http://bytemaster.blob.core.windows.net/icons/LagoVistaIcon.png</iconUrl>
+    <description>Provides Managers and Repositories for managing Product and Billing Data for the LagoVista Devices, IoT and Home Automation Frameworks.</description>
+    <copyright>Copyright Software Logistics - 2024</copyright>
+    <tags>HomeAutomation IoT</tags>
+    <icon>LagoVistaIcon.png</icon>
+    <releaseNotes>Build Date: 11/16/2024 10:02:22 PM UTC</releaseNotes>
+    <repository url="https://www.github.com/lagovista" type="git" branch="master"></repository>
+    <dependencies>
+      <group targetFramework="netstandard2.1">
+        <dependency id="LagoVista.UserAdmin" version="3.0.2740.1702" />
+        <dependency id="LagoVista.Manufacturing.Models" version="3.0.2740.1702" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="LagoVistaIcon.png" target="LagoVistaIcon.png" />
+    <file src="bin\release\netstandard2.1\LagoVista.Manufacturing.dll" target="lib\netstandard2.1\LagoVista.Manufacturing.dll" />
+    <file src="bin\release\netstandard2.1\LagoVista.Manufacturing.pdb" target="lib\netstandard2.1\LagoVista.Manufacturing.pdb" />
+  </files>
+</package>

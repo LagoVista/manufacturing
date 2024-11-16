@@ -58,7 +58,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         public ObservableCollection<BuildFlavor> BuildFlavors { get; set; } = new ObservableCollection<BuildFlavor>();
 
-        public ObservableCollection<Component> PartsToBePlaced { get; set; } = new ObservableCollection<Component>();
+        public ObservableCollection<PcbComponent> PartsToBePlaced { get; set; } = new ObservableCollection<PcbComponent>();
 
         public bool HasJob { get { return Job != null; } }
 
@@ -167,8 +167,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
 
 
-        Component _selectedComponent;
-        public Component SelectedComponent
+        PcbComponent _selectedComponent;
+        public PcbComponent SelectedComponent
         {
             get => _selectedComponent;
             set { Set(ref _selectedComponent, value);  }
@@ -191,8 +191,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             set => Set(ref _selectedPartPackage, value);
         }
 
-        Component _selectPartToBePlaced;
-        public Component SelectedPartToBePlaced
+        PcbComponent _selectPartToBePlaced;
+        public PcbComponent SelectedPartToBePlaced
         {
             get { return _selectPartToBePlaced; }
             set

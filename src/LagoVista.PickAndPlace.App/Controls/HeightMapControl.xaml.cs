@@ -36,7 +36,7 @@ namespace LagoVista.PickAndPlace.App.Controls
             Camera.Position = new Point3D(x, Camera.Position.Y, Camera.Position.Z);
         }
        
-        private void RenderBoard(PrintedCircuitBoard board, PCBProject project, bool resetZoomAndView = true)
+        private void RenderBoard(PrintedCircuitBoard board, PcbProject project, bool resetZoomAndView = true)
         {
             var linePoints = new Point3DCollection();
 

@@ -7,7 +7,7 @@ namespace LagoVista.PickAndPlace.Models
     {
         public int Count { get; set; }
 
-        public ObservableCollection<Component> Parts {get; set;}
+        public ObservableCollection<PcbComponent> Parts {get; set;}
         
         public string Package { get; set; }
         public string Value { get; set; }

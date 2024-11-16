@@ -86,7 +86,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
                     };
 
-                    part.Parts = new ObservableCollection<Component>();
+                    part.Parts = new ObservableCollection<PcbComponent>();
 
                     foreach (var specificPart in entry)
                     {

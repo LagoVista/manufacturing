@@ -333,7 +333,7 @@ namespace LagoVista.PickAndPlace.App
         private async void NewPCBProject_Click(object sender, RoutedEventArgs e)
         {
             var pcbWindow = new PCBProjectView();
-            var vm = new PCBProjectViewModel(new PCBProject());
+            var vm = new PCBProjectViewModel(new PcbProject());
             await vm.LoadDefaultSettings();
             pcbWindow.DataContext = vm;
             pcbWindow.IsNew = true;

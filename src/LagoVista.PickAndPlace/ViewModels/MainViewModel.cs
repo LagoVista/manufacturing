@@ -112,7 +112,7 @@ namespace LagoVista.PickAndPlace.ViewModels
         {
             try
             {
-                Project = await PCBProject.OpenAsync(projectFile);
+                Project = await PcbProject.OpenAsync(projectFile);
                 Machine.PCBManager.ProjectFilePath = projectFile;
                 AddProjectFileMRU(projectFile);
                 return true;

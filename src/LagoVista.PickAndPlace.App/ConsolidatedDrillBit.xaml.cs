@@ -26,7 +26,7 @@ namespace LagoVista.PickAndPlace.App
         }
 
         bool _isEdit;
-        PCBProject _project; 
+        PcbProject _project; 
 
 
 
@@ -85,7 +85,7 @@ namespace LagoVista.PickAndPlace.App
         public ConsolidatedDrillBit ConsolidatedDrill { get; set; }
         
 
-        public void ShowForNew(PCBProject project, Window owner)
+        public void ShowForNew(PcbProject project, Window owner)
         {
             _project = project;
 
@@ -102,7 +102,7 @@ namespace LagoVista.PickAndPlace.App
             this.ShowDialog();
         }
 
-        public void ShowForEdit(PCBProject project, ConsolidatedDrillBit drill, Window owner)
+        public void ShowForEdit(PcbProject project, ConsolidatedDrillBit drill, Window owner)
         {
             _project = project;
 

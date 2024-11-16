@@ -14,7 +14,7 @@ namespace LagoVista.PCB.Eagle.Managers
 
             pcb.Components = (from eles
                            in doc.Descendants("element")
-                              select Models.Component.Create(eles)).ToList();
+                              select Models.PcbComponent.Create(eles)).ToList();
 
             pcb.Layers = (from eles
                            in doc.Descendants("layer")

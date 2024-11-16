@@ -13,8 +13,8 @@ namespace LagoVista.PickAndPlace.ViewModels
     {
         public event EventHandler GenerateIsolationEvent;
 
-        PCBProject _project;
-        public PCBProject Project
+        PcbProject _project;
+        public PcbProject Project
         {
             get { return _project; }
             set { Set(ref _project, value); }
@@ -27,7 +27,7 @@ namespace LagoVista.PickAndPlace.ViewModels
             set { Set(ref _pcb, value); }
         }
 
-        public PCBProjectViewModel(PCBProject project)
+        public PCBProjectViewModel(PcbProject project)
         {
             Project = project;
             SaveDefaultProfileCommand = new RelayCommand(SaveDefaultProfile);
@@ -62,10 +62,10 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         public async Task LoadDefaultSettings()
         {
-            Project = await Storage.GetAsync<PCBProject>("Default.pcbproj");
+            Project = await Storage.GetAsync<PcbProject>("Default.pcbproj");
             if (Project == null)
             {
-                Project = PCBProject.Default;
+                Project = PcbProject.Default;
             }
         }
 
@@ -120,7 +120,7 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         public async Task<bool> LoadExistingFile(string file)
         {
-            Project = await Storage.GetAsync<PCBProject>(file);
+            Project = await Storage.GetAsync<PcbProject>(file);
             return Project != null;
         }
 

@@ -59,5 +59,10 @@ namespace LagoVista.PickAndPlace.App.Services
         {
             throw new NotImplementedException();
         }
+
+        public void Trace(string message, params KeyValuePair<string, string>[] args)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

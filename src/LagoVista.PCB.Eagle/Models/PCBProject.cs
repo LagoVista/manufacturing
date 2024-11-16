@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace LagoVista.PCB.Eagle.Models
 {
-    public class PCBProject : ModelBase
+    public class PcbProject : ModelBase
     {
         private bool _isEditing;
 
-        public PCBProject()
+        public PcbProject()
         {
             Fiducials = new ObservableCollection<Hole>();
             ConsolidatedDrillRack = new ObservableCollection<ConsolidatedDrillBit>();
@@ -108,9 +108,9 @@ namespace LagoVista.PCB.Eagle.Models
 
         public ObservableCollection<Hole> Fiducials { get; set; }
 
-        public PCBProject Clone()
+        public PcbProject Clone()
         {
-            return this.MemberwiseClone() as PCBProject;
+            return this.MemberwiseClone() as PcbProject;
         }
 
         public ObservableCollection<ConsolidatedDrillBit> ConsolidatedDrillRack { get; set; }
@@ -135,19 +135,19 @@ namespace LagoVista.PCB.Eagle.Models
             _isEditing = true;
         }
 
-        public static async Task<PCBProject> OpenAsync(String fileName)
+        public static async Task<PcbProject> OpenAsync(String fileName)
         {
-            var project = await Core.PlatformSupport.Services.Storage.GetAsync<PCBProject>(fileName);
+            var project = await Core.PlatformSupport.Services.Storage.GetAsync<PcbProject>(fileName);
             project._currentFileName = fileName;
             project._isEditing = true;
             return project;
         }
 
-        public static PCBProject Default
+        public static PcbProject Default
         {
             get
             {
-                return new PCBProject()
+                return new PcbProject()
                 {
                     PauseForToolChange = false,
                     StockWidth = 100,

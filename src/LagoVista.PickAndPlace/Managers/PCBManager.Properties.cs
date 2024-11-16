@@ -37,8 +37,8 @@ namespace LagoVista.PickAndPlace.Managers
         }
 
 
-        PCBProject _project;
-        public PCBProject Project
+        PcbProject _project;
+        public PcbProject Project
         {
             get { return _project; }
             set

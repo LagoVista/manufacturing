@@ -26,7 +26,7 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         bool HasProject { get; }
 
-        PCBProject Project { get; set; }
+        PcbProject Project { get; set; }
 
         String ProjectFilePath { get; set; }
 

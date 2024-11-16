@@ -10,14 +10,14 @@ namespace LagoVista.PCB.Eagle.Models
     {
         public BOMEntry()
         {
-            Components = new List<Component>();
+            Components = new List<PcbComponent>();
         }
 
         public Package Package { get;  internal set; }
 
         public string Value { get; internal set; }
 
-        public List<Component> Components { get; private set; }
+        public List<PcbComponent> Components { get; private set; }
 
         public override string ToString()
         {

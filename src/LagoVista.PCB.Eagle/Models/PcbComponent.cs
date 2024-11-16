@@ -4,7 +4,7 @@ using System.Xml.Linq;
 
 namespace LagoVista.PCB.Eagle.Models
 {
-    public class Component
+    public class PcbComponent
     {
         public string Name { get; set; }
         public string LibraryName { get; set; }
@@ -100,9 +100,9 @@ namespace LagoVista.PCB.Eagle.Models
 
         public string Key => PackageName.ToUpper() + "-" + Value.ToUpper();
 
-        public static Component Create(XElement element)
+        public static PcbComponent Create(XElement element)
         {
-            return new Component()
+            return new PcbComponent()
             {
                 Name = element.GetString("name"),
                 LibraryName = element.GetString("library"),
@@ -114,9 +114,9 @@ namespace LagoVista.PCB.Eagle.Models
             };
         }
 
-        public Component Clone()
+        public PcbComponent Clone()
         {
-            return new Component()
+            return new PcbComponent()
             {
                 Name = Name,
                 LibraryName = LibraryName,

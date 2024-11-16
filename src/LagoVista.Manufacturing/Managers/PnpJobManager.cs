@@ -1,0 +1,78 @@
+﻿using LagoVista.Core.Interfaces;
+using LagoVista.Core.Managers;
+using LagoVista.Core.Models.UIMetaData;
+using LagoVista.Core.Models;
+using LagoVista.Core.Validation;
+using LagoVista.Manufacturing.Interfaces.Managers;
+using LagoVista.Manufacturing.Interfaces.Repos;
+using LagoVista.Manufacturing.Models;
+using LagoVista.IoT.Logging.Loggers;
+using System;
+using static LagoVista.Core.Models.AuthorizeResult;
+using System.Threading.Tasks;
+
+namespace LagoVista.Manufacturing.Managers
+{
+    public class PickAndPlaceJobManager : ManagerBase, IPickAndPlaceJobManager
+    {
+        private readonly IPickAndPlaceJobRepo _PickAndPlaceJobRepo;
+
+        public PickAndPlaceJobManager(IPickAndPlaceJobRepo partRepo, IAdminLogger logger, IAppConfig appConfig, IDependencyManager depmanager, ISecurity security) :
+            base(logger, appConfig, depmanager, security)
+        {
+            _PickAndPlaceJobRepo = partRepo;
+        }
+        public async Task<InvokeResult> AddPickAndPlaceJobAsync(PickAndPlaceJob part, EntityHeader org, EntityHeader user)
+        {
+            await AuthorizeAsync(part, AuthorizeActions.Create, user, org);
+            ValidationCheck(part, Actions.Create);
+            await _PickAndPlaceJobRepo.AddPickAndPlaceJobAsync(part);
+
+            return InvokeResult.Success;
+        }
+
+        public async Task<DependentObjectCheckResult> CheckInUseAsync(string id, EntityHeader org, EntityHeader user)
+        {
+            var part = await _PickAndPlaceJobRepo.GetPickAndPlaceJobAsync(id);
+            await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
+            return await base.CheckForDepenenciesAsync(part);
+        }
+
+        public Task<InvokeResult> DeleteCommponentAsync(string id, EntityHeader org, EntityHeader user)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<InvokeResult> DeletePickAndPlaceJobAsync(string id, EntityHeader org, EntityHeader user)
+        {
+            var part = await _PickAndPlaceJobRepo.GetPickAndPlaceJobAsync(id);
+            await ConfirmNoDepenenciesAsync(part);
+            await AuthorizeAsync(part, AuthorizeActions.Delete, user, org);
+            await _PickAndPlaceJobRepo.DeletePickAndPlaceJobAsync(id);
+            return InvokeResult.Success;
+        }
+
+        public async Task<PickAndPlaceJob> GetPickAndPlaceJobAsync(string id, EntityHeader org, EntityHeader user)
+        {
+            var part = await _PickAndPlaceJobRepo.GetPickAndPlaceJobAsync(id);
+            await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
+            return part;
+        }
+
+
+        public async Task<ListResponse<PickAndPlaceJobSummary>> GetPickAndPlaceJobSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user)
+        {
+            await AuthorizeOrgAccessAsync(user, org.Id, typeof(PickAndPlaceJob));
+            return await _PickAndPlaceJobRepo.GetPickAndPlaceJobSummariesAsync(org.Id, listRequest);
+        }
+
+        public async Task<InvokeResult> UpdatePickAndPlaceJobAsync(PickAndPlaceJob part, EntityHeader org, EntityHeader user)
+        {
+            await AuthorizeAsync(part, AuthorizeActions.Update, user, org);
+            ValidationCheck(part, Actions.Update);
+            await _PickAndPlaceJobRepo.UpdatePickAndPlaceJobAsync(part);
+
+            return InvokeResult.Success;
+        }
+    }
+}

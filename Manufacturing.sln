@@ -15,6 +15,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LagoVista.PickAndPlace.App"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FontAwesome.WPF", "src\FontAwesome.WPF\FontAwesome.WPF.csproj", "{B7AA00C3-2147-4447-899C-E62A36869628}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LagoVista.Manufacturing", "src\LagoVista.Manufacturing\LagoVista.Manufacturing.csproj", "{70680E40-575D-48E5-B4EC-ACFAAB5FE221}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LagoVista.Manufacturing.Models", "src\LagoVista.Manufacturing.Models\LagoVista.Manufacturing.Models.csproj", "{DD2859F9-F2FB-4276-A7E9-0B6DF0C52870}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LagoVista.Manufacturing.Repos", "src\LagoVista.Manufacturing.Repos\LagoVista.Manufacturing.Repos.csproj", "{D3ACB852-CE6D-40C2-8111-63B6B4BA2032}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LagoVista.Manufacturing.Rest", "src\LagoVista.Manufacturing.Rest\LagoVista.Manufacturing.Rest.csproj", "{C5EBC1BC-D858-483F-BD0C-758B652A341F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +49,22 @@ Global
 		{B7AA00C3-2147-4447-899C-E62A36869628}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B7AA00C3-2147-4447-899C-E62A36869628}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B7AA00C3-2147-4447-899C-E62A36869628}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70680E40-575D-48E5-B4EC-ACFAAB5FE221}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70680E40-575D-48E5-B4EC-ACFAAB5FE221}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70680E40-575D-48E5-B4EC-ACFAAB5FE221}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70680E40-575D-48E5-B4EC-ACFAAB5FE221}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD2859F9-F2FB-4276-A7E9-0B6DF0C52870}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD2859F9-F2FB-4276-A7E9-0B6DF0C52870}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD2859F9-F2FB-4276-A7E9-0B6DF0C52870}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD2859F9-F2FB-4276-A7E9-0B6DF0C52870}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3ACB852-CE6D-40C2-8111-63B6B4BA2032}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3ACB852-CE6D-40C2-8111-63B6B4BA2032}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3ACB852-CE6D-40C2-8111-63B6B4BA2032}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3ACB852-CE6D-40C2-8111-63B6B4BA2032}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5EBC1BC-D858-483F-BD0C-758B652A341F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5EBC1BC-D858-483F-BD0C-758B652A341F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5EBC1BC-D858-483F-BD0C-758B652A341F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5EBC1BC-D858-483F-BD0C-758B652A341F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -51,6 +75,10 @@ Global
 		{005D475C-E551-4666-93A1-CCF5C1BEF4CD} = {F1E1AD91-DBE5-4C4E-A084-0452E47CEAA4}
 		{0B3A0017-1DED-4845-8A5A-ED37CCA273EF} = {F1E1AD91-DBE5-4C4E-A084-0452E47CEAA4}
 		{B7AA00C3-2147-4447-899C-E62A36869628} = {F1E1AD91-DBE5-4C4E-A084-0452E47CEAA4}
+		{70680E40-575D-48E5-B4EC-ACFAAB5FE221} = {F1E1AD91-DBE5-4C4E-A084-0452E47CEAA4}
+		{DD2859F9-F2FB-4276-A7E9-0B6DF0C52870} = {F1E1AD91-DBE5-4C4E-A084-0452E47CEAA4}
+		{D3ACB852-CE6D-40C2-8111-63B6B4BA2032} = {F1E1AD91-DBE5-4C4E-A084-0452E47CEAA4}
+		{C5EBC1BC-D858-483F-BD0C-758B652A341F} = {F1E1AD91-DBE5-4C4E-A084-0452E47CEAA4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A071B13F-9FB8-48FF-A256-D739F9F59005}

@@ -28,7 +28,7 @@ namespace LagoVista.PickAndPlace.Managers
         {
             try
             {
-                Project = await PCBProject.OpenAsync(projectFile);
+                Project = await PcbProject.OpenAsync(projectFile);
 
                 return true;
             }

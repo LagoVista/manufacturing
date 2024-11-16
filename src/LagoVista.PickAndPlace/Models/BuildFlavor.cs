@@ -20,7 +20,7 @@ namespace LagoVista.PickAndPlace.Models
             set => Set(ref _notes, value);
         }
 
-        public ObservableCollection<Component> Components { get; private set; } = new ObservableCollection<Component>();
+        public ObservableCollection<PcbComponent> Components { get; private set; } = new ObservableCollection<PcbComponent>();
 
         public BuildFlavor Clone(string clonedName)
         {

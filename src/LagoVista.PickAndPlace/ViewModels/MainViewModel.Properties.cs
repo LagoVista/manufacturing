@@ -14,8 +14,8 @@ namespace LagoVista.PickAndPlace.ViewModels
         public JobControlViewModel JobControlVM { get; private set; }
         public MachineControlViewModel MachineControlVM { get; private set; }
 
-        PCBProject _project;
-        public PCBProject Project
+        PcbProject _project;
+        public PcbProject Project
         {
             get { return _project; }
             set
