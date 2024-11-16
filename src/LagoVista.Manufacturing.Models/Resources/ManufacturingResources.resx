@@ -383,4 +383,13 @@
   <data name="Machines_Title" xml:space="preserve">
     <value>Machines</value>
   </data>
+  <data name="Pcb_Title" xml:space="preserve">
+    <value>Printed Circuit Board</value>
+  </data>
+  <data name="Pcbs_Title" xml:space="preserve">
+    <value>Printed Circuit Boards</value>
+  </data>
+  <data name="Pcb_Description" xml:space="preserve">
+    <value>Printed circuit boards are electronic components </value>
+  </data>
 </root>

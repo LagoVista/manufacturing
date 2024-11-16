@@ -140,8 +140,8 @@ namespace LagoVista.Manufacturing.Models
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Machine_Title, ManufacturingResources.Names.Machine_Description,
         ManufacturingResources.Names.Machine_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-searching-2", Cloneable: true,
-        SaveUrl: "/api/mfg/machine/settings", GetUrl: "/api/mfg/machine/settings/{id}", GetListUrl: "/api/mfg/machine/settings", FactoryUrl: "/api/mfg/machine/settings/factory",
-        DeleteUrl: "/api/machine/settings/{id}", ListUIUrl: "/mfg/machinesettings", EditUIUrl: "/mfg/machinesettings/{id}", CreateUIUrl: "/mfg/machinesettings/add")]
+        SaveUrl: "/api/mfg/machine", GetUrl: "/api/mfg/machine/{id}", GetListUrl: "/api/mfg/machines", FactoryUrl: "/api/mfg/machine/factory",
+        DeleteUrl: "/api/mfg/machine/{id}", ListUIUrl: "/mfg/machinesettings", EditUIUrl: "/mfg/machine/{id}", CreateUIUrl: "/mfg/machine/add")]
     public class Machine : MfgModelBase, ISummaryFactory, INotifyPropertyChanged
     {
 
@@ -499,6 +499,10 @@ namespace LagoVista.Manufacturing.Models
             {
                 Id = Id,
                 Icon = Icon,
+                Name = Name,
+                Key = Key,
+                Description = Description,
+                IsPublic = IsPublic
             };
         }
 
@@ -541,9 +545,12 @@ namespace LagoVista.Manufacturing.Models
                 };
             }
         }
-
     }
 
+    [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Machine_Title, ManufacturingResources.Names.Machine_Description,
+        ManufacturingResources.Names.Machine_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-searching-2", Cloneable: true,
+        SaveUrl: "/api/mfg/machine", GetUrl: "/api/mfg/machine/{id}", GetListUrl: "/api/mfg/machines", FactoryUrl: "/api/mfg/machine/factory",
+        DeleteUrl: "/api/mfg/machine/{id}", ListUIUrl: "/mfg/machinesettings", EditUIUrl: "/mfg/machine/{id}", CreateUIUrl: "/mfg/machine/add")]
     public class MachineSummary : SummaryData
     {
 

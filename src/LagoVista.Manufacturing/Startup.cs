@@ -16,6 +16,7 @@ namespace LagoVista.Manufacturing
             services.AddTransient<IMachineManager, MachineManager>();
             services.AddTransient<IPickAndPlaceJobManager, PickAndPlaceJobManager>();
             services.AddTransient<IPartPackManager, PartPackManager>();
+            services.AddTransient<ICircuitBoardManager, CircuitBoardManager>();
         }
     }
 }

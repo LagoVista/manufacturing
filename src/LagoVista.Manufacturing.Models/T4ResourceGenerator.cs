@@ -1,4 +1,4 @@
-﻿/*11/16/2024 6:13:10 PM*/
+﻿/*11/16/2024 6:39:40 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -308,6 +308,15 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:PartType_ThroughHole
 
 		public static string PartType_ThroughHole { get { return GetResourceString("PartType_ThroughHole"); } }
+//Resources:ManufacturingResources:Pcb_Description
+
+		public static string Pcb_Description { get { return GetResourceString("Pcb_Description"); } }
+//Resources:ManufacturingResources:Pcb_Title
+
+		public static string Pcb_Title { get { return GetResourceString("Pcb_Title"); } }
+//Resources:ManufacturingResources:Pcbs_Title
+
+		public static string Pcbs_Title { get { return GetResourceString("Pcbs_Title"); } }
 //Resources:ManufacturingResources:PickAndPlaceJob_Title
 
 		public static string PickAndPlaceJob_Title { get { return GetResourceString("PickAndPlaceJob_Title"); } }
@@ -411,6 +420,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string PartType_Hardware = "PartType_Hardware";
 			public const string PartType_SurfaceMount = "PartType_SurfaceMount";
 			public const string PartType_ThroughHole = "PartType_ThroughHole";
+			public const string Pcb_Description = "Pcb_Description";
+			public const string Pcb_Title = "Pcb_Title";
+			public const string Pcbs_Title = "Pcbs_Title";
 			public const string PickAndPlaceJob_Title = "PickAndPlaceJob_Title";
 			public const string StripFeeder_Description = "StripFeeder_Description";
 			public const string StripFeeder_Title = "StripFeeder_Title";
