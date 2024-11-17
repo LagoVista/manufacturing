@@ -392,4 +392,10 @@
   <data name="Pcb_Description" xml:space="preserve">
     <value>Printed circuit boards are electronic components </value>
   </data>
+  <data name="Pcb_Revision" xml:space="preserve">
+    <value>Revision</value>
+  </data>
+  <data name="Pcb_Variant" xml:space="preserve">
+    <value>Variant</value>
+  </data>
 </root>

@@ -7,8 +7,8 @@ namespace LagoVista.Manufacturing.Repos
 {
     public interface IManufacturingRepoSettings
     {
-        IConnectionSettings ManufacturingDocDbStorage { get; set; }
-        IConnectionSettings ManufacturingTableStorage { get; set; }
+        IConnectionSettings ManufacturingDocDbStorage { get; }
+        IConnectionSettings ManufacturingTableStorage { get; }
 
         bool ShouldConsolidateCollections { get; }
     }

@@ -38,6 +38,10 @@ namespace LagoVista.Manufacturing.Models
         }
     }
 
+    [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Pcbs_Title, ManufacturingResources.Names.Pcb_Description,
+        ManufacturingResources.Names.Machine_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-searching-2", Cloneable: true,
+        SaveUrl: "/api/mfg/pcb", GetUrl: "/api/mfg/pcb/{id}", GetListUrl: "/api/mfg/pcb", FactoryUrl: "/api/mfg/pcb/factory",
+        DeleteUrl: "/api/mfg/pcb/{id}", ListUIUrl: "/mfg/pcbs", EditUIUrl: "/mfg/pcb/{id}", CreateUIUrl: "/mfg/pcb/add")]
     public class CircuitBoardSummary : SummaryData
     {
 

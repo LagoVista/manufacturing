@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <VersionPrefix>4.0</VersionPrefix>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -9,7 +9,10 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="LagoVista.UserAdmin.Models" Version="3.0.2740.1702" />
+    <PackageReference Include="LagoVista.UserAdmin.Models" Version="3.0.2740.1901" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LagoVista.PCB.Eagle\LagoVista.PCB.Eagle.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="T4ResourceGenerator.cs">
