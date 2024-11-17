@@ -13,11 +13,17 @@ namespace LagoVista.Manufacturing.Models
         SaveUrl: "/api/mfg/pcb", GetUrl: "/api/mfg/pcb/{id}", GetListUrl: "/api/mfg/pcb", FactoryUrl: "/api/mfg/pcb/factory",
         DeleteUrl: "/api/mfg/pcb/{id}", ListUIUrl: "/mfg/pcbs", EditUIUrl: "/mfg/pcb/{id}", CreateUIUrl: "/mfg/pcb/add")]
 
-    public class CircuitBoard : MfgModelBase, ISummaryFactory
+    public class CircuitBoard : MfgModelBase, IFormDescriptor, ISummaryFactory
     {
+        [FormField(LabelResource: ManufacturingResources.Names.Pcb_Sku, IsRequired:true, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
+        public string Sku { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
-        public string Icon { get; set; } = "icon-fo-folders";
+        public string Icon { get; set; } = "icon-pz-searching-2";
+
+        [FormField(LabelResource: ManufacturingResources.Names.Pcb_Revisions, FieldType: FieldTypes.ChildListInline, FactoryUrl: "/api/mfg/pcb/revision/factory", 
+                ResourceType: typeof(ManufacturingResources))]
+        public List<CircuitBoardRevision> Revisions { get; set; } = new List<CircuitBoardRevision>();
 
         public CircuitBoardSummary CreateSummary()
         {
@@ -28,7 +34,19 @@ namespace LagoVista.Manufacturing.Models
                 Key = Key,
                 Description = Description,
                 Name = Name,
+                Sku = Sku,
                 IsPublic = IsPublic
+            };
+        }
+
+        public List<string> GetFormFields()
+        {
+            return new List<string>()
+            {
+                nameof(Name),
+                nameof(Key),
+                nameof(Sku),
+                nameof(Revisions),
             };
         }
 
@@ -44,6 +62,6 @@ namespace LagoVista.Manufacturing.Models
         DeleteUrl: "/api/mfg/pcb/{id}", ListUIUrl: "/mfg/pcbs", EditUIUrl: "/mfg/pcb/{id}", CreateUIUrl: "/mfg/pcb/add")]
     public class CircuitBoardSummary : SummaryData
     {
-
+        public string Sku { get; set; }
     }
 }

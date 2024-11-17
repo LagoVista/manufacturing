@@ -1,4 +1,4 @@
-﻿/*11/16/2024 6:39:40 PM*/
+﻿/*11/17/2024 8:07:11 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -311,12 +311,57 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Pcb_Description
 
 		public static string Pcb_Description { get { return GetResourceString("Pcb_Description"); } }
+//Resources:ManufacturingResources:Pcb_Revision
+
+		public static string Pcb_Revision { get { return GetResourceString("Pcb_Revision"); } }
+//Resources:ManufacturingResources:Pcb_Revision_BoardFile
+
+		public static string Pcb_Revision_BoardFile { get { return GetResourceString("Pcb_Revision_BoardFile"); } }
+//Resources:ManufacturingResources:Pcb_Revision_BomFile
+
+		public static string Pcb_Revision_BomFile { get { return GetResourceString("Pcb_Revision_BomFile"); } }
+//Resources:ManufacturingResources:Pcb_Revision_Description
+
+		public static string Pcb_Revision_Description { get { return GetResourceString("Pcb_Revision_Description"); } }
+//Resources:ManufacturingResources:Pcb_Revision_RevisionTimeStamp
+
+		public static string Pcb_Revision_RevisionTimeStamp { get { return GetResourceString("Pcb_Revision_RevisionTimeStamp"); } }
+//Resources:ManufacturingResources:Pcb_Revision_SchematicFile
+
+		public static string Pcb_Revision_SchematicFile { get { return GetResourceString("Pcb_Revision_SchematicFile"); } }
+//Resources:ManufacturingResources:Pcb_Revision_SchematicPdFile
+
+		public static string Pcb_Revision_SchematicPdFile { get { return GetResourceString("Pcb_Revision_SchematicPdFile"); } }
+//Resources:ManufacturingResources:Pcb_Revision_Title
+
+		public static string Pcb_Revision_Title { get { return GetResourceString("Pcb_Revision_Title"); } }
+//Resources:ManufacturingResources:Pcb_Revisions
+
+		public static string Pcb_Revisions { get { return GetResourceString("Pcb_Revisions"); } }
+//Resources:ManufacturingResources:Pcb_Sku
+
+		public static string Pcb_Sku { get { return GetResourceString("Pcb_Sku"); } }
 //Resources:ManufacturingResources:Pcb_Title
 
 		public static string Pcb_Title { get { return GetResourceString("Pcb_Title"); } }
+//Resources:ManufacturingResources:Pcb_Variant
+
+		public static string Pcb_Variant { get { return GetResourceString("Pcb_Variant"); } }
+//Resources:ManufacturingResources:Pcb_Variant_Description
+
+		public static string Pcb_Variant_Description { get { return GetResourceString("Pcb_Variant_Description"); } }
+//Resources:ManufacturingResources:Pcb_Variant_Sku
+
+		public static string Pcb_Variant_Sku { get { return GetResourceString("Pcb_Variant_Sku"); } }
+//Resources:ManufacturingResources:Pcb_Variants
+
+		public static string Pcb_Variants { get { return GetResourceString("Pcb_Variants"); } }
 //Resources:ManufacturingResources:Pcbs_Title
 
 		public static string Pcbs_Title { get { return GetResourceString("Pcbs_Title"); } }
+//Resources:ManufacturingResources:Pfb_Revision_Revision
+
+		public static string Pfb_Revision_Revision { get { return GetResourceString("Pfb_Revision_Revision"); } }
 //Resources:ManufacturingResources:PickAndPlaceJob_Title
 
 		public static string PickAndPlaceJob_Title { get { return GetResourceString("PickAndPlaceJob_Title"); } }
@@ -421,8 +466,23 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string PartType_SurfaceMount = "PartType_SurfaceMount";
 			public const string PartType_ThroughHole = "PartType_ThroughHole";
 			public const string Pcb_Description = "Pcb_Description";
+			public const string Pcb_Revision = "Pcb_Revision";
+			public const string Pcb_Revision_BoardFile = "Pcb_Revision_BoardFile";
+			public const string Pcb_Revision_BomFile = "Pcb_Revision_BomFile";
+			public const string Pcb_Revision_Description = "Pcb_Revision_Description";
+			public const string Pcb_Revision_RevisionTimeStamp = "Pcb_Revision_RevisionTimeStamp";
+			public const string Pcb_Revision_SchematicFile = "Pcb_Revision_SchematicFile";
+			public const string Pcb_Revision_SchematicPdFile = "Pcb_Revision_SchematicPdFile";
+			public const string Pcb_Revision_Title = "Pcb_Revision_Title";
+			public const string Pcb_Revisions = "Pcb_Revisions";
+			public const string Pcb_Sku = "Pcb_Sku";
 			public const string Pcb_Title = "Pcb_Title";
+			public const string Pcb_Variant = "Pcb_Variant";
+			public const string Pcb_Variant_Description = "Pcb_Variant_Description";
+			public const string Pcb_Variant_Sku = "Pcb_Variant_Sku";
+			public const string Pcb_Variants = "Pcb_Variants";
 			public const string Pcbs_Title = "Pcbs_Title";
+			public const string Pfb_Revision_Revision = "Pfb_Revision_Revision";
 			public const string PickAndPlaceJob_Title = "PickAndPlaceJob_Title";
 			public const string StripFeeder_Description = "StripFeeder_Description";
 			public const string StripFeeder_Title = "StripFeeder_Title";

@@ -398,4 +398,43 @@
   <data name="Pcb_Variant" xml:space="preserve">
     <value>Variant</value>
   </data>
+  <data name="Pcb_Revision_BoardFile" xml:space="preserve">
+    <value>Board File</value>
+  </data>
+  <data name="Pcb_Revision_Description" xml:space="preserve">
+    <value>A circuit board revision is a version of a board with a specific layout and component set.</value>
+  </data>
+  <data name="Pcb_Revision_RevisionTimeStamp" xml:space="preserve">
+    <value>Revision Time Stamp YYYY-MM-DD</value>
+  </data>
+  <data name="Pcb_Revision_SchematicFile" xml:space="preserve">
+    <value>Schematic File</value>
+  </data>
+  <data name="Pcb_Revision_SchematicPdFile" xml:space="preserve">
+    <value>Scheamtic PDF File</value>
+  </data>
+  <data name="Pcb_Revision_Title" xml:space="preserve">
+    <value>Circuit Board Revision</value>
+  </data>
+  <data name="Pcb_Variant_Description" xml:space="preserve">
+    <value>A variant is a spec for building a board with a specific set of components on it.  A board may have more components than it needs.</value>
+  </data>
+  <data name="Pfb_Revision_Revision" xml:space="preserve">
+    <value>Revision  (X.X.X)</value>
+  </data>
+  <data name="Pcb_Revisions" xml:space="preserve">
+    <value>Revisions</value>
+  </data>
+  <data name="Pcb_Revision_BomFile" xml:space="preserve">
+    <value>BOM File</value>
+  </data>
+  <data name="Pcb_Sku" xml:space="preserve">
+    <value>Sku</value>
+  </data>
+  <data name="Pcb_Variants" xml:space="preserve">
+    <value>Variants</value>
+  </data>
+  <data name="Pcb_Variant_Sku" xml:space="preserve">
+    <value>Variant Sku</value>
+  </data>
 </root>

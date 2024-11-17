@@ -39,6 +39,18 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return form;
         }
 
+        [HttpGet("/api/mfg/pcb/revision/factory")]
+        public DetailResponse<CircuitBoardRevision> CreateCircuitRevisionBoard()
+        {
+            return DetailResponse<CircuitBoardRevision>.Create();
+        }
+
+        [HttpGet("/api/mfg/pcb/variant/factory")]
+        public DetailResponse<CircuitBoardVarient> CreateCircuitVariantBoard()
+        {
+            return DetailResponse<CircuitBoardVarient>.Create();
+        }
+
         [HttpDelete("/api/mfg/CircuitBoard/{id}")]
         public async Task<InvokeResult> DeleteCircuitBoard(string id)
         {
