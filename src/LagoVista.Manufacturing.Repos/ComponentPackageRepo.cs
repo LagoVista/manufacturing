@@ -1,11 +1,11 @@
 ﻿using LagoVista.CloudStorage.DocumentDB;
 using LagoVista.Core.Interfaces;
 using LagoVista.Core.Models.UIMetaData;
-using LagoVista.Manufacturing.CloudRepos;
 using LagoVista.Manufacturing.Interfaces.Repos;
 using LagoVista.IoT.Logging.Loggers;
 using System.Threading.Tasks;
 using LagoVista.Manufacturing.Models;
+using LagoVista.Manufacturing.Repos;
 
 namespace LagoVista.Manufacturing.Repo.Repos
 {
@@ -13,11 +13,12 @@ namespace LagoVista.Manufacturing.Repo.Repos
     {
         private bool _shouldConsolidateCollections;
 
-        public ComponentPackageRepo(IDeviceRepoSettings settings, IAdminLogger logger, ICacheProvider cacheProvider, IDependencyManager dependencyMgr) :
-            base(settings.DeviceDocDbStorage.Uri, settings.DeviceDocDbStorage.AccessKey, settings.DeviceDocDbStorage.ResourceName, logger, cacheProvider, dependencyMgr)
+        public ComponentPackageRepo(IManufacturingRepoSettings settings, IAdminLogger logger, ICacheProvider cacheProvider, IDependencyManager dependencyMgr) :
+            base(settings.ManufacturingDocDbStorage.Uri, settings.ManufacturingDocDbStorage.AccessKey, settings.ManufacturingDocDbStorage.ResourceName, logger, cacheProvider, dependencyMgr)
         {
             _shouldConsolidateCollections = settings.ShouldConsolidateCollections;
         }
+
         protected override bool ShouldConsolidateCollections => _shouldConsolidateCollections;
 
         public Task AddComponentPackageAsync(ComponentPackage package)

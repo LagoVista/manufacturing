@@ -70,7 +70,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return _mgr.UpdateCircuitBoardAsync(CircuitBoard, OrgEntityHeader, UserEntityHeader);
         }
 
-        [HttpGet("/api/mfg/pcb")]
+        [HttpGet("/api/mfg/pcbs")]
         public Task<ListResponse<CircuitBoardSummary>> GetEquomentForOrg()
         {
             return _mgr.GetCircuitBoardsSummariesAsync(GetListRequestFromHeader(), OrgEntityHeader, UserEntityHeader);

@@ -411,7 +411,7 @@
     <value>Schematic File</value>
   </data>
   <data name="Pcb_Revision_SchematicPdFile" xml:space="preserve">
-    <value>Scheamtic PDF File</value>
+    <value>Schematic PDF File</value>
   </data>
   <data name="Pcb_Revision_Title" xml:space="preserve">
     <value>Circuit Board Revision</value>

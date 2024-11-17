@@ -29,18 +29,17 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Pcb_Revision, FieldType: FieldTypes.Text, IsRequired:true, ResourceType: typeof(ManufacturingResources))]
         public string Revision { get; set; }
 
-        [FormField(LabelResource: ManufacturingResources.Names.Pcb_Revision_BoardFile, IsRequired:true, FieldType: FieldTypes.FileUpload, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Pcb_Revision_BoardFile, ImageUpload: false, IsFileUploadImage: false, IsRequired:true, FieldType: FieldTypes.FileUpload, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader BoardFile { get; set; }
 
-        [FormField(LabelResource: ManufacturingResources.Names.Pcb_Revision_SchematicFile, IsRequired:true, FieldType: FieldTypes.FileUpload, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Pcb_Revision_SchematicFile, ImageUpload: false, IsFileUploadImage:false, IsRequired:true, FieldType: FieldTypes.FileUpload, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader SchematicFile { get; set; }
         
-        [FormField(LabelResource: ManufacturingResources.Names.Pcb_Revision_SchematicPdFile, FieldType: FieldTypes.FileUpload, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Pcb_Revision_SchematicPdFile, ImageUpload: false, FieldType: FieldTypes.FileUpload, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader SchematicPDFFile { get; set; }
         
-        [FormField(LabelResource: ManufacturingResources.Names.Pcb_Revision_BomFile, FieldType: FieldTypes.FileUpload, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Pcb_Revision_BomFile, ImageUpload:false, IsFileUploadImage: false, FieldType: FieldTypes.FileUpload, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader BomFile { get; set; }
-
         
         [FormField(LabelResource: ManufacturingResources.Names.Common_Notes, FieldType: FieldTypes.HtmlEditor, ResourceType: typeof(ManufacturingResources))]
         public string Notes { get; set; }
