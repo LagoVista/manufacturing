@@ -117,7 +117,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         private void SetNewHome()
         {
-            Machine.SendCommand($"G92 X{Machine.Settings.MachineFiducial.X} Y{Machine.Settings.MachineFiducial.Y}");
+            //Machine.SendCommand($"G92 X{Machine.Settings.MachineFiducial.X} Y{Machine.Settings.MachineFiducial.Y}");
+            Machine.SendCommand($"G92 X0 Y0");
             Machine.SendCommand(SafeHeightGCodeGCode());
             var gcode = $"G1 X0 Y0 F{Machine.Settings.FastFeedRate}";
             Machine.SendCommand(gcode);

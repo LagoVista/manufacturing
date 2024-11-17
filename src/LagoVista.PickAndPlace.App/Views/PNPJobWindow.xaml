@@ -33,17 +33,17 @@
                     <Controls:MVViewOptions HorizontalAlignment="Right" VerticalAlignment="Bottom"  />
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120" />
+                            <ColumnDefinition Width="100" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <TextBlock FontSize="20" Grid.Row="1">Status:</TextBlock>
-                        <TextBlock FontSize="20" >Vision State:</TextBlock>
-                        <TextBlock Grid.Row="0" FontSize="20" Grid.Column="1" Text="{Binding LocatorState}"></TextBlock>
-                        <TextBlock Grid.Row="1" FontSize="20" Grid.Column="1" Text="{Binding Status}"></TextBlock>
+                        <TextBlock FontSize="16" Grid.Row="1">Status:</TextBlock>
+                        <TextBlock FontSize="16" >Vision State:</TextBlock>
+                        <TextBlock Grid.Row="0" FontSize="16" Grid.Column="1" Text="{Binding LocatorState}"></TextBlock>
+                        <TextBlock Grid.Row="1" FontSize="16" Grid.Column="1" Text="{Binding Status}"></TextBlock>
                     </Grid>
                     <StackPanel Grid.Row="10" Grid.ColumnSpan="3" Margin="0,0,0,220" >
                         <Button Command="{Binding HomingCycleCommand}" Style="{StaticResource CommandButton}" Content="1) Homing Cycle" Width="200"/>
@@ -256,7 +256,7 @@
                                 <TextBox Text="{Binding Machine.Settings.CurrentNozzle.Name}" />
                                 <ComboBox ItemsSource="{Binding Machine.Settings.Nozzles}" SelectedItem="{Binding Machine.Settings.CurrentNozzle, Mode=TwoWay}" DisplayMemberPath="Name"  />
 
-                                <TextBlock Text="Step 5 - Save Move Height" FontWeight="Bold" FontSize="16" />
+                                <TextBlock Text="Step 5 - Safe Move Height" FontWeight="Bold" FontSize="16" />
                                 <TextBlock Text="Move the Pick head to the location to be set when the picked component is being moved." TextWrapping="Wrap" Margin="0,0,0,5"  />
                                 <Grid Margin="0,0,0,5"  >
                                     <Grid.ColumnDefinitions>

@@ -5,6 +5,7 @@ using LagoVista.Manufacturing.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO.Ports;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.Interfaces
@@ -151,7 +152,7 @@ namespace LagoVista.PickAndPlace.Interfaces
         /// </summary>
         /// <param name="serialPort"></param>
         /// <returns></returns>
-        Task ConnectAsync(ISerialPort serialPort, ISerialPort serialPort1 = null);
+        Task ConnectAsync(SerialPort serialPort);
 
 
         /// <summary>

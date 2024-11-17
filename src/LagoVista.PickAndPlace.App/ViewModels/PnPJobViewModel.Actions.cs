@@ -79,9 +79,9 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 case 0:
                     {
                         Machine.GotoWorkspaceHome();
-                        var gcode = $"G1 X{Machine.Settings.MachineFiducial.X} Y{Machine.Settings.MachineFiducial.Y} F{Machine.Settings.FastFeedRate}";
+                        //var gcode = $"G1 X{Machine.Settings.MachineFiducial.X} Y{Machine.Settings.MachineFiducial.Y} F{Machine.Settings.FastFeedRate}";
                         SelectMVProfile("mchfiducual");
-                        Machine.SendCommand(gcode);
+                        //Machine.SendCommand(gcode);
                     }
                     break;
                 case 1:

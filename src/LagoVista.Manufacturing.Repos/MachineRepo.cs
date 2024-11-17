@@ -6,6 +6,8 @@ using LagoVista.Manufacturing.Models;
 using LagoVista.IoT.Logging.Loggers;
 using System.Threading.Tasks;
 using LagoVista.Manufacturing.Repos;
+using LagoVista.IoT.Logging.Utils;
+using System;
 
 namespace LagoVista.Manufacturing.Repo.Repos
 {
@@ -21,9 +23,11 @@ namespace LagoVista.Manufacturing.Repo.Repos
 
         protected override bool ShouldConsolidateCollections => _shouldConsolidateCollections;
 
-        public Task AddMachineAsync(Machine Machine)
+        public Task AddMachineAsync(Machine machine)
         {
-            return CreateDocumentAsync(Machine);
+            Console.WriteLine("==== Adding machine  ==>" + machine.Name);
+
+            return CreateDocumentAsync(machine);
         }
 
         public Task DeleteMachineAsync(string id)
@@ -41,9 +45,9 @@ namespace LagoVista.Manufacturing.Repo.Repos
             return base.QuerySummaryAsync<MachineSummary, Machine>(qry => qry.IsPublic == true || qry.OwnerOrganization.Id == orgId, itm => itm.Name, listRequest);
         }
 
-        public Task UpdateMachineAsync(Machine Machine)
+        public Task UpdateMachineAsync(Machine machine)
         {
-            return UpsertDocumentAsync(Machine);
+            return UpsertDocumentAsync(machine);
         }
 
     }

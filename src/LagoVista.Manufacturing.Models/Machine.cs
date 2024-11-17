@@ -142,7 +142,7 @@ namespace LagoVista.Manufacturing.Models
         ManufacturingResources.Names.Machine_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-searching-2", Cloneable: true,
         SaveUrl: "/api/mfg/machine", GetUrl: "/api/mfg/machine/{id}", GetListUrl: "/api/mfg/machines", FactoryUrl: "/api/mfg/machine/factory",
         DeleteUrl: "/api/mfg/machine/{id}", ListUIUrl: "/mfg/machinesettings", EditUIUrl: "/mfg/machine/{id}", CreateUIUrl: "/mfg/machine/add")]
-    public class Machine : MfgModelBase, ISummaryFactory, INotifyPropertyChanged
+    public class Machine : MfgModelBase, ISummaryFactory, INotifyPropertyChanged, IFormDescriptor
     {
 
         public int StatusPollIntervalIdle { get; set; }
@@ -203,7 +203,7 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _fastFeedRate, value); }
         }
 
-        SerialPortInfo _currentSerialPort;
+        private SerialPortInfo _currentSerialPort;
         public SerialPortInfo CurrentSerialPort
         {
             get { return _currentSerialPort; }
@@ -211,14 +211,14 @@ namespace LagoVista.Manufacturing.Models
         }
 
 
-        SerialPortInfo _serialPort2;
+        private SerialPortInfo _serialPort2;
         public SerialPortInfo SerialPort2
         {
             get { return _serialPort2; }
             set { Set(ref _serialPort2, value); }
         }
 
-        ConnectionTypes _connectionType;
+        private ConnectionTypes _connectionType;
         public ConnectionTypes ConnectionType
         {
             get { return _connectionType; }
@@ -329,14 +329,14 @@ namespace LagoVista.Manufacturing.Models
 
         public int ProbeTimeoutSeconds { get; set; }
 
-        int _workAreaWidth;
+        private int _workAreaWidth;
         public int WorkAreaWidth
         {
             get { return _workAreaWidth; }
             set { Set(ref _workAreaWidth, value); }
         }
 
-        int _workAreaHeight;
+        private int _workAreaHeight;
         public int WorkAreaHeight
         {
             get { return _workAreaHeight; }
@@ -367,21 +367,21 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _machineName, value); }
         }
 
-        MachineOrigin _machineOrigin;
+        private MachineOrigin _machineOrigin;
         public MachineOrigin MachineOrigin
         {
             get { return _machineOrigin; }
             set { Set(ref _machineOrigin, value); }
         }
 
-        JogGCodeCommand _jogGCodeCommand;
+        private JogGCodeCommand _jogGCodeCommand;
         public JogGCodeCommand JogGCodeCommand
         {
             get { return _jogGCodeCommand; }
             set { Set(ref _jogGCodeCommand, value); }
         }
 
-        MessageVerbosityLevels _messageVerbosity;
+        private MessageVerbosityLevels _messageVerbosity;
         public MessageVerbosityLevels MessageVerbosity
         {
             get { return _messageVerbosity; }
@@ -395,28 +395,28 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _jogFeedRate, value); }
         }
 
-        StepModes _xyStepMode;
+        private StepModes _xyStepMode;
         public StepModes XYStepMode
         {
             get { return _xyStepMode; }
             set { Set(ref _xyStepMode, value); }
         }
 
-        StepModes _zStepMode;
+        private StepModes _zStepMode;
         public StepModes ZStepMode
         {
             get { return _zStepMode; }
             set { Set(ref _zStepMode, value); }
         }
 
-        MachineCamera _positioningCamera;
+        private MachineCamera _positioningCamera;
         public MachineCamera PositioningCamera
         {
             get { return _positioningCamera; }
             set { Set(ref _positioningCamera, value); }
         }
 
-        MachineCamera _partInspectionCamera;
+        private MachineCamera _partInspectionCamera;
         public MachineCamera PartInspectionCamera
         {
             get { return _partInspectionCamera; }
@@ -455,25 +455,7 @@ namespace LagoVista.Manufacturing.Models
         public FirmwareTypes MachineType { get; set; }
 
         private string _settingsName;
-
-        public async static Task<Machine> LoadAsync(string settingsName)
-        {
-            try
-            {
-                var settings = await Services.Storage.GetAsync<Machine>("settingsName.json");
-                if (settings == null)
-                    settings = Machine.Default;
-
-                settings._settingsName = settingsName;
-
-                return settings;
-            }
-            catch (Exception)
-            {
-                return Machine.Default;
-            }
-        }
-
+    
         public List<string> Validate()
         {
             var errs = new List<string>();
@@ -511,10 +493,9 @@ namespace LagoVista.Manufacturing.Models
             return CreateSummary();
         }
 
-        public static Machine Default
+        public static Machine CreateDefault()
         {
-            get
-            {
+
                 return new Machine()
                 {
                     Id = Guid.NewGuid().ToString(),
@@ -544,6 +525,14 @@ namespace LagoVista.Manufacturing.Models
                     WorkAreaHeight = 200
                 };
             }
+
+        public List<string> GetFormFields()
+        {
+            return new List<string>()
+            {
+                nameof(Name),
+                nameof(Key),
+            };
         }
     }
 

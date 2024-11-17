@@ -34,12 +34,13 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             SelectMVProfile("mchfiducual");
 
             Machine.SendCommand(DwellGCode(250));
-
+            
             GoToFiducial(0);
 
             ShowCircles = true;
 
             LocatorState = MVLocatorState.MachineFidicual;
+
         }
 
         public void GotoMachineFiducial()

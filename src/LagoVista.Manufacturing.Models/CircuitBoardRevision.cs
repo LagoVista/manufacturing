@@ -44,7 +44,7 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Common_Notes, FieldType: FieldTypes.HtmlEditor, ResourceType: typeof(ManufacturingResources))]
         public string Notes { get; set; }
 
-        [FormField(LabelResource: ManufacturingResources.Names.Pcb_Variants, FieldType: FieldTypes.ChildListInline, FactoryUrl: "/api/mfg/pcb/variant/factory", ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Pcb_Variants, FieldType: FieldTypes.ChildListInline, ChildListDisplayMembers:"revision,revisionTimeStamp", FactoryUrl: "/api/mfg/pcb/variant/factory", ResourceType: typeof(ManufacturingResources))]
         public List<CircuitBoardVarient> Variants { get; set; } = new List<CircuitBoardVarient>();
 
         public List<PcbComponent> PcbComponents { get; set; } = new List<PcbComponent>();

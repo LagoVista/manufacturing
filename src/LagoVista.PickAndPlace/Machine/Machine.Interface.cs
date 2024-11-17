@@ -4,6 +4,7 @@ using LagoVista.GCode;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using System;
+using System.IO.Ports;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,24 +12,23 @@ namespace LagoVista.PickAndPlace
 {
     public partial class Machine
     {
-        ISerialPort _port;
-        ISerialPort _vacuumPort;
-
+        SerialPort _port;
+        
         ISocketClient _socketClient;
 
-        public async Task ConnectAsync(ISerialPort port, ISerialPort port2 = null)
+        public async Task ConnectAsync(SerialPort port)
         {
-            var pnpPort = port as IPnPSerialPort;
-            var vacuumPort = port2 as IPnPSerialPort;
+            _port = port;
+            //var pnpPort = port as IPnPSerialPort; 
 
             if (Connected)
                 throw new Exception("Can't Connect: Already Connected");
 
             try
             {
-                await port.OpenAsync();
+                port.Open();
 
-                var outputStream = pnpPort.OutputStream;
+                var outputStream = _port.BaseStream;
                 if (outputStream == null)
                 {
                     AddStatusMessage(StatusMessageTypes.Warning, $"Could not open serial port");
@@ -65,7 +65,7 @@ namespace LagoVista.PickAndPlace
 
                 await Task.Run(() =>
                 {
-                    Work(pnpPort.InputStream, pnpPort.OutputStream);
+                    Work(_port.BaseStream, _port.BaseStream);
                 }, _cancelSource.Token);
             }
             catch (Exception ex)
@@ -128,7 +128,7 @@ namespace LagoVista.PickAndPlace
 
             if (_port != null)
             {
-                await _port.CloseAsync();
+                _port.Close();
                 AddStatusMessage(StatusMessageTypes.Info, "Closed Serial Port");
                 _port = null;
             }

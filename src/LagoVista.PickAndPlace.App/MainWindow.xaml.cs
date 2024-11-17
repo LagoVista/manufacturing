@@ -13,35 +13,38 @@ using LagoVista.PickAndPlace.App.Views;
 using LagoVista.PickAndPlace.Util;
 using LagoVista.PCB.Eagle.Models;
 using LagoVista.Manufacturing.Models;
+using LagoVista.Client.Core.Net;
+using LagoVista.Client.Core;
+using LagoVista.Core.Models.UIMetaData;
+using LagoVista.Core.IOC;
+using LagoVista.Core.Interfaces;
+using LagoVista.Core;
+using LagoVista.Core.Models;
+using LagoVista.Core.Validation;
+using RingCentral;
+using System.Threading;
+using LagoVista.PickAndPlace.App.Properties;
 
 namespace LagoVista.PickAndPlace.App
 {
     public partial class MainWindow : Window
     {
+        IRestClient _restClient;
+        IAuthManager _authManager;
+
         public MainWindow()
         {
             _this = this;
+            this._restClient = SLWIOC.Get<IRestClient>();
+            this._authManager = SLWIOC.Get<IAuthManager>();
+
             var designTime = System.ComponentModel.DesignerProperties.GetIsInDesignMode(new DependencyObject());
             if (!designTime)
             {
-                var repo = LoadRepo();
-                ViewModel = new MainViewModel(repo);
+                ViewModel = new MainViewModel(Settings.Default.CurrentMachineId);
                 DataContext = ViewModel;
                 InitializeComponent();
 
-                foreach (var machine in repo.Machines)
-                {
-                    var menu = new MenuItem() { Header = machine.MachineName };
-                    menu.Tag = machine.Id;
-                    if (repo.CurrentMachineId == machine.Id)
-                    {
-                        menu.IsChecked = true;
-                        ViewModel.Machine.Settings = machine;
-                    }
-                    menu.Click += ChangeMachine_Click;
-
-                    MachinesMenu.Items.Add(menu);
-                }
                 this.Loaded += MainWindow_Loaded;
             }
         }
@@ -53,45 +56,45 @@ namespace LagoVista.PickAndPlace.App
         /* Doing this long syncronously here so the data will be ready before creating 
          * the ViewModel and creating the UI 
          * Need to investigate calling InitializeCompoent AFTER some async calls */
-        private MachinesRepo LoadRepo()
-        {
-            MachinesRepo repo;
+        //private MachinesRepo LoadRepo()
+        //{
+        //    MachinesRepo repo;
 
-            var name = Process.GetCurrentProcess().ProcessName;
+        //    var name = Process.GetCurrentProcess().ProcessName;
 
-            /* The XPlat stuff will store the repo in the AppData folder so expect it there */
-            var dir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        //    /* The XPlat stuff will store the repo in the AppData folder so expect it there */
+        //    var dir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-            dir = Path.Combine(dir, name);
-            if (!Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
+        //    dir = Path.Combine(dir, name);
+        //    if (!Directory.Exists(dir))
+        //        Directory.CreateDirectory(dir);
 
-            var jsonPath = Path.Combine(dir, MachinesRepo.FileName);
+        //    var jsonPath = Path.Combine(dir, MachinesRepo.FileName);
 
-            if (System.IO.File.Exists(jsonPath))
-            {
-                var json = System.IO.File.ReadAllText(jsonPath);
+        //    if (System.IO.File.Exists(jsonPath))
+        //    {
+        //        var json = System.IO.File.ReadAllText(jsonPath);
 
-                try
-                {
-                    repo = JsonConvert.DeserializeObject<MachinesRepo>(json);
-                }
-                catch (Exception)
-                {
-                    repo = MachinesRepo.Default;
-                    System.IO.File.WriteAllText(jsonPath, JsonConvert.SerializeObject(repo));
-                }
-            }
-            else
-            {
-                repo = MachinesRepo.Default;
-                System.IO.File.WriteAllText(jsonPath, JsonConvert.SerializeObject(repo));
-            }
+        //        try
+        //        {
+        //            repo = JsonConvert.DeserializeObject<MachinesRepo>(json);
+        //        }
+        //        catch (Exception)
+        //        {
+        //            repo = MachinesRepo.Default;
+        //            System.IO.File.WriteAllText(jsonPath, JsonConvert.SerializeObject(repo));
+        //        }
+        //    }
+        //    else
+        //    {
+        //        repo = MachinesRepo.Default;
+        //        System.IO.File.WriteAllText(jsonPath, JsonConvert.SerializeObject(repo));
+        //    }
 
-            return repo;
-        }
+        //    return repo;
+        //}
 
-        private void ChangeMachine_Click(object sender, RoutedEventArgs e)
+        private async void ChangeMachine_Click(object sender, RoutedEventArgs e)
         {
             if (ViewModel.Machine.Connected)
             {
@@ -99,14 +102,20 @@ namespace LagoVista.PickAndPlace.App
             }
             else
             {
-                ViewModel.Machine.Settings = ViewModel.Machine.MachineRepo.Machines.Where(mach => mach.Id == (sender as MenuItem).Tag.ToString()).FirstOrDefault();
-                foreach (var item in MachinesMenu.Items)
+                var machineId = (sender as MenuItem).Tag.ToString();
+                var machine = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Machine>>($"/api/mfg/machine/{machineId}");
+                if (machine.Successful)
                 {
-                    var menuItem = item as MenuItem;
-                    if (menuItem != null)
+                    Settings.Default.CurrentMachineId = machineId;
+                    Settings.Default.Save();
+                    ViewModel.Machine.Settings = machine.Result.Model;
+                    foreach (var item in MachinesMenu.Items)
                     {
-                        menuItem.IsChecked = (string)menuItem.Tag == ViewModel.Machine.MachineRepo.CurrentMachineId;
-
+                        var menuItem = item as MenuItem;
+                        if (menuItem != null)
+                        {
+                            menuItem.IsChecked = (string)menuItem.Tag == ViewModel.Machine.MachineRepo.CurrentMachineId;
+                        }
                     }
                 }
             }
@@ -116,7 +125,7 @@ namespace LagoVista.PickAndPlace.App
         {
             await ViewModel.InitAsync();
             await GrblErrorProvider.InitAsync();
-            await ViewModel.LoadMRUs();
+            await ViewModel.LoadMRUs();            
 
             foreach (var file in ViewModel.MRUs.PnPJobs)
             {
@@ -144,6 +153,20 @@ namespace LagoVista.PickAndPlace.App
                 var gcodeFile = new MenuItem() { Header = file, Tag = file };
                 gcodeFile.Click += GcodeFile_Click;
                 RecentGCodeFiles.Items.Add(gcodeFile);
+            }
+
+            var machines = await _restClient.GetListResponseAsync<LagoVista.Manufacturing.Models.Machine>("/api/mfg/machines", ListRequest.CreateForAll());
+
+            foreach (var machine in machines.Model)
+            {
+                var menu = new MenuItem() { Header = machine.Name };
+                menu.Tag = machine.Id;
+                if(machine.Id == Settings.Default.CurrentMachineId)
+                    menu.IsChecked = true;
+
+                menu.Click += ChangeMachine_Click;
+
+                MachinesMenu.Items.Add(menu);
             }
         }
 
@@ -260,7 +283,7 @@ namespace LagoVista.PickAndPlace.App
 
         private async void NewMachinePRofile_Click(object sender, RoutedEventArgs e)
         {
-            var settings = LagoVista.Manufacturing.Models.Machine.Default;
+            var settings = LagoVista.Manufacturing.Models.Machine.CreateDefault();
             settings.MachineName = String.Empty;
 
             var dlg = new SettingsWindow(ViewModel.Machine, settings);

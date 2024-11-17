@@ -1,4 +1,6 @@
 ﻿using DirectShowLib;
+using LagoVista.Client.Core;
+using LagoVista.Core.IOC;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.ViewModels;
@@ -51,7 +53,7 @@ namespace LagoVista.PickAndPlace.App
         }
 
 
-        private void Save_Click(object sender, RoutedEventArgs e)
+        private async void Save_Click(object sender, RoutedEventArgs e)
         {
             if (String.IsNullOrEmpty(_settings.MachineName))
             {
@@ -69,8 +71,17 @@ namespace LagoVista.PickAndPlace.App
                 return;
             }
 
-            DialogResult = true;
-            Close();
+            var rest = SLWIOC.Get<IRestClient>();
+            var result = await rest.PutAsync("/api/mfg/machine", _settings);
+            if (result.Successful)
+            {
+                DialogResult = true;
+                Close();
+            }
+            else
+            {
+                MessageBox.Show(result.ErrorMessage);             
+            }
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)

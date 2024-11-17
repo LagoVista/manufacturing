@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\LagoVista.Manufacturing.Models\LagoVista.Manufacturing.Models.csproj" />
     <ProjectReference Include="..\..\src\LagoVista.PCB.Eagle\LagoVista.PCB.Eagle.csproj" />
   </ItemGroup>
 

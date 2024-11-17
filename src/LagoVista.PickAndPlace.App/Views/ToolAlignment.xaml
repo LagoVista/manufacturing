@@ -124,7 +124,7 @@
                           SelectedItem="{Binding Machine.Settings.CurrentNozzle, Mode=TwoWay}" 
                           DisplayMemberPath="Name"  />
 
-                <TextBlock Text="Step 5 - Save Move Height" FontWeight="Bold" FontSize="16" />
+                <TextBlock Text="Step 5 - Safe Move Height" FontWeight="Bold" FontSize="16" />
                 <TextBlock Text="Move the Pick head to the location to be set when the picked component is being moved." TextWrapping="Wrap" Margin="0,0,0,5"  />
                 <Grid Margin="0,0,0,5"  >
                     <Grid.ColumnDefinitions>

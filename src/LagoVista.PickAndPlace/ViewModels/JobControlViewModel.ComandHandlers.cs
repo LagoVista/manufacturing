@@ -5,6 +5,7 @@ using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -141,16 +142,12 @@ namespace LagoVista.PickAndPlace.ViewModels
             {
                 if (Machine.Settings.CurrentSerialPort.Name == "Simulated")
                 {
-                    await Machine.ConnectAsync(new SimulatedMachine(Machine.Settings.MachineType));
+                    //await Machine.ConnectAsync(new SimulatedMachine(Machine.Settings.MachineType));
                 }
                 else if(Machine.Settings.ConnectionType == Manufacturing.Models.ConnectionTypes.Serial_Port)
                 {
-                    ISerialPort port2 = null;
-                    if(Machine.Settings.SerialPort2 != null) {
-                        port2 = DeviceManager.CreateSerialPort(Machine.Settings.SerialPort2);
-                    }
-
-                    await Machine.ConnectAsync(DeviceManager.CreateSerialPort(Machine.Settings.CurrentSerialPort), port2);
+                    var port1 = new SerialPort(Machine.Settings.CurrentSerialPort.Name, Machine.Settings.CurrentSerialPort.BaudRate);
+                    await Machine.ConnectAsync(port1);
                 }
                 else
                 {

@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using LagoVista.IoT.Logging.Utils;
+using System;
 
 namespace LagoVista.Manufacturing.Rest.Controllers
 {
@@ -46,20 +48,22 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         }
 
         [HttpPost("/api/mfg/machine")]
-        public Task<InvokeResult> AddMachinePackageAsync([FromBody] Machine Machine)
+        public Task<InvokeResult> AddMachineAsync([FromBody] Machine Machine)
         {
+            Console.WriteLine("Adding machine here...." + Machine.Name);
+
             return _mgr.AddMachineAsync(Machine, OrgEntityHeader, UserEntityHeader);
         }
 
         [HttpPut("/api/mfg/machine")]
-        public Task<InvokeResult> UpdateMachinePackage([FromBody] Machine Machine)
+        public Task<InvokeResult> UpdateMachineAsync([FromBody] Machine Machine)
         {
             SetUpdatedProperties(Machine);
             return _mgr.UpdateMachineAsync(Machine, OrgEntityHeader, UserEntityHeader);
         }
 
-        [HttpGet("/api/mfg/machine")]
-        public Task<ListResponse<MachineSummary>> GetEquomentForOrg()
+        [HttpGet("/api/mfg/machines")]
+        public Task<ListResponse<MachineSummary>> GetMachinesForOrgAsyc()
         {
             return _mgr.GetMachineSummariesAsync(GetListRequestFromHeader(), OrgEntityHeader, UserEntityHeader);
         }

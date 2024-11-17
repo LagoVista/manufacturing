@@ -1,25 +1,38 @@
 ﻿using System.Threading.Tasks;
 using System.Linq;
-using LagoVista.Core.ViewModels;
 using LagoVista.PCB.Eagle.Models;
+using LagoVista.Core.IOC;
+using LagoVista.Core.Models.UIMetaData;
+using LagoVista.Manufacturing.Models;
+using LagoVista.Client.Core;
 
 namespace LagoVista.PickAndPlace.ViewModels
 {
     public partial class MainViewModel : GCodeAppViewModelBase
     {
-        public MainViewModel(MachinesRepo repo) : base()
-        {
-            Machine = new Machine(repo);
-            Machine.Settings = repo.GetCurrentMachine();
 
+        LagoVista.Client.Core.IRestClient _restClient;
+        private string _currentMachineId;
+
+        public MainViewModel(string currentMachineId) : base()
+        {
             InitCommands();
             InitChildViewModels();
+
+            Machine = new Machine(new MachinesRepo());
+
+            _restClient = SLWIOC.Get<IRestClient>();
         }
 
         public async override Task InitAsync()
         {
             await Machine.InitAsync();
             await base.InitAsync();
+
+            var result = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Machine>>($"/api/mfg/machine/{_currentMachineId}");
+            if(result.Successful)
+                Machine.Settings = result.Result.Model;
+
         }
 
         private void InitChildViewModels()

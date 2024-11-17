@@ -15,14 +15,10 @@ namespace LagoVista.PickAndPlace
 {
     public partial class Machine : IMachine
     {
-        MachinesRepo _machineRepo;
-
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public Machine(MachinesRepo repo)
-        {
-            _machineRepo = repo;
-
+        public Machine()
+        {    
             Messages = new System.Collections.ObjectModel.ObservableCollection<Models.StatusMessage>();
             AddStatusMessage(StatusMessageTypes.Info, "Startup.");
 

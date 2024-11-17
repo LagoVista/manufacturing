@@ -15,26 +15,33 @@ namespace LagoVista.Manufacturing.Managers
 {
     public class MachineManager : ManagerBase, IMachineManager
     {
-        private readonly IMachineRepo _MachineRepo;
+        private readonly IMachineRepo _machineRepo;
 
-        public MachineManager(IMachineRepo partRepo, 
+        public MachineManager(IMachineRepo machienRepo, 
             IAdminLogger logger, IAppConfig appConfig, IDependencyManager depmanager, ISecurity security) :
             base(logger, appConfig, depmanager, security)
         {
-            _MachineRepo = partRepo;
+            _machineRepo = machienRepo;
         }
-        public async Task<InvokeResult> AddMachineAsync(Machine Machine, EntityHeader org, EntityHeader user)
+        public async Task<InvokeResult> AddMachineAsync(Machine machine, EntityHeader org, EntityHeader user)
         {
-            await AuthorizeAsync(Machine, AuthorizeActions.Create, user, org);
-            ValidationCheck(Machine, Actions.Create);
-            await _MachineRepo.AddMachineAsync(Machine);
+            Console.WriteLine("==== 1) Adding machine  ==>" + machine.Name);
+
+            await AuthorizeAsync(machine, AuthorizeActions.Create, user, org);
+            Console.WriteLine("==== 2) Adding machine  ==>" + machine.Name);
+
+            ValidationCheck(machine, Actions.Create);
+
+            Console.WriteLine("==== 3) Adding machine  ==>" + machine.Name);
+
+            await _machineRepo.AddMachineAsync(machine);
 
             return InvokeResult.Success;
         }
 
         public async Task<DependentObjectCheckResult> CheckInUseAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _MachineRepo.GetMachineAsync(id);
+            var part = await _machineRepo.GetMachineAsync(id);
             await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
             return await base.CheckForDepenenciesAsync(part);
         }
@@ -46,16 +53,16 @@ namespace LagoVista.Manufacturing.Managers
 
         public async Task<InvokeResult> DeleteMachineAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _MachineRepo.GetMachineAsync(id);
+            var part = await _machineRepo.GetMachineAsync(id);
             await ConfirmNoDepenenciesAsync(part);
             await AuthorizeAsync(part, AuthorizeActions.Delete, user, org);
-            await _MachineRepo.DeleteMachineAsync(id);
+            await _machineRepo.DeleteMachineAsync(id);
             return InvokeResult.Success;
         }
 
         public async Task<Machine> GetMachineAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _MachineRepo.GetMachineAsync(id);
+            var part = await _machineRepo.GetMachineAsync(id);
             await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
             return part;
         }
@@ -64,14 +71,14 @@ namespace LagoVista.Manufacturing.Managers
         public async Task<ListResponse<MachineSummary>> GetMachineSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user)
         {
             await AuthorizeOrgAccessAsync(user, org.Id, typeof(Machine));
-            return await _MachineRepo.GetMachineSummariesAsync(org.Id, listRequest);
+            return await _machineRepo.GetMachineSummariesAsync(org.Id, listRequest);
         }
 
-        public async Task<InvokeResult> UpdateMachineAsync(Machine part, EntityHeader org, EntityHeader user)
+        public async Task<InvokeResult> UpdateMachineAsync(Machine machine, EntityHeader org, EntityHeader user)
         {
-            await AuthorizeAsync(part, AuthorizeActions.Update, user, org);
-            ValidationCheck(part, Actions.Update);
-            await _MachineRepo.UpdateMachineAsync(part);
+            await AuthorizeAsync(machine, AuthorizeActions.Update, user, org);
+            ValidationCheck(machine, Actions.Update);
+            await _machineRepo.UpdateMachineAsync(machine);
 
             return InvokeResult.Success;
         }

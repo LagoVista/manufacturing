@@ -1,4 +1,6 @@
-﻿using LagoVista.Core.PlatformSupport;
+﻿using LagoVista.Client.Core;
+using LagoVista.Core.IOC;
+using LagoVista.Core.PlatformSupport;
 using LagoVista.Manufacturing.Models;
 using System;
 using System.Collections.Generic;
@@ -8,12 +10,19 @@ using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace
 {
-    public class MachinesRepo
+    public class MachinesRepo : IMachiensRepo
     {
+        IRestClient _restClient;
+
+        public MachinesRepo()
+        {
+            _restClient = SLWIOC.Get<IRestClient>();
+        }
+
         public const string FileName = "Machines.json";
 
         public string CurrentMachineId { get; set; }
-        public List<LagoVista.Manufacturing.Models.Machine> Machines { get; set; }
+        public List<LagoVista.Manufacturing.Models.MachineSummary> Machines { get; set; }
 
 
         public async static Task<MachinesRepo> LoadAsync()
@@ -35,24 +44,6 @@ namespace LagoVista.PickAndPlace
             }
         }
 
-        public LagoVista.Manufacturing.Models.Machine GetCurrentMachine()
-        {
-            return Machines.Where(machine => machine.Id == CurrentMachineId).First();
-        }
-
-        public static MachinesRepo Default
-        {
-            get
-            {
-                var repo = new MachinesRepo();
-                repo.Machines = new List<LagoVista.Manufacturing.Models.Machine>();
-                var defaultMachine = LagoVista.Manufacturing.Models.Machine.Default;
-                repo.Machines.Add(defaultMachine);
-                repo.CurrentMachineId = defaultMachine.Id;
-
-                return repo;
-            }
-        }
 
         public async Task SaveAsync()
         {

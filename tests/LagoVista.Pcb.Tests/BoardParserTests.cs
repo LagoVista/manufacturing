@@ -1,7 +1,21 @@
+using LagoVista.Core.Attributes;
+using LagoVista.Core.Interfaces;
+using LagoVista.Core.IOC;
+using LagoVista.Core.Models;
+using LagoVista.Core.Resources;
+using LagoVista.Core.Validation;
+using LagoVista.Core;
 using LagoVista.PCB.Eagle.Managers;
+using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.Resources;
 using NUnit.Framework;
 using System;
+using System.Globalization;
+using System.Reflection;
+using System.Reflection.PortableExecutable;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using System.Linq;
+using System.Diagnostics;
 
 namespace LagoVista.Pcb.Tests
 {
