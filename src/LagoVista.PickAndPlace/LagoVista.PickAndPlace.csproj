@@ -1,12 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="LagoVista.Core" Version="3.0.2742.0633" />
-    <PackageReference Include="LagoVista.Client.Core" Version="3.0.2742.605" />
+    <PackageReference Include="LagoVista.Core" Version="3.0.2742.0944" />
+    <PackageReference Include="LagoVista.Client.Core" Version="3.0.2742.0625" />
     <PackageReference Include="System.IO.Ports" Version="9.0.0" />
   </ItemGroup>
 

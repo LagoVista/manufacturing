@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -66,8 +66,8 @@
     <PackageReference Include="Meziantou.WpfFontAwesome" Version="5.15.4" />
     <PackageReference Include="SharpDX.XInput" Version="4.2.0" />
     <PackageReference Include="System.IO.Ports" Version="9.0.0" />
-    <PackageReference Include="LagoVista.Core" Version="3.0.2741.1120" />
-    <PackageReference Include="LagoVista.XPlat.WPF" Version="3.0.2741.1106" />
+    <PackageReference Include="LagoVista.Core" Version="3.0.2742.0944" />
+    <PackageReference Include="LagoVista.XPlat.WPF" Version="3.0.2742.0625" />
 
   </ItemGroup>
 
