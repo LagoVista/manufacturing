@@ -137,8 +137,6 @@ namespace LagoVista.PickAndPlace.Interfaces
         /// </summary>
         IBoardAlignmentManager BoardAlignmentManager { get; }
 
-        MachinesRepo MachineRepo { get; }
-
 
         bool Busy { get; }
 

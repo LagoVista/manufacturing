@@ -77,7 +77,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             _state = States.MVHoming;
             Machine.GotoPoint(Machine.Settings.DefaultWorkspaceHome.X, Machine.Settings.DefaultWorkspaceHome.Y, true);
-            await Machine.MachineRepo.SaveAsync();
+          //  await Machine.MachineRepo.SaveAsync();
         }
 
         public void CalibrateFiducialHome()

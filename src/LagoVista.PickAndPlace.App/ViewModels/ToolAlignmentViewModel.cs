@@ -241,7 +241,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         public async void SaveCalibration()
         {
-            await Machine.MachineRepo.SaveAsync();
+            //await Machine.MachineRepo.SaveAsync();
         }
 
         public override void CircleLocated(Point2D<double> point, double diameter, Point2D<double> stdDev)

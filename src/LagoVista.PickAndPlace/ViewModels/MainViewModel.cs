@@ -19,7 +19,8 @@ namespace LagoVista.PickAndPlace.ViewModels
             InitCommands();
             InitChildViewModels();
 
-            Machine = new Machine(new MachinesRepo());
+
+            Machine = new Machine();
 
             _restClient = SLWIOC.Get<IRestClient>();
         }

@@ -73,6 +73,11 @@ namespace LagoVista.PickAndPlace.Models
             set { Set(ref _eagleBRDFilePath, value); }
         }
 
+        public EntityHeader CircuitBoard { get; set; }
+        public EntityHeader CircuitBoardRevision { get; set; }
+
+
+
         public ObservableCollection<BuildFlavor> BuildFlavors { get; set; }
 
         public ObservableCollection<Part> Parts { get; set; }
@@ -89,5 +94,14 @@ namespace LagoVista.PickAndPlace.Models
             return Task.CompletedTask;
             
         }
+    }
+
+    public class PNPJobPart
+    {
+        public string PackageNameOverride { get; set; }
+        public string ValueOverride { get; set; }
+        public EntityHeader ComponentId { get; set; }
+    
+        public bool Place { get; set; }
     }
 }

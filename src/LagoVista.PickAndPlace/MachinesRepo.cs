@@ -2,53 +2,52 @@
 using LagoVista.Core.IOC;
 using LagoVista.Core.PlatformSupport;
 using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace
 {
-    public class MachinesRepo : IMachiensRepo
+    public class MachinesRepo : IMachineRepoProxy
     {
-        IRestClient _restClient;
+        private readonly IRestClient _restClient;
+        private readonly IStorageService _storageService;
 
-        public MachinesRepo()
+        public MachinesRepo(IRestClient restClient, IStorageService storageService)
         {
-            _restClient = SLWIOC.Get<IRestClient>();
+            _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
+            _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
         }
 
-        public const string FileName = "Machines.json";
-
-        public string CurrentMachineId { get; set; }
-        public List<LagoVista.Manufacturing.Models.MachineSummary> Machines { get; set; }
-
-
-        public async static Task<MachinesRepo> LoadAsync()
+        public Task<List<MachineSummary>> GetMachinesAsync()
         {
-            try
-            {
-                var machines = await Services.Storage.GetAsync<MachinesRepo>(MachinesRepo.FileName);
-
-                if (machines == null)
-                {
-                    machines = MachinesRepo.Default;
-                }
-
-                return machines;
-            }
-            catch (Exception)
-            {
-                return MachinesRepo.Default;
-            }
+            throw new NotImplementedException();
         }
 
-
-        public async Task SaveAsync()
+        public Task<Machine> GetMachine(string machineId)
         {
-            await Services.Storage.StoreAsync(this, MachinesRepo.FileName);
+            throw new NotImplementedException();
         }
 
+        public Task AddMachineAsync(Machine machine)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task UpdateMachineAsync(Machine machine)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetCurrentMachineAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SetCurrentMachineAsync(string id)
+        {        
+            throw new NotImplementedException();
+        }
     }
 }

@@ -114,7 +114,7 @@ namespace LagoVista.PickAndPlace.App
                         var menuItem = item as MenuItem;
                         if (menuItem != null)
                         {
-                            menuItem.IsChecked = (string)menuItem.Tag == ViewModel.Machine.MachineRepo.CurrentMachineId;
+                          //  menuItem.IsChecked = (string)menuItem.Tag == ViewModel.Machine.MachineRepo.CurrentMachineId;
                         }
                     }
                 }
@@ -245,7 +245,7 @@ namespace LagoVista.PickAndPlace.App
 
         private async void Window_Closed(object sender, EventArgs e)
         {
-            await ViewModel.Machine.MachineRepo.SaveAsync();
+           // await ViewModel.Machine.MachineRepo.SaveAsync();
         }
 
         private void NewGeneratedHeigtMap_Click(object sender, RoutedEventArgs e)
@@ -274,10 +274,10 @@ namespace LagoVista.PickAndPlace.App
             dlg.ShowDialog();
             if (dlg.DialogResult.HasValue && dlg.DialogResult.Value)
             {
-                ViewModel.Machine.MachineRepo.Machines.Remove(ViewModel.Machine.Settings);
-                ViewModel.Machine.MachineRepo.Machines.Add(clonedSettings);
-                ViewModel.Machine.Settings = clonedSettings;
-                await ViewModel.Machine.MachineRepo.SaveAsync();
+                //ViewModel.Machine.MachineRepo.Machines.Remove(ViewModel.Machine.Settings);
+                //ViewModel.Machine.MachineRepo.Machines.Add(clonedSettings);
+                //ViewModel.Machine.Settings = clonedSettings;
+                //await ViewModel.Machine.MachineRepo.SaveAsync();
             }
         }
 
@@ -291,8 +291,8 @@ namespace LagoVista.PickAndPlace.App
             dlg.ShowDialog();
             if (dlg.DialogResult.HasValue && dlg.DialogResult.Value)
             {
-                ViewModel.Machine.MachineRepo.Machines.Add(settings);
-                await ViewModel.Machine.MachineRepo.SaveAsync();
+                //ViewModel.Machine.MachineRepo.Machines.Add(settings);
+                //await ViewModel.Machine.MachineRepo.SaveAsync();
 
                 var menu = new MenuItem() { Header = settings.MachineName };
                 menu.Tag = settings.Id;

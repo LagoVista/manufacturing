@@ -5,8 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="LagoVista.Core" Version="3.0.2741.1120" />
-    <PackageReference Include="LagoVista.Client.Core" Version="3.0.2741.1106" />
+    <PackageReference Include="LagoVista.Core" Version="3.0.2742.0633" />
+    <PackageReference Include="LagoVista.Client.Core" Version="3.0.2742.605" />
     <PackageReference Include="System.IO.Ports" Version="9.0.0" />
   </ItemGroup>
 
@@ -14,6 +14,10 @@
     <ProjectReference Include="..\LagoVista.GCode\LagoVista.GCode.csproj" />
     <ProjectReference Include="..\LagoVista.Manufacturing.Models\LagoVista.Manufacturing.Models.csproj" />
     <ProjectReference Include="..\LagoVista.PCB.Eagle\LagoVista.PCB.Eagle.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Proxies\" />
   </ItemGroup>
 
 </Project>

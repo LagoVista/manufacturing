@@ -206,10 +206,6 @@ namespace LagoVista.PickAndPlace
             }
         }
 
-        public MachinesRepo MachineRepo
-        {
-            get { return _machineRepo; }
-        }
 
         LagoVista.Manufacturing.Models.Machine _settings;
         public LagoVista.Manufacturing.Models.Machine Settings
@@ -218,7 +214,6 @@ namespace LagoVista.PickAndPlace
             set
             {
                 _settings = value;
-                _machineRepo.CurrentMachineId = value.Id;
                 RaisePropertyChanged();
                 RaisePropertyChanged(nameof(IsPnPMachine));
             }

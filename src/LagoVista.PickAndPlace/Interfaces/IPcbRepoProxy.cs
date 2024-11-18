@@ -3,15 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace LagoVista.PickAndPlace.Interfaces
 {
-    public interface IMachineRepo
+    public interface IPcbRepoProxy
     {
-        Task<List<MachineSummary>> GetMachinesAsync();
+        Task<IEnumerable<CircuitBoard>> GetBoardsAsync();
 
-        Task<Machine> GetMachine(string machineId);
-
-        Task SaveMachineAsync(Machine machine);
+        Task<CircuitBoard> GetBoardAsync(string id);
     }
 }
