@@ -43,6 +43,9 @@ namespace LagoVista.PickAndPlace
         {
             get
             {
+                if (Settings == null)
+                    return false;
+
                 return Settings.MachineType == FirmwareTypes.LagoVista_PnP ||
                        Settings.MachineType == FirmwareTypes.Repeteir_PnP ||
                        Settings.MachineType == FirmwareTypes.SimulatedMachine;

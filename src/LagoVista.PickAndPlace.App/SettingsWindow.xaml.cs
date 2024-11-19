@@ -1,5 +1,6 @@
 ﻿using DirectShowLib;
 using LagoVista.Client.Core;
+using LagoVista.Core;
 using LagoVista.Core.IOC;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
@@ -13,16 +14,18 @@ namespace LagoVista.PickAndPlace.App
     /// Interaction logic for SettingsWindow.xaml
     /// </summary>
     public partial class SettingsWindow : Window
-	{
+    {
 
         LagoVista.Manufacturing.Models.Machine _settings;
+        private bool _newMachine;
 
-        public SettingsWindow(IMachine machine, LagoVista.Manufacturing.Models.Machine settings, int index = 0)
-		{
+        public SettingsWindow(IMachine machine, LagoVista.Manufacturing.Models.Machine settings, bool newMachine, int index = 0)
+        {
             _settings = settings;
+            _newMachine = newMachine;
 
             DataContext = new SettingsViewModel(machine, _settings);
-            
+
             var cameras = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
             var idx = 0;
 
@@ -46,7 +49,7 @@ namespace LagoVista.PickAndPlace.App
             InitializeComponent();
 
             Tabs.SelectedIndex = index;
-		}
+        }
         public SettingsViewModel ViewModel
         {
             get { return DataContext as SettingsViewModel; }
@@ -55,7 +58,9 @@ namespace LagoVista.PickAndPlace.App
 
         private async void Save_Click(object sender, RoutedEventArgs e)
         {
-            if (String.IsNullOrEmpty(_settings.MachineName))
+            _settings.Key = Guid.NewGuid().ToId().ToLower();
+
+            if (String.IsNullOrEmpty(_settings.Name))
             {
                 MessageBox.Show("Machine Name is a Required Field");
                 Tabs.TabIndex = 0;
@@ -72,7 +77,8 @@ namespace LagoVista.PickAndPlace.App
             }
 
             var rest = SLWIOC.Get<IRestClient>();
-            var result = await rest.PutAsync("/api/mfg/machine", _settings);
+
+            var result = _newMachine ? await rest.PostAsync("/api/mfg/machine", _settings) : await rest.PutAsync("/api/mfg/machine", _settings);
             if (result.Successful)
             {
                 DialogResult = true;
@@ -80,7 +86,7 @@ namespace LagoVista.PickAndPlace.App
             }
             else
             {
-                MessageBox.Show(result.ErrorMessage);             
+                MessageBox.Show(result.ErrorMessage);
             }
         }
 

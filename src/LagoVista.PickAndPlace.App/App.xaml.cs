@@ -33,9 +33,10 @@ namespace LagoVista.PickAndPlace.App
     {
         public App()
         {
+            DeviceInfo.Register("uwpapp");
+
             SLWIOC.Register<IDispatcherServices>(new NuvIoTDispatcher(Dispatcher));
             SLWIOC.Register<ISocketClient, SocketClient>();
-            SLWIOC.Register<IDeviceInfo, DeviceInfo>();
             SLWIOC.RegisterSingleton<ILogger>(new AdminLogger(new DebugWriter()));
             SLWIOC.RegisterSingleton<IDeviceManager, Core.WPF.PlatformSupport.DeviceManager>();
             SLWIOC.RegisterSingleton<IPopupServices, PopupService>();
@@ -45,12 +46,22 @@ namespace LagoVista.PickAndPlace.App
             SLWIOC.RegisterSingleton<IAppConfig, _appCOnfg>();
             SLWIOC.RegisterSingleton<IClientAppInfo, ClientAppInfo>();
 
-            LagoVista.Client.Core.Startup.Init(new ServerInfo()
+            var local = new ServerInfo()
             {
                 RootUrl = "localhost",
                 SSL = false,
                 Port = 5001
-            });
+            };
+
+
+            var live = new ServerInfo()
+            {
+                RootUrl = "api.nuviot.com",
+                SSL = true,
+                Port = 443
+            };
+
+            LagoVista.Client.Core.Startup.Init(live);
         }
     }
 
@@ -173,7 +184,7 @@ namespace LagoVista.PickAndPlace.App
 
         public AuthTypes AuthType => AuthTypes.User;
 
-        public EntityHeader SystemOwnerOrg => EntityHeader.Create("08AB41B2727F4E398FCF6A683EE0EEB4", "NA");
+        public EntityHeader SystemOwnerOrg => null;
 
         public string WebAddress => "";
 

@@ -118,7 +118,7 @@ namespace LagoVista.PickAndPlace.App.Controls
             if (ViewModel.Machine.Settings.PositioningCamera == null)
             {
                 MessageBox.Show("Please select a camera");
-                new SettingsWindow(ViewModel.Machine, ViewModel.Machine.Settings, 2).ShowDialog();
+                new SettingsWindow(ViewModel.Machine, ViewModel.Machine.Settings, false, 2).ShowDialog();
                 return;
             }
 
@@ -192,7 +192,7 @@ namespace LagoVista.PickAndPlace.App.Controls
 
         private void Settings_Click(object sender, RoutedEventArgs e)
         {
-            new SettingsWindow(ViewModel.Machine, ViewModel.Machine.Settings, 2).ShowDialog();
+            new SettingsWindow(ViewModel.Machine, ViewModel.Machine.Settings, false, 2).ShowDialog();
         }
 
         private void Play_Click(object sender, RoutedEventArgs e)

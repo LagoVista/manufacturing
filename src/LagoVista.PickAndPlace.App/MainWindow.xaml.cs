@@ -53,46 +53,7 @@ namespace LagoVista.PickAndPlace.App
         static MainWindow _this;
         public static MainWindow This { get { return _this; } }
 
-        /* Doing this long syncronously here so the data will be ready before creating 
-         * the ViewModel and creating the UI 
-         * Need to investigate calling InitializeCompoent AFTER some async calls */
-        //private MachinesRepo LoadRepo()
-        //{
-        //    MachinesRepo repo;
-
-        //    var name = Process.GetCurrentProcess().ProcessName;
-
-        //    /* The XPlat stuff will store the repo in the AppData folder so expect it there */
-        //    var dir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-
-        //    dir = Path.Combine(dir, name);
-        //    if (!Directory.Exists(dir))
-        //        Directory.CreateDirectory(dir);
-
-        //    var jsonPath = Path.Combine(dir, MachinesRepo.FileName);
-
-        //    if (System.IO.File.Exists(jsonPath))
-        //    {
-        //        var json = System.IO.File.ReadAllText(jsonPath);
-
-        //        try
-        //        {
-        //            repo = JsonConvert.DeserializeObject<MachinesRepo>(json);
-        //        }
-        //        catch (Exception)
-        //        {
-        //            repo = MachinesRepo.Default;
-        //            System.IO.File.WriteAllText(jsonPath, JsonConvert.SerializeObject(repo));
-        //        }
-        //    }
-        //    else
-        //    {
-        //        repo = MachinesRepo.Default;
-        //        System.IO.File.WriteAllText(jsonPath, JsonConvert.SerializeObject(repo));
-        //    }
-
-        //    return repo;
-        //}
+        
 
         private async void ChangeMachine_Click(object sender, RoutedEventArgs e)
         {
@@ -199,7 +160,7 @@ namespace LagoVista.PickAndPlace.App
 
         private void SettingsMenu_Click(object sender, RoutedEventArgs e)
         {
-            new SettingsWindow(ViewModel.Machine, ViewModel.Machine.Settings).ShowDialog();
+            new SettingsWindow(ViewModel.Machine, ViewModel.Machine.Settings, false).ShowDialog();
         }
 
         private async void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -269,7 +230,7 @@ namespace LagoVista.PickAndPlace.App
         {
             //Clone in case we cancel.
             var clonedSettings = ViewModel.Machine.Settings.Clone();
-            var dlg = new SettingsWindow(ViewModel.Machine, clonedSettings);
+            var dlg = new SettingsWindow(ViewModel.Machine, clonedSettings, false);
             dlg.Owner = this;
             dlg.ShowDialog();
             if (dlg.DialogResult.HasValue && dlg.DialogResult.Value)
@@ -283,22 +244,26 @@ namespace LagoVista.PickAndPlace.App
 
         private async void NewMachinePRofile_Click(object sender, RoutedEventArgs e)
         {
-            var settings = LagoVista.Manufacturing.Models.Machine.CreateDefault();
-            settings.MachineName = String.Empty;
+            var machineResult = await _restClient.GetAsync<DetailResponse<LagoVista.Manufacturing.Models.Machine>>("/api/mfg/machine/factory");
+            machineResult.Result.Model.ApplyDefaults();
+            var settings = machineResult.Result.Model;
 
-            var dlg = new SettingsWindow(ViewModel.Machine, settings);
+            var dlg = new SettingsWindow(ViewModel.Machine, settings, true);
             dlg.Owner = this;
             dlg.ShowDialog();
             if (dlg.DialogResult.HasValue && dlg.DialogResult.Value)
             {
-                //ViewModel.Machine.MachineRepo.Machines.Add(settings);
-                //await ViewModel.Machine.MachineRepo.SaveAsync();
+                var result = await _restClient.PostAsync("/api/mfg/machine", machineResult);
+                if (!result.Successful)
+                    MessageBox.Show(result.ErrorMessage);
+                else
+                {
+                    var menu = new MenuItem() { Header = settings.MachineName };
+                    menu.Tag = settings.Id;
+                    menu.Click += ChangeMachine_Click;
 
-                var menu = new MenuItem() { Header = settings.MachineName };
-                menu.Tag = settings.Id;
-                menu.Click += ChangeMachine_Click;
-
-                MachinesMenu.Items.Add(menu);
+                    MachinesMenu.Items.Add(menu);
+                }
             }
         }
 

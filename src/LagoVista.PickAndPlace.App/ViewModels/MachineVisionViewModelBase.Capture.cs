@@ -226,7 +226,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             if (Machine.Settings.PositioningCamera == null && Machine.Settings.PartInspectionCamera == null)
             {
                 MessageBox.Show("Please Select a Camera");
-                new SettingsWindow(Machine, Machine.Settings, 2).ShowDialog();
+                new SettingsWindow(Machine, Machine.Settings, false, 2).ShowDialog();
                 return;
             }
 

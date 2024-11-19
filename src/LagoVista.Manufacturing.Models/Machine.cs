@@ -139,7 +139,7 @@ namespace LagoVista.Manufacturing.Models
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Machine_Title, ManufacturingResources.Names.Machine_Description,
-        ManufacturingResources.Names.Machine_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-searching-2", Cloneable: true,
+        ManufacturingResources.Names.Machine_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-ruler", Cloneable: true,
         SaveUrl: "/api/mfg/machine", GetUrl: "/api/mfg/machine/{id}", GetListUrl: "/api/mfg/machines", FactoryUrl: "/api/mfg/machine/factory",
         DeleteUrl: "/api/mfg/machine/{id}", ListUIUrl: "/mfg/machinesettings", EditUIUrl: "/mfg/machine/{id}", CreateUIUrl: "/mfg/machine/add")]
     public class Machine : MfgModelBase, ISummaryFactory, INotifyPropertyChanged, IFormDescriptor
@@ -313,7 +313,7 @@ namespace LagoVista.Manufacturing.Models
 
 
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
-        public string Icon { get; set; } = "icon-fo-folders";
+        public string Icon { get; set; } = "icon-pz-ruler";
 
 
         public string DefaultPnPMachineFile { get; set; }
@@ -493,6 +493,33 @@ namespace LagoVista.Manufacturing.Models
             return CreateSummary();
         }
 
+        public void ApplyDefaults()
+        {
+            ProbeOffset = 0.0;
+            ControllerBufferSize = 120;
+            StatusPollIntervalIdle = 1000;
+            StatusPollIntervalRunning = 100;
+            JogFeedRate = 2000;
+            ProbeTimeoutSeconds = 30;
+            MessageVerbosity = MessageVerbosityLevels.Normal;
+            MachineOrigin = MachineOrigin.Bottom_Left;
+            JogGCodeCommand = JogGCodeCommand.G0;
+            ViewportArcSplit = 1;
+            EnableCodePreview = true;
+            ProbeSafeHeight = 5;
+            ProbeMinimumHeight = 1;
+            ProbeMaxDepth = 5;
+            AbortOnProbeFail = false;
+            ProbeFeed = 20;
+            ProbeHeightMovementFeed = 1000;
+            ArcToLineSegmentLength = 1;
+            SplitSegmentLength = 5;
+            XYStepSize = 1;
+            ZStepSize = 1;
+            WorkAreaWidth = 300;
+            WorkAreaHeight = 20;
+        }
+
         public static Machine CreateDefault()
         {
 
@@ -537,7 +564,7 @@ namespace LagoVista.Manufacturing.Models
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Machine_Title, ManufacturingResources.Names.Machine_Description,
-        ManufacturingResources.Names.Machine_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-searching-2", Cloneable: true,
+        ManufacturingResources.Names.Machine_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-ruler", Cloneable: true,
         SaveUrl: "/api/mfg/machine", GetUrl: "/api/mfg/machine/{id}", GetListUrl: "/api/mfg/machines", FactoryUrl: "/api/mfg/machine/factory",
         DeleteUrl: "/api/mfg/machine/{id}", ListUIUrl: "/mfg/machinesettings", EditUIUrl: "/mfg/machine/{id}", CreateUIUrl: "/mfg/machine/add")]
     public class MachineSummary : SummaryData

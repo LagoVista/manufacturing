@@ -16,11 +16,10 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         public MainViewModel(string currentMachineId) : base()
         {
+            Machine = new Machine();
+
             InitCommands();
             InitChildViewModels();
-
-
-            Machine = new Machine();
 
             _restClient = SLWIOC.Get<IRestClient>();
         }

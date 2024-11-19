@@ -18,7 +18,13 @@ namespace LagoVista.PickAndPlace
         public event PropertyChangedEventHandler PropertyChanged;
 
         public Machine()
-        {    
+        {
+            Settings = new Manufacturing.Models.Machine()
+            {
+                Name = "No Machine",
+                MachineName = "No Machine"
+            };
+
             Messages = new System.Collections.ObjectModel.ObservableCollection<Models.StatusMessage>();
             AddStatusMessage(StatusMessageTypes.Info, "Startup.");
 
