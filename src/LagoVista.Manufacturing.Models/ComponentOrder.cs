@@ -12,7 +12,7 @@ using System.Text;
 namespace LagoVista.Manufacturing.Models
 {
 
-    public enum ComponentOrderStatusTypes 
+    public enum ComponentOrderStatusTypes
     {
         [EnumLabel(ComponentOrder.ComponentOrderStatusTypes_Pending, ManufacturingResources.Names.ComponentOrderStatusTypes_Pending, typeof(ManufacturingResources))]
         Pending,
@@ -26,7 +26,7 @@ namespace LagoVista.Manufacturing.Models
 
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.ComponentOrder_Title, ManufacturingResources.Names.ComponentOrder_Description,
-    ManufacturingResources.Names.ComponentOrder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-core-1", Cloneable: true,
+    ManufacturingResources.Names.ComponentOrder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-product-1", Cloneable: true,
         SaveUrl: "/api/mfg/order", GetUrl: "/api/mfg/order/{id}", GetListUrl: "/api/mfg/orders", FactoryUrl: "/api/mfg/order/factory", DeleteUrl: "/api/mfg/order/{id}",
         ListUIUrl: "/mfg/orders", EditUIUrl: "/mfg/orders/{id}", CreateUIUrl: "/mfg/orders/add")]
     public class ComponentOrder : MfgModelBase, ISummaryFactory, IFormDescriptor, IFormDescriptorCol2, IFormDescriptorBottom, IFormConditionalFields
@@ -39,7 +39,7 @@ namespace LagoVista.Manufacturing.Models
 
 
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
-        public string Icon { get; set; } = "icon-ae-core-1";
+        public string Icon { get; set; } = "icon-pz-product-1";
 
 
 
@@ -50,13 +50,13 @@ namespace LagoVista.Manufacturing.Models
         public string SupplierOrderNumber { get; set; }
 
 
-        [FormField(LabelResource: Resources.ManufacturingResources.Names.Common_Status, WaterMark:Resources.ManufacturingResources.Names.Common_Status_Select, FieldType: FieldTypes.Picker, EnumType: typeof(ComponentOrderStatusTypes), IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.Common_Status, WaterMark: Resources.ManufacturingResources.Names.Common_Status_Select, FieldType: FieldTypes.Picker, EnumType: typeof(ComponentOrderStatusTypes), IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<ComponentOrderStatusTypes> Status { get; set; }
 
         [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrder_OrderDate, FieldType: FieldTypes.Date, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string OrderDate { get; set; }
 
-        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrder_ReceiveDate, FieldType: FieldTypes.Date, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrder_ReceiveDate, FieldType: FieldTypes.Date, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public string ReceviedDate { get; set; }
 
         [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrder_Tax, FieldType: FieldTypes.Money, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
@@ -71,10 +71,10 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrder_Total, FieldType: FieldTypes.Money, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public decimal Total { get; set; }
 
-        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrder_LineItems, FieldType: FieldTypes.ChildListInline, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrder_LineItems, ChildListDisplayMembers: "Description,MfgPartNumber", FieldType: FieldTypes.ChildListInline, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public List<ComponentOrderLineItem> LineItems { get; set; } = new List<ComponentOrderLineItem>();
 
-        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrder_LineItemCsv, FieldType: FieldTypes.Money, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrder_LineItemCsv, FieldType: FieldTypes.MultiLineText, Rows: 20, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string LineItemsCSV { get; set; }
 
         public ComponentOrderSummary CreateSummary()
@@ -83,10 +83,15 @@ namespace LagoVista.Manufacturing.Models
             {
                 Name = Name,
                 Key = Key,
-                Id = Id, 
+                Id = Id,
                 Icon = Icon,
                 IsPublic = IsPublic,
-                Description = Description
+                Description = Description,
+                Supplier = Supplier,
+                SupplierOrderNumber = SupplierOrderNumber,
+                Status = Status.Text,
+                OrderDate = OrderDate,
+                Total = Total
             };
         }
 
@@ -94,8 +99,8 @@ namespace LagoVista.Manufacturing.Models
         {
             return new FormConditionals()
             {
-                 ConditionalFields = new List<string>() { nameof(LineItems), nameof(LineItemsCSV) },
-                 Conditionals = new List<FormConditional>()
+                ConditionalFields = new List<string>() { nameof(LineItems), nameof(LineItemsCSV) },
+                Conditionals = new List<FormConditional>()
                  {
                      new FormConditional()
                      {
@@ -122,9 +127,8 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Icon),
                 nameof(Supplier),
                 nameof(SupplierOrderNumber),
-                nameof(Status),
                 nameof(OrderDate),
-                nameof(ReceviedDate)
+                nameof(ReceviedDate),
             };
         }
 
@@ -141,6 +145,7 @@ namespace LagoVista.Manufacturing.Models
         {
             return new List<string>()
             {
+                nameof(Status),
                 nameof(Tax),
                 nameof(Shipping),
                 nameof(SubTotal),
@@ -162,11 +167,16 @@ namespace LagoVista.Manufacturing.Models
     public class ComponentOrderSummary : SummaryData
     {
         public decimal Total { get; set; }
+        public string Supplier { get; set; }
+        public string SupplierOrderNumber { get; set; }
+        public string Status { get; set; }
+        public string OrderDate { get; set; }
+
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.ComponentOrderLineItem_Title, ManufacturingResources.Names.ComponentOrderLineItem_Help,
-    ManufacturingResources.Names.ComponentOrder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-core-1", 
-        FactoryUrl:"/api/mfg/order/lineitem")]
+    ManufacturingResources.Names.ComponentOrder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-core-1",
+        FactoryUrl: "/api/mfg/order/lineitem")]
     public class ComponentOrderLineItem : IFormDescriptor
     {
         public ComponentOrderLineItem()
@@ -176,7 +186,7 @@ namespace LagoVista.Manufacturing.Models
 
         public string Id { get; set; }
 
-        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrderLineItem_Component, WaterMark: ManufacturingResources.Names.ComponentOrderLineItem_Component_Select, 
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrderLineItem_Component, WaterMark: ManufacturingResources.Names.ComponentOrderLineItem_Component_Select,
             EntityHeaderPickerUrl: "/api/mfg/components", FieldType: FieldTypes.EntityHeaderPicker, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader Component { get; set; }
 
@@ -196,7 +206,7 @@ namespace LagoVista.Manufacturing.Models
         public decimal Quantity { get; set; }
 
         [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrderLineItem_UnitPrice, FieldType: FieldTypes.Money, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public decimal UnitPrice {get; set;}
+        public decimal UnitPrice { get; set; }
 
         [FormField(LabelResource: Resources.ManufacturingResources.Names.Common_Notes, FieldType: FieldTypes.MultiLineText, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public string Notes { get; set; }
@@ -217,14 +227,19 @@ namespace LagoVista.Manufacturing.Models
 
         public static ComponentOrderLineItem FromOrderLine(string[] parts)
         {
+            foreach (var part in parts)
+            {
+                Console.WriteLine(part.Trim('"'));
+            }
+
             return new ComponentOrderLineItem()
             {
-                Quantity = decimal.Parse(parts[1]),
-                SupplierPartNumber = parts[2],
-                MfgPartNumber = parts[3],
-                Description = parts[4],
-                UnitPrice = decimal.Parse(parts[8]),
-                BackOrdered = decimal.Parse(parts[7])
+                Quantity = decimal.Parse(parts[1].Trim('"')),
+                SupplierPartNumber = parts[2].Trim('"'),
+                MfgPartNumber = parts[3].Trim('"'),
+                Description = parts[4].Trim('"'),
+                UnitPrice = decimal.Parse(parts[8].Trim('"')),
+                BackOrdered = decimal.Parse(parts[7].Trim('"'))
             };
         }
     }

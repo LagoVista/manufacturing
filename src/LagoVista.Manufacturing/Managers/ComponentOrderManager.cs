@@ -10,6 +10,8 @@ using static LagoVista.Core.Models.AuthorizeResult;
 using System.Threading.Tasks;
 using LagoVista.Manufacturing.Interfaces.Managers;
 using LagoVista.Core.Managers;
+using System.IO;
+using System.Text.RegularExpressions;
 
 namespace LagoVista.Manufacturing.Managers
 {
@@ -35,8 +37,9 @@ namespace LagoVista.Manufacturing.Managers
                         skippedHeader = true;
                     else
                     {
-                        var parts = line.Split(',');
-                        order.LineItems.Add(ComponentOrderLineItem.FromOrderLine(line.Split(',')));
+                        var parser = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+                        var parts = parser.Split(line);
+                        order.LineItems.Add(ComponentOrderLineItem.FromOrderLine(parts));
                     }
                 }
             }

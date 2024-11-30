@@ -35,6 +35,12 @@ namespace LagoVista.Manufacturing.Rest
             return form;
         }
 
+        [HttpGet("/api/mfg/order/lineitem")]
+        public DetailResponse<ComponentOrderLineItem> CreateOrderLineItem()
+        {
+            return DetailResponse<ComponentOrderLineItem>.Create();
+        }
+
         [HttpDelete("/api/mfg/order/{id}")]
         public async Task<InvokeResult> DeleteComponentOrder(string id)
         {
