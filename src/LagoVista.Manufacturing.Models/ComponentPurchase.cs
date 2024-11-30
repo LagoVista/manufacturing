@@ -20,19 +20,19 @@ namespace LagoVista.Manufacturing.Models
 
         public string Id { get; set; }
 
-        [FormField(LabelResource: Resources.ManufacturingResources.Names.Common_Name, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.Common_Name, FieldType: FieldTypes.Text, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Name { get; set; }
 
-        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentPurchase_OrderNumber, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentPurchase_OrderNumber, FieldType: FieldTypes.Text, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string OrderNumber { get; set; }
 
-        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentPurchase_Vendor, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentPurchase_Vendor, FieldType: FieldTypes.Text, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Vendor { get; set; }
 
-        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentPurchase_Quantity, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public int Qty { get; set; }
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentPurchase_Quantity, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public decimal Qty { get; set; }
 
-        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentPurchase_OrderDate, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentPurchase_OrderDate, FieldType:FieldTypes.Date, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string OrderDate { get; set; }
 
         public List<string> GetFormFields()

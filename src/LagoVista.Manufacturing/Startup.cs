@@ -1,5 +1,4 @@
-﻿using LagoVista.Manufacturing.Interfaces.Repos;
-using LagoVista.Core.Interfaces;
+﻿using LagoVista.Core.Interfaces;
 using LagoVista.Manufacturing.Interfaces.Managers;
 using LagoVista.Manufacturing.Managers;
 
@@ -17,6 +16,7 @@ namespace LagoVista.Manufacturing
             services.AddTransient<IPickAndPlaceJobManager, PickAndPlaceJobManager>();
             services.AddTransient<IPartPackManager, PartPackManager>();
             services.AddTransient<ICircuitBoardManager, CircuitBoardManager>();
+            services.AddTransient<IComponentOrderManager, ComponentOrderManager>();
         }
     }
 }

@@ -9,7 +9,7 @@ namespace LagoVista.Manufacturing.Models
 {
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Component_Title, ManufacturingResources.Names.Component_Description,
         ManufacturingResources.Names.Component_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-core-1", Cloneable: true,
-        SaveUrl: "/api/mfg/compoent", GetUrl: "/api/mfg/compoent/{id}", GetListUrl: "/api/mfg/compoents", FactoryUrl: "/api/mfg/compoent/factory", DeleteUrl: "/api/mfg/compoent/{id}",
+        SaveUrl: "/api/mfg/component", GetUrl: "/api/mfg/component/{id}", GetListUrl: "/api/mfg/components", FactoryUrl: "/api/mfg/component/factory", DeleteUrl: "/api/mfg/component/{id}",
         ListUIUrl: "/mfg/components", EditUIUrl: "/mfg/component/{id}", CreateUIUrl: "/mfg/component/add")]
     public class Component : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IIDEntity
     {
@@ -23,7 +23,7 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Component_ShelfUnit, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
         public string ShelfUnit { get; set; }
 
-        [FormField(LabelResource: ManufacturingResources.Names.Component_ShelfUnit, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Component_Shelf, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
         public string Shelf { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Component_Bin, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]

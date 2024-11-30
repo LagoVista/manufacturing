@@ -5,6 +5,7 @@ using LagoVista.Core.IOC;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Manufacturing.Models;
 using LagoVista.Client.Core;
+using System;
 
 namespace LagoVista.PickAndPlace.ViewModels
 {
@@ -14,6 +15,13 @@ namespace LagoVista.PickAndPlace.ViewModels
         LagoVista.Client.Core.IRestClient _restClient;
         private string _currentMachineId;
 
+        bool _networkCallInProcess;
+        public bool NetworkCallInProcess
+        {
+            get { return _networkCallInProcess; }
+            set { Set(ref _networkCallInProcess, value); }
+        }
+
         public MainViewModel(string currentMachineId) : base()
         {
             Machine = new Machine();
@@ -22,7 +30,20 @@ namespace LagoVista.PickAndPlace.ViewModels
             InitChildViewModels();
 
             _restClient = SLWIOC.Get<IRestClient>();
+            _restClient.BeginCall += _restClient_BeginCall;
+            _restClient.EndCall += _restClient_EndCall;
         }
+
+        private void _restClient_EndCall(object sender, EventArgs e)
+        {
+            NetworkCallInProcess = false;
+        }
+
+        private void _restClient_BeginCall(object sender, EventArgs e)
+        {
+            NetworkCallInProcess = true;
+        }
+
 
         public async override Task InitAsync()
         {

@@ -10,6 +10,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using System;
+using System.Linq;
+using LagoVista.Core;
 
 namespace LagoVista.Manufacturing.Rest.Controllers
 {
@@ -18,26 +21,54 @@ namespace LagoVista.Manufacturing.Rest.Controllers
     public class ComponentController : LagoVistaBaseController
     {
         private readonly IComponentManager _mgr;
+        private readonly IComponentPackageManager _pckMgr;
 
-        public ComponentController(UserManager<AppUser> userManager, IAdminLogger logger, IComponentManager mgr) : base(userManager, logger)
+        public ComponentController(UserManager<AppUser> userManager, IAdminLogger logger, IComponentManager mgr, IComponentPackageManager pckMgr) : base(userManager, logger)
         {
-            _mgr = mgr;
+            _mgr = mgr ?? throw new ArgumentNullException(nameof(mgr));
+            _pckMgr = pckMgr ?? throw new ArgumentNullException(nameof(pckMgr));
         }
 
         [HttpGet("/api/mfg/component/{id}")]
         public async Task<DetailResponse<Component>> GetComponent(string id)
         {
-            return DetailResponse<Component>.Create(await _mgr.GetComponentAsync(id, OrgEntityHeader, UserEntityHeader));
+            var response = DetailResponse<Component>.Create(await _mgr.GetComponentAsync(id, OrgEntityHeader, UserEntityHeader));
+            var pckgs = await _pckMgr.GetComponentPackagesSummariesAsync(ListRequest.CreateForAll(), OrgEntityHeader, UserEntityHeader);
+            response.View[nameof(LagoVista.Manufacturing.Models.Component.ComponentPackage).CamelCase()].Options = pckgs.Model.Select(pck => new EnumDescription() { Id = pck.Id, Key = pck.Key, Text = pck.Name, Label = pck.Name, Name = pck.Name }).ToList();
+            response.View[nameof(LagoVista.Manufacturing.Models.Component.ComponentPackage).CamelCase()].Options.Insert(0, new EnumDescription() { Id = "-1", Key = "-1", Text = "-select-", Name = "-select-", Label = "-select-" });
+            return response;
         }
 
         [HttpGet("/api/mfg/component/factory")]
-        public DetailResponse<Component> CreateComponent()
+        public async Task<DetailResponse<Component>> CreateComponent()
         {
             var form = DetailResponse<Component>.Create();
             SetAuditProperties(form.Model);
             SetOwnedProperties(form.Model);
+            var pckgs = await  _pckMgr.GetComponentPackagesSummariesAsync(ListRequest.CreateForAll(), OrgEntityHeader, UserEntityHeader);
+            form.View[nameof(LagoVista.Manufacturing.Models.Component.ComponentPackage).CamelCase()].Options = pckgs.Model.Select(pck => new EnumDescription() { Id = pck.Id, Key = pck.Key, Text = pck.Name, Label = pck.Name, Name = pck.Name }).ToList();
+            form.View[nameof(LagoVista.Manufacturing.Models.Component.ComponentPackage).CamelCase()].Options.Insert(0, new EnumDescription() { Id = "-1", Key = "-1", Text = "-select-", Name = "-select-", Label = "-select-" });
             return form;
         }
+
+        [HttpPost("/api/mfg/component/{id}/purchase")]
+        public async Task<InvokeResult> AddPurchaseAsync(String id, [FromBody] ComponentPurchase purchase)
+        {
+            var component = await _mgr.GetComponentAsync(id, OrgEntityHeader, UserEntityHeader);
+            component.Purchases.Add(purchase);
+            component.QuantityOnOrder += purchase.Qty;
+            return await _mgr.UpdateComponentAsync(component, OrgEntityHeader, UserEntityHeader);
+        }
+
+        [HttpGet("/api/mfg/component/{id}/purchase/{purchaseid}/receive")]
+        public async Task<InvokeResult> ReceivePurchase(string id, string purchaseid)
+        {
+            var component = await _mgr.GetComponentAsync(id, OrgEntityHeader, UserEntityHeader);
+            var purchase = component.Purchases.Single(prc => prc.Id == purchaseid);
+            component.QuantityOnHand += purchase.Qty;
+            return await _mgr.UpdateComponentAsync(component, OrgEntityHeader, UserEntityHeader);
+        }
+      
 
         [HttpGet("/api/mfg/component/purchase/factory")]
         public DetailResponse<ComponentPurchase> CreateComponentPurcahse()
@@ -65,7 +96,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         }
 
         [HttpGet("/api/mfg/components")]
-        public Task<ListResponse<ComponentSummary>> GetEquomentForOrg()
+        public Task<ListResponse<ComponentSummary>> GetComponentsForOrg()
         {
             return _mgr.GetComponentsSummariesAsync(GetListRequestFromHeader(), OrgEntityHeader, UserEntityHeader);
         }

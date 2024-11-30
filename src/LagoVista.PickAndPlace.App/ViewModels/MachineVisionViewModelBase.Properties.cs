@@ -12,15 +12,16 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         bool _showRectangles = false;
         bool _showCircles = false;
         bool _showLines = false;
+        bool _show100PixelSquare = false;
         bool _showCrossHairs = true;
         bool _showHarrisCorners = false;
         bool _showOriginalImage = true;
         bool _useBlurredImage = true;
 
-        public bool ShowPolygons 
+        public bool ShowPolygons
         {
             get { return _showPolygons; }
-            set { Set(ref _showPolygons, value);  }
+            set { Set(ref _showPolygons, value); }
         }
         public bool ShowRectangles
         {
@@ -31,6 +32,12 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         {
             get { return _showCircles; }
             set { Set(ref _showCircles, value); }
+        }
+
+        public bool Show200PixelSquare
+        {
+            get { return _show100PixelSquare; }
+            set { Set(ref _show100PixelSquare, value); }
         }
         public bool ShowLines
         {
@@ -51,8 +58,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         {
             get { return _showOriginalImage; }
             set { Set(ref _showOriginalImage, value); }
-        }        
-        
+        }
+
         public bool UseBlurredImage
         {
             get { return _useBlurredImage; }
@@ -195,11 +202,11 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
                 Set(ref _showBottomCamera, value);
                 UseBottomCamera = true;
-                UseTopCamera = false;                
+                UseTopCamera = false;
             }
         }
 
-        bool _pictureInPicture = true;
+        bool _pictureInPicture = false;
         public bool PictureInPicture
         {
             get { return _pictureInPicture; }

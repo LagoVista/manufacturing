@@ -21,7 +21,11 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Menu>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="auto" />
+        </Grid.ColumnDefinitions>
+        <Menu Background="#c0c0c0">
             <MenuItem Header="File"  >
                 <MenuItem  Header="Exit" Click="CloseMenu_Click" />
             </MenuItem>
@@ -56,6 +60,8 @@
                 <MenuItem  Header="Recent Eagle Boards" x:Name="RecentBoards" />
                 <Separator />
             </MenuItem>
+            <MenuItem Header="Organization"  x:Name="OrganizationMenu">
+            </MenuItem>
             <MenuItem Header="Pick and Place" >
                 <MenuItem Header="New PnP Job" x:Name="NewPnPJob" Click="NewPnPJob_Click" />
                 <MenuItem Header="Open PnP Job" x:Name="OpenPnPJob" Click="OpenPnPJob_Click" />
@@ -85,6 +91,8 @@
                 <Separator />
                 <MenuItem Header="Clear HeightMap"  Command="{Binding ClearHeightMapCommand}" />
             </MenuItem>
+            
+            
 
             <MenuItem Header="Machines" x:Name="MachinesMenu" >
                 <MenuItem Header="New" x:Name="NewMachinePRofile" Click="NewMachinePRofile_Click" />
@@ -92,8 +100,16 @@
                 <Separator />
             </MenuItem>
         </Menu>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Background="LightGray">
+            <Label>Workbench</Label>
+            <ComboBox Width="120">
+                <ComboBoxItem>GCode Job</ComboBoxItem>
+                <ComboBoxItem>PCB</ComboBoxItem>
+                <ComboBoxItem>PNP</ComboBoxItem>
+            </ComboBox>
+        </StackPanel>
 
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="2" Grid.ColumnSpan="2">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="3*" />
@@ -120,5 +136,14 @@
                 <ctls:ManualSend Grid.Row="3" Grid.ColumnSpan="2"/>
             </Grid>
         </Grid>
+        <Grid Grid.RowSpan="3" Background="Black" Opacity="0.4" Visibility="{Binding NetworkCallInProcess, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Hidden}">
+    
+        </Grid>
+        <Grid Grid.RowSpan="3" Visibility="{Binding NetworkCallInProcess, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Hidden}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Foreground="White" Text="Please Wait" FontSize="32"></TextBlock>
+            </StackPanel>
+        </Grid>
     </Grid>
+    
 </Window>

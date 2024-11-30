@@ -13,7 +13,7 @@ namespace LagoVista.PickAndPlace.Models
         public string Name
         {
             get { return _name; }
-            set { _name = value;  RaisePropertyChanged(); }
+            set { _name = value; RaisePropertyChanged(); }
         }
 
         /* 1-3*/
@@ -21,7 +21,7 @@ namespace LagoVista.PickAndPlace.Models
         public double Brightness
         {
             get { return _brightness; }
-            set { _brightness = Math.Round(value,1);  RaisePropertyChanged(); }
+            set { _brightness = Math.Round(value, 1); RaisePropertyChanged(); }
         }
 
         /* 0-100*/
@@ -55,10 +55,10 @@ namespace LagoVista.PickAndPlace.Models
         }
 
         private double _polygonEpsilonFactor = 0.05;
-        public double PolygonEpsilonFactor  
+        public double PolygonEpsilonFactor
         {
             get { return _polygonEpsilonFactor; }
-            set { _polygonEpsilonFactor = Math.Round(value,3); RaisePropertyChanged(); }
+            set { _polygonEpsilonFactor = Math.Round(value, 3); RaisePropertyChanged(); }
         }
 
         private bool _findIrregularPolygons = true;
@@ -96,7 +96,14 @@ namespace LagoVista.PickAndPlace.Models
         public double ContourMinArea
         {
             get { return _contourMinArea; }
-            set { _contourMinArea = value;  RaisePropertyChanged(); }
+            set { _contourMinArea = value; RaisePropertyChanged(); }
+        }
+
+        private double _contourMaxArea = 800;
+        public double CountourMaxArea
+        {
+            get { return _contourMaxArea; }
+            set { _contourMaxArea = value; RaisePropertyChanged(); }
         }
 
         private int _harrisCornerApeture = 3;
@@ -131,7 +138,7 @@ namespace LagoVista.PickAndPlace.Models
         public double GaussianSigmaX
         {
             get { return _guassianSigmaX; }
-            set { _guassianSigmaX = Math.Round(value,2); RaisePropertyChanged(); }
+            set { _guassianSigmaX = Math.Round(value, 2); RaisePropertyChanged(); }
         }
 
         private double _thresholdEdgeDetection = 5;
@@ -170,8 +177,9 @@ namespace LagoVista.PickAndPlace.Models
         public int CannyApetureSize
         {
             get { return _cannyApetureSize; }
-            set {
-                if(value % 2 == 0)
+            set
+            {
+                if (value % 2 == 0)
                 {
                     value += 1;
                 }
@@ -227,7 +235,7 @@ namespace LagoVista.PickAndPlace.Models
         public double HoughCirclesDP
         {
             get { return _houghCirclesDP; }
-            set { _houghCirclesDP = Math.Round(value,3); RaisePropertyChanged(); }
+            set { _houghCirclesDP = Math.Round(value, 3); RaisePropertyChanged(); }
         }
         private double _houghLinesCircleMinDistance = 32;
         public double HoughCirclesMinDistance
@@ -262,6 +270,27 @@ namespace LagoVista.PickAndPlace.Models
         {
             get { return _houghCirclesMaxRadius; }
             set { _houghCirclesMaxRadius = value; RaisePropertyChanged(); }
+        }
+
+        private bool _applyMask = false;
+        public bool ApplyMask
+        {
+            get { return _applyMask; }
+            set { _applyMask = value; RaisePropertyChanged(); }
+        }
+
+        private bool _applyThreshold = false;
+        public bool ApplyThreshold
+        {
+            get { return _applyThreshold; }
+            set { _applyThreshold = value; RaisePropertyChanged(); }
+        }
+
+        public byte _primaryThreshold = 80;
+        public byte PrimaryThreshold
+        {
+            get { return _primaryThreshold; }
+            set { _primaryThreshold = value; RaisePropertyChanged(); }
         }
     }
 }

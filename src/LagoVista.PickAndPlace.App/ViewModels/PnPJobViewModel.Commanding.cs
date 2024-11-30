@@ -59,7 +59,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             GoToInspectPartRefHoleCommand = new RelayCommand(() =>
             {
                 GoToInspectPartRefHole();
-            },() => SelectedInspectPart != null);
+            }, () => SelectedInspectPart != null);
 
             SetInspectPartRefHoleCommand = new RelayCommand(() =>
             {
@@ -67,7 +67,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 SelectedInspectPart.PartStrip.ReferenceHoleY = Machine.MachinePosition.Y * (1 / Machine.Settings.PartStripScaler.Y);
             }, () => SelectedInspectPart != null);
 
-            GoToInspectedPartCommand = new RelayCommand(GoToFirstPartInPartsToPlace, ()=> SelectedInspectPart != null);
+            GoToInspectedPartCommand = new RelayCommand(GoToFirstPartInPartsToPlace, () => SelectedInspectPart != null);
 
             SetBottomCameraPositionCommand = new RelayCommand(SetBottomCamera, () => Machine.Connected);
             GoToMachineFiducialCommand = new RelayCommand(GotoMachineFiducial, () => Machine.Connected);
@@ -78,7 +78,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             GoToRefHoleCommand = new RelayCommand(() => GoToRefPoint(), () => SelectedPartStrip != null);
             SetRefHoleCommand = new RelayCommand(() => SetRefPoint(), () => SelectedPartStrip != null);
-            GoToCurrentPartInStripCommand = new  RelayCommand(() => GoToCurrentPartInPartStrip(), () => SelectedPartStrip != null);
+            GoToCurrentPartInStripCommand = new RelayCommand(() => GoToCurrentPartInPartStrip(), () => SelectedPartStrip != null);
         }
 
         public RelayCommand HomingCycleCommand { get; private set; }
@@ -143,6 +143,9 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 return false;
 
             if (_isPlacingParts)
+                return false;
+
+            if (SelectedPart.StripFeederPackage == null)
                 return false;
 
             return true;

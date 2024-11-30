@@ -69,11 +69,11 @@ namespace LagoVista.Manufacturing.Managers
             return await _FeederRepo.GetFeederSummariesAsync(org.Id, listRequest);
         }
 
-        public async Task<InvokeResult> UpdateFeederAsync(Feeder part, EntityHeader org, EntityHeader user)
+        public async Task<InvokeResult> UpdateFeederAsync(Feeder order, EntityHeader org, EntityHeader user)
         {
-            await AuthorizeAsync(part, AuthorizeActions.Update, user, org);
-            ValidationCheck(part, Actions.Update);
-            await _FeederRepo.UpdateFeederAsync(part);
+            await AuthorizeAsync(order, AuthorizeActions.Update, user, org);
+            ValidationCheck(order, Actions.Update);
+            await _FeederRepo.UpdateFeederAsync(order);
 
             return InvokeResult.Success;
         }

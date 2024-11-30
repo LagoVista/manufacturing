@@ -68,7 +68,7 @@ namespace LagoVista.Manufacturing.Models
         public decimal CenterY { get; set; } = 6;
 
 
-        [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_SpecificationPage, FieldType: FieldTypes.WebLink, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_SpecificationPage, FieldType: FieldTypes.WebLink, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public string SpecificationPage { get; set; }
 
 

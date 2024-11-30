@@ -53,7 +53,7 @@
                         <ColumnDefinition Width="80" />
                     </Grid.ColumnDefinitions>
                     <Label Grid.Row="0" Grid.Column="0" Content="Name" />
-                    <TextBox Text="{Binding Settings.Name, Mode=TwoWay}" Grid.Column="1" x:Name="MachineName" Grid.ColumnSpan="2" />
+                    <TextBox Text="{Binding Settings.MachineName, Mode=TwoWay}" Grid.Column="1" x:Name="MachineName" Grid.ColumnSpan="2" />
 
                     <Label Grid.Row="1" Content="Machine Type" />
                     <ComboBox Grid.Row="1" 
@@ -181,7 +181,7 @@
                         SelectedValue="{Binding Path=SelectedPort2Id, Mode=TwoWay}"
                         ItemsSource="{Binding Path=SerialPorts}"  />
 
-                    
+
                     <TextBox Grid.Row="4"  Text="{Binding Settings.CurrentSerialPort.BaudRate, Mode=TwoWay}" />
                     <Label  IsEnabled="{Binding CanChangeMachineConfig}"
                         Content="BaudRate" Grid.Row="4" />
@@ -227,6 +227,8 @@
                         <RowDefinition Height="auto" />
                         <RowDefinition Height="auto" />
                         <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
                     </Grid.RowDefinitions>
 
                     <Label Content="Top/Positioning Camera" />
@@ -235,20 +237,28 @@
                           SelectedValuePath="Id"
                           SelectedValue="{Binding PositioningCameraId, Mode=TwoWay}"/>
                     <Label Content="Bottom/Inspection Camera" Grid.Row="1" />
-                    
+
                     <ComboBox ItemsSource="{Binding Cameras}" 
                               Grid.Row="1"
                           DisplayMemberPath="Name"
                           SelectedValuePath="Id"
                           SelectedValue="{Binding InspectionCameraId, Mode=TwoWay}"/>
 
-                    <Label Grid.Row="2" Content="Machine Fiducial Y" />
+                    <Label Grid.Row="2" Content="Machine Fiducial X" />
                     <TextBox  Text="{Binding Settings.MachineFiducial.X}" Grid.Row="2" />
                     <Label Content="mm" Grid.Row="2" Grid.Column="3" />
 
                     <Label Grid.Row="3" Content="Machine Fiducial Y" />
                     <TextBox Text="{Binding Settings.MachineFiducial.Y}"  Grid.Row="3" />
                     <Label Content="mm" Grid.Row="3" Grid.Column="3" />
+
+                    <Label Grid.Row="4" Content="Top Pixels per MM" />
+                    <TextBox  Text="{Binding Settings.PositionCameraPixelsPerMM}" Grid.Row="4" />
+                    <Label Content="mm" Grid.Row="2" Grid.Column="4" />
+
+                    <Label Grid.Row="5" Content="Bottom Pixels per MM" />
+                    <TextBox Text="{Binding Settings.InspectionCameraPixelsPerMM}"  Grid.Row="5" />
+                    <Label Content="mm" Grid.Row="3" Grid.Column="5" />
                 </Grid>
             </TabItem>
 
@@ -354,6 +364,7 @@
 
                     <Label Grid.Row="4" Content="Default Machine File"/>
                     <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding Settings.DefaultPnPMachineFile}" />
+                    <Button Grid.Column="2" Content="..." Width="40" Grid.Row="4" />
                 </Grid>
             </TabItem>
             <TabItem Header="PCB">

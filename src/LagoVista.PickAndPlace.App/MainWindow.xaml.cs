@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Windows;
-using System.Linq;
-using Newtonsoft.Json;
 using System.Windows.Controls;
-using System.Diagnostics;
-using System.IO;
 using System.Threading.Tasks;
 using LagoVista.PickAndPlace.Models;
 using LagoVista.PickAndPlace.ViewModels;
@@ -12,18 +8,14 @@ using LagoVista.PickAndPlace.App.ViewModels;
 using LagoVista.PickAndPlace.App.Views;
 using LagoVista.PickAndPlace.Util;
 using LagoVista.PCB.Eagle.Models;
-using LagoVista.Manufacturing.Models;
-using LagoVista.Client.Core.Net;
 using LagoVista.Client.Core;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Core.IOC;
 using LagoVista.Core.Interfaces;
-using LagoVista.Core;
-using LagoVista.Core.Models;
 using LagoVista.Core.Validation;
-using RingCentral;
-using System.Threading;
 using LagoVista.PickAndPlace.App.Properties;
+using LagoVista.UserAdmin.Models.Orgs;
+using LagoVista.UserAdmin.Models.Users;
 
 namespace LagoVista.PickAndPlace.App
 {
@@ -38,6 +30,7 @@ namespace LagoVista.PickAndPlace.App
             this._restClient = SLWIOC.Get<IRestClient>();
             this._authManager = SLWIOC.Get<IAuthManager>();
 
+
             var designTime = System.ComponentModel.DesignerProperties.GetIsInDesignMode(new DependencyObject());
             if (!designTime)
             {
@@ -48,6 +41,7 @@ namespace LagoVista.PickAndPlace.App
                 this.Loaded += MainWindow_Loaded;
             }
         }
+
 
         /* Make the main Window Available to contorls */
         static MainWindow _this;
@@ -129,6 +123,47 @@ namespace LagoVista.PickAndPlace.App
 
                 MachinesMenu.Items.Add(menu);
             }
+
+            OrganizationMenu.Items.Add(new MenuItem() { Header = $"Current: {_authManager.User.CurrentOrganization.Text} " });
+            OrganizationMenu.Items.Add(new Separator());
+            var ressponse = await _restClient.GetAsync<ListResponse<OrgUser>>("/api/user/orgs");
+            foreach(var org in ressponse.Result.Model)
+            {
+                var orgMenu = new MenuItem() { Header = org.OrganizationName, Tag = org.OrgId };
+                orgMenu.Click += OrgMenu_Click;
+                OrganizationMenu.Items.Add(orgMenu);
+
+            }
+        }
+
+        private async void OrgMenu_Click(object sender, RoutedEventArgs e)
+        {
+            var orgId = (sender as MenuItem).Tag;
+
+            var response = await _restClient.GetAsync<InvokeResult<AppUser>>($"/api/org/{orgId}/change");
+            if(response.Successful)
+            {
+                _authManager.User = response.Result.Result.ToUserInfo();
+                await _authManager.PersistAsync();
+                var machines = await _restClient.GetListResponseAsync<LagoVista.Manufacturing.Models.Machine>("/api/mfg/machines", ListRequest.CreateForAll());
+
+                MachinesMenu.Items.Clear();
+
+                foreach (var machine in machines.Model)
+                {
+                    var menu = new MenuItem() { Header = machine.Name };
+                    menu.Tag = machine.Id;
+                    if (machine.Id == Settings.Default.CurrentMachineId)
+                        menu.IsChecked = true;
+
+                    menu.Click += ChangeMachine_Click;
+
+                    MachinesMenu.Items.Add(menu);
+                }
+
+            }
+
+
         }
 
         private async void PnpJobMenu_Click(object sender, RoutedEventArgs e)

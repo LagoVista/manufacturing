@@ -186,6 +186,12 @@ namespace LagoVista.PickAndPlace
 
         private async Task WorkLoop()
         {
+            if (_reader.BaseStream.CanRead == false)
+            {
+                return;
+            }
+
+            await Task.Delay(5);
             var lineTask = _reader.ReadLineAsync();
 
             /* While we are awaiting for a line to come in process any outgoing stuff */
@@ -201,7 +207,8 @@ namespace LagoVista.PickAndPlace
 
             if (lineTask.IsCompleted)
             {
-                ProcessResponseLine(lineTask.Result);
+                if (lineTask.Status != TaskStatus.Faulted)
+                    ProcessResponseLine(lineTask.Result);
             }
         }
 

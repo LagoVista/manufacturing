@@ -30,20 +30,20 @@
                     <Controls:JogControls  DataContext="{Binding MachineControls}"  />
                     <Controls:PnPButtons DataContext="{Binding MachineControls}"  />
                     <Controls:ImageAdjustments Grid.Column="1" Grid.RowSpan="3"  />
-                    <Controls:MVViewOptions HorizontalAlignment="Right" VerticalAlignment="Bottom"  />
+                    <Controls:MVViewOptions VerticalAlignment="Bottom"  />
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="120" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <TextBlock FontSize="16" Grid.Row="1">Status:</TextBlock>
-                        <TextBlock FontSize="16" >Vision State:</TextBlock>
-                        <TextBlock Grid.Row="0" FontSize="16" Grid.Column="1" Text="{Binding LocatorState}"></TextBlock>
-                        <TextBlock Grid.Row="1" FontSize="16" Grid.Column="1" Text="{Binding Status}"></TextBlock>
+                        <TextBlock FontSize="14" Grid.Row="1">Status:</TextBlock>
+                        <TextBlock FontSize="14" >Vision State:</TextBlock>
+                        <TextBlock Grid.Row="0" FontSize="14" Grid.Column="1" Text="{Binding LocatorState}"></TextBlock>
+                        <TextBlock Grid.Row="1" FontSize="14" Grid.Column="1" Text="{Binding Status}"></TextBlock>
                     </Grid>
                     <StackPanel Grid.Row="10" Grid.ColumnSpan="3" Margin="0,0,0,220" >
                         <Button Command="{Binding HomingCycleCommand}" Style="{StaticResource CommandButton}" Content="1) Homing Cycle" Width="200"/>
@@ -218,12 +218,12 @@
                                 <TextBlock Text="Center Place Head over Bottom Facing Camera" TextWrapping="Wrap" Margin="0,0,0,5"  />
                                 <Grid Margin="0,0,0,5"  >
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="80" />
+                                        <ColumnDefinition Width="60" />
                                         <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="80" />
+                                        <ColumnDefinition Width="100" />
                                     </Grid.ColumnDefinitions>
                                     <Label Style="{StaticResource ValueLabel}" Content="Location:"/>
-                                    <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center" Margin="0,-10,0,0" HorizontalAlignment="Right" >
+                                    <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center" Margin="0,-10,0,0"  >
                                         <TextBlock>
                                             <TextBlock.Text>
                                                 <MultiBinding StringFormat="{}({0},{1:0.00},{2:0.00})">
@@ -235,7 +235,10 @@
                                         </TextBlock>
                                     </StackPanel>
 
-                                    <Button Command="{Binding ToolAlignmentVM.SetBottomCameraLocationCommand}" Content="Set" Grid.Column="2" />
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                        <Button Command="{Binding ToolAlignmentVM.SetBottomCameraLocationCommand}"  Margin="0,0,0,0" Content="Set"  />
+                                        <Button Command="{Binding ToolAlignmentVM.GoToBottomCameraLocationCommand}"  Margin="0,0,0,0" Content="Go" />
+                                    </StackPanel>
                                 </Grid>
 
 
@@ -256,7 +259,7 @@
                                 <TextBox Text="{Binding Machine.Settings.CurrentNozzle.Name}" />
                                 <ComboBox ItemsSource="{Binding Machine.Settings.Nozzles}" SelectedItem="{Binding Machine.Settings.CurrentNozzle, Mode=TwoWay}" DisplayMemberPath="Name"  />
 
-                                <TextBlock Text="Step 5 - Safe Move Height" FontWeight="Bold" FontSize="16" />
+                                <TextBlock Text="Step 5 - Save Move Height" FontWeight="Bold" FontSize="16" />
                                 <TextBlock Text="Move the Pick head to the location to be set when the picked component is being moved." TextWrapping="Wrap" Margin="0,0,0,5"  />
                                 <Grid Margin="0,0,0,5"  >
                                     <Grid.ColumnDefinitions>
@@ -358,7 +361,7 @@
                             <DataGridTextColumn Header="Package" IsReadOnly="true" Width="120" Binding="{Binding Package, Mode=TwoWay}"  />
                             <DataGridTextColumn Header="Count" IsReadOnly="true" Width="40" Binding="{Binding Count, Mode=TwoWay}"  />
                             <DataGridTextColumn Header="Available" Width="80" IsReadOnly="true" Binding="{Binding Path=PartStrip.AvailablePartCount}"  />
-                            
+
                             <DataGridTextColumn Header="Available" Width="80" IsReadOnly="true" Binding="{Binding Path=PartStrip.AvailablePartCount}"  />
                             <DataGridTextColumn Header="Available" Width="180" IsReadOnly="true" Binding="{Binding Path=StripFeederPackage}"  />
                             <DataGridTextColumn Header="Available" Width="180" IsReadOnly="true" Binding="{Binding Path=StripFeeder}"  />
@@ -626,7 +629,7 @@
                         <ColumnDefinition Width="*"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
                     <Button Style="{StaticResource CommandButton}" HorizontalAlignment="Right" Grid.Row="0" Command="{Binding AddStripFeederPackageCommand}">Add Strip Feeder Section</Button>
-                    
+
                     <DataGrid Grid.Row="1" PreviewKeyDown="ListView_PreviewKeyDown" ItemsSource="{Binding StripFeederPackages}" CanUserAddRows="false" AutoGenerateColumns="False" 
                               SelectedItem="{Binding CurrentStripFeederPackage}" Visibility="{Binding StripFeederPackages, Converter={StaticResource NoTNullToVisibilityConverter}}">
                         <DataGrid.Columns>
@@ -654,7 +657,7 @@
                         <Label Content="Name" Grid.Column="0" Grid.Row="0" FontWeight="Bold" VerticalAlignment="Center" Margin="0,3" />
                         <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding CurrentStripFeederPackage.Name}"  />
                         <Button Command="{Binding GoToStripFeederPackageCommand}" Grid.Row="0" Grid.Column="2" Style="{StaticResource CommandButton}" Width="80" Height="20" >Go</Button>
-                        
+
                         <Label Content="Bottom Left" Grid.Column="0" Grid.Row="1" FontWeight="Bold" VerticalAlignment="Center" Margin="0,3" />
                         <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="1">
                             <TextBox Width="80" Text="{Binding CurrentStripFeederPackage.LeftX}"  />
@@ -670,7 +673,7 @@
                             <Button Height="20" Width="80" Command="{Binding SaveStripFeederPackageCommand}" Content="Save" Style="{StaticResource CommandButton}" />
                             <Button Height="20" Width="80" Command="{Binding CancelStripFeederPackageCommand}" Content="Cancel" Style="{StaticResource CommandButton}" />
                         </StackPanel>
-                     </Grid>
+                    </Grid>
 
 
                     <Button Style="{StaticResource CommandButton}" HorizontalAlignment="Right" Grid.Row="3" Command="{Binding AddStripFeederCommand}"
@@ -753,7 +756,7 @@
                     <Image x:Name="WebCamImage3" Source="{Binding DataContext.PrimaryCapturedImage, ElementName=MainView}" MouseDown="WebCamImage2_MouseDown"  Grid.Column="1" Grid.RowSpan="6" VerticalAlignment="Top"  Stretch="Uniform" />
                 </Grid>
 
-                
+
             </TabItem>
 
             <TabItem Header="Package Management" DataContext="{Binding PackageLibraryVM}">

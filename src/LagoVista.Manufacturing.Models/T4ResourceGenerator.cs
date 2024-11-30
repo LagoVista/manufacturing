@@ -1,4 +1,4 @@
-﻿/*11/17/2024 8:07:11 AM*/
+﻿/*11/30/2024 3:40:39 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -105,12 +105,21 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Common_PageNumberOne
 
 		public static string Common_PageNumberOne { get { return GetResourceString("Common_PageNumberOne"); } }
+//Resources:ManufacturingResources:Common_Quantity
+
+		public static string Common_Quantity { get { return GetResourceString("Common_Quantity"); } }
 //Resources:ManufacturingResources:Common_Resources
 
 		public static string Common_Resources { get { return GetResourceString("Common_Resources"); } }
 //Resources:ManufacturingResources:Common_SelectCategory
 
 		public static string Common_SelectCategory { get { return GetResourceString("Common_SelectCategory"); } }
+//Resources:ManufacturingResources:Common_Status
+
+		public static string Common_Status { get { return GetResourceString("Common_Status"); } }
+//Resources:ManufacturingResources:Common_Status_Select
+
+		public static string Common_Status_Select { get { return GetResourceString("Common_Status_Select"); } }
 //Resources:ManufacturingResources:Common_UniqueId
 
 		public static string Common_UniqueId { get { return GetResourceString("Common_UniqueId"); } }
@@ -196,6 +205,84 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Component_VendorLink
 
 		public static string Component_VendorLink { get { return GetResourceString("Component_VendorLink"); } }
+//Resources:ManufacturingResources:ComponentOrder_Description
+
+		public static string ComponentOrder_Description { get { return GetResourceString("ComponentOrder_Description"); } }
+//Resources:ManufacturingResources:ComponentOrder_LineItemCsv
+
+		public static string ComponentOrder_LineItemCsv { get { return GetResourceString("ComponentOrder_LineItemCsv"); } }
+//Resources:ManufacturingResources:ComponentOrder_LineItems
+
+		public static string ComponentOrder_LineItems { get { return GetResourceString("ComponentOrder_LineItems"); } }
+//Resources:ManufacturingResources:ComponentOrder_OrderDate
+
+		public static string ComponentOrder_OrderDate { get { return GetResourceString("ComponentOrder_OrderDate"); } }
+//Resources:ManufacturingResources:ComponentOrder_ReceiveDate
+
+		public static string ComponentOrder_ReceiveDate { get { return GetResourceString("ComponentOrder_ReceiveDate"); } }
+//Resources:ManufacturingResources:ComponentOrder_Shipping
+
+		public static string ComponentOrder_Shipping { get { return GetResourceString("ComponentOrder_Shipping"); } }
+//Resources:ManufacturingResources:ComponentOrder_SubTotal
+
+		public static string ComponentOrder_SubTotal { get { return GetResourceString("ComponentOrder_SubTotal"); } }
+//Resources:ManufacturingResources:ComponentOrder_Supplier
+
+		public static string ComponentOrder_Supplier { get { return GetResourceString("ComponentOrder_Supplier"); } }
+//Resources:ManufacturingResources:ComponentOrder_SupplierOrderNumber
+
+		public static string ComponentOrder_SupplierOrderNumber { get { return GetResourceString("ComponentOrder_SupplierOrderNumber"); } }
+//Resources:ManufacturingResources:ComponentOrder_Tax
+
+		public static string ComponentOrder_Tax { get { return GetResourceString("ComponentOrder_Tax"); } }
+//Resources:ManufacturingResources:ComponentOrder_Title
+
+		public static string ComponentOrder_Title { get { return GetResourceString("ComponentOrder_Title"); } }
+//Resources:ManufacturingResources:ComponentOrder_Total
+
+		public static string ComponentOrder_Total { get { return GetResourceString("ComponentOrder_Total"); } }
+//Resources:ManufacturingResources:ComponentOrderLineItem_Backordered
+
+		public static string ComponentOrderLineItem_Backordered { get { return GetResourceString("ComponentOrderLineItem_Backordered"); } }
+//Resources:ManufacturingResources:ComponentOrderLineItem_Component
+
+		public static string ComponentOrderLineItem_Component { get { return GetResourceString("ComponentOrderLineItem_Component"); } }
+//Resources:ManufacturingResources:ComponentOrderLineItem_Component_Select
+
+		public static string ComponentOrderLineItem_Component_Select { get { return GetResourceString("ComponentOrderLineItem_Component_Select"); } }
+//Resources:ManufacturingResources:ComponentOrderLineItem_Help
+
+		public static string ComponentOrderLineItem_Help { get { return GetResourceString("ComponentOrderLineItem_Help"); } }
+//Resources:ManufacturingResources:ComponentOrderLineItem_MfgPartNumber
+
+		public static string ComponentOrderLineItem_MfgPartNumber { get { return GetResourceString("ComponentOrderLineItem_MfgPartNumber"); } }
+//Resources:ManufacturingResources:ComponentOrderLineItem_SupplierPartNumber
+
+		public static string ComponentOrderLineItem_SupplierPartNumber { get { return GetResourceString("ComponentOrderLineItem_SupplierPartNumber"); } }
+//Resources:ManufacturingResources:ComponentOrderLineItem_Title
+
+		public static string ComponentOrderLineItem_Title { get { return GetResourceString("ComponentOrderLineItem_Title"); } }
+//Resources:ManufacturingResources:ComponentOrderLineItem_UnitPrice
+
+		public static string ComponentOrderLineItem_UnitPrice { get { return GetResourceString("ComponentOrderLineItem_UnitPrice"); } }
+//Resources:ManufacturingResources:ComponentOrders_Title
+
+		public static string ComponentOrders_Title { get { return GetResourceString("ComponentOrders_Title"); } }
+//Resources:ManufacturingResources:ComponentOrders_TitleString
+
+		public static string ComponentOrders_TitleString { get { return GetResourceString("ComponentOrders_TitleString"); } }
+//Resources:ManufacturingResources:ComponentOrderStatusTypes_Ordered
+
+		public static string ComponentOrderStatusTypes_Ordered { get { return GetResourceString("ComponentOrderStatusTypes_Ordered"); } }
+//Resources:ManufacturingResources:ComponentOrderStatusTypes_Pending
+
+		public static string ComponentOrderStatusTypes_Pending { get { return GetResourceString("ComponentOrderStatusTypes_Pending"); } }
+//Resources:ManufacturingResources:ComponentOrderStatusTypes_Received
+
+		public static string ComponentOrderStatusTypes_Received { get { return GetResourceString("ComponentOrderStatusTypes_Received"); } }
+//Resources:ManufacturingResources:ComponentOrderStatusTypes_Stocked
+
+		public static string ComponentOrderStatusTypes_Stocked { get { return GetResourceString("ComponentOrderStatusTypes_Stocked"); } }
 //Resources:ManufacturingResources:ComponentPackage_CenterX
 
 		public static string ComponentPackage_CenterX { get { return GetResourceString("ComponentPackage_CenterX"); } }
@@ -400,8 +487,11 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Common_Note = "Common_Note";
 			public const string Common_Notes = "Common_Notes";
 			public const string Common_PageNumberOne = "Common_PageNumberOne";
+			public const string Common_Quantity = "Common_Quantity";
 			public const string Common_Resources = "Common_Resources";
 			public const string Common_SelectCategory = "Common_SelectCategory";
+			public const string Common_Status = "Common_Status";
+			public const string Common_Status_Select = "Common_Status_Select";
 			public const string Common_UniqueId = "Common_UniqueId";
 			public const string Common_ValidationErrors = "Common_ValidationErrors";
 			public const string CompomentPurchase_Title = "CompomentPurchase_Title";
@@ -429,6 +519,32 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Component_Title = "Component_Title";
 			public const string Component_Value = "Component_Value";
 			public const string Component_VendorLink = "Component_VendorLink";
+			public const string ComponentOrder_Description = "ComponentOrder_Description";
+			public const string ComponentOrder_LineItemCsv = "ComponentOrder_LineItemCsv";
+			public const string ComponentOrder_LineItems = "ComponentOrder_LineItems";
+			public const string ComponentOrder_OrderDate = "ComponentOrder_OrderDate";
+			public const string ComponentOrder_ReceiveDate = "ComponentOrder_ReceiveDate";
+			public const string ComponentOrder_Shipping = "ComponentOrder_Shipping";
+			public const string ComponentOrder_SubTotal = "ComponentOrder_SubTotal";
+			public const string ComponentOrder_Supplier = "ComponentOrder_Supplier";
+			public const string ComponentOrder_SupplierOrderNumber = "ComponentOrder_SupplierOrderNumber";
+			public const string ComponentOrder_Tax = "ComponentOrder_Tax";
+			public const string ComponentOrder_Title = "ComponentOrder_Title";
+			public const string ComponentOrder_Total = "ComponentOrder_Total";
+			public const string ComponentOrderLineItem_Backordered = "ComponentOrderLineItem_Backordered";
+			public const string ComponentOrderLineItem_Component = "ComponentOrderLineItem_Component";
+			public const string ComponentOrderLineItem_Component_Select = "ComponentOrderLineItem_Component_Select";
+			public const string ComponentOrderLineItem_Help = "ComponentOrderLineItem_Help";
+			public const string ComponentOrderLineItem_MfgPartNumber = "ComponentOrderLineItem_MfgPartNumber";
+			public const string ComponentOrderLineItem_SupplierPartNumber = "ComponentOrderLineItem_SupplierPartNumber";
+			public const string ComponentOrderLineItem_Title = "ComponentOrderLineItem_Title";
+			public const string ComponentOrderLineItem_UnitPrice = "ComponentOrderLineItem_UnitPrice";
+			public const string ComponentOrders_Title = "ComponentOrders_Title";
+			public const string ComponentOrders_TitleString = "ComponentOrders_TitleString";
+			public const string ComponentOrderStatusTypes_Ordered = "ComponentOrderStatusTypes_Ordered";
+			public const string ComponentOrderStatusTypes_Pending = "ComponentOrderStatusTypes_Pending";
+			public const string ComponentOrderStatusTypes_Received = "ComponentOrderStatusTypes_Received";
+			public const string ComponentOrderStatusTypes_Stocked = "ComponentOrderStatusTypes_Stocked";
 			public const string ComponentPackage_CenterX = "ComponentPackage_CenterX";
 			public const string ComponentPackage_CenterX_Help = "ComponentPackage_CenterX_Help";
 			public const string ComponentPackage_CenterY = "ComponentPackage_CenterY";

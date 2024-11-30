@@ -237,7 +237,7 @@ namespace LagoVista.PickAndPlace
                 return;
             }
 
-            if(parsedLine.Command == "G4")
+            if (parsedLine.Command == "G4")
             {
                 System.Threading.Tasks.Task.Delay(250).Wait();
 
@@ -250,7 +250,7 @@ namespace LagoVista.PickAndPlace
                 parsedLine.Command == "G01")
             {
                 Debug.WriteLine("Pausing For: " + parsedLine.EstimatedRunTime.ToString());
-                var finishTime =  DateTime.Now + (_firmwareType == FirmwareTypes.LagoVista_PnP ? TimeSpan.FromSeconds(1) : parsedLine.EstimatedRunTime);
+                var finishTime = DateTime.Now + (_firmwareType == FirmwareTypes.LagoVista_PnP ? TimeSpan.FromSeconds(1) : parsedLine.EstimatedRunTime);
                 SpinWait.SpinUntil(() => DateTime.Now > finishTime);
 
                 var parts = cmd.Split(' ');
@@ -306,7 +306,7 @@ namespace LagoVista.PickAndPlace
 
             var cmdPair = cmd.Split(' ');
 
-            switch(cmdPair[0])
+            switch (cmdPair[0])
             {
                 case "M114":
                     var response = $"X: {_work.X} Y: {_work.Y} RZ: {_work.Z} LZ: 0.00 Count X:{_machine.X} Y: {_machine.Y} RZ: {_machine.Z} LZ: 41.02";
@@ -364,7 +364,7 @@ namespace LagoVista.PickAndPlace
                     break;
                 case 'S':
                     Debug.WriteLine("Setting Spindle Speed");
-                    WriteOKResponse("S"); 
+                    WriteOKResponse("S");
 
                     break;
             }

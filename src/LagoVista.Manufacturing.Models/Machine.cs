@@ -105,6 +105,7 @@ namespace LagoVista.Manufacturing.Models
         LagoVista_PnP,
         SimulatedMachine,
         Repeteir_PnP,
+        Lumina40_Marlin
     }
 
     public enum OperatingMode
@@ -437,6 +438,8 @@ namespace LagoVista.Manufacturing.Models
             get { return _inspectionCameraPixelsPerMM; }
             set { Set(ref _inspectionCameraPixelsPerMM, value); }
         }
+
+
 
 
         private double _maxX;
