@@ -185,7 +185,7 @@
     <comment>Component</comment>
   </data>
   <data name="Component_Description" xml:space="preserve">
-    <value>A component is part that can be used to assemble PCBs or devices</value>
+    <value>A component is part that can be used to assemble a PCB or device</value>
   </data>
   <data name="ComponentPackage_TItle" xml:space="preserve">
     <value>Component Package</value>
@@ -523,5 +523,83 @@
   </data>
   <data name="ComponentOrder_LineItemCsv" xml:space="preserve">
     <value>Line Item CSV</value>
+  </data>
+  <data name="ComponentPackage_TapePitch" xml:space="preserve">
+    <value>Tape Ptich</value>
+  </data>
+  <data name="ComponentPackage_TapePitch_Select" xml:space="preserve">
+    <value>-select tape pitch-</value>
+  </data>
+  <data name="ComponentPackage_TapeRotation" xml:space="preserve">
+    <value>Tape Rotation</value>
+  </data>
+  <data name="ComponentPackage_TapeRotation_Select" xml:space="preserve">
+    <value>-select tape rotation-</value>
+  </data>
+  <data name="ComponentPackage_TapeSize" xml:space="preserve">
+    <value>Tape Size</value>
+  </data>
+  <data name="ComponentPackage_TapeSize_Select" xml:space="preserve">
+    <value>-select tape size-</value>
+  </data>
+  <data name="TapePitch_12" xml:space="preserve">
+    <value>12mm</value>
+  </data>
+  <data name="TapePitch_16" xml:space="preserve">
+    <value>16mm</value>
+  </data>
+  <data name="TapePitch_2" xml:space="preserve">
+    <value>2mm</value>
+  </data>
+  <data name="TapePitch_20" xml:space="preserve">
+    <value>20mm</value>
+  </data>
+  <data name="TapePitch_24" xml:space="preserve">
+    <value>24mm</value>
+  </data>
+  <data name="TapePitch_28" xml:space="preserve">
+    <value>28mm</value>
+  </data>
+  <data name="TapePitch_32" xml:space="preserve">
+    <value>32mm</value>
+  </data>
+  <data name="TapePitch_4" xml:space="preserve">
+    <value>4mm</value>
+  </data>
+  <data name="TapePitch_8" xml:space="preserve">
+    <value>8mm</value>
+  </data>
+  <data name="TapeRotation_0" xml:space="preserve">
+    <value>0 degrees</value>
+  </data>
+  <data name="TapeRotation_180" xml:space="preserve">
+    <value>180 degrees</value>
+  </data>
+  <data name="TapeRotation_90" xml:space="preserve">
+    <value>90 degrees</value>
+  </data>
+  <data name="TapeRotation_Minus90" xml:space="preserve">
+    <value>-90 degrees</value>
+  </data>
+  <data name="TapeSize_12" xml:space="preserve">
+    <value>12mm</value>
+  </data>
+  <data name="TapeSize_16" xml:space="preserve">
+    <value>16mm</value>
+  </data>
+  <data name="TapeSize_20" xml:space="preserve">
+    <value>20mm</value>
+  </data>
+  <data name="TapeSize_24" xml:space="preserve">
+    <value>24mm</value>
+  </data>
+  <data name="TapeSize_32" xml:space="preserve">
+    <value>32mm</value>
+  </data>
+  <data name="TapeSize_44" xml:space="preserve">
+    <value>44mm</value>
+  </data>
+  <data name="TapeSize_8" xml:space="preserve">
+    <value>8mm</value>
   </data>
 </root>

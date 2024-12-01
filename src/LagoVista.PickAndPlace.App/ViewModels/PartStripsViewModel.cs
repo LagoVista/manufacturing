@@ -40,8 +40,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             NextPartCommand = new RelayCommand(NextPart, () => SelectedPartStrip != null && SelectedPackage != null && SelectedPartStrip.AvailablePartCount > SelectedPartStrip.TempPartIndex);
             PrevPartCommand = new RelayCommand(PrevPart, () => SelectedPartStrip != null && SelectedPackage != null && SelectedPartStrip.TempPartIndex > 0);
 
-            GoToCurrentPartCommand = new RelayCommand(() => GoToCurrentPart(), () => SelectedPartStrip != null && SelectedPackage != null);
-            GoToReferencePointCommand = new RelayCommand(() => GoToReferencePoint(), () => SelectedPartStrip != null);
+            GoToCurrentPartCommand = new RelayCommand(async () => await GoToCurrentPart(), () => SelectedPartStrip != null && SelectedPackage != null);
+            GoToReferencePointCommand = new RelayCommand(async () => await GoToReferencePoint(), () => SelectedPartStrip != null);
 
             SetCurrentPartIndexCommand = new RelayCommand(SetCurrentPartIndex, () => SelectedPartStrip != null);
 

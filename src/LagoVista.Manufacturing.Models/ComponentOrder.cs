@@ -153,7 +153,6 @@ namespace LagoVista.Manufacturing.Models
             };
         }
 
-
         ISummaryData ISummaryFactory.CreateSummary()
         {
             return CreateSummary();
@@ -216,6 +215,7 @@ namespace LagoVista.Manufacturing.Models
             return new List<string>()
             {
                 nameof(Description),
+                nameof(Component),
                 nameof(SupplierPartNumber),
                 nameof(MfgPartNumber),
                 nameof(Quantity),

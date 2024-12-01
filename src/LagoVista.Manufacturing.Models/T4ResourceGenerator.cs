@@ -1,4 +1,4 @@
-﻿/*11/30/2024 5:52:10 PM*/
+﻿/*12/1/2024 9:03:31 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -328,6 +328,24 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ComponentPackage_SpecificationPage
 
 		public static string ComponentPackage_SpecificationPage { get { return GetResourceString("ComponentPackage_SpecificationPage"); } }
+//Resources:ManufacturingResources:ComponentPackage_TapePitch
+
+		public static string ComponentPackage_TapePitch { get { return GetResourceString("ComponentPackage_TapePitch"); } }
+//Resources:ManufacturingResources:ComponentPackage_TapePitch_Select
+
+		public static string ComponentPackage_TapePitch_Select { get { return GetResourceString("ComponentPackage_TapePitch_Select"); } }
+//Resources:ManufacturingResources:ComponentPackage_TapeRotation
+
+		public static string ComponentPackage_TapeRotation { get { return GetResourceString("ComponentPackage_TapeRotation"); } }
+//Resources:ManufacturingResources:ComponentPackage_TapeRotation_Select
+
+		public static string ComponentPackage_TapeRotation_Select { get { return GetResourceString("ComponentPackage_TapeRotation_Select"); } }
+//Resources:ManufacturingResources:ComponentPackage_TapeSize
+
+		public static string ComponentPackage_TapeSize { get { return GetResourceString("ComponentPackage_TapeSize"); } }
+//Resources:ManufacturingResources:ComponentPackage_TapeSize_Select
+
+		public static string ComponentPackage_TapeSize_Select { get { return GetResourceString("ComponentPackage_TapeSize_Select"); } }
 //Resources:ManufacturingResources:ComponentPackage_TapeWidth
 
 		public static string ComponentPackage_TapeWidth { get { return GetResourceString("ComponentPackage_TapeWidth"); } }
@@ -467,6 +485,66 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:StripFeeders_Title
 
 		public static string StripFeeders_Title { get { return GetResourceString("StripFeeders_Title"); } }
+//Resources:ManufacturingResources:TapePitch_12
+
+		public static string TapePitch_12 { get { return GetResourceString("TapePitch_12"); } }
+//Resources:ManufacturingResources:TapePitch_16
+
+		public static string TapePitch_16 { get { return GetResourceString("TapePitch_16"); } }
+//Resources:ManufacturingResources:TapePitch_2
+
+		public static string TapePitch_2 { get { return GetResourceString("TapePitch_2"); } }
+//Resources:ManufacturingResources:TapePitch_20
+
+		public static string TapePitch_20 { get { return GetResourceString("TapePitch_20"); } }
+//Resources:ManufacturingResources:TapePitch_24
+
+		public static string TapePitch_24 { get { return GetResourceString("TapePitch_24"); } }
+//Resources:ManufacturingResources:TapePitch_28
+
+		public static string TapePitch_28 { get { return GetResourceString("TapePitch_28"); } }
+//Resources:ManufacturingResources:TapePitch_32
+
+		public static string TapePitch_32 { get { return GetResourceString("TapePitch_32"); } }
+//Resources:ManufacturingResources:TapePitch_4
+
+		public static string TapePitch_4 { get { return GetResourceString("TapePitch_4"); } }
+//Resources:ManufacturingResources:TapePitch_8
+
+		public static string TapePitch_8 { get { return GetResourceString("TapePitch_8"); } }
+//Resources:ManufacturingResources:TapeRotation_0
+
+		public static string TapeRotation_0 { get { return GetResourceString("TapeRotation_0"); } }
+//Resources:ManufacturingResources:TapeRotation_180
+
+		public static string TapeRotation_180 { get { return GetResourceString("TapeRotation_180"); } }
+//Resources:ManufacturingResources:TapeRotation_90
+
+		public static string TapeRotation_90 { get { return GetResourceString("TapeRotation_90"); } }
+//Resources:ManufacturingResources:TapeRotation_Minus90
+
+		public static string TapeRotation_Minus90 { get { return GetResourceString("TapeRotation_Minus90"); } }
+//Resources:ManufacturingResources:TapeSize_12
+
+		public static string TapeSize_12 { get { return GetResourceString("TapeSize_12"); } }
+//Resources:ManufacturingResources:TapeSize_16
+
+		public static string TapeSize_16 { get { return GetResourceString("TapeSize_16"); } }
+//Resources:ManufacturingResources:TapeSize_20
+
+		public static string TapeSize_20 { get { return GetResourceString("TapeSize_20"); } }
+//Resources:ManufacturingResources:TapeSize_24
+
+		public static string TapeSize_24 { get { return GetResourceString("TapeSize_24"); } }
+//Resources:ManufacturingResources:TapeSize_32
+
+		public static string TapeSize_32 { get { return GetResourceString("TapeSize_32"); } }
+//Resources:ManufacturingResources:TapeSize_44
+
+		public static string TapeSize_44 { get { return GetResourceString("TapeSize_44"); } }
+//Resources:ManufacturingResources:TapeSize_8
+
+		public static string TapeSize_8 { get { return GetResourceString("TapeSize_8"); } }
 
 		public static class Names
 		{
@@ -560,6 +638,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentPackage_Rotation = "ComponentPackage_Rotation";
 			public const string ComponentPackage_SpacingX = "ComponentPackage_SpacingX";
 			public const string ComponentPackage_SpecificationPage = "ComponentPackage_SpecificationPage";
+			public const string ComponentPackage_TapePitch = "ComponentPackage_TapePitch";
+			public const string ComponentPackage_TapePitch_Select = "ComponentPackage_TapePitch_Select";
+			public const string ComponentPackage_TapeRotation = "ComponentPackage_TapeRotation";
+			public const string ComponentPackage_TapeRotation_Select = "ComponentPackage_TapeRotation_Select";
+			public const string ComponentPackage_TapeSize = "ComponentPackage_TapeSize";
+			public const string ComponentPackage_TapeSize_Select = "ComponentPackage_TapeSize_Select";
 			public const string ComponentPackage_TapeWidth = "ComponentPackage_TapeWidth";
 			public const string ComponentPackage_TItle = "ComponentPackage_TItle";
 			public const string ComponentPurchase_Description = "ComponentPurchase_Description";
@@ -605,6 +689,26 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string StripFeederRow_Description = "StripFeederRow_Description";
 			public const string StripFeederRow_Title = "StripFeederRow_Title";
 			public const string StripFeeders_Title = "StripFeeders_Title";
+			public const string TapePitch_12 = "TapePitch_12";
+			public const string TapePitch_16 = "TapePitch_16";
+			public const string TapePitch_2 = "TapePitch_2";
+			public const string TapePitch_20 = "TapePitch_20";
+			public const string TapePitch_24 = "TapePitch_24";
+			public const string TapePitch_28 = "TapePitch_28";
+			public const string TapePitch_32 = "TapePitch_32";
+			public const string TapePitch_4 = "TapePitch_4";
+			public const string TapePitch_8 = "TapePitch_8";
+			public const string TapeRotation_0 = "TapeRotation_0";
+			public const string TapeRotation_180 = "TapeRotation_180";
+			public const string TapeRotation_90 = "TapeRotation_90";
+			public const string TapeRotation_Minus90 = "TapeRotation_Minus90";
+			public const string TapeSize_12 = "TapeSize_12";
+			public const string TapeSize_16 = "TapeSize_16";
+			public const string TapeSize_20 = "TapeSize_20";
+			public const string TapeSize_24 = "TapeSize_24";
+			public const string TapeSize_32 = "TapeSize_32";
+			public const string TapeSize_44 = "TapeSize_44";
+			public const string TapeSize_8 = "TapeSize_8";
 		}
 	}
 }

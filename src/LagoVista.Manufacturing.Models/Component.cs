@@ -34,7 +34,7 @@ namespace LagoVista.Manufacturing.Models
         public string Icon { get; set; } = "icon-ae-core-1";
 
 
-        [FormField(LabelResource: ManufacturingResources.Names.Component_PackageType, FieldType: FieldTypes.Picker, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Component_PackageType, FieldType: FieldTypes.Picker, FactoryUrl: "/api/mfg/component/package/factory", ResourceType: typeof(ManufacturingResources))]
         public EntityHeader ComponentPackage { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Component_VendorLink, FieldType: FieldTypes.WebLink, ResourceType: typeof(ManufacturingResources))]
