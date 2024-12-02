@@ -76,8 +76,8 @@ namespace LagoVista.Manufacturing.Models
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.ComponentPackage_TItle, ManufacturingResources.Names.ComponentPackage_Description,
             ManufacturingResources.Names.ComponentPackage_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-stamp-2", Cloneable: true,
             SaveUrl: "/api/mfg/component/package", GetUrl: "/api/mfg/component/package/{id}", GetListUrl: "/api/mfg/component/packages", FactoryUrl: "/api/mfg/component/package/factory", DeleteUrl: "/api/mfg/component/package/{id}",
-            ListUIUrl: "/mfg/component/packages", EditUIUrl: "/mfg/component/package/{id}", CreateUIUrl: "/mfg/component/package/add")]
-    public class ComponentPackage : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorCol2, IFormDescriptorSimple, ISummaryFactory, IIDEntity, IFormConditionalFields
+            ListUIUrl: "/mfg/component/packages", EditUIUrl: "/mfg/component/package/{id}", CreateUIUrl: "/mfg/component/package/add", CanExport:true, CanImport:true)]
+    public class ComponentPackage : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IIDEntity, IFormConditionalFields
     {
         public const string PartType_ThroughHole = "throughhole";
         public const string PartType_SurfaceMount = "surfacemount";
@@ -287,31 +287,17 @@ namespace LagoVista.Manufacturing.Models
         {
             return new FormConditionals()
             {
-                ConditionalFields = new List<string>() { nameof(TapeSize), nameof(TapePitch), nameof(TapeRotation) },
+                ConditionalFields = new List<string>() { nameof(TapeSize), nameof(TapePitch), nameof(TapeRotation), nameof(Width), nameof(Height), nameof(Length) },
                 Conditionals = new List<FormConditional>()
                 {
                     new FormConditional()
                     {
                         Field = nameof(PackageType),
                         Value = PartType_SurfaceMount,
-                        RequiredFields = new List<string>() {nameof(TapeSize), nameof(TapePitch), nameof(TapeRotation)},
-                        VisibleFields = new List<string>() {nameof(TapeSize), nameof(TapePitch), nameof(TapeRotation)}
+                        RequiredFields = new List<string>() {nameof(TapeSize), nameof(TapePitch), nameof(TapeRotation), nameof(Width), nameof(Height), nameof(Length)},
+                        VisibleFields = new List<string>() {nameof(TapeSize), nameof(TapePitch), nameof(TapeRotation), nameof(Width), nameof(Height), nameof(Length) }
                     }
                 }
-            };
-        }
-
-        public List<string> GetSimpleFields()
-        {
-            return new List<string>()
-            {
-                nameof(Name),
-                nameof(Key),
-                nameof(PackageId),
-                nameof(PackageType),
-                nameof(TapeSize),
-                nameof(TapePitch),
-                nameof(TapeRotation),
             };
         }
     }

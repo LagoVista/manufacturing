@@ -43,11 +43,18 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Component_MfgPartNumb, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
         public string ManufacturePartNumber { get; set; }
 
+        [FormField(LabelResource: ManufacturingResources.Names.Component_Supplier, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
+        public string Supplier { get; set; }
+
+
+        [FormField(LabelResource: ManufacturingResources.Names.Component_SupplierPartNumb, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
+        public string SupplierPartNumber { get; set; }
+
 
         [FormField(LabelResource: ManufacturingResources.Names.Component_DataSheet, FieldType: FieldTypes.WebLink, ResourceType: typeof(ManufacturingResources))]
         public string DataSheet { get; set; }
 
-        [FormField(LabelResource: ManufacturingResources.Names.Component_Value, FieldType: FieldTypes.WebLink, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Component_Value, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
         public string Value { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Component_Attr1, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
@@ -70,7 +77,7 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Component_ExtendedPrice, FieldType: FieldTypes.Money, ResourceType: typeof(ManufacturingResources))]
         public decimal ExtendedPrice { get; set; }
 
-        [FormField(LabelResource: ManufacturingResources.Names.Component_PartNumber, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Component_PartNumber, FieldType: FieldTypes.Text, IsRequired:true, ResourceType: typeof(ManufacturingResources))]
         public string PartNumber { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Component_PartPack, FieldType: FieldTypes.EntityHeaderPicker, EntityHeaderPickerUrl:"/api/mfg/partpacks", ResourceType: typeof(ManufacturingResources))]
@@ -96,11 +103,16 @@ namespace LagoVista.Manufacturing.Models
                 Name = Name,
                 Key = Key,
                 PartNumber = PartNumber,
+                Supplier = Supplier,
+                SupplierPartNumber = SupplierPartNumber,
+                Package = ComponentPackage?.Text,
                 QuantityOnHand = QuantityOnHand,
                 QuantityOnOrder = QuantityOnOrder,
                 IsPublic = IsPublic,
                 Icon = Icon,
-                Description = Description
+                Description = Description,
+                Value = Value,
+                ComponentType = ComponentType?.Text
             };
         }
 
@@ -116,6 +128,9 @@ namespace LagoVista.Manufacturing.Models
                 nameof(ComponentType),
                 nameof(ComponentPackage),
                 nameof(Value),
+                nameof(Description),
+                nameof(QuantityOnHand),
+                nameof(QuantityOnOrder),
                 nameof(Attr1),
                 nameof(Attr2),
             };
@@ -125,6 +140,8 @@ namespace LagoVista.Manufacturing.Models
         {
             return new List<string>()
             {
+                nameof(Supplier),
+                nameof(SupplierPartNumber),
                 nameof(ManufacturePartNumber),
                 nameof(VendorLink),
                 nameof(DataSheet),
@@ -133,9 +150,6 @@ namespace LagoVista.Manufacturing.Models
                 nameof(ShelfUnit),
                 nameof(Shelf),
                 nameof(Bin),
-                nameof(PartPack),
-                nameof(Row),
-                nameof(Feeder),
                 nameof(Purchases),
             };
         }
@@ -148,12 +162,17 @@ namespace LagoVista.Manufacturing.Models
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Component_Title, ManufacturingResources.Names.Component_Title,
         ManufacturingResources.Names.Component_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-core-1", Cloneable: true,
-        SaveUrl: "/api/compoent", GetUrl: "/api/compoent/{id}", GetListUrl: "/api/compoents", FactoryUrl: "/api/compoent/factory", DeleteUrl: "/api/compoent/{id}",
+        SaveUrl: "/api/component", GetUrl: "/api/component/{id}", GetListUrl: "/api/compoents", FactoryUrl: "/api/mfg/component/factory", DeleteUrl: "/api/component/{id}",
         ListUIUrl: "/mfg/components", EditUIUrl: "/mfg/component/{id}", CreateUIUrl: "/mfg/component/add")]
     public class ComponentSummary : SummaryData
     {
         public string PartNumber { get; set; }
+        public string Supplier { get; set; }
+        public string SupplierPartNumber { get; set; }
         public decimal QuantityOnOrder { get; set; }
         public decimal QuantityOnHand{ get; set; }
+        public string Package { get; set; }
+        public string Value { get; set; }
+        public string ComponentType { get; set; }
     }
 }

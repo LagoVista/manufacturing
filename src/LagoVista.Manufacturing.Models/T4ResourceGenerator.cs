@@ -1,4 +1,4 @@
-﻿/*12/1/2024 9:03:31 AM*/
+﻿/*12/1/2024 12:01:52 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -192,6 +192,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Component_ShelfUnit
 
 		public static string Component_ShelfUnit { get { return GetResourceString("Component_ShelfUnit"); } }
+//Resources:ManufacturingResources:Component_Supplier
+
+		public static string Component_Supplier { get { return GetResourceString("Component_Supplier"); } }
+//Resources:ManufacturingResources:Component_SupplierPartNumb
+
+		public static string Component_SupplierPartNumb { get { return GetResourceString("Component_SupplierPartNumb"); } }
 //Resources:ManufacturingResources:Component_Title
 
 
@@ -256,6 +262,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ComponentOrderLineItem_MfgPartNumber
 
 		public static string ComponentOrderLineItem_MfgPartNumber { get { return GetResourceString("ComponentOrderLineItem_MfgPartNumber"); } }
+//Resources:ManufacturingResources:ComponentOrderLineItem_Received
+
+		public static string ComponentOrderLineItem_Received { get { return GetResourceString("ComponentOrderLineItem_Received"); } }
+//Resources:ManufacturingResources:ComponentOrderLineItem_Received_Help
+
+		public static string ComponentOrderLineItem_Received_Help { get { return GetResourceString("ComponentOrderLineItem_Received_Help"); } }
 //Resources:ManufacturingResources:ComponentOrderLineItem_SupplierPartNumber
 
 		public static string ComponentOrderLineItem_SupplierPartNumber { get { return GetResourceString("ComponentOrderLineItem_SupplierPartNumber"); } }
@@ -594,6 +606,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Component_Row = "Component_Row";
 			public const string Component_Shelf = "Component_Shelf";
 			public const string Component_ShelfUnit = "Component_ShelfUnit";
+			public const string Component_Supplier = "Component_Supplier";
+			public const string Component_SupplierPartNumb = "Component_SupplierPartNumb";
 			public const string Component_Title = "Component_Title";
 			public const string Component_Value = "Component_Value";
 			public const string Component_VendorLink = "Component_VendorLink";
@@ -614,6 +628,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentOrderLineItem_Component_Select = "ComponentOrderLineItem_Component_Select";
 			public const string ComponentOrderLineItem_Help = "ComponentOrderLineItem_Help";
 			public const string ComponentOrderLineItem_MfgPartNumber = "ComponentOrderLineItem_MfgPartNumber";
+			public const string ComponentOrderLineItem_Received = "ComponentOrderLineItem_Received";
+			public const string ComponentOrderLineItem_Received_Help = "ComponentOrderLineItem_Received_Help";
 			public const string ComponentOrderLineItem_SupplierPartNumber = "ComponentOrderLineItem_SupplierPartNumber";
 			public const string ComponentOrderLineItem_Title = "ComponentOrderLineItem_Title";
 			public const string ComponentOrderLineItem_UnitPrice = "ComponentOrderLineItem_UnitPrice";

@@ -99,7 +99,7 @@ namespace LagoVista.Manufacturing.Models
         {
             return new FormConditionals()
             {
-                ConditionalFields = new List<string>() { nameof(LineItems), nameof(LineItemsCSV) },
+                ConditionalFields = new List<string>() { nameof(LineItemsCSV) },
                 Conditionals = new List<FormConditional>()
                  {
                      new FormConditional()
@@ -107,12 +107,6 @@ namespace LagoVista.Manufacturing.Models
                           ForCreate = true,
                           ForUpdate = false,
                           VisibleFields = new List<string>(){nameof(LineItemsCSV) }
-                     },
-                     new FormConditional()
-                     {
-                          ForCreate = false,
-                          ForUpdate = true,
-                          VisibleFields = new List<string>(){nameof(LineItems)}
                      }
                  }
             };
@@ -136,8 +130,7 @@ namespace LagoVista.Manufacturing.Models
         {
             return new List<string>()
             {
-                nameof(LineItems),
-                nameof(LineItemsCSV),
+                nameof(LineItemsCSV),                
             };
         }
 
@@ -210,6 +203,9 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: Resources.ManufacturingResources.Names.Common_Notes, FieldType: FieldTypes.MultiLineText, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public string Notes { get; set; }
 
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrderLineItem_Received, HelpResource: ManufacturingResources.Names.ComponentOrderLineItem_Received_Help, FieldType: FieldTypes.MultiLineText, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public bool Received { get; set; }
+
         public List<string> GetFormFields()
         {
             return new List<string>()
@@ -219,6 +215,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(SupplierPartNumber),
                 nameof(MfgPartNumber),
                 nameof(Quantity),
+                nameof(Received),
                 nameof(BackOrdered),
                 nameof(UnitPrice),
                 nameof(Notes),
