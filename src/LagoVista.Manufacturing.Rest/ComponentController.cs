@@ -51,25 +51,6 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return form;
         }
 
-        [HttpPost("/api/mfg/component/{id}/purchase")]
-        public async Task<InvokeResult> AddPurchaseAsync(String id, [FromBody] ComponentPurchase purchase)
-        {
-            var component = await _mgr.GetComponentAsync(id, OrgEntityHeader, UserEntityHeader);
-            component.Purchases.Add(purchase);
-            component.QuantityOnOrder += purchase.Qty;
-            return await _mgr.UpdateComponentAsync(component, OrgEntityHeader, UserEntityHeader);
-        }
-
-        [HttpGet("/api/mfg/component/{id}/purchase/{purchaseid}/receive")]
-        public async Task<InvokeResult> ReceivePurchase(string id, string purchaseid)
-        {
-            var component = await _mgr.GetComponentAsync(id, OrgEntityHeader, UserEntityHeader);
-            var purchase = component.Purchases.Single(prc => prc.Id == purchaseid);
-            component.QuantityOnHand += purchase.Qty;
-            return await _mgr.UpdateComponentAsync(component, OrgEntityHeader, UserEntityHeader);
-        }
-      
-
         [HttpGet("/api/mfg/component/purchase/factory")]
         public DetailResponse<ComponentPurchase> CreateComponentPurcahse()
         {
@@ -80,6 +61,18 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         public async Task<InvokeResult> DeleteComponent(string id)
         {
             return await _mgr.DeleteCommponentAsync(id, OrgEntityHeader, UserEntityHeader);
+        }
+
+        [HttpPost("/api/mfg/component/{id}/purchase")]
+        public async Task<InvokeResult> AddComponentPurchase(string id, ComponentPurchase purchase)
+        {
+            return await _mgr.AddComponentPurchaseAsync(id, purchase, OrgEntityHeader, UserEntityHeader);
+        }
+
+        [HttpPost("/api/mfg/component/{id}/purchase/{orderid}/receive/{qty}")]
+        public async Task<InvokeResult> ReceiveComponentPurchase(string id, string orderid, decimal qty)
+        {
+            return await _mgr.ReceiveComponentPurchaseAsync(id, orderid, qty, OrgEntityHeader, UserEntityHeader);
         }
 
         [HttpPost("/api/mfg/component")]

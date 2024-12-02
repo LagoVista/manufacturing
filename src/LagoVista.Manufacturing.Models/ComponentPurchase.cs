@@ -1,6 +1,7 @@
 ﻿using LagoVista.Core;
 using LagoVista.Core.Attributes;
 using LagoVista.Core.Interfaces;
+using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models.Resources;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace LagoVista.Manufacturing.Models
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.ComponentPurchase_Title, ManufacturingResources.Names.ComponentPurchase_Description,
         ManufacturingResources.Names.ComponentPurchase_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-device-model", Cloneable: true,
         FactoryUrl: "/api/mfg/component/purchase/factory")]
-    public class ComponentPurchase : IIDEntity, INamedEntity, IFormDescriptor
+    public class ComponentPurchase : IIDEntity, INamedEntity, IFormDescriptor, IValidateable
     {
         public ComponentPurchase()
         {
@@ -23,14 +24,19 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: Resources.ManufacturingResources.Names.Common_Name, FieldType: FieldTypes.Text, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Name { get; set; }
 
+        public string OrderId { get; set; }
+
         [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentPurchase_OrderNumber, FieldType: FieldTypes.Text, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string OrderNumber { get; set; }
 
         [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentPurchase_Vendor, FieldType: FieldTypes.Text, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Vendor { get; set; }
 
-        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentPurchase_Quantity, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public decimal Qty { get; set; }
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentPurchase_QuantityOrdered, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public decimal QtyOrdered { get; set; }
+
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentPurchase_QuantityReceived, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public decimal QtyReceived { get; set; }
 
         [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentPurchase_OrderDate, FieldType:FieldTypes.Date, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string OrderDate { get; set; }
@@ -42,7 +48,8 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Name),
                 nameof(OrderNumber),
                 nameof(Vendor),
-                nameof(Qty),
+                nameof(QtyOrdered),
+                nameof(QtyReceived),
                 nameof(OrderDate)
             };
         }

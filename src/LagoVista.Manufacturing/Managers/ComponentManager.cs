@@ -10,6 +10,7 @@ using LagoVista.IoT.Logging.Loggers;
 using System;
 using System.Threading.Tasks;
 using static LagoVista.Core.Models.AuthorizeResult;
+using System.Linq;
 
 namespace LagoVista.Manufacturing.Managers
 {
@@ -59,7 +60,7 @@ namespace LagoVista.Manufacturing.Managers
             return part;
         }
 
-  
+
         public async Task<ListResponse<ComponentSummary>> GetComponentsSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user)
         {
             await AuthorizeOrgAccessAsync(user, org.Id, typeof(Component));
@@ -71,6 +72,38 @@ namespace LagoVista.Manufacturing.Managers
             await AuthorizeAsync(part, AuthorizeActions.Update, user, org);
             ValidationCheck(part, Actions.Update);
             await _componentRepo.UpdateComponentAsync(part);
+
+            return InvokeResult.Success;
+        }
+
+        public async Task<InvokeResult> AddComponentPurchaseAsync(string componentId, ComponentPurchase purchase, EntityHeader org, EntityHeader user)
+        {
+            ValidationCheck(purchase, Actions.Update);
+
+            var part = await GetComponentAsync(componentId, org, user);
+            await AuthorizeAsync(part, AuthorizeActions.Update, user, org, "add purchase");
+
+            part.Purchases.Add(purchase);
+
+            part.QuantityOnOrder += purchase.QtyOrdered;
+            part.QuantityOnHand += purchase.QtyReceived;
+
+            await _componentRepo.UpdateComponentAsync(part);
+
+            return InvokeResult.Success;
+        }
+
+
+        public async Task<InvokeResult> ReceiveComponentPurchaseAsync(string componentId, string orderId, decimal qty, EntityHeader org, EntityHeader user)
+        {
+            var part = await GetComponentAsync(componentId, org, user);
+            await AuthorizeAsync(part, AuthorizeActions.Update, user, org, "add purchase");
+
+            var purchase = part.Purchases.Single(prch => prch.OrderId == orderId);
+            purchase.QtyReceived += qty;
+
+            part.QuantityOnHand += qty;
+            part.QuantityOnOrder -= qty;
 
             return InvokeResult.Success;
         }

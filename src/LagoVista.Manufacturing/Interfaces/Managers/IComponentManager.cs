@@ -13,5 +13,8 @@ namespace LagoVista.Manufacturing.Interfaces.Managers
         Task<ListResponse<ComponentSummary>> GetComponentsSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user);
         Task<Component> GetComponentAsync(string id, EntityHeader org, EntityHeader user);
         Task<InvokeResult> DeleteCommponentAsync(string id, EntityHeader org, EntityHeader user);
+        Task<InvokeResult> AddComponentPurchaseAsync(string componentId, ComponentPurchase purchase, EntityHeader org, EntityHeader user);
+        Task<InvokeResult> ReceiveComponentPurchaseAsync(string componentId, string orderId, decimal qty, EntityHeader org, EntityHeader user);
+
     }
 }

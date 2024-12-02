@@ -614,4 +614,10 @@
   <data name="ComponentOrderLineItem_Received_Help" xml:space="preserve">
     <value>Has this item been put into inventory.</value>
   </data>
+  <data name="Common_QuantityOrdered" xml:space="preserve">
+    <value>Quantity Ordered</value>
+  </data>
+  <data name="Common_QuantityReceived" xml:space="preserve">
+    <value>Quantity Received</value>
+  </data>
 </root>
