@@ -64,12 +64,12 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         }
 
         [HttpPost("/api/mfg/component/{id}/purchase")]
-        public async Task<InvokeResult> AddComponentPurchase(string id, ComponentPurchase purchase)
+        public async Task<InvokeResult> AddComponentPurchase(string id, [FromBody] ComponentPurchase purchase)
         {
             return await _mgr.AddComponentPurchaseAsync(id, purchase, OrgEntityHeader, UserEntityHeader);
         }
 
-        [HttpPost("/api/mfg/component/{id}/purchase/{orderid}/receive/{qty}")]
+        [HttpPut("/api/mfg/component/{id}/purchase/{orderid}/receive/{qty}")]
         public async Task<InvokeResult> ReceiveComponentPurchase(string id, string orderid, decimal qty)
         {
             return await _mgr.ReceiveComponentPurchaseAsync(id, orderid, qty, OrgEntityHeader, UserEntityHeader);

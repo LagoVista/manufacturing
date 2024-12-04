@@ -71,6 +71,11 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Component_QuantityOnOrder, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
         public decimal QuantityOnOrder { get; set; }
 
+
+        [FormField(LabelResource: ManufacturingResources.Names.Common_QuantityBackOrdered, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
+        public decimal QuantityBackOrdered { get; set; }
+
+
         [FormField(LabelResource: ManufacturingResources.Names.Component_Cost, FieldType: FieldTypes.Money, ResourceType: typeof(ManufacturingResources))]
         public decimal Cost { get; set; }
 
@@ -131,6 +136,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Description),
                 nameof(QuantityOnHand),
                 nameof(QuantityOnOrder),
+                nameof(QuantityBackOrdered),
                 nameof(Attr1),
                 nameof(Attr2),
             };

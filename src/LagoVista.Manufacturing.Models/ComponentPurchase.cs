@@ -32,11 +32,15 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentPurchase_Vendor, FieldType: FieldTypes.Text, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Vendor { get; set; }
 
-        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentPurchase_QuantityOrdered, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public decimal QtyOrdered { get; set; }
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.Common_QuantityOrdered, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public decimal QuantityOrdered { get; set; }
 
-        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentPurchase_QuantityReceived, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public decimal QtyReceived { get; set; }
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.Common_QuantityReceived, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public decimal QuantityReceived { get; set; }
+
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.Common_QuantityBackOrdered, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public decimal QuantityBackOrdered { get; set; }
+
 
         [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentPurchase_OrderDate, FieldType:FieldTypes.Date, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string OrderDate { get; set; }
@@ -48,8 +52,9 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Name),
                 nameof(OrderNumber),
                 nameof(Vendor),
-                nameof(QtyOrdered),
-                nameof(QtyReceived),
+                nameof(QuantityOrdered),
+                nameof(QuantityReceived),
+                nameof(QuantityBackOrdered),
                 nameof(OrderDate)
             };
         }

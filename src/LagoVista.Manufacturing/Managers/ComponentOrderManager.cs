@@ -37,9 +37,13 @@ namespace LagoVista.Manufacturing.Managers
                         skippedHeader = true;
                     else
                     {
-                        var parser = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
-                        var parts = parser.Split(line);
-                        order.LineItems.Add(ComponentOrderLineItem.FromOrderLine(parts));
+                        var trimmed = line.Trim();
+                        if (!String.IsNullOrEmpty(trimmed))
+                        {
+                            var parser = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+                            var parts = parser.Split(trimmed);
+                            order.LineItems.Add(ComponentOrderLineItem.FromOrderLine(parts));
+                        }
                     }
                 }
             }

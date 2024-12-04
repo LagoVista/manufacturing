@@ -57,10 +57,13 @@ namespace LagoVista.Manufacturing.Models
         public string OrderDate { get; set; }
 
         [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrder_ReceiveDate, FieldType: FieldTypes.Date, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
-        public string ReceviedDate { get; set; }
+        public string ReceivedDate { get; set; }
 
         [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrder_Tax, FieldType: FieldTypes.Money, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public decimal Tax { get; set; }
+
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrder_Tariff, FieldType: FieldTypes.Money, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public decimal Tariff { get; set; }
 
         [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrder_Shipping, FieldType: FieldTypes.Money, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public decimal Shipping { get; set; }
@@ -122,7 +125,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Supplier),
                 nameof(SupplierOrderNumber),
                 nameof(OrderDate),
-                nameof(ReceviedDate),
+                nameof(ReceivedDate),
             };
         }
 
@@ -139,9 +142,10 @@ namespace LagoVista.Manufacturing.Models
             return new List<string>()
             {
                 nameof(Status),
+                nameof(SubTotal),
+                nameof(Tariff),
                 nameof(Tax),
                 nameof(Shipping),
-                nameof(SubTotal),
                 nameof(Total),
             };
         }
@@ -191,7 +195,7 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: Resources.ManufacturingResources.Names.Common_Description, FieldType: FieldTypes.Text, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Description { get; set; }
 
-        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrderLineItem_Backordered, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.Common_QuantityBackOrdered, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public decimal QuantityBackOrdered { get; set; }
 
         [FormField(LabelResource: Resources.ManufacturingResources.Names.Common_QuantityOrdered, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
@@ -207,7 +211,8 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: Resources.ManufacturingResources.Names.Common_Notes, FieldType: FieldTypes.MultiLineText, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public string Notes { get; set; }
 
-        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrderLineItem_Received, HelpResource: ManufacturingResources.Names.ComponentOrderLineItem_Received_Help, FieldType: FieldTypes.MultiLineText, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrderLineItem_Received, 
+            HelpResource: ManufacturingResources.Names.ComponentOrderLineItem_Received_Help, FieldType: FieldTypes.CheckBox, ResourceType: typeof(ManufacturingResources))]
         public bool Received { get; set; }
 
         public List<string> GetFormFields()
@@ -236,12 +241,12 @@ namespace LagoVista.Manufacturing.Models
 
             return new ComponentOrderLineItem()
             {
-                QuantityOrdered = decimal.Parse(parts[1].Trim('"')),
-                SupplierPartNumber = parts[2].Trim('"'),
-                MfgPartNumber = parts[3].Trim('"'),
-                Description = parts[4].Trim('"'),
-                UnitPrice = decimal.Parse(parts[8].Trim('"')),
-                QuantityBackOrdered = decimal.Parse(parts[7].Trim('"'))
+                QuantityOrdered = decimal.Parse(parts[5].Trim('"','$')),
+                SupplierPartNumber = parts[1].Trim('"', '$'),
+                MfgPartNumber = parts[2].Trim('"', '$'),
+                Description = parts[3].Trim('"', '$'),
+                UnitPrice = decimal.Parse(parts[7].Trim('"', '$')),
+                QuantityBackOrdered = decimal.Parse(parts[6].Trim('"', '$'))
             };
         }
     }

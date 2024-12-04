@@ -1,4 +1,4 @@
-﻿/*12/2/2024 8:26:04 AM*/
+﻿/*12/4/2024 5:54:26 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -108,6 +108,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Common_Quantity
 
 		public static string Common_Quantity { get { return GetResourceString("Common_Quantity"); } }
+//Resources:ManufacturingResources:Common_QuantityBackOrdered
+
+		public static string Common_QuantityBackOrdered { get { return GetResourceString("Common_QuantityBackOrdered"); } }
 //Resources:ManufacturingResources:Common_QuantityOrdered
 
 		public static string Common_QuantityOrdered { get { return GetResourceString("Common_QuantityOrdered"); } }
@@ -244,6 +247,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ComponentOrder_SupplierOrderNumber
 
 		public static string ComponentOrder_SupplierOrderNumber { get { return GetResourceString("ComponentOrder_SupplierOrderNumber"); } }
+//Resources:ManufacturingResources:ComponentOrder_Tariff
+
+		public static string ComponentOrder_Tariff { get { return GetResourceString("ComponentOrder_Tariff"); } }
 //Resources:ManufacturingResources:ComponentOrder_Tax
 
 		public static string ComponentOrder_Tax { get { return GetResourceString("ComponentOrder_Tax"); } }
@@ -584,6 +590,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Common_Notes = "Common_Notes";
 			public const string Common_PageNumberOne = "Common_PageNumberOne";
 			public const string Common_Quantity = "Common_Quantity";
+			public const string Common_QuantityBackOrdered = "Common_QuantityBackOrdered";
 			public const string Common_QuantityOrdered = "Common_QuantityOrdered";
 			public const string Common_QuantityReceived = "Common_QuantityReceived";
 			public const string Common_Resources = "Common_Resources";
@@ -628,6 +635,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentOrder_SubTotal = "ComponentOrder_SubTotal";
 			public const string ComponentOrder_Supplier = "ComponentOrder_Supplier";
 			public const string ComponentOrder_SupplierOrderNumber = "ComponentOrder_SupplierOrderNumber";
+			public const string ComponentOrder_Tariff = "ComponentOrder_Tariff";
 			public const string ComponentOrder_Tax = "ComponentOrder_Tax";
 			public const string ComponentOrder_Title = "ComponentOrder_Title";
 			public const string ComponentOrder_Total = "ComponentOrder_Total";

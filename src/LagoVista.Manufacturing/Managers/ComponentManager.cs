@@ -85,8 +85,8 @@ namespace LagoVista.Manufacturing.Managers
 
             part.Purchases.Add(purchase);
 
-            part.QuantityOnOrder += purchase.QtyOrdered;
-            part.QuantityOnHand += purchase.QtyReceived;
+            part.QuantityOnOrder += purchase.QuantityOrdered;
+            part.QuantityOnHand += purchase.QuantityReceived;
 
             await _componentRepo.UpdateComponentAsync(part);
 
@@ -100,10 +100,13 @@ namespace LagoVista.Manufacturing.Managers
             await AuthorizeAsync(part, AuthorizeActions.Update, user, org, "add purchase");
 
             var purchase = part.Purchases.Single(prch => prch.OrderId == orderId);
-            purchase.QtyReceived += qty;
+            purchase.QuantityReceived += qty;
 
             part.QuantityOnHand += qty;
             part.QuantityOnOrder -= qty;
+
+            await _componentRepo.UpdateComponentAsync(part);
+
 
             return InvokeResult.Success;
         }

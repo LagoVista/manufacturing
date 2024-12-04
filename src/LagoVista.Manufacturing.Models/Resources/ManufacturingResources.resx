@@ -203,7 +203,7 @@
     <value>Vendor Link</value>
   </data>
   <data name="Component_MfgPartNumb" xml:space="preserve">
-    <value>Manufacture Part Number</value>
+    <value>Manufacturer Part Number</value>
   </data>
   <data name="Component_DataSheet" xml:space="preserve">
     <value>Datasheet Link</value>
@@ -230,7 +230,7 @@
     <value>Package Type</value>
   </data>
   <data name="Component_QuantityOnHand" xml:space="preserve">
-    <value>Quantity</value>
+    <value>Quantity On Hand</value>
   </data>
   <data name="Component_Cost" xml:space="preserve">
     <value>Cost</value>
@@ -614,10 +614,16 @@
   <data name="ComponentOrderLineItem_Received_Help" xml:space="preserve">
     <value>Has this item been put into inventory.</value>
   </data>
+  <data name="Common_QuantityBackOrdered" xml:space="preserve">
+    <value>Quantity Back Ordered</value>
+  </data>
   <data name="Common_QuantityOrdered" xml:space="preserve">
     <value>Quantity Ordered</value>
   </data>
   <data name="Common_QuantityReceived" xml:space="preserve">
     <value>Quantity Received</value>
+  </data>
+  <data name="ComponentOrder_Tariff" xml:space="preserve">
+    <value>Tariff</value>
   </data>
 </root>
