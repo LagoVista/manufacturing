@@ -171,7 +171,7 @@ namespace LagoVista.Manufacturing.Models
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.ComponentOrderLineItem_Title, ManufacturingResources.Names.ComponentOrderLineItem_Help,
-    ManufacturingResources.Names.ComponentOrder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-core-1",
+    ManufacturingResources.Names.ComponentOrder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-product-1",
         FactoryUrl: "/api/mfg/order/lineitem")]
     public class ComponentOrderLineItem : IFormDescriptor
     {
