@@ -33,6 +33,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LagoVista.Client.Core", "..
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LagoVista.XPlat.WPF", "..\..\crossplatform\src\LagoVista.Xplat.WPF\LagoVista.XPlat.WPF.csproj", "{ACDE463D-6987-4A89-819F-6436FBA27226}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mfg.ServicesTests", "tests\Mfg.ServicesTests\Mfg.ServicesTests.csproj", "{3595B087-5806-4706-9724-A144CF0AB796}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{ACDE463D-6987-4A89-819F-6436FBA27226}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ACDE463D-6987-4A89-819F-6436FBA27226}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ACDE463D-6987-4A89-819F-6436FBA27226}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3595B087-5806-4706-9724-A144CF0AB796}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3595B087-5806-4706-9724-A144CF0AB796}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3595B087-5806-4706-9724-A144CF0AB796}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3595B087-5806-4706-9724-A144CF0AB796}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -104,6 +110,7 @@ Global
 		{E9319551-10BF-41BD-AC37-487F4112F63E} = {F812E9FC-77A8-4106-9B91-5A4666FAE5F1}
 		{8447B29E-6A57-467B-8B91-FD22CA4EFAC4} = {47B74895-F4DF-4EE5-91B4-710DB21E418D}
 		{ACDE463D-6987-4A89-819F-6436FBA27226} = {47B74895-F4DF-4EE5-91B4-710DB21E418D}
+		{3595B087-5806-4706-9724-A144CF0AB796} = {F812E9FC-77A8-4106-9B91-5A4666FAE5F1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A071B13F-9FB8-48FF-A256-D739F9F59005}

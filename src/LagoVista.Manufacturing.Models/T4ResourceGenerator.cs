@@ -1,4 +1,4 @@
-﻿/*12/4/2024 5:54:26 AM*/
+﻿/*12/11/2024 4:13:24 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -135,6 +135,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Common_ValidationErrors
 
 		public static string Common_ValidationErrors { get { return GetResourceString("Common_ValidationErrors"); } }
+//Resources:ManufacturingResources:Common_Value
+
+		public static string Common_Value { get { return GetResourceString("Common_Value"); } }
 //Resources:ManufacturingResources:CompomentPurchase_Title
 
 		public static string CompomentPurchase_Title { get { return GetResourceString("CompomentPurchase_Title"); } }
@@ -144,6 +147,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Component_Attr2
 
 		public static string Component_Attr2 { get { return GetResourceString("Component_Attr2"); } }
+//Resources:ManufacturingResources:Component_Attributes
+
+		public static string Component_Attributes { get { return GetResourceString("Component_Attributes"); } }
 //Resources:ManufacturingResources:Component_Bin
 
 		public static string Component_Bin { get { return GetResourceString("Component_Bin"); } }
@@ -220,6 +226,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Component_VendorLink
 
 		public static string Component_VendorLink { get { return GetResourceString("Component_VendorLink"); } }
+//Resources:ManufacturingResources:ComponentAttribute_Description
+
+		public static string ComponentAttribute_Description { get { return GetResourceString("ComponentAttribute_Description"); } }
+//Resources:ManufacturingResources:ComponentAttributes_Title
+
+		public static string ComponentAttributes_Title { get { return GetResourceString("ComponentAttributes_Title"); } }
 //Resources:ManufacturingResources:ComponentOrder_Description
 
 		public static string ComponentOrder_Description { get { return GetResourceString("ComponentOrder_Description"); } }
@@ -599,9 +611,11 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Common_Status_Select = "Common_Status_Select";
 			public const string Common_UniqueId = "Common_UniqueId";
 			public const string Common_ValidationErrors = "Common_ValidationErrors";
+			public const string Common_Value = "Common_Value";
 			public const string CompomentPurchase_Title = "CompomentPurchase_Title";
 			public const string Component_Attr1 = "Component_Attr1";
 			public const string Component_Attr2 = "Component_Attr2";
+			public const string Component_Attributes = "Component_Attributes";
 			public const string Component_Bin = "Component_Bin";
 			public const string Component_ComponentType = "Component_ComponentType";
 			public const string Component_ComponentType_Select = "Component_ComponentType_Select";
@@ -626,6 +640,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Component_Title = "Component_Title";
 			public const string Component_Value = "Component_Value";
 			public const string Component_VendorLink = "Component_VendorLink";
+			public const string ComponentAttribute_Description = "ComponentAttribute_Description";
+			public const string ComponentAttributes_Title = "ComponentAttributes_Title";
 			public const string ComponentOrder_Description = "ComponentOrder_Description";
 			public const string ComponentOrder_LineItemCsv = "ComponentOrder_LineItemCsv";
 			public const string ComponentOrder_LineItems = "ComponentOrder_LineItems";

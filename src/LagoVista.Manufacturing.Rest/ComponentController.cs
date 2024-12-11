@@ -57,6 +57,12 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return DetailResponse<ComponentPurchase>.Create();
         }
 
+        [HttpGet("/api/mfg/component/attribute/factory")]
+        public DetailResponse<ComponentAttribute> CreateComponentAttribute()
+        {
+            return DetailResponse<ComponentAttribute>.Create();
+        }
+
         [HttpDelete("/api/mfg/component/{id}")]
         public async Task<InvokeResult> DeleteComponent(string id)
         {

@@ -1,8 +1,10 @@
-﻿using LagoVista.Core.Attributes;
+﻿using LagoVista.Core;
+using LagoVista.Core.Attributes;
 using LagoVista.Core.Interfaces;
 using LagoVista.Core.Models;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models.Resources;
+using System;
 using System.Collections.Generic;
 
 namespace LagoVista.Manufacturing.Models
@@ -11,7 +13,7 @@ namespace LagoVista.Manufacturing.Models
         ManufacturingResources.Names.Component_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-core-1", Cloneable: true,
         SaveUrl: "/api/mfg/component", GetUrl: "/api/mfg/component/{id}", GetListUrl: "/api/mfg/components", FactoryUrl: "/api/mfg/component/factory", DeleteUrl: "/api/mfg/component/{id}",
         ListUIUrl: "/mfg/components", EditUIUrl: "/mfg/component/{id}", CreateUIUrl: "/mfg/component/add")]
-    public class Component : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IIDEntity
+    public class Component : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IIDEntity, IFormAdditionalActions
     {
 
         [FormField(LabelResource: ManufacturingResources.Names.Component_ComponentType, FieldType: FieldTypes.Category, CustomCategoryType:"component_type", WaterMark:ManufacturingResources.Names.Component_ComponentType_Select, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
@@ -99,6 +101,8 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPurchase_Title, FactoryUrl: "/api/mfg/component/purchase/factory", FieldType: FieldTypes.ChildListInline, ResourceType: typeof(ManufacturingResources))]
         public List<ComponentPurchase> Purchases { get; set; } = new List<ComponentPurchase>();
 
+        [FormField(LabelResource: ManufacturingResources.Names.Component_Attributes, FactoryUrl: "/api/mfg/component/attribute/factory", OpenByDefault:true, ChildListDisplayMembers:"attributeName,attributeValue", FieldType: FieldTypes.ChildListInline, ResourceType: typeof(ManufacturingResources))]
+        public List<ComponentAttribute> Attributes { get; set; } = new List<ComponentAttribute>();
 
         public ComponentSummary CreateSummary()
         {
@@ -121,6 +125,20 @@ namespace LagoVista.Manufacturing.Models
             };
         }
 
+        public List<FormAdditionalAction> GetAdditionalActions()
+        {
+            return new List<FormAdditionalAction>()
+            {
+                new FormAdditionalAction()
+                {
+                    ForCreate = true,
+                    ForEdit = true,
+                    Icon = "fa fa-globe-pointer",
+                    Key = "digikey",
+                    Title = "DigiKey Lookup",
+                }
+            };
+        }
 
         public List<string> GetFormFields()
         {
@@ -139,6 +157,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(QuantityBackOrdered),
                 nameof(Attr1),
                 nameof(Attr2),
+                nameof(Attributes),
             };
         }
 
@@ -180,5 +199,32 @@ namespace LagoVista.Manufacturing.Models
         public string Package { get; set; }
         public string Value { get; set; }
         public string ComponentType { get; set; }
+    }
+
+    [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Component_Title, ManufacturingResources.Names.ComponentAttributes_Title,
+        ManufacturingResources.Names.ComponentAttribute_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources),FactoryUrl: "/api/mfg/component/attribute/factory")]
+    public class ComponentAttribute : IFormDescriptor
+    {
+        public ComponentAttribute()
+        {
+            Id = Guid.NewGuid().ToId();
+        }
+
+        public string Id { get; set; }
+
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Name, FieldType: FieldTypes.Text, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public string AttributeName { get; set; }
+
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Value, FieldType: FieldTypes.Text, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public string AttributeValue { get; set; }
+
+        public List<string> GetFormFields()
+        {
+            return new List<string>()
+            {
+                nameof(AttributeName),
+                nameof(AttributeValue),
+            };
+        }
     }
 }

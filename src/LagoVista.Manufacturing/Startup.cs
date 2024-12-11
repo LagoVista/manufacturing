@@ -1,6 +1,8 @@
 ﻿using LagoVista.Core.Interfaces;
 using LagoVista.Manufacturing.Interfaces.Managers;
+using LagoVista.Manufacturing.Interfaces.Services;
 using LagoVista.Manufacturing.Managers;
+using LagoVista.Manufacturing.Services;
 
 namespace LagoVista.Manufacturing
 {
@@ -17,6 +19,7 @@ namespace LagoVista.Manufacturing
             services.AddTransient<IPartPackManager, PartPackManager>();
             services.AddTransient<ICircuitBoardManager, CircuitBoardManager>();
             services.AddTransient<IComponentOrderManager, ComponentOrderManager>();
+            services.AddTransient<IDigiKeyLookupService, DigiKeyLookupService>();
         }
     }
 }
