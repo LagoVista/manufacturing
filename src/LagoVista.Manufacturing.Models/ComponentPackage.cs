@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml.Serialization;
 
 namespace LagoVista.Manufacturing.Models
 {
@@ -135,6 +136,17 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapePitch, FieldType: FieldTypes.Picker, EnumType: typeof(TapePitches),
             WaterMark: ManufacturingResources.Names.ComponentPackage_TapePitch_Select, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<TapePitches> TapePitch { get; set; }
+
+
+        [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeAndReelSpecImage, FieldType: FieldTypes.FileUpload, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader TapeAndReelSpecImage { get; set; }
+
+
+        [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeAndReelActualImage, FieldType: FieldTypes.FileUpload, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader TapeAndReelActualImage { get; set; }
+
+        [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_Verified, HelpResource:ManufacturingResources.Names.ComponentPackage_Verified_Help, FieldType: FieldTypes.CheckBox, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public bool Verified { get; set; }
 
         [JsonIgnore]
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_SpacingX, FieldType: FieldTypes.Decimal, IsRequired: false, IsUserEditable:false, ResourceType: typeof(ManufacturingResources))]
@@ -264,8 +276,11 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Name),
                 nameof(Key),
                 nameof(Icon),
+                nameof(Verified),
                 nameof(PackageId),
                 nameof(PackageType),
+                nameof(TapeAndReelSpecImage),
+                nameof(TapeAndReelActualImage)
             };
         }
 
@@ -310,4 +325,172 @@ namespace LagoVista.Manufacturing.Models
     {
         public string PackageId { get; set; }
     }
+
+    // using System.Xml.Serialization;
+    // XmlSerializer serializer = new XmlSerializer(typeof(OpenpnpPackages));
+    // using (StringReader reader = new StringReader(xml))
+    // {
+    //    var test = (OpenpnpPackages)serializer.Deserialize(reader);
+    // }
+
+    [XmlRoot(ElementName = "pad")]
+    public class OpenPnPPad
+    {
+
+        [XmlAttribute(AttributeName = "name")]
+        public int Name { get; set; }
+
+        [XmlAttribute(AttributeName = "x")]
+        public decimal X { get; set; }
+
+        [XmlAttribute(AttributeName = "y")]
+        public decimal Y { get; set; }
+
+        [XmlAttribute(AttributeName = "width")]
+        public decimal Width { get; set; }
+
+        [XmlAttribute(AttributeName = "height")]
+        public decimal Height { get; set; }
+
+        [XmlAttribute(AttributeName = "rotation")]
+        public decimal Rotation { get; set; }
+
+        [XmlAttribute(AttributeName = "roundness")]
+        public decimal Roundness { get; set; }
+    }
+
+    [XmlRoot(ElementName = "footprint")]
+    public class OpenPnPFootPrint
+    {
+
+        [XmlElement(ElementName = "pad")]
+        public List<OpenPnPPad> Pad { get; set; }
+
+        [XmlAttribute(AttributeName = "units")]
+        public string Units { get; set; }
+
+        [XmlAttribute(AttributeName = "body-width")]
+        public decimal BodyWidth { get; set; }
+
+        [XmlAttribute(AttributeName = "body-height")]
+        public decimal BodyHeight { get; set; }
+
+        [XmlAttribute(AttributeName = "outer-dimension")]
+        public decimal OuterDimension { get; set; }
+
+        [XmlAttribute(AttributeName = "inner-dimension")]
+        public decimal InnerDimension { get; set; }
+
+        [XmlAttribute(AttributeName = "pad-count")]
+        public int PadCount { get; set; }
+
+        [XmlAttribute(AttributeName = "pad-pitch")]
+        public decimal PadPitch { get; set; }
+
+        [XmlAttribute(AttributeName = "pad-across")]
+        public decimal PadAcross { get; set; }
+
+        [XmlAttribute(AttributeName = "pad-roundness")]
+        public decimal PadRoundness { get; set; }
+    }
+
+    [XmlRoot(ElementName = "compatible-nozzle-tip-ids")]
+    public class OpenPnPNozzleTip
+    {
+
+        [XmlAttribute(AttributeName = "class")]
+        public string Class { get; set; }
+
+        [XmlElement(ElementName = "string")]
+        public string String { get; set; }
+
+        [XmlText]
+        public string Text { get; set; }
+    }
+
+    [XmlRoot(ElementName = "package")]
+    public class OpenPnPPackage
+    {
+
+        [XmlElement(ElementName = "footprint")]
+        public OpenPnPFootPrint Footprint { get; set; }
+
+        [XmlElement(ElementName = "compatible-nozzle-tip-ids")]
+        public OpenPnPNozzleTip Compatiblenozzletipids { get; set; }
+
+        [XmlAttribute(AttributeName = "version")]
+        public DateTime Version { get; set; }
+
+        [XmlAttribute(AttributeName = "id")]
+        public string Id { get; set; }
+
+        [XmlAttribute(AttributeName = "pick-vacuum-level")]
+        public decimal PickVacuumLevel { get; set; }
+
+        [XmlAttribute(AttributeName = "place-blow-off-level")]
+        public decimal PlaceBlowOffLevel { get; set; }
+
+        [XmlAttribute(AttributeName = "description")]
+        public string Description { get; set; }
+
+        [XmlText]
+        public string Text { get; set; }
+
+        public static OpenPnPPackage Create(ComponentPackage package)
+        {
+            return new OpenPnPPackage()
+            {
+                Description = package.Description,
+                Id = package.PackageId,
+                Version = DateTime.Now,
+                PickVacuumLevel = 0.5m,
+                PlaceBlowOffLevel = 0.5m,
+                Footprint = new OpenPnPFootPrint()
+                {
+                    Units = "mm",
+                    BodyWidth = package.Width,
+                    BodyHeight = package.Height,
+                    OuterDimension = package.Length,
+                    InnerDimension = package.Width,
+                    PadCount = 2,
+                    PadPitch = 2,
+                    PadAcross = 2,
+                    PadRoundness = 0m,
+                    Pad = new List<OpenPnPPad>()
+                    {
+                        new OpenPnPPad()
+                        {
+                            Name = 1,
+                            X = 0,
+                            Y = 0,
+                            Width = 1,
+                            Height = 1,
+                            Rotation = 0,
+                            Roundness = 0
+                        },
+                        new OpenPnPPad()
+                        {
+                            Name = 2,
+                            X = 1,
+                            Y = 1,
+                            Width = 1,
+                            Height = 1,
+                            Rotation = 0,
+                            Roundness = 0
+                        }
+                    }
+                }
+            };
+        }
+    }
+
+    [XmlRoot(ElementName = "openpnp-packages")]
+    public class OpenPnPPackages
+    {
+
+        [XmlElement(ElementName = "package")]
+        public List<OpenPnPPackage> Packages { get; set; }
+    }
+
+
 }

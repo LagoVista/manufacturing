@@ -10,7 +10,7 @@ namespace LagoVista.Manufacturing.Models
 {
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Pcb_Title, ManufacturingResources.Names.Pcb_Description,
         ManufacturingResources.Names.Machine_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-fo-landing-page", Cloneable: true,
-        SaveUrl: "/api/mfg/pcb", GetUrl: "/api/mfg/pcb/{id}", GetListUrl: "/api/mfg/pcb", FactoryUrl: "/api/mfg/pcb/factory",
+        SaveUrl: "/api/mfg/pcb", GetUrl: "/api/mfg/pcb/{id}", GetListUrl: "/api/mfg/pcbs", FactoryUrl: "/api/mfg/pcb/factory",
         DeleteUrl: "/api/mfg/pcb/{id}", ListUIUrl: "/mfg/pcbs", EditUIUrl: "/mfg/pcb/{id}", CreateUIUrl: "/mfg/pcb/add")]
 
     public class CircuitBoard : MfgModelBase, IFormDescriptor, ISummaryFactory

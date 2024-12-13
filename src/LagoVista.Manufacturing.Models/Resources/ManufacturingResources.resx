@@ -638,4 +638,31 @@
   <data name="Common_Value" xml:space="preserve">
     <value>Value</value>
   </data>
+  <data name="ComponentPackage_TapeAndReelSpecImage" xml:space="preserve">
+    <value>Tape and Reel Specification Image</value>
+  </data>
+  <data name="ComponentPackage_TapeAndReelActualImage" xml:space="preserve">
+    <value>Tape and Reel Actual Image</value>
+  </data>
+  <data name="ComponentPackage_Verified" xml:space="preserve">
+    <value>Verified</value>
+  </data>
+  <data name="ComponentPackage_Verified_Help" xml:space="preserve">
+    <value>Has this package been verifed correct</value>
+  </data>
+  <data name="NozzleTip_Title" xml:space="preserve">
+    <value>Nozzle Tip</value>
+  </data>
+  <data name="NozzleTips_Title" xml:space="preserve">
+    <value>Nozzle Tips</value>
+  </data>
+  <data name="NozzleTip_Description" xml:space="preserve">
+    <value>A nozzle tip is an attachment that goes on a pick and place head that will place parts, there are difference sizes to allow picking up differnet size components</value>
+  </data>
+  <data name="NozzleTip_InnerDiameter" xml:space="preserve">
+    <value>Innert Diameter</value>
+  </data>
+  <data name="NozzleTip_OuterDiameter" xml:space="preserve">
+    <value>Outer Diameter</value>
+  </data>
 </root>

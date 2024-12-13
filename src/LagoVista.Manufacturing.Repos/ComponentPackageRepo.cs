@@ -6,6 +6,8 @@ using LagoVista.IoT.Logging.Loggers;
 using System.Threading.Tasks;
 using LagoVista.Manufacturing.Models;
 using LagoVista.Manufacturing.Repos;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace LagoVista.Manufacturing.Repo.Repos
 {
@@ -39,6 +41,11 @@ namespace LagoVista.Manufacturing.Repo.Repos
         public Task<ListResponse<ComponentPackageSummary>> GetComponentPackagesSummariesAsync(string orgId, ListRequest listRequest)
         {
             return base.QuerySummaryAsync<ComponentPackageSummary, ComponentPackage>(qry => qry.IsPublic == true || qry.OwnerOrganization.Id == orgId, itm => itm.Name, listRequest);
+        }
+
+        public async Task<List<ComponentPackage>> GetFullPackagesAsync(string orgId)
+        {
+            return (await QueryAllAsync(cp=>cp.OwnerOrganization.Id == orgId, ListRequest.CreateForAll())).Model.ToList();
         }
 
         public Task UpdateComponentPackageAsync(ComponentPackage package)

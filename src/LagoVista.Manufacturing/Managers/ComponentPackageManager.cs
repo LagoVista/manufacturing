@@ -10,6 +10,8 @@ using LagoVista.IoT.Logging.Loggers;
 using System;
 using System.Threading.Tasks;
 using static LagoVista.Core.Models.AuthorizeResult;
+using System.Xml.Linq;
+using System.Collections.Generic;
 
 namespace LagoVista.Manufacturing.Managers
 {
@@ -45,6 +47,20 @@ namespace LagoVista.Manufacturing.Managers
             await AuthorizeAsync(part, AuthorizeActions.Delete, user, org);
             await _packageRepo.DeleteCommponentPackageAsync(id);
             return InvokeResult.Success;
+        }
+
+        public async Task<XDocument> GenerateOpenPnPPackagesForAllComponentPackagesAsync(EntityHeader org, EntityHeader user)
+        {
+            var openPnPPackages = new OpenPnPPackages();
+            await AuthorizeOrgAccessAsync(user, org.Id, typeof(ComponentPackage));
+            var packages = await _packageRepo.GetFullPackagesAsync(org.Id);
+            foreach(var package in packages)
+            {
+               openPnPPackages.Packages.Add( OpenPnPPackage.Create(package));
+            }
+
+
+            throw new NotImplementedException();
         }
 
         public async Task<ComponentPackage> GetComponentPackageAsync(string id, EntityHeader org, EntityHeader user)

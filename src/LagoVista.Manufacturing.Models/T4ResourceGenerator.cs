@@ -1,4 +1,4 @@
-﻿/*12/11/2024 4:13:24 PM*/
+﻿/*12/12/2024 9:48:47 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -364,6 +364,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ComponentPackage_SpecificationPage
 
 		public static string ComponentPackage_SpecificationPage { get { return GetResourceString("ComponentPackage_SpecificationPage"); } }
+//Resources:ManufacturingResources:ComponentPackage_TapeAndReelActualImage
+
+		public static string ComponentPackage_TapeAndReelActualImage { get { return GetResourceString("ComponentPackage_TapeAndReelActualImage"); } }
+//Resources:ManufacturingResources:ComponentPackage_TapeAndReelSpecImage
+
+		public static string ComponentPackage_TapeAndReelSpecImage { get { return GetResourceString("ComponentPackage_TapeAndReelSpecImage"); } }
 //Resources:ManufacturingResources:ComponentPackage_TapePitch
 
 		public static string ComponentPackage_TapePitch { get { return GetResourceString("ComponentPackage_TapePitch"); } }
@@ -388,6 +394,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ComponentPackage_TItle
 
 		public static string ComponentPackage_TItle { get { return GetResourceString("ComponentPackage_TItle"); } }
+//Resources:ManufacturingResources:ComponentPackage_Verified
+
+		public static string ComponentPackage_Verified { get { return GetResourceString("ComponentPackage_Verified"); } }
+//Resources:ManufacturingResources:ComponentPackage_Verified_Help
+
+		public static string ComponentPackage_Verified_Help { get { return GetResourceString("ComponentPackage_Verified_Help"); } }
 //Resources:ManufacturingResources:ComponentPurchase_Description
 
 
@@ -428,6 +440,21 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Machines_Title
 
 		public static string Machines_Title { get { return GetResourceString("Machines_Title"); } }
+//Resources:ManufacturingResources:NozzleTip_Description
+
+		public static string NozzleTip_Description { get { return GetResourceString("NozzleTip_Description"); } }
+//Resources:ManufacturingResources:NozzleTip_InnerDiameter
+
+		public static string NozzleTip_InnerDiameter { get { return GetResourceString("NozzleTip_InnerDiameter"); } }
+//Resources:ManufacturingResources:NozzleTip_OuterDiameter
+
+		public static string NozzleTip_OuterDiameter { get { return GetResourceString("NozzleTip_OuterDiameter"); } }
+//Resources:ManufacturingResources:NozzleTip_Title
+
+		public static string NozzleTip_Title { get { return GetResourceString("NozzleTip_Title"); } }
+//Resources:ManufacturingResources:NozzleTips_Title
+
+		public static string NozzleTips_Title { get { return GetResourceString("NozzleTips_Title"); } }
 //Resources:ManufacturingResources:PackAndPlace_Description
 
 		public static string PackAndPlace_Description { get { return GetResourceString("PackAndPlace_Description"); } }
@@ -686,6 +713,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentPackage_Rotation = "ComponentPackage_Rotation";
 			public const string ComponentPackage_SpacingX = "ComponentPackage_SpacingX";
 			public const string ComponentPackage_SpecificationPage = "ComponentPackage_SpecificationPage";
+			public const string ComponentPackage_TapeAndReelActualImage = "ComponentPackage_TapeAndReelActualImage";
+			public const string ComponentPackage_TapeAndReelSpecImage = "ComponentPackage_TapeAndReelSpecImage";
 			public const string ComponentPackage_TapePitch = "ComponentPackage_TapePitch";
 			public const string ComponentPackage_TapePitch_Select = "ComponentPackage_TapePitch_Select";
 			public const string ComponentPackage_TapeRotation = "ComponentPackage_TapeRotation";
@@ -694,6 +723,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentPackage_TapeSize_Select = "ComponentPackage_TapeSize_Select";
 			public const string ComponentPackage_TapeWidth = "ComponentPackage_TapeWidth";
 			public const string ComponentPackage_TItle = "ComponentPackage_TItle";
+			public const string ComponentPackage_Verified = "ComponentPackage_Verified";
+			public const string ComponentPackage_Verified_Help = "ComponentPackage_Verified_Help";
 			public const string ComponentPurchase_Description = "ComponentPurchase_Description";
 			public const string ComponentPurchase_OrderDate = "ComponentPurchase_OrderDate";
 			public const string ComponentPurchase_OrderNumber = "ComponentPurchase_OrderNumber";
@@ -706,6 +737,11 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Machine_Description = "Machine_Description";
 			public const string Machine_Title = "Machine_Title";
 			public const string Machines_Title = "Machines_Title";
+			public const string NozzleTip_Description = "NozzleTip_Description";
+			public const string NozzleTip_InnerDiameter = "NozzleTip_InnerDiameter";
+			public const string NozzleTip_OuterDiameter = "NozzleTip_OuterDiameter";
+			public const string NozzleTip_Title = "NozzleTip_Title";
+			public const string NozzleTips_Title = "NozzleTips_Title";
 			public const string PackAndPlace_Description = "PackAndPlace_Description";
 			public const string PartPack_Description = "PartPack_Description";
 			public const string PartPack_Title = "PartPack_Title";

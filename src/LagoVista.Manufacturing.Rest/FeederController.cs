@@ -59,7 +59,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         }
 
         [HttpGet("/api/mfg/Feeders")]
-        public Task<ListResponse<FeederSummary>> GetEquomentForOrg()
+        public Task<ListResponse<FeederSummary>> GetFeedersForOrg()
         {
             return _mgr.GetFeedersSummariesAsync(GetListRequestFromHeader(), OrgEntityHeader, UserEntityHeader);
         }
