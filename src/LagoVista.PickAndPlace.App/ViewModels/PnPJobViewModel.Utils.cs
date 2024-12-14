@@ -16,9 +16,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             await base.InitAsync();
             LoadingMask = false;
 
-            Machine.TopLightOn = true;
-            Machine.BottomLightOn = false;
-
             if (!String.IsNullOrEmpty(_job.PnPMachinePath) && System.IO.File.Exists(_job.PnPMachinePath))
             {
                 PnPMachine = await PnPMachineManager.GetPnPMachineAsync(_job.PnPMachinePath);
@@ -121,10 +118,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             Machine.SendCommand($"G92 X0 Y0");
             Machine.SendCommand(SafeHeightGCodeGCode());
             var gcode = $"G1 X0 Y0 F{Machine.Settings.FastFeedRate}";
-            Machine.SendCommand(gcode);
-
-            ShowCircles = false;
-
+            Machine.SendCommand(gcode);           
             LocatorState = MVLocatorState.Default;
         }
     }

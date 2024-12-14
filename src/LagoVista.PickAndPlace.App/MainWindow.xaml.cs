@@ -58,18 +58,21 @@ namespace LagoVista.PickAndPlace.App
             else
             {
                 var machineId = (sender as MenuItem).Tag.ToString();
-                var machine = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Machine>>($"/api/mfg/machine/{machineId}");
-                if (machine.Successful)
+                if (!String.IsNullOrEmpty(machineId))
                 {
-                    Settings.Default.CurrentMachineId = machineId;
-                    Settings.Default.Save();
-                    ViewModel.Machine.Settings = machine.Result.Model;
-                    foreach (var item in MachinesMenu.Items)
+                    var machine = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Machine>>($"/api/mfg/machine/{machineId}");
+                    if (machine.Successful)
                     {
-                        var menuItem = item as MenuItem;
-                        if (menuItem != null)
+                        Settings.Default.CurrentMachineId = machineId;
+                        Settings.Default.Save();
+                        ViewModel.Machine.Settings = machine.Result.Model;
+                        foreach (var item in MachinesMenu.Items)
                         {
-                          //  menuItem.IsChecked = (string)menuItem.Tag == ViewModel.Machine.MachineRepo.CurrentMachineId;
+                            var menuItem = item as MenuItem;
+                            if (menuItem != null)
+                            {
+                                //  menuItem.IsChecked = (string)menuItem.Tag == ViewModel.Machine.MachineRepo.CurrentMachineId;
+                            }
                         }
                     }
                 }

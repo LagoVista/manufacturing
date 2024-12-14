@@ -7,6 +7,8 @@ using LagoVista.UserAdmin.Interfaces;
 using System.Threading;
 using System.Windows;
 using LagoVista.Client.Core;
+using System;
+using LagoVista.Core;
 
 namespace LagoVista.PickAndPlace.App
 {
@@ -42,6 +44,16 @@ namespace LagoVista.PickAndPlace.App
             await _authManager.LoadAsync();
             if(_authManager.IsAuthenticated)
             {
+                if(_authManager.AccessTokenExpirationUTC.ToDateTime() < DateTime.UtcNow )
+                {
+                    var result = await _restClient.RenewRefreshToken();
+                    if (!result.Successful)
+                    {
+                        MessageBox.Show(result.ErrorMessage);
+                        return;
+                    }
+                }
+
                 var main = new MainWindow();
                 main.Show();
                 this.Close();

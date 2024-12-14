@@ -130,9 +130,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         {
             Machine.SendCommand($"G0 Z{Machine.Settings.ToolSafeMoveHeight} F5000");
             Machine.GotoPoint(Machine.Settings.PartInspectionCamera.AbsolutePosition.X, Machine.Settings.PartInspectionCamera.AbsolutePosition.Y, Machine.Settings.PartInspectionCamera.FocusHeight, true);
-            ShowBottomCamera = true;
             Machine.ViewType = ViewTypes.Tool1;
-            Machine.BottomLightOn = true;
         }
 
         public void SetBottomCameraLocation()

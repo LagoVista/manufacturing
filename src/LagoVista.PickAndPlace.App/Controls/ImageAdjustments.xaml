@@ -33,13 +33,18 @@
         </Grid.Resources>
         <Button Content="Save Profile" Width="80" Height="32" Margin="4" Command="{Binding SaveProfileCommand}" HorizontalAlignment="Right" Grid.Column="1" />
 
-
         <Label Content="MV Vision Profile" Grid.Row="1" FontWeight="Bold" Margin="4" />
         <ComboBox Grid.Row="1" Height="28" Margin="4" Grid.Column="1" SelectedItem="{Binding CurrentMVProfile, Mode=TwoWay}"  ItemsSource="{Binding MVProfiles}" DisplayMemberPath="Text" SelectedValuePath="Id" />
 
-        <TabControl VerticalContentAlignment="Stretch" Grid.Row="2" Grid.ColumnSpan="2">
+        <TabControl VerticalContentAlignment="Stretch" Grid.Row="3" Grid.ColumnSpan="2">
             <TabItem Header="Image">
                 <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Label Content="Zoom Level" Style="{StaticResource Caption}" />
+                        <Label Content="{Binding ZoomLevel, FallbackValue=3}" Style="{StaticResource Value}" />
+                    </StackPanel>
+                    <Slider Value="{Binding Path=ZoomLevel, Mode=TwoWay}" Minimum="1" Maximum="3"/>
+
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Search Radius" Style="{StaticResource Caption}" />
                         <Label Content="{Binding Profile.TargetImageRadius, FallbackValue=3}" Style="{StaticResource Value}" />
@@ -86,6 +91,7 @@
                     <Slider Minimum="0.1" Maximum="10" SmallChange="0.1" LargeChange="0.5" Value="{Binding Path=Profile.GaussianSigmaX, Mode=TwoWay}" ToolTip="{Binding GaussianSigmaXHelp}"  />
                 </StackPanel>
             </TabItem>
+            
             <TabItem Header="Edge">
                 <StackPanel>
                     <Label Content="Edge Detection" FontSize="36" />

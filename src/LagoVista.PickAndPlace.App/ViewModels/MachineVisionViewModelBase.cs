@@ -16,15 +16,14 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Interop;
 
 namespace LagoVista.PickAndPlace.App.ViewModels
 {
     public abstract partial class MachineVisionViewModelBase : GCodeAppViewModelBase
     {
-        FloatMedianFilter _cornerMedianFilter = new FloatMedianFilter(12, 3);
-        FloatMedianFilter _circleMedianFilter = new FloatMedianFilter(12, 3);
-        FloatMedianFilter _circleRadiusMedianFilter = new FloatMedianFilter(12, 3);
+        FloatMedianFilter _cornerMedianFilter = new FloatMedianFilter(4, 1);
+        FloatMedianFilter _circleMedianFilter = new FloatMedianFilter(4, 1);
+        FloatMedianFilter _circleRadiusMedianFilter = new FloatMedianFilter(4, 1);
 
         private VisionProfile _topCameraProfile;
         private VisionProfile _bottomCameraProfile;
@@ -33,7 +32,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         public MachineVisionViewModelBase(IMachine machine) : base(machine)
         {
             MachineControls = new MachineControlViewModel(this.Machine);
-            Profile = new Models.VisionProfile();
+            //Profile = new Models.VisionProfile();
             SaveProfileCommand = new RelayCommand(SaveProfile);
 
             StartCaptureCommand = new RelayCommand(StartCapture, CanPlay);
@@ -85,17 +84,15 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 }
             }
 
+            AdjustingTopCamera = _topCameraProfile.ForTopCamera;
+            RaisePropertyChanged(nameof(BottomZoomLevel));
+            RaisePropertyChanged(nameof(TopZoomLevel));
+            RaisePropertyChanged(nameof(LightOn));
+
             SaveProfile();
 
-            if (ShowTopCamera)
-            {
-                Profile = _topCameraProfile;
-            }
-
-            if (ShowBottomCamera)
-            {
-                Profile = _bottomCameraProfile;
-            }
+            Machine.TopLightOn = AdjustingTopCamera && _topCameraProfile.LightOn;
+            Machine.BottomLightOn = !AdjustingTopCamera && _bottomCameraProfile.LightOn;
         }
 
         private async void LoadProfiles()
@@ -193,7 +190,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         }
 
         #region Show Cross Hairs
-        private void DrawCrossHairs(IInputOutputArray destImage, System.Drawing.Size size)
+        private void DrawCrossHairs(IInputOutputArray destImage, VisionProfile profile, System.Drawing.Size size)
         {
             var center = new Point2D<int>()
             {
@@ -201,15 +198,14 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 Y = size.Height / 2
             };
 
+            Line(destImage, 0, center.Y, center.X - profile.TargetImageRadius, center.Y, System.Drawing.Color.Yellow);
+            Line(destImage, center.X + profile.TargetImageRadius, center.Y, size.Width, center.Y, System.Drawing.Color.Yellow);
 
-            Line(destImage, 0, center.Y, center.X - Profile.TargetImageRadius, center.Y, System.Drawing.Color.Yellow);
-            Line(destImage, center.X + Profile.TargetImageRadius, center.Y, size.Width, center.Y, System.Drawing.Color.Yellow);
+            Line(destImage, center.X, 0, center.X, center.Y - profile.TargetImageRadius, System.Drawing.Color.Yellow);
+            Line(destImage, center.X, center.Y + profile.TargetImageRadius, center.X, size.Height, System.Drawing.Color.Yellow);
 
-            Line(destImage, center.X, 0, center.X, center.Y - Profile.TargetImageRadius, System.Drawing.Color.Yellow);
-            Line(destImage, center.X, center.Y + Profile.TargetImageRadius, center.X, size.Height, System.Drawing.Color.Yellow);
-
-            Line(destImage, center.X - Profile.TargetImageRadius, center.Y, center.X + Profile.TargetImageRadius, center.Y, System.Drawing.Color.FromArgb(0x7f, 0xFF, 0xFF, 0XFF));
-            Line(destImage, center.X, center.Y - Profile.TargetImageRadius, center.X, center.Y + Profile.TargetImageRadius, System.Drawing.Color.FromArgb(0x7f, 0xFF, 0xFF, 0XFF));
+            Line(destImage, center.X - profile.TargetImageRadius, center.Y, center.X + profile.TargetImageRadius, center.Y, System.Drawing.Color.FromArgb(0x7f, 0xFF, 0xFF, 0XFF));
+            Line(destImage, center.X, center.Y - profile.TargetImageRadius, center.X, center.Y + profile.TargetImageRadius, System.Drawing.Color.FromArgb(0x7f, 0xFF, 0xFF, 0XFF));
 
             if (CurrentMVProfile?.Id == "squarepart")
             {
@@ -221,7 +217,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             }
             else
             {
-                Circle(destImage, center.X, center.Y, Profile.TargetImageRadius, System.Drawing.Color.Yellow);
+                Circle(destImage, center.X, center.Y, profile.TargetImageRadius, System.Drawing.Color.Yellow);
             }
         }
         #endregion
@@ -259,7 +255,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 _stabilizedPointCount++;
                 if (_stabilizedPointCount > 10)
                 {
-                    var newLocationX = Math.Round(Machine.MachinePosition.X - (offset.X / 20), 4);
+                    var offsetX = (offset.X / 20);
+                    var newLocationX = Profile.Rotate180 ? Math.Round(Machine.MachinePosition.X + offsetX, 4) : Math.Round(Machine.MachinePosition.X - offsetX, 4);
                     var newLocationY = Math.Round(Machine.MachinePosition.Y + (offset.Y / 20), 4);
                     RequestedPosition = new Point2D<double>() { X = newLocationX, Y = newLocationY };
 
@@ -277,7 +274,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         int _stabilizedPointCount = 0;
 
         #region Find Circles
-        private void FindCircles(IInputOutputArray input, IInputOutputArray output, System.Drawing.Size size)
+        private void FindCircles(IInputOutputArray input, IInputOutputArray output, System.Drawing.Size size, VisionProfile profile)
         {
             var center = new Point2D<int>()
             {
@@ -285,14 +282,14 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 Y = size.Height / 2
             };
 
-            var circles = CvInvoke.HoughCircles(input, HoughModes.Gradient, Profile.HoughCirclesDP, Profile.HoughCirclesMinDistance, Profile.HoughCirclesParam1, Profile.HoughCirclesParam2, Profile.HoughCirclesMinRadius, Profile.HoughCirclesMaxRadius);
+            var circles = CvInvoke.HoughCircles(input, HoughModes.Gradient, profile.HoughCirclesDP, profile.HoughCirclesMinDistance, profile.HoughCirclesParam1, profile.HoughCirclesParam2, profile.HoughCirclesMinRadius, profile.HoughCirclesMaxRadius);
 
             var foundCircle = false;
             /* Above will return ALL maching circles, we only want the first one that is in the target image radius in the middle of the screen */
             foreach (var circle in circles)
             {
-                if (circle.Center.X > ((size.Width / 2) - Profile.TargetImageRadius) && circle.Center.X < ((size.Width / 2) + Profile.TargetImageRadius) &&
-                   circle.Center.Y > ((size.Height / 2) - Profile.TargetImageRadius) && circle.Center.Y < ((size.Height / 2) + Profile.TargetImageRadius))
+                if (circle.Center.X > ((size.Width / 2) - profile.TargetImageRadius) && circle.Center.X < ((size.Width / 2) + profile.TargetImageRadius) &&
+                   circle.Center.Y > ((size.Height / 2) - profile.TargetImageRadius) && circle.Center.Y < ((size.Height / 2) + profile.TargetImageRadius))
                 {
                     _circleMedianFilter.Add(circle.Center.X, circle.Center.Y);
                     _circleRadiusMedianFilter.Add(circle.Radius, 0);
@@ -349,7 +346,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         #endregion
 
         #region Find Corners
-        private void FindCorners(Image<Gray, byte> blurredGray, IInputOutputArray output, System.Drawing.Size size)
+        private void FindCorners(Image<Gray, byte> blurredGray, IInputOutputArray output, System.Drawing.Size size, VisionProfile profile)
         {
             var center = new Point2D<int>()
             {
@@ -366,14 +363,15 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 int max = -1;
                 int x = -1, y = -1;
 
-                CvInvoke.CornerHarris(blurredGray, cornerDest, Profile.HarrisCornerBlockSize, Profile.HarrisCornerAperture, Profile.HarrisCornerK, BorderType.Default);
+                CvInvoke.CornerHarris(blurredGray, cornerDest, profile.HarrisCornerBlockSize, profile.HarrisCornerAperture, profile.HarrisCornerK, BorderType.Default);
 
                 CvInvoke.Normalize(cornerDest, matNormalized, 0, 255, NormType.MinMax, DepthType.Cv32F);
                 CvInvoke.ConvertScaleAbs(matNormalized, matScaled, 10, 5);
-                var minX = (size.Width / 2) - Profile.TargetImageRadius;
-                var maxX = (size.Width / 2) + Profile.TargetImageRadius;
-                var minY = (size.Height / 2) - Profile.TargetImageRadius;
-                var maxY = (size.Height / 2) + Profile.TargetImageRadius;
+
+                var minX = (size.Width / 2) - profile.TargetImageRadius;
+                var maxX = (size.Width / 2) + profile.TargetImageRadius;
+                var minY = (size.Height / 2) - profile.TargetImageRadius;
+                var maxY = (size.Height / 2) + profile.TargetImageRadius;
 
                 /* Go through all the returned points and find the one with the highest intensity.  This will be our corner */
                 for (int j = minX; j < maxX; j++)
@@ -442,28 +440,28 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         }
 
         #region Find Rotated Rectangles
-        private void FindRectangles(Image<Gray, byte> input, IInputOutputArray output, System.Drawing.Size size)
+        private void FindRectangles(Image<Gray, byte> input, IInputOutputArray output, System.Drawing.Size size, VisionProfile profile)
         {
             UMat edges = new UMat();
 
 
-            if (ShowLines)
+            if (profile.FindLines)
             {
-                var lines = CvInvoke.HoughLinesP(edges, Profile.HoughLinesRHO, Profile.HoughLinesTheta * (Math.PI / 180), Profile.HoughLinesThreshold, Profile.HoughLinesMinLineLength, Profile.HoughLinesMaxLineGap);
+                var lines = CvInvoke.HoughLinesP(edges, profile.HoughLinesRHO, profile.HoughLinesTheta * (Math.PI / 180), profile.HoughLinesThreshold, profile.HoughLinesMinLineLength, profile.HoughLinesMaxLineGap);
                 foreach (var line in lines)
                 {
                     Line(output, line.P1.X, line.P1.Y, line.P2.X, line.P2.Y, System.Drawing.Color.Yellow);
                 }
             }
 
-            if (Profile.UseCannyEdgeDetection)
+            if (profile.UseCannyEdgeDetection)
             {
-                CvInvoke.Canny(input, edges, Profile.CannyLowThreshold, Profile.CannyHighThreshold, Profile.CannyApetureSize, Profile.CannyGradient);
+                CvInvoke.Canny(input, edges, profile.CannyLowThreshold, profile.CannyHighThreshold, profile.CannyApetureSize, profile.CannyGradient);
             }
             else
             {
 
-                CvInvoke.Threshold(input, edges, Profile.ThresholdEdgeDetection, 255, ThresholdType.Binary);
+                CvInvoke.Threshold(input, edges, profile.ThresholdEdgeDetection, 255, ThresholdType.Binary);
             }
 
             using (var contours = new VectorOfVectorOfPoint())
@@ -475,9 +473,9 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                     using (var contour = contours[i])
                     using (var approxContour = new VectorOfPoint())
                     {
-                        CvInvoke.ApproxPolyDP(contour, approxContour, CvInvoke.ArcLength(contour, true) * Profile.PolygonEpsilonFactor, Profile.ContourFindOnlyClosed);
+                        CvInvoke.ApproxPolyDP(contour, approxContour, CvInvoke.ArcLength(contour, true) * profile.PolygonEpsilonFactor, profile.ContourFindOnlyClosed);
                         var area = CvInvoke.ContourArea(approxContour, false);
-                        if (area > Profile.ContourMinArea && area < Profile.CountourMaxArea) //only consider contours with area greater than 250
+                        if (area > profile.ContourMinArea && area < profile.CountourMaxArea) //only consider contours with area greater than 250
                         {
                             var pts = approxContour.ToArray();
 
@@ -486,7 +484,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                                 bool isRectangle = true;
                                 var rectEdges = PointCollection.PolyLine(pts, true);
 
-                                if (!Profile.FindIrregularPolygons)
+                                if (!profile.FindIrregularPolygons)
                                 {
                                     for (var j = 0; j < rectEdges.Length; j++)
                                     {
@@ -503,11 +501,11 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                                 {
                                     var rect = CvInvoke.MinAreaRect(approxContour);
 
-                                    if (rect.Center.X > ((size.Width / 2) - Profile.TargetImageRadius) && rect.Center.X < ((size.Width / 2) + Profile.TargetImageRadius) &&
-                                        rect.Center.Y > ((size.Height / 2) - Profile.TargetImageRadius) && rect.Center.Y < ((size.Height / 2) + Profile.TargetImageRadius))
+                                    if (rect.Center.X > ((size.Width / 2) - profile.TargetImageRadius) && rect.Center.X < ((size.Width / 2) + profile.TargetImageRadius) &&
+                                        rect.Center.Y > ((size.Height / 2) - profile.TargetImageRadius) && rect.Center.Y < ((size.Height / 2) + profile.TargetImageRadius))
                                     {
-                                        if (rect.Size.Width > rect.Size.Height && Profile.FindLandScape ||
-                                            rect.Size.Height > rect.Size.Width && Profile.FindPortrait)
+                                        if (rect.Size.Width > rect.Size.Height && profile.FindLandScape ||
+                                            rect.Size.Height > rect.Size.Width && profile.FindPortrait)
                                         {
                                             var point1 = new System.Drawing.Point(Convert.ToInt32(rect.Center.X - (rect.Size.Width / 2)), Convert.ToInt32(rect.Center.Y - (rect.Size.Height / 2)));
                                             var point2 = new System.Drawing.Point(Convert.ToInt32(rect.Center.X - (rect.Size.Width / 2)), Convert.ToInt32(rect.Center.Y + (rect.Size.Height / 2)));
@@ -566,7 +564,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                                 }
 
                             }
-                            else if (Profile.FindIrregularPolygons)
+                            else if (profile.FindIrregularPolygons)
                             {
                                 var rectEdges = PointCollection.PolyLine(pts, true);
                                 for (var idx = 0; idx < rectEdges.Length - 1; ++idx)
@@ -595,7 +593,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         }
         #endregion
 
-        public UMat PerformShapeDetection(Image<Bgr, byte> img)
+        public UMat PerformShapeDetection(Image<Bgr, byte> img, VisionProfile profile)
         {
             if (img == null)
             {
@@ -604,73 +602,94 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             try
             {
-                using (var masked = new Image<Bgr, byte>(img.Size))
+                
+
+                using (var rotated = new Image<Bgr, byte>(img.Size))
                 {
-                    var raw = img;
-                    if (Profile.ApplyMask)
+                    if (profile.Rotate180)
                     {
-                        using (var mask = new Image<Gray, byte>(img.Size))
-
-                        {
-                            CvInvoke.Circle(mask, new System.Drawing.Point() { X = img.Size.Width / 2, Y = img.Size.Height / 2 }, Profile.TargetImageRadius, new Bgr(System.Drawing.Color.White).MCvScalar, -1, Emgu.CV.CvEnum.LineType.AntiAlias);
-                            CvInvoke.BitwiseAnd(img, img, masked, mask);
-                            raw = masked;
-                        }
-
+                        CvInvoke.Flip(img, rotated, FlipType.Horizontal);
+                        img = rotated;
                     }
 
-                    using (Image<Gray, Byte> gray = raw.Convert<Gray, Byte>())
+                    var raw = img;
+
+                    using (var masked = new Image<Bgr, byte>(img.Size))
                     {
-                        using (var blurredGray = new Image<Gray, byte>(gray.Size))
-                        using (var thresholdGray = new Image<Gray, byte>(gray.Size))
+
+                        if (profile.ApplyMask)
                         {
-                            var input = gray;
+                            using (var mask = new Image<Gray, byte>(img.Size))
 
-                            if (Profile.ApplyThreshold)
                             {
-                                CvInvoke.Threshold(input, thresholdGray, (Profile.PrimaryThreshold / 100.0) * 255, 255, ThresholdType.Binary);
-                                input = thresholdGray;
+                                CvInvoke.Circle(mask, new System.Drawing.Point() { X = img.Size.Width / 2, Y = img.Size.Height / 2 }, profile.TargetImageRadius, new Bgr(System.Drawing.Color.White).MCvScalar, -1, Emgu.CV.CvEnum.LineType.AntiAlias);
+                                CvInvoke.BitwiseAnd(img, img, masked, mask);
+                                raw = masked;
                             }
+                        }
 
-                            if (UseBlurredImage)
+                        using (Image<Gray, Byte> gray = raw.Convert<Gray, Byte>())
+                        {
+                            using (var blurredGray = new Image<Gray, byte>(gray.Size))
+                            using (var thresholdGray = new Image<Gray, byte>(gray.Size))
+                            using (var inverted = new Image<Gray, byte>(gray.Size))
+
                             {
-                                CvInvoke.GaussianBlur(input, blurredGray, new System.Drawing.Size(5, 5), Profile.GaussianSigmaX);
-                                input = blurredGray;
-                            }
+                                var input = gray;
 
-                            var output = ShowOriginalImage ? raw : (IInputOutputArray)input;
-
-                            if (!Machine.Busy)
-                            {
-                                if (Show200PixelSquare) ShowCalibrationSquare(output, img.Size);
-                                if (ShowCrossHairs) DrawCrossHairs(output, img.Size);
-                                if (ShowCircles) FindCircles(input, output, img.Size);
-                                if (ShowHarrisCorners) FindCorners(input, output, img.Size);
-                                if (ShowRectangles)
+                                if (profile.Invert)
                                 {
-                                    FindRectangles(input, output, img.Size);
+                                    CvInvoke.BitwiseNot(input, inverted);
+                                    input = inverted;
                                 }
-                            }
-                            else
-                            {
-                                _stabilizedPointCount = 0;
-                            }
 
-                            if (ShowOriginalImage)
-                                return raw.Clone().ToUMat();
-                            else
-                            {
-                                using (Image<Bgr, Byte> final = input.Convert<Bgr, Byte>())
+                                if (profile.ApplyThreshold)
                                 {
-                                    if (ShowCrossHairs) DrawCrossHairs(final, img.Size);
-                                    return final.Clone().ToUMat();
+                                    CvInvoke.Threshold(input, thresholdGray, (profile.PrimaryThreshold / 100.0) * 255, 255, ThresholdType.Binary);
+                                    input = thresholdGray;
+                                }
+
+
+                                if (UseBlurredImage)
+                                {
+                                    CvInvoke.GaussianBlur(input, blurredGray, new System.Drawing.Size(5, 5), profile.GaussianSigmaX);
+                                    input = blurredGray;
+                                }
+
+                                var output = ShowOriginalImage ? raw : (IInputOutputArray)input;
+
+                                if (!Machine.Busy)
+                                {
+                                    if (Show200PixelSquare) ShowCalibrationSquare(output, img.Size);
+                                    if (ShowCrossHairs) DrawCrossHairs(output, profile, img.Size);
+                                    if (profile.FindCircles) FindCircles(input, output, img.Size, profile);
+                                    if (profile.FindCorners) FindCorners(input, output, img.Size, profile);
+                                    if (profile.FindRectangles)
+                                    {
+                                        FindRectangles(input, output, img.Size, profile);
+                                    }
+                                }
+                                else
+                                {
+                                    _stabilizedPointCount = 0;
+                                }
+
+                                if (ShowOriginalImage)
+                                    return raw.Clone().ToUMat();
+                                else
+                                {
+                                    using (Image<Bgr, Byte> final = input.Convert<Bgr, Byte>())
+                                    {
+                                        if (ShowCrossHairs) DrawCrossHairs(final, profile, img.Size);
+                                        return final.Clone().ToUMat();
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 /*NOP, sometimes OpenCV acts a little funny. */
                 return null;

@@ -14,11 +14,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         private void AbortMVLocator()
         {
             LocatorState = MVLocatorState.Idle;
-            Machine.TopLightOn = false;
-            Machine.BottomLightOn = false;
-            ShowCircles = false;
-            ShowPolygons = false;
-            ShowLines = false;
         }
 
         public async void PerformMachineAlignment()
@@ -36,8 +31,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             Machine.SendCommand(DwellGCode(250));
             
             GoToFiducial(0);
-
-            ShowCircles = true;
 
             LocatorState = MVLocatorState.MachineFidicual;
 
@@ -153,6 +146,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             Machine.SendCommand($"G0 E{topAngle}");
             Machine.SendCommand($"G92 E0 X{preCalX} Y{preCalY}");
+
+            Status = "Nozzle Calibration Completed";
         }
 
         private void PerformBottomCameraCalibration(Point2D<double> point, double diameter, Point2D<double> stdDeviation)
@@ -163,16 +158,18 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             {
                 samplesAtPoint++;
 
-                if (samplesAtPoint > 30)
+                if (samplesAtPoint > 1)
                 {
+                    Status = $"Calibrate Nozzle {_targetAngle}";
+
                     var avgX = _averagePoints.Average(pt => pt.X);
                     var avgY = _averagePoints.Average(pt => pt.Y);
                     _nozzleCalibration.Add(Convert.ToInt32(Machine.Tool2), new Point2D<double>(avgX, avgY));
 
                     CalibrationUpdates.Insert(0, $"Angle: {_targetAngle} - {avgX}x{avgY}");
 
-                    _targetAngle = Convert.ToInt32(Machine.Tool2 + 15.0);
-                    Machine.SendCommand($"G0 E{_targetAngle}");
+                    _targetAngle = Convert.ToInt32(Machine.Tool2 + 30.0);
+                    Machine.SendCommand($"G0 E{_targetAngle} F5000");
                     _averagePoints.Clear();
                     samplesAtPoint = 0;
                     RaisePropertyChanged(nameof(TargetAngle));
@@ -218,13 +215,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 Machine.SendCommand($"G0 E0");
                 await Machine.SetViewTypeAsync(ViewTypes.Tool1);
 
-                Machine.TopLightOn = false;
-                Machine.BottomLightOn = true;
                 SelectMVProfile("nozzle");
-                ShowCircles = true;
-
-                ShowBottomCamera = true;
-
+               
                 Machine.SendCommand($"G0 X{Machine.Settings.PartInspectionCamera.AbsolutePosition.X} Y{Machine.Settings.PartInspectionCamera.AbsolutePosition.Y} Z{Machine.Settings.PartInspectionCamera.FocusHeight} F1{Machine.Settings.FastFeedRate}");
             }
         }

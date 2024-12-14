@@ -159,8 +159,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             var feedRate = _machine.Settings.FastFeedRate;
             var positon = GetCurrentPartPosition(_selectedPartStrip, positionType);
             _machine.GotoPoint(positon.X, positon.Y, feedRate);
-            _jobVM.ShowBottomCamera = false;
-            _jobVM.ShowTopCamera = true;
 
             var package = _jobVM.Packages.FirstOrDefault(pck => pck.Id == _selectedPartStrip.PackageId);
 
@@ -192,15 +190,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         private void GoToStripFeederPackage()
         {
-            _jobVM.ShowCircles = true;
-            _jobVM.ShowHarrisCorners = false;
-            _jobVM.ShowPolygons = false;
-            _jobVM.ShowLines = false;
             _jobVM.SelectMVProfile("tapehole");
-            _jobVM.ShowBottomCamera = false;
-            _jobVM.ShowTopCamera = true;
-            _machine.TopLightOn = false;
-            _machine.BottomLightOn = false;
 
             _machine.SendCommand($"G0 Z{_machine.Settings.ProbeSafeHeight.ToDim()}");
 

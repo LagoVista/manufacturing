@@ -1,9 +1,5 @@
 ﻿using LagoVista.Core.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.Models
 {
@@ -46,12 +42,54 @@ namespace LagoVista.PickAndPlace.Models
             set { _focus = Math.Round(value, 1); RaisePropertyChanged(); }
         }
 
+        private bool _invert;
+        public bool Invert
+        {
+            get => _invert;
+            set => Set(ref _invert, value);
+        }
+
 
         private double _exposure = 50;
         public double Exposure
         {
             get { return _exposure; }
             set { _exposure = Math.Round(value, 1); RaisePropertyChanged(); }
+        }
+
+        private bool _rotate180;
+        public bool Rotate180
+        {
+            get => _rotate180;
+            set { Set (ref _rotate180, value); }
+        }
+
+        private bool _findRectangles;
+        public bool FindRectangles
+        {
+            get => _findRectangles;
+            set {  Set(ref _findRectangles, value); }
+        }
+
+        private bool _findCircles;
+        public bool FindCircles
+        {
+            get => _findCircles;
+            set { Set(ref _findCircles, value); }
+        }
+
+        private bool _findLines;
+        public bool FindLines
+        {
+            get => _findLines;
+            set { Set(ref _findLines, value); }
+        }
+
+        private bool _findCorners;
+        public bool FindCorners
+        {
+            get => _findCorners;
+            set { Set(ref _findCorners, value); }
         }
 
         private double _polygonEpsilonFactor = 0.05;
@@ -171,6 +209,19 @@ namespace LagoVista.PickAndPlace.Models
             }
         }
 
+        private bool _forTopCamera;
+        public bool ForTopCamera
+        {
+            set { Set(ref _forTopCamera, value); }
+            get { return _forTopCamera; }
+        }
+
+        private double _zoomLevel = 1;
+        public double ZoomLevel 
+        { 
+            set { Set(ref _zoomLevel, value);  }
+            get { return _zoomLevel; }
+        }
 
         public double CannyHighThreshold { get { return CannyLowThreshold * 3; } set { } }
         private int _cannyApetureSize = 3;
@@ -291,6 +342,13 @@ namespace LagoVista.PickAndPlace.Models
         {
             get { return _primaryThreshold; }
             set { _primaryThreshold = value; RaisePropertyChanged(); }
+        }
+
+        private bool _lightOn = false;
+        public bool LightOn
+        {
+            get { return _lightOn; }
+            set { Set(ref _lightOn, value); }
         }
     }
 }

@@ -86,7 +86,7 @@ namespace LagoVista.PickAndPlace.Util
             get
             {
                 var nonNullPoints = _points.Where(pt => pt != null);
-                if (nonNullPoints.Count() < 5)
+                if (nonNullPoints.Count() < 4)
                     return null;
 
                 var sortedX = nonNullPoints.Select(pt => pt.X).OrderBy(pt => pt);

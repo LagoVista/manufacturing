@@ -29,6 +29,8 @@ namespace LagoVista.PickAndPlace.ViewModels
             InitCommands();
             InitChildViewModels();
 
+            _currentMachineId = currentMachineId;
+
             _restClient = SLWIOC.Get<IRestClient>();
             _restClient.BeginCall += _restClient_BeginCall;
             _restClient.EndCall += _restClient_EndCall;
@@ -50,10 +52,12 @@ namespace LagoVista.PickAndPlace.ViewModels
             await Machine.InitAsync();
             await base.InitAsync();
 
-            var result = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Machine>>($"/api/mfg/machine/{_currentMachineId}");
-            if(result.Successful)
-                Machine.Settings = result.Result.Model;
-
+            if (!String.IsNullOrEmpty(_currentMachineId))
+            {
+                var result = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Machine>>($"/api/mfg/machine/{_currentMachineId}");
+                if (result.Successful)
+                    Machine.Settings = result.Result.Model;
+            }
         }
 
         private void InitChildViewModels()

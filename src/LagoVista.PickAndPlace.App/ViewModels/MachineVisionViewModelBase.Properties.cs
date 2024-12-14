@@ -8,52 +8,23 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 {
     public abstract partial class MachineVisionViewModelBase
     {
-        bool _showPolygons = false;
-        bool _showRectangles = false;
-        bool _showCircles = false;
-        bool _showLines = false;
         bool _show100PixelSquare = false;
         bool _showCrossHairs = true;
-        bool _showHarrisCorners = false;
         bool _showOriginalImage = true;
         bool _useBlurredImage = true;
-
-        public bool ShowPolygons
-        {
-            get { return _showPolygons; }
-            set { Set(ref _showPolygons, value); }
-        }
-        public bool ShowRectangles
-        {
-            get { return _showRectangles; }
-            set { Set(ref _showRectangles, value); }
-        }
-        public bool ShowCircles
-        {
-            get { return _showCircles; }
-            set { Set(ref _showCircles, value); }
-        }
-
+       
         public bool Show200PixelSquare
         {
             get { return _show100PixelSquare; }
             set { Set(ref _show100PixelSquare, value); }
         }
-        public bool ShowLines
-        {
-            get { return _showLines; }
-            set { Set(ref _showLines, value); }
-        }
+
         public bool ShowCrossHairs
         {
             get { return _showCrossHairs; }
             set { Set(ref _showCrossHairs, value); }
         }
-        public bool ShowHarrisCorners
-        {
-            get { return _showHarrisCorners; }
-            set { Set(ref _showHarrisCorners, value); }
-        }
+
         public bool ShowOriginalImage
         {
             get { return _showOriginalImage; }
@@ -132,14 +103,14 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             set { Set(ref _areToolSettingsVisible, value); }
         }
 
-        private bool _hasFrame = false;
-        public bool HasFrame
+        private bool _hasPositionFrame = false;
+        public bool HasPositionFrame
         {
-            get { return _hasFrame; }
+            get { return _hasPositionFrame; }
             set
             {
-                var oldHasFrame = _hasFrame;
-                Set(ref _hasFrame, value);
+                var oldHasFrame = _hasPositionFrame;
+                Set(ref _hasPositionFrame, value);
 
                 if (value && !oldHasFrame)
                 {
@@ -153,6 +124,49 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             }
         }
 
+        private bool _hasInspectionFrame = false;
+        public bool HasInspectionFrame
+        {
+            get { return _hasInspectionFrame; }
+            set
+            {
+                var oldHasFrame = _hasInspectionFrame;
+                Set(ref _hasInspectionFrame, value);
+
+                if (value && !oldHasFrame)
+                {
+                    CaptureStarted();
+                }
+
+                if (!value && oldHasFrame)
+                {
+                    CaptureEnded();
+                }
+            }
+        }
+
+        private bool _adjustingTopCamera;
+        public bool AdjustingTopCamera
+        {
+            get { return _adjustingTopCamera; }
+            set
+            {
+                Set(ref _adjustingTopCamera, value);
+                Profile = value ? _topCameraProfile : _bottomCameraProfile;
+                if (value)
+                {
+                    Machine.TopLightOn = _topCameraProfile.LightOn;
+                    Machine.BottomLightOn = false;
+                    _topCameraProfile.ForTopCamera = true;
+                }
+                else
+                {
+                    Machine.BottomLightOn = _bottomCameraProfile.LightOn;
+                    Machine.TopLightOn = false;
+                    _topCameraProfile.ForTopCamera = false;
+                }
+            }
+        }
 
         private VisionProfile _profile;
         public VisionProfile Profile
@@ -161,57 +175,60 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             set { Set(ref _profile, value); }
         }
 
+        public bool LightOn
+        {
+            get => Profile.LightOn;
+            set
+            {
+                Profile.LightOn = value;
+
+                if (AdjustingTopCamera)
+                    Machine.TopLightOn = value;
+                else
+                    Machine.BottomLightOn = value;
+            }
+        }
+
+
+        public double ZoomLevel
+        {
+            get => Profile.ZoomLevel;
+            set
+            {
+                Profile.ZoomLevel = value;
+                if (AdjustingTopCamera)
+                    RaisePropertyChanged(nameof(TopZoomLevel));
+                else
+                    RaisePropertyChanged(nameof(BottomZoomLevel));
+            }
+        }
+
+        public double BottomZoomLevel
+        {
+            get { return _bottomCameraProfile == null ? 1 : _bottomCameraProfile.ZoomLevel; }
+            set 
+            { 
+                _bottomCameraProfile.ZoomLevel = value;
+                RaisePropertyChanged(nameof(BottomZoomLevel));
+            }
+        }        
+
+       
+        public double TopZoomLevel
+        {
+            get { return _topCameraProfile == null ? 1 : _topCameraProfile.ZoomLevel; }
+            set 
+            {
+                _topCameraProfile.ZoomLevel = value;
+                RaisePropertyChanged(nameof(TopZoomLevel));
+            }
+        }
+
 
         protected virtual void CaptureStarted() { }
 
         protected virtual void CaptureEnded() { }
 
-        bool _showTopCamera = true;
-        public bool ShowTopCamera
-        {
-            get { return _showTopCamera; }
-            set
-            {
-                if (value)
-                {
-                    Profile = _topCameraProfile;
-                    ShowBottomCamera = false;
-                    Machine.BottomLightOn = false;
-                    //Machine.TopLightOn = true;
-                }
-
-                Set(ref _showTopCamera, value);
-                UseTopCamera = true;
-                UseBottomCamera = false;
-            }
-        }
-
-        bool _showBottomCamera = false;
-        public bool ShowBottomCamera
-        {
-            get { return _showBottomCamera; }
-            set
-            {
-                if (value)
-                {
-                    Profile = _bottomCameraProfile;
-                    ShowTopCamera = false;
-                    //Machine.BottomLightOn = true;
-                    Machine.TopLightOn = false;
-                }
-
-                Set(ref _showBottomCamera, value);
-                UseBottomCamera = true;
-                UseTopCamera = false;
-            }
-        }
-
-        bool _pictureInPicture = false;
-        public bool PictureInPicture
-        {
-            get { return _pictureInPicture; }
-            set { Set(ref _pictureInPicture, value); }
-        }
 
 
         private Point2D<double> _circleCenter;

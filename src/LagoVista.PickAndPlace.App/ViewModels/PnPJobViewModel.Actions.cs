@@ -71,9 +71,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             await Machine.SetViewTypeAsync(ViewTypes.Camera);
 
-            ShowTopCamera = true;
-            
-
             switch (idx)
             {
                 case 0:
@@ -107,6 +104,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         {
             AlignBottomCamera();
             _targetAngle = 0;
+            _nozzleCalibration = new Dictionary<int, Point2D<double>>();
             LocatorState = MVLocatorState.NozzleCalibration;
             SelectMVProfile("nozzlecalibration");
             Machine.SendCommand($"G0 E0");
@@ -125,36 +123,15 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         {
             Machine.SendCommand(SafeHeightGCodeGCode());
             Machine.GotoWorkspaceHome();
-            
-            ShowBottomCamera = false;
-            ShowTopCamera = true;
-
+                        
             SelectMVProfile("mchfiducual");
-
-            ShowCircles = true;
-            ShowLines = false;
-            ShowHarrisCorners = false;
-            ShowPolygons = false;
-
-            Machine.BottomLightOn = false;
-            Machine.TopLightOn = false;
         }
 
         public void SetWorkComeViaVision()
         {
             Machine.SendCommand(SafeHeightGCodeGCode());
             Machine.GotoWorkspaceHome();
-            ShowBottomCamera = false;
-            ShowTopCamera = true;
-            SelectMVProfile("mchfiducual");
-
-            ShowCircles = true;
-            ShowLines = false;
-            ShowHarrisCorners = false;
-            ShowPolygons = false;
-
-            Machine.BottomLightOn = false;
-            Machine.TopLightOn = false;
+            SelectMVProfile("mchfiducual");            
 
             LocatorState = MVLocatorState.WorkHome;
 
@@ -166,17 +143,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         {
             Machine.SendCommand(SafeHeightGCodeGCode());
             Machine.HomeViaOrigin();
-            ShowBottomCamera = false;
-            ShowTopCamera = true;
             SelectMVProfile("mchfiducual");
-
-            ShowCircles = true;
-            ShowLines = false;
-            ShowHarrisCorners = false;
-            ShowPolygons = false;
-
-            Machine.BottomLightOn = false;
-            Machine.TopLightOn = false;
 
             LocatorState = MVLocatorState.WorkHome;
        }
@@ -185,26 +152,14 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         {
             Machine.SendCommand(SafeHeightGCodeGCode());
             Machine.GotoPoint(Machine.Settings.PCBOffset.X, Machine.Settings.PCBOffset.Y, Machine.Settings.FastFeedRate);
-            ShowBottomCamera = false;
             SelectMVProfile("brdfiducual");            
-            ShowTopCamera = true;
-            Machine.BottomLightOn = false;
-            ShowCircles = false;
-            ShowHarrisCorners = true;
         }
 
         public void GoToInspectPartRefHole()
         {
             if (SelectedInspectPart.PartStrip != null)
             {
-                ShowCircles = true;
-                ShowLines = false;
-                ShowPolygons = false;
-                ShowRectangles = false;
-                ShowHarrisCorners = false;
-
                 SelectMVProfile("tapehole");
-
                 Machine.GotoPoint(SelectedInspectPart.PartStrip.ReferenceHoleX * Machine.Settings.PartStripScaler.X, SelectedInspectPart.PartStrip.ReferenceHoleY * Machine.Settings.PartStripScaler.Y, Machine.Settings.FastFeedRate);
             }
         }

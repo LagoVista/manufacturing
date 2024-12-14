@@ -99,9 +99,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                     //  cmds.Add(WaitForComplete());
                 }
 
-                Machine.BottomLightOn = true;
-                ShowBottomCamera = true;
-                ShowRectangles = true;
                 SelectMVProfile("partinspection");
                 cmds.Add(GetGoToInspectionCameraGCode(cRotation));
                 await SendInstructionSequenceAsync(cmds);

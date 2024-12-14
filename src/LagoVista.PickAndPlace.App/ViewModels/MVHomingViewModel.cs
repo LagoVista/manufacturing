@@ -17,11 +17,11 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         public MVHomingViewModel(IMachine machine) : base(machine)
         {
-            EndStopHomingCycleCommand = new RelayCommand(EndStopHomingCycle, () => HasFrame);
-            BeginMVHomingCycleCommand = new RelayCommand(BeginMVHomingCycle, () => HasFrame);            
-            GoToFiducialHomeCommand = new RelayCommand(GoToFiducialHome, () => HasFrame);
+            EndStopHomingCycleCommand = new RelayCommand(EndStopHomingCycle, () => HasPositionFrame);
+            BeginMVHomingCycleCommand = new RelayCommand(BeginMVHomingCycle, () => HasPositionFrame);            
+            GoToFiducialHomeCommand = new RelayCommand(GoToFiducialHome, () => HasPositionFrame);
 
-            CalibrateFiducialHomeCommand = new RelayCommand(CalibrateFiducialHome, () => HasFrame);
+            CalibrateFiducialHomeCommand = new RelayCommand(CalibrateFiducialHome, () => HasPositionFrame);
         }
 
         States _state = States.Idle;
@@ -51,30 +51,19 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         {
             await base.InitAsync();
             Machine.TopLightOn = true;
-            ShowTopCamera = true;
-            ShowCircles = false;
-            ShowHarrisCorners = true;
             StartCapture();
         }
 
         public void EndStopHomingCycle()
         {
             _state = States.Idle;
-            ShowCircles = false;
-            ShowRectangles = false;
-            ShowPolygons = false;
-            ShowLines = false;
             Machine.HomingCycle();
         }
 
         public async void BeginMVHomingCycle()
         {
             Machine.PCBManager.Tool1Navigation = true;
-            ShowCircles = false;
-            ShowRectangles = false;
-            ShowPolygons = false;
-            ShowLines = false;
-
+            
             _state = States.MVHoming;
             Machine.GotoPoint(Machine.Settings.DefaultWorkspaceHome.X, Machine.Settings.DefaultWorkspaceHome.Y, true);
           //  await Machine.MachineRepo.SaveAsync();

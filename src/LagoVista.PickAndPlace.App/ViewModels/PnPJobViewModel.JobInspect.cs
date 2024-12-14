@@ -39,11 +39,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             var partStrip = SelectedInspectPart.PartStrip;
             if (partStrip != null)
             {
-                ShowCircles = false;
-                ShowRectangles = true;
-                ShowPolygons = false;
-                ShowLines = false;
-                ShowHarrisCorners = true;
                 SelectMVProfile("squarepart");
 
                 PartSizeWidth = Convert.ToInt32(package.Width * 5);
@@ -70,11 +65,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         {
             Machine.SendCommand(SafeHeightGCodeGCode());
 
-            ShowCircles = false;
-            ShowRectangles = true;
-            ShowPolygons = false;
-            ShowLines = false;
-            ShowHarrisCorners = true;
             SelectMVProfile("squarepart");
 
             var package = _pnpMachine.Packages.Where(pck => pck.Name == SelectedInspectPart.Package).FirstOrDefault();
