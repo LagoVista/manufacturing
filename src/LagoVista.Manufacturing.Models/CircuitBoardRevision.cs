@@ -45,9 +45,16 @@ namespace LagoVista.Manufacturing.Models
         public string Notes { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Pcb_Variants, FieldType: FieldTypes.ChildListInline, ChildListDisplayMembers:"revision,revisionTimeStamp", FactoryUrl: "/api/mfg/pcb/variant/factory", ResourceType: typeof(ManufacturingResources))]
-        public List<CircuitBoardVarient> Variants { get; set; } = new List<CircuitBoardVarient>();
+        public List<CircuitBoardVariant> Variants { get; set; } = new List<CircuitBoardVariant>();
 
         public List<PcbComponent> PcbComponents { get; set; } = new List<PcbComponent>();
+
+
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Notes, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
+        public double? Width { get; set; }
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Notes, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
+        public double? Height { get; set; }
+
 
         public List<string> GetFormFields()
         {
@@ -59,6 +66,8 @@ namespace LagoVista.Manufacturing.Models
                 nameof(SchematicFile),
                 nameof(SchematicPDFFile),
                 nameof(BomFile),
+                nameof(Width),
+                nameof(Height),
                 nameof(Notes)
             };
         }
@@ -67,13 +76,13 @@ namespace LagoVista.Manufacturing.Models
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Pcb_Variant, ManufacturingResources.Names.Pcb_Variant_Description,
        ManufacturingResources.Names.Pcb_Variant_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-core-1", Cloneable: true,
        FactoryUrl: "/api/mfg/pcb/variant/factory")]
-    public class CircuitBoardVarient
+    public class CircuitBoardVariant
     {
         public string PartName { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Pcb_Variant_Sku, IsRequired: true, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
         public string Sku { get; set; }
 
-        public EntityHeader Component { get; set; }
+        public List<PcbComponent> PcbComponents { get; set; } = new List<PcbComponent>();
     }
 }

@@ -46,9 +46,9 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         }
 
         [HttpGet("/api/mfg/pcb/variant/factory")]
-        public DetailResponse<CircuitBoardVarient> CreateCircuitVariantBoard()
+        public DetailResponse<CircuitBoardVariant> CreateCircuitVariantBoard()
         {
-            return DetailResponse<CircuitBoardVarient>.Create();
+            return DetailResponse<CircuitBoardVariant>.Create();
         }
 
         [HttpDelete("/api/mfg/CircuitBoard/{id}")]

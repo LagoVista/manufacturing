@@ -10,31 +10,59 @@ using static LagoVista.Core.Models.AuthorizeResult;
 using System.Threading.Tasks;
 using LagoVista.Manufacturing.Interfaces.Managers;
 using LagoVista.Core.Managers;
+using LagoVista.PCB.Eagle.Models;
+using LagoVista.PCB.Eagle.Managers;
+using LagoVista.MediaServices.Interfaces;
+using System.Xml.Linq;
+using System.IO;
 
 namespace LagoVista.Manufacturing.Managers
 {
     public class CircuitBoardManager : ManagerBase, ICircuitBoardManager
     {
-        private readonly ICircuitBoardRepo _CircuitBoardRepo;
+        private readonly ICircuitBoardRepo _circuitBoardRepo;
+        private readonly IMediaServicesManager _mediaServicesManager;
 
-        public CircuitBoardManager(ICircuitBoardRepo partRepo,
+        public CircuitBoardManager(ICircuitBoardRepo circuitBoardRepo, IMediaServicesManager mediaServicesManager,
             IAdminLogger logger, IAppConfig appConfig, IDependencyManager depmanager, ISecurity security) :
             base(logger, appConfig, depmanager, security)
         {
-            _CircuitBoardRepo = partRepo;
+            _circuitBoardRepo = circuitBoardRepo ?? throw new ArgumentNullException(nameof(circuitBoardRepo));
+            _mediaServicesManager = mediaServicesManager ?? throw new ArgumentNullException(nameof(mediaServicesManager));
         }
-        public async Task<InvokeResult> AddCircuitBoardAsync(CircuitBoard CircuitBoard, EntityHeader org, EntityHeader user)
+        public async Task<InvokeResult> AddCircuitBoardAsync(CircuitBoard pcb, EntityHeader org, EntityHeader user)
         {
-            await AuthorizeAsync(CircuitBoard, AuthorizeActions.Create, user, org);
-            ValidationCheck(CircuitBoard, Actions.Create);
-            await _CircuitBoardRepo.AddCircuitBoardAsync(CircuitBoard);
+            await AuthorizeAsync(pcb, AuthorizeActions.Create, user, org);
+            ValidationCheck(pcb, Actions.Create);
+            await _circuitBoardRepo.AddCircuitBoardAsync(pcb);
+
+            foreach (var revision in pcb.Revisions)
+            {
+                if (!EntityHeader.IsNullOrEmpty(revision.BoardFile))
+                {
+                    var result = await PopulateComponents(revision, org, user);
+                    if (!result.Successful)
+                    {
+                        return result.ToInvokeResult();
+                    }
+                }
+
+                if (revision.Variants.Count == 0)
+                {
+                    revision.Variants.Add(new CircuitBoardVariant()
+                    {
+                        PartName = "Default",
+                        PcbComponents = revision.PcbComponents
+                    });
+                }
+            }
 
             return InvokeResult.Success;
         }
 
         public async Task<DependentObjectCheckResult> CheckInUseAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _CircuitBoardRepo.GetCircuitBoardAsync(id);
+            var part = await _circuitBoardRepo.GetCircuitBoardAsync(id);
             await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
             return await base.CheckForDepenenciesAsync(part);
         }
@@ -44,35 +72,70 @@ namespace LagoVista.Manufacturing.Managers
             throw new NotImplementedException();
         }
 
+        public async Task<InvokeResult<CircuitBoardRevision>> PopulateComponents(CircuitBoardRevision revistion, EntityHeader org, EntityHeader user)
+        {
+            var media = await _mediaServicesManager.GetResourceMediaAsync(revistion.BoardFile.Id, org, user);
+            using (var ms = new MemoryStream(media.ImageBytes))
+            {
+                var doc = XDocument.Load(ms);
+                var pcb = EagleParser.ReadPCB(doc);
+                revistion.PcbComponents = pcb.Components;
+                revistion.Width = pcb.Width;
+                revistion.Height = pcb.Height;
+            }
+
+            return InvokeResult<CircuitBoardRevision>.Create(revistion);
+        }
+
         public async Task<InvokeResult> DeleteCircuitBoardAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _CircuitBoardRepo.GetCircuitBoardAsync(id);
+            var part = await _circuitBoardRepo.GetCircuitBoardAsync(id);
             await ConfirmNoDepenenciesAsync(part);
             await AuthorizeAsync(part, AuthorizeActions.Delete, user, org);
-            await _CircuitBoardRepo.DeleteCircuitBoardAsync(id);
+            await _circuitBoardRepo.DeleteCircuitBoardAsync(id);
             return InvokeResult.Success;
         }
 
         public async Task<CircuitBoard> GetCircuitBoardAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _CircuitBoardRepo.GetCircuitBoardAsync(id);
+            var part = await _circuitBoardRepo.GetCircuitBoardAsync(id);
             await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
             return part;
         }
 
-
         public async Task<ListResponse<CircuitBoardSummary>> GetCircuitBoardsSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user)
         {
             await AuthorizeOrgAccessAsync(user, org.Id, typeof(CircuitBoard));
-            return await _CircuitBoardRepo.GetCircuitBoardSummariesAsync(org.Id, listRequest);
+            return await _circuitBoardRepo.GetCircuitBoardSummariesAsync(org.Id, listRequest);
         }
 
-        public async Task<InvokeResult> UpdateCircuitBoardAsync(CircuitBoard part, EntityHeader org, EntityHeader user)
+        public async Task<InvokeResult> UpdateCircuitBoardAsync(CircuitBoard pcb, EntityHeader org, EntityHeader user)
         {
-            await AuthorizeAsync(part, AuthorizeActions.Update, user, org);
-            ValidationCheck(part, Actions.Update);
-            await _CircuitBoardRepo.UpdateCircuitBoardAsync(part);
+            await AuthorizeAsync(pcb, AuthorizeActions.Update, user, org);
+            ValidationCheck(pcb, Actions.Update);
 
+            foreach (var revision in pcb.Revisions)
+            {
+                if (!EntityHeader.IsNullOrEmpty(revision.BoardFile))
+                {
+                    var result = await PopulateComponents(revision, org, user);
+                    if (!result.Successful)
+                    {
+                        return result.ToInvokeResult();
+                    }
+                }
+
+                if (revision.Variants.Count == 0)
+                {
+                    revision.Variants.Add(new CircuitBoardVariant()
+                    {
+                        PartName = "Default",
+                        PcbComponents = revision.PcbComponents
+                    });
+                }
+            }
+
+            await _circuitBoardRepo.UpdateCircuitBoardAsync(pcb);
             return InvokeResult.Success;
         }
     }

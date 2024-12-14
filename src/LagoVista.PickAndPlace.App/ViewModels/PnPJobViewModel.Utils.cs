@@ -16,7 +16,9 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             await base.InitAsync();
             LoadingMask = false;
 
-            if (!String.IsNullOrEmpty(_job.PnPMachinePath) && System.IO.File.Exists(_job.PnPMachinePath))
+
+
+            if (false && !String.IsNullOrEmpty(_job.PnPMachinePath) && System.IO.File.Exists(_job.PnPMachinePath))
             {
                 PnPMachine = await PnPMachineManager.GetPnPMachineAsync(_job.PnPMachinePath);
                 PackageLibraryVM.SetMachine(PnPMachine);

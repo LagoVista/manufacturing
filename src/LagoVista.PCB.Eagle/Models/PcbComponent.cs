@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LagoVista.Core.Models;
+using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
 
@@ -19,6 +20,8 @@ namespace LagoVista.PCB.Eagle.Models
         public string Function { get; set; }
         public string Notes { get; set; }
       
+        public EntityHeader Component { get; set; }
+
         public int Layer
         {
             get

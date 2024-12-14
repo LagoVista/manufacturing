@@ -61,7 +61,7 @@ namespace LagoVista.PickAndPlace.App
                 Port = 443
             };
 
-            LagoVista.Client.Core.Startup.Init(live);
+            LagoVista.Client.Core.Startup.Init(local);
         }
     }
 
@@ -86,7 +86,7 @@ namespace LagoVista.PickAndPlace.App
         }
     }
 
-    #region Strubs
+    #region Stubs
     public class ClientAppInfo : IClientAppInfo
     {
         public Type MainViewModel => typeof(MainViewModel);
@@ -180,7 +180,7 @@ namespace LagoVista.PickAndPlace.App
     {
         public PlatformTypes PlatformType => PlatformTypes.WindowsUWP;
 
-        public Environments Environment => Environments.Production;
+        public Environments Environment => Environments.LocalDevelopment;
 
         public AuthTypes AuthType => AuthTypes.User;
 

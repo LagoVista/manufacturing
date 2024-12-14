@@ -665,4 +665,10 @@
   <data name="NozzleTip_OuterDiameter" xml:space="preserve">
     <value>Outer Diameter</value>
   </data>
+  <data name="Common_Width" xml:space="preserve">
+    <value>Width</value>
+  </data>
+  <data name="Common_Height" xml:space="preserve">
+    <value>Height</value>
+  </data>
 </root>

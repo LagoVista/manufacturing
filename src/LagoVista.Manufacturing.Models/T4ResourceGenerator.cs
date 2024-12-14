@@ -1,4 +1,4 @@
-﻿/*12/12/2024 9:48:47 AM*/
+﻿/*12/14/2024 5:48:25 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -66,6 +66,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Common_Description
 
 		public static string Common_Description { get { return GetResourceString("Common_Description"); } }
+//Resources:ManufacturingResources:Common_Height
+
+		public static string Common_Height { get { return GetResourceString("Common_Height"); } }
 //Resources:ManufacturingResources:Common_Icon
 
 		public static string Common_Icon { get { return GetResourceString("Common_Icon"); } }
@@ -138,6 +141,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Common_Value
 
 		public static string Common_Value { get { return GetResourceString("Common_Value"); } }
+//Resources:ManufacturingResources:Common_Width
+
+		public static string Common_Width { get { return GetResourceString("Common_Width"); } }
 //Resources:ManufacturingResources:CompomentPurchase_Title
 
 		public static string CompomentPurchase_Title { get { return GetResourceString("CompomentPurchase_Title"); } }
@@ -615,6 +621,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Common_CreatedBy = "Common_CreatedBy";
 			public const string Common_CreationDate = "Common_CreationDate";
 			public const string Common_Description = "Common_Description";
+			public const string Common_Height = "Common_Height";
 			public const string Common_Icon = "Common_Icon";
 			public const string Common_IsPublic = "Common_IsPublic";
 			public const string Common_IsRequired = "Common_IsRequired";
@@ -639,6 +646,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Common_UniqueId = "Common_UniqueId";
 			public const string Common_ValidationErrors = "Common_ValidationErrors";
 			public const string Common_Value = "Common_Value";
+			public const string Common_Width = "Common_Width";
 			public const string CompomentPurchase_Title = "CompomentPurchase_Title";
 			public const string Component_Attr1 = "Component_Attr1";
 			public const string Component_Attr2 = "Component_Attr2";

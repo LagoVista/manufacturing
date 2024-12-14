@@ -16,6 +16,8 @@ using LagoVista.Core.Validation;
 using LagoVista.PickAndPlace.App.Properties;
 using LagoVista.UserAdmin.Models.Orgs;
 using LagoVista.UserAdmin.Models.Users;
+using System.Xml.Linq;
+using LagoVista.PCB.Eagle.Managers;
 
 namespace LagoVista.PickAndPlace.App
 {
@@ -392,7 +394,9 @@ namespace LagoVista.PickAndPlace.App
             ViewModel.AddPnPJobFile(fileName);
             _pnpJob = await Core.PlatformSupport.Services.Storage.GetAsync<PnPJob>(fileName);
             await _pnpJob.OpenAsync();
-            var pnpViewModel = new PnPJobViewModel(ViewModel.Machine, _pnpJob);
+            var pnpViewModel = new PnPJobViewModel(ViewModel.Machine);
+            
+            pnpViewModel.InitJob(_pnpJob);
             pnpViewModel.FileName = fileName;
             await pnpViewModel.InitAsync();
             var jobWindow = new Views.PNPJobWindow();
@@ -418,39 +422,39 @@ namespace LagoVista.PickAndPlace.App
 
         private async void NewPnPJob_Click(object sender, RoutedEventArgs e)
         {
-            if (ViewModel.Machine.PCBManager.HasProject)
+            //pnpJob.Board = ViewModel.Machine.PCBManager.Board;
+            // pnpJob.PnPMachinePath = ViewModel.Machine.Settings.DefaultPnPMachineFile;
+
+
+
+            // pnpJob.EagleBRDFilePath = ViewModel.Machine.PCBManager.Project.EagleBRDFilePath;
+
+
+            var file = await Core.PlatformSupport.Services.Popups.ShowOpenFileAsync(Constants.FileFilterPCB);
+            if (!String.IsNullOrEmpty(file) && System.IO.File.Exists(file))
             {
-                if (ViewModel.Machine.PCBManager.HasBoard)
+                var doc = XDocument.Load(file);
+                var job = new PnPJob();
+                job.Board = EagleParser.ReadPCB(doc);
+
+
+                var pnpViewModel = new PnPJobViewModel(ViewModel.Machine);
+                pnpViewModel.InitJob(job);
+                await pnpViewModel.InitAsync();
+                var jobWindow = new Views.PNPJobWindow();
+                jobWindow.DataContext = pnpViewModel;
+                jobWindow.Owner = this;
+                jobWindow.ShowDialog();
+                EditPnPJob.IsEnabled = true;
+                FeederAlignementView.IsEnabled = true;
+                if (String.IsNullOrEmpty(pnpViewModel.FileName))
                 {
-                    var pnpJob = new PnPJob();
-                    pnpJob.Board = ViewModel.Machine.PCBManager.Board;
-                    pnpJob.PnPMachinePath = ViewModel.Machine.Settings.DefaultPnPMachineFile;
-                    pnpJob.EagleBRDFilePath = ViewModel.Machine.PCBManager.Project.EagleBRDFilePath;
-                    var pnpViewModel = new PnPJobViewModel(ViewModel.Machine, pnpJob);
-                    await pnpViewModel.InitAsync();
-                    var jobWindow = new Views.PNPJobWindow();
-                    jobWindow.DataContext = pnpViewModel;
-                    jobWindow.Owner = this;
-                    jobWindow.ShowDialog();
+                    //         _pnpJob = pnpJob;
+                    _pnpJobFileName = pnpViewModel.FileName;
                     EditPnPJob.IsEnabled = true;
+                    ClosePnPJob.IsEnabled = true;
                     FeederAlignementView.IsEnabled = true;
-                    if(String.IsNullOrEmpty(pnpViewModel.FileName))
-                    {
-                        _pnpJob = pnpJob;
-                        _pnpJobFileName = pnpViewModel.FileName;
-                        EditPnPJob.IsEnabled = true;
-                        ClosePnPJob.IsEnabled = true;
-                        FeederAlignementView.IsEnabled = true;
-                    }
                 }
-                else
-                {
-                    MessageBox.Show("Please make sure your PCB Project includes a PCB.");
-                }
-            }
-            else
-            {
-                MessageBox.Show("Please open or create a PCB Project First.");
             }
         }
 
@@ -471,8 +475,9 @@ namespace LagoVista.PickAndPlace.App
         {
             if (_pnpJob != null)
             {
-                var pnpViewModel = new PnPJobViewModel(ViewModel.Machine, _pnpJob);
+                var pnpViewModel = new PnPJobViewModel(ViewModel.Machine);
                 pnpViewModel.FileName = _pnpJobFileName;
+                pnpViewModel.InitJob(_pnpJob);
                 await pnpViewModel.InitAsync();
                 var jobWindow = new Views.PNPJobWindow();
                 jobWindow.DataContext = pnpViewModel;

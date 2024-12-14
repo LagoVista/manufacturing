@@ -1,4 +1,5 @@
 ﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.PCB.Eagle.Models;
 using LagoVista.PickAndPlace.Interfaces;
@@ -24,13 +25,23 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         private int _partIndex = 0;
 
 
-        public PnPJobViewModel(IMachine machine, PnPJob job) : base(machine)
+        public PnPJobViewModel(IMachine machine) : base(machine)
+        {
+
+            StripFeederVM = new StripFeederViewModel(machine, this);
+            PackageLibraryVM = new PackageLibraryViewModel();
+            PartStripsViewModel = new PartStripsViewModel(machine, this, StripFeederVM);
+            ToolAlignmentVM = new ToolAlignmentViewModel(machine);
+        }
+
+        public void InitJob(PnPJob job)
         {
             _billOfMaterials = new BOM(job.Board);
             _job = job;
             _isDirty = true;
-
             AddCommands();
+
+            PartStripsViewModel.InitJob(job);
 
             BuildFlavors = job.BuildFlavors;
             SelectedBuildFlavor = job.BuildFlavors.FirstOrDefault();
@@ -53,16 +64,12 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 job.BuildFlavors.Add(SelectedBuildFlavor);
             }
 
-            StripFeederVM = new StripFeederViewModel(machine, this);
-            PackageLibraryVM = new PackageLibraryViewModel();
-            PartStripsViewModel = new PartStripsViewModel(machine, this, job, StripFeederVM);
-            ToolAlignmentVM = new ToolAlignmentViewModel(machine);
-            
             GoToFiducial1Command = new RelayCommand(() => GoToFiducial(1));
             GoToFiducial2Command = new RelayCommand(() => GoToFiducial(2));
 
             PopulateParts();
             PopulateConfigurationParts();
+
         }
 
         public override void CircleCentered(Point2D<double> point, double diameter)

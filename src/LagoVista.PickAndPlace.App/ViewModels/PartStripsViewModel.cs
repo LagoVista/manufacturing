@@ -27,10 +27,9 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             LastPart,
         }
 
-        public PartStripsViewModel(IMachine machine, MachineVisionViewModelBase parent, PnPJob job, StripFeederViewModel stripFeederVM) : base(machine)
+        public PartStripsViewModel(IMachine machine, MachineVisionViewModelBase parent, StripFeederViewModel stripFeederVM) : base(machine)
         {
             _parent = parent;
-            _job = job;
             AddPartStripCommand = new RelayCommand(AddPartStrip, () => _pnpMachine != null);
             SetStripOriginCommand = new RelayCommand(SetStripOrigin, () => SelectedPartStrip != null);
             SetCorrectionCommand = new RelayCommand(SetCorrection, () => SelectedPartStrip != null);
@@ -52,6 +51,11 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             ShowLinkCommand = RelayCommand<string>.Create((type) => ShowLink(type));
             _stripFeederVM = stripFeederVM;
+        }
+
+        public void InitJob(PnPJob job)
+        {
+            _job = job;
         }
 
         private void RefreshCommandEnabled()

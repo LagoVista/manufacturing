@@ -210,11 +210,11 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             }
         }
 
-        public Point2D<double> BoardOffset => _job.BoardOffset;
+        public Point2D<double> BoardOffset => _job == null ? new Point2D<double>(0,0) : _job.BoardOffset;
 
         public ObservableCollection<Part> Parts
         {
-            get { return Job.Parts; }
+            get { return _job == null ? new ObservableCollection<Part>() : Job.Parts; }
         }
 
         public ObservableCollection<PlaceableParts> ConfigurationParts { get; } = new ObservableCollection<PlaceableParts>();
