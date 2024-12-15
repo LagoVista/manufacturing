@@ -14,6 +14,7 @@ using System;
 using System.Linq;
 using LagoVista.Core;
 using LagoVista.Core.Models;
+using System.IO;
 
 namespace LagoVista.Manufacturing.Rest.Controllers
 {
@@ -71,6 +72,13 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return DetailResponse<ComponentAttribute>.Create();
         }
 
+        [HttpGet("/api/mfg/component/{id}/label/{row}/{col}")]
+        public async Task<IActionResult> GetComponentLabel(string id, int row, int col)
+        {
+            var ms = await _mgr.GenerateLabelAsync(id, row, col, OrgEntityHeader, UserEntityHeader);
+            ms.Result.Seek(0, SeekOrigin.Begin);
+            return File(ms.Result, "application/pdf", "PartLabel.pdf");
+        }
 
         [HttpDelete("/api/mfg/component/{id}")]
         public async Task<InvokeResult> DeleteComponent(string id)

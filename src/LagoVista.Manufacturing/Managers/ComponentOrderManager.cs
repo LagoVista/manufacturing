@@ -14,6 +14,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using PdfSharpCore.Drawing;
 using QRCoder;
+using RingCentral;
 
 namespace LagoVista.Manufacturing.Managers
 {
@@ -66,8 +67,10 @@ namespace LagoVista.Manufacturing.Managers
 
             var ms = new MemoryStream();
             var pdf = new LagoVista.PDFServices.PDFGenerator();
-            pdf.RowHeight = 30;
+            pdf.RowHeight = 52;
             pdf.RowBottomMargin = 20;
+            pdf.ColumnRightMargin = 23;
+            pdf.Margin = new PDFServices.Margin() { Left = 20, Right = 20, Top = 50, Bottom = 50 };
             pdf.StartDocument(false, false);
             pdf.StartTable(PDFServices.ColWidth.CreateStar(), PDFServices.ColWidth.CreateStar(), PDFServices.ColWidth.CreateStar());
 
@@ -82,8 +85,8 @@ namespace LagoVista.Manufacturing.Managers
                     pdf.AddColText(PDFServices.Style.Small, idx, $"{component.ComponentType.Text}/{component.ComponentPackage?.Text}", align: XStringFormats.CenterLeft);
 
                     var packageLine = component.ComponentType.Text;
-                    if(!EntityHeader.IsNullOrEmpty(component.ComponentPackage))
-                        packageLine += $"/{component.ComponentPackage.Text}";   
+                    if (!EntityHeader.IsNullOrEmpty(component.ComponentPackage))
+                        packageLine += $"/{component.ComponentPackage.Text}";
 
                     pdf.AddColText(PDFServices.Style.Small, idx, $"{component.ComponentType.Text}/{component.ComponentPackage?.Text}", align: XStringFormats.CenterLeft);
 
@@ -109,7 +112,7 @@ namespace LagoVista.Manufacturing.Managers
                     using (var qrCodeData = qrGenerator.CreateQrCode($"https://www.nuviot.com/mfg/component/{lineItem.Component.Id}.", QRCodeGenerator.ECCLevel.Q))
                     using (var qrCode = new PngByteQRCode(qrCodeData))
                     using (var qrMS = new MemoryStream(qrCode.GetGraphic(20)))
-                        pdf.AddColImage(idx, qrMS, 64, 64, align: XStringFormats.CenterRight);                    
+                        pdf.AddColImage(idx, qrMS, 64, 64, align: XStringFormats.CenterRight);
 
                     if (++idx == 3)
                     {
@@ -117,8 +120,6 @@ namespace LagoVista.Manufacturing.Managers
                         pdf.StartRow();
                         idx = 0;
                     }
-
-
                 }
             }
 
@@ -128,6 +129,7 @@ namespace LagoVista.Manufacturing.Managers
             return InvokeResult<Stream>.Create(ms);
         }
 
+  
         public async Task<DependentObjectCheckResult> CheckInUseAsync(string id, EntityHeader org, EntityHeader user)
         {
             var part = await _componentOrder.GetComponentOrderAsync(id);

@@ -11,6 +11,9 @@ using System;
 using System.Threading.Tasks;
 using static LagoVista.Core.Models.AuthorizeResult;
 using System.Linq;
+using PdfSharpCore.Drawing;
+using QRCoder;
+using System.IO;
 
 namespace LagoVista.Manufacturing.Managers
 {
@@ -78,6 +81,71 @@ namespace LagoVista.Manufacturing.Managers
 
             return InvokeResult.Success;
         }
+
+        public async Task<InvokeResult<Stream>> GenerateLabelAsync(string compoentId, int row, int col, EntityHeader org, EntityHeader user)
+        {
+            if (col > 3)
+                throw new Exception($"max column is 3, column provided is {col}");
+
+            if (row > 10)
+                throw new Exception($"max row is 3, row provided is {row}");
+
+            var ms = new MemoryStream();
+            var pdf = new LagoVista.PDFServices.PDFGenerator();
+            pdf.RowHeight = 52;
+            pdf.RowBottomMargin = 20;
+            pdf.ColumnRightMargin = 23;
+            pdf.Margin = new PDFServices.Margin() { Left = 20, Right = 20, Top = 50, Bottom = 50 };
+            pdf.StartDocument(false, false);
+            pdf.StartTable(PDFServices.ColWidth.CreateStar(), PDFServices.ColWidth.CreateStar(), PDFServices.ColWidth.CreateStar());
+
+            pdf.StartRow(row - 1);
+            var idx = col - 1;
+
+
+            var component = await _componentRepo.GetComponentAsync(compoentId);
+            await AuthorizeAsync(component, AuthorizeActions.Read, user, org, "Generate Part Labels");
+            pdf.AddColText(PDFServices.Style.Small, idx, component.Name, align: XStringFormats.TopLeft);
+            pdf.AddColText(PDFServices.Style.Small, idx, $"{component.ComponentType.Text}/{component.ComponentPackage?.Text}", align: XStringFormats.CenterLeft);
+
+            var packageLine = component.ComponentType.Text;
+            if (!EntityHeader.IsNullOrEmpty(component.ComponentPackage))
+                packageLine += $"/{component.ComponentPackage.Text}";
+
+            pdf.AddColText(PDFServices.Style.Small, idx, $"{component.ComponentType.Text}/{component.ComponentPackage?.Text}", align: XStringFormats.CenterLeft);
+
+            var locationLine = String.Empty;
+            if (!String.IsNullOrEmpty(component.Room))
+                locationLine += component.Room;
+
+            if (!String.IsNullOrEmpty(component.ShelfUnit))
+                locationLine += $"/{component.ShelfUnit}";
+
+            if (!String.IsNullOrEmpty(component.Shelf))
+                locationLine += $"/{component.Shelf}";
+
+            if (!String.IsNullOrEmpty(component.Column))
+                locationLine += $"/{component.Column}";
+
+            if (!String.IsNullOrEmpty(component.Bin))
+                locationLine += $"/{component.Bin}";
+
+            pdf.AddColText(PDFServices.Style.Small, idx, locationLine, align: XStringFormats.BottomLeft);
+
+            using (var qrGenerator = new QRCodeGenerator())
+            using (var qrCodeData = qrGenerator.CreateQrCode($"https://www.nuviot.com/mfg/component/{compoentId}.", QRCodeGenerator.ECCLevel.Q))
+            using (var qrCode = new PngByteQRCode(qrCodeData))
+            using (var qrMS = new MemoryStream(qrCode.GetGraphic(20)))
+                pdf.AddColImage(idx, qrMS, 64, 64, align: XStringFormats.CenterRight);
+
+            pdf.EndRow();
+            pdf.EndTable();
+
+            pdf.Write(ms, false);
+            return InvokeResult<Stream>.Create(ms);
+        }
+
+
 
         public async Task<InvokeResult> AddComponentPurchaseAsync(string componentId, ComponentPurchase purchase, EntityHeader org, EntityHeader user)
         {

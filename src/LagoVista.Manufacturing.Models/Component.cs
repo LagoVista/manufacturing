@@ -140,6 +140,13 @@ namespace LagoVista.Manufacturing.Models
                     Icon = "fa fa-globe-pointer",
                     Key = "digikey",
                     Title = "DigiKey Lookup",
+                },
+                new FormAdditionalAction()
+                {
+                     ForEdit = true,
+                      Icon = "fa fa-print",
+                      Key = "labels",
+                      Title = ManufacturingResources.ComponentOrder_PrintLabels
                 }
             };
         }
