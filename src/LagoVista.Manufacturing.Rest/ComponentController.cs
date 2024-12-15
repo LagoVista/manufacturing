@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System;
 using System.Linq;
 using LagoVista.Core;
+using LagoVista.Core.Models;
 
 namespace LagoVista.Manufacturing.Rest.Controllers
 {
@@ -62,6 +63,14 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         {
             return DetailResponse<ComponentAttribute>.Create();
         }
+   
+
+        [HttpGet("/api/mfg/component/attribute/factory")]
+        public DetailResponse<ComponentAttribute> GetComponentByType(string componentType)
+        {
+            return DetailResponse<ComponentAttribute>.Create();
+        }
+
 
         [HttpDelete("/api/mfg/component/{id}")]
         public async Task<InvokeResult> DeleteComponent(string id)
@@ -95,10 +104,9 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         }
 
         [HttpGet("/api/mfg/components")]
-        public Task<ListResponse<ComponentSummary>> GetComponentsForOrg()
+        public Task<ListResponse<ComponentSummary>> GetComponentsForOrg(string componentType)
         {
-            return _mgr.GetComponentsSummariesAsync(GetListRequestFromHeader(), OrgEntityHeader, UserEntityHeader);
+            return _mgr.GetComponentsSummariesAsync(GetListRequestFromHeader(), componentType, OrgEntityHeader, UserEntityHeader);
         }
-
     }
 }

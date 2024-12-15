@@ -7,6 +7,7 @@ using LagoVista.Manufacturing.Models;
 using LagoVista.UserAdmin.Models.Users;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace LagoVista.Manufacturing.Rest
@@ -24,6 +25,14 @@ namespace LagoVista.Manufacturing.Rest
         public async Task<DetailResponse<ComponentOrder>> GetComponentOrder(string id)
         {
             return DetailResponse<ComponentOrder>.Create(await _mgr.GetComponentOrderAsync(id, OrgEntityHeader, UserEntityHeader));
+        }
+
+        [HttpGet("/api/mfg/order/{id}/labels")]
+        public async Task<IActionResult> GetComponentOrderLabels(string id)
+        {
+            var ms = await _mgr.GenerateLabelsAsync(id, OrgEntityHeader, UserEntityHeader);
+            ms.Result.Seek(0, SeekOrigin.Begin);
+            return File(ms.Result, "application/pdf", "PartLabels.pdf");
         }
 
         [HttpGet("/api/mfg/order/factory")]

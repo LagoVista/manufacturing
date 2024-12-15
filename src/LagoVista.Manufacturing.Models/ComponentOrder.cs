@@ -29,7 +29,7 @@ namespace LagoVista.Manufacturing.Models
     ManufacturingResources.Names.ComponentOrder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-product-1", Cloneable: true,
         SaveUrl: "/api/mfg/order", GetUrl: "/api/mfg/order/{id}", GetListUrl: "/api/mfg/orders", FactoryUrl: "/api/mfg/order/factory", DeleteUrl: "/api/mfg/order/{id}",
         ListUIUrl: "/mfg/orders", EditUIUrl: "/mfg/orders/{id}", CreateUIUrl: "/mfg/orders/add")]
-    public class ComponentOrder : MfgModelBase, ISummaryFactory, IFormDescriptor, IFormDescriptorCol2, IFormDescriptorBottom, IFormConditionalFields
+    public class ComponentOrder : MfgModelBase, ISummaryFactory, IFormDescriptor, IFormDescriptorCol2, IFormDescriptorBottom, IFormConditionalFields, IFormAdditionalActions
     {
 
         public const string ComponentOrderStatusTypes_Pending = "pending";
@@ -98,6 +98,20 @@ namespace LagoVista.Manufacturing.Models
             };
         }
 
+        public List<FormAdditionalAction> GetAdditionalActions()
+        {
+            return new List<FormAdditionalAction>()
+            {
+                new FormAdditionalAction()
+                {
+                     ForEdit = true,
+                      Icon = "fa fa-print",
+                      Key = "labels",
+                      Title = ManufacturingResources.ComponentOrder_PrintLabels
+                }
+            };
+        }
+
         public FormConditionals GetConditionalFields()
         {
             return new FormConditionals()
@@ -133,7 +147,7 @@ namespace LagoVista.Manufacturing.Models
         {
             return new List<string>()
             {
-                nameof(LineItemsCSV),                
+                nameof(LineItemsCSV),
             };
         }
 
@@ -211,7 +225,7 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: Resources.ManufacturingResources.Names.Common_Notes, FieldType: FieldTypes.MultiLineText, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public string Notes { get; set; }
 
-        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrderLineItem_Received, 
+        [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrderLineItem_Received,
             HelpResource: ManufacturingResources.Names.ComponentOrderLineItem_Received_Help, FieldType: FieldTypes.CheckBox, ResourceType: typeof(ManufacturingResources))]
         public bool Received { get; set; }
 
@@ -241,7 +255,7 @@ namespace LagoVista.Manufacturing.Models
 
             return new ComponentOrderLineItem()
             {
-                QuantityOrdered = decimal.Parse(parts[5].Trim('"','$')),
+                QuantityOrdered = decimal.Parse(parts[5].Trim('"', '$')),
                 SupplierPartNumber = parts[1].Trim('"', '$'),
                 MfgPartNumber = parts[2].Trim('"', '$'),
                 Description = parts[3].Trim('"', '$'),

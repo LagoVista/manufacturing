@@ -61,10 +61,13 @@ namespace LagoVista.Manufacturing.Managers
         }
 
 
-        public async Task<ListResponse<ComponentSummary>> GetComponentsSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user)
+        public async Task<ListResponse<ComponentSummary>> GetComponentsSummariesAsync(ListRequest listRequest, string componentType, EntityHeader org, EntityHeader user)
         {
             await AuthorizeOrgAccessAsync(user, org.Id, typeof(Component));
-            return await _componentRepo.GetComponentSummariesAsync(org.Id, listRequest);
+            if(!String.IsNullOrEmpty(componentType))
+                return await _componentRepo.GetComponentSummariesByTypeAsync(org.Id, componentType, listRequest);
+            else
+                return await _componentRepo.GetComponentSummariesAsync(org.Id, listRequest);
         }
 
         public async Task<InvokeResult> UpdateComponentAsync(Component part, EntityHeader org, EntityHeader user)

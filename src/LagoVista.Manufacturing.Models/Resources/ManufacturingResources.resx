@@ -671,4 +671,10 @@
   <data name="Common_Height" xml:space="preserve">
     <value>Height</value>
   </data>
+  <data name="ComponentOrder_PrintLabels" xml:space="preserve">
+    <value>Print Labels</value>
+  </data>
+  <data name="Component_Column" xml:space="preserve">
+    <value>Column</value>
+  </data>
 </root>

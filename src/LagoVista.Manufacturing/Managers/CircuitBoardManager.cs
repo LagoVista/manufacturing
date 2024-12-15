@@ -15,6 +15,7 @@ using LagoVista.PCB.Eagle.Managers;
 using LagoVista.MediaServices.Interfaces;
 using System.Xml.Linq;
 using System.IO;
+using System.Linq;
 
 namespace LagoVista.Manufacturing.Managers
 {
@@ -116,7 +117,7 @@ namespace LagoVista.Manufacturing.Managers
 
             foreach (var revision in pcb.Revisions)
             {
-                if (!EntityHeader.IsNullOrEmpty(revision.BoardFile))
+                if (!EntityHeader.IsNullOrEmpty(revision.BoardFile) && !revision.PcbComponents.Any())
                 {
                     var result = await PopulateComponents(revision, org, user);
                     if (!result.Successful)

@@ -1,4 +1,4 @@
-﻿/*12/14/2024 5:48:25 AM*/
+﻿/*12/14/2024 2:59:14 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -159,6 +159,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Component_Bin
 
 		public static string Component_Bin { get { return GetResourceString("Component_Bin"); } }
+//Resources:ManufacturingResources:Component_Column
+
+		public static string Component_Column { get { return GetResourceString("Component_Column"); } }
 //Resources:ManufacturingResources:Component_ComponentType
 
 		public static string Component_ComponentType { get { return GetResourceString("Component_ComponentType"); } }
@@ -250,6 +253,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ComponentOrder_OrderDate
 
 		public static string ComponentOrder_OrderDate { get { return GetResourceString("ComponentOrder_OrderDate"); } }
+//Resources:ManufacturingResources:ComponentOrder_PrintLabels
+
+		public static string ComponentOrder_PrintLabels { get { return GetResourceString("ComponentOrder_PrintLabels"); } }
 //Resources:ManufacturingResources:ComponentOrder_ReceiveDate
 
 		public static string ComponentOrder_ReceiveDate { get { return GetResourceString("ComponentOrder_ReceiveDate"); } }
@@ -652,6 +658,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Component_Attr2 = "Component_Attr2";
 			public const string Component_Attributes = "Component_Attributes";
 			public const string Component_Bin = "Component_Bin";
+			public const string Component_Column = "Component_Column";
 			public const string Component_ComponentType = "Component_ComponentType";
 			public const string Component_ComponentType_Select = "Component_ComponentType_Select";
 			public const string Component_Cost = "Component_Cost";
@@ -681,6 +688,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentOrder_LineItemCsv = "ComponentOrder_LineItemCsv";
 			public const string ComponentOrder_LineItems = "ComponentOrder_LineItems";
 			public const string ComponentOrder_OrderDate = "ComponentOrder_OrderDate";
+			public const string ComponentOrder_PrintLabels = "ComponentOrder_PrintLabels";
 			public const string ComponentOrder_ReceiveDate = "ComponentOrder_ReceiveDate";
 			public const string ComponentOrder_Shipping = "ComponentOrder_Shipping";
 			public const string ComponentOrder_SubTotal = "ComponentOrder_SubTotal";

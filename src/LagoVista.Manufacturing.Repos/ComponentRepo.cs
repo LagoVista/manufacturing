@@ -41,6 +41,12 @@ namespace LagoVista.Manufacturing.Repo.Repos
             return base.QuerySummaryAsync<ComponentSummary, Component>(qry => qry.IsPublic == true || qry.OwnerOrganization.Id == orgId, itm => itm.Name, listRequest);
         }
 
+
+        public Task<ListResponse<ComponentSummary>> GetComponentSummariesByTypeAsync(string orgId, string componentType, ListRequest listRequest)
+        {
+            return base.QuerySummaryAsync<ComponentSummary, Component>(qry => (qry.IsPublic == true || qry.OwnerOrganization.Id == orgId) && qry.ComponentType.Key == componentType, itm => itm.Name, listRequest);
+        }
+
         public Task UpdateComponentAsync(Component component)
         {
             return UpsertDocumentAsync(component);

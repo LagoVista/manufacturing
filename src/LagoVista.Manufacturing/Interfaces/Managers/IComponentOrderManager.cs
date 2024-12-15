@@ -3,6 +3,7 @@ using LagoVista.Core.Models;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace LagoVista.Manufacturing.Interfaces.Managers
 {
@@ -12,6 +13,7 @@ namespace LagoVista.Manufacturing.Interfaces.Managers
         Task<InvokeResult> UpdateComponentOrderAsync(ComponentOrder componentOrder, EntityHeader org, EntityHeader user);
         Task<ListResponse<ComponentOrderSummary>> GetComponentOrdersSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user);
         Task<ComponentOrder> GetComponentOrderAsync(string id, EntityHeader org, EntityHeader user);
+        Task<InvokeResult<Stream>> GenerateLabelsAsync(string id, EntityHeader org, EntityHeader user);
         Task<InvokeResult> DeleteCommponentAsync(string id, EntityHeader org, EntityHeader user);
     }
 }

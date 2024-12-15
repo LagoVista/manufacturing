@@ -28,6 +28,10 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Component_Shelf, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
         public string Shelf { get; set; }
 
+        [FormField(LabelResource: ManufacturingResources.Names.Component_Column, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
+        public string Column { get; set; }
+
+
         [FormField(LabelResource: ManufacturingResources.Names.Component_Bin, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
         public string Bin { get; set; }
 
@@ -172,8 +176,10 @@ namespace LagoVista.Manufacturing.Models
                 nameof(DataSheet),
                 nameof(ExtendedPrice),
                 nameof(Cost),
+                nameof(Room),
                 nameof(ShelfUnit),
                 nameof(Shelf),
+                nameof(Column),
                 nameof(Bin),
                 nameof(Purchases),
             };
