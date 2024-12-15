@@ -102,8 +102,12 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         public void HomeViaOrigin()
         {
-
             Machine.HomeViaOrigin();
+        }
+
+        public void SetAbsoluteWorkSpaceHome()
+        {
+            Machine.SetAbsoluteWorkSpaceHome();
         }
 
         public void StartProbe()

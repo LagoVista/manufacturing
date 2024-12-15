@@ -27,6 +27,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             SetBottomCameraLocationCommand = new RelayCommand(SetBottomCameraLocation, () => Machine.Connected && Machine.ViewType == ViewTypes.Camera);
             GoToolOneLocationCommand = new RelayCommand(GoToolOneLocation, () => Machine.Connected);
 
+            SetAbsoluteWorkSpaceHomeCommand = new RelayCommand(Machine.SetAbsoluteWorkSpaceHome, () => Machine.Connected && Machine.ViewType == ViewTypes.Camera); 
+
             AddNozzleCommand = new RelayCommand(AddNozzle);
             DeleteNozzleCommand = new RelayCommand(DeleteNozzle);
             SaveCalibrationCommand = new RelayCommand(SaveCalibration, () => IsDirty);
@@ -277,6 +279,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         public RelayCommand MarkTool1LocationCommand { get; private set; }
         public RelayCommand GoToMarkTool1LocationCommand { get; private set; }
         public RelayCommand GoToolOneLocationCommand { get; private set; }
+
+        public RelayCommand SetAbsoluteWorkSpaceHomeCommand { get; private set; }
 
         public RelayCommand AddNozzleCommand { get; private set; }
         public RelayCommand DeleteNozzleCommand { get; private set; }

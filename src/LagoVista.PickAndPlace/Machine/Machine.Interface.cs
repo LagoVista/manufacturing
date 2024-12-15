@@ -350,12 +350,12 @@ namespace LagoVista.PickAndPlace
             PuffPump = false;
             VacuumSolendoid = false;
             Enqueue("G27");
-            if (Settings.MachineType == FirmwareTypes.Repeteir_PnP)
-            {
-                Enqueue($"G0 X{Settings.DefaultWorkspaceHome.X} Y{Settings.DefaultWorkspaceHome.Y} F{Settings.FastFeedRate}");
-                GotoPoint(Settings.DefaultWorkspaceHome.X, Settings.DefaultWorkspaceHome.Y); 
-                SetWorkspaceHome();                
-            }
+        }
+
+        public void SetAbsoluteWorkSpaceHome()
+        {
+            Settings.DefaultWorkspaceHome = new Point3D<double>(MachinePosition.X, MachinePosition.Y, MachinePosition.Z);
+            SetWorkspaceHome();
         }
 
         public void FeedHold()

@@ -1,4 +1,6 @@
-﻿using LagoVista.Core.Models.Drawing;
+﻿using LagoVista.Client.Core;
+using LagoVista.Core.IOC;
+using LagoVista.Core.Models.Drawing;
 using LagoVista.PickAndPlace.Managers;
 using System;
 using System.Collections.Generic;
@@ -32,7 +34,11 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             _isDirty = false;
             SaveCommand.RaiseCanExecuteChanged();
- 
+
+            var rest = SLWIOC.Get<IRestClient>();
+
+            var result = await rest.PutAsync("/api/mfg/machine", Machine.Settings);
+
             SaveProfile();
         }
 
@@ -111,7 +117,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             _averagePoints = new List<Point2D<double>>();
 
         }
-
+        
         public void PausePlacement(Object obj)
         {
             _isPlacingParts = false;
@@ -144,8 +150,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             Machine.SendCommand(SafeHeightGCodeGCode());
             Machine.HomeViaOrigin();
             SelectMVProfile("mchfiducual");
-
-            LocatorState = MVLocatorState.WorkHome;
        }
 
         public void GoToPCBOrigin()

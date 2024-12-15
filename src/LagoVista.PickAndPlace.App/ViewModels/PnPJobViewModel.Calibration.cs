@@ -21,19 +21,16 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             Machine.SendCommand(SafeHeightGCodeGCode());
             LocatorState = MVLocatorState.Idle;
 
-            await Machine.SetViewTypeAsync(ViewTypes.Camera);
-            Machine.TopLightOn = false;
+            Machine.HomeViaOrigin();
 
+            await Machine.SetViewTypeAsync(ViewTypes.Camera);
             Machine.GotoWorkspaceHome();
+
+            Machine.GotoPoint(Machine.Settings.DefaultWorkspaceHome.X, Machine.Settings.DefaultWorkspaceHome.Y, true);
 
             SelectMVProfile("mchfiducual");
 
-            Machine.SendCommand(DwellGCode(250));
-            
-            GoToFiducial(0);
-
             LocatorState = MVLocatorState.MachineFidicual;
-
         }
 
         public void GotoMachineFiducial()

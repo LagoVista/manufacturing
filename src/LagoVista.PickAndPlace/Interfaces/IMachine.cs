@@ -183,6 +183,8 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         void HomeViaOrigin();
 
+        void SetAbsoluteWorkSpaceHome();
+
         void SetFavorite1();
 
         void SetFavorite2();

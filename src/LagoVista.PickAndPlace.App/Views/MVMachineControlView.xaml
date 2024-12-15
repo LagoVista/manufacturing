@@ -34,16 +34,7 @@
                 </Button.Content>
             </Button>
 
-            <ToggleButton IsChecked="{Binding Machine.TopLightOn, Mode=TwoWay}">
-                <ToggleButton.Content>
-                    <Image Source="/imgs/TopLight.png" />
-                </ToggleButton.Content>
-            </ToggleButton>
-            <ToggleButton IsChecked="{Binding Machine.BottomLightOn, Mode=TwoWay}">
-                <ToggleButton.Content>
-                    <Image Source="/imgs/BottomLight.png" />
-                </ToggleButton.Content>
-            </ToggleButton>
+           
             <ToggleButton IsChecked="{Binding Machine.Vacuum1On, Mode=TwoWay}" ToolTip="Vacuum Pump 1">
                 <ToggleButton.Content>
                     <Image Source="/imgs/Vacuum1.png" />

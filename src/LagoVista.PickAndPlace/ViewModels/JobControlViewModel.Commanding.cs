@@ -20,6 +20,7 @@ namespace LagoVista.PickAndPlace.ViewModels
 
             HomingCycleCommand = new RelayCommand(HomingCycle, CanHomeAndReset);
             HomeViaOriginCommand = new RelayCommand(HomeViaOrigin, CanHomeAndReset);
+            SetAbsoluteWorkSpaceHomeCommand = new RelayCommand(SetAbsoluteWorkSpaceHome, CanMoveToWorkspaceHome); ;
             SoftResetCommand = new RelayCommand(SoftReset, CanHomeAndReset);
             FeedHoldCommand = new RelayCommand(FeedHold, CanPauseFeed);
             CycleStartCommand = new RelayCommand(CycleStart, CanResumeFeed);
@@ -239,6 +240,8 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         public RelayCommand HomingCycleCommand { get; private set; }
         public RelayCommand HomeViaOriginCommand { get; private set; }
+        public RelayCommand SetAbsoluteWorkSpaceHomeCommand { get; private set; }
+
         public RelayCommand SoftResetCommand { get; private set; }
 
         public RelayCommand CycleStartCommand { get; private set; }

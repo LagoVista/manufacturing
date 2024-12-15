@@ -241,11 +241,12 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         protected void JogToLocation(Point2D<double> offset)
         {
-            var deltaX = Machine.MachinePosition.X - (offset.X / PIXEL_PER_MM);
-            var deltaY = Machine.MachinePosition.Y + (offset.Y / PIXEL_PER_MM);
+            var pixelsPerMM = Machine.Settings.PositionCameraPixelsPerMM > 0 ? Machine.Settings.PositionCameraPixelsPerMM : PIXEL_PER_MM;
+            var deltaX = Machine.MachinePosition.X - (offset.X / pixelsPerMM);
+            var deltaY = Machine.MachinePosition.Y + (offset.Y / pixelsPerMM);
 
-            if (deltaX > 50 || deltaY > 50)
-                return;
+//            if (deltaX > 50 || deltaY > 50)
+  //              return;
 
             var threshold = Math.Abs(deltaX) > 2 || Math.Abs(deltaY) > 2 ? 1.0f : 1;
             threshold = 3;
@@ -253,7 +254,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             if (StandardDeviation.X < threshold && StandardDeviation.Y < threshold)
             {
                 _stabilizedPointCount++;
-                if (_stabilizedPointCount > 10)
+                if (_stabilizedPointCount > 5)
                 {
                     var offsetX = (offset.X / 20);
                     var newLocationX = Profile.Rotate180 ? Math.Round(Machine.MachinePosition.X + offsetX, 4) : Math.Round(Machine.MachinePosition.X - offsetX, 4);
