@@ -50,9 +50,9 @@ namespace LagoVista.Manufacturing.Models
         public List<PcbComponent> PcbComponents { get; set; } = new List<PcbComponent>();
 
 
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Notes, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Width, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
         public double? Width { get; set; }
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Notes, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Height, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
         public double? Height { get; set; }
 
 

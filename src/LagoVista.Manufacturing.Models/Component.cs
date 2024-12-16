@@ -125,6 +125,8 @@ namespace LagoVista.Manufacturing.Models
                 Icon = Icon,
                 Description = Description,
                 Value = Value,
+                Attr1 = Attr1,
+                Attr2 = Attr2,
                 ComponentType = ComponentType?.Text
             };
         }
@@ -211,6 +213,9 @@ namespace LagoVista.Manufacturing.Models
         public decimal QuantityOnHand{ get; set; }
         public string Package { get; set; }
         public string Value { get; set; }
+
+        public string Attr1 { get; set; }
+        public string Attr2 { get; set; }
         public string ComponentType { get; set; }
     }
 
