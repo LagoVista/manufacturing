@@ -1,4 +1,4 @@
-﻿/*12/14/2024 2:59:14 PM*/
+﻿/*12/17/2024 8:21:14 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -434,12 +434,24 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ComponentPurchase_Vendor
 
 		public static string ComponentPurchase_Vendor { get { return GetResourceString("ComponentPurchase_Vendor"); } }
+//Resources:ManufacturingResources:FeedDirection_Backwards
+
+		public static string FeedDirection_Backwards { get { return GetResourceString("FeedDirection_Backwards"); } }
+//Resources:ManufacturingResources:FeedDirection_Forwards
+
+		public static string FeedDirection_Forwards { get { return GetResourceString("FeedDirection_Forwards"); } }
 //Resources:ManufacturingResources:Feeder_Description
 
 		public static string Feeder_Description { get { return GetResourceString("Feeder_Description"); } }
 //Resources:ManufacturingResources:Feeder_Title
 
 		public static string Feeder_Title { get { return GetResourceString("Feeder_Title"); } }
+//Resources:ManufacturingResources:FeederOrientation_Horizontal
+
+		public static string FeederOrientation_Horizontal { get { return GetResourceString("FeederOrientation_Horizontal"); } }
+//Resources:ManufacturingResources:FeederOrientation_Vertical
+
+		public static string FeederOrientation_Vertical { get { return GetResourceString("FeederOrientation_Vertical"); } }
 //Resources:ManufacturingResources:Feeders_Title
 
 		public static string Feeders_Title { get { return GetResourceString("Feeders_Title"); } }
@@ -747,8 +759,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentPurchase_Quantity = "ComponentPurchase_Quantity";
 			public const string ComponentPurchase_Title = "ComponentPurchase_Title";
 			public const string ComponentPurchase_Vendor = "ComponentPurchase_Vendor";
+			public const string FeedDirection_Backwards = "FeedDirection_Backwards";
+			public const string FeedDirection_Forwards = "FeedDirection_Forwards";
 			public const string Feeder_Description = "Feeder_Description";
 			public const string Feeder_Title = "Feeder_Title";
+			public const string FeederOrientation_Horizontal = "FeederOrientation_Horizontal";
+			public const string FeederOrientation_Vertical = "FeederOrientation_Vertical";
 			public const string Feeders_Title = "Feeders_Title";
 			public const string Machine_Description = "Machine_Description";
 			public const string Machine_Title = "Machine_Title";

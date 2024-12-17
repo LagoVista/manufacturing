@@ -21,9 +21,13 @@ namespace LagoVista.Manufacturing.Repo.Repos
 
         protected override bool ShouldConsolidateCollections => _shouldConsolidateCollections;
 
-        public Task AddStripFeederAsync(StripFeeder StripFeeder)
+        public Task AddStripFeederAsync(StripFeeder stripFeeder)
         {
-            return CreateDocumentAsync(StripFeeder);
+            if (stripFeeder.Component != null) stripFeeder.Component.Value = null;
+            if (stripFeeder.PcbComponent != null) stripFeeder.PcbComponent.Value = null;
+            if (stripFeeder.Package != null) stripFeeder.Package = null;
+
+            return CreateDocumentAsync(stripFeeder);
         }
 
         public Task DeleteStripFeederAsync(string id)
@@ -41,10 +45,13 @@ namespace LagoVista.Manufacturing.Repo.Repos
             return base.QuerySummaryAsync<StripFeederSummary, StripFeeder>(qry => qry.IsPublic == true || qry.OwnerOrganization.Id == orgId, itm => itm.Name, listRequest);
         }
 
-        public Task UpdateStripFeederAsync(StripFeeder StripFeeder)
+        public Task UpdateStripFeederAsync(StripFeeder stripFeeder)
         {
-            return UpsertDocumentAsync(StripFeeder);
-        }
+            if (stripFeeder.Component != null) stripFeeder.Component.Value = null;
+            if (stripFeeder.PcbComponent != null) stripFeeder.PcbComponent.Value = null;
+            if (stripFeeder.Package != null) stripFeeder.Package = null;
 
+            return UpsertDocumentAsync(stripFeeder);
+        }
     }
 }

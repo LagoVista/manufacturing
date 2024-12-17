@@ -21,6 +21,8 @@ namespace LagoVista.PCB.Eagle.Models
         public double? Roundness { get; set; }
         public string RotateStr { get; set; }
 
+        public double RotateAngle { get => RotateStr.ToAngle(); }
+
         public Package Package { get; set; }
 
         public SMD ApplyRotation(double angle)
