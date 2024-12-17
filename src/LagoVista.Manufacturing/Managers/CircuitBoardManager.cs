@@ -34,12 +34,11 @@ namespace LagoVista.Manufacturing.Managers
         public async Task<InvokeResult> AddCircuitBoardAsync(CircuitBoard pcb, EntityHeader org, EntityHeader user)
         {
             await AuthorizeAsync(pcb, AuthorizeActions.Create, user, org);
-            ValidationCheck(pcb, Actions.Create);
-            await _circuitBoardRepo.AddCircuitBoardAsync(pcb);
+            ValidationCheck(pcb, Actions.Create);            
 
             foreach (var revision in pcb.Revisions)
             {
-                if (!EntityHeader.IsNullOrEmpty(revision.BoardFile))
+                if (!EntityHeader.IsNullOrEmpty(revision.BoardFile) && !revision.PcbComponents.Any())
                 {
                     var result = await PopulateComponents(revision, org, user);
                     if (!result.Successful)
@@ -57,6 +56,8 @@ namespace LagoVista.Manufacturing.Managers
                     });
                 }
             }
+
+            await _circuitBoardRepo.AddCircuitBoardAsync(pcb);
 
             return InvokeResult.Success;
         }

@@ -5,7 +5,7 @@ using System.Xml.Linq;
 
 namespace LagoVista.PCB.Eagle.Models
 {
-    public class SMD
+    public class SMDPad
     {
         public int Layer { get; set; }
         public string Name { get; set; }
@@ -23,11 +23,11 @@ namespace LagoVista.PCB.Eagle.Models
 
         public double RotateAngle { get => RotateStr.ToAngle(); }
 
-        public Package Package { get; set; }
+        //public PhysicalPackage PhysicalPackage { get; set; }
 
-        public SMD ApplyRotation(double angle)
+        public SMDPad ApplyRotation(double angle)
         {
-            var smd = this.MemberwiseClone() as SMD;
+            var smd = this.MemberwiseClone() as SMDPad;
             if (angle == 0)
             {
                 return smd;
@@ -68,9 +68,9 @@ namespace LagoVista.PCB.Eagle.Models
             return smd;
         }
 
-        public static SMD Create(XElement element)
+        public static SMDPad Create(XElement element)
         {
-            var smd = new SMD()
+            var smd = new SMDPad()
             {
                 Layer = element.GetInt32("layer"),
                 Name = element.GetString("name"),

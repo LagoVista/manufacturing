@@ -15,7 +15,7 @@ namespace LagoVista.PCB.Eagle.Models
         public double Radius { get; set; }
         public double Width { get; set; }
 
-        public Package Package { get; set; }
+        public PhysicalPackage Package { get; set; }
 
         public static Circle Create(XElement element)
         {

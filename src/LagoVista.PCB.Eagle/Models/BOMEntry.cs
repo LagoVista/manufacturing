@@ -13,7 +13,7 @@ namespace LagoVista.PCB.Eagle.Models
             Components = new List<PcbComponent>();
         }
 
-        public Package Package { get;  internal set; }
+        public PhysicalPackage Package { get;  internal set; }
 
         public string Value { get; internal set; }
 

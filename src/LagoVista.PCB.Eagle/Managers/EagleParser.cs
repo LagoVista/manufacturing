@@ -22,7 +22,7 @@ namespace LagoVista.PCB.Eagle.Managers
 
             pcb.Packages = (from eles
                            in doc.Descendants("package")
-                            select Models.Package.Create(eles)).ToList();
+                            select Models.PhysicalPackage.Create(eles)).ToList();
 
             pcb.Plain = (from eles
                          in doc.Descendants("plain")
@@ -64,7 +64,7 @@ namespace LagoVista.PCB.Eagle.Managers
 
                     if (layer.Number == 45)
                     {
-                        //foreach (var hole in element.Package.Holes)
+                        //foreach (var hole in element.PhysicalPackage.Holes)
                         foreach(var hole in element.Holes)
                         {
                             layer.Holes.Add(new Models.Hole() { Drill = hole.Drill, X = hole.X, Y = hole.Y, Name=element.Name });

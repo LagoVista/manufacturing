@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using LagoVista.PCB.Eagle.Models;
 
 namespace LagoVista.Manufacturing.Rest.Controllers
 {
@@ -75,6 +76,12 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         public Task<ListResponse<ComponentPackageSummary>> GetEquomentForOrg()
         {
             return _mgr.GetComponentPackagesSummariesAsync(GetListRequestFromHeader(), OrgEntityHeader, UserEntityHeader);
+        }
+
+        [HttpPost("/api/mfg/component/package/{id}/setpads")]
+        public Task<InvokeResult> SetPads(string id, [FromBody] SMDPad[] pads)
+        {
+            return _mgr.SetComponentPadsAsync(id, pads, OrgEntityHeader, UserEntityHeader);
         }
 
     }

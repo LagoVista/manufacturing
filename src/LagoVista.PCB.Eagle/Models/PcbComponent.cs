@@ -39,7 +39,7 @@ namespace LagoVista.PCB.Eagle.Models
             }
         }
 
-        public Package Package { get; set; }
+        public PhysicalPackage Package { get; set; }
 
         public List<Pad> Pads
         {
@@ -76,13 +76,13 @@ namespace LagoVista.PCB.Eagle.Models
             }
         }
 
-        public List<SMD> SMDPads
+        public List<SMDPad> SMDPads
         {
             get
             {
-                var smdPads = new List<SMD>();
+                var smdPads = new List<SMDPad>();
 
-                foreach (var smd in Package.SMDs)
+                foreach (var smd in Package.SmdPads)
                 {
                     
                     var rotatedSMD = smd.ApplyRotation(Rotate.ToAngle());

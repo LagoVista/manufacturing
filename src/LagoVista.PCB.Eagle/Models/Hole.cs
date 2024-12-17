@@ -15,7 +15,7 @@ namespace LagoVista.PCB.Eagle.Models
         public double Y { get; set; }
         public double Drill { get; set; }
 
-        public Package Package { get; set; }
+        public PhysicalPackage Package { get; set; }
 
         public static Hole Create(XElement element)
         {

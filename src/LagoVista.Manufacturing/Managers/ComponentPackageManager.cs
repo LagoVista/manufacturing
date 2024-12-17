@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 using static LagoVista.Core.Models.AuthorizeResult;
 using System.Xml.Linq;
 using System.Collections.Generic;
+using LagoVista.PCB.Eagle.Models;
+using System.Linq;
 
 namespace LagoVista.Manufacturing.Managers
 {
@@ -74,6 +76,13 @@ namespace LagoVista.Manufacturing.Managers
         {
             await AuthorizeOrgAccessAsync(user, org.Id, typeof(ComponentPackage));
             return await _packageRepo.GetComponentPackagesSummariesAsync(org.Id, listRequest);
+        }
+
+        public async Task<InvokeResult> SetComponentPadsAsync(string componentId, SMDPad[] pads, EntityHeader org, EntityHeader user)
+        {
+            var package = await GetComponentPackageAsync(componentId, org, user);
+            package.SmdPads = pads.ToList();
+            return await UpdateComponentPackageAsync(package, org, user);
         }
 
         public async Task<InvokeResult> UpdateComponentPackageAsync(ComponentPackage part, EntityHeader org, EntityHeader user)

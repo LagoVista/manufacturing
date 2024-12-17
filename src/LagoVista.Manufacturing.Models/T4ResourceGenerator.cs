@@ -1,4 +1,4 @@
-﻿/*12/17/2024 8:21:14 AM*/
+﻿/*12/17/2024 10:33:17 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -198,6 +198,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Component_PartPack
 
 		public static string Component_PartPack { get { return GetResourceString("Component_PartPack"); } }
+//Resources:ManufacturingResources:Component_Polarized
+
+		public static string Component_Polarized { get { return GetResourceString("Component_Polarized"); } }
 //Resources:ManufacturingResources:Component_QuantityOnHand
 
 		public static string Component_QuantityOnHand { get { return GetResourceString("Component_QuantityOnHand"); } }
@@ -557,12 +560,48 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:PickAndPlaceJob_Title
 
 		public static string PickAndPlaceJob_Title { get { return GetResourceString("PickAndPlaceJob_Title"); } }
+//Resources:ManufacturingResources:StripFeeder_BottomY
+
+		public static string StripFeeder_BottomY { get { return GetResourceString("StripFeeder_BottomY"); } }
 //Resources:ManufacturingResources:StripFeeder_Description
 
 		public static string StripFeeder_Description { get { return GetResourceString("StripFeeder_Description"); } }
+//Resources:ManufacturingResources:StripFeeder_Direction
+
+		public static string StripFeeder_Direction { get { return GetResourceString("StripFeeder_Direction"); } }
+//Resources:ManufacturingResources:StripFeeder_Direction_Select
+
+		public static string StripFeeder_Direction_Select { get { return GetResourceString("StripFeeder_Direction_Select"); } }
+//Resources:ManufacturingResources:StripFeeder_FirstHole_X
+
+		public static string StripFeeder_FirstHole_X { get { return GetResourceString("StripFeeder_FirstHole_X"); } }
+//Resources:ManufacturingResources:StripFeeder_FirstHole_Y
+
+		public static string StripFeeder_FirstHole_Y { get { return GetResourceString("StripFeeder_FirstHole_Y"); } }
+//Resources:ManufacturingResources:StripFeeder_Installed
+
+		public static string StripFeeder_Installed { get { return GetResourceString("StripFeeder_Installed"); } }
+//Resources:ManufacturingResources:StripFeeder_LeftX
+
+		public static string StripFeeder_LeftX { get { return GetResourceString("StripFeeder_LeftX"); } }
+//Resources:ManufacturingResources:StripFeeder_Length
+
+		public static string StripFeeder_Length { get { return GetResourceString("StripFeeder_Length"); } }
+//Resources:ManufacturingResources:StripFeeder_Orientation
+
+		public static string StripFeeder_Orientation { get { return GetResourceString("StripFeeder_Orientation"); } }
+//Resources:ManufacturingResources:StripFeeder_Orientation_Select
+
+		public static string StripFeeder_Orientation_Select { get { return GetResourceString("StripFeeder_Orientation_Select"); } }
+//Resources:ManufacturingResources:StripFeeder_PickHeight
+
+		public static string StripFeeder_PickHeight { get { return GetResourceString("StripFeeder_PickHeight"); } }
 //Resources:ManufacturingResources:StripFeeder_Title
 
 		public static string StripFeeder_Title { get { return GetResourceString("StripFeeder_Title"); } }
+//Resources:ManufacturingResources:StripFeeder_Width
+
+		public static string StripFeeder_Width { get { return GetResourceString("StripFeeder_Width"); } }
 //Resources:ManufacturingResources:StripFeederRow_Description
 
 		public static string StripFeederRow_Description { get { return GetResourceString("StripFeederRow_Description"); } }
@@ -683,6 +722,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Component_PackageType = "Component_PackageType";
 			public const string Component_PartNumber = "Component_PartNumber";
 			public const string Component_PartPack = "Component_PartPack";
+			public const string Component_Polarized = "Component_Polarized";
 			public const string Component_QuantityOnHand = "Component_QuantityOnHand";
 			public const string Component_QuantityOnOrder = "Component_QuantityOnOrder";
 			public const string Component_Room = "Component_Room";
@@ -800,8 +840,20 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Pcbs_Title = "Pcbs_Title";
 			public const string Pfb_Revision_Revision = "Pfb_Revision_Revision";
 			public const string PickAndPlaceJob_Title = "PickAndPlaceJob_Title";
+			public const string StripFeeder_BottomY = "StripFeeder_BottomY";
 			public const string StripFeeder_Description = "StripFeeder_Description";
+			public const string StripFeeder_Direction = "StripFeeder_Direction";
+			public const string StripFeeder_Direction_Select = "StripFeeder_Direction_Select";
+			public const string StripFeeder_FirstHole_X = "StripFeeder_FirstHole_X";
+			public const string StripFeeder_FirstHole_Y = "StripFeeder_FirstHole_Y";
+			public const string StripFeeder_Installed = "StripFeeder_Installed";
+			public const string StripFeeder_LeftX = "StripFeeder_LeftX";
+			public const string StripFeeder_Length = "StripFeeder_Length";
+			public const string StripFeeder_Orientation = "StripFeeder_Orientation";
+			public const string StripFeeder_Orientation_Select = "StripFeeder_Orientation_Select";
+			public const string StripFeeder_PickHeight = "StripFeeder_PickHeight";
 			public const string StripFeeder_Title = "StripFeeder_Title";
+			public const string StripFeeder_Width = "StripFeeder_Width";
 			public const string StripFeederRow_Description = "StripFeederRow_Description";
 			public const string StripFeederRow_Title = "StripFeederRow_Title";
 			public const string StripFeeders_Title = "StripFeeders_Title";

@@ -16,7 +16,7 @@ namespace LagoVista.PCB.Eagle.Models
             Holes = new List<Hole>();
             Rects = new List<Rect>();
             Wires = new List<Wire>();
-            SMDs = new List<SMD>();
+            SMDs = new List<SMDPad>();
             Pads = new List<Pad>();
             Vias = new List<Via>();
         }
@@ -45,7 +45,7 @@ namespace LagoVista.PCB.Eagle.Models
 
         public List<Wire> Wires { get; set; }
         public List<Via> Vias { get; set; }
-        public List<SMD> SMDs { get; set; }
+        public List<SMDPad> SMDs { get; set; }
         public List<Pad> Pads { get; set; }
 
     }

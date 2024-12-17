@@ -4,9 +4,11 @@ using LagoVista.Core.Models;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models.Resources;
+using LagoVista.PCB.Eagle.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 
@@ -124,6 +126,15 @@ namespace LagoVista.Manufacturing.Models
 
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_PartHeight, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public decimal Height { get; set; }
+
+        public List<Wire> Wires { get; set; } = new List<Wire>();     
+        public List<Text> Texts { get; set; } = new List<Text>();
+        public List<Pad> Pads { get; set; } = new List<Pad>();
+        public List<Circle> Circles { get; set; } = new List<Circle>();
+        public List<Hole> Holes { get; set; } = new List<Hole>();
+        public List<Rect> Rects { get; set; } = new List<Rect>();
+
+        public List<SMDPad> SmdPads { get; set; } = new List<SMDPad>();
 
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeSize, FieldType: FieldTypes.Picker, EnumType:typeof(TapeSizes), 
             WaterMark:ManufacturingResources.Names.ComponentPackage_TapeSize_Select, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
@@ -261,6 +272,7 @@ namespace LagoVista.Manufacturing.Models
                 Id = Id,
                 IsPublic = IsPublic,
                 PackageId = PackageId,
+                HasPads = Pads.Any()
             };
         }
 
@@ -324,6 +336,7 @@ namespace LagoVista.Manufacturing.Models
     public class ComponentPackageSummary : SummaryData
     {
         public string PackageId { get; set; }
+        public bool HasPads { get; set; }
     }
 
     // using System.Xml.Serialization;

@@ -8,7 +8,7 @@ namespace LagoVista.PCB.Eagle.Models
     {
         public Plain Plain { get; set; }
         public List<Layer> Layers { get; set; }
-        public List<Package> Packages { get; set; }
+        public List<PhysicalPackage> Packages { get; set; }
         public List<PcbComponent> Components { get; set; }
         public List<Via> Vias { get; set; }
         public List<Signal> Signals { get; set; }
