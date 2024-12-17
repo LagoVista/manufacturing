@@ -94,6 +94,9 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Component_PartPack, FieldType: FieldTypes.EntityHeaderPicker, EntityHeaderPickerUrl:"/api/mfg/partpacks", ResourceType: typeof(ManufacturingResources))]
         public EntityHeader PartPack { get; set; }
 
+        [FormField(LabelResource: ManufacturingResources.Names.Component_Polarized, FieldType: FieldTypes.CheckBox, ResourceType: typeof(ManufacturingResources))]
+        public bool Polarized { get; set; }
+
         [FormField(LabelResource: ManufacturingResources.Names.Component_Feeder, WaterMark: ManufacturingResources.Names.Component_Feeder_Select, 
             FieldType: FieldTypes.EntityHeaderPicker, EntityHeaderPickerUrl: "/api/mfg/feeders", ResourceType: typeof(ManufacturingResources))]
         public EntityHeader Feeder { get; set; }
@@ -163,6 +166,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(PartNumber),
                 nameof(ComponentType),
                 nameof(ComponentPackage),
+                nameof(Polarized),
                 nameof(Value),
                 nameof(Description),
                 nameof(QuantityOnHand),

@@ -671,22 +671,13 @@
   <data name="Common_Height" xml:space="preserve">
     <value>Height</value>
   </data>
-  <data name="FeederOrientation_Horizontal" xml:space="preserve">
-    <value>Horizontal</value>
-  </data>
-  <data name="FeederOrientation_Vertical" xml:space="preserve">
-    <value>Vertical</value>
-  </data>
-  <data name="FeedDirection_Backwards" xml:space="preserve">
-    <value>Backwards</value>
-  </data>
-  <data name="FeedDirection_Forwards" xml:space="preserve">
-    <value>Forwards</value>
-  </data>
-  <data name="Component_Column" xml:space="preserve">
-    <value>Columen</value>
-  </data>
   <data name="ComponentOrder_PrintLabels" xml:space="preserve">
     <value>Print Labels</value>
+  </data>
+  <data name="Component_Column" xml:space="preserve">
+    <value>Column</value>
+  </data>
+  <data name="Component_Polarized" xml:space="preserve">
+    <value>Polarized</value>
   </data>
 </root>

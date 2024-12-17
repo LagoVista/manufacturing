@@ -54,7 +54,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         }
 
         [HttpGet("/api/mfg/component/purchase/factory")]
-        public DetailResponse<ComponentPurchase> CreateComponentPurcahse()
+        public DetailResponse<ComponentPurchase> CreateComponentPurchase()
         {
             return DetailResponse<ComponentPurchase>.Create();
         }
@@ -76,6 +76,15 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         public async Task<IActionResult> GetComponentLabel(string id, int row, int col)
         {
             var ms = await _mgr.GenerateLabelAsync(id, row, col, OrgEntityHeader, UserEntityHeader);
+            ms.Result.Seek(0, SeekOrigin.Begin);
+            return File(ms.Result, "application/pdf", "PartLabel.pdf");
+        }
+
+
+        [HttpPost("/api/mfg/component/labels/{row}/{col}")]
+        public async Task<IActionResult> GetComponentLabel([FromBody] string[] ids, int row, int col)
+        {
+            var ms = await _mgr.GenerateLabelsAsync(ids, row, col, OrgEntityHeader, UserEntityHeader);
             ms.Result.Seek(0, SeekOrigin.Begin);
             return File(ms.Result, "application/pdf", "PartLabel.pdf");
         }

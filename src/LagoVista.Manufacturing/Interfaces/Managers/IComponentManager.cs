@@ -16,6 +16,7 @@ namespace LagoVista.Manufacturing.Interfaces.Managers
         Task<InvokeResult> DeleteCommponentAsync(string id, EntityHeader org, EntityHeader user);
         Task<InvokeResult> AddComponentPurchaseAsync(string componentId, ComponentPurchase purchase, EntityHeader org, EntityHeader user);
         Task<InvokeResult<Stream>> GenerateLabelAsync(string compoentId, int row, int col, EntityHeader org, EntityHeader user);
+        Task<InvokeResult<Stream>> GenerateLabelsAsync(string[] compoentId, int row, int col, EntityHeader org, EntityHeader user);
         Task<InvokeResult> ReceiveComponentPurchaseAsync(string componentId, string orderId, decimal qty, EntityHeader org, EntityHeader user);
 
     }
