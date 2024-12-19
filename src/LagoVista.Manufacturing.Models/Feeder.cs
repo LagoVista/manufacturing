@@ -9,12 +9,31 @@ using System.Text;
 
 namespace LagoVista.Manufacturing.Models
 {
+
+    public enum FeederRotations
+    {
+        [EnumLabel(Feeder.FeederRotation0, ManufacturingResources.Names.TapeRotation_0, typeof(ManufacturingResources))]
+        Zero,
+        [EnumLabel(Feeder.FeederRotation90, ManufacturingResources.Names.TapeRotation_90, typeof(ManufacturingResources))]
+        Ninety,
+        [EnumLabel(Feeder.FeederRotationMinus90, ManufacturingResources.Names.TapeRotation_Minus90, typeof(ManufacturingResources))]
+        MinusNinety,
+        [EnumLabel(Feeder.FeederRotation180, ManufacturingResources.Names.TapeRotation_180, typeof(ManufacturingResources))]
+        OneEighty
+    }
+
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Feeder_Title, ManufacturingResources.Names.Feeder_Description,
             ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-searching-2", Cloneable: true,
             SaveUrl: "/api/mfg/feeder", GetUrl: "/api/mfg/Feeder/{id}", GetListUrl: "/api/mfg/feeders", FactoryUrl: "/api/mfg/feeder/factory",
             DeleteUrl: "/api/mfg/feeder/{id}", ListUIUrl: "/mfg/fFeeders", EditUIUrl: "/mfg/feeder/{id}", CreateUIUrl: "/mfg/feeder/add")]
     public class Feeder : MfgModelBase, IValidateable, IFormDescriptor, ISummaryFactory, IIDEntity
     {
+
+        public const string FeederRotation0 = "zero";
+        public const string FeederRotation90 = "ninety";
+        public const string FeederRotationMinus90 = "minusninety";
+        public const string FeederRotation180 = "oneeighty";
+
 
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
         public string Icon { get; set; } = "icon-pz-searching-2";
@@ -36,6 +55,8 @@ namespace LagoVista.Manufacturing.Models
             };
         }
 
+
+
         private decimal? _pickX;
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_PickX, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
         public decimal? PickX
@@ -52,9 +73,10 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _pickY, value);
         }
 
-        private decimal? _tapeAngle;
-        [FormField(LabelResource: ManufacturingResources.Names.Feeder_TapeAngle, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
-        public decimal? TapeAngle
+        private EntityHeader<FeederRotations> _tapeAngle;
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_Rotation, FieldType: FieldTypes.Picker, EnumType:typeof(FeederRotations), IsRequired:true, 
+            WaterMark:ManufacturingResources.Names.Feeder_Rotation_Select, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader<FeederRotations> Rotation
         {
             get => _tapeAngle;
             set => Set(ref _tapeAngle, value);
@@ -67,8 +89,8 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Name),
                 nameof(Key),
                 nameof(PickX),
-                nameof(TapeAngle),
                 nameof(PickY),
+                nameof(Rotation),
                 nameof(Component),
                 nameof(Description)
             };
@@ -91,7 +113,7 @@ namespace LagoVista.Manufacturing.Models
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Feeders_Title, ManufacturingResources.Names.Feeder_Description,
             ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-stamp-2", Cloneable: true,
             SaveUrl: "/api/mfg/feeder", GetUrl: "/api/mfg/feeder/{id}", GetListUrl: "/api/mfg/feeders", FactoryUrl: "/api/mfg/feeder/factory",
-            DeleteUrl: "/api/mfg/feeder/{id}", ListUIUrl: "/mfg/fFeeders", EditUIUrl: "/mfg/feeder/{id}", CreateUIUrl: "/mfg/feeder/add")]
+            DeleteUrl: "/api/mfg/feeder/{id}", ListUIUrl: "/mfg/feeders", EditUIUrl: "/mfg/feeder/{id}", CreateUIUrl: "/mfg/feeder/add")]
     public class FeederSummary : SummaryData
     {
         public string ComponentId { get; set; }

@@ -28,7 +28,6 @@ namespace LagoVista.Manufacturing.Models
         Backwards,
     }
 
-
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.StripFeeder_Title, ManufacturingResources.Names.StripFeeder_Description,
                ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-fo-left", Cloneable: true,
                SaveUrl: "/api/mfg/stripfeeder", GetUrl: "/api/mfg/stripfeeder/{id}", GetListUrl: "/api/mfg/stripfeeders", FactoryUrl: "/api/mfg/stripfeeder/factory",
@@ -47,7 +46,8 @@ namespace LagoVista.Manufacturing.Models
 
         
         private EntityHeader<Component> _component;
-        [FormField(LabelResource: ManufacturingResources.Names.Component_Title, FieldType: FieldTypes.Custom, CustomFieldType:"componentpicker", ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Component_Title, FieldType: FieldTypes.Custom, WaterMark:ManufacturingResources.Names.Feeder_Component_Select, 
+            CustomFieldType:"componentpicker", ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<Component> Component
         {
             get => _component;
@@ -60,6 +60,12 @@ namespace LagoVista.Manufacturing.Models
             get => _currentPartIndex;
             set => Set(ref _currentPartIndex, value);
         }
+
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Color, FieldType: FieldTypes.Color, ResourceType: typeof(ManufacturingResources))]
+        public string Color
+        {
+            get; set;
+        } = "#000000";
 
         private bool _installed;
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Installed, FieldType: FieldTypes.CheckBox, ResourceType: typeof(ManufacturingResources))]
@@ -94,9 +100,9 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _pickHeight, value);
         }
 
-
         private decimal? _angleOffset;
-        private decimal? AngleOffset
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_AngleOffset, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
+        public decimal? AngleOffset
         {
             get { return _angleOffset; }
             set => Set(ref _angleOffset, value);    
@@ -111,7 +117,7 @@ namespace LagoVista.Manufacturing.Models
         }
 
         private decimal? _leftX;
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_FirstHole_X, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_LeftX, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
         public decimal? LeftX
         {
             get => _leftX;
@@ -211,7 +217,8 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Length),
                 nameof(AngleOffset),
                 nameof(FirstHoleX),
-                nameof(FirstHoleY)
+                nameof(FirstHoleY),
+                nameof(Color)
             };            
         }
 

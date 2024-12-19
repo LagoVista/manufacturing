@@ -41,7 +41,7 @@ namespace LagoVista.Manufacturing.Models
 
 
         [FormField(LabelResource: ManufacturingResources.Names.Component_PackageType, FieldType: FieldTypes.Picker, FactoryUrl: "/api/mfg/component/package/factory", ResourceType: typeof(ManufacturingResources))]
-        public EntityHeader ComponentPackage { get; set; }
+        public EntityHeader<ComponentPackage> ComponentPackage { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Component_VendorLink, FieldType: FieldTypes.WebLink, ResourceType: typeof(ManufacturingResources))]
         public string VendorLink { get; set; }

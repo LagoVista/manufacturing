@@ -1,4 +1,4 @@
-﻿/*12/18/2024 7:01:05 PM*/
+﻿/*12/19/2024 8:09:07 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -467,6 +467,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:FeedDirection_Forwards
 
 		public static string FeedDirection_Forwards { get { return GetResourceString("FeedDirection_Forwards"); } }
+//Resources:ManufacturingResources:Feeder_Component_Select
+
+		public static string Feeder_Component_Select { get { return GetResourceString("Feeder_Component_Select"); } }
 //Resources:ManufacturingResources:Feeder_Description
 
 		public static string Feeder_Description { get { return GetResourceString("Feeder_Description"); } }
@@ -476,6 +479,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Feeder_PickY
 
 		public static string Feeder_PickY { get { return GetResourceString("Feeder_PickY"); } }
+//Resources:ManufacturingResources:Feeder_Rotation
+
+		public static string Feeder_Rotation { get { return GetResourceString("Feeder_Rotation"); } }
+//Resources:ManufacturingResources:Feeder_Rotation_Select
+
+		public static string Feeder_Rotation_Select { get { return GetResourceString("Feeder_Rotation_Select"); } }
 //Resources:ManufacturingResources:Feeder_TapeAngle
 
 		public static string Feeder_TapeAngle { get { return GetResourceString("Feeder_TapeAngle"); } }
@@ -488,6 +497,18 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:FeederOrientation_Vertical
 
 		public static string FeederOrientation_Vertical { get { return GetResourceString("FeederOrientation_Vertical"); } }
+//Resources:ManufacturingResources:FeederRotation0
+
+		public static string FeederRotation0 { get { return GetResourceString("FeederRotation0"); } }
+//Resources:ManufacturingResources:FeederRotation180
+
+		public static string FeederRotation180 { get { return GetResourceString("FeederRotation180"); } }
+//Resources:ManufacturingResources:FeederRotation90
+
+		public static string FeederRotation90 { get { return GetResourceString("FeederRotation90"); } }
+//Resources:ManufacturingResources:FeederRotationMinus90
+
+		public static string FeederRotationMinus90 { get { return GetResourceString("FeederRotationMinus90"); } }
 //Resources:ManufacturingResources:Feeders_Title
 
 		public static string Feeders_Title { get { return GetResourceString("Feeders_Title"); } }
@@ -593,9 +614,15 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:PickAndPlaceJob_Title
 
 		public static string PickAndPlaceJob_Title { get { return GetResourceString("PickAndPlaceJob_Title"); } }
+//Resources:ManufacturingResources:StripFeeder_AngleOffset
+
+		public static string StripFeeder_AngleOffset { get { return GetResourceString("StripFeeder_AngleOffset"); } }
 //Resources:ManufacturingResources:StripFeeder_BottomY
 
 		public static string StripFeeder_BottomY { get { return GetResourceString("StripFeeder_BottomY"); } }
+//Resources:ManufacturingResources:StripFeeder_Color
+
+		public static string StripFeeder_Color { get { return GetResourceString("StripFeeder_Color"); } }
 //Resources:ManufacturingResources:StripFeeder_Description
 
 		public static string StripFeeder_Description { get { return GetResourceString("StripFeeder_Description"); } }
@@ -842,13 +869,20 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentPurchase_Vendor = "ComponentPurchase_Vendor";
 			public const string FeedDirection_Backwards = "FeedDirection_Backwards";
 			public const string FeedDirection_Forwards = "FeedDirection_Forwards";
+			public const string Feeder_Component_Select = "Feeder_Component_Select";
 			public const string Feeder_Description = "Feeder_Description";
 			public const string Feeder_PickX = "Feeder_PickX";
 			public const string Feeder_PickY = "Feeder_PickY";
+			public const string Feeder_Rotation = "Feeder_Rotation";
+			public const string Feeder_Rotation_Select = "Feeder_Rotation_Select";
 			public const string Feeder_TapeAngle = "Feeder_TapeAngle";
 			public const string Feeder_Title = "Feeder_Title";
 			public const string FeederOrientation_Horizontal = "FeederOrientation_Horizontal";
 			public const string FeederOrientation_Vertical = "FeederOrientation_Vertical";
+			public const string FeederRotation0 = "FeederRotation0";
+			public const string FeederRotation180 = "FeederRotation180";
+			public const string FeederRotation90 = "FeederRotation90";
+			public const string FeederRotationMinus90 = "FeederRotationMinus90";
 			public const string Feeders_Title = "Feeders_Title";
 			public const string Machine_Description = "Machine_Description";
 			public const string Machine_Title = "Machine_Title";
@@ -884,7 +918,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Pcbs_Title = "Pcbs_Title";
 			public const string Pfb_Revision_Revision = "Pfb_Revision_Revision";
 			public const string PickAndPlaceJob_Title = "PickAndPlaceJob_Title";
+			public const string StripFeeder_AngleOffset = "StripFeeder_AngleOffset";
 			public const string StripFeeder_BottomY = "StripFeeder_BottomY";
+			public const string StripFeeder_Color = "StripFeeder_Color";
 			public const string StripFeeder_Description = "StripFeeder_Description";
 			public const string StripFeeder_Direction = "StripFeeder_Direction";
 			public const string StripFeeder_Direction_Select = "StripFeeder_Direction_Select";

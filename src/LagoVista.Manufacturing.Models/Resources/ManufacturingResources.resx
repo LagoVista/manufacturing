@@ -761,4 +761,31 @@
   <data name="Feeder_TapeAngle" xml:space="preserve">
     <value>Tape Angle</value>
   </data>
+  <data name="Feeder_Component_Select" xml:space="preserve">
+    <value>-select component-</value>
+  </data>
+  <data name="StripFeeder_AngleOffset" xml:space="preserve">
+    <value>Angle Offset</value>
+  </data>
+  <data name="FeederRotation180" xml:space="preserve">
+    <value>180 Degrees</value>
+  </data>
+  <data name="FeederRotation0" xml:space="preserve">
+    <value>0 Degrees</value>
+  </data>
+  <data name="FeederRotationMinus90" xml:space="preserve">
+    <value>-90 Degress</value>
+  </data>
+  <data name="FeederRotation90" xml:space="preserve">
+    <value>90 Degrees</value>
+  </data>
+  <data name="Feeder_Rotation" xml:space="preserve">
+    <value>Rotation</value>
+  </data>
+  <data name="Feeder_Rotation_Select" xml:space="preserve">
+    <value>-select rotation-</value>
+  </data>
+  <data name="StripFeeder_Color" xml:space="preserve">
+    <value>Color</value>
+  </data>
 </root>
