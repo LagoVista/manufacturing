@@ -728,4 +728,37 @@
   <data name="FeederOrientation_Vertical" xml:space="preserve">
     <value>Vertical</value>
   </data>
+  <data name="ComponentPackage_MaterialType_Plastic" xml:space="preserve">
+    <value>Plastic</value>
+  </data>
+  <data name="ComponentPackage_MaterialType_Paper" xml:space="preserve">
+    <value>Paper</value>
+  </data>
+  <data name="ComponentPackage_TapeColor_White" xml:space="preserve">
+    <value>White</value>
+  </data>
+  <data name="ComponentPackage_TapeColor_Black" xml:space="preserve">
+    <value>Black</value>
+  </data>
+  <data name="ComponentPackage_TapeMaterialType" xml:space="preserve">
+    <value>Tape Material Type</value>
+  </data>
+  <data name="ComponentPackage_TapeMaterialType_Select" xml:space="preserve">
+    <value>-select tape material type-</value>
+  </data>
+  <data name="ComponentPackage_TapeColor" xml:space="preserve">
+    <value>Tape Color</value>
+  </data>
+  <data name="ComponentPackage_TapeColor_Select" xml:space="preserve">
+    <value>-select tape color-</value>
+  </data>
+  <data name="Feeder_PickX" xml:space="preserve">
+    <value>Pick X</value>
+  </data>
+  <data name="Feeder_PickY" xml:space="preserve">
+    <value>Pick Y</value>
+  </data>
+  <data name="Feeder_TapeAngle" xml:space="preserve">
+    <value>Tape Angle</value>
+  </data>
 </root>

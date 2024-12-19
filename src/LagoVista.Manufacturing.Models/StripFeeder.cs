@@ -45,26 +45,13 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
         public string Icon { get; set; } = "icon-fo-left";
 
-
+        
         private EntityHeader<Component> _component;
+        [FormField(LabelResource: ManufacturingResources.Names.Component_Title, FieldType: FieldTypes.Custom, CustomFieldType:"componentpicker", ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<Component> Component
         {
             get => _component;
             set => Set(ref _component, value);
-        }
-
-        private EntityHeader<ComponentPackage> _package;
-        public EntityHeader<ComponentPackage> Package
-        {
-            get => _package;
-            set => Set(ref _package, value);
-        }
-
-        private EntityHeader<PcbComponent> _pcbComponent;
-        public EntityHeader<PcbComponent> PcbComponent
-        {
-            get => _pcbComponent;
-            set => Set(ref _pcbComponent, value);
         }
 
         private int _currentPartIndex;
@@ -166,7 +153,7 @@ namespace LagoVista.Manufacturing.Models
 
         public double _width;
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Width, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        private double Width
+        public double Width
         {
             get => _width;
             set => Set(ref _width, value);
@@ -180,6 +167,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Key),
                 nameof(Description),
                 nameof(Installed),
+                nameof(Component),
                 nameof(TapeSize),
                 nameof(Orientation),
                 nameof(FeedDirection),
@@ -199,7 +187,10 @@ namespace LagoVista.Manufacturing.Models
                 Key = Key,
                 IsPublic = IsPublic,
                 TapeSize = TapeSize.Text,
-                TapeSizeId = TapeSize.Id
+                TapeSizeId = TapeSize.Id,
+                Component = Component?.Text,
+                ComponentId = Component?.Id,
+                ComponentKey = Component?.Key
             };
         }
 
@@ -218,6 +209,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(BottomY),
                 nameof(Width),
                 nameof(Length),
+                nameof(AngleOffset),
                 nameof(FirstHoleX),
                 nameof(FirstHoleY)
             };            
@@ -269,6 +261,11 @@ namespace LagoVista.Manufacturing.Models
     {
         public string TapeSize { get; set; }
         public string TapeSizeId { get; set; }
+
+        public string ComponentId { get; set; }
+        public string ComponentKey { get; set; }
+        public string Component { get; set; }
+
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.StripFeederRow_Title, ManufacturingResources.Names.StripFeederRow_Description,

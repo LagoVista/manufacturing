@@ -29,8 +29,35 @@ namespace LagoVista.Manufacturing.Models
                 Icon = Icon,
                 Description = Description,
                 Key = Key,
-                IsPublic = IsPublic
+                IsPublic = IsPublic,
+                Component = Component?.Text,
+                ComponentId = Component?.Id,
+                ComponentKey = Component?.Key
             };
+        }
+
+        private decimal? _pickX;
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_PickX, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
+        public decimal? PickX
+        {
+            get => _pickX;
+            set => Set(ref _pickX, value);
+        }
+
+        private decimal? _pickY;
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_PickY, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
+        public decimal? PickY
+        {
+            get => _pickY;
+            set => Set(ref _pickY, value);
+        }
+
+        private decimal? _tapeAngle;
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_TapeAngle, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
+        public decimal? TapeAngle
+        {
+            get => _tapeAngle;
+            set => Set(ref _tapeAngle, value);
         }
 
         public List<string> GetFormFields()
@@ -39,8 +66,20 @@ namespace LagoVista.Manufacturing.Models
             {
                 nameof(Name),
                 nameof(Key),
+                nameof(PickX),
+                nameof(TapeAngle),
+                nameof(PickY),
+                nameof(Component),
                 nameof(Description)
             };
+        }
+
+        private EntityHeader<Component> _component;
+        [FormField(LabelResource: ManufacturingResources.Names.Component_Title, FieldType: FieldTypes.Custom, CustomFieldType: "componentpicker", ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader<Component> Component
+        {
+            get => _component;
+            set => Set(ref _component, value);
         }
 
         Core.Interfaces.ISummaryData ISummaryFactory.CreateSummary()
@@ -55,6 +94,8 @@ namespace LagoVista.Manufacturing.Models
             DeleteUrl: "/api/mfg/feeder/{id}", ListUIUrl: "/mfg/fFeeders", EditUIUrl: "/mfg/feeder/{id}", CreateUIUrl: "/mfg/feeder/add")]
     public class FeederSummary : SummaryData
     {
-
+        public string ComponentId { get; set; }
+        public string ComponentKey { get; set; }
+        public string Component { get; set; }
     }
 }

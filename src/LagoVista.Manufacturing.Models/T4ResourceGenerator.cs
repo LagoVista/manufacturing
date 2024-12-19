@@ -1,4 +1,4 @@
-﻿/*12/17/2024 10:33:17 AM*/
+﻿/*12/18/2024 7:01:05 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -352,6 +352,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ComponentPackage_HoleSpacing
 
 		public static string ComponentPackage_HoleSpacing { get { return GetResourceString("ComponentPackage_HoleSpacing"); } }
+//Resources:ManufacturingResources:ComponentPackage_MaterialType_Paper
+
+		public static string ComponentPackage_MaterialType_Paper { get { return GetResourceString("ComponentPackage_MaterialType_Paper"); } }
+//Resources:ManufacturingResources:ComponentPackage_MaterialType_Plastic
+
+		public static string ComponentPackage_MaterialType_Plastic { get { return GetResourceString("ComponentPackage_MaterialType_Plastic"); } }
 //Resources:ManufacturingResources:ComponentPackage_PackageId
 
 		public static string ComponentPackage_PackageId { get { return GetResourceString("ComponentPackage_PackageId"); } }
@@ -385,6 +391,24 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ComponentPackage_TapeAndReelSpecImage
 
 		public static string ComponentPackage_TapeAndReelSpecImage { get { return GetResourceString("ComponentPackage_TapeAndReelSpecImage"); } }
+//Resources:ManufacturingResources:ComponentPackage_TapeColor
+
+		public static string ComponentPackage_TapeColor { get { return GetResourceString("ComponentPackage_TapeColor"); } }
+//Resources:ManufacturingResources:ComponentPackage_TapeColor_Black
+
+		public static string ComponentPackage_TapeColor_Black { get { return GetResourceString("ComponentPackage_TapeColor_Black"); } }
+//Resources:ManufacturingResources:ComponentPackage_TapeColor_Select
+
+		public static string ComponentPackage_TapeColor_Select { get { return GetResourceString("ComponentPackage_TapeColor_Select"); } }
+//Resources:ManufacturingResources:ComponentPackage_TapeColor_White
+
+		public static string ComponentPackage_TapeColor_White { get { return GetResourceString("ComponentPackage_TapeColor_White"); } }
+//Resources:ManufacturingResources:ComponentPackage_TapeMaterialType
+
+		public static string ComponentPackage_TapeMaterialType { get { return GetResourceString("ComponentPackage_TapeMaterialType"); } }
+//Resources:ManufacturingResources:ComponentPackage_TapeMaterialType_Select
+
+		public static string ComponentPackage_TapeMaterialType_Select { get { return GetResourceString("ComponentPackage_TapeMaterialType_Select"); } }
 //Resources:ManufacturingResources:ComponentPackage_TapePitch
 
 		public static string ComponentPackage_TapePitch { get { return GetResourceString("ComponentPackage_TapePitch"); } }
@@ -446,6 +470,15 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Feeder_Description
 
 		public static string Feeder_Description { get { return GetResourceString("Feeder_Description"); } }
+//Resources:ManufacturingResources:Feeder_PickX
+
+		public static string Feeder_PickX { get { return GetResourceString("Feeder_PickX"); } }
+//Resources:ManufacturingResources:Feeder_PickY
+
+		public static string Feeder_PickY { get { return GetResourceString("Feeder_PickY"); } }
+//Resources:ManufacturingResources:Feeder_TapeAngle
+
+		public static string Feeder_TapeAngle { get { return GetResourceString("Feeder_TapeAngle"); } }
 //Resources:ManufacturingResources:Feeder_Title
 
 		public static string Feeder_Title { get { return GetResourceString("Feeder_Title"); } }
@@ -772,6 +805,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentPackage_CenterY_Help = "ComponentPackage_CenterY_Help";
 			public const string ComponentPackage_Description = "ComponentPackage_Description";
 			public const string ComponentPackage_HoleSpacing = "ComponentPackage_HoleSpacing";
+			public const string ComponentPackage_MaterialType_Paper = "ComponentPackage_MaterialType_Paper";
+			public const string ComponentPackage_MaterialType_Plastic = "ComponentPackage_MaterialType_Plastic";
 			public const string ComponentPackage_PackageId = "ComponentPackage_PackageId";
 			public const string ComponentPackage_PartHeight = "ComponentPackage_PartHeight";
 			public const string ComponentPackage_PartLength = "ComponentPackage_PartLength";
@@ -783,6 +818,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentPackage_SpecificationPage = "ComponentPackage_SpecificationPage";
 			public const string ComponentPackage_TapeAndReelActualImage = "ComponentPackage_TapeAndReelActualImage";
 			public const string ComponentPackage_TapeAndReelSpecImage = "ComponentPackage_TapeAndReelSpecImage";
+			public const string ComponentPackage_TapeColor = "ComponentPackage_TapeColor";
+			public const string ComponentPackage_TapeColor_Black = "ComponentPackage_TapeColor_Black";
+			public const string ComponentPackage_TapeColor_Select = "ComponentPackage_TapeColor_Select";
+			public const string ComponentPackage_TapeColor_White = "ComponentPackage_TapeColor_White";
+			public const string ComponentPackage_TapeMaterialType = "ComponentPackage_TapeMaterialType";
+			public const string ComponentPackage_TapeMaterialType_Select = "ComponentPackage_TapeMaterialType_Select";
 			public const string ComponentPackage_TapePitch = "ComponentPackage_TapePitch";
 			public const string ComponentPackage_TapePitch_Select = "ComponentPackage_TapePitch_Select";
 			public const string ComponentPackage_TapeRotation = "ComponentPackage_TapeRotation";
@@ -802,6 +843,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string FeedDirection_Backwards = "FeedDirection_Backwards";
 			public const string FeedDirection_Forwards = "FeedDirection_Forwards";
 			public const string Feeder_Description = "Feeder_Description";
+			public const string Feeder_PickX = "Feeder_PickX";
+			public const string Feeder_PickY = "Feeder_PickY";
+			public const string Feeder_TapeAngle = "Feeder_TapeAngle";
 			public const string Feeder_Title = "Feeder_Title";
 			public const string FeederOrientation_Horizontal = "FeederOrientation_Horizontal";
 			public const string FeederOrientation_Vertical = "FeederOrientation_Vertical";

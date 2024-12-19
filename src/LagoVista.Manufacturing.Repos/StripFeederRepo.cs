@@ -24,8 +24,6 @@ namespace LagoVista.Manufacturing.Repo.Repos
         public Task AddStripFeederAsync(StripFeeder stripFeeder)
         {
             if (stripFeeder.Component != null) stripFeeder.Component.Value = null;
-            if (stripFeeder.PcbComponent != null) stripFeeder.PcbComponent.Value = null;
-            if (stripFeeder.Package != null) stripFeeder.Package = null;
 
             return CreateDocumentAsync(stripFeeder);
         }
@@ -48,9 +46,6 @@ namespace LagoVista.Manufacturing.Repo.Repos
         public Task UpdateStripFeederAsync(StripFeeder stripFeeder)
         {
             if (stripFeeder.Component != null) stripFeeder.Component.Value = null;
-            if (stripFeeder.PcbComponent != null) stripFeeder.PcbComponent.Value = null;
-            if (stripFeeder.Package != null) stripFeeder.Package = null;
-
             return UpsertDocumentAsync(stripFeeder);
         }
     }

@@ -64,6 +64,24 @@ namespace LagoVista.Manufacturing.Models
         ThirtyTwoMM,
     }
 
+    public enum TapeColors
+    {
+        [EnumLabel(ComponentPackage.ComponentPackage_TapeColor_Black, ManufacturingResources.Names.ComponentPackage_TapeColor_Black, typeof(ManufacturingResources))]
+        Black,
+
+        [EnumLabel(ComponentPackage.ComponentPackage_TapeColor_White, ManufacturingResources.Names.ComponentPackage_TapeColor_White, typeof(ManufacturingResources))]
+        White,
+    }
+
+    public enum TapeMaterialTypes
+    {
+        [EnumLabel(ComponentPackage.ComponentPackage_MaterialType_Paper, ManufacturingResources.Names.ComponentPackage_MaterialType_Paper, typeof(ManufacturingResources))]
+        Paper,
+
+        [EnumLabel(ComponentPackage.ComponentPackage_MaterialType_Plastic, ManufacturingResources.Names.ComponentPackage_MaterialType_Plastic, typeof(ManufacturingResources))]
+        Plastic,
+    }
+
     public enum TapeRotations
     {
         [EnumLabel(ComponentPackage.TapeRotation0, ManufacturingResources.Names.TapeRotation_0, typeof(ManufacturingResources))]
@@ -86,7 +104,6 @@ namespace LagoVista.Manufacturing.Models
         public const string PartType_SurfaceMount = "surfacemount";
         public const string PartType_Hardware = "hardware";
 
-
         public const string TapeSize8 = "eight";
         public const string TapeSize12 = "twelve";
         public const string TapeSize16 = "sixteen";
@@ -96,7 +113,7 @@ namespace LagoVista.Manufacturing.Models
         public const string TapeSize44 = "fortyfour";
 
         public const string TapePitch2 = "twomm";
-        public const string TapePitch4 = "twomm";
+        public const string TapePitch4 = "fourmm";
         public const string TapePitch8 = "eightmm";
         public const string TapePitch12 = "twelvemm";
         public const string TapePitch16 = "sixteenmm";
@@ -109,6 +126,20 @@ namespace LagoVista.Manufacturing.Models
         public const string TapeRotation90 = "ninety";
         public const string TapeRotationMinus90 = "minusninety";
         public const string TapeRotation180 = "oneeighty";
+
+        public const string ComponentPackage_TapeColor_Black = "black";
+        public const string ComponentPackage_TapeColor_White = "white";
+
+        public const string ComponentPackage_MaterialType_Plastic = "plastic";
+        public const string ComponentPackage_MaterialType_Paper = "paper";
+
+        [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeMaterialType, FieldType: FieldTypes.Picker, EnumType: typeof(TapeMaterialTypes),
+            WaterMark: ManufacturingResources.Names.ComponentPackage_TapeMaterialType_Select, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader<TapeMaterialTypes> TapeMaterialType {get; set;} = EntityHeader<TapeMaterialTypes>.Create(TapeMaterialTypes.Paper);
+
+        [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeColor, FieldType: FieldTypes.Picker, EnumType: typeof(TapeColors),
+            WaterMark: ManufacturingResources.Names.ComponentPackage_TapeColor_Select, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader<TapeColors> TapeColor { get; set; } = EntityHeader<TapeColors>.Create(TapeColors.White);
 
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_PackageId, FieldType: FieldTypes.Text, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string PackageId { get; set; }
@@ -133,7 +164,6 @@ namespace LagoVista.Manufacturing.Models
         public List<Circle> Circles { get; set; } = new List<Circle>();
         public List<Hole> Holes { get; set; } = new List<Hole>();
         public List<Rect> Rects { get; set; } = new List<Rect>();
-
         public List<SMDPad> SmdPads { get; set; } = new List<SMDPad>();
 
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeSize, FieldType: FieldTypes.Picker, EnumType:typeof(TapeSizes), 
@@ -290,6 +320,9 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Icon),
                 nameof(Verified),
                 nameof(PackageId),
+                nameof(Width),
+                nameof(Length),
+                nameof(Height),
                 nameof(PackageType),
                 nameof(TapeAndReelSpecImage),
                 nameof(TapeAndReelActualImage)
@@ -300,13 +333,12 @@ namespace LagoVista.Manufacturing.Models
         {
             return new List<string>()
             {
-                nameof(Width),
-                nameof(Length),
-                nameof(Height),
                 nameof(SpecificationPage),
                 nameof(TapeSize),
                 nameof(TapePitch),
                 nameof(TapeRotation),
+                nameof(TapeColor),
+                nameof(TapeMaterialType),
             };
         }
 
@@ -314,15 +346,15 @@ namespace LagoVista.Manufacturing.Models
         {
             return new FormConditionals()
             {
-                ConditionalFields = new List<string>() { nameof(TapeSize), nameof(TapePitch), nameof(TapeRotation), nameof(Width), nameof(Height), nameof(Length) },
+                ConditionalFields = new List<string>() { nameof(TapeSize), nameof(TapePitch), nameof(TapeRotation), nameof(TapeMaterialType), nameof(TapeColor), nameof(Width), nameof(Height), nameof(Length) },
                 Conditionals = new List<FormConditional>()
                 {
                     new FormConditional()
                     {
                         Field = nameof(PackageType),
                         Value = PartType_SurfaceMount,
-                        RequiredFields = new List<string>() {nameof(TapeSize), nameof(TapePitch), nameof(TapeRotation), nameof(Width), nameof(Height), nameof(Length)},
-                        VisibleFields = new List<string>() {nameof(TapeSize), nameof(TapePitch), nameof(TapeRotation), nameof(Width), nameof(Height), nameof(Length) }
+                        RequiredFields = new List<string>() {nameof(TapeSize), nameof(TapePitch), nameof(TapeRotation), nameof(TapeMaterialType), nameof(TapeColor), nameof(Width), nameof(Height), nameof(Length)},
+                        VisibleFields = new List<string>() {nameof(TapeSize), nameof(TapePitch), nameof(TapeRotation), nameof(TapeMaterialType), nameof(TapeColor), nameof(Width), nameof(Height), nameof(Length) }
                     }
                 }
             };
