@@ -20,11 +20,13 @@ namespace LagoVista.Manufacturing.Managers
     public class ComponentManager : ManagerBase, IComponentManager
     {
         private readonly IComponentRepo _componentRepo;
+        private readonly IComponentPackageRepo _packageRepo;
 
-        public ComponentManager(IComponentRepo partRepo, IAdminLogger logger, IAppConfig appConfig, IDependencyManager depmanager, ISecurity security) :
+        public ComponentManager(IComponentRepo componentRepo, IComponentPackageRepo packageRepo, IAdminLogger logger, IAppConfig appConfig, IDependencyManager depmanager, ISecurity security) :
             base(logger, appConfig, depmanager, security)
         {
-            _componentRepo = partRepo;
+            _componentRepo = componentRepo;
+            _packageRepo = packageRepo;
         }
         public async Task<InvokeResult> AddComponentAsync(Component part, EntityHeader org, EntityHeader user)
         {
@@ -56,11 +58,16 @@ namespace LagoVista.Manufacturing.Managers
             return InvokeResult.Success;
         }
 
-        public async Task<Component> GetComponentAsync(string id, EntityHeader org, EntityHeader user)
+        public async Task<Component> GetComponentAsync(string id, bool loadPackage, EntityHeader org, EntityHeader user)
         {
-            var part = await _componentRepo.GetComponentAsync(id);
-            await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
-            return part;
+            var component = await _componentRepo.GetComponentAsync(id);
+            await AuthorizeAsync(component, AuthorizeActions.Read, user, org);
+            if (!EntityHeader.IsNullOrEmpty(component.ComponentPackage) && loadPackage)
+            {
+                component.ComponentPackage.Value = await _packageRepo.GetComponentPackageAsync(component.ComponentPackage.Id);
+            }
+                         
+            return component;
         }
 
 
@@ -224,7 +231,7 @@ namespace LagoVista.Manufacturing.Managers
         {
             ValidationCheck(purchase, Actions.Update);
 
-            var part = await GetComponentAsync(componentId, org, user);
+            var part = await GetComponentAsync(componentId,false, org, user);
             await AuthorizeAsync(part, AuthorizeActions.Update, user, org, "add purchase");
 
             part.Purchases.Add(purchase);
@@ -240,7 +247,7 @@ namespace LagoVista.Manufacturing.Managers
 
         public async Task<InvokeResult> ReceiveComponentPurchaseAsync(string componentId, string orderId, decimal qty, EntityHeader org, EntityHeader user)
         {
-            var part = await GetComponentAsync(componentId, org, user);
+            var part = await GetComponentAsync(componentId, false, org, user);
             await AuthorizeAsync(part, AuthorizeActions.Update, user, org, "add purchase");
 
             var purchase = part.Purchases.Single(prch => prch.OrderId == orderId);

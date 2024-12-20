@@ -158,6 +158,7 @@ namespace LagoVista.PickAndPlace.ViewModels
         public void Jog(JogDirections direction)
         {
             if ((Machine.Settings.MachineType == FirmwareTypes.Repeteir_PnP ||
+                Machine.Settings.MachineType == FirmwareTypes.LumenPnP_V4_Marlin ||
                 Machine.Settings.MachineType == FirmwareTypes.Marlin_Laser ||
                 Machine.Settings.MachineType == FirmwareTypes.Marlin ||
                 Machine.Settings.MachineType == FirmwareTypes.GRBL1_1) &&

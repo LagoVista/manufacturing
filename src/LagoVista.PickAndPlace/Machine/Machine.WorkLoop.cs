@@ -156,6 +156,9 @@ namespace LagoVista.PickAndPlace
 
         private bool ShouldSendNormalPriorityItems()
         {
+            if (_toSend.Count == 0)
+                return false;
+
             return _toSend.Count > 0 && ((_toSend.Peek().ToString()).Length + 1) < (Settings.ControllerBufferSize - Math.Max(0, UnacknowledgedBytesSent));
         }
 
@@ -192,7 +195,8 @@ namespace LagoVista.PickAndPlace
             }
 
             await Task.Delay(5);
-            var lineTask = _reader.ReadLineAsync();
+             
+            var lineTask = Settings.ConnectionType == ConnectionTypes.Serial_Port ? _reader.ReadToEndAsync() : _reader.ReadLineAsync(); 
 
             /* While we are awaiting for a line to come in process any outgoing stuff */
             while (!lineTask.IsCompleted)

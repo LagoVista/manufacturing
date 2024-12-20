@@ -33,6 +33,7 @@ namespace LagoVista.PickAndPlace
         private static Regex LagoVistaAccStatus = new Regex(@"<tl:(?'topLight'[01]),bl:(?'bottomLight'[01]),v1:(?'vacuum1'[01]),v2:(?'vacuum2'[01]),s1:(?'solenoid'[01]),t:(?'tool'[01])>");
 
         private static Regex MarlinLaser = new Regex(@"^x:(?'xpos'-?[0-9\.]*)y:(?'ypos'-?[0-9\.]*)z:(?'zpos'-?[0-9\.]*)e:(?'epos'-?[0-9\.]*)");
+        private static Regex MarlinPnP = new Regex(@"^x:(?'xpos'-?[0-9\.]*) y:(?'ypos'-?[0-9\.]*) z:(?'zpos'-?[0-9\.]*) a:(?'apos'-?[0-9\.]*) b:(?'bpos'-?[0-9\.]*)");
 
         /// <summary>
         /// Parses a recevied status report (answer to '?')
@@ -266,6 +267,7 @@ namespace LagoVista.PickAndPlace
         {
             var repeteirPosition = RepeteirPosition.Match(line);
             var marlinePositionMatch = MarlinLaser.Match(line);
+            var marlinePnPMatch = MarlinPnP.Match(line);
             var m114PositionMatch = CurrentPositionRegEx.Match(line);
             var pinState = PinState.Match(line);
 
@@ -282,6 +284,22 @@ namespace LagoVista.PickAndPlace
 
                 Tool0 = double.Parse(zpos.Value, Constants.DecimalParseFormat);
                 Tool2 = double.Parse(epos.Value, Constants.DecimalParseFormat);
+
+                return true;
+            }
+            else if (marlinePnPMatch.Success)
+            {
+                Group xpos = marlinePnPMatch.Groups["xpos"], ypos = marlinePnPMatch.Groups["ypos"], zpos = marlinePnPMatch.Groups["zpos"], apos = marlinePnPMatch.Groups["apos"], bpos = marlinePnPMatch.Groups["bpos"];
+                var newMachinePosition = new Vector3(double.Parse(xpos.Value, Constants.DecimalParseFormat), double.Parse(ypos.Value, Constants.DecimalParseFormat), double.Parse(zpos.Value, Constants.DecimalParseFormat));
+
+                if (MachinePosition != newMachinePosition)
+                {
+                    MachinePosition = newMachinePosition;
+                }
+
+                Tool0 = double.Parse(zpos.Value, Constants.DecimalParseFormat);
+                Tool1 = double.Parse(apos.Value, Constants.DecimalParseFormat);
+                Tool2 = double.Parse(bpos.Value, Constants.DecimalParseFormat);
 
                 return true;
             }

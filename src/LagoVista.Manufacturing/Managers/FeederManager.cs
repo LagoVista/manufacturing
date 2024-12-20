@@ -8,8 +8,6 @@ using LagoVista.Manufacturing.Interfaces.Repos;
 using LagoVista.Manufacturing.Models;
 using LagoVista.IoT.Logging.Loggers;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using static LagoVista.Core.Models.AuthorizeResult;
 using System.Threading.Tasks;
 
@@ -18,12 +16,17 @@ namespace LagoVista.Manufacturing.Managers
     public class FeederManager : ManagerBase, IFeederManager
     {
         private readonly IFeederRepo _FeederRepo;
+        private readonly IComponentManager _componentManager;
+        private readonly IComponentPackageRepo _packageRepo;
 
-        public FeederManager(IFeederRepo partRepo, 
+        public FeederManager(IFeederRepo feederRepo, IComponentManager componentManager, IComponentPackageRepo packageRepo,
             IAdminLogger logger, IAppConfig appConfig, IDependencyManager depmanager, ISecurity security) :
             base(logger, appConfig, depmanager, security)
         {
-            _FeederRepo = partRepo;
+            _FeederRepo = feederRepo;
+            _componentManager = componentManager ?? throw new ArgumentNullException(nameof(componentManager));
+            _packageRepo = packageRepo ?? throw new ArgumentNullException(nameof(packageRepo));
+
         }
         public async Task<InvokeResult> AddFeederAsync(Feeder feeder, EntityHeader org, EntityHeader user)
         {
@@ -48,20 +51,28 @@ namespace LagoVista.Manufacturing.Managers
 
         public async Task<InvokeResult> DeleteFeederAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _FeederRepo.GetFeederAsync(id);
-            await ConfirmNoDepenenciesAsync(part);
-            await AuthorizeAsync(part, AuthorizeActions.Delete, user, org);
+            var feeder = await _FeederRepo.GetFeederAsync(id);
+            await ConfirmNoDepenenciesAsync(feeder);
+            await AuthorizeAsync(feeder, AuthorizeActions.Delete, user, org);
             await _FeederRepo.DeleteFeederAsync(id);
             return InvokeResult.Success;
         }
 
-        public async Task<Feeder> GetFeederAsync(string id, EntityHeader org, EntityHeader user)
+        public async Task<Feeder> GetFeederAsync(string id, bool loadComponent, EntityHeader org, EntityHeader user)
         {
-            var part = await _FeederRepo.GetFeederAsync(id);
-            await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
-            return part;
-        }
+            var feeder = await _FeederRepo.GetFeederAsync(id);
+            if (!EntityHeader.IsNullOrEmpty(feeder.Component) && loadComponent)
+            {
+                feeder.Component.Value = await _componentManager.GetComponentAsync(feeder.Component.Id, true, org, user);
+                if (!EntityHeader.IsNullOrEmpty(feeder.Component.Value.ComponentPackage))
+                {
+                    feeder.Component.Value.ComponentPackage.Value = await _packageRepo.GetComponentPackageAsync(feeder.Component.Value.ComponentPackage.Id);
+                }
+            }
 
+            await AuthorizeAsync(feeder, AuthorizeActions.Read, user, org);
+            return feeder;
+        }
 
         public async Task<ListResponse<FeederSummary>> GetFeedersSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user)
         {
@@ -69,11 +80,11 @@ namespace LagoVista.Manufacturing.Managers
             return await _FeederRepo.GetFeederSummariesAsync(org.Id, listRequest);
         }
 
-        public async Task<InvokeResult> UpdateFeederAsync(Feeder order, EntityHeader org, EntityHeader user)
+        public async Task<InvokeResult> UpdateFeederAsync(Feeder feeder, EntityHeader org, EntityHeader user)
         {
-            await AuthorizeAsync(order, AuthorizeActions.Update, user, org);
-            ValidationCheck(order, Actions.Update);
-            await _FeederRepo.UpdateFeederAsync(order);
+            await AuthorizeAsync(feeder, AuthorizeActions.Update, user, org);
+            ValidationCheck(feeder, Actions.Update);
+            await _FeederRepo.UpdateFeederAsync(feeder);
 
             return InvokeResult.Success;
         }

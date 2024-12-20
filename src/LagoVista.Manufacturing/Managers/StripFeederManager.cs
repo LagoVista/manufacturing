@@ -15,28 +15,32 @@ namespace LagoVista.Manufacturing.Managers
 {
     public class StripFeederManager : ManagerBase, IStripFeederManager
     {
-        private readonly IStripFeederRepo _StripFeederRepo;
+        private readonly IStripFeederRepo _stripFeederRepo;
+        private readonly IComponentManager _componentManager;
+        private readonly IComponentPackageRepo _packageRepo;
 
-        public StripFeederManager(IStripFeederRepo partRepo, 
+        public StripFeederManager(IStripFeederRepo stripFeederRepo, IComponentManager componentManager, IComponentPackageRepo packageRepo,
             IAdminLogger logger, IAppConfig appConfig, IDependencyManager depmanager, ISecurity security) :
             base(logger, appConfig, depmanager, security)
         {
-            _StripFeederRepo = partRepo;
+            _stripFeederRepo = stripFeederRepo ?? throw new ArgumentNullException(nameof(stripFeederRepo));
+            _componentManager = componentManager ?? throw new ArgumentNullException(nameof(componentManager));
+            _packageRepo = packageRepo ?? throw new ArgumentNullException(nameof(packageRepo));
         }
         public async Task<InvokeResult> AddStripFeederAsync(StripFeeder feeder, EntityHeader org, EntityHeader user)
         {
             await AuthorizeAsync(feeder, AuthorizeActions.Create, user, org);
             ValidationCheck(feeder, Actions.Create);
-            await _StripFeederRepo.AddStripFeederAsync(feeder);
+            await _stripFeederRepo.AddStripFeederAsync(feeder);
 
             return InvokeResult.Success;
         }
 
         public async Task<DependentObjectCheckResult> CheckInUseAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _StripFeederRepo.GetStripFeederAsync(id);
-            await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
-            return await base.CheckForDepenenciesAsync(part);
+            var feeder = await _stripFeederRepo.GetStripFeederAsync(id);
+            await AuthorizeAsync(feeder, AuthorizeActions.Read, user, org);
+            return await base.CheckForDepenenciesAsync(feeder);
         }
 
         public Task<InvokeResult> DeleteCommponentAsync(string id, EntityHeader org, EntityHeader user)
@@ -46,32 +50,41 @@ namespace LagoVista.Manufacturing.Managers
 
         public async Task<InvokeResult> DeleteStripFeederAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _StripFeederRepo.GetStripFeederAsync(id);
-            await ConfirmNoDepenenciesAsync(part);
-            await AuthorizeAsync(part, AuthorizeActions.Delete, user, org);
-            await _StripFeederRepo.DeleteStripFeederAsync(id);
+            var feeder = await _stripFeederRepo.GetStripFeederAsync(id);
+            await ConfirmNoDepenenciesAsync(feeder);
+            await AuthorizeAsync(feeder, AuthorizeActions.Delete, user, org);
+            await _stripFeederRepo.DeleteStripFeederAsync(id);
             return InvokeResult.Success;
         }
 
-        public async Task<StripFeeder> GetStripFeederAsync(string id, EntityHeader org, EntityHeader user)
+        public async Task<StripFeeder> GetStripFeederAsync(string id, bool loadComponent, EntityHeader org, EntityHeader user)
         {
-            var part = await _StripFeederRepo.GetStripFeederAsync(id);
-            await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
-            return part;
+            var feeder = await _stripFeederRepo.GetStripFeederAsync(id);
+            await AuthorizeAsync(feeder, AuthorizeActions.Read, user, org);
+            if (!EntityHeader.IsNullOrEmpty(feeder.Component) && loadComponent)
+            {
+                feeder.Component.Value = await _componentManager.GetComponentAsync(feeder.Component.Id, true, org, user);
+                if(!EntityHeader.IsNullOrEmpty(feeder.Component.Value.ComponentPackage))
+                {
+                    feeder.Component.Value.ComponentPackage.Value = await _packageRepo.GetComponentPackageAsync(feeder.Component.Value.ComponentPackage.Id);
+                }
+            }
+
+            return feeder;
         }
 
 
         public async Task<ListResponse<StripFeederSummary>> GetStripFeedersSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user)
         {
             await AuthorizeOrgAccessAsync(user, org.Id, typeof(StripFeeder));
-            return await _StripFeederRepo.GetStripFeederSummariesAsync(org.Id, listRequest);
+            return await _stripFeederRepo.GetStripFeederSummariesAsync(org.Id, listRequest);
         }
 
-        public async Task<InvokeResult> UpdateStripFeederAsync(StripFeeder part, EntityHeader org, EntityHeader user)
+        public async Task<InvokeResult> UpdateStripFeederAsync(StripFeeder feeder, EntityHeader org, EntityHeader user)
         {
-            await AuthorizeAsync(part, AuthorizeActions.Update, user, org);
-            ValidationCheck(part, Actions.Update);
-            await _StripFeederRepo.UpdateStripFeederAsync(part);
+            await AuthorizeAsync(feeder, AuthorizeActions.Update, user, org);
+            ValidationCheck(feeder, Actions.Update);
+            await _stripFeederRepo.UpdateStripFeederAsync(feeder);
 
             return InvokeResult.Success;
         }

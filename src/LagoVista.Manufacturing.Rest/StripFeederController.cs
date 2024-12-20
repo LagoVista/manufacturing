@@ -25,9 +25,9 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         }
 
         [HttpGet("/api/mfg/stripfeeder/{id}")]
-        public async Task<DetailResponse<StripFeeder>> GetStripFeeder(string id)
+        public async Task<DetailResponse<StripFeeder>> GetStripFeeder(string id, bool loadcomponent = false)
         {
-            return DetailResponse<StripFeeder>.Create(await _mgr.GetStripFeederAsync(id, OrgEntityHeader, UserEntityHeader));
+            return DetailResponse<StripFeeder>.Create(await _mgr.GetStripFeederAsync(id, loadcomponent, OrgEntityHeader, UserEntityHeader));
         }
 
         [HttpGet("/api/mfg/stripfeeder/factory")]

@@ -4,6 +4,7 @@ using LagoVista.GCode;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using System;
+using System.Diagnostics;
 using System.IO.Ports;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +28,8 @@ namespace LagoVista.PickAndPlace
             try
             {
                 port.Open();
+
+                port.DataReceived += Port_DataReceived;
 
                 var outputStream = _port.BaseStream;
                 if (outputStream == null)
@@ -74,6 +77,11 @@ namespace LagoVista.PickAndPlace
                 Connected = false;
                 AddStatusMessage(StatusMessageTypes.Warning, $"Could not open serial port: " + ex.Message);
             }
+        }
+
+        private void Port_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            var obj = sender;
         }
 
         CancellationTokenSource _cancelSource;

@@ -275,6 +275,7 @@ namespace LagoVista.PickAndPlace.App
             dlg.ShowDialog();
             if (dlg.DialogResult.HasValue && dlg.DialogResult.Value)
             {
+                ViewModel.Machine.Settings = clonedSettings;
                 //ViewModel.Machine.MachineRepo.Machines.Remove(ViewModel.Machine.Settings);
                 //ViewModel.Machine.MachineRepo.Machines.Add(clonedSettings);
                 //ViewModel.Machine.Settings = clonedSettings;
@@ -293,17 +294,11 @@ namespace LagoVista.PickAndPlace.App
             dlg.ShowDialog();
             if (dlg.DialogResult.HasValue && dlg.DialogResult.Value)
             {
-                var result = await _restClient.PostAsync("/api/mfg/machine", machineResult);
-                if (!result.Successful)
-                    MessageBox.Show(result.ErrorMessage);
-                else
-                {
                     var menu = new MenuItem() { Header = settings.MachineName };
                     menu.Tag = settings.Id;
                     menu.Click += ChangeMachine_Click;
 
                     MachinesMenu.Items.Add(menu);
-                }
             }
         }
 

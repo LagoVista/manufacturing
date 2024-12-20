@@ -105,7 +105,7 @@ namespace LagoVista.Manufacturing.Models
         LagoVista_PnP,
         SimulatedMachine,
         Repeteir_PnP,
-        Lumina40_Marlin
+        LumenPnP_V4_Marlin
     }
 
     public enum OperatingMode

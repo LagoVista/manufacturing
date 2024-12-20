@@ -159,7 +159,7 @@ namespace LagoVista.PickAndPlace.ViewModels
                     {
                         var socketClient = SLWIOC.Create<ISocketClient>();
 
-                        await socketClient.ConnectAsync(Machine.Settings.IPAddress, 6969);
+                        await socketClient.ConnectAsync(Machine.Settings.IPAddress, 3000);
                         await Machine.ConnectAsync(socketClient);
                     }
                     catch(Exception)

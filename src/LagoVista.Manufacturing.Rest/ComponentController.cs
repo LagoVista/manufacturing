@@ -32,9 +32,9 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         }
 
         [HttpGet("/api/mfg/component/{id}")]
-        public async Task<DetailResponse<Component>> GetComponent(string id)
+        public async Task<DetailResponse<Component>> GetComponent(string id, bool loadcomponent = false)
         {
-            var response = DetailResponse<Component>.Create(await _mgr.GetComponentAsync(id, OrgEntityHeader, UserEntityHeader));
+            var response = DetailResponse<Component>.Create(await _mgr.GetComponentAsync(id, loadcomponent, OrgEntityHeader, UserEntityHeader));
             var pckgs = await _pckMgr.GetComponentPackagesSummariesAsync(ListRequest.CreateForAll(), OrgEntityHeader, UserEntityHeader);
             response.View[nameof(LagoVista.Manufacturing.Models.Component.ComponentPackage).CamelCase()].Options = pckgs.Model.Select(pck => new EnumDescription() { Id = pck.Id, Key = pck.Key, Text = pck.Name, Label = pck.Name, Name = pck.Name }).ToList();
             response.View[nameof(LagoVista.Manufacturing.Models.Component.ComponentPackage).CamelCase()].Options.Insert(0, new EnumDescription() { Id = "-1", Key = "-1", Text = "-select-", Name = "-select-", Label = "-select-" });

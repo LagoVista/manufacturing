@@ -25,9 +25,9 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         }
 
         [HttpGet("/api/mfg/Feeder/{id}")]
-        public async Task<DetailResponse<Feeder>> GetFeeder(string id)
+        public async Task<DetailResponse<Feeder>> GetFeeder(string id, bool loadcomponent = false)
         {
-            return DetailResponse<Feeder>.Create(await _mgr.GetFeederAsync(id, OrgEntityHeader, UserEntityHeader));
+            return DetailResponse<Feeder>.Create(await _mgr.GetFeederAsync(id, loadcomponent, OrgEntityHeader, UserEntityHeader));
         }
 
         [HttpGet("/api/mfg/Feeder/factory")]

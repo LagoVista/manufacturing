@@ -50,7 +50,7 @@ namespace LagoVista.PickAndPlace
                     {
                         if (PendingQueue.Count > 0)
                         {
-                            if (Settings.MachineType == FirmwareTypes.Repeteir_PnP)
+                            if (Settings.MachineType == FirmwareTypes.Repeteir_PnP || Settings.MachineType == FirmwareTypes.LumenPnP_V4_Marlin)
                             {
                                 Services.DispatcherServices.Invoke(() =>
                                 {

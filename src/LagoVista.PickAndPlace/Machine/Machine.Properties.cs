@@ -47,6 +47,7 @@ namespace LagoVista.PickAndPlace
                     return false;
 
                 return Settings.MachineType == FirmwareTypes.LagoVista_PnP ||
+                       Settings.MachineType == FirmwareTypes.LumenPnP_V4_Marlin ||
                        Settings.MachineType == FirmwareTypes.Repeteir_PnP ||
                        Settings.MachineType == FirmwareTypes.SimulatedMachine;
             }
