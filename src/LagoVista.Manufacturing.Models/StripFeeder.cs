@@ -32,11 +32,11 @@ namespace LagoVista.Manufacturing.Models
                ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-fo-left", Cloneable: true,
                SaveUrl: "/api/mfg/stripfeeder", GetUrl: "/api/mfg/stripfeeder/{id}", GetListUrl: "/api/mfg/stripfeeders", FactoryUrl: "/api/mfg/stripfeeder/factory",
                DeleteUrl: "/api/mfg/stripfeeder/{id}", ListUIUrl: "/mfg/Feeder/s", EditUIUrl: "/mfg/stripfeeder/{id}", CreateUIUrl: "/mfg/stripfeeder/add")]
-    public class StripFeeder : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IIDEntity, IFormConditionalFields
+    public class StripFeeder : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IIDEntity, IFormConditionalFields, IFormAdditionalActions
     {
         public const string FeederOrientation_Horizontal = "horizontal";
         public const string FeederOrientation_Vertical = "vertical";
-        
+
         public const string FeedDirection_Forwards = "forwards";
         public const string FeedDirection_Backwards = "backwards";
 
@@ -44,10 +44,10 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
         public string Icon { get; set; } = "icon-fo-left";
 
-        
+
         private EntityHeader<Component> _component;
-        [FormField(LabelResource: ManufacturingResources.Names.Component_Title, FieldType: FieldTypes.Custom, WaterMark:ManufacturingResources.Names.Feeder_Component_Select, 
-            CustomFieldType:"componentpicker", ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Component_Title, FieldType: FieldTypes.Custom, WaterMark: ManufacturingResources.Names.Feeder_Component_Select,
+            CustomFieldType: "componentpicker", ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<Component> Component
         {
             get => _component;
@@ -55,6 +55,7 @@ namespace LagoVista.Manufacturing.Models
         }
 
         private int _currentPartIndex;
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_CurrentPartindex, FieldType: FieldTypes.Integer, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public int CurrentPartIndex
         {
             get => _currentPartIndex;
@@ -74,9 +75,9 @@ namespace LagoVista.Manufacturing.Models
             get => _installed;
             set => Set(ref _installed, value);
         }
-        
+
         private EntityHeader<FeederOrientations> _orientation;
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Orientation, FieldType: FieldTypes.Picker, EnumType: typeof(FeederOrientations), WaterMark: ManufacturingResources.Names.StripFeeder_Orientation_Select, IsRequired:true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Orientation, FieldType: FieldTypes.Picker, EnumType: typeof(FeederOrientations), WaterMark: ManufacturingResources.Names.StripFeeder_Orientation_Select, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<FeederOrientations> Orientation
         {
             get => _orientation;
@@ -84,7 +85,7 @@ namespace LagoVista.Manufacturing.Models
         }
 
         private EntityHeader<FeedDirections> _feedDirection;
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Direction, FieldType: FieldTypes.Picker, EnumType:typeof(FeedDirections), WaterMark:ManufacturingResources.Names.StripFeeder_Direction_Select, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Direction, FieldType: FieldTypes.Picker, EnumType: typeof(FeedDirections), WaterMark: ManufacturingResources.Names.StripFeeder_Direction_Select, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<FeedDirections> FeedDirection
         {
             get => _feedDirection;
@@ -93,7 +94,7 @@ namespace LagoVista.Manufacturing.Models
 
         private double _pickHeight = 10;
 
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_PickHeight, FieldType: FieldTypes.Decimal,IsRequired:true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_PickHeight, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double PickHeight
         {
             get => _pickHeight;
@@ -105,7 +106,15 @@ namespace LagoVista.Manufacturing.Models
         public decimal? AngleOffset
         {
             get { return _angleOffset; }
-            set => Set(ref _angleOffset, value);    
+            set => Set(ref _angleOffset, value);
+        }
+
+        private string _centerLocation;
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_CenterLocationXY, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
+        public string CenterLocation
+        {
+            get => _centerLocation;
+            set => Set(ref _centerLocation, value);
         }
 
         private decimal? _bottomY;
@@ -113,7 +122,7 @@ namespace LagoVista.Manufacturing.Models
         public decimal? BottomY
         {
             get => _bottomY;
-            set => Set(ref _bottomY, value);        
+            set => Set(ref _bottomY, value);
         }
 
         private decimal? _leftX;
@@ -133,14 +142,14 @@ namespace LagoVista.Manufacturing.Models
         }
 
         private decimal? _firstHoleX;
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_FirstHole_X, FieldType: FieldTypes.Decimal,  ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_FirstHole_X, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
         public decimal? FirstHoleX
         {
             get => _firstHoleX;
             set => Set(ref _firstHoleX, value);
         }
 
-        private EntityHeader<TapeSizes> _tapeSize; 
+        private EntityHeader<TapeSizes> _tapeSize;
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeSize, FieldType: FieldTypes.Picker, EnumType: typeof(TapeSizes),
             WaterMark: ManufacturingResources.Names.ComponentPackage_TapeSize_Select, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<TapeSizes> TapeSize
@@ -171,13 +180,13 @@ namespace LagoVista.Manufacturing.Models
             {
                 nameof(Name),
                 nameof(Key),
+                nameof(CurrentPartIndex),
                 nameof(Description),
                 nameof(Installed),
                 nameof(Component),
                 nameof(TapeSize),
                 nameof(Orientation),
                 nameof(FeedDirection),
-                nameof(PickHeight),
             };
         }
 
@@ -211,6 +220,7 @@ namespace LagoVista.Manufacturing.Models
             return new List<string>()
             {
                 nameof(PickHeight),
+                nameof(CenterLocation),
                 nameof(LeftX),
                 nameof(BottomY),
                 nameof(Width),
@@ -219,7 +229,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(FirstHoleX),
                 nameof(FirstHoleY),
                 nameof(Color)
-            };            
+            };
         }
 
         [CustomValidator()]
@@ -255,6 +265,28 @@ namespace LagoVista.Manufacturing.Models
                          Field = nameof(Installed),
                          Value = "true",
                      }
+                }
+            };
+        }
+
+        public List<FormAdditionalAction> GetAdditionalActions()
+        {
+            return new List<FormAdditionalAction>()             {
+                new FormAdditionalAction()
+                {
+                    Icon = "fa fa-tally",
+                  Key = "resetindex",
+                  Title = "Reset Part Index",
+                   ForCreate = true,
+                   ForEdit = true,
+                },
+                new FormAdditionalAction()
+                {
+                    Icon = "fa fa-centercode",
+                    Key="resolvelocation",
+                    Title = "Resolve Location",
+                    ForCreate = true,
+                    ForEdit = true,
                 }
             };
         }
@@ -309,6 +341,6 @@ namespace LagoVista.Manufacturing.Models
         {
             get => _refHoleYOffset;
             set => Set(ref _refHoleYOffset, value);
-        }        
+        }
     }
 }

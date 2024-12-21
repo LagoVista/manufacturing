@@ -1,4 +1,4 @@
-﻿/*12/19/2024 8:09:07 AM*/
+﻿/*12/21/2024 8:16:46 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -397,6 +397,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ComponentPackage_TapeColor_Black
 
 		public static string ComponentPackage_TapeColor_Black { get { return GetResourceString("ComponentPackage_TapeColor_Black"); } }
+//Resources:ManufacturingResources:ComponentPackage_TapeColor_Clear
+
+		public static string ComponentPackage_TapeColor_Clear { get { return GetResourceString("ComponentPackage_TapeColor_Clear"); } }
 //Resources:ManufacturingResources:ComponentPackage_TapeColor_Select
 
 		public static string ComponentPackage_TapeColor_Select { get { return GetResourceString("ComponentPackage_TapeColor_Select"); } }
@@ -427,6 +430,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ComponentPackage_TapeSize_Select
 
 		public static string ComponentPackage_TapeSize_Select { get { return GetResourceString("ComponentPackage_TapeSize_Select"); } }
+//Resources:ManufacturingResources:ComponentPackage_TapeSpecificationPage
+
+		public static string ComponentPackage_TapeSpecificationPage { get { return GetResourceString("ComponentPackage_TapeSpecificationPage"); } }
 //Resources:ManufacturingResources:ComponentPackage_TapeWidth
 
 		public static string ComponentPackage_TapeWidth { get { return GetResourceString("ComponentPackage_TapeWidth"); } }
@@ -620,9 +626,15 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:StripFeeder_BottomY
 
 		public static string StripFeeder_BottomY { get { return GetResourceString("StripFeeder_BottomY"); } }
+//Resources:ManufacturingResources:StripFeeder_CenterLocationXY
+
+		public static string StripFeeder_CenterLocationXY { get { return GetResourceString("StripFeeder_CenterLocationXY"); } }
 //Resources:ManufacturingResources:StripFeeder_Color
 
 		public static string StripFeeder_Color { get { return GetResourceString("StripFeeder_Color"); } }
+//Resources:ManufacturingResources:StripFeeder_CurrentPartindex
+
+		public static string StripFeeder_CurrentPartindex { get { return GetResourceString("StripFeeder_CurrentPartindex"); } }
 //Resources:ManufacturingResources:StripFeeder_Description
 
 		public static string StripFeeder_Description { get { return GetResourceString("StripFeeder_Description"); } }
@@ -847,6 +859,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentPackage_TapeAndReelSpecImage = "ComponentPackage_TapeAndReelSpecImage";
 			public const string ComponentPackage_TapeColor = "ComponentPackage_TapeColor";
 			public const string ComponentPackage_TapeColor_Black = "ComponentPackage_TapeColor_Black";
+			public const string ComponentPackage_TapeColor_Clear = "ComponentPackage_TapeColor_Clear";
 			public const string ComponentPackage_TapeColor_Select = "ComponentPackage_TapeColor_Select";
 			public const string ComponentPackage_TapeColor_White = "ComponentPackage_TapeColor_White";
 			public const string ComponentPackage_TapeMaterialType = "ComponentPackage_TapeMaterialType";
@@ -857,6 +870,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentPackage_TapeRotation_Select = "ComponentPackage_TapeRotation_Select";
 			public const string ComponentPackage_TapeSize = "ComponentPackage_TapeSize";
 			public const string ComponentPackage_TapeSize_Select = "ComponentPackage_TapeSize_Select";
+			public const string ComponentPackage_TapeSpecificationPage = "ComponentPackage_TapeSpecificationPage";
 			public const string ComponentPackage_TapeWidth = "ComponentPackage_TapeWidth";
 			public const string ComponentPackage_TItle = "ComponentPackage_TItle";
 			public const string ComponentPackage_Verified = "ComponentPackage_Verified";
@@ -920,7 +934,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string PickAndPlaceJob_Title = "PickAndPlaceJob_Title";
 			public const string StripFeeder_AngleOffset = "StripFeeder_AngleOffset";
 			public const string StripFeeder_BottomY = "StripFeeder_BottomY";
+			public const string StripFeeder_CenterLocationXY = "StripFeeder_CenterLocationXY";
 			public const string StripFeeder_Color = "StripFeeder_Color";
+			public const string StripFeeder_CurrentPartindex = "StripFeeder_CurrentPartindex";
 			public const string StripFeeder_Description = "StripFeeder_Description";
 			public const string StripFeeder_Direction = "StripFeeder_Direction";
 			public const string StripFeeder_Direction_Select = "StripFeeder_Direction_Select";

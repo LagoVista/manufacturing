@@ -71,6 +71,9 @@ namespace LagoVista.Manufacturing.Models
 
         [EnumLabel(ComponentPackage.ComponentPackage_TapeColor_White, ManufacturingResources.Names.ComponentPackage_TapeColor_White, typeof(ManufacturingResources))]
         White,
+
+        [EnumLabel(ComponentPackage.ComponentPackage_TapeColor_Clear, ManufacturingResources.Names.ComponentPackage_TapeColor_Clear, typeof(ManufacturingResources))]
+        Clear,
     }
 
     public enum TapeMaterialTypes
@@ -129,6 +132,7 @@ namespace LagoVista.Manufacturing.Models
 
         public const string ComponentPackage_TapeColor_Black = "black";
         public const string ComponentPackage_TapeColor_White = "white";
+        public const string ComponentPackage_TapeColor_Clear = "clear";
 
         public const string ComponentPackage_MaterialType_Plastic = "plastic";
         public const string ComponentPackage_MaterialType_Paper = "paper";
@@ -287,6 +291,9 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_SpecificationPage, FieldType: FieldTypes.WebLink, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public string SpecificationPage { get; set; }
 
+        [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeSpecificationPage, FieldType: FieldTypes.WebLink, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public string TapeSpecificationPage { get; set; }
+
 
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_PartType, EnumType:typeof(PackageTypes), WaterMark: ManufacturingResources.Names.ComponentPackage_PartType_Select, FieldType: FieldTypes.Picker, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<PackageTypes> PackageType { get; set; }
@@ -334,6 +341,7 @@ namespace LagoVista.Manufacturing.Models
             return new List<string>()
             {
                 nameof(SpecificationPage),
+                nameof(TapeSpecificationPage),
                 nameof(TapeSize),
                 nameof(TapePitch),
                 nameof(TapeRotation),

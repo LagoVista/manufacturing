@@ -788,4 +788,16 @@
   <data name="StripFeeder_Color" xml:space="preserve">
     <value>Color</value>
   </data>
+  <data name="StripFeeder_CurrentPartindex" xml:space="preserve">
+    <value>Current Part Index</value>
+  </data>
+  <data name="ComponentPackage_TapeSpecificationPage" xml:space="preserve">
+    <value>Tape Specification Page</value>
+  </data>
+  <data name="StripFeeder_CenterLocationXY" xml:space="preserve">
+    <value>Center Location (XY)</value>
+  </data>
+  <data name="ComponentPackage_TapeColor_Clear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
 </root>
