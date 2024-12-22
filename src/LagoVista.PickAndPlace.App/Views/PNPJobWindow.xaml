@@ -576,7 +576,7 @@
                                         <ColumnDefinition Width="80" />
                                     </Grid.ColumnDefinitions>
                                     <Label Style="{StaticResource ValueLabel}" Content="Pixels per MM" />
-                                    <TextBox Style="{StaticResource ValueContent}" Text="{Binding Machine.Settings.PositionCameraPixelsPerMM}" Grid.Column="1"  />
+                                    <TextBox  Text="{Binding Machine.Settings.PositionCameraPixelsPerMM}" Grid.Column="1"  />
                                 </Grid>
 
                                 <Button Command="{Binding ToolAlignmentVM.SaveCalibrationCommand}" Content="Save" HorizontalAlignment="Right" />

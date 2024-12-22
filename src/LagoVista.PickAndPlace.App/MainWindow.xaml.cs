@@ -431,7 +431,7 @@ namespace LagoVista.PickAndPlace.App
                 var doc = XDocument.Load(file);
                 var job = new PnPJob();
                 job.Board = EagleParser.ReadPCB(doc);
-
+                job.EagleBRDFilePath = file;
 
                 var pnpViewModel = new PnPJobViewModel(ViewModel.Machine);
                 pnpViewModel.InitJob(job);
@@ -439,9 +439,10 @@ namespace LagoVista.PickAndPlace.App
                 var jobWindow = new Views.PNPJobWindow();
                 jobWindow.DataContext = pnpViewModel;
                 jobWindow.Owner = this;
-                jobWindow.ShowDialog();
+                jobWindow.Show();
                 EditPnPJob.IsEnabled = true;
                 FeederAlignementView.IsEnabled = true;
+
                 if (String.IsNullOrEmpty(pnpViewModel.FileName))
                 {
                     //         _pnpJob = pnpJob;
