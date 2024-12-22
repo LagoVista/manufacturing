@@ -64,14 +64,18 @@ namespace LagoVista.Manufacturing.Managers
 
         public async Task<DependentObjectCheckResult> CheckInUseAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _circuitBoardRepo.GetCircuitBoardAsync(id);
-            await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
-            return await base.CheckForDepenenciesAsync(part);
+            var pcb = await _circuitBoardRepo.GetCircuitBoardAsync(id);
+            await AuthorizeAsync(pcb, AuthorizeActions.Read, user, org);
+            return await base.CheckForDepenenciesAsync(pcb);
         }
 
-        public Task<InvokeResult> DeleteCommponentAsync(string id, EntityHeader org, EntityHeader user)
+        public async Task<InvokeResult> DeleteCommponentAsync(string id, EntityHeader org, EntityHeader user)
         {
-            throw new NotImplementedException();
+            var pcb = await _circuitBoardRepo.GetCircuitBoardAsync(id);
+            await AuthorizeAsync(pcb, AuthorizeActions.Delete, user, org);
+            await _circuitBoardRepo.DeleteCircuitBoardAsync(id);
+
+            return InvokeResult.Success;
         }
 
         public async Task<InvokeResult<CircuitBoardRevision>> PopulateComponents(CircuitBoardRevision revistion, EntityHeader org, EntityHeader user)
@@ -79,11 +83,28 @@ namespace LagoVista.Manufacturing.Managers
             var media = await _mediaServicesManager.GetResourceMediaAsync(revistion.BoardFile.Id, org, user);
             using (var ms = new MemoryStream(media.ImageBytes))
             {
-                var doc = XDocument.Load(ms);
-                var pcb = EagleParser.ReadPCB(doc);
-                revistion.PcbComponents = pcb.Components;
-                revistion.Width = pcb.Width;
-                revistion.Height = pcb.Height;
+
+                if (media.FileName.EndsWith("brd"))
+                {
+                    var doc = XDocument.Load(ms);
+                    var pcb = EagleParser.ReadPCB(doc);
+                    revistion.PcbComponents = pcb.Components;
+                    revistion.Width = pcb.Width;
+                    revistion.Height = pcb.Height;
+                    revistion.Outline = pcb.Outline;
+                }
+                else if(media.FileName.EndsWith("kicad_pcb"))
+                {
+                    var pcb = KicadImport.ReadPCB(ms);
+                    revistion.PcbComponents = pcb.Components;
+                    revistion.Width = pcb.Width;
+                    revistion.Height = pcb.Height;
+                    revistion.Outline = pcb.Outline;
+                }
+                else
+                {
+                    return InvokeResult<CircuitBoardRevision>.FromError($"Unsupported File Type - {media.FileName}");
+                }
             }
 
             return InvokeResult<CircuitBoardRevision>.Create(revistion);

@@ -7,21 +7,28 @@ namespace LagoVista.PCB.Eagle.Models
     public class PrintedCircuitBoard
     {
         public Plain Plain { get; set; }
-        public List<Layer> Layers { get; set; }
-        public List<PhysicalPackage> Packages { get; set; }
-        public List<PcbComponent> Components { get; set; }
-        public List<Via> Vias { get; set; }
-        public List<Signal> Signals { get; set; }
+        public List<Layer> Layers { get; set; } = new List<Layer>();
+        public List<PhysicalPackage> Packages { get; set; } = new List<PhysicalPackage>();
+        public List<PcbComponent> Components { get; set; } = new List<PcbComponent>();
+        public List<Via> Vias { get; set; } = new List<Via>();
+        public List<Signal> Signals { get; set; } = new List<Signal>();
+
+        public List<Wire> Outline { get; set; } = new List<Wire>();
 
         public double Width { get; set; }
         public double Height { get; set; }
 
-        public List<Fiducial> Fiducials { get; set; }
+        public List<Fiducial> Fiducials { get; set; } = new List<Fiducial>();
 
         public List<Drill> Drills
         {
             get
             {
+                var drillsLayer = Layers.Where(layer => layer.Number == 44).FirstOrDefault();
+                if(drillsLayer == null)
+                {
+                    return new List<Drill>();
+                }
                 var drills = Layers.Where(layer => layer.Number == 44).FirstOrDefault().Drills;
                 foreach (var via in Vias)
                 {
@@ -72,7 +79,12 @@ namespace LagoVista.PCB.Eagle.Models
         {
             get
             {
-                foreach(var hole in Layers.Where(layer => layer.Number == 45).FirstOrDefault().Holes)
+
+                var holesLayer = Layers.Where(layer => layer.Number == 45).FirstOrDefault();
+                if(holesLayer == null)
+                    return new List<Hole>();
+
+                foreach (var hole in Layers.Where(layer => layer.Number == 45).FirstOrDefault().Holes)
                 {
                     Debug.WriteLine(hole.X + " " + hole.Y + " " + hole.Drill);
                 }

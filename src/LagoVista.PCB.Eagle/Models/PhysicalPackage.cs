@@ -11,13 +11,13 @@ namespace LagoVista.PCB.Eagle.Models
         public string Name { get; set; }
         public string Description { get; set; }
 
-        public List<Wire> Wires { get; set; }
-        public List<SMDPad> SmdPads { get; set; }
-        public List<Text> Texts { get; set; }
-        public List<Pad> Pads { get; set; }
-        public List<Circle> Circles { get; set; }
-        public List<Hole> Holes { get; set; }
-        public List<Rect> Rects { get; set; }
+        public List<Wire> Wires { get; set; } = new List<Wire>();
+        public List<SMDPad> SmdPads { get; set; } = new List<SMDPad>();
+        public List<Text> Texts { get; set; } = new List<Text>();
+        public List<Pad> Pads { get; set; } = new List<Pad>();
+        public List<Circle> Circles { get; set; } = new List<Circle>();
+        public List<Hole> Holes { get; set; } = new List<Hole>();
+        public List<Rect> Rects { get; set; } = new List<Rect>();
 
         public bool IsSMD { get { return SmdPads.Any(); } }
 

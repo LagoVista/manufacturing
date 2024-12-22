@@ -29,4 +29,16 @@
     <ProjectReference Include="..\..\src\LagoVista.PCB.Eagle\LagoVista.PCB.Eagle.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="mobo-top.pos">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="mobo.kicad_pcb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="mobo.kicad_sch">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

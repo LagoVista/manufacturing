@@ -309,7 +309,8 @@ namespace LagoVista.Manufacturing.Models
                 Id = Id,
                 IsPublic = IsPublic,
                 PackageId = PackageId,
-                HasPads = Pads.Any()
+                Verified = Verified,
+                IsSurfaceMount = PackageType.Value == PackageTypes.SurfaceMount
             };
         }
 
@@ -376,7 +377,8 @@ namespace LagoVista.Manufacturing.Models
     public class ComponentPackageSummary : SummaryData
     {
         public string PackageId { get; set; }
-        public bool HasPads { get; set; }
+        public bool Verified { get; set; }
+        public bool IsSurfaceMount { get; set; }
     }
 
     // using System.Xml.Serialization;
