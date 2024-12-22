@@ -55,6 +55,7 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Common_Height, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
         public double? Height { get; set; }
 
+        public List<Wire> Outline { get; set; } = new List<Wire>();
 
         public List<string> GetFormFields()
         {

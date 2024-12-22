@@ -29,6 +29,14 @@ namespace LagoVista
 
         public static double ToAngle(this string rotationString)
         {
+            if(double.TryParse(rotationString, out double outAngle))
+            {
+                if (outAngle == 360)
+                    outAngle = 0;
+                    
+                return outAngle;
+            }
+
             double angle = 0;
 
             if (String.IsNullOrEmpty(rotationString))
