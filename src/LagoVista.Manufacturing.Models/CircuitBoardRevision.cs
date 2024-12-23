@@ -11,6 +11,21 @@ using System.Runtime.InteropServices;
 
 namespace LagoVista.Manufacturing.Models
 {
+    public enum PCBLayers
+    {
+        TopCopper,
+        BottomCopper,
+        TopSilk,
+        BottomSilk,
+        Drills,
+        Holes,
+        BoardOutline,
+        TopPlace,
+        BottomPlace,
+        TopStayOut,
+        BottomStayOut,
+    }
+
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Pcb_Revision_Title, ManufacturingResources.Names.Pcb_Revision_Description,
        ManufacturingResources.Names.Pcb_Revision_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-core-1", Cloneable: true,
        FactoryUrl: "/api/mfg/pcb/revision/factory")]
