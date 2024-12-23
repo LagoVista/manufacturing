@@ -227,7 +227,7 @@ namespace LagoVista.PickAndPlace.App
 
             if (ViewModel.Machine.PCBManager.HasProject && ViewModel.Machine.PCBManager.HasBoard)
             {
-                var heightMap = new HeightMap(ViewModel.Machine, ViewModel.Logger);
+                var heightMap = new HeightMap(ViewModel.Logger);
                 heightMap.Min = new Core.Models.Drawing.Vector2(ViewModel.Machine.PCBManager.Project.ScrapSides, ViewModel.Machine.PCBManager.Project.ScrapTopBottom);
                 heightMap.Max = new Core.Models.Drawing.Vector2(ViewModel.Machine.PCBManager.Board.Width + ViewModel.Machine.PCBManager.Project.ScrapSides, ViewModel.Machine.PCBManager.Board.Height + ViewModel.Machine.PCBManager.Project.ScrapTopBottom);
                 heightMap.GridSize = ViewModel.Machine.PCBManager.Project.HeightMapGridSize;
@@ -251,7 +251,7 @@ namespace LagoVista.PickAndPlace.App
 
         private void NewGeneratedHeigtMap_Click(object sender, RoutedEventArgs e)
         {
-            var heightMap = new HeightMap(ViewModel.Machine, ViewModel.Logger);
+            var heightMap = new HeightMap(ViewModel.Logger);
             ViewModel.Machine.HeightMapManager.CreateTestPattern();
         }
 

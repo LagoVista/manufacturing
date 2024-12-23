@@ -18,5 +18,10 @@ namespace LagoVista.Manufacturing.Models
         public double SafeMoveHeight { get; set; }
         public double PickHeight { get; set; }
         public double BoardHeight { get; set; }
+
+        public int Diameter { get; set; }
+
+        public double IdlePressure { get; set; }
+        public double PartPickedPressure { get; set; }
     }
 }

@@ -12,6 +12,7 @@ using System.Linq;
 using LagoVista.Core.Attributes;
 using LagoVista.Manufacturing.Models.Resources;
 using LagoVista.Core.Interfaces;
+using LagoVista.PickAndPlace.Models;
 
 namespace LagoVista.Manufacturing.Models
 {
@@ -153,6 +154,8 @@ namespace LagoVista.Manufacturing.Models
         public double ViewportArcSplit { get; set; }
         public double ArcToLineSegmentLength { get; set; }
         public double SplitSegmentLength { get; set; }
+
+        public List<VisionProfile> VisionProfiles { get; set; } = new List<VisionProfile>();
 
         private Point2D<double> _knownCalibrationPoint = new Point2D<double>();
         public Point2D<double> KnownCalibrationPoint

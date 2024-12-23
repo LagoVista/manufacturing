@@ -36,9 +36,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mfg.ServicesTests", "tests\Mfg.ServicesTests\Mfg.ServicesTests.csproj", "{3595B087-5806-4706-9724-A144CF0AB796}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "KiCadParser", "KiCadParser", "{9AE8147B-C2A5-468B-B695-75942BCC8771}"
-	ProjectSection(SolutionItems) = preProject
-		ReadMe.md = ReadMe.md
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LagoVista.MSDMarkwort.Kicad.Parser.Base", "src\MSDMarkwort.Kicad.Parser.Base\LagoVista.MSDMarkwort.Kicad.Parser.Base.csproj", "{0E8A5D71-F1AF-45E6-BDD6-AE73E3FA63A0}"
 EndProject

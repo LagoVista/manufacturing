@@ -11,12 +11,15 @@ namespace LagoVista.PickAndPlace.Models
 {
     public partial class HeightMap
     {
+        public static string FileFilterHeightMap = "Height Maps|*.hmap|All Files|*.*";
+
+
         public async Task SaveAsync()
         {
             if (!String.IsNullOrEmpty(_fileName))
             {
                 var popupService = SLWIOC.Get<IPopupServices>();
-                _fileName = await popupService.ShowSaveFileAsync(Constants.FileFilterHeightMap);
+                _fileName = await popupService.ShowSaveFileAsync(FileFilterHeightMap);
             }
 
             if (!String.IsNullOrEmpty(_fileName))
@@ -28,7 +31,7 @@ namespace LagoVista.PickAndPlace.Models
         public async Task SaveAsAsync()
         {
             var popupService = SLWIOC.Get<IPopupServices>();
-            _fileName = await popupService.ShowSaveFileAsync(Constants.FileFilterHeightMap);
+            _fileName = await popupService.ShowSaveFileAsync(FileFilterHeightMap);
             if (!String.IsNullOrEmpty(_fileName))
             {
                 await Core.PlatformSupport.Services.Storage.StoreAsync(this, _fileName);
@@ -38,7 +41,7 @@ namespace LagoVista.PickAndPlace.Models
         public static async Task<HeightMap> OpenAsync(LagoVista.Manufacturing.Models.Machine settings)
         {
             var popupService = SLWIOC.Get<IPopupServices>();
-            var fileName = await popupService.ShowSaveFileAsync(Constants.FileFilterHeightMap);
+            var fileName = await popupService.ShowSaveFileAsync(FileFilterHeightMap);
             if (fileName != null)
             {
                 var heightMap = await Core.PlatformSupport.Services.Storage.GetAsync<HeightMap>(fileName);

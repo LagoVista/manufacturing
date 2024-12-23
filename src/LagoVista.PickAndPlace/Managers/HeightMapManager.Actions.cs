@@ -126,7 +126,7 @@ namespace LagoVista.PickAndPlace.Managers
 
         public void CreateTestPattern()
         {
-            var heightMap = new Models.HeightMap(Machine, Logger);
+            var heightMap = new Models.HeightMap(Logger);
             if (Machine.PCBManager.HasBoard)
             {
                 heightMap.Min = new Core.Models.Drawing.Vector2(Machine.PCBManager.Project.ScrapSides, Machine.PCBManager.Project.ScrapTopBottom);

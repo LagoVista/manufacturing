@@ -23,5 +23,10 @@ namespace LagoVista.Manufacturing.Models
 
         public string ParseLeftVacuumRegEx { get; set; }
         public string ParseRightVacuumRegEx { get; set; }
+
+        public string HomeCommand { get; set; }        
+
+        public string RequestStatusCommand { get; set; }
+        public string StatusRegEx { get; set; }
     }
 }

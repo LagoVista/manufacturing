@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using LagoVista.Core.Models.Drawing;
-using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.Core.PlatformSupport;
 using LagoVista.Manufacturing.Models;
 
@@ -9,16 +8,14 @@ namespace LagoVista.PickAndPlace.Models
 {
     public partial class HeightMap : Core.Models.ModelBase
     {
-        IMachine _machine;
         ILogger _logger;
         private String _fileName = null;
 
-        public HeightMap(IMachine machine, ILogger logger)
+        public HeightMap(ILogger logger)
         {
             RawBoardOutline = new System.Collections.ObjectModel.ObservableCollection<Line3D>();
             Points = new System.Collections.ObjectModel.ObservableCollection<HeightMapProbePoint>();
 
-            _machine = machine;
             _logger = logger;
             _min = new Vector2(0, 0);
             _max = new Vector2(100, 80);
@@ -38,35 +35,30 @@ namespace LagoVista.PickAndPlace.Models
             var gridSize = GridSize;
             if (min.X == max.X)
             {
-                _machine.AddStatusMessage(StatusMessageTypes.Warning, $"Min X must not equal Max X, both are {min.X}");
                 _logger.AddCustomEvent(LogLevel.Warning, "HeightMap_Refresh", $"Min X must not equal Max X, both are {min.X}");
                 return;
             }
 
             if (min.Y == max.Y)
             {
-                _machine.AddStatusMessage(StatusMessageTypes.Warning, $"Min Y must not equal Max Y, both are {min.Y}");
                 _logger.AddCustomEvent(LogLevel.Warning, "HeightMap_Refresh", $"Min Y must not equal Max Y, both are {min.Y}");
                 return;
             }
 
             if (min.X > max.X)
             {
-                _machine.AddStatusMessage(StatusMessageTypes.Warning, $"Min X [{min.X}] must be greater than Max X [{max.X}]");
                 _logger.AddCustomEvent(LogLevel.Warning, "HeightMap_Refresh", $"Min X [{min.X}] must be greater than Max X [{max.X}]");
                 return;
             }
 
             if (min.Y > max.Y)
             {
-                _machine.AddStatusMessage(StatusMessageTypes.Warning, $"Min Y [{min.Y}] must be greater than Max Y [{max.Y}]");
                 _logger.AddCustomEvent(LogLevel.Warning, "HeightMap_Refresh", $"Min Y [{min.Y}] must be greater than Max Y [{max.Y}]");
                 return;
             }
 
             if (gridSize == 0)
             {
-                _machine.AddStatusMessage(StatusMessageTypes.Warning, $"Grid Size must not equal to 0.");
                 _logger.AddCustomEvent(LogLevel.Warning, "HeightMap_Refresh", $"Grid Size must not be equal to 0.");
                 return;
             }
@@ -76,7 +68,6 @@ namespace LagoVista.PickAndPlace.Models
 
             if (pointsX == 0 || pointsY == 0)
             {
-                _machine.AddStatusMessage(StatusMessageTypes.Warning, $"Grid Size too large for board size.");
                 _logger.AddCustomEvent(LogLevel.Warning, "HeightMap_Refresh", $"Grid Size too large for board size..");
                 return;
             }         

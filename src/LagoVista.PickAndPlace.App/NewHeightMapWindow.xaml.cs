@@ -12,11 +12,11 @@ namespace LagoVista.PickAndPlace.App
 		{
             Owner = owner;
             _viewModel = new NewHeightMapViewModel(machine);
-            _viewModel.HeightMap = edit ? _viewModel.Machine.HeightMapManager.HeightMap : new HeightMap(_viewModel.Machine, _viewModel.Logger);
+            _viewModel.HeightMap = edit ? _viewModel.Machine.HeightMapManager.HeightMap : new HeightMap(_viewModel.Logger);
             ///TODO: Should really disable the edit option if we don't have a height map.
             if (_viewModel.HeightMap == null)
             {
-                _viewModel.HeightMap = new HeightMap(_viewModel.Machine, _viewModel.Logger);
+                _viewModel.HeightMap = new HeightMap(_viewModel.Logger);
             }
 
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
