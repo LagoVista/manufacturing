@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="LagoVista.Core" Version="3.0.2776.1110" />
+    <PackageReference Include="LagoVista.Core" Version="3.0.2777.1437" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 

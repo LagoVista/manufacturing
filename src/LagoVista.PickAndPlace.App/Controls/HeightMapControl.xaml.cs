@@ -62,13 +62,13 @@ namespace LagoVista.PickAndPlace.App.Controls
                     foreach (var wire in wireSection)
                     {
                         var topWireMeshBuilder = new MeshBuilder(false, false);
-                        var boxRect = new Rect3D(wire.Rect.X1 - (width / 2), wire.Rect.Y1, -0.1, width, wire.Rect.Length, 0.2);
+                        var boxRect = new Rect3D(wire.X1 - (width / 2), wire.Y1, -0.1, width, wire.Length, 0.2);
                         topWireMeshBuilder.AddBox(boxRect);
 
-                        topWireMeshBuilder.AddCylinder(new Point3D(wire.Rect.X1, wire.Rect.Y1, -0.1), new Point3D(wire.Rect.X1, wire.Rect.Y1, .1), width / 2, 50, true, true);
+                        topWireMeshBuilder.AddCylinder(new Point3D(wire.X1, wire.Y1, -0.1), new Point3D(wire.X1, wire.Y1, .1), width / 2, 50, true, true);
 
                         var boxModel = new GeometryModel3D() { Geometry = topWireMeshBuilder.ToMesh(true), Material = copperMaterial };
-                        boxModel.Transform = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 0, 1), wire.Rect.Angle), new Point3D(wire.Rect.X1, wire.Rect.Y1, 0));
+                        boxModel.Transform = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 0, 1), wire.Angle), new Point3D(wire.X1, wire.Y1, 0));
                         modelGroup.Children.Add(boxModel);
                     }
                 }
@@ -83,19 +83,17 @@ namespace LagoVista.PickAndPlace.App.Controls
                     foreach (var wire in wireSection)
                     {
                         var topWireMeshBuilder = new MeshBuilder(false, false);
-                        var boxRect = new Rect3D(wire.Rect.X1 - (width / 2), wire.Rect.Y1, -0.105, width, wire.Rect.Length, 0.2);
+                        var boxRect = new Rect3D(wire.X1 - (width / 2), wire.Y1, -0.105, width, wire.Length, 0.2);
                         topWireMeshBuilder.AddBox(boxRect);
 
-                        topWireMeshBuilder.AddCylinder(new Point3D(wire.Rect.X1, wire.Rect.Y1, -0.105), new Point3D(wire.Rect.X1, wire.Rect.Y1, .095), width / 2, 50, true, true);
+                        topWireMeshBuilder.AddCylinder(new Point3D(wire.X1, wire.Y1, -0.105), new Point3D(wire.X1, wire.Y1, .095), width / 2, 50, true, true);
 
                         var boxModel = new GeometryModel3D() { Geometry = topWireMeshBuilder.ToMesh(true), Material = grayMaterial };
-                        boxModel.Transform = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 0, 1), wire.Rect.Angle), new Point3D(wire.Rect.X1, wire.Rect.Y1, 0));
+                        boxModel.Transform = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 0, 1), wire.Angle), new Point3D(wire.X1, wire.Y1, 0));
                         modelGroup.Children.Add(boxModel);
                     }
                 }
             }
-
-
 
             foreach (var element in board.Components)
             {
@@ -104,11 +102,11 @@ namespace LagoVista.PickAndPlace.App.Controls
                     var padMeshBuilder = new MeshBuilder(false, false);
 
                     padMeshBuilder.AddBox(new Rect3D(pad.OriginX - (pad.DX / 2), pad.OriginY - (pad.DY / 2), -0.1, (pad.DX), (pad.DY), 0.2));
-                    var box = new GeometryModel3D() { Geometry = padMeshBuilder.ToMesh(true), Material = element.Layer == 1 ? copperMaterial : grayMaterial };
+                    var box = new GeometryModel3D() { Geometry = padMeshBuilder.ToMesh(true), Material = element.Layer.Value == PCBLayers.TopCopper ? copperMaterial : grayMaterial };
 
                     var transformGroup = new Transform3DGroup();
-                    transformGroup.Children.Add(new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 0, 1), element.RotateAngle)));
-                    transformGroup.Children.Add(new TranslateTransform3D(new Vector3D(element.X.Value, element.Y.Value, element.Layer == 1 ? 0 : 0.05)));
+                    transformGroup.Children.Add(new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 0, 1), element.Rotation)));
+                    transformGroup.Children.Add(new TranslateTransform3D(new Vector3D(element.X.Value, element.Y.Value, element.Layer.Value == PCBLayers.TopCopper ? 0 : 0.05)));
 
                     box.Transform = transformGroup;
 
@@ -168,8 +166,8 @@ namespace LagoVista.PickAndPlace.App.Controls
 
                 var boardEdgeMeshBuilder = new MeshBuilder(false, false);
 
-                var cornerWires = board.Layers.Where(layer => layer.Number == 20).FirstOrDefault().Wires.Where(wire => wire.Curve.HasValue == true);
-                var radius = cornerWires.Any() ? Math.Abs(cornerWires.First().Rect.X1 - cornerWires.First().Rect.X2) : 0;
+                var cornerWires = board.Layers.Where(layer => layer.Layer.Value == PCBLayers.BoardOutline).FirstOrDefault().Wires.Where(wire => wire.Curve.HasValue == true);
+                var radius = cornerWires.Any() ? Math.Abs(cornerWires.First().X1 - cornerWires.First().X2) : 0;
                 if (radius == 0)
                 {
                     boardEdgeMeshBuilder.AddBox(new Point3D(board.Width / 2, board.Height / 2, -boardThickness / 2), board.Width, board.Height, boardThickness);

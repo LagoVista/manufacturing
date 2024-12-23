@@ -1,4 +1,5 @@
-﻿using LagoVista.Core.Models.Drawing;
+﻿using LagoVista.Core.Models;
+using LagoVista.Core.Models.Drawing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,17 +11,18 @@ namespace LagoVista.PCB.Eagle.Models
 {
     public class Hole
     {
+        public EntityHeader<PCBLayers> Layer { get; set; }
+
         public string Name { get; set; }
         public double X { get; set; }
         public double Y { get; set; }
         public double Drill { get; set; }
 
-        public PhysicalPackage Package { get; set; }
-
         public static Hole Create(XElement element)
         {
             return new Models.Hole()
             {
+                Layer = EntityHeader<PCBLayers>.Create(PCBLayers.Holes),
                 X = element.GetDouble("x"),
                 Y = element.GetDouble("y"),
                 Drill = element.GetDouble("drill"),

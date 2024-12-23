@@ -11,7 +11,7 @@ namespace LagoVista.PCB.Eagle.Models
     public class Signal
     {
         public List<ContactRef> Contacts { get; private set; }
-        public List<Wire> Wires { get; private set; }
+        public List<PcbLine> Wires { get; private set; }
 
         public string Name { get; set; }
 
@@ -20,27 +20,27 @@ namespace LagoVista.PCB.Eagle.Models
             return new Signal()
             {
                 Name = element.GetString("name"),
-                Wires = (from childWires in element.Descendants("wire") select Wire.Create(childWires)).ToList(),
+                Wires = (from childWires in element.Descendants("wire") select PcbLine.Create(childWires)).ToList(),
                 Contacts = (from refs in element.Descendants("contactref") select ContactRef.Create(refs)).ToList(),
             };
         }
 
-        public List<Wire> UnroutedWires
+        public List<PcbLine> UnroutedWires
         {
-            get { return Wires.Where(wire => wire.Layer == 19).ToList(); }
+            get { return Wires.Where(wire => wire.Layer.Value == PCBLayers.Unrouted).ToList(); }
         }
 
-        public List<Wire> TopWires
+        public List<PcbLine> TopWires
         {
-            get { return Wires.Where(wire => wire.Layer == 1).ToList(); }
+            get { return Wires.Where(wire => wire.Layer.Value == PCBLayers.TopCopper).ToList(); }
         }
 
-        public List<Wire> BottomWires
+        public List<PcbLine> BottomWires
         {
-            get { return Wires.Where(wire => wire.Layer == 16).ToList(); }
+            get { return Wires.Where(wire => wire.Layer.Value == PCBLayers.BottomCopper).ToList(); }
         }
 
-        private List<Trace> FindTraces(List<Wire> unprocessedWires)
+        private List<Trace> FindTraces(List<PcbLine> unprocessedWires)
         {
             var traces = new List<Trace>();
 
@@ -55,18 +55,18 @@ namespace LagoVista.PCB.Eagle.Models
                 var trace = new Trace();
                 trace.Wires.Add(candidateWire);
                 traces.Add(trace);
-                var newCandidates = new List<Wire>();
+                var newCandidates = new List<PcbLine>();
 
                 /* Continue searching if we have a candidate coming in OR we have a new candidate that was put on the trace to review */
                 while (candidateWire != null)
                 {
 
-                    var wiresProcessed = new List<Wire>();
+                    var wiresProcessed = new List<PcbLine>();
 
                     foreach (var wire in unprocessedWires)
                     {
 
-                        if (candidateWire.Rect.X2 == wire.Rect.X1 && candidateWire.Rect.Y2 == wire.Rect.Y1)
+                        if (candidateWire.X2 == wire.X1 && candidateWire.Y2 == wire.Y1)
                         {
                             /* Add a new candidate to review */
                             newCandidates.Add(wire);
@@ -80,7 +80,7 @@ namespace LagoVista.PCB.Eagle.Models
                             wiresProcessed.Add(wire);
                         }
 
-                        if (candidateWire.Rect.X1 == wire.Rect.X2 && candidateWire.Rect.Y1 == wire.Rect.Y2)
+                        if (candidateWire.X1 == wire.X2 && candidateWire.Y1 == wire.Y2)
                         {
 
                             /* Add a new candidate to review */
@@ -95,7 +95,7 @@ namespace LagoVista.PCB.Eagle.Models
                             wiresProcessed.Add(wire);
                         }
 
-                        if (candidateWire.Rect.X2 == wire.Rect.X2 && candidateWire.Rect.Y2 == wire.Rect.Y2)
+                        if (candidateWire.X2 == wire.X2 && candidateWire.Y2 == wire.Y2)
                         {
 
                             /* Add a new candidate to review */
@@ -110,7 +110,7 @@ namespace LagoVista.PCB.Eagle.Models
                             wiresProcessed.Add(wire);
                         }
 
-                        if (candidateWire.Rect.X1 == wire.Rect.X1 && candidateWire.Rect.Y1 == wire.Rect.Y1)
+                        if (candidateWire.X1 == wire.X1 && candidateWire.Y1 == wire.Y1)
                         {
                             /* Add a new candidate to review */
                             newCandidates.Add(wire);
@@ -128,7 +128,7 @@ namespace LagoVista.PCB.Eagle.Models
                     /* If the wire was added in this pass, remove it from the unprocessedWires list */
                     foreach (var wire in wiresProcessed)
                     {
-                        if(wire.Rect.X2 == 34.925)
+                        if(wire.X2 == 34.925)
                         {
                             Debugger.Break();
                         }

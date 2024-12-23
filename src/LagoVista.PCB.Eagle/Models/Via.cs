@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using LagoVista.Core.Models;
 using System.Xml.Linq;
 
 namespace LagoVista.PCB.Eagle.Models
 {
     public class Via
     {
+        public EntityHeader<PCBLayers> Layer { get; set; }
         public double X { get; set; }
         public double Y { get; set; }
         public double OriginX { get; set; }
@@ -19,6 +16,7 @@ namespace LagoVista.PCB.Eagle.Models
         {
             return new Via()
             {
+                Layer = EntityHeader<PCBLayers>.Create(PCBLayers.Via),
                 DrillDiameter = element.GetDouble("drill"),
                 X = element.GetDouble("x"),
                 Y = element.GetDouble("y"),

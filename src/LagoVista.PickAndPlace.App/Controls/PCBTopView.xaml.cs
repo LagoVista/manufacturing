@@ -1,4 +1,5 @@
 ﻿using LagoVista.Core.Models.Drawing;
+using LagoVista.PCB.Eagle.Models;
 using LagoVista.PickAndPlace.Managers;
 using System;
 using System.Linq;
@@ -68,8 +69,8 @@ namespace LagoVista.PickAndPlace.App.Controls
                 outline.Width = manager.Board.Width * 10;
                 outline.Height = manager.Board.Height * 10;
 
-                var cornerWires = manager.Board.Layers.Where(layer => layer.Number == 20).FirstOrDefault().Wires.Where(wire => wire.Curve.HasValue == true);
-                var radius = cornerWires.Any() ? Math.Abs(cornerWires.First().Rect.X1 - cornerWires.First().Rect.X2) : 0;
+                var cornerWires = manager.Board.Layers.Where(layer => layer.Layer.Value == PCBLayers.BoardOutline).FirstOrDefault().Wires.Where(wire => wire.Curve.HasValue == true);
+                var radius = cornerWires.Any() ? Math.Abs(cornerWires.First().X1 - cornerWires.First().X2) : 0;
                 outline.RadiusX = radius * 10;
                 outline.RadiusY = radius * 10;
                 BoardLayout.Children.Add(outline);

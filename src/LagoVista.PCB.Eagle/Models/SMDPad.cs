@@ -1,13 +1,14 @@
-﻿using LagoVista.Core.Models.Drawing;
-using System;
-using System.Diagnostics;
+﻿using LagoVista.Core.Models;
+using LagoVista.Core.Models.Drawing;
+using LagoVista.PCB.Eagle.Extensions;
+using System.Linq;
 using System.Xml.Linq;
 
 namespace LagoVista.PCB.Eagle.Models
 {
     public class SMDPad
     {
-        public int Layer { get; set; }
+        public EntityHeader<PCBLayers> Layer { get; set; }
         public string Name { get; set; }
         public double OriginX { get; set; }
         public double OriginY { get; set; }
@@ -22,8 +23,6 @@ namespace LagoVista.PCB.Eagle.Models
         public string RotateStr { get; set; }
 
         public double RotateAngle { get => RotateStr.ToAngle(); }
-
-        //public PhysicalPackage PhysicalPackage { get; set; }
 
         public SMDPad ApplyRotation(double angle)
         {
@@ -53,18 +52,6 @@ namespace LagoVista.PCB.Eagle.Models
             smd.X2 = rotatedEnd.X;
             smd.Y2 = rotatedEnd.Y;
 
-
-            //pad.OriginX = Math.Round(rotated.X, 6);
-            //pad.OriginY = Math.Round(rotated.Y, 6);
-
-
-
-
-
-
-            /*}
-        }*/
-
             return smd;
         }
 
@@ -72,7 +59,7 @@ namespace LagoVista.PCB.Eagle.Models
         {
             var smd = new SMDPad()
             {
-                Layer = element.GetInt32("layer"),
+                Layer = element.GetInt32("layer").FromEagleLayer(),
                 Name = element.GetString("name"),
                 OriginX = element.GetDouble("x"),
                 OriginY = element.GetDouble("y"),
@@ -82,9 +69,20 @@ namespace LagoVista.PCB.Eagle.Models
                 RotateStr = element.GetString("rot")
             };
 
-
-
             return smd;
+        }
+
+        public static SMDPad Create(MSDMarkwort.Kicad.Parser.PcbNew.Models.PartFootprint.PartPad.Pad pad, double fpAngle)
+        {
+            return new SMDPad()
+            {
+                Layer = pad.Layers.FirstOrDefault().FromKiCadLayer(),
+                OriginX = pad.PositionAt.X,
+                OriginY = pad.PositionAt.Y,
+                DX = pad.Size.Width,
+                DY = pad.Size.Height,
+                RotateStr = (pad.PositionAt.Angle - fpAngle).ToString()
+            };
         }
     }
 }

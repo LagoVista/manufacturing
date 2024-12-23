@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
@@ -7,13 +8,13 @@ namespace LagoVista.PCB.Eagle.Models
     public class PrintedCircuitBoard
     {
         public Plain Plain { get; set; }
-        public List<Layer> Layers { get; set; } = new List<Layer>();
-        public List<PhysicalPackage> Packages { get; set; } = new List<PhysicalPackage>();
+        public List<PcbLayer> Layers { get; set; } = new List<PcbLayer>();
+        public List<PcbPackage> Packages { get; set; } = new List<PcbPackage>();
         public List<PcbComponent> Components { get; set; } = new List<PcbComponent>();
         public List<Via> Vias { get; set; } = new List<Via>();
         public List<Signal> Signals { get; set; } = new List<Signal>();
 
-        public List<Wire> Outline { get; set; } = new List<Wire>();
+        public List<PcbLine> Outline { get; set; } = new List<PcbLine>();
 
         public double Width { get; set; }
         public double Height { get; set; }
@@ -24,12 +25,12 @@ namespace LagoVista.PCB.Eagle.Models
         {
             get
             {
-                var drillsLayer = Layers.Where(layer => layer.Number == 44).FirstOrDefault();
+                var drillsLayer = Layers.Where(layer => layer.Layer.Value == PCBLayers.Drills).FirstOrDefault();
                 if(drillsLayer == null)
                 {
                     return new List<Drill>();
                 }
-                var drills = Layers.Where(layer => layer.Number == 44).FirstOrDefault().Drills;
+                var drills = Layers.Where(layer => layer.Layer.Value == PCBLayers.Drills).FirstOrDefault().Drills;
                 foreach (var via in Vias)
                 {
                     var existingDrill = drills.Where(drl => drl.X == via.X && drl.Y == via.Y);
@@ -41,7 +42,7 @@ namespace LagoVista.PCB.Eagle.Models
                     }
                 }
 
-                var drillFromHolesLayer = Layers.Where(layer => layer.Number == 45).FirstOrDefault().Drills;
+                var drillFromHolesLayer = Layers.Where(layer => layer.Layer.Value == PCBLayers.Drills).FirstOrDefault().Drills;
                 drills.AddRange(drillFromHolesLayer);
 
                 return drills;
@@ -80,22 +81,22 @@ namespace LagoVista.PCB.Eagle.Models
             get
             {
 
-                var holesLayer = Layers.Where(layer => layer.Number == 45).FirstOrDefault();
+                var holesLayer = Layers.Where(layer => layer.Layer.Value == PCBLayers.Holes).FirstOrDefault();
                 if(holesLayer == null)
                     return new List<Hole>();
 
-                foreach (var hole in Layers.Where(layer => layer.Number == 45).FirstOrDefault().Holes)
+                foreach (var hole in Layers.Where(layer => layer.Layer.Value == PCBLayers.Holes).FirstOrDefault().Holes)
                 {
                     Debug.WriteLine(hole.X + " " + hole.Y + " " + hole.Drill);
                 }
 
-                return Layers.Where(layer => layer.Number == 45).FirstOrDefault().Holes;
+                return Layers.Where(layer => layer.Layer.Value == PCBLayers.Holes).FirstOrDefault().Holes;
             }
         }
-        public List<Wire> UnroutedWires { get; set; }
+        public List<PcbLine> UnroutedWires { get; set; }
 
-        public List<Wire> TopWires { get; set; }
+        public List<PcbLine> TopWires { get; set; }
 
-        public List<Wire> BottomWires { get; set; }
+        public List<PcbLine> BottomWires { get; set; }
     }
 }

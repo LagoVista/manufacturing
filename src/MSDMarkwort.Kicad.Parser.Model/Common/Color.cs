@@ -15,5 +15,10 @@ namespace MSDMarkwort.Kicad.Parser.Model.Common
 
         [KicadParameter(3)]
         public double Alpha { get; set; }
+
+        public override string ToString()
+        {
+            return $"#{Alpha:0x00}{Red:0x00}{Green:0x00}{Blue:0x00}";
+        }
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,6 +33,19 @@ namespace LagoVista.PCB.Eagle.Models
                 Name = element.GetString("name"),
                 Shape = element.GetString("shape", "Circle"),
                 RotateStr = element.GetString("rot")
+            };
+        }
+
+        public static Pad Create(MSDMarkwort.Kicad.Parser.PcbNew.Models.PartFootprint.PartPad.Pad pad, double fpAngle)
+        {
+            return new Pad()
+            {
+                DrillDiameter = pad.Drill.OuterDiameter,
+                OriginX = pad.PositionAt.X,
+                OriginY = pad.PositionAt.Y,
+                X = pad.PositionAt.X,
+                Y = pad.PositionAt.Y,
+                RotateStr = (pad.PositionAt.Angle - fpAngle).ToString()
             };
         }
 

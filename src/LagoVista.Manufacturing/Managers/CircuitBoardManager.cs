@@ -78,28 +78,28 @@ namespace LagoVista.Manufacturing.Managers
             return InvokeResult.Success;
         }
 
-        public async Task<InvokeResult<CircuitBoardRevision>> PopulateComponents(CircuitBoardRevision revistion, EntityHeader org, EntityHeader user)
+        public async Task<InvokeResult<CircuitBoardRevision>> PopulateComponents(CircuitBoardRevision revision, EntityHeader org, EntityHeader user)
         {
-            var media = await _mediaServicesManager.GetResourceMediaAsync(revistion.BoardFile.Id, org, user);
+            var media = await _mediaServicesManager.GetResourceMediaAsync(revision.BoardFile.Id, org, user);
             using (var ms = new MemoryStream(media.ImageBytes))
             {
-
                 if (media.FileName.EndsWith("brd"))
                 {
                     var doc = XDocument.Load(ms);
                     var pcb = EagleParser.ReadPCB(doc);
-                    revistion.PcbComponents = pcb.Components;
-                    revistion.Width = pcb.Width;
-                    revistion.Height = pcb.Height;
-                    revistion.Outline = pcb.Outline;
+                    revision.PcbComponents = pcb.Components;
+                    revision.PhysicalPackages = pcb.Packages;
+                    revision.Width = pcb.Width;
+                    revision.Height = pcb.Height;
+                    revision.Outline = pcb.Outline;
                 }
                 else if(media.FileName.EndsWith("kicad_pcb"))
                 {
-                    var pcb = KicadImport.ReadPCB(ms);
-                    revistion.PcbComponents = pcb.Components;
-                    revistion.Width = pcb.Width;
-                    revistion.Height = pcb.Height;
-                    revistion.Outline = pcb.Outline;
+                    var pcb = KicadImport.ImportPCB(ms);
+                    revision.PcbComponents = pcb.Components;
+                    revision.Width = pcb.Width;
+                    revision.Height = pcb.Height;
+                    revision.Outline = pcb.Outline;
                 }
                 else
                 {
@@ -107,7 +107,12 @@ namespace LagoVista.Manufacturing.Managers
                 }
             }
 
-            return InvokeResult<CircuitBoardRevision>.Create(revistion);
+            foreach(var cmp in revision.PcbComponents)
+            {
+                cmp.Package.Value = null;
+            }
+
+            return InvokeResult<CircuitBoardRevision>.Create(revision);
         }
 
         public async Task<InvokeResult> DeleteCircuitBoardAsync(string id, EntityHeader org, EntityHeader user)
@@ -121,9 +126,24 @@ namespace LagoVista.Manufacturing.Managers
 
         public async Task<CircuitBoard> GetCircuitBoardAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _circuitBoardRepo.GetCircuitBoardAsync(id);
-            await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
-            return part;
+            var pcb = await _circuitBoardRepo.GetCircuitBoardAsync(id);
+            await AuthorizeAsync(pcb, AuthorizeActions.Read, user, org);
+            foreach (var revision in pcb.Revisions)
+            {
+                foreach(var cmp in revision.PcbComponents)
+                {
+                    if (cmp.Package != null)
+                    {
+                        var pck = revision.PhysicalPackages.SingleOrDefault(c => c.Key == cmp.Package.Key);
+                        if (pck == null)
+                            throw new InvalidOperationException($"Could not find package for: {cmp.Name}");
+
+                        cmp.Package.Value = pck;
+                    }
+                }
+            }
+
+            return pcb;
         }
 
         public async Task<ListResponse<CircuitBoardSummary>> GetCircuitBoardsSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user)
@@ -156,6 +176,9 @@ namespace LagoVista.Manufacturing.Managers
                         PcbComponents = revision.PcbComponents
                     });
                 }
+
+                foreach (var cmp in revision.PcbComponents)
+                    cmp.Package.Value = null;
             }
 
             await _circuitBoardRepo.UpdateCircuitBoardAsync(pcb);

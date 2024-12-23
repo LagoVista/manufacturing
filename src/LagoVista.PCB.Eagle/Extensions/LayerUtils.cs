@@ -9,31 +9,57 @@ namespace LagoVista.PCB.Eagle.Extensions
 {
     public static class LayerUtils
     {
-        public static EntityHeader<PCBLayers> ToCommonLayer(this int layerNumber)
+        public static EntityHeader<PCBLayers> FromEagleLayer(this int layerNumber)
         {
-            return switch (layerNumber)
+            switch (layerNumber)
             {
-                1 => EntityHeader<PCBLayers>.Create(PCBLayers.TopCopper),
-                16 => EntityHeader<PCBLayers>.Create(PCBLayers.BottomCopper),
-                21 => EntityHeader<PCBLayers>.Create(PCBLayers.TopSilk),
-                22 => EntityHeader<PCBLayers>.Create(PCBLayers.BottomSilk),
-                44 => EntityHeader<PCBLayers>.Create(PCBLayers.Drills),
-                45 => EntityHeader<PCBLayers>.Create(PCBLayers.Holes),
-                20 => EntityHeader<PCBLayers>.Create(PCBLayers.BoardOutline),
-                51 => EntityHeader<PCBLayers>.Create(PCBLayers.TopDocument),
-                52 => EntityHeader<PCBLayers>.Create(PCBLayers.BottomDocument),
-                25 => EntityHeader<PCBLayers>.Create(PCBLayers.TopNames),
-                27 => EntityHeader<PCBLayers>.Create(PCBLayers.TopValues),
-                29 => EntityHeader<PCBLayers>.Create(PCBLayers.TopSolderMask),
-                30 => EntityHeader<PCBLayers>.Create(PCBLayers.BottomSolderMask),
-                31 => EntityHeader<PCBLayers>.Create(PCBLayers.TopStencil),
-                32 => EntityHeader<PCBLayers>.Create(PCBLayers.BottomStayOut),
-                28 => EntityHeader<PCBLayers>.Create(PCBLayers.BottomValues),
-                26 => EntityHeader<PCBLayers>.Create(PCBLayers.BottomNames),
-                41 => EntityHeader<PCBLayers>.Create(PCBLayers.TopStayOut),
-                42 => EntityHeader<PCBLayers>.Create(PCBLayers.BottomStayOut),
-                _ => throw new Exception($"Unknown layer number {layerNumber}")
+                case 1: return EntityHeader<PCBLayers>.Create(PCBLayers.TopCopper);
+                case 16: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomCopper);
+                case 17: return EntityHeader<PCBLayers>.Create(PCBLayers.Pads);
+                case 18: return EntityHeader<PCBLayers>.Create(PCBLayers.Via);
+                case 21: return EntityHeader<PCBLayers>.Create(PCBLayers.TopSilk);
+                case 22: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomSilk);
+                case 44: return EntityHeader<PCBLayers>.Create(PCBLayers.Drills);
+                case 45: return EntityHeader<PCBLayers>.Create(PCBLayers.Holes);
+                case 20: return EntityHeader<PCBLayers>.Create(PCBLayers.BoardOutline);
+                case 51: return EntityHeader<PCBLayers>.Create(PCBLayers.TopDocument);
+                case 52: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomDocument);
+                case 25: return EntityHeader<PCBLayers>.Create(PCBLayers.TopNames);
+                case 26: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomNames);
+                case 27: return EntityHeader<PCBLayers>.Create(PCBLayers.TopValues);
+                case 28: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomValues);
+                case 29: return EntityHeader<PCBLayers>.Create(PCBLayers.TopSolderMask);
+                case 30: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomSolderMask);
+                case 31: return EntityHeader<PCBLayers>.Create(PCBLayers.TopStencil);
+                case 32: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomStayOut);
+                case 41: return EntityHeader<PCBLayers>.Create(PCBLayers.TopStayOut);
+                case 42: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomStayOut);
+                case 19: return EntityHeader<PCBLayers>.Create(PCBLayers.Unrouted);
+                default:
+                    return EntityHeader<PCBLayers>.Create(PCBLayers.Other);
             };
+        }
+
+        public static EntityHeader<PCBLayers> FromKiCadLayer(this string layerName)
+        {
+            switch(layerName)
+            {
+                case "F.Cu": return EntityHeader<PCBLayers>.Create(PCBLayers.TopCopper);
+                case "B.Cu": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomCopper);
+                case "F.Silkscreen": return EntityHeader<PCBLayers>.Create(PCBLayers.TopSilk);
+                case "B.Silkscreen": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomSilk);
+                case "Edge.Cuts": return EntityHeader<PCBLayers>.Create(PCBLayers.BoardOutline);
+                case "F.Fab": return EntityHeader<PCBLayers>.Create(PCBLayers.TopNames);
+                case "B.Fab": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomNames);
+                case "F.Mask": return EntityHeader<PCBLayers>.Create(PCBLayers.TopSolderMask);
+                case "B.Mask": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomSolderMask);
+                case "F.Paste": return EntityHeader<PCBLayers>.Create(PCBLayers.TopStencil);
+                case "B.Paste": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomStencil);
+                case "F.Courtyard": return EntityHeader<PCBLayers>.Create(PCBLayers.TopStayOut);
+                case "B.Courtyard": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomStayOut);
+                default:
+                    return EntityHeader<PCBLayers>.Create(PCBLayers.Other);
+            }
+        }
     }
-}
 }

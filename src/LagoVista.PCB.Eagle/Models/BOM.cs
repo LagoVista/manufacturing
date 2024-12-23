@@ -22,13 +22,13 @@ namespace LagoVista.PCB.Eagle.Models
             foreach(var component in _board.Components)
             {
                 var entry = Entries.Where(entr =>
-                            entr.Package.Name == component.Package.Name &&
+                            entr.Package.Name == component.Package.Value.Name &&
                             entr.Value == component.Value).FirstOrDefault();
                 if(entry == null)
                 {
                     entry = new BOMEntry()
                     {
-                        Package = component.Package,
+                        Package = component.Package.Value,
                         Value = component.Value
                     };
                     Entries.Add(entry);

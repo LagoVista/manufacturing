@@ -270,7 +270,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                     var part = Job.Board.Components.Where(cmp => cmp.Name == component.Name).FirstOrDefault();
                     component.X = part.X;
                     component.Y = part.Y;
-                    component.Rotate = part.Rotate;
+                    component.Rotation = part.Rotation;
                 }
             }
         }

@@ -90,7 +90,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 cmds.Add(DwellGCode(250)); // Wait 500ms to pickup part.
                 cmds.Add(SafeHeightGCodeGCode()); // Go to move height
 
-                var cRotation = SelectedPartToBePlaced.RotateAngle + SelectedPartPackage.RotationInTape;
+                var cRotation = SelectedPartToBePlaced.Rotation + SelectedPartPackage.RotationInTape;
                 if (cRotation != 0 || (!SelectedPartToBePlaced.Polarized && cRotation != 180))
                 {
                     if (cRotation >= 360)

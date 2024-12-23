@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <VersionPrefix>2.0</VersionPrefix>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -6,9 +6,9 @@
     <FileVersion>1.2.211.1114</FileVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="LagoVista.UserAdmin" Version="3.0.2768.1014" />
-    <PackageReference Include="LagoVista.PDFServices" Version="3.0.2768.1417" />
-   <PackageReference Include="LagoVista.MediaServices" Version="3.0.2768.1014" />
+    <PackageReference Include="LagoVista.UserAdmin" Version="3.0.2777.1110" />
+    <PackageReference Include="LagoVista.PDFServices" Version="3.0.2777.1437" />
+   <PackageReference Include="LagoVista.MediaServices" Version="3.0.2777.1110" />
    <PackageReference Include="QRCoder" Version="1.6.0" />
   </ItemGroup>
   <ItemGroup>

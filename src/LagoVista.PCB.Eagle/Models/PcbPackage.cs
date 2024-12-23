@@ -1,17 +1,25 @@
-﻿using System;
+﻿using LagoVista.Core;
+using LagoVista.Core.Interfaces;
+using MSDMarkwort.Kicad.Parser.PcbNew.Models.PartFootprint;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 namespace LagoVista.PCB.Eagle.Models
 {
-    public class PhysicalPackage
+    public class PcbPackage : IIDEntity, INamedEntity, IKeyedEntity, IDescriptionEntity
     {
+        public string Id { get; set; } = Guid.NewGuid().ToId();
+
+        public string Key { get; set; }
+
         public string LibraryName { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
 
-        public List<Wire> Wires { get; set; } = new List<Wire>();
+        public List<PcbLine> Wires { get; set; } = new List<PcbLine>();
         public List<SMDPad> SmdPads { get; set; } = new List<SMDPad>();
         public List<Text> Texts { get; set; } = new List<Text>();
         public List<Pad> Pads { get; set; } = new List<Pad>();
@@ -21,14 +29,16 @@ namespace LagoVista.PCB.Eagle.Models
 
         public bool IsSMD { get { return SmdPads.Any(); } }
 
-        public static PhysicalPackage Create(XElement element)
+        public static PcbPackage Create(XElement element)
         {
-            return new PhysicalPackage()
+            var pck = new PcbPackage()
             {
+                Id = Guid.NewGuid().ToId(),
                 LibraryName = element.Ancestors(XName.Get("library")).First().Attribute("name").Value,
                 Name = element.GetString("name"),
+                Key = element.GetString("name").ToNuvIoTKey(),
                 Description = element.GetChildString("description"),
-                Wires = (from childWires in element.Descendants("wire") select Wire.Create(childWires)).ToList(),
+                Wires = (from childWires in element.Descendants("wire") select PcbLine.Create(childWires)).ToList(),
                 Texts = (from childTexts in element.Descendants("text") select Text.Create(childTexts)).ToList(),
                 SmdPads = (from childSMDs in element.Descendants("smd") select SMDPad.Create(childSMDs)).ToList(),
                 Pads = (from childPads in element.Descendants("pad") select Pad.Create(childPads)).ToList(),
@@ -36,14 +46,35 @@ namespace LagoVista.PCB.Eagle.Models
                 Circles = (from childCircles in element.Descendants("circle") select Circle.Create(childCircles)).ToList(),
                 Rects = (from childCircles in element.Descendants("rect") select Rect.Create(childCircles)).ToList(),
             };
+            
+            return pck;
         }
 
-        public PhysicalPackage Clone()
+        public static PcbPackage Create(Footprint fp)
         {
-            return new PhysicalPackage()
+            var pck = new PcbPackage()
+            {
+                Id = Guid.NewGuid().ToId(),
+                Key = fp.Name.ToNuvIoTKey(),
+                Name = fp.Name,
+                Pads = fp.Pads.Where(p => fp.Attr != "smd").Select(pad => Pad.Create(pad, fp.PositionAt.Angle)).ToList(),
+                SmdPads = fp.Pads.Where(p => fp.Attr == "smd").Select(pad => SMDPad.Create(pad, fp.PositionAt.Angle)).ToList(),
+                Circles = fp.FpCircles.Select(cir => Circle.Create(cir)).ToList(),
+                Texts =  fp.FpTexts.Select(txt => Text.Create(txt)).ToList(),
+                Rects = fp.FpRects.Select(rect => Rect.Create(rect)).ToList(),
+                Wires = fp.FpLines.Select(line => PcbLine.Create(line)).ToList()
+            };
+            
+            return pck;
+        }
+
+        public PcbPackage Clone()
+        {
+            return new PcbPackage()
             {
                 LibraryName = LibraryName,
                 Name = Name,
+                Key = Key,
                 Description = Description,
                 Wires = Wires,
                 SmdPads = SmdPads,

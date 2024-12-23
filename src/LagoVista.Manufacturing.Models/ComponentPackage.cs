@@ -162,7 +162,7 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_PartHeight, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public decimal Height { get; set; }
 
-        public List<Wire> Wires { get; set; } = new List<Wire>();     
+        public List<PcbLine> Wires { get; set; } = new List<PcbLine>();     
         public List<Text> Texts { get; set; } = new List<Text>();
         public List<Pad> Pads { get; set; } = new List<Pad>();
         public List<Circle> Circles { get; set; } = new List<Circle>();

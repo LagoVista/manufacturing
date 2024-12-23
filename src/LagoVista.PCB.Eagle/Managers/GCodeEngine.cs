@@ -271,10 +271,10 @@ namespace LagoVista.PCB.Eagle.Managers
             double width = pcb.Width;
             double height = pcb.Height;
 
-            var cornerWires = pcb.Layers.Where(layer => layer.Number == 20).FirstOrDefault().Wires.Where(wire => wire.Curve.HasValue == true);
+            var cornerWires = pcb.Layers.Where(layer => layer.Layer.Value == PCBLayers.BoardOutline).FirstOrDefault().Wires.Where(wire => wire.Curve.HasValue == true);
 
             /* Major hack here */
-            var radius = cornerWires.Any() ? Math.Abs(cornerWires.First().Rect.X1 - cornerWires.First().Rect.X2) : 0;
+            var radius = cornerWires.Any() ? Math.Abs(cornerWires.First().X1 - cornerWires.First().X2) : 0;
 
             if (radius == 0)
             {

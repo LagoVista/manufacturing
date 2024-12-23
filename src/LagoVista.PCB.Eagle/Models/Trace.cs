@@ -10,9 +10,9 @@ namespace LagoVista.PCB.Eagle.Models
     {
         public Trace()
         {
-            Wires = new List<Wire>();
+            Wires = new List<PcbLine>();
         }
 
-        public List<Wire> Wires { get; set; }
+        public List<PcbLine> Wires { get; set; }
     }
 }
