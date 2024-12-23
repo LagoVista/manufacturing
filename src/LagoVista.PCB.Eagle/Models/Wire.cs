@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LagoVista.Core.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,7 +15,8 @@ namespace LagoVista.PCB.Eagle.Models
         public double? Curve { get; set; }
         public Rect Rect { get; set; }
 
-        public int Layer { get; set; }
+        
+        public EntityHeader<PCBLayers> Layer { get; set; } 
 
         public List<Wire> StartJunctions { get; set; }
         public List<Wire> EndJunctions { get; set; }
@@ -24,12 +26,15 @@ namespace LagoVista.PCB.Eagle.Models
 
         public static Wire Create(XElement element)
         {
+            var layer = element.GetInt32("layer");
+
+
             return new Wire()
             {
                 Name = element.GetString("name"),
                 Rect = Rect.Create(element),
                 Width = element.GetDouble("width"),
-                Layer = element.GetInt32("layer"),
+                Layer = ,
                 Curve = element.GetDoubleNullable("curve"),
                 StartJunctions = new List<Wire>(),
                 EndJunctions = new List<Wire>(),

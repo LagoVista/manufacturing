@@ -5,6 +5,30 @@ using System.Xml.Linq;
 
 namespace LagoVista.PCB.Eagle.Models
 {
+    public enum PCBLayers
+    {
+        TopCopper,
+        BottomCopper,
+        TopSilk,
+        BottomSilk,
+        Drills,
+        Holes,
+        BoardOutline,
+        TopStayOut,
+        BottomStayOut,
+        TopNames,
+        BottomNames,
+        TopDocument,
+        BottomDocument,
+        TopSolderMask,
+        BottomSolderMask,
+        TopStencil,
+        BottomStencil,
+        TopValues,
+        BottomValues,
+    }
+
+
     public class PcbComponent
     {
         public string Name { get; set; }

@@ -51,7 +51,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return DetailResponse<CircuitBoardVariant>.Create();
         }
 
-        [HttpDelete("/api/mfg/CircuitBoard/{id}")]
+        [HttpDelete("/api/mfg/pcb/{id}")]
         public async Task<InvokeResult> DeleteCircuitBoard(string id)
         {
             return await _mgr.DeleteCommponentAsync(id, OrgEntityHeader, UserEntityHeader);
