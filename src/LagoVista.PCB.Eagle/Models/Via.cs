@@ -16,7 +16,7 @@ namespace LagoVista.PCB.Eagle.Models
         {
             return new Via()
             {
-                Layer = EntityHeader<PCBLayers>.Create(PCBLayers.Via),
+                Layer = EntityHeader<PCBLayers>.Create(PCBLayers.Vias),
                 DrillDiameter = element.GetDouble("drill"),
                 X = element.GetDouble("x"),
                 Y = element.GetDouble("y"),

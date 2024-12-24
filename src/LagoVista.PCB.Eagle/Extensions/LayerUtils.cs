@@ -16,7 +16,7 @@ namespace LagoVista.PCB.Eagle.Extensions
                 case 1: return EntityHeader<PCBLayers>.Create(PCBLayers.TopCopper);
                 case 16: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomCopper);
                 case 17: return EntityHeader<PCBLayers>.Create(PCBLayers.Pads);
-                case 18: return EntityHeader<PCBLayers>.Create(PCBLayers.Via);
+                case 18: return EntityHeader<PCBLayers>.Create(PCBLayers.Vias);
                 case 21: return EntityHeader<PCBLayers>.Create(PCBLayers.TopSilk);
                 case 22: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomSilk);
                 case 44: return EntityHeader<PCBLayers>.Create(PCBLayers.Drills);
@@ -31,9 +31,9 @@ namespace LagoVista.PCB.Eagle.Extensions
                 case 29: return EntityHeader<PCBLayers>.Create(PCBLayers.TopSolderMask);
                 case 30: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomSolderMask);
                 case 31: return EntityHeader<PCBLayers>.Create(PCBLayers.TopStencil);
-                case 32: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomStayOut);
-                case 41: return EntityHeader<PCBLayers>.Create(PCBLayers.TopStayOut);
-                case 42: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomStayOut);
+                case 32: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomRestrict);
+                case 41: return EntityHeader<PCBLayers>.Create(PCBLayers.TopRestrict);
+                case 42: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomRestrict);
                 case 19: return EntityHeader<PCBLayers>.Create(PCBLayers.Unrouted);
                 default:
                     return EntityHeader<PCBLayers>.Create(PCBLayers.Other);
@@ -55,8 +55,8 @@ namespace LagoVista.PCB.Eagle.Extensions
                 case "B.Mask": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomSolderMask);
                 case "F.Paste": return EntityHeader<PCBLayers>.Create(PCBLayers.TopStencil);
                 case "B.Paste": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomStencil);
-                case "F.Courtyard": return EntityHeader<PCBLayers>.Create(PCBLayers.TopStayOut);
-                case "B.Courtyard": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomStayOut);
+                case "F.Courtyard": return EntityHeader<PCBLayers>.Create(PCBLayers.TopRestrict);
+                case "B.Courtyard": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomRestrict);
                 default:
                     return EntityHeader<PCBLayers>.Create(PCBLayers.Other);
             }

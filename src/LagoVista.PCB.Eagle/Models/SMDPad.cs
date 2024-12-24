@@ -20,9 +20,7 @@ namespace LagoVista.PCB.Eagle.Models
         public double DX { get; set; }
         public double DY { get; set; }
         public double? Roundness { get; set; }
-        public string RotateStr { get; set; }
-
-        public double RotateAngle { get => RotateStr.ToAngle(); }
+        public double Rotation { get; set; }
 
         public SMDPad ApplyRotation(double angle)
         {
@@ -57,6 +55,7 @@ namespace LagoVista.PCB.Eagle.Models
 
         public static SMDPad Create(XElement element)
         {
+            var attr = element.Attributes();
             var smd = new SMDPad()
             {
                 Layer = element.GetInt32("layer").FromEagleLayer(),
@@ -66,23 +65,35 @@ namespace LagoVista.PCB.Eagle.Models
                 DX = element.GetDouble("dx"),
                 DY = element.GetDouble("dy"),
                 Roundness = element.GetDoubleNullable("roundness"),
-                RotateStr = element.GetString("rot")
+                Rotation = element.GetString("rot").ToAngle()
             };
+
+            smd.X1 = smd.OriginX - (smd.DX / 2);
+            smd.Y1 = smd.OriginY - (smd.DY / 2);
+            smd.X2 = smd.X1 + smd.DX;
+            smd.Y2 = smd.Y1 + smd.DY;
 
             return smd;
         }
 
         public static SMDPad Create(MSDMarkwort.Kicad.Parser.PcbNew.Models.PartFootprint.PartPad.Pad pad, double fpAngle)
         {
-            return new SMDPad()
+            var smd = new SMDPad()
             {
                 Layer = pad.Layers.FirstOrDefault().FromKiCadLayer(),
                 OriginX = pad.PositionAt.X,
                 OriginY = pad.PositionAt.Y,
                 DX = pad.Size.Width,
                 DY = pad.Size.Height,
-                RotateStr = (pad.PositionAt.Angle - fpAngle).ToString()
+                Rotation = (pad.PositionAt.Angle - fpAngle)
             };
+
+            smd.X1 = smd.OriginX - (smd.DX / 2);
+            smd.Y1 = smd.OriginY - (smd.DY / 2);
+            smd.X2 = smd.X1 + smd.DX;
+            smd.Y2 = smd.Y1 + smd.DY;
+
+            return smd;;
         }
     }
 }

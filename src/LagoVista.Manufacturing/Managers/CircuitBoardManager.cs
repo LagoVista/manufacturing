@@ -98,6 +98,7 @@ namespace LagoVista.Manufacturing.Managers
                     var pcb = KicadImport.ImportPCB(ms);
                     revision.PcbComponents = pcb.Components;
                     revision.Width = pcb.Width;
+                    revision.PhysicalPackages = pcb.Packages;
                     revision.Height = pcb.Height;
                     revision.Outline = pcb.Outline;
                 }

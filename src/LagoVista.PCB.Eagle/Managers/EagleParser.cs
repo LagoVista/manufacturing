@@ -100,7 +100,7 @@ namespace LagoVista.PCB.Eagle.Managers
 
             foreach (var via in pcb.Vias)
             {
-                pcb.Layers.Where(layer => layer.Layer.Value == PCBLayers.Via).First().Vias.Add(via);
+                pcb.Layers.Where(layer => layer.Layer.Value == PCBLayers.Vias).First().Vias.Add(via);
             }
 
             return pcb;

@@ -16,9 +16,9 @@ namespace LagoVista.Pcb.Tests
         }
 
         [Test]
-        public void Test1()
+        public void ParseEagle()
         {
-            var doc = XDocument.Load("PCB_v186.brd");
+            var doc = XDocument.Load("PCB_v78.brd");
             var result =  EagleParser.ReadPCB(doc);
             foreach(var pck in result.Packages)
             {
@@ -39,24 +39,19 @@ namespace LagoVista.Pcb.Tests
             using(var ms = new MemoryStream(buffer))
             {
               var result =  KicadImport.ImportPCB(ms);
-                var j5 = result.Components.Where(cmp => cmp.Name == "J5").FirstOrDefault();
-                foreach(var pad in j5.SMDPads)
-                {
-                    Console.WriteLine(pad.OriginX + " " + pad.OriginY + " " + pad.DX + " " + pad.DY + " " + pad.RotateStr);
-                }
 
-                foreach (var cmp in result.Components)
+                foreach (var pck in result.Packages)
                 {
-                    cmp.Package.Value = null;
-                }
-
-                foreach (var layer in result.Layers)
-                {
-                    Console.WriteLine("Layer:" + layer.Name + "; " + layer.Key + ";  " + layer.Layer.Text);
+                    Console.WriteLine($"{pck.Key}");
                 }
 
                 var json = JsonConvert.SerializeObject(result);
-                
+
+                foreach(var cmp in result.Components)
+                {
+                    Console.WriteLine($"{cmp.Name} - {cmp.Package.Key}");
+                }
+               
             }
         }
     }

@@ -1,6 +1,9 @@
 ﻿using LagoVista.Core;
+using LagoVista.Core.Attributes;
 using LagoVista.Core.Interfaces;
 using LagoVista.Core.Models;
+using LagoVista.PCB.Eagle.Extensions;
+using LagoVista.PCB.Eagle.Resources;
 using MSDMarkwort.Kicad.Parser.PcbNew.Models.PartFootprint;
 using Newtonsoft.Json.Linq;
 using System;
@@ -12,34 +15,81 @@ namespace LagoVista.PCB.Eagle.Models
 {
     public enum PCBLayers
     {
+        [EnumLabel(PcbComponent.Layer_TopCopper, PcbResources.Names.Layer_TopCopper, typeof(PcbResources))]
         TopCopper,
+        [EnumLabel(PcbComponent.Layer_BottomCopper, PcbResources.Names.Layer_BottomCopper, typeof(PcbResources))]
         BottomCopper,
+        [EnumLabel(PcbComponent.Layer_TopSilk, PcbResources.Names.Layer_TopSilk, typeof(PcbResources))]
         TopSilk,
+        [EnumLabel(PcbComponent.Layer_BottomSilk, PcbResources.Names.Layer_BottomSilk, typeof(PcbResources))]
         BottomSilk,
+        [EnumLabel(PcbComponent.Layer_Drills, PcbResources.Names.Layer_Drills, typeof(PcbResources))]
         Drills,
+        [EnumLabel(PcbComponent.Layer_Pads, PcbResources.Names.Layer_Pads, typeof(PcbResources))]
         Pads,
+        [EnumLabel(PcbComponent.Layer_Holes, PcbResources.Names.Layer_Holes, typeof(PcbResources))]
         Holes,
+        [EnumLabel(PcbComponent.Layer_BoardOutline, PcbResources.Names.Layer_BoardOutline, typeof(PcbResources))]
         BoardOutline,
-        TopStayOut,
-        BottomStayOut,
+        [EnumLabel(PcbComponent.Layer_TopRestrict, PcbResources.Names.Layer_TopRestrict, typeof(PcbResources))]
+        TopRestrict,
+        [EnumLabel(PcbComponent.Layer_BottomRestrict, PcbResources.Names.Layer_BottomRestrict, typeof(PcbResources))]
+        BottomRestrict,
+        [EnumLabel(PcbComponent.Layer_TopNames, PcbResources.Names.Layer_TopNames, typeof(PcbResources))]
         TopNames,
+        [EnumLabel(PcbComponent.Layer_BottomNames, PcbResources.Names.Layer_BottomNames, typeof(PcbResources))]
         BottomNames,
+        [EnumLabel(PcbComponent.Layer_TopDocument, PcbResources.Names.Layer_TopDocument, typeof(PcbResources))]
         TopDocument,
+        [EnumLabel(PcbComponent.Layer_BottomDocument, PcbResources.Names.Layer_BottomDocument, typeof(PcbResources))]
         BottomDocument,
+        [EnumLabel(PcbComponent.Layer_TopSolderMask, PcbResources.Names.Layer_TopSolderMask, typeof(PcbResources))]
         TopSolderMask,
+        [EnumLabel(PcbComponent.Layer_BottomSolderMask, PcbResources.Names.Layer_BottomSolderMask, typeof(PcbResources))]
         BottomSolderMask,
+        [EnumLabel(PcbComponent.Layer_TopStencil, PcbResources.Names.Layer_TopStencil, typeof(PcbResources))]
         TopStencil,
+        [EnumLabel(PcbComponent.Layer_BottomStencil, PcbResources.Names.Layer_BottomStencil, typeof(PcbResources))]
         BottomStencil,
+        [EnumLabel(PcbComponent.Layer_TopValues, PcbResources.Names.Layer_TopValues, typeof(PcbResources))]
         TopValues,
+        [EnumLabel(PcbComponent.Layer_BottomValues, PcbResources.Names.Layer_BottomValues, typeof(PcbResources))]
         BottomValues,
+        [EnumLabel(PcbComponent.Layer_Unrouted, PcbResources.Names.Layer_Unrouted, typeof(PcbResources))]
         Unrouted,
-        Via,
+        [EnumLabel(PcbComponent.Layer_Vias, PcbResources.Names.Layer_Vias, typeof(PcbResources))]
+        Vias,
+        [EnumLabel(PcbComponent.Layer_Other, PcbResources.Names.Layer_Other, typeof(PcbResources))]
         Other
     }
 
 
     public class PcbComponent : IIDEntity, INamedEntity, IKeyedEntity
     {
+        public const string Layer_TopCopper = "top.copper";
+        public const string Layer_BottomCopper = "bottom.copper";
+        public const string Layer_TopSilk = "top.silk";
+        public const string Layer_BottomSilk = "bottom.silk";
+        public const string Layer_Drills = "drills";
+        public const string Layer_Pads = "pads";
+        public const string Layer_Holes = "holes";
+        public const string Layer_BoardOutline = "boardoutline";
+        public const string Layer_TopRestrict = "top.restrict";
+        public const string Layer_BottomRestrict = "bottom.restrict";
+        public const string Layer_TopNames = "top.names";
+        public const string Layer_BottomNames = "bottom.names";
+        public const string Layer_TopDocument = "top.document";
+        public const string Layer_BottomDocument = "bottom.document";
+        public const string Layer_TopSolderMask = "top.soldermask";
+        public const string Layer_BottomSolderMask = "bottom.soldermask";
+        public const string Layer_TopStencil = "top.stencil";
+        public const string Layer_BottomStencil = "bottom.stencil";
+        public const string Layer_TopValues = "top.values";
+        public const string Layer_BottomValues = "bottom.values";
+        public const string Layer_Unrouted = "unrouted";
+        public const string Layer_Vias = "vias";
+        public const string Layer_Other = "other";
+
         public string Id { get; set; }
         public string Key { get; set; }
 
@@ -118,8 +168,6 @@ namespace LagoVista.PCB.Eagle.Models
                 {
                     
                     var rotatedSMD = smd.ApplyRotation(Rotation);
-
-
                     rotatedSMD.X1 += X.Value;
                     rotatedSMD.Y1 += Y.Value;
                     rotatedSMD.X2 += X.Value;
@@ -133,9 +181,14 @@ namespace LagoVista.PCB.Eagle.Models
 
         public static PcbComponent Create(XElement element)
         {
+            var attr = element.Attributes();
+
             return new PcbComponent()
             {
+                Id = Guid.NewGuid().ToId(),
+                Key = element.GetString("name").ToNuvIoTKey() + "cmp",
                 Name = element.GetString("name"),
+                Layer = element.GetString("rot").StartsWith("M") ? EntityHeader<PCBLayers>.Create(PCBLayers.BottomCopper) : EntityHeader<PCBLayers>.Create(PCBLayers.TopCopper),
                 LibraryName = element.GetString("library"),
                 PackageName = element.GetString("package"),
                 Rotation = element.GetString("rot").ToAngle(),
@@ -153,12 +206,15 @@ namespace LagoVista.PCB.Eagle.Models
 
             var cmp = new PcbComponent()
             {
+                Id = Guid.NewGuid().ToId(),
+                Key = reference + "cmp",
                 Name = reference,
                 Value = value,
                 PackageName = footPrint,
                 X = fp.PositionAt.X,
                 Y = fp.PositionAt.Y,
                 Rotation = fp.PositionAt.Angle,
+                Layer = fp.Layer.FromKiCadLayer()
             };
 
             var pck = PcbPackage.Create(fp);

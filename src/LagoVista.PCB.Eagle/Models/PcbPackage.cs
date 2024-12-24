@@ -31,6 +31,8 @@ namespace LagoVista.PCB.Eagle.Models
 
         public static PcbPackage Create(XElement element)
         {
+            var nm = element.GetString("name");
+
             var pck = new PcbPackage()
             {
                 Id = Guid.NewGuid().ToId(),
