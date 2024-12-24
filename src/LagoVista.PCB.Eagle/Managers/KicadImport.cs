@@ -36,12 +36,13 @@ namespace LagoVista.PCB.Eagle.Managers
                 var maxX = edges.Max(edg => edg.StartPosition.X > edg.EndPosition.X ? edg.StartPosition.X : edg.EndPosition.X);
                 var minY = edges.Min(edg => edg.StartPosition.Y < edg.EndPosition.Y ? edg.StartPosition.Y : edg.EndPosition.Y);
                 var maxY = edges.Max(edg => edg.StartPosition.Y > edg.EndPosition.Y ? edg.StartPosition.Y : edg.EndPosition.Y);
-
-                pcb.Outline = edges.Select(ln=> new PcbLine() {Curve = ln.Angle, X1 = ln.StartPosition.X, Y1 = ln.StartPosition.Y, X2 = ln.EndPosition.X, Y2 = ln.EndPosition.Y }).ToList();
-
                 pcb.Width = maxX - minX;
                 pcb.Height = maxY - minY;
-                foreach(var cmp in pcb.Components)
+
+                pcb.Outline = edges.Select(ln=> new PcbLine() {Curve = ln.Angle, X1 = ln.StartPosition.X - minX, Y1 = ln.StartPosition.Y - minY, X2 = ln.EndPosition.X - minX, Y2 = ln.EndPosition.Y - minY}).ToList();
+                pcb.Outline.AddRange(args.Select(arc => new PcbLine() { Curve = arc.Angle, X1 = arc.StartPosition.X - minX, Y1 = arc.StartPosition.Y - minY, X2 = arc.EndPosition.X - minX, Y2 = arc.EndPosition.Y - minY }));
+
+                foreach (var cmp in pcb.Components)
                 {
                     cmp.X -= minX;
                     cmp.Y = maxY - cmp.Y;

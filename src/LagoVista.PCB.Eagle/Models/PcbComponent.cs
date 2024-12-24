@@ -8,6 +8,7 @@ using MSDMarkwort.Kicad.Parser.PcbNew.Models.PartFootprint;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -217,10 +218,11 @@ namespace LagoVista.PCB.Eagle.Models
                 Layer = fp.Layer.FromKiCadLayer()
             };
 
+            if (reference == "R1")
+                Debugger.Break();
+
             var pck = PcbPackage.Create(fp);
             cmp.Package = EntityHeader<PcbPackage>.Create(pck);
-
-
             return cmp;
         }
 

@@ -1,6 +1,7 @@
 ﻿using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.PCB.Eagle.Extensions;
+using System;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -68,10 +69,10 @@ namespace LagoVista.PCB.Eagle.Models
                 Rotation = element.GetString("rot").ToAngle()
             };
 
-            smd.X1 = smd.OriginX - (smd.DX / 2);
-            smd.Y1 = smd.OriginY - (smd.DY / 2);
-            smd.X2 = smd.X1 + smd.DX;
-            smd.Y2 = smd.Y1 + smd.DY;
+            smd.X1 = Math.Round(smd.OriginX - (smd.DX / 2), 3);
+            smd.Y1 = Math.Round(smd.OriginY - (smd.DY / 2), 3);
+            smd.X2 = Math.Round(smd.X1 + smd.DX, 3);
+            smd.Y2 = Math.Round(smd.Y1 + smd.DY, 3);
 
             return smd;
         }
@@ -82,16 +83,16 @@ namespace LagoVista.PCB.Eagle.Models
             {
                 Layer = pad.Layers.FirstOrDefault().FromKiCadLayer(),
                 OriginX = pad.PositionAt.X,
-                OriginY = pad.PositionAt.Y,
+                OriginY = -pad.PositionAt.Y,
                 DX = pad.Size.Width,
                 DY = pad.Size.Height,
                 Rotation = (pad.PositionAt.Angle - fpAngle)
             };
 
-            smd.X1 = smd.OriginX - (smd.DX / 2);
-            smd.Y1 = smd.OriginY - (smd.DY / 2);
-            smd.X2 = smd.X1 + smd.DX;
-            smd.Y2 = smd.Y1 + smd.DY;
+            smd.X1 = Math.Round(smd.OriginX - (smd.DX / 2), 3);
+            smd.Y1 = Math.Round(smd.OriginY - (smd.DY / 2), 2);
+            smd.X2 = Math.Round(smd.X1 + smd.DX, 3);
+            smd.Y2 = Math.Round(smd.Y1 + smd.DY, 3);
 
             return smd;;
         }

@@ -19,15 +19,42 @@ namespace LagoVista.Pcb.Tests
         public void ParseEagle()
         {
             var doc = XDocument.Load("PCB_v78.brd");
-            var result =  EagleParser.ReadPCB(doc);
-            foreach(var pck in result.Packages)
+            var result = EagleParser.ReadPCB(doc);
+            var r1 = result.Components.FirstOrDefault(res => res.Name == "R1");
+
+            foreach (var pad in r1.Package.Value.SmdPads)
             {
-                Console.WriteLine(pck.Name + " " + pck.IsSMD);
+                Console.WriteLine($"{pad.Name} + {pad.X1}x{pad.Y1} - ({pad.X2}x{pad.Y2}) O={pad.OriginX}x{pad.OriginY} - size={pad.DX}x{pad.DY} ");
+            }
+        }
+
+
+        [Test]
+        public void FindResistors()
+        {
+            {
+                var doc = XDocument.Load("PCB_v78.brd");
+                var result = EagleParser.ReadPCB(doc);
+                var r1 = result.Components.FirstOrDefault(res => res.Name == "R1");
+
+                foreach (var pad in r1.Package.Value.SmdPads)
+                {
+                    Console.WriteLine($"F350  -> Start=({pad.X1}x{pad.Y1}) - End=({pad.X2} x {pad.Y2}) O=({pad.OriginX} x {pad.OriginY}) - size=({pad.DX} x {pad.DY})");
+                }
             }
 
-            foreach(var prt in result.Components)
+            var parser = new KicadImport();
+            var buffer = System.IO.File.ReadAllBytes("mobo.kicad_pcb");
+            using (var ms = new MemoryStream(buffer))
             {
-                Console.WriteLine(prt.PackageName + " " + prt.Name + " " + prt.Value + "  " + prt.Package.Value.Key);
+                var result = KicadImport.ImportPCB(ms);
+                var json = JsonConvert.SerializeObject(result);
+                var r1 = result.Components.FirstOrDefault(res => res.Name == "R1");
+
+                foreach (var pad in r1.Package.Value.SmdPads)
+                {
+                    Console.WriteLine($"KICAD -> Start=({pad.X1}x{pad.Y1}) - End=({pad.X2} x {pad.Y2}) O=({pad.OriginX} x {pad.OriginY}) - size=({pad.DX} x {pad.DY})");
+                }
             }
         }
 
@@ -36,23 +63,17 @@ namespace LagoVista.Pcb.Tests
         {
             var parser = new KicadImport();
             var buffer = System.IO.File.ReadAllBytes("mobo.kicad_pcb");
-            using(var ms = new MemoryStream(buffer))
+            using (var ms = new MemoryStream(buffer))
             {
-              var result =  KicadImport.ImportPCB(ms);
-
-                foreach (var pck in result.Packages)
-                {
-                    Console.WriteLine($"{pck.Key}");
-                }
-
+                var result = KicadImport.ImportPCB(ms);
                 var json = JsonConvert.SerializeObject(result);
+                var r1 = result.Components.FirstOrDefault(res => res.Name == "R1");
 
-                foreach(var cmp in result.Components)
+                foreach (var pad in r1.Package.Value.SmdPads)
                 {
-                    Console.WriteLine($"{cmp.Name} - {cmp.Package.Key}");
+                    Console.WriteLine($"{pad.Name} + {pad.X1}x{pad.Y1} - ({pad.X2}x{pad.Y2}) O={pad.OriginX}x{pad.OriginY} - size={pad.DX}x{pad.DY} ");
                 }
-               
             }
         }
     }
-} 
+}
