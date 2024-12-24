@@ -7,7 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="LagoVista.UserAdmin" Version="3.0.2777.1110" />
-    <PackageReference Include="LagoVista.PDFServices" Version="3.0.2777.1437" />
+    <PackageReference Include="LagoVista.PDFServices" Version="3.0.2778.1534" />
    <PackageReference Include="LagoVista.MediaServices" Version="3.0.2777.1110" />
    <PackageReference Include="QRCoder" Version="1.6.0" />
   </ItemGroup>

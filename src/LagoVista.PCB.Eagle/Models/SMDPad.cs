@@ -1,7 +1,9 @@
 ﻿using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.PCB.Eagle.Extensions;
+using MSDMarkwort.Kicad.Parser.Model.Common;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -22,6 +24,8 @@ namespace LagoVista.PCB.Eagle.Models
         public double DY { get; set; }
         public double? Roundness { get; set; }
         public double Rotation { get; set; }
+        public string Shape { get; set; }
+        public string Fill { get; set; }
 
         public SMDPad ApplyRotation(double angle)
         {
@@ -62,7 +66,7 @@ namespace LagoVista.PCB.Eagle.Models
                 Layer = element.GetInt32("layer").FromEagleLayer(),
                 Name = element.GetString("name"),
                 OriginX = element.GetDouble("x"),
-                OriginY = element.GetDouble("y"),
+                OriginY = -element.GetDouble("y"),
                 DX = element.GetDouble("dx"),
                 DY = element.GetDouble("dy"),
                 Roundness = element.GetDoubleNullable("roundness"),
@@ -77,24 +81,34 @@ namespace LagoVista.PCB.Eagle.Models
             return smd;
         }
 
-        public static SMDPad Create(MSDMarkwort.Kicad.Parser.PcbNew.Models.PartFootprint.PartPad.Pad pad, double fpAngle)
+        public static List<SMDPad> Create(MSDMarkwort.Kicad.Parser.PcbNew.Models.PartFootprint.PartPad.Pad pad, double fpAngle)
         {
-            var smd = new SMDPad()
+            
+
+            var pads = new List<SMDPad>();
+            foreach (var layer in pad.Layers)
             {
-                Layer = pad.Layers.FirstOrDefault().FromKiCadLayer(),
-                OriginX = pad.PositionAt.X,
-                OriginY = -pad.PositionAt.Y,
-                DX = pad.Size.Width,
-                DY = pad.Size.Height,
-                Rotation = (pad.PositionAt.Angle - fpAngle)
-            };
+                var smd = new SMDPad()
+                {
+                    Layer = pad.Layers.FirstOrDefault().FromKiCadLayer(),
+                    Name = pad.PadNumber,
+                    OriginX = pad.PositionAt.X,
+                    OriginY = -pad.PositionAt.Y,
+                    DX = pad.Size.Width,
+                    DY = pad.Size.Height,
+                    Rotation = (pad.PositionAt.Angle - fpAngle),                    
+                };
 
-            smd.X1 = Math.Round(smd.OriginX - (smd.DX / 2), 3);
-            smd.Y1 = Math.Round(smd.OriginY - (smd.DY / 2), 2);
-            smd.X2 = Math.Round(smd.X1 + smd.DX, 3);
-            smd.Y2 = Math.Round(smd.Y1 + smd.DY, 3);
+                smd.X1 = Math.Round(smd.OriginX - (smd.DX / 2), 3);
+                smd.Y1 = Math.Round(smd.OriginY - (smd.DY / 2), 2);
+                smd.X2 = Math.Round(smd.X1 + smd.DX, 3);
+                smd.Y2 = Math.Round(smd.Y1 + smd.DY, 3);
+                smd.Shape = pad.Shape;
+                smd.Fill = MSDMarkwort.Kicad.Parser.Model.Common.Color.LayerToColor(layer);
+                pads.Add(smd);
+            }
 
-            return smd;;
+            return pads;
         }
     }
 }

@@ -19,7 +19,7 @@ namespace LagoVista.PCB.Eagle.Models
 
         
         public EntityHeader<PCBLayers> Layer { get; set; } 
-        public string Color { get; set; }
+        public string Stroke { get; set; }
 
         // NOTE: The following are used to generate a full board layout
         public List<PcbLine> StartJunctions { get; set; }
@@ -71,21 +71,22 @@ namespace LagoVista.PCB.Eagle.Models
             line.Y1 = rect.Y1;
             line.Y2 = rect.Y2;
 
-            line.Color = "#FFFFFF";
+            line.Stroke = "#FFFFFF";
 
             return line;
         }
 
         public static PcbLine Create(FpLine line)
         {
+            // Note KiCad has origin at top of PCB, we normalize everything to be at bottom left, therefore just negate the Y values since they are relative to origin.
             return new PcbLine()
             {
                 Layer = line.Layer.FromKiCadLayer(),
                 X1 = line.StartPosition.X,
-                Y1 = line.StartPosition.Y,
+                Y1 = -line.StartPosition.Y,
                 X2 = line.EndPosition.X,
-                Y2 = line.EndPosition.Y,                
-                Color = line.Stroke.Color.ToString(),
+                Y2 = -line.EndPosition.Y,                
+                Stroke = line.Stroke.Color.ToString(line.Layer),
                 Width = line.Stroke.Width,                
             };
         }

@@ -1,9 +1,12 @@
 ﻿using LagoVista.Core;
 using LagoVista.Core.Interfaces;
 using MSDMarkwort.Kicad.Parser.PcbNew.Models.PartFootprint;
+using MSDMarkwort.Kicad.Parser.PcbNew.Models.PartFootprint.PartPad.PartPadStack;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
@@ -27,11 +30,16 @@ namespace LagoVista.PCB.Eagle.Models
         public List<Hole> Holes { get; set; } = new List<Hole>();
         public List<Rect> Rects { get; set; } = new List<Rect>();
 
+        public List<Polygon> Polygons { get; set; } = new List<Polygon>();
+
+        public double Width { get; set; }
+        public double Height { get; set; }
+
         public bool IsSMD { get { return SmdPads.Any(); } }
 
         public static PcbPackage Create(XElement element)
         {
-            var nm = element.GetString("name");
+            var Name = element.GetString("name");
 
             var pck = new PcbPackage()
             {
@@ -59,14 +67,72 @@ namespace LagoVista.PCB.Eagle.Models
                 Id = Guid.NewGuid().ToId(),
                 Key = fp.Name.ToNuvIoTKey(),
                 Name = fp.Name,
-                Pads = fp.Pads.Where(p => fp.Attr != "smd").Select(pad => Pad.Create(pad, fp.PositionAt.Angle)).ToList(),
-                SmdPads = fp.Pads.Where(p => fp.Attr == "smd").Select(pad => SMDPad.Create(pad, fp.PositionAt.Angle)).ToList(),
                 Circles = fp.FpCircles.Select(cir => Circle.Create(cir)).ToList(),
                 Texts =  fp.FpTexts.Select(txt => Text.Create(txt)).ToList(),
                 Rects = fp.FpRects.Select(rect => Rect.Create(rect)).ToList(),
-                Wires = fp.FpLines.Select(line => PcbLine.Create(line)).ToList()
+                Wires = fp.FpLines.Select(line => PcbLine.Create(line)).ToList(),
+                Polygons = fp.FpPolys.Select(ply => Polygon.Create(ply)).ToList(),
             };
+
+            foreach(var padSet in fp.Pads.Where(p => fp.Attr != "smd" && p.PadType != "smd").Select(pad => Pad.Create(pad, fp.PositionAt.Angle)).ToList())
+                pck.Pads.AddRange(padSet);
+
+            foreach (var padSet in fp.Pads.Where(p => fp.Attr == "smd" || p.PadType == "smd") .Select(pad => SMDPad.Create(pad, fp.PositionAt.Angle)).ToList())
+                pck.SmdPads.AddRange(padSet);
+
+
+            var minX = 99999.0;
+            var maxX = -1.0;
+            var minY = 99999.0;
+            var maxY = -1.0;
             
+            if(pck.Pads.Any()) minY = Math.Min(minY, pck.Pads.Min(pd => pd.Y - pd.Height));
+            if (pck.Rects.Any()) minY = Math.Min(minY, pck.Rects.Min(pd => pd.Y1));
+            if (pck.Rects.Any()) minY = Math.Min(minY, pck.Rects.Min(pd => pd.Y2));
+            if (pck.SmdPads.Any()) minY = Math.Min(minY, pck.SmdPads.Min(pd => pd.Y1));
+            if (pck.SmdPads.Any()) minY = Math.Min(minY, pck.SmdPads.Min(pd => pd.Y2));
+            if (pck.Wires.Any()) minY = Math.Min(minY, pck.Wires.Min(pd => pd.Y1));
+            if (pck.Wires.Any()) minY = Math.Min(minY, pck.Wires.Min(pd => pd.Y2));
+            if (pck.Polygons.Any()) minY = Math.Min(minY, pck.Polygons.Min(pd => pd.Lines.Min(p => p.Y1)));
+            if (pck.Polygons.Any()) minY = Math.Min(minY, pck.Polygons.Min(pd => pd.Lines.Min(p => p.Y2)));
+            if (pck.Circles.Any()) minY = Math.Min(minY, pck.Circles.Min(pd => pd.Y - pd.Radius));
+
+            if (pck.Pads.Any()) maxY = Math.Max(maxY, pck.Pads.Max(pd => pd.Y + pd.Height));
+            if (pck.Rects.Any()) maxY = Math.Max(maxY, pck.Rects.Max(pd => pd.Y1));
+            if (pck.Rects.Any()) maxY = Math.Max(maxY, pck.Rects.Max(pd => pd.Y2));
+            if (pck.SmdPads.Any()) maxY = Math.Max(maxY, pck.SmdPads.Max(pd => pd.Y1));
+            if (pck.SmdPads.Any()) maxY = Math.Max(maxY, pck.SmdPads.Max(pd => pd.Y2));
+            if (pck.Wires.Any()) maxY = Math.Max(maxY, pck.Wires.Max(pd => pd.Y1));
+            if (pck.Wires.Any()) maxY = Math.Max(maxY, pck.Wires.Max(pd => pd.Y2));
+            if (pck.Polygons.Any()) maxY = Math.Max(maxY, pck.Polygons.Max(pd => pd.Lines.Max(p => p.Y1)));
+            if (pck.Polygons.Any()) maxY = Math.Max(maxY, pck.Polygons.Max(pd => pd.Lines.Max(p => p.Y2)));
+            if (pck.Circles.Any()) maxY = Math.Max(maxY, pck.Circles.Max(pd => pd.Y + pd.Radius));
+
+            if (pck.Pads.Any()) minX = Math.Min(minX, pck.Pads.Min(pd => pd.X - pd.Width));
+            if (pck.Rects.Any()) minX = Math.Min(minX, pck.Rects.Min(pd => pd.X1));
+            if (pck.Rects.Any()) minX = Math.Min(minX, pck.Rects.Min(pd => pd.X2));
+            if (pck.SmdPads.Any()) minX = Math.Min(minX, pck.SmdPads.Min(pd => pd.X1));
+            if (pck.SmdPads.Any()) minX = Math.Min(minX, pck.SmdPads.Min(pd => pd.X2));
+            if (pck.Wires.Any()) minX = Math.Min(minX, pck.Wires.Min(pd => pd.X1));
+            if (pck.Wires.Any()) minX = Math.Min(minX, pck.Wires.Min(pd => pd.X2));
+            if (pck.Polygons.Any()) minX = Math.Min(minX, pck.Polygons.Min(pd => pd.Lines.Min(p => p.X1)));
+            if (pck.Polygons.Any()) minX = Math.Min(minX, pck.Polygons.Min(pd => pd.Lines.Min(p => p.X2)));
+            if (pck.Circles.Any()) minX = Math.Min(minX, pck.Circles.Min(pd => pd.X - pd.Radius));
+
+            if (pck.Pads.Any()) maxX = Math.Max(maxX, pck.Pads.Max(pd => pd.X + pd.Width));
+            if(pck.Rects.Any()) maxX = Math.Max(maxX, pck.Rects.Max(pd => pd.X1));
+            if (pck.Rects.Any()) maxX = Math.Max(maxX, pck.Rects.Max(pd => pd.X2));
+            if (pck.SmdPads.Any()) maxX = Math.Max(maxX, pck.SmdPads.Max(pd => pd.X1));
+            if (pck.SmdPads.Any()) maxX = Math.Max(maxX, pck.SmdPads.Max(pd => pd.X2));
+            if (pck.Wires.Any()) maxX = Math.Max(maxX, pck.Wires.Max(pd => pd.X1));
+            if (pck.Wires.Any()) maxX = Math.Max(maxX, pck.Wires.Max(pd => pd.X2));
+            if (pck.Polygons.Any()) maxX = Math.Max(maxX, pck.Polygons.Max(pd => pd.Lines.Max(p=>p.X1)));
+            if (pck.Polygons.Any()) maxX = Math.Max(maxX, pck.Polygons.Max(pd => pd.Lines.Max(p => p.X2)));
+            if (pck.Circles.Any()) maxX = Math.Max(maxX, pck.Circles.Max(pd => pd.X + pd.Radius));
+
+            pck.Width = maxX - minX;
+            pck.Height = maxY - minY;
+
             return pck;
         }
 

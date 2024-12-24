@@ -1,4 +1,6 @@
-﻿using LagoVista.Core.Models.Drawing;
+﻿using LagoVista.Core.Models;
+using LagoVista.Core.Models.Drawing;
+using LagoVista.PCB.Eagle.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,11 +17,13 @@ namespace LagoVista.PCB.Eagle.Models
         public string Name { get; set; }
         public double X { get; set; }
         public double Y { get; set; }
-        public double OriginX { get; set; }
-        public double OriginY { get; set; }
         public double DrillDiameter { get; set; }
         public string Shape { get; set; }
         public string RotateStr { get; set; }
+        public double Width { get; set; }
+        public double Height { get; set; }
+        public string Fill { get; set; }
+        public EntityHeader<PCBLayers> Layer { get; set; }
 
         public static Pad Create(XElement element)
         {
@@ -27,8 +31,6 @@ namespace LagoVista.PCB.Eagle.Models
             {
                 X = element.GetDouble("x"),
                 Y = element.GetDouble("y"),
-                OriginX = element.GetDouble("x"),
-                OriginY = element.GetDouble("y"),
                 DrillDiameter = element.GetDouble("drill"),
                 Name = element.GetString("name"),
                 Shape = element.GetString("shape", "Circle"),
@@ -36,17 +38,31 @@ namespace LagoVista.PCB.Eagle.Models
             };
         }
 
-        public static Pad Create(MSDMarkwort.Kicad.Parser.PcbNew.Models.PartFootprint.PartPad.Pad pad, double fpAngle)
+        public static List<Pad> Create(MSDMarkwort.Kicad.Parser.PcbNew.Models.PartFootprint.PartPad.Pad pad, double fpAngle)
         {
-            return new Pad()
+            
+            var pads = new List<Pad>();
+            foreach (var layer in pad.Layers)
             {
-                DrillDiameter = pad.Drill.OuterDiameter,
-                OriginX = pad.PositionAt.X,
-                OriginY = pad.PositionAt.Y,
-                X = pad.PositionAt.X,
-                Y = pad.PositionAt.Y,
-                RotateStr = (pad.PositionAt.Angle - fpAngle).ToString()
-            };
+                // Note KiCad has origin at top of PCB, we normalize everything to be at bottom left, therefore just negate the Y values since they are relative to origin.
+                var pd = new Pad()
+                {
+                    DrillDiameter = double.Parse(pad.Drill.DrillHole),
+                    X = pad.PositionAt.X,
+                    Y = -pad.PositionAt.Y,
+                    Name = pad.PadNumber,
+                    RotateStr = (pad.PositionAt.Angle - fpAngle).ToString(),
+                    Width = pad.Size.Width,
+                    Height = pad.Size.Height,
+                    Shape = pad.Shape,
+                    Fill = MSDMarkwort.Kicad.Parser.Model.Common.Color.LayerToColor(layer),
+                    Layer = layer.FromKiCadLayer(),
+                };
+
+                pads.Add(pd);
+            }
+
+            return pads;
         }
 
         public Pad ApplyRotation(double angle)

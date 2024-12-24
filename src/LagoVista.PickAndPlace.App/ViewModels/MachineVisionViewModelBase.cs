@@ -435,7 +435,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 //    Y = (int)rect.Center.Y,
                 //};
 
-                //CvInvoke.PutText(output, msg, center, FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.White).MCvScalar);
+                //CvInvoke.PutText(output, msg, center, FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Stroke.White).MCvScalar);
             }
 
         }
@@ -555,10 +555,10 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                                             //_rectP4.Add(p4);
 
                                             /*
-                                            CvInvoke.Line(output, point1, point2, new Bgr(System.Drawing.Color.Red).MCvScalar);
-                                            CvInvoke.Line(output, point2, point3, new Bgr(System.Drawing.Color.Red).MCvScalar);
-                                            CvInvoke.Line(output, point3, point4, new Bgr(System.Drawing.Color.Red).MCvScalar);
-                                            CvInvoke.Line(output, point4, point1, new Bgr(System.Drawing.Color.Red).MCvScalar);
+                                            CvInvoke.Line(output, point1, point2, new Bgr(System.Drawing.Stroke.Red).MCvScalar);
+                                            CvInvoke.Line(output, point2, point3, new Bgr(System.Drawing.Stroke.Red).MCvScalar);
+                                            CvInvoke.Line(output, point3, point4, new Bgr(System.Drawing.Stroke.Red).MCvScalar);
+                                            CvInvoke.Line(output, point4, point1, new Bgr(System.Drawing.Stroke.Red).MCvScalar);
                                             */
                                         }
                                     }
@@ -585,10 +585,10 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
                 //if (avg1 != null && avg2 != null && avg3 != null && avg4 != null)
                 //{
-                //    Line(output, (int)avg1.X, (int)avg1.Y, (int)avg2.X, (int)avg2.Y, System.Drawing.Color.Red);
-                //    Line(output, (int)avg2.X, (int)avg2.Y, (int)avg3.X, (int)avg3.Y, System.Drawing.Color.Red);
-                //    Line(output, (int)avg3.X, (int)avg3.Y, (int)avg4.X, (int)avg4.Y, System.Drawing.Color.Red);
-                //    Line(output, (int)avg4.X, (int)avg4.Y, (int)avg1.X, (int)avg1.Y, System.Drawing.Color.Red);
+                //    Line(output, (int)avg1.X, (int)avg1.Y, (int)avg2.X, (int)avg2.Y, System.Drawing.Stroke.Red);
+                //    Line(output, (int)avg2.X, (int)avg2.Y, (int)avg3.X, (int)avg3.Y, System.Drawing.Stroke.Red);
+                //    Line(output, (int)avg3.X, (int)avg3.Y, (int)avg4.X, (int)avg4.Y, System.Drawing.Stroke.Red);
+                //    Line(output, (int)avg4.X, (int)avg4.Y, (int)avg1.X, (int)avg1.Y, System.Drawing.Stroke.Red);
                 //}
             }
         }

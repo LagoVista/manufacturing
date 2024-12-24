@@ -218,7 +218,7 @@ namespace LagoVista.PCB.Eagle.Models
                 Layer = fp.Layer.FromKiCadLayer()
             };
 
-            if (reference == "R1")
+            if (reference == "TP8")
                 Debugger.Break();
 
             var pck = PcbPackage.Create(fp);

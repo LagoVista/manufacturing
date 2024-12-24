@@ -36,7 +36,11 @@ namespace LagoVista.PCB.Eagle.Extensions
                 case 42: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomRestrict);
                 case 19: return EntityHeader<PCBLayers>.Create(PCBLayers.Unrouted);
                 default:
-                    return EntityHeader<PCBLayers>.Create(PCBLayers.Other);
+                    {
+                        var eh = EntityHeader<PCBLayers>.Create(PCBLayers.Other);
+                        eh.Text = $"Unspported layer: {layerNumber}";
+                        return eh;
+                    }
             };
         }
 
@@ -47,7 +51,9 @@ namespace LagoVista.PCB.Eagle.Extensions
                 case "F.Cu": return EntityHeader<PCBLayers>.Create(PCBLayers.TopCopper);
                 case "B.Cu": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomCopper);
                 case "F.Silkscreen": return EntityHeader<PCBLayers>.Create(PCBLayers.TopSilk);
+                case "F.SilkS": return EntityHeader<PCBLayers>.Create(PCBLayers.TopSilk);
                 case "B.Silkscreen": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomSilk);
+                case "B.SilkS": return EntityHeader<PCBLayers>.Create(PCBLayers.TopSilk);
                 case "Edge.Cuts": return EntityHeader<PCBLayers>.Create(PCBLayers.BoardOutline);
                 case "F.Fab": return EntityHeader<PCBLayers>.Create(PCBLayers.TopNames);
                 case "B.Fab": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomNames);
@@ -55,11 +61,17 @@ namespace LagoVista.PCB.Eagle.Extensions
                 case "B.Mask": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomSolderMask);
                 case "F.Paste": return EntityHeader<PCBLayers>.Create(PCBLayers.TopStencil);
                 case "B.Paste": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomStencil);
+                case "F.CrtYd": return EntityHeader<PCBLayers>.Create(PCBLayers.TopRestrict);
+                case "B.CrtYd": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomRestrict);
                 case "F.Courtyard": return EntityHeader<PCBLayers>.Create(PCBLayers.TopRestrict);
                 case "B.Courtyard": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomRestrict);
                 default:
-                    return EntityHeader<PCBLayers>.Create(PCBLayers.Other);
+                    {
+                        var eh = EntityHeader<PCBLayers>.Create(PCBLayers.Other);
+                        eh.Text = $"Unsupported Layer: {layerName}";
+                        return eh;
+                    }
+                 }
             }
-        }
     }
 }

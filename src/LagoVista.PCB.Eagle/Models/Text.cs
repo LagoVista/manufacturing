@@ -14,6 +14,7 @@ namespace LagoVista.PCB.Eagle.Models
         public string Value { get; set; }
         public double Size { get; set; }
         public double Rotation { get; set; }
+        public string Storke { get; set; }
 
 
         public static Text Create(XElement element)
@@ -35,12 +36,14 @@ namespace LagoVista.PCB.Eagle.Models
 
         public static Text Create(FpText text)
         {
+            // Note KiCad has origin at top of PCB, we normalize everything to be at bottom left, therefore just negate the Y values since they are relative to origin.
             return new Text()
             {
                 Layer = text.Layer.FromKiCadLayer(),
                 X = text.PositionAt.X,
-                Y = text.PositionAt.Y,
+                Y = -text.PositionAt.Y,
                 Value = text.Text,
+                Storke = text.Stroke.Color.ToString(text.Layer)
             };
         }
     }

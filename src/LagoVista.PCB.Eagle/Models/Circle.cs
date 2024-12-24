@@ -18,6 +18,7 @@ namespace LagoVista.PCB.Eagle.Models
         public double Y { get; set; }
         public double Radius { get; set; }
         public double Width { get; set; }
+        public double Height { get; set; }
 
         public string Stroke { get; set; }
         public string Fill { get; set; }
@@ -40,16 +41,27 @@ namespace LagoVista.PCB.Eagle.Models
 
         public static Circle Create(FpCircle circle)
         {
-            return new Circle()
+            // Note KiCad has origin at top of PCB, we normalize everything to be at bottom left, therefore just negate the Y values since they are relative to origin.
+            var cir = new Circle()
             {
                 Layer = circle.Layer.FromKiCadLayer(),
                 X = circle.Center.X,
-                Y = circle.Center.Y,
+                Y = -circle.Center.Y,
                 Radius = circle.Width / 2,
                 Width = circle.Width,
+                Height = circle.Width,
                 Fill = circle.Fill,
-                Stroke = circle.Stroke.Color.ToString()
+                Stroke = circle.Stroke.Color.ToString(circle.Layer)
             };
+
+
+
+            if(cir.Radius == 0)
+            {
+                cir.Radius = Math.Max(circle.EndPosition.X - cir.X, circle.EndPosition.Y - cir.Y);
+            }
+
+            return cir;
          }
     }
 }

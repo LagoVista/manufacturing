@@ -62,13 +62,14 @@ namespace LagoVista.PCB.Eagle.Models
 
         public static Rect Create(FpRect rect)
         {
+            // Note KiCad has origin at top of PCB, we normalize everything to be at bottom left, therefore just negate the Y values since they are relative to origin.
             return new Rect()
             {
                 Layer = rect.Layer.FromKiCadLayer(),
                 X1 = rect.StartPosition.X,
-                Y1 = rect.StartPosition.Y,
+                Y1 = -rect.StartPosition.Y,
                 X2 = rect.EndPosition.X,
-                Y2 = rect.EndPosition.Y,
+                Y2 = -rect.EndPosition.Y,
             };
         }
     }

@@ -5,6 +5,7 @@ using System.Xml.Linq;
 using System.Linq;
 using System.IO;
 using Newtonsoft.Json;
+using MSDMarkwort.Kicad.Parser.Model.Common;
 
 namespace LagoVista.Pcb.Tests
 {
@@ -66,7 +67,9 @@ namespace LagoVista.Pcb.Tests
             using (var ms = new MemoryStream(buffer))
             {
                 var result = KicadImport.ImportPCB(ms);
+
                 var json = JsonConvert.SerializeObject(result);
+                Console.WriteLine(json.Length);
                 var r1 = result.Components.FirstOrDefault(res => res.Name == "R1");
 
                 foreach (var pad in r1.Package.Value.SmdPads)
@@ -74,6 +77,22 @@ namespace LagoVista.Pcb.Tests
                     Console.WriteLine($"{pad.Name} + {pad.X1}x{pad.Y1} - ({pad.X2}x{pad.Y2}) O={pad.OriginX}x{pad.OriginY} - size={pad.DX}x{pad.DY} ");
                 }
             }
+        }
+
+        [Test]
+        public void ColorParserTest()
+        {
+            var color = new Color()
+            {
+                Alpha = 0xFF,
+                Red = 0x12,
+                Green = 0x34,
+                Blue = 0x56
+            };
+
+            Console.WriteLine(color);
+
+            Assert.AreEqual("#FF123456", color.ToString());
         }
     }
 }

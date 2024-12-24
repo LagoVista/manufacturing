@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>LagoVista.Manufacturing.Models</id>
-    <version>3.0.2777.1437</version>
+    <version>3.0.2778.1534</version>
     <authors>Software Logistics, LLC</authors>
     <owners>Software Logistics, LLC</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -12,12 +12,12 @@
     <copyright>Copyright Software Logistics - 2024</copyright>
     <tags>HomeAutomation IoT</tags>
     <icon>LagoVistaIcon.png</icon>
-    <releaseNotes>Build Date: 12/23/2024 7:37:53 PM UTC</releaseNotes>
+    <releaseNotes>Build Date: 12/24/2024 8:34:08 PM UTC</releaseNotes>
     <repository url="https://www.github.com/lagovista" type="git" branch="master"></repository>
     <dependencies>
       <group targetFramework="netstandard2.1">
         <dependency id="LagoVista.UserAdmin.Models" version="3.0.2777.1110" />
-        <dependency id="LagoVista.PCB.Eagle" version="3.0.2777.1437" />
+        <dependency id="LagoVista.PCB.Eagle" version="3.0.2778.1534" />
       </group>
     </dependencies>
   </metadata>
