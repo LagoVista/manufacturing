@@ -66,12 +66,15 @@ namespace LagoVista.PCB.Eagle.Models
                 Layer = element.GetInt32("layer").FromEagleLayer(),
                 Name = element.GetString("name"),
                 OriginX = element.GetDouble("x"),
-                OriginY = -element.GetDouble("y"),
+                OriginY = element.GetDouble("y"),
                 DX = element.GetDouble("dx"),
                 DY = element.GetDouble("dy"),
                 Roundness = element.GetDoubleNullable("roundness"),
-                Rotation = element.GetString("rot").ToAngle()
+                Rotation = element.GetString("rot").ToAngle(),
+                Fill = element.GetInt32("layer").FromEagleColor(),
             };
+
+            smd.Shape = smd.Roundness > 0 ? "roundrect" : "rect";
 
             smd.X1 = Math.Round(smd.OriginX - (smd.DX / 2), 3);
             smd.Y1 = Math.Round(smd.OriginY - (smd.DY / 2), 3);

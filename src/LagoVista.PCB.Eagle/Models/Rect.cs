@@ -19,6 +19,7 @@ namespace LagoVista.PCB.Eagle.Models
         public double Y1 { get; set; }
         public double Y2 { get; set; }
         public double Width { get; set; }
+        public string Stroke { get; set; }
         public EntityHeader<PCBLayers> Layer { get; set; }
 
         public double Length
@@ -53,9 +54,9 @@ namespace LagoVista.PCB.Eagle.Models
                 X2 = element.GetDouble("x2"),
                 Y1 = element.GetDouble("y1"),
                 Y2 = element.GetDouble("y2"),
-                Width = element.GetDouble("width")
+                Width = element.GetDouble("width"),
+                Stroke = element.GetInt32("layer").FromEagleColor()
             };
-
 
             return rect;
         }

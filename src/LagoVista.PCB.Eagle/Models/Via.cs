@@ -1,4 +1,5 @@
 ﻿using LagoVista.Core.Models;
+using LagoVista.PCB.Eagle.Extensions;
 using System.Xml.Linq;
 
 namespace LagoVista.PCB.Eagle.Models
@@ -11,6 +12,7 @@ namespace LagoVista.PCB.Eagle.Models
         public double OriginX { get; set; }
         public double OriginY { get; set; }
         public double DrillDiameter { get; set; }
+        public string Fill { get; set; }
 
         public static Via Create(XElement element)
         {
@@ -21,7 +23,9 @@ namespace LagoVista.PCB.Eagle.Models
                 X = element.GetDouble("x"),
                 Y = element.GetDouble("y"),
                 OriginX = element.GetDouble("x"),
-                OriginY = element.GetDouble("y")
+                OriginY = element.GetDouble("y"),
+                Fill = ((int)PCBLayers.Vias).FromEagleColor()
+
             };
         }
     }

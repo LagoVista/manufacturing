@@ -27,6 +27,8 @@ namespace LagoVista.PCB.Eagle.Models
 
         public static Circle Create(XElement element)
         {
+            var attr = element.Attributes();
+
             return new Circle()
             {
                 Layer = element.GetInt32("layer").FromEagleLayer(),
@@ -34,8 +36,8 @@ namespace LagoVista.PCB.Eagle.Models
                 Y = element.GetDouble("y"),
                 Radius = element.GetDouble("radius"),
                 Width = element.GetDouble("width"),
-                Stroke = "#FFFFFF",
-                Fill = "$00FFFFFF"
+                Stroke = element.GetInt32("layer").FromEagleColor(),
+                Fill = "none"
             };
         }
 

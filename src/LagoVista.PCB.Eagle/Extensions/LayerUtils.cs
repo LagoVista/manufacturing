@@ -44,6 +44,36 @@ namespace LagoVista.PCB.Eagle.Extensions
             };
         }
 
+        public static string FromEagleColor(this int layerNumber)
+        {
+            switch (layerNumber)
+            {
+                case 1: return "#a10a0a";
+                case 16: return "#0578ac";
+                case 17: return "#31b079";
+                case 18: return "#31b079";
+                case 21: return "#a0a0a0";
+                case 22: return "#a0a0a0";
+                case 44: return "#000000";
+                case 45: return "#000000";
+                case 20: return "#e4be41";
+                case 51: return "#a0a0a0";
+                case 52: return "#a0a0a0";
+                case 25: return "#a0a0a0";
+                case 26: return "#a0a0a0";
+                case 27: return "#a0a0a0";
+                case 28: return "#a0a0a0";
+                case 29: return "#007f7f";
+                case 30: return "#00AFAF";
+                case 31: return "#7f7f00";
+                case 32: return "#AFAF00";
+                case 41: return "#ff0000";
+                case 42: return "#7f0000";
+                case 19: return "#a0a028";
+                default: return "#ffffff"; 
+            };
+        }
+
         public static EntityHeader<PCBLayers> FromKiCadLayer(this string layerName)
         {
             switch(layerName)

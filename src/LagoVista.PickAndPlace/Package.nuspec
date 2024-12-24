@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>LagoVista.PickAndPlace</id>
-    <version>3.0.2778.1743</version>
+    <version>3.0.2778.1829</version>
     <authors>Software Logistics, LLC</authors>
     <owners>Software Logistics, LLC</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -12,16 +12,16 @@
     <copyright>Copyright Software Logistics - 2024</copyright>
     <tags>HomeAutomation IoT</tags>
     <icon>LagoVistaIcon.png</icon>
-    <releaseNotes>Build Date: 12/24/2024 10:43:41 PM UTC</releaseNotes>
+    <releaseNotes>Build Date: 12/24/2024 11:29:39 PM UTC</releaseNotes>
     <repository url="https://www.github.com/lagovista" type="git" branch="master"></repository>
     <dependencies>
       <group targetFramework="netstandard2.1">
-        <dependency id="LagoVista.Core" version="3.0.2778.1743" />
+        <dependency id="LagoVista.Core" version="3.0.2778.1829" />
         <dependency id="System.IO.Ports" version="9.0.0" />
-        <dependency id="LagoVista.Client.Core" version="3.0.2778.1743" />
-        <dependency id="LagoVista.GCode" version="3.0.2778.1743" />
-        <dependency id="LagoVista.Manufacturing.Models" version="3.0.2778.1743" />
-        <dependency id="LagoVista.PCB.Eagle" version="3.0.2778.1743" />
+        <dependency id="LagoVista.Client.Core" version="3.0.2778.1829" />
+        <dependency id="LagoVista.GCode" version="3.0.2778.1829" />
+        <dependency id="LagoVista.Manufacturing.Models" version="3.0.2778.1829" />
+        <dependency id="LagoVista.PCB.Eagle" version="3.0.2778.1829" />
       </group>
     </dependencies>
   </metadata>

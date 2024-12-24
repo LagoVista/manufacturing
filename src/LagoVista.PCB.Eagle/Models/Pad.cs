@@ -25,17 +25,41 @@ namespace LagoVista.PCB.Eagle.Models
         public string Fill { get; set; }
         public EntityHeader<PCBLayers> Layer { get; set; }
 
-        public static Pad Create(XElement element)
+        public static List<Pad> Create(XElement element)
         {
-            return new Pad()
+            var attr = element.Attributes();
+
+            var pads = new List<Pad>();
+
+            pads.Add(new Pad()
             {
                 X = element.GetDouble("x"),
                 Y = element.GetDouble("y"),
                 DrillDiameter = element.GetDouble("drill"),
                 Name = element.GetString("name"),
+                Width = element.GetDouble("drill") * 2,
+                Height = element.GetDouble("drill") * 2,
                 Shape = element.GetString("shape", "Circle"),
-                RotateStr = element.GetString("rot")
-            };
+                RotateStr = element.GetString("rot"),
+                Layer = 1.FromEagleLayer(),
+                Fill =1.FromEagleColor(),
+            });
+
+            pads.Add(new Pad()
+            {
+                X = element.GetDouble("x"),
+                Y = element.GetDouble("y"),
+                DrillDiameter = element.GetDouble("drill"),
+                Width = element.GetDouble("drill") * 2,
+                Height = element.GetDouble("drill") * 2,
+                Name = element.GetString("name"),
+                Shape = element.GetString("shape", "Circle"),
+                RotateStr = element.GetString("rot"),
+                Layer = 16.FromEagleLayer(),
+                Fill = 16.FromEagleColor()
+            });
+
+            return pads;
         }
 
         public static List<Pad> Create(MSDMarkwort.Kicad.Parser.PcbNew.Models.PartFootprint.PartPad.Pad pad, double fpAngle)

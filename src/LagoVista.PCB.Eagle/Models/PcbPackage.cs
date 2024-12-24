@@ -51,11 +51,13 @@ namespace LagoVista.PCB.Eagle.Models
                 Wires = (from childWires in element.Descendants("wire") select PcbLine.Create(childWires)).ToList(),
                 Texts = (from childTexts in element.Descendants("text") select Text.Create(childTexts)).ToList(),
                 SmdPads = (from childSMDs in element.Descendants("smd") select SMDPad.Create(childSMDs)).ToList(),
-                Pads = (from childPads in element.Descendants("pad") select Pad.Create(childPads)).ToList(),
                 Holes = (from childPads in element.Descendants("hole") select Hole.Create(childPads)).ToList(),
                 Circles = (from childCircles in element.Descendants("circle") select Circle.Create(childCircles)).ToList(),
                 Rects = (from childCircles in element.Descendants("rect") select Rect.Create(childCircles)).ToList(),
             };
+
+            foreach (var padSet in (from childPads in element.Descendants("pad") select Pad.Create(childPads)).ToList())
+                pck.Pads.AddRange(padSet);
             
             return pck;
         }
