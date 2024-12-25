@@ -34,6 +34,8 @@ namespace LagoVista.PCB.Eagle.Extensions
                 case 32: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomRestrict);
                 case 41: return EntityHeader<PCBLayers>.Create(PCBLayers.TopRestrict);
                 case 42: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomRestrict);
+                case 49: return EntityHeader<PCBLayers>.Create(PCBLayers.TopDocument);
+                case 47: return EntityHeader<PCBLayers>.Create(PCBLayers.Measures);
                 case 19: return EntityHeader<PCBLayers>.Create(PCBLayers.Unrouted);
                 default:
                     {
@@ -57,8 +59,9 @@ namespace LagoVista.PCB.Eagle.Extensions
                 case 44: return "#000000";
                 case 45: return "#000000";
                 case 20: return "#e4be41";
-                case 51: return "#a0a0a0";
-                case 52: return "#a0a0a0";
+                case 51:
+                case 52:
+                case 49: return "#a0a0a0";
                 case 25: return "#a0a0a0";
                 case 26: return "#a0a0a0";
                 case 27: return "#a0a0a0";
@@ -69,7 +72,8 @@ namespace LagoVista.PCB.Eagle.Extensions
                 case 32: return "#AFAF00";
                 case 41: return "#ff0000";
                 case 42: return "#7f0000";
-                case 19: return "#a0a028";
+                case 19: return "#a0a028";                
+                case 47: return "#5fffff";
                 default: return "#ffffff"; 
             };
         }

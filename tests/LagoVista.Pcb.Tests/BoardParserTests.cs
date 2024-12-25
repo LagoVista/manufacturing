@@ -23,9 +23,26 @@ namespace LagoVista.Pcb.Tests
             var result = EagleParser.ReadPCB(doc);
             var r1 = result.Components.FirstOrDefault(res => res.Name == "R1");
 
+
             foreach (var pad in r1.Package.Value.SmdPads)
             {
                 Console.WriteLine($"{pad.Name} + {pad.X1}x{pad.Y1} - ({pad.X2}x{pad.Y2}) O={pad.OriginX}x{pad.OriginY} - size={pad.DX}x{pad.DY} ");
+            }
+        }
+
+        [Test]
+        public void ParseRelayBoardEagle()
+        {
+            var doc = XDocument.Load("RelayBoard.brd");
+            var result = EagleParser.ReadPCB(doc);
+            var sortedPcks = result.Packages.OrderBy(result => result.Key);
+            foreach (var pck in sortedPcks)
+                Console.WriteLine(pck.Name + " - " + pck.Key);
+
+
+            foreach (var part in result.Components)
+            {
+                var pck = result.Packages.Single(pck=> pck.Key == part.Package.Key);
             }
         }
 

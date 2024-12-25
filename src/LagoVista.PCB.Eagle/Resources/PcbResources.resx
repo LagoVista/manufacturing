@@ -150,6 +150,9 @@
   <data name="Layer_Holes" xml:space="preserve">
     <value>Holes</value>
   </data>
+  <data name="Layer_Measures" xml:space="preserve">
+    <value>Measures</value>
+  </data>
   <data name="Layer_Other" xml:space="preserve">
     <value>Other</value>
   </data>

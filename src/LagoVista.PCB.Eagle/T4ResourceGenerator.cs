@@ -1,4 +1,4 @@
-﻿/*12/24/2024 5:55:04 AM*/
+﻿/*12/25/2024 11:10:01 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -87,6 +87,9 @@ namespace LagoVista.PCB.Eagle.Resources
 //Resources:PcbResources:Layer_Holes
 
 		public static string Layer_Holes { get { return GetResourceString("Layer_Holes"); } }
+//Resources:PcbResources:Layer_Measures
+
+		public static string Layer_Measures { get { return GetResourceString("Layer_Measures"); } }
 //Resources:PcbResources:Layer_Other
 
 		public static string Layer_Other { get { return GetResourceString("Layer_Other"); } }
@@ -137,6 +140,7 @@ namespace LagoVista.PCB.Eagle.Resources
 			public const string Layer_BottomValues = "Layer_BottomValues";
 			public const string Layer_Drills = "Layer_Drills";
 			public const string Layer_Holes = "Layer_Holes";
+			public const string Layer_Measures = "Layer_Measures";
 			public const string Layer_Other = "Layer_Other";
 			public const string Layer_Pads = "Layer_Pads";
 			public const string Layer_TopCopper = "Layer_TopCopper";

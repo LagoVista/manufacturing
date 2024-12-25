@@ -21,7 +21,7 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
         public string Icon { get; set; } = "icon-fo-landing-page";
 
-        [FormField(LabelResource: ManufacturingResources.Names.Pcb_Revisions, ChildListDisplayMember: "Revision", FieldType: FieldTypes.ChildListInline, FactoryUrl: "/api/mfg/pcb/revision/factory", 
+        [FormField(LabelResource: ManufacturingResources.Names.Pcb_Revisions, ChildListDisplayMember: "Revision", OpenByDefault:true, FieldType: FieldTypes.ChildListInline, FactoryUrl: "/api/mfg/pcb/revision/factory", 
                 ResourceType: typeof(ManufacturingResources))]
         public List<CircuitBoardRevision> Revisions { get; set; } = new List<CircuitBoardRevision>();
 

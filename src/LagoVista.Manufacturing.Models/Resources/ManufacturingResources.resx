@@ -662,6 +662,9 @@
   <data name="NozzleTip_InnerDiameter" xml:space="preserve">
     <value>Innert Diameter</value>
   </data>
+  <data name="NozzleTip_OuterDiameter" xml:space="preserve">
+    <value>Outer Diameter</value>
+  </data>
   <data name="Common_Width" xml:space="preserve">
     <value>Width</value>
   </data>
@@ -686,11 +689,8 @@
   <data name="StripFeeder_Direction" xml:space="preserve">
     <value>Direction</value>
   </data>
-  <data name="StripFeeder_Length" xml:space="preserve">
-    <value>Length</value>
-  </data>
-  <data name="StripFeeder_RowWidth" xml:space="preserve">
-    <value>Row Width</value>
+  <data name="StripFeeder_FeederLength" xml:space="preserve">
+    <value>Feeder Length</value>
   </data>
   <data name="StripFeeder_PickHeight" xml:space="preserve">
     <value>Pick Height</value>
@@ -737,9 +737,6 @@
   <data name="ComponentPackage_TapeColor_Select" xml:space="preserve">
     <value>-select tape color-</value>
   </data>
-  <data name="Feeder_PickLocation" xml:space="preserve">
-    <value>Pick Location</value>
-  </data>
   <data name="Feeder_TapeAngle" xml:space="preserve">
     <value>Tape Angle</value>
   </data>
@@ -767,20 +764,23 @@
   <data name="Feeder_Rotation_Select" xml:space="preserve">
     <value>-select rotation-</value>
   </data>
-  <data name="StripFeeder_Color" xml:space="preserve">
-    <value>Color</value>
-  </data>
   <data name="StripFeeder_CurrentPartindex" xml:space="preserve">
     <value>Current Part Index</value>
   </data>
   <data name="ComponentPackage_TapeSpecificationPage" xml:space="preserve">
     <value>Tape Specification Page</value>
   </data>
-  <data name="StripFeeder_StagingPlateColumn" xml:space="preserve">
-    <value>Staging Plate Column</value>
-  </data>
   <data name="ComponentPackage_TapeColor_Clear" xml:space="preserve">
     <value>Clear</value>
+  </data>
+  <data name="StripFeeder_RowWidth" xml:space="preserve">
+    <value>Row Width</value>
+  </data>
+  <data name="Feeder_PickLocation" xml:space="preserve">
+    <value>Pick Location</value>
+  </data>
+  <data name="StripFeeder_StagingPlateColumn" xml:space="preserve">
+    <value>Staging Plate Column</value>
   </data>
   <data name="StripFeeder_Rows" xml:space="preserve">
     <value>Rows</value>
@@ -842,9 +842,6 @@
   <data name="NozzleTip_BoardHeight" xml:space="preserve">
     <value>Board Height</value>
   </data>
-  <data name="NozzleTip_OuterDiameter" xml:space="preserve">
-    <value>Outer Diameter</value>
-  </data>
   <data name="MachineStagingPlates_Title" xml:space="preserve">
     <value>Staging Plates</value>
   </data>
@@ -883,5 +880,136 @@
   </data>
   <data name="Feeder_Machine_Select" xml:space="preserve">
     <value>-select machine-</value>
+  </data>
+  <data name="Common_Color" xml:space="preserve">
+    <value>Color</value>
+  </data>
+  <data name="StripFeeder_RowOneRefHoleOffset" xml:space="preserve">
+    <value>Row One - Reference Hole</value>
+  </data>
+  <data name="MachineStagingPlate_HolesStaggered" xml:space="preserve">
+    <value>Holes Staggered</value>
+  </data>
+  <data name="MachineStagingPlate_HolesStaggered_Help" xml:space="preserve">
+    <value>This is true if the the holes are diagonally aligned, this is false if the holes are in solid lines.</value>
+  </data>
+  <data name="StripFeeder_RowOneRefHoleOffset_Help" xml:space="preserve">
+    <value>The offset from the origin or bottom left of the feeder to the reference hole for the first row.</value>
+  </data>
+  <data name="StripFeeder_AngleOffset_Help" xml:space="preserve">
+    <value>The angle offset for this strip feeder to correct for any installation errors.  This is usually calibrated by the machine and not manually entered.</value>
+  </data>
+  <data name="Machine_FrameWidth" xml:space="preserve">
+    <value>Frame Width</value>
+  </data>
+  <data name="Machine_FrameHeight" xml:space="preserve">
+    <value>Frame_Height</value>
+  </data>
+  <data name="Machine_FeederRail_Title" xml:space="preserve">
+    <value>Feeder Rail</value>
+  </data>
+  <data name="Machine_FeederRail_Description" xml:space="preserve">
+    <value>A feeder rail is attached to a machine, automated feeders are attached to the feeder rail, the feeder rail has slots where the feeders are positioned.</value>
+  </data>
+  <data name="Machine_FeederRail_NumberSlots" xml:space="preserve">
+    <value>Numuber Slots</value>
+  </data>
+  <data name="Machine_FeederRail_SlotWidth" xml:space="preserve">
+    <value>Slot Width</value>
+  </data>
+  <data name="Machine_FeederRail_FirstFeederOffset" xml:space="preserve">
+    <value>First Feeder Offset</value>
+  </data>
+  <data name="Machine_FeederRail_FirstFeederOffset_Help" xml:space="preserve">
+    <value>Offset from the left origin to the left edge of the first feeder.</value>
+  </data>
+  <data name="Machine_FeederRail_Width" xml:space="preserve">
+    <value>Rail Width</value>
+  </data>
+  <data name="Machine_FeederRail_Height" xml:space="preserve">
+    <value>Rail Height</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="Machine_FeederRail_Origin" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+    <comment>Rail Origin</comment>
+  </data>
+  <data name="Machine_FeederRail_Origin_Help" xml:space="preserve">
+    <value>The bottom left or origin of the the feeder rail.  This will be the XY location before the rail is rotated.</value>
+  </data>
+  <data name="Machine_FeederRails" xml:space="preserve">
+    <value>Feeder Rails</value>
+  </data>
+  <data name="GCode_TopLightOn" xml:space="preserve">
+    <value>Top Light On</value>
+  </data>
+  <data name="GCode_TopLightOff" xml:space="preserve">
+    <value />
+  </data>
+  <data name="GCode_BottomLightOn" xml:space="preserve">
+    <value>Bottom Light On</value>
+  </data>
+  <data name="GCode_BottomLightOff" xml:space="preserve">
+    <value>Botttom Light Off</value>
+  </data>
+  <data name="GCode_LeftVacuumOn" xml:space="preserve">
+    <value>Left Vacuum On</value>
+  </data>
+  <data name="GCode_RightVacuumOn" xml:space="preserve">
+    <value>Right Vacuum On</value>
+  </data>
+  <data name="GCode_LeftVacuumOff" xml:space="preserve">
+    <value>Left Vacuum Off</value>
+  </data>
+  <data name="GCode_RightVacuumOff" xml:space="preserve">
+    <value>Right Vacuum Off</value>
+  </data>
+  <data name="GCode_ReadLeftVacuumCmd" xml:space="preserve">
+    <value>Read Left Vacuum Command</value>
+  </data>
+  <data name="GCode_ReadRightVacuumCmd" xml:space="preserve">
+    <value>Read Right Vacuum Command</value>
+  </data>
+  <data name="GCode_LeftVacuumResponseExample" xml:space="preserve">
+    <value>Left Vacuum Response Example</value>
+  </data>
+  <data name="GCode_ParseLeftVacuumRegEx" xml:space="preserve">
+    <value>Parse Left Vacuum Regular Expression</value>
+  </data>
+  <data name="GCode_RightVacuumResponseExample" xml:space="preserve">
+    <value>Right Vacuum Response Example</value>
+  </data>
+  <data name="GCode_ParseRightVacuumRegEx" xml:space="preserve">
+    <value>Parse Right Vacuum Regular Expression</value>
+  </data>
+  <data name="GCode_HomeAllCommand" xml:space="preserve">
+    <value>Home All Command</value>
+  </data>
+  <data name="GCode_HomeXCommand" xml:space="preserve">
+    <value>Home X Command</value>
+  </data>
+  <data name="GCode_HomeYCommand" xml:space="preserve">
+    <value>Home Y Command</value>
+  </data>
+  <data name="GCode_HomeZCommand" xml:space="preserve">
+    <value>Home Z Command</value>
+  </data>
+  <data name="GCode_RequestStatusCommand" xml:space="preserve">
+    <value>Request Status Command</value>
+  </data>
+  <data name="GCode_ParseStatus_RegularExpression" xml:space="preserve">
+    <value>Parse Status Regular Expression</value>
+  </data>
+  <data name="GCode_ParseStatusRegularExpressionHelp" xml:space="preserve">
+    <value>This regular expression should read the values from the status message and return the following groups (xpos) = current X position; (ypos) = current Y position; (zpos) current Z position; (lrot) rotate of the left pick head; (rrot) = rotate of the right pick head (if applicable)</value>
+  </data>
+  <data name="GCode_StatusResponseExample" xml:space="preserve">
+    <value>Status Reponse Example</value>
+  </data>
+  <data name="Machine_GCode" xml:space="preserve">
+    <value>GCode Commands</value>
+  </data>
+  <data name="Machine_GCode_Description" xml:space="preserve">
+    <value>Defines GCode Commands and how those results should be parsed.</value>
   </data>
 </root>

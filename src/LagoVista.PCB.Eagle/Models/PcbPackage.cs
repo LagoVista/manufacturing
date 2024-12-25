@@ -46,7 +46,6 @@ namespace LagoVista.PCB.Eagle.Models
                 Id = Guid.NewGuid().ToId(),
                 LibraryName = element.Ancestors(XName.Get("library")).First().Attribute("name").Value,
                 Name = element.GetString("name"),
-                Key = element.GetString("name").ToNuvIoTKey(),
                 Description = element.GetChildString("description"),
                 Wires = (from childWires in element.Descendants("wire") select PcbLine.Create(childWires)).ToList(),
                 Texts = (from childTexts in element.Descendants("text") select Text.Create(childTexts)).ToList(),
@@ -55,6 +54,8 @@ namespace LagoVista.PCB.Eagle.Models
                 Circles = (from childCircles in element.Descendants("circle") select Circle.Create(childCircles)).ToList(),
                 Rects = (from childCircles in element.Descendants("rect") select Rect.Create(childCircles)).ToList(),
             };
+
+            pck.Key = (pck.LibraryName + pck.Name).ToNuvIoTKey();
 
             foreach (var padSet in (from childPads in element.Descendants("pad") select Pad.Create(childPads)).ToList())
                 pck.Pads.AddRange(padSet);

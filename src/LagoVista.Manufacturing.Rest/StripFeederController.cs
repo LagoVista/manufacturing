@@ -10,6 +10,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using LagoVista.Core.Models.Drawing;
+using System;
+using LagoVista.Core;
+using System.Linq;
 
 namespace LagoVista.Manufacturing.Rest.Controllers
 {
@@ -37,6 +41,14 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         public DetailResponse<StripFeeder> CreateStripFeeder()
         {
             var form = DetailResponse<StripFeeder>.Create();
+            form.Model.Rows.Add(new StripFeederRow()
+            {
+                Id = Guid.NewGuid().ToId(),
+                RowIndex = 1,
+                CurrentPartIndex = 1,
+                Notes = "",
+                RefHoleOffset = new Point2D<double>(0, 0),
+            });
             SetAuditProperties(form.Model);
             SetOwnedProperties(form.Model);
             return form;
@@ -79,12 +91,19 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return _mgr.GetStripFeedersForMachineAsync(machineid, loadcomponents, OrgEntityHeader, UserEntityHeader);
         }
 
-        [HttpGet("/mft/machine/{machineid}/stripfeeder/{feederid}/attach")]
-        public async Task<InvokeResult> AttachToMachine(string machineid, string feederid)
+        [HttpGet("/mft/machine/{machineid}/stagingplate/{plateid}/col/{col}/stripfeeder/{feederid}/attach")]
+        public async Task<InvokeResult> AttachToMachine(string machineid, string plateid, string col, string feederid)
         {
             var machine = await _machineManager.GetMachineAsync(machineid, OrgEntityHeader, UserEntityHeader);
+            var plate = machine.StagingPlates.SingleOrDefault(plt => plt.Id == plateid);
+            if (plate == null)
+            {
+                return InvokeResult.FromError("Could not find staging plate.");
+            }
+
             var feeder = await _mgr.GetStripFeederAsync(feederid, false, OrgEntityHeader, UserEntityHeader);
             feeder.Machine = machine.ToEntityHeader();
+            feeder.StagingPlate = plate.ToEntityHeader();
             return await _mgr.UpdateStripFeederAsync(feeder, OrgEntityHeader, UserEntityHeader);
         }
     }

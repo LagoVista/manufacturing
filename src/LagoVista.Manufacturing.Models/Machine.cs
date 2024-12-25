@@ -290,8 +290,8 @@ namespace LagoVista.Manufacturing.Models
         }
 
         ObservableCollection<ToolNozzleTip> _nozzles = new ObservableCollection<ToolNozzleTip>();
-        [FormField(LabelResource: ManufacturingResources.Names.NozzleTips_Title, FieldType: FieldTypes.ChildListInline, FactoryUrl: "/api/mfg/machine/nozzletip/factory", 
-            ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.NozzleTips_Title, FieldType: FieldTypes.ChildListInline, FactoryUrl: "/api/mfg/machine/nozzletip/factory",
+            OpenByDefault: true, ResourceType: typeof(ManufacturingResources))]
         public ObservableCollection<ToolNozzleTip> Nozzles
         {
             get { return _nozzles; }
@@ -300,13 +300,22 @@ namespace LagoVista.Manufacturing.Models
 
         ObservableCollection<MachineStagingPlate> _stagingPlates = new ObservableCollection<MachineStagingPlate>();
         [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlates_Title, FieldType: FieldTypes.ChildListInline, FactoryUrl: "/api/mfg/machine/stagingplate/factory",
-            ResourceType: typeof(ManufacturingResources))]
+           OpenByDefault: true, ResourceType: typeof(ManufacturingResources))]
         public ObservableCollection<MachineStagingPlate> StagingPlates
         {
             get { return _stagingPlates; }
             set { Set(ref _stagingPlates, value); }
         }
 
+
+        ObservableCollection<MachineFeederRail> _feederRails = new ObservableCollection<MachineFeederRail>();
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRails, FieldType: FieldTypes.ChildListInline, FactoryUrl: "/api/mfg/machine/feederrail/factory",
+           OpenByDefault:true, ResourceType: typeof(ManufacturingResources))]
+        public ObservableCollection<MachineFeederRail> FeederRails
+        {
+            get { return _feederRails; }
+            set { Set(ref _feederRails, value); }
+        }
 
         /// <summary>
         /// Absolute position of the board in the Z axis, the actual place location will be 
@@ -357,6 +366,12 @@ namespace LagoVista.Manufacturing.Models
             get { return _workAreaHeight; }
             set { Set(ref _workAreaHeight, value); }
         }
+
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_FrameWidth, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public int FrameWidth { get; set; } = 680;
+
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_FrameHeight, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public int FrameHeight { get; set; } = 600;
 
         public bool AbortOnProbeFail { get; set; }
         public double ProbeFeed { get; set; }
@@ -566,8 +581,8 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Key),
                 nameof(WorkAreaWidth),
                 nameof(WorkAreaHeight),
-                nameof(Nozzles),
-                nameof(StagingPlates),
+                nameof(FrameWidth),
+                nameof(FrameHeight),
             };
         }
 
@@ -577,6 +592,9 @@ namespace LagoVista.Manufacturing.Models
             {
                 nameof(MaximumFeedRate),
                 nameof(JogFeedRate),
+                nameof(Nozzles),
+                nameof(StagingPlates),
+                nameof(FeederRails),
             };
         }
     }

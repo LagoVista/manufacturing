@@ -135,11 +135,15 @@ namespace LagoVista.Manufacturing.Managers
                 {
                     if (cmp.Package != null)
                     {
-                        var pck = revision.PhysicalPackages.SingleOrDefault(c => c.Key == cmp.Package.Key);
-                        if (pck == null)
+                        var pcks = revision.PhysicalPackages.Where(c => c.Key == cmp.Package.Key);
+                        if (!pcks.Any())
                             throw new InvalidOperationException($"Could not find package for: {cmp.Name}");
 
-                        cmp.Package.Value = pck;
+                        if (pcks.Count() > 1)
+                            throw new Exception($"Found multiple for {cmp.Package.Text} - {cmp.Package.Key}");
+
+
+                        cmp.Package.Value = pcks.Single(); 
                     }
                 }
             }

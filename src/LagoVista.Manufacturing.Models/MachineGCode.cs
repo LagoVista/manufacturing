@@ -21,12 +21,21 @@ namespace LagoVista.Manufacturing.Models
         public string ReadRightVacuumCmd { get; set; }
 
 
+        public string LeftVacuumResponseExample { get; set; }
         public string ParseLeftVacuumRegEx { get; set; }
+
+        public string RightVacuumResponseExample { get; set; }
         public string ParseRightVacuumRegEx { get; set; }
 
-        public string HomeCommand { get; set; }        
+        public string HomeCommandAll { get; set; }
+
+        public string HomeCommandX { get; set; }
+        public string HomeCommandY { get; set; }
+        public string HomeCommandZ { get; set; }
 
         public string RequestStatusCommand { get; set; }
         public string StatusRegEx { get; set; }
+        public string StatusResponseExample { get; set; }
+        
     }
 }

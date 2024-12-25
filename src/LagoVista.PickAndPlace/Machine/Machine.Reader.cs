@@ -205,7 +205,7 @@ namespace LagoVista.PickAndPlace
                         if (_sentQueue.Any())
                         {
                             var sentLine = _sentQueue.Dequeue();
-                            UnacknowledgedBytesSent -= (sentLine.Length + 1);
+                            UnacknowledgedBytesSent -= (sentLine.FeederLength + 1);
                         }
                     }*/
                 }

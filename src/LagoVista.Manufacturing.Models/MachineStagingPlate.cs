@@ -11,8 +11,8 @@ using System.Text;
 namespace LagoVista.Manufacturing.Models
 {
 
-    [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.NozzleTip_Title, ManufacturingResources.Names.NozzleTip_Description,
-        ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources),
+    [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.MachineStagingPlate_Title, ManufacturingResources.Names.MachineStagingPlate_Description,
+        ManufacturingResources.Names.MachineStagingPlate_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources),
         Icon: "icon-ae-control-panel", Cloneable: true,
         FactoryUrl: "/api/mfg/machine/stagingplate/factory")]
     public class MachineStagingPlate : ModelBase, IFormDescriptor
@@ -32,11 +32,16 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlate_HoleSpacing, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double HoleSpacing { get; set; } = 15;
 
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Color, FieldType: FieldTypes.Color, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public string Color { get; set; } = "#000000";
+
         [FormField(LabelResource: ManufacturingResources.Names.Common_Size, FieldType: FieldTypes.Point2DSize, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public Point2D<double> Size { get; set; }
+        public Point2D<double> Size { get; set; } = new Point2D<double>(600, 120);
 
+        [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlate_HolesStaggered, HelpResource: ManufacturingResources.Names.MachineStagingPlate_HolesStaggered_Help, FieldType: FieldTypes.CheckBox, ResourceType: typeof(ManufacturingResources))]
+        public bool HolesStaggered { get; set; } = true;
 
-        private Point2D<double> _firstHole = new Point2D<double>(15,15);
+        private Point2D<double> _firstHole = new Point2D<double>(15,30);
         [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlate_FirstHole, HelpResource:ManufacturingResources.Names.MachineStagingPlate_FirstHole_Help, 
             FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public Point2D<double> FirstHole
@@ -46,12 +51,17 @@ namespace LagoVista.Manufacturing.Models
         }
 
         private Point2D<double> _origin = new Point2D<double>(0,0);
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Origin, HelpResource: ManufacturingResources.Names.MachineStagingPlate_FirstHole_Help,
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Origin, HelpResource: ManufacturingResources.Names.Common_Origin_Help,
             FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public Point2D<double> Origin
         {
             get => _origin;
             set => Set(ref _origin, value);
+        }
+
+        public EntityHeader ToEntityHeader()
+        {
+            return EntityHeader.Create(Id, Key, Name);
         }
 
 
@@ -63,9 +73,11 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Key),
                 nameof(Icon),
                 nameof(Size),
-                nameof(HoleSpacing),
                 nameof(Origin),
-                nameof(FirstHole),
+                nameof(FirstHole),                
+                nameof(HolesStaggered),
+                nameof(HoleSpacing),
+                nameof(Color),
             };
         }
     }

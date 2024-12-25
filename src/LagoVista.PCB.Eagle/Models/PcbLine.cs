@@ -71,7 +71,7 @@ namespace LagoVista.PCB.Eagle.Models
             line.Y1 = rect.Y1;
             line.Y2 = rect.Y2;
 
-            line.Stroke = "#FFFFFF";
+            line.Stroke = element.GetInt32("layer").FromEagleColor();
 
             return line;
         }

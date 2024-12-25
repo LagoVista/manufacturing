@@ -54,6 +54,12 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return DetailResponse<MachineStagingPlate>.Create();
         }
 
+        [HttpGet("/api/mfg/machine/feederrail/factory")]
+        public DetailResponse<MachineFeederRail> CreateFeederRail()
+        {
+            return DetailResponse<MachineFeederRail>.Create();
+        }
+
         [HttpDelete("/api/mfg/machine/{id}")]
         public async Task<InvokeResult> DeleteMachine(string id)
         {

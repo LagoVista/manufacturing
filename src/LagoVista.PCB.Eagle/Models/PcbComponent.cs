@@ -60,6 +60,8 @@ namespace LagoVista.PCB.Eagle.Models
         Unrouted,
         [EnumLabel(PcbComponent.Layer_Vias, PcbResources.Names.Layer_Vias, typeof(PcbResources))]
         Vias,
+        [EnumLabel(PcbComponent.Layer_Measures, PcbResources.Names.Layer_Measures, typeof(PcbResources))]
+        Measures,
         [EnumLabel(PcbComponent.Layer_Other, PcbResources.Names.Layer_Other, typeof(PcbResources))]
         Other
     }
@@ -89,6 +91,7 @@ namespace LagoVista.PCB.Eagle.Models
         public const string Layer_BottomValues = "bottom.values";
         public const string Layer_Unrouted = "unrouted";
         public const string Layer_Vias = "vias";
+        public const string Layer_Measures = "measures";
         public const string Layer_Other = "other";
 
         public string Id { get; set; }
