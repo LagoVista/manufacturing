@@ -31,8 +31,8 @@ namespace LagoVista.Manufacturing.Models
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.StripFeeder_Title, ManufacturingResources.Names.StripFeeder_Description,
                ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-fo-left", Cloneable: true,
                SaveUrl: "/api/mfg/stripfeeder", GetUrl: "/api/mfg/stripfeeder/{id}", GetListUrl: "/api/mfg/stripfeeders", FactoryUrl: "/api/mfg/stripfeeder/factory",
-               DeleteUrl: "/api/mfg/stripfeeder/{id}", ListUIUrl: "/mfg/Feeder/s", EditUIUrl: "/mfg/stripfeeder/{id}", CreateUIUrl: "/mfg/stripfeeder/add")]
-    public class StripFeeder : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IIDEntity, IFormConditionalFields, IFormAdditionalActions
+               DeleteUrl: "/api/mfg/stripfeeder/{id}", ListUIUrl: "/mfg/stripfeeders", EditUIUrl: "/mfg/stripfeeder/{id}", CreateUIUrl: "/mfg/stripfeeder/add")]
+    public class StripFeeder : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IIDEntity, IFormConditionalFields, IFormAdditionalActions, IFormDescriptorBottom
     {
         public const string FeederOrientation_Horizontal = "horizontal";
         public const string FeederOrientation_Vertical = "vertical";
@@ -45,14 +45,6 @@ namespace LagoVista.Manufacturing.Models
         public string Icon { get; set; } = "icon-fo-left";
 
 
-        private EntityHeader<Component> _component;
-        [FormField(LabelResource: ManufacturingResources.Names.Component_Title, FieldType: FieldTypes.Custom, WaterMark: ManufacturingResources.Names.Feeder_Component_Select,
-            CustomFieldType: "componentpicker", ResourceType: typeof(ManufacturingResources))]
-        public EntityHeader<Component> Component
-        {
-            get => _component;
-            set => Set(ref _component, value);
-        }
 
         private int _currentPartIndex;
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_CurrentPartindex, FieldType: FieldTypes.Integer, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
@@ -166,13 +158,32 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _length, value);
         }
 
-        public double _width;
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Width, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double Width
+        public double _rowWidth;
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_RowWidth, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double RowWidth
         {
-            get => _width;
-            set => Set(ref _width, value);
+            get => _rowWidth;
+            set => Set(ref _rowWidth, value);
         }
+
+        public double _rowCount;
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_RowCount, FieldType: FieldTypes.Integer, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double RowCount
+        {
+            get => _rowCount;
+            set => Set(ref _rowCount, value);
+        }
+
+        public double _feederWidth;
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_FeederWidth, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double FeederWidth
+        {
+            get => _feederWidth;
+            set => Set(ref _feederWidth, value);
+        }
+
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Rows, FactoryUrl: "/api/mfg/stripfeeder/row/factory", FieldType: FieldTypes.ChildListInline, ResourceType: typeof(ManufacturingResources))]
+        public List<StripFeederRow> Rows { get; set; } = new List<StripFeederRow>();
 
         public List<string> GetFormFields()
         {
@@ -183,7 +194,6 @@ namespace LagoVista.Manufacturing.Models
                 nameof(CurrentPartIndex),
                 nameof(Description),
                 nameof(Installed),
-                nameof(Component),
                 nameof(TapeSize),
                 nameof(Orientation),
                 nameof(FeedDirection),
@@ -203,9 +213,6 @@ namespace LagoVista.Manufacturing.Models
                 IsPublic = IsPublic,
                 TapeSize = TapeSize.Text,
                 TapeSizeId = TapeSize.Id,
-                Component = Component?.Text,
-                ComponentId = Component?.Id,
-                ComponentKey = Component?.Key
             };
         }
 
@@ -223,8 +230,10 @@ namespace LagoVista.Manufacturing.Models
                 nameof(CenterLocation),
                 nameof(LeftX),
                 nameof(BottomY),
-                nameof(Width),
+                nameof(RowCount),
                 nameof(Length),
+                nameof(FeederWidth),
+                nameof(RowWidth),
                 nameof(AngleOffset),
                 nameof(FirstHoleX),
                 nameof(FirstHoleY),
@@ -290,12 +299,20 @@ namespace LagoVista.Manufacturing.Models
                 }
             };
         }
+
+        public List<string> GetFormFieldsBottom()
+        {
+            return new List<string>()
+            {
+                nameof(Rows)
+            };
+        }
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.StripFeeders_Title, ManufacturingResources.Names.StripFeeder_Description,
             ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-stamp-2", Cloneable: true,
-            SaveUrl: "/api/mfg/feeder", GetUrl: "/api/mfg/feeder/{id}", GetListUrl: "/api/mfg/feeder", FactoryUrl: "/api/feeder/factory",
-            DeleteUrl: "/api/mfg/feeder/{id}", ListUIUrl: "/mfg/feeders", EditUIUrl: "/mfg/feeder/{id}", CreateUIUrl: "/mfg/feeder/add")]
+            SaveUrl: "/api/mfg/stripfeeder", GetUrl: "/api/mfg/stripfeeder/{id}", GetListUrl: "/api/mfg/stripfeeders", FactoryUrl: "/api/stripfeeder/factory",
+            DeleteUrl: "/api/mfg/stripfeeder/{id}", ListUIUrl: "/mfg/stripfeeders", EditUIUrl: "/mfg/stripfeeder/{id}", CreateUIUrl: "/mfg/stripfeeder/add")]
     public class StripFeederSummary : SummaryData
     {
         public string TapeSize { get; set; }
@@ -304,13 +321,12 @@ namespace LagoVista.Manufacturing.Models
         public string ComponentId { get; set; }
         public string ComponentKey { get; set; }
         public string Component { get; set; }
-
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.StripFeederRow_Title, ManufacturingResources.Names.StripFeederRow_Description,
                ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-fo-left", Cloneable: true,
-               SaveUrl: "/api/mfg/Feeder/", GetUrl: "/api/mfg/Feeder//{id}", GetListUrl: "/api/mfg/Feeder/s", FactoryUrl: "/api/mfg/strip/row/factory")]
-    public class StripFeederRow : ModelBase
+               FactoryUrl: "/api/mfg/stripfeeder/row/factory")]
+    public class StripFeederRow : ModelBase, IFormDescriptor
     {
         public StripFeederRow()
         {
@@ -319,28 +335,70 @@ namespace LagoVista.Manufacturing.Models
 
         public string Id { get; set; }
 
-        public string Name { get; set; }
-
-        private int _index;
-        public int Index
+     
+        private int _rowIndex = 1;
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeederRow_RowIndex, FieldType: FieldTypes.Integer, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public int RowIndex
         {
-            get => _index;
-            set => Set(ref _index, value);
+            get => _rowIndex;
+            set => Set(ref _rowIndex, value);
         }
 
-        private double? _refHoleXOffset;
-        private double _refHoleYOffset;
+        private double _refHoleXOffset;
 
-        public double? RefHoleXOffset
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeederRow_XOffset, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double RefHoleXOffset
         {
             get => _refHoleXOffset;
             set => Set(ref _refHoleXOffset, value);
         }
 
+        private double _refHoleYOffset;
+
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeederRow_YOffset, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double RefHoleYOffset
         {
             get => _refHoleYOffset;
             set => Set(ref _refHoleYOffset, value);
+        }
+
+        private int _currentPartindex = 1;
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeederRow_CurrentPartIndex, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public int CurrentPartIndex
+        {
+            get => _currentPartindex;
+            set => Set(ref _currentPartindex, value);
+        }
+
+
+        private EntityHeader<Component> _component;
+        [FormField(LabelResource: ManufacturingResources.Names.Component_Title, FieldType: FieldTypes.Custom, WaterMark: ManufacturingResources.Names.Feeder_Component_Select,
+            CustomFieldType: "componentpicker", ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader<Component> Component
+        {
+            get => _component;
+            set => Set(ref _component, value);
+        }
+
+        private string _notes;
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Notes, FieldType: FieldTypes.MultiLineText, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public string Notes 
+        { 
+            get => _notes; 
+            set => Set(ref _notes, value);
+        }
+
+        public List<string> GetFormFields()
+        {
+            return new List<string>()
+            {
+                nameof(Component),
+                nameof(RowIndex),
+                nameof(CurrentPartIndex),
+                nameof(RefHoleXOffset),
+                nameof(RefHoleYOffset),
+                nameof(Notes),
+            };
         }
     }
 }

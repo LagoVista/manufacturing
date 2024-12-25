@@ -121,7 +121,6 @@ namespace LagoVista.Manufacturing.Models
         Disconnected
     }
 
-
     public enum StatusMessageTypes
     {
         ReceivedLine,
@@ -178,7 +177,6 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _tool2Offset, value); }
         }
 
-
         private Point2D<double> _pcbOffset = new Point2D<double>();
         public Point2D<double> PCBOffset
         {
@@ -213,7 +211,6 @@ namespace LagoVista.Manufacturing.Models
             get { return _currentSerialPort; }
             set { Set(ref _currentSerialPort, value); }
         }
-
 
         private SerialPortInfo _serialPort2;
         public SerialPortInfo SerialPort2
@@ -266,8 +263,8 @@ namespace LagoVista.Manufacturing.Models
             }
         }
 
-        ToolNozzle _currentNozzle = new ToolNozzle();
-        public ToolNozzle CurrentNozzle
+        ToolNozzleTip _currentNozzle = new ToolNozzleTip();
+        public ToolNozzleTip CurrentNozzle
         {
             get { return _currentNozzle; }
             set
@@ -292,8 +289,8 @@ namespace LagoVista.Manufacturing.Models
             }
         }
 
-        ObservableCollection<ToolNozzle> _nozzles = new ObservableCollection<ToolNozzle>();
-        public ObservableCollection<ToolNozzle> Nozzles
+        ObservableCollection<ToolNozzleTip> _nozzles = new ObservableCollection<ToolNozzleTip>();
+        public ObservableCollection<ToolNozzleTip> Nozzles
         {
             get { return _nozzles; }
             set { Set(ref _nozzles, value); }

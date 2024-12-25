@@ -73,7 +73,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         public void AddNozzle()
         {
-            Machine.Settings.CurrentNozzle = new ToolNozzle();
+            Machine.Settings.CurrentNozzle = new ToolNozzleTip();
             Machine.Settings.CurrentNozzle.Name = "-new nozzle-";
             Machine.Settings.Nozzles.Add(Machine.Settings.CurrentNozzle);
             IsDirty = true;

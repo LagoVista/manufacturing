@@ -41,6 +41,19 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return form;
         }
 
+        [HttpGet("/api/mfg/machine/nozzletip/factory")]
+        public DetailResponse<ToolNozzleTip> CreateNozzle()
+        {
+            return DetailResponse<ToolNozzleTip>.Create();
+        }
+
+
+        [HttpGet("/api/mfg/machine/stagingplate/factory")]
+        public DetailResponse<MachineStagingPlate> CreateStagingPlate()
+        {
+            return DetailResponse<MachineStagingPlate>.Create();
+        }
+
         [HttpDelete("/api/mfg/machine/{id}")]
         public async Task<InvokeResult> DeleteMachine(string id)
         {

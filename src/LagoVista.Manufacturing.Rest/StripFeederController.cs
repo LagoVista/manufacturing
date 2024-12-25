@@ -39,10 +39,16 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return form;
         }
 
+        [HttpGet("/api/mfg/stripfeeder/row/factory")]
+        public DetailResponse<StripFeederRow> CreateStripFeederFow()
+        {
+            return DetailResponse<StripFeederRow>.Create();
+        }
+
         [HttpDelete("/api/mfg/stripfeeder/{id}")]
         public async Task<InvokeResult> DeleteStripFeeder(string id)
         {
-            return await _mgr.DeleteCommponentAsync(id, OrgEntityHeader, UserEntityHeader);
+            return await _mgr.DeleteStripFeederAsycn(id, OrgEntityHeader, UserEntityHeader);
         }
 
         [HttpPost("/api/mfg/stripfeeder")]

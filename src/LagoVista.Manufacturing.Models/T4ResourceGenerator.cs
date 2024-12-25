@@ -1,4 +1,4 @@
-﻿/*12/21/2024 8:16:46 AM*/
+﻿/*12/25/2024 7:44:11 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -527,15 +527,33 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Machines_Title
 
 		public static string Machines_Title { get { return GetResourceString("Machines_Title"); } }
+//Resources:ManufacturingResources:MachineStagingPlate_Description
+
+		public static string MachineStagingPlate_Description { get { return GetResourceString("MachineStagingPlate_Description"); } }
+//Resources:ManufacturingResources:MachineStagingPlate_FirstHole_XOffset
+
+		public static string MachineStagingPlate_FirstHole_XOffset { get { return GetResourceString("MachineStagingPlate_FirstHole_XOffset"); } }
+//Resources:ManufacturingResources:MachineStagingPlate_FirstHole_YOffset
+
+		public static string MachineStagingPlate_FirstHole_YOffset { get { return GetResourceString("MachineStagingPlate_FirstHole_YOffset"); } }
+//Resources:ManufacturingResources:MachineStagingPlate_HoleSpacing
+
+		public static string MachineStagingPlate_HoleSpacing { get { return GetResourceString("MachineStagingPlate_HoleSpacing"); } }
+//Resources:ManufacturingResources:MachineStagingPlate_OriginX
+
+		public static string MachineStagingPlate_OriginX { get { return GetResourceString("MachineStagingPlate_OriginX"); } }
+//Resources:ManufacturingResources:MachineStagingPlate_OriginY
+
+		public static string MachineStagingPlate_OriginY { get { return GetResourceString("MachineStagingPlate_OriginY"); } }
+//Resources:ManufacturingResources:MachineStagingPlate_Title
+
+		public static string MachineStagingPlate_Title { get { return GetResourceString("MachineStagingPlate_Title"); } }
 //Resources:ManufacturingResources:NozzleTip_Description
 
 		public static string NozzleTip_Description { get { return GetResourceString("NozzleTip_Description"); } }
 //Resources:ManufacturingResources:NozzleTip_InnerDiameter
 
 		public static string NozzleTip_InnerDiameter { get { return GetResourceString("NozzleTip_InnerDiameter"); } }
-//Resources:ManufacturingResources:NozzleTip_OuterDiameter
-
-		public static string NozzleTip_OuterDiameter { get { return GetResourceString("NozzleTip_OuterDiameter"); } }
 //Resources:ManufacturingResources:NozzleTip_Title
 
 		public static string NozzleTip_Title { get { return GetResourceString("NozzleTip_Title"); } }
@@ -644,6 +662,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:StripFeeder_Direction_Select
 
 		public static string StripFeeder_Direction_Select { get { return GetResourceString("StripFeeder_Direction_Select"); } }
+//Resources:ManufacturingResources:StripFeeder_FeederWidth
+
+		public static string StripFeeder_FeederWidth { get { return GetResourceString("StripFeeder_FeederWidth"); } }
 //Resources:ManufacturingResources:StripFeeder_FirstHole_X
 
 		public static string StripFeeder_FirstHole_X { get { return GetResourceString("StripFeeder_FirstHole_X"); } }
@@ -668,18 +689,36 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:StripFeeder_PickHeight
 
 		public static string StripFeeder_PickHeight { get { return GetResourceString("StripFeeder_PickHeight"); } }
+//Resources:ManufacturingResources:StripFeeder_RowCount
+
+		public static string StripFeeder_RowCount { get { return GetResourceString("StripFeeder_RowCount"); } }
+//Resources:ManufacturingResources:StripFeeder_Rows
+
+		public static string StripFeeder_Rows { get { return GetResourceString("StripFeeder_Rows"); } }
+//Resources:ManufacturingResources:StripFeeder_RowWidth
+
+		public static string StripFeeder_RowWidth { get { return GetResourceString("StripFeeder_RowWidth"); } }
 //Resources:ManufacturingResources:StripFeeder_Title
 
 		public static string StripFeeder_Title { get { return GetResourceString("StripFeeder_Title"); } }
-//Resources:ManufacturingResources:StripFeeder_Width
+//Resources:ManufacturingResources:StripFeederRow_CurrentPartIndex
 
-		public static string StripFeeder_Width { get { return GetResourceString("StripFeeder_Width"); } }
+		public static string StripFeederRow_CurrentPartIndex { get { return GetResourceString("StripFeederRow_CurrentPartIndex"); } }
 //Resources:ManufacturingResources:StripFeederRow_Description
 
 		public static string StripFeederRow_Description { get { return GetResourceString("StripFeederRow_Description"); } }
+//Resources:ManufacturingResources:StripFeederRow_RowIndex
+
+		public static string StripFeederRow_RowIndex { get { return GetResourceString("StripFeederRow_RowIndex"); } }
 //Resources:ManufacturingResources:StripFeederRow_Title
 
 		public static string StripFeederRow_Title { get { return GetResourceString("StripFeederRow_Title"); } }
+//Resources:ManufacturingResources:StripFeederRow_XOffset
+
+		public static string StripFeederRow_XOffset { get { return GetResourceString("StripFeederRow_XOffset"); } }
+//Resources:ManufacturingResources:StripFeederRow_YOffset
+
+		public static string StripFeederRow_YOffset { get { return GetResourceString("StripFeederRow_YOffset"); } }
 //Resources:ManufacturingResources:StripFeeders_Title
 
 		public static string StripFeeders_Title { get { return GetResourceString("StripFeeders_Title"); } }
@@ -901,9 +940,15 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Machine_Description = "Machine_Description";
 			public const string Machine_Title = "Machine_Title";
 			public const string Machines_Title = "Machines_Title";
+			public const string MachineStagingPlate_Description = "MachineStagingPlate_Description";
+			public const string MachineStagingPlate_FirstHole_XOffset = "MachineStagingPlate_FirstHole_XOffset";
+			public const string MachineStagingPlate_FirstHole_YOffset = "MachineStagingPlate_FirstHole_YOffset";
+			public const string MachineStagingPlate_HoleSpacing = "MachineStagingPlate_HoleSpacing";
+			public const string MachineStagingPlate_OriginX = "MachineStagingPlate_OriginX";
+			public const string MachineStagingPlate_OriginY = "MachineStagingPlate_OriginY";
+			public const string MachineStagingPlate_Title = "MachineStagingPlate_Title";
 			public const string NozzleTip_Description = "NozzleTip_Description";
 			public const string NozzleTip_InnerDiameter = "NozzleTip_InnerDiameter";
-			public const string NozzleTip_OuterDiameter = "NozzleTip_OuterDiameter";
 			public const string NozzleTip_Title = "NozzleTip_Title";
 			public const string NozzleTips_Title = "NozzleTips_Title";
 			public const string PackAndPlace_Description = "PackAndPlace_Description";
@@ -940,6 +985,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string StripFeeder_Description = "StripFeeder_Description";
 			public const string StripFeeder_Direction = "StripFeeder_Direction";
 			public const string StripFeeder_Direction_Select = "StripFeeder_Direction_Select";
+			public const string StripFeeder_FeederWidth = "StripFeeder_FeederWidth";
 			public const string StripFeeder_FirstHole_X = "StripFeeder_FirstHole_X";
 			public const string StripFeeder_FirstHole_Y = "StripFeeder_FirstHole_Y";
 			public const string StripFeeder_Installed = "StripFeeder_Installed";
@@ -948,10 +994,16 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string StripFeeder_Orientation = "StripFeeder_Orientation";
 			public const string StripFeeder_Orientation_Select = "StripFeeder_Orientation_Select";
 			public const string StripFeeder_PickHeight = "StripFeeder_PickHeight";
+			public const string StripFeeder_RowCount = "StripFeeder_RowCount";
+			public const string StripFeeder_Rows = "StripFeeder_Rows";
+			public const string StripFeeder_RowWidth = "StripFeeder_RowWidth";
 			public const string StripFeeder_Title = "StripFeeder_Title";
-			public const string StripFeeder_Width = "StripFeeder_Width";
+			public const string StripFeederRow_CurrentPartIndex = "StripFeederRow_CurrentPartIndex";
 			public const string StripFeederRow_Description = "StripFeederRow_Description";
+			public const string StripFeederRow_RowIndex = "StripFeederRow_RowIndex";
 			public const string StripFeederRow_Title = "StripFeederRow_Title";
+			public const string StripFeederRow_XOffset = "StripFeederRow_XOffset";
+			public const string StripFeederRow_YOffset = "StripFeederRow_YOffset";
 			public const string StripFeeders_Title = "StripFeeders_Title";
 			public const string TapePitch_12 = "TapePitch_12";
 			public const string TapePitch_16 = "TapePitch_16";

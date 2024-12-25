@@ -43,9 +43,12 @@ namespace LagoVista.Manufacturing.Managers
             return await base.CheckForDepenenciesAsync(feeder);
         }
 
-        public Task<InvokeResult> DeleteCommponentAsync(string id, EntityHeader org, EntityHeader user)
+        public async Task<InvokeResult> DeleteStripFeederAsycn(string id, EntityHeader org, EntityHeader user)
         {
-            throw new NotImplementedException();
+            var feeder = await _stripFeederRepo.GetStripFeederAsync(id);
+            await AuthorizeAsync(feeder, AuthorizeActions.Delete, user, org);
+            await _stripFeederRepo.DeleteStripFeederAsync(id);
+            return InvokeResult.Success;
         }
 
         public async Task<InvokeResult> DeleteStripFeederAsync(string id, EntityHeader org, EntityHeader user)
@@ -59,18 +62,20 @@ namespace LagoVista.Manufacturing.Managers
 
         public async Task<StripFeeder> GetStripFeederAsync(string id, bool loadComponent, EntityHeader org, EntityHeader user)
         {
-            var feeder = await _stripFeederRepo.GetStripFeederAsync(id);
-            await AuthorizeAsync(feeder, AuthorizeActions.Read, user, org);
-            if (!EntityHeader.IsNullOrEmpty(feeder.Component) && loadComponent)
-            {
-                feeder.Component.Value = await _componentManager.GetComponentAsync(feeder.Component.Id, true, org, user);
-                if(!EntityHeader.IsNullOrEmpty(feeder.Component.Value.ComponentPackage))
-                {
-                    feeder.Component.Value.ComponentPackage.Value = await _packageRepo.GetComponentPackageAsync(feeder.Component.Value.ComponentPackage.Id);
-                }
-            }
+            //var feeder = await _stripFeederRepo.GetStripFeederAsync(id);
+            //await AuthorizeAsync(feeder, AuthorizeActions.Read, user, org);
+            //if (!EntityHeader.IsNullOrEmpty(feeder.Component) && loadComponent)
+            //{
+            //    feeder.Component.Value = await _componentManager.GetComponentAsync(feeder.Component.Id, true, org, user);
+            //    if(!EntityHeader.IsNullOrEmpty(feeder.Component.Value.ComponentPackage))
+            //    {
+            //        feeder.Component.Value.ComponentPackage.Value = await _packageRepo.GetComponentPackageAsync(feeder.Component.Value.ComponentPackage.Id);
+            //    }
+            //}
 
-            return feeder;
+            throw new NotImplementedException();
+
+          //  return feeder;
         }
 
 

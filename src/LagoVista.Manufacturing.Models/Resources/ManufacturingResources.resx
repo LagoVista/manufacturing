@@ -662,9 +662,6 @@
   <data name="NozzleTip_InnerDiameter" xml:space="preserve">
     <value>Innert Diameter</value>
   </data>
-  <data name="NozzleTip_OuterDiameter" xml:space="preserve">
-    <value>Outer Diameter</value>
-  </data>
   <data name="Common_Width" xml:space="preserve">
     <value>Width</value>
   </data>
@@ -698,8 +695,8 @@
   <data name="StripFeeder_Length" xml:space="preserve">
     <value>Length</value>
   </data>
-  <data name="StripFeeder_Width" xml:space="preserve">
-    <value>Width</value>
+  <data name="StripFeeder_RowWidth" xml:space="preserve">
+    <value>Row Width</value>
   </data>
   <data name="StripFeeder_PickHeight" xml:space="preserve">
     <value>Pick Height</value>
@@ -799,5 +796,47 @@
   </data>
   <data name="ComponentPackage_TapeColor_Clear" xml:space="preserve">
     <value>Clear</value>
+  </data>
+  <data name="StripFeeder_Rows" xml:space="preserve">
+    <value>Rows</value>
+  </data>
+  <data name="StripFeeder_FeederWidth" xml:space="preserve">
+    <value>Feeder Width</value>
+  </data>
+  <data name="StripFeeder_RowCount" xml:space="preserve">
+    <value>Row Count</value>
+  </data>
+  <data name="StripFeederRow_XOffset" xml:space="preserve">
+    <value>Reference Hole X-Offset</value>
+  </data>
+  <data name="StripFeederRow_YOffset" xml:space="preserve">
+    <value>Reference Hole Y Offset</value>
+  </data>
+  <data name="StripFeederRow_RowIndex" xml:space="preserve">
+    <value>Row Index</value>
+  </data>
+  <data name="StripFeederRow_CurrentPartIndex" xml:space="preserve">
+    <value>Current Part Index</value>
+  </data>
+  <data name="MachineStagingPlate_Title" xml:space="preserve">
+    <value>Staging Plate</value>
+  </data>
+  <data name="MachineStagingPlate_Description" xml:space="preserve">
+    <value>A staging plate is the surface of the machine with holes at fixed locations that allow feeders, boards and equipment to be attached.</value>
+  </data>
+  <data name="MachineStagingPlate_OriginX" xml:space="preserve">
+    <value>Origin X</value>
+  </data>
+  <data name="MachineStagingPlate_OriginY" xml:space="preserve">
+    <value>Origin Y</value>
+  </data>
+  <data name="MachineStagingPlate_HoleSpacing" xml:space="preserve">
+    <value>Hole Spacing</value>
+  </data>
+  <data name="MachineStagingPlate_FirstHole_XOffset" xml:space="preserve">
+    <value>First Hole X Offset</value>
+  </data>
+  <data name="MachineStagingPlate_FirstHole_YOffset" xml:space="preserve">
+    <value>First Hole Y Offset</value>
   </data>
 </root>
