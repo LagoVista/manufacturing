@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using LagoVista.Manufacturing.Managers;
 
 namespace LagoVista.Manufacturing.Rest.Controllers
 {
@@ -18,10 +19,12 @@ namespace LagoVista.Manufacturing.Rest.Controllers
     public class FeederController : LagoVistaBaseController
     {
         private readonly IFeederManager _mgr;
+        private readonly IMachineManager _machineManager;
 
-        public FeederController(UserManager<AppUser> userManager, IAdminLogger logger, IFeederManager mgr) : base(userManager, logger)
+        public FeederController(UserManager<AppUser> userManager, IAdminLogger logger, IMachineManager machineManager, IFeederManager mgr) : base(userManager, logger)
         {
             _mgr = mgr;
+            _machineManager = machineManager;
         }
 
         [HttpGet("/api/mfg/Feeder/{id}")]
@@ -62,6 +65,21 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         public Task<ListResponse<FeederSummary>> GetFeedersForOrg()
         {
             return _mgr.GetFeedersSummariesAsync(GetListRequestFromHeader(), OrgEntityHeader, UserEntityHeader);
+        }
+
+        [HttpGet("/api/mfg/machine/{machineid}/feeders")]
+        public Task<ListResponse<Feeder>> GetFeedersForMachine(string machineid, bool loadcomponents)
+        {
+            return _mgr.GetFeedersForMachineAsync(machineid, loadcomponents, OrgEntityHeader, UserEntityHeader);
+        }
+
+        [HttpGet("/mft/machine/{machineid}/feeder/{feederid}/attach")]
+        public async Task<InvokeResult> AttachToMachine(string machineid, string feederid)
+        {
+            var machine = await _machineManager.GetMachineAsync(machineid, OrgEntityHeader, UserEntityHeader);
+            var feeder = await _mgr.GetFeederAsync(feederid, false, OrgEntityHeader, UserEntityHeader);
+            feeder.Machine = machine.ToEntityHeader();
+            return await _mgr.UpdateFeederAsync(feeder, OrgEntityHeader, UserEntityHeader);
         }
 
     }

@@ -1,6 +1,7 @@
 ﻿using LagoVista.Core.Attributes;
 using LagoVista.Core.Interfaces;
 using LagoVista.Core.Models;
+using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models.Resources;
 using System;
@@ -23,7 +24,8 @@ namespace LagoVista.Manufacturing.Models
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Feeder_Title, ManufacturingResources.Names.Feeder_Description,
-            ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-searching-2", Cloneable: true,
+            ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), 
+            Icon: "icon-pz-searching-2", Cloneable: true,
             SaveUrl: "/api/mfg/feeder", GetUrl: "/api/mfg/Feeder/{id}", GetListUrl: "/api/mfg/feeders", FactoryUrl: "/api/mfg/feeder/factory",
             DeleteUrl: "/api/mfg/feeder/{id}", ListUIUrl: "/mfg/fFeeders", EditUIUrl: "/mfg/feeder/{id}", CreateUIUrl: "/mfg/feeder/add")]
     public class Feeder : MfgModelBase, IValidateable, IFormDescriptor, ISummaryFactory, IIDEntity
@@ -38,6 +40,13 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
         public string Icon { get; set; } = "icon-pz-searching-2";
 
+
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_FeederId, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
+        public string FeederId { get; set; }
+
+
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_Slot, FieldType: FieldTypes.Integer, ResourceType: typeof(ManufacturingResources))]
+        public int Slot { get; set; }
 
         public FeederSummary CreateSummary()
         {
@@ -55,22 +64,24 @@ namespace LagoVista.Manufacturing.Models
             };
         }
 
-
-
-        private decimal? _pickX;
-        [FormField(LabelResource: ManufacturingResources.Names.Feeder_PickX, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
-        public decimal? PickX
+        private Point2D<double> _pickLocation;
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_PickLocation, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> PickLocation
         {
-            get => _pickX;
-            set => Set(ref _pickX, value);
+            get => _pickLocation;
+            set => Set(ref _pickLocation, value);
         }
 
-        private decimal? _pickY;
-        [FormField(LabelResource: ManufacturingResources.Names.Feeder_PickY, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
-        public decimal? PickY
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_Machine, WaterMark: ManufacturingResources.Names.Feeder_Machine_Select, EntityHeaderPickerUrl: "/api/mfg/machines", FieldType: FieldTypes.EntityHeaderPicker, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader Machine { get; set; }
+
+        private EntityHeader<TapeSizes> _tapeSize;
+        [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeSize, FieldType: FieldTypes.Picker, EnumType: typeof(TapeSizes),
+            WaterMark: ManufacturingResources.Names.ComponentPackage_TapeSize_Select, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader<TapeSizes> TapeSize
         {
-            get => _pickY;
-            set => Set(ref _pickY, value);
+            get => _tapeSize;
+            set => Set(ref _tapeSize, value);
         }
 
         private EntityHeader<FeederRotations> _tapeAngle;
@@ -88,8 +99,11 @@ namespace LagoVista.Manufacturing.Models
             {
                 nameof(Name),
                 nameof(Key),
-                nameof(PickX),
-                nameof(PickY),
+                nameof(Slot),
+                nameof(FeederId),
+                nameof(Machine),
+                nameof(TapeSize),
+                nameof(PickLocation),
                 nameof(Rotation),
                 nameof(Component),
                 nameof(Description)

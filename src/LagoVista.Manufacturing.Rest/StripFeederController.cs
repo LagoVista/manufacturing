@@ -18,10 +18,13 @@ namespace LagoVista.Manufacturing.Rest.Controllers
     public class StripFeederController : LagoVistaBaseController
     {
         private readonly IStripFeederManager _mgr;
+        private readonly IMachineManager _machineManager;
 
-        public StripFeederController(UserManager<AppUser> userManager, IAdminLogger logger, IStripFeederManager mgr) : base(userManager, logger)
+        public StripFeederController(UserManager<AppUser> userManager, IAdminLogger logger,  IStripFeederManager mgr, IMachineManager machineManager) : 
+            base(userManager, logger)
         {
             _mgr = mgr;
+            _machineManager = machineManager;
         }
 
         [HttpGet("/api/mfg/stripfeeder/{id}")]
@@ -65,10 +68,24 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         }
 
         [HttpGet("/api/mfg/stripfeeders")]
-        public Task<ListResponse<StripFeederSummary>> GetEquomentForOrg()
+        public Task<ListResponse<StripFeederSummary>> GetStripFeedersForOrg()
         {
             return _mgr.GetStripFeedersSummariesAsync(GetListRequestFromHeader(), OrgEntityHeader, UserEntityHeader);
         }
 
+        [HttpGet("/api/mfg/machine/{machineid}/stripfeeders")]
+        public Task<ListResponse<StripFeeder>> GetStripFeedersForMachine(string machineid, bool loadcomponents)
+        {
+            return _mgr.GetStripFeedersForMachineAsync(machineid, loadcomponents, OrgEntityHeader, UserEntityHeader);
+        }
+
+        [HttpGet("/mft/machine/{machineid}/stripfeeder/{feederid}/attach")]
+        public async Task<InvokeResult> AttachToMachine(string machineid, string feederid)
+        {
+            var machine = await _machineManager.GetMachineAsync(machineid, OrgEntityHeader, UserEntityHeader);
+            var feeder = await _mgr.GetStripFeederAsync(feederid, false, OrgEntityHeader, UserEntityHeader);
+            feeder.Machine = machine.ToEntityHeader();
+            return await _mgr.UpdateStripFeederAsync(feeder, OrgEntityHeader, UserEntityHeader);
+        }
     }
 }

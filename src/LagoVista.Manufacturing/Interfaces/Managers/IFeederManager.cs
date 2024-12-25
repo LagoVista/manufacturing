@@ -12,6 +12,7 @@ namespace LagoVista.Manufacturing.Interfaces.Managers
         Task<InvokeResult> UpdateFeederAsync(Feeder feeder, EntityHeader org, EntityHeader user);
         Task<ListResponse<FeederSummary>> GetFeedersSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user);
         Task<Feeder> GetFeederAsync(string id, bool loadComponent, EntityHeader org, EntityHeader user);
+        Task<ListResponse<Feeder>> GetFeedersForMachineAsync(string machineId, bool loadComponent, EntityHeader org, EntityHeader user);
         Task<InvokeResult> DeleteCommponentAsync(string id, EntityHeader org, EntityHeader user);
 
     }

@@ -143,7 +143,7 @@ namespace LagoVista.Manufacturing.Models
         ManufacturingResources.Names.Machine_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-ruler", Cloneable: true,
         SaveUrl: "/api/mfg/machine", GetUrl: "/api/mfg/machine/{id}", GetListUrl: "/api/mfg/machines", FactoryUrl: "/api/mfg/machine/factory",
         DeleteUrl: "/api/mfg/machine/{id}", ListUIUrl: "/mfg/machinesettings", EditUIUrl: "/mfg/machine/{id}", CreateUIUrl: "/mfg/machine/add")]
-    public class Machine : MfgModelBase, ISummaryFactory, INotifyPropertyChanged, IFormDescriptor
+    public class Machine : MfgModelBase, ISummaryFactory, INotifyPropertyChanged, IFormDescriptor, IFormDescriptorCol2
     {
 
         public int StatusPollIntervalIdle { get; set; }
@@ -290,11 +290,23 @@ namespace LagoVista.Manufacturing.Models
         }
 
         ObservableCollection<ToolNozzleTip> _nozzles = new ObservableCollection<ToolNozzleTip>();
+        [FormField(LabelResource: ManufacturingResources.Names.NozzleTips_Title, FieldType: FieldTypes.ChildListInline, FactoryUrl: "/api/mfg/machine/nozzletip/factory", 
+            ResourceType: typeof(ManufacturingResources))]
         public ObservableCollection<ToolNozzleTip> Nozzles
         {
             get { return _nozzles; }
             set { Set(ref _nozzles, value); }
         }
+
+        ObservableCollection<MachineStagingPlate> _stagingPlates = new ObservableCollection<MachineStagingPlate>();
+        [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlates_Title, FieldType: FieldTypes.ChildListInline, FactoryUrl: "/api/mfg/machine/stagingplate/factory",
+            ResourceType: typeof(ManufacturingResources))]
+        public ObservableCollection<MachineStagingPlate> StagingPlates
+        {
+            get { return _stagingPlates; }
+            set { Set(ref _stagingPlates, value); }
+        }
+
 
         /// <summary>
         /// Absolute position of the board in the Z axis, the actual place location will be 
@@ -331,6 +343,7 @@ namespace LagoVista.Manufacturing.Models
         public int ProbeTimeoutSeconds { get; set; }
 
         private int _workAreaWidth;
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_WorkAreaWidth, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public int WorkAreaWidth
         {
             get { return _workAreaWidth; }
@@ -338,6 +351,7 @@ namespace LagoVista.Manufacturing.Models
         }
 
         private int _workAreaHeight;
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_WorkAreaHeight, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public int WorkAreaHeight
         {
             get { return _workAreaHeight; }
@@ -361,13 +375,6 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _zStepSize, value); }
         }
 
-        private String _machineName;
-        public String MachineName
-        {
-            get { return _machineName; }
-            set { Set(ref _machineName, value); }
-        }
-
         private MachineOrigin _machineOrigin;
         public MachineOrigin MachineOrigin
         {
@@ -389,7 +396,16 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _messageVerbosity, value); }
         }
 
-        private int _jogFeedRate;
+        private int _maximumFeedRate = 25000;
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_MaxFeedRate, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public int MaximumFeedRate
+        {
+            get => _maximumFeedRate;
+            set => Set(ref _maximumFeedRate, value);
+        }
+
+        private int _jogFeedRate = 25000;
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_JogFeedRate, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public int JogFeedRate
         {
             get { return _jogFeedRate; }
@@ -441,35 +457,6 @@ namespace LagoVista.Manufacturing.Models
 
 
 
-
-        private double _maxX;
-        public double MaxX
-        {
-            get => _maxX;
-            set => Set(ref _maxX, value);
-        }
-
-        private double _minX;
-        public double MinX
-        {
-            get => _minX;
-            set => Set(ref _minX, value);
-        }
-
-        private double _maxY;
-        public double MaxY
-        {
-            get => _maxY;
-            set => Set(ref _maxY, value);
-        }
-
-        private double _minY;
-        public double MinY
-        {
-            get => _minY;
-            set => Set(ref _minY, value);
-        }
-
         public FirmwareTypes MachineType { get; set; }
 
         private string _settingsName;
@@ -478,7 +465,7 @@ namespace LagoVista.Manufacturing.Models
         {
             var errs = new List<string>();
 
-            if (String.IsNullOrEmpty(MachineName))
+            if (String.IsNullOrEmpty(Name))
             {
                 errs.Add("Machine Name is Requried.");
             }
@@ -535,7 +522,7 @@ namespace LagoVista.Manufacturing.Models
             XYStepSize = 1;
             ZStepSize = 1;
             WorkAreaWidth = 300;
-            WorkAreaHeight = 20;
+            WorkAreaHeight = 200;
         }
 
         public static Machine CreateDefault()
@@ -544,7 +531,7 @@ namespace LagoVista.Manufacturing.Models
                 return new Machine()
                 {
                     Id = Guid.NewGuid().ToString(),
-                    MachineName = "Machine 1",
+                    Name = "Machine 1",
                     ProbeOffset = 0.0,
                     ControllerBufferSize = 120,
                     StatusPollIntervalIdle = 1000,
@@ -577,6 +564,19 @@ namespace LagoVista.Manufacturing.Models
             {
                 nameof(Name),
                 nameof(Key),
+                nameof(WorkAreaWidth),
+                nameof(WorkAreaHeight),
+                nameof(Nozzles),
+                nameof(StagingPlates),
+            };
+        }
+
+        public List<string> GetFormFieldsCol2()
+        {
+            return new List<string>()
+            {
+                nameof(MaximumFeedRate),
+                nameof(JogFeedRate),
             };
         }
     }

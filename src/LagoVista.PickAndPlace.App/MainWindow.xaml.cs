@@ -294,7 +294,7 @@ namespace LagoVista.PickAndPlace.App
             dlg.ShowDialog();
             if (dlg.DialogResult.HasValue && dlg.DialogResult.Value)
             {
-                    var menu = new MenuItem() { Header = settings.MachineName };
+                    var menu = new MenuItem() { Header = settings.Name };
                     menu.Tag = settings.Id;
                     menu.Click += ChangeMachine_Click;
 

@@ -62,22 +62,47 @@ namespace LagoVista.Manufacturing.Managers
 
         public async Task<StripFeeder> GetStripFeederAsync(string id, bool loadComponent, EntityHeader org, EntityHeader user)
         {
-            //var feeder = await _stripFeederRepo.GetStripFeederAsync(id);
-            //await AuthorizeAsync(feeder, AuthorizeActions.Read, user, org);
-            //if (!EntityHeader.IsNullOrEmpty(feeder.Component) && loadComponent)
-            //{
-            //    feeder.Component.Value = await _componentManager.GetComponentAsync(feeder.Component.Id, true, org, user);
-            //    if(!EntityHeader.IsNullOrEmpty(feeder.Component.Value.ComponentPackage))
-            //    {
-            //        feeder.Component.Value.ComponentPackage.Value = await _packageRepo.GetComponentPackageAsync(feeder.Component.Value.ComponentPackage.Id);
-            //    }
-            //}
+            var feeder = await _stripFeederRepo.GetStripFeederAsync(id);
+            await AuthorizeAsync(feeder, AuthorizeActions.Read, user, org);
+            foreach (var row in feeder.Rows)
+            {
+                if (!EntityHeader.IsNullOrEmpty(row.Component))
+                {
+                    row.Component.Value = await _componentManager.GetComponentAsync(row.Component.Id, true, org, user);
+                    if (!EntityHeader.IsNullOrEmpty(row.Component.Value.ComponentPackage))
+                    {
+                        row.Component.Value.ComponentPackage.Value = await _packageRepo.GetComponentPackageAsync(row.Component.Value.ComponentPackage.Id);
+                    }
+                }
+            }
 
-            throw new NotImplementedException();
-
-          //  return feeder;
+            return feeder;
         }
 
+        public async Task<ListResponse<StripFeeder>> GetStripFeedersForMachineAsync(string machineId, bool loadComponent, EntityHeader org, EntityHeader user)
+        {
+            await AuthorizeOrgAccessAsync(user, org.Id, typeof(StripFeeder));
+            var response = await _stripFeederRepo.GetStripFeedersForMachineAsync(machineId);
+            if (loadComponent)
+            {
+                foreach (var feeder in response.Model)
+                {
+                    foreach (var row in feeder.Rows)
+                    {
+                        if (!EntityHeader.IsNullOrEmpty(row.Component))
+                        {
+                            row.Component.Value = await _componentManager.GetComponentAsync(row.Component.Id, true, org, user);
+                            if (!EntityHeader.IsNullOrEmpty(row.Component.Value.ComponentPackage))
+                            {
+                                row.Component.Value.ComponentPackage.Value = await _packageRepo.GetComponentPackageAsync(row.Component.Value.ComponentPackage.Id);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return response;
+        }
 
         public async Task<ListResponse<StripFeederSummary>> GetStripFeedersSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user)
         {

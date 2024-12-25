@@ -2,12 +2,14 @@
 using LagoVista.Core.Attributes;
 using LagoVista.Core.Interfaces;
 using LagoVista.Core.Models;
+using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models.Resources;
 using LagoVista.PCB.Eagle.Models;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 
 namespace LagoVista.Manufacturing.Models
@@ -43,8 +45,6 @@ namespace LagoVista.Manufacturing.Models
 
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
         public string Icon { get; set; } = "icon-fo-left";
-
-
 
         private int _currentPartIndex;
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_CurrentPartindex, FieldType: FieldTypes.Integer, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
@@ -101,44 +101,18 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _angleOffset, value);
         }
 
-        private string _centerLocation;
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_CenterLocationXY, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
-        public string CenterLocation
-        {
-            get => _centerLocation;
-            set => Set(ref _centerLocation, value);
-        }
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_StagingPlateColumn, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
+        public string StagingPlateColumn { get; set; }
 
-        private decimal? _bottomY;
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_BottomY, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
-        public decimal? BottomY
-        {
-            get => _bottomY;
-            set => Set(ref _bottomY, value);
-        }
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_StagingPlate, FieldType: FieldTypes.EntityHeaderPicker, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader StagingPlate { get; set; }
 
-        private decimal? _leftX;
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_LeftX, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
-        public decimal? LeftX
+        private Point2D<double> _origin;
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Origin, HelpResource: ManufacturingResources.Names.Common_Origin_Help, FieldType: FieldTypes.Point2D, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> Origin
         {
-            get => _leftX;
-            set => Set(ref _leftX, value);
-        }
-
-        private decimal? _firstHoleY;
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_FirstHole_Y, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
-        public decimal? FirstHoleY
-        {
-            get => _firstHoleY;
-            set => Set(ref _firstHoleY, value);
-        }
-
-        private decimal? _firstHoleX;
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_FirstHole_X, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
-        public decimal? FirstHoleX
-        {
-            get => _firstHoleX;
-            set => Set(ref _firstHoleX, value);
+            get => _origin;
+            set => Set(ref _origin, value);
         }
 
         private EntityHeader<TapeSizes> _tapeSize;
@@ -149,6 +123,9 @@ namespace LagoVista.Manufacturing.Models
             get => _tapeSize;
             set => Set(ref _tapeSize, value);
         }
+
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_Machine, WaterMark: ManufacturingResources.Names.Feeder_Machine_Select, EntityHeaderPickerUrl: "/api/mfg/machines", FieldType: FieldTypes.EntityHeaderPicker, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader Machine { get; set; }
 
         private double _length;
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Length, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
@@ -193,13 +170,13 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Key),
                 nameof(CurrentPartIndex),
                 nameof(Description),
+                nameof(Machine),
                 nameof(Installed),
                 nameof(TapeSize),
                 nameof(Orientation),
                 nameof(FeedDirection),
             };
         }
-
 
         public StripFeederSummary CreateSummary()
         {
@@ -216,7 +193,6 @@ namespace LagoVista.Manufacturing.Models
             };
         }
 
-
         Core.Interfaces.ISummaryData ISummaryFactory.CreateSummary()
         {
             return CreateSummary();
@@ -227,16 +203,14 @@ namespace LagoVista.Manufacturing.Models
             return new List<string>()
             {
                 nameof(PickHeight),
-                nameof(CenterLocation),
-                nameof(LeftX),
-                nameof(BottomY),
+                nameof(StagingPlate),
+                nameof(StagingPlateColumn),
+                nameof(Origin),
                 nameof(RowCount),
                 nameof(Length),
                 nameof(FeederWidth),
                 nameof(RowWidth),
                 nameof(AngleOffset),
-                nameof(FirstHoleX),
-                nameof(FirstHoleY),
                 nameof(Color)
             };
         }
@@ -246,17 +220,11 @@ namespace LagoVista.Manufacturing.Models
         {
             if (Installed)
             {
-                if (!LeftX.HasValue) validationResult.AddUserError("Left X is required for installed strip feeder.");
-                if (!BottomY.HasValue) validationResult.AddUserError("Bottom Y is required for installed strip feeder.");
-                if (!FirstHoleX.HasValue) validationResult.AddUserError("First Hole X is required for installed strip feeder.");
-                if (!FirstHoleY.HasValue) validationResult.AddUserError("First Hole Y is required for installed strip feeder.");
+                if (Origin == null) validationResult.AddUserError("Origin is required for installed strip feeder.");
             }
             else
             {
-                LeftX = null;
-                BottomY = null;
-                FirstHoleX = null;
-                FirstHoleY = null;
+                Origin = null;
             }
         }
 
@@ -264,13 +232,13 @@ namespace LagoVista.Manufacturing.Models
         {
             return new FormConditionals()
             {
-                ConditionalFields = new List<string>() { nameof(LeftX), nameof(BottomY), nameof(FirstHoleX), nameof(FirstHoleY) },
+                ConditionalFields = new List<string>() { nameof(Origin) },
                 Conditionals = new List<FormConditional>()
                 {
                      new FormConditional()
                      {
-                         RequiredFields = new List<string>() { nameof(LeftX), nameof(BottomY), nameof(FirstHoleX), nameof(FirstHoleY) },
-                         VisibleFields =  new List<string>() { nameof(LeftX), nameof(BottomY), nameof(FirstHoleX), nameof(FirstHoleY) },
+                         RequiredFields = new List<string>() { nameof(Origin) },
+                         VisibleFields =  new List<string>() { nameof(Origin) },
                          Field = nameof(Installed),
                          Value = "true",
                      }
@@ -281,14 +249,6 @@ namespace LagoVista.Manufacturing.Models
         public List<FormAdditionalAction> GetAdditionalActions()
         {
             return new List<FormAdditionalAction>()             {
-                new FormAdditionalAction()
-                {
-                    Icon = "fa fa-tally",
-                  Key = "resetindex",
-                  Title = "Reset Part Index",
-                   ForCreate = true,
-                   ForEdit = true,
-                },
                 new FormAdditionalAction()
                 {
                     Icon = "fa fa-centercode",
@@ -324,9 +284,9 @@ namespace LagoVista.Manufacturing.Models
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.StripFeederRow_Title, ManufacturingResources.Names.StripFeederRow_Description,
-               ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-fo-left", Cloneable: true,
-               FactoryUrl: "/api/mfg/stripfeeder/row/factory")]
-    public class StripFeederRow : ModelBase, IFormDescriptor
+               ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), 
+                Icon: "icon-fo-left", Cloneable: true, FactoryUrl: "/api/mfg/stripfeeder/row/factory")]
+    public class StripFeederRow : ModelBase, IFormDescriptor, IFormAdditionalActions
     {
         public StripFeederRow()
         {
@@ -335,7 +295,23 @@ namespace LagoVista.Manufacturing.Models
 
         public string Id { get; set; }
 
-     
+        public List<FormAdditionalAction> GetAdditionalActions()
+        {
+            return new List<FormAdditionalAction>()             {
+                new FormAdditionalAction()
+                {
+                    Icon = "fa fa-tally",
+                    Key = "resetindex",
+                    Title = "Reset Part Index",
+                    ForCreate = true,
+                    ForEdit = true,
+                }
+            };
+        }
+
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeederRow_CurrentPartIndex, FieldType: FieldTypes.Integer, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public int CurrentPartIndex { get; set; }
+
         private int _rowIndex = 1;
         [FormField(LabelResource: ManufacturingResources.Names.StripFeederRow_RowIndex, FieldType: FieldTypes.Integer, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public int RowIndex
@@ -344,32 +320,14 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _rowIndex, value);
         }
 
-        private double _refHoleXOffset;
+        private Point2D<double> _refHoleOffset;
 
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeederRow_XOffset, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double RefHoleXOffset
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeederRow_Offset, FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> RefHoleOffset
         {
-            get => _refHoleXOffset;
-            set => Set(ref _refHoleXOffset, value);
+            get => _refHoleOffset;
+            set => Set(ref _refHoleOffset, value);
         }
-
-        private double _refHoleYOffset;
-
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeederRow_YOffset, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double RefHoleYOffset
-        {
-            get => _refHoleYOffset;
-            set => Set(ref _refHoleYOffset, value);
-        }
-
-        private int _currentPartindex = 1;
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeederRow_CurrentPartIndex, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public int CurrentPartIndex
-        {
-            get => _currentPartindex;
-            set => Set(ref _currentPartindex, value);
-        }
-
 
         private EntityHeader<Component> _component;
         [FormField(LabelResource: ManufacturingResources.Names.Component_Title, FieldType: FieldTypes.Custom, WaterMark: ManufacturingResources.Names.Feeder_Component_Select,
@@ -382,9 +340,9 @@ namespace LagoVista.Manufacturing.Models
 
         private string _notes;
         [FormField(LabelResource: ManufacturingResources.Names.Common_Notes, FieldType: FieldTypes.MultiLineText, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
-        public string Notes 
-        { 
-            get => _notes; 
+        public string Notes
+        {
+            get => _notes;
             set => Set(ref _notes, value);
         }
 
@@ -395,8 +353,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Component),
                 nameof(RowIndex),
                 nameof(CurrentPartIndex),
-                nameof(RefHoleXOffset),
-                nameof(RefHoleYOffset),
+                nameof(RefHoleOffset),
                 nameof(Notes),
             };
         }

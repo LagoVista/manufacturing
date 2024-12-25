@@ -22,7 +22,6 @@ namespace LagoVista.PickAndPlace
             Settings = new Manufacturing.Models.Machine()
             {
                 Name = "No Machine",
-                MachineName = "No Machine"
             };
 
             Messages = new System.Collections.ObjectModel.ObservableCollection<Models.StatusMessage>();

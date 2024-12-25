@@ -38,6 +38,11 @@ namespace LagoVista.Manufacturing.Repo.Repos
             return GetDocumentAsync(id);
         }
 
+        public async Task<ListResponse<StripFeeder>> GetStripFeedersForMachineAsync(string machineId)
+        {
+            return ListResponse<StripFeeder>.Create(await base.QueryAsync(fdr => fdr.Machine.Id == machineId));
+        }
+
         public Task<ListResponse<StripFeederSummary>> GetStripFeederSummariesAsync(string orgId, ListRequest listRequest)
         {
             return base.QuerySummaryAsync<StripFeederSummary, StripFeeder>(qry => qry.IsPublic == true || qry.OwnerOrganization.Id == orgId, itm => itm.Name, listRequest);

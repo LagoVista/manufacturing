@@ -686,12 +686,6 @@
   <data name="StripFeeder_Direction" xml:space="preserve">
     <value>Direction</value>
   </data>
-  <data name="StripFeeder_BottomY" xml:space="preserve">
-    <value>Bottom Y</value>
-  </data>
-  <data name="StripFeeder_LeftX" xml:space="preserve">
-    <value>Left X</value>
-  </data>
   <data name="StripFeeder_Length" xml:space="preserve">
     <value>Length</value>
   </data>
@@ -706,12 +700,6 @@
   </data>
   <data name="StripFeeder_Direction_Select" xml:space="preserve">
     <value>-select direction-</value>
-  </data>
-  <data name="StripFeeder_FirstHole_X" xml:space="preserve">
-    <value>First Hole X</value>
-  </data>
-  <data name="StripFeeder_FirstHole_Y" xml:space="preserve">
-    <value>First Hole Y</value>
   </data>
   <data name="FeedDirection_Forwards" xml:space="preserve">
     <value>Forwards</value>
@@ -749,11 +737,8 @@
   <data name="ComponentPackage_TapeColor_Select" xml:space="preserve">
     <value>-select tape color-</value>
   </data>
-  <data name="Feeder_PickX" xml:space="preserve">
-    <value>Pick X</value>
-  </data>
-  <data name="Feeder_PickY" xml:space="preserve">
-    <value>Pick Y</value>
+  <data name="Feeder_PickLocation" xml:space="preserve">
+    <value>Pick Location</value>
   </data>
   <data name="Feeder_TapeAngle" xml:space="preserve">
     <value>Tape Angle</value>
@@ -791,8 +776,8 @@
   <data name="ComponentPackage_TapeSpecificationPage" xml:space="preserve">
     <value>Tape Specification Page</value>
   </data>
-  <data name="StripFeeder_CenterLocationXY" xml:space="preserve">
-    <value>Center Location (XY)</value>
+  <data name="StripFeeder_StagingPlateColumn" xml:space="preserve">
+    <value>Staging Plate Column</value>
   </data>
   <data name="ComponentPackage_TapeColor_Clear" xml:space="preserve">
     <value>Clear</value>
@@ -806,11 +791,8 @@
   <data name="StripFeeder_RowCount" xml:space="preserve">
     <value>Row Count</value>
   </data>
-  <data name="StripFeederRow_XOffset" xml:space="preserve">
-    <value>Reference Hole X-Offset</value>
-  </data>
-  <data name="StripFeederRow_YOffset" xml:space="preserve">
-    <value>Reference Hole Y Offset</value>
+  <data name="StripFeederRow_Offset" xml:space="preserve">
+    <value>Reference Hole Offset</value>
   </data>
   <data name="StripFeederRow_RowIndex" xml:space="preserve">
     <value>Row Index</value>
@@ -824,19 +806,82 @@
   <data name="MachineStagingPlate_Description" xml:space="preserve">
     <value>A staging plate is the surface of the machine with holes at fixed locations that allow feeders, boards and equipment to be attached.</value>
   </data>
-  <data name="MachineStagingPlate_OriginX" xml:space="preserve">
-    <value>Origin X</value>
-  </data>
-  <data name="MachineStagingPlate_OriginY" xml:space="preserve">
-    <value>Origin Y</value>
-  </data>
   <data name="MachineStagingPlate_HoleSpacing" xml:space="preserve">
     <value>Hole Spacing</value>
   </data>
-  <data name="MachineStagingPlate_FirstHole_XOffset" xml:space="preserve">
-    <value>First Hole X Offset</value>
+  <data name="MachineStagingPlate_FirstHole" xml:space="preserve">
+    <value>First Hole</value>
   </data>
-  <data name="MachineStagingPlate_FirstHole_YOffset" xml:space="preserve">
-    <value>First Hole Y Offset</value>
+  <data name="MachineStagingPlate_FirstHole_Help" xml:space="preserve">
+    <value>Distance from Origin (Bottom Left) to First Hole</value>
+  </data>
+  <data name="MachineStagingPlate_OriginX_Help" xml:space="preserve">
+    <value>Location of the bottom left of the staging plate with respect to the machine origin</value>
+  </data>
+  <data name="ToolNozzleTip_Title" xml:space="preserve">
+    <value>Tool Nozzle Tip</value>
+  </data>
+  <data name="ToolNozzleTip_Description" xml:space="preserve">
+    <value>A Nozzle Tip is placed at the end of a nozzle and is used to pickup parts.  Different size nozzle tips are used to pick up different parts</value>
+  </data>
+  <data name="NozzleTip_ToolRackLocation" xml:space="preserve">
+    <value>Tool Rack Location</value>
+  </data>
+  <data name="NozzleTip_IdleVacuum" xml:space="preserve">
+    <value>Idle Vacuum</value>
+  </data>
+  <data name="NozzleTip_PartPickedVacuum" xml:space="preserve">
+    <value>Part Picked Vacuum</value>
+  </data>
+  <data name="NozzleTip_SafeMoveHeight" xml:space="preserve">
+    <value>Safe Move Height</value>
+  </data>
+  <data name="NozzleTip_PickHeight" xml:space="preserve">
+    <value>Pick Height</value>
+  </data>
+  <data name="NozzleTip_BoardHeight" xml:space="preserve">
+    <value>Board Height</value>
+  </data>
+  <data name="NozzleTip_OuterDiameter" xml:space="preserve">
+    <value>Outer Diameter</value>
+  </data>
+  <data name="MachineStagingPlates_Title" xml:space="preserve">
+    <value>Staging Plates</value>
+  </data>
+  <data name="Machine_WorkAreaWidth" xml:space="preserve">
+    <value>Work Area Width (mm)</value>
+  </data>
+  <data name="Machine_WorkAreaHeight" xml:space="preserve">
+    <value>Work Area Height (mm)</value>
+  </data>
+  <data name="Machine_MaxFeedRate" xml:space="preserve">
+    <value>Maximum Feed Rate</value>
+  </data>
+  <data name="Machine_JogFeedRate" xml:space="preserve">
+    <value>Jog Feed rate</value>
+  </data>
+  <data name="Common_Size" xml:space="preserve">
+    <value>Size</value>
+  </data>
+  <data name="Common_Origin" xml:space="preserve">
+    <value>Origin</value>
+  </data>
+  <data name="Common_Origin_Help" xml:space="preserve">
+    <value>The bottom left XY coordinate of the object</value>
+  </data>
+  <data name="StripFeeder_StagingPlate" xml:space="preserve">
+    <value>Staging Plate</value>
+  </data>
+  <data name="Feeder_Slot" xml:space="preserve">
+    <value>Slot</value>
+  </data>
+  <data name="Feeder_FeederId" xml:space="preserve">
+    <value>Feeder id</value>
+  </data>
+  <data name="Feeder_Machine" xml:space="preserve">
+    <value>Machine</value>
+  </data>
+  <data name="Feeder_Machine_Select" xml:space="preserve">
+    <value>-select machine-</value>
   </data>
 </root>
