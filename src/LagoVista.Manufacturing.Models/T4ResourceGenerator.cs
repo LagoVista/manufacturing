@@ -1,4 +1,4 @@
-﻿/*12/25/2024 3:54:22 PM*/
+﻿/*12/25/2024 6:58:32 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -539,6 +539,84 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Feeders_Title
 
 		public static string Feeders_Title { get { return GetResourceString("Feeders_Title"); } }
+//Resources:ManufacturingResources:GCode_BottomLightOff
+
+		public static string GCode_BottomLightOff { get { return GetResourceString("GCode_BottomLightOff"); } }
+//Resources:ManufacturingResources:GCode_BottomLightOn
+
+		public static string GCode_BottomLightOn { get { return GetResourceString("GCode_BottomLightOn"); } }
+//Resources:ManufacturingResources:GCode_Description
+
+		public static string GCode_Description { get { return GetResourceString("GCode_Description"); } }
+//Resources:ManufacturingResources:GCode_Dwell
+
+		public static string GCode_Dwell { get { return GetResourceString("GCode_Dwell"); } }
+//Resources:ManufacturingResources:GCode_HomeAllCommand
+
+		public static string GCode_HomeAllCommand { get { return GetResourceString("GCode_HomeAllCommand"); } }
+//Resources:ManufacturingResources:GCode_HomeXCommand
+
+		public static string GCode_HomeXCommand { get { return GetResourceString("GCode_HomeXCommand"); } }
+//Resources:ManufacturingResources:GCode_HomeYCommand
+
+		public static string GCode_HomeYCommand { get { return GetResourceString("GCode_HomeYCommand"); } }
+//Resources:ManufacturingResources:GCode_HomeZCommand
+
+		public static string GCode_HomeZCommand { get { return GetResourceString("GCode_HomeZCommand"); } }
+//Resources:ManufacturingResources:GCode_LeftVacuumOff
+
+		public static string GCode_LeftVacuumOff { get { return GetResourceString("GCode_LeftVacuumOff"); } }
+//Resources:ManufacturingResources:GCode_LeftVacuumOn
+
+		public static string GCode_LeftVacuumOn { get { return GetResourceString("GCode_LeftVacuumOn"); } }
+//Resources:ManufacturingResources:GCode_LeftVacuumResponseExample
+
+		public static string GCode_LeftVacuumResponseExample { get { return GetResourceString("GCode_LeftVacuumResponseExample"); } }
+//Resources:ManufacturingResources:GCode_ParseLeftVacuumRegEx
+
+		public static string GCode_ParseLeftVacuumRegEx { get { return GetResourceString("GCode_ParseLeftVacuumRegEx"); } }
+//Resources:ManufacturingResources:GCode_ParseRightVacuumRegEx
+
+		public static string GCode_ParseRightVacuumRegEx { get { return GetResourceString("GCode_ParseRightVacuumRegEx"); } }
+//Resources:ManufacturingResources:GCode_ParseStatus_RegularExpression
+
+		public static string GCode_ParseStatus_RegularExpression { get { return GetResourceString("GCode_ParseStatus_RegularExpression"); } }
+//Resources:ManufacturingResources:GCode_ParseStatusRegularExpressionHelp
+
+		public static string GCode_ParseStatusRegularExpressionHelp { get { return GetResourceString("GCode_ParseStatusRegularExpressionHelp"); } }
+//Resources:ManufacturingResources:GCode_ReadLeftVacuumCmd
+
+		public static string GCode_ReadLeftVacuumCmd { get { return GetResourceString("GCode_ReadLeftVacuumCmd"); } }
+//Resources:ManufacturingResources:GCode_ReadRightVacuumCmd
+
+		public static string GCode_ReadRightVacuumCmd { get { return GetResourceString("GCode_ReadRightVacuumCmd"); } }
+//Resources:ManufacturingResources:GCode_RequestStatusCommand
+
+		public static string GCode_RequestStatusCommand { get { return GetResourceString("GCode_RequestStatusCommand"); } }
+//Resources:ManufacturingResources:GCode_RightVacuumOff
+
+		public static string GCode_RightVacuumOff { get { return GetResourceString("GCode_RightVacuumOff"); } }
+//Resources:ManufacturingResources:GCode_RightVacuumOn
+
+		public static string GCode_RightVacuumOn { get { return GetResourceString("GCode_RightVacuumOn"); } }
+//Resources:ManufacturingResources:GCode_RightVacuumResponseExample
+
+		public static string GCode_RightVacuumResponseExample { get { return GetResourceString("GCode_RightVacuumResponseExample"); } }
+//Resources:ManufacturingResources:GCode_StatusResponseExample
+
+		public static string GCode_StatusResponseExample { get { return GetResourceString("GCode_StatusResponseExample"); } }
+//Resources:ManufacturingResources:GCode_TopLightOff
+
+		public static string GCode_TopLightOff { get { return GetResourceString("GCode_TopLightOff"); } }
+//Resources:ManufacturingResources:GCode_TopLightOn
+
+		public static string GCode_TopLightOn { get { return GetResourceString("GCode_TopLightOn"); } }
+//Resources:ManufacturingResources:GCodeMapping_Title
+
+		public static string GCodeMapping_Title { get { return GetResourceString("GCodeMapping_Title"); } }
+//Resources:ManufacturingResources:GCodeMappings_Title
+
+		public static string GCodeMappings_Title { get { return GetResourceString("GCodeMappings_Title"); } }
 //Resources:ManufacturingResources:Machine_Description
 
 		public static string Machine_Description { get { return GetResourceString("Machine_Description"); } }
@@ -559,10 +637,6 @@ namespace LagoVista.Manufacturing.Models.Resources
 		public static string Machine_FeederRail_NumberSlots { get { return GetResourceString("Machine_FeederRail_NumberSlots"); } }
 //Resources:ManufacturingResources:Machine_FeederRail_Origin
 
-
-		///<summary>
-		///Rail Origin
-		///</summary>
 		public static string Machine_FeederRail_Origin { get { return GetResourceString("Machine_FeederRail_Origin"); } }
 //Resources:ManufacturingResources:Machine_FeederRail_Origin_Help
 
@@ -585,6 +659,18 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Machine_FrameWidth
 
 		public static string Machine_FrameWidth { get { return GetResourceString("Machine_FrameWidth"); } }
+//Resources:ManufacturingResources:Machine_GCode
+
+		public static string Machine_GCode { get { return GetResourceString("Machine_GCode"); } }
+//Resources:ManufacturingResources:Machine_GCode_Description
+
+		public static string Machine_GCode_Description { get { return GetResourceString("Machine_GCode_Description"); } }
+//Resources:ManufacturingResources:Machine_GCodeMapping
+
+		public static string Machine_GCodeMapping { get { return GetResourceString("Machine_GCodeMapping"); } }
+//Resources:ManufacturingResources:Machine_GCodeMapping_Select
+
+		public static string Machine_GCodeMapping_Select { get { return GetResourceString("Machine_GCodeMapping_Select"); } }
 //Resources:ManufacturingResources:Machine_JogFeedRate
 
 		public static string Machine_JogFeedRate { get { return GetResourceString("Machine_JogFeedRate"); } }
@@ -597,6 +683,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Machine_WorkAreaHeight
 
 		public static string Machine_WorkAreaHeight { get { return GetResourceString("Machine_WorkAreaHeight"); } }
+//Resources:ManufacturingResources:Machine_WorkAreaOrigin
+
+		public static string Machine_WorkAreaOrigin { get { return GetResourceString("Machine_WorkAreaOrigin"); } }
+//Resources:ManufacturingResources:Machine_WorkAreaOrigin_Help
+
+		public static string Machine_WorkAreaOrigin_Help { get { return GetResourceString("Machine_WorkAreaOrigin_Help"); } }
 //Resources:ManufacturingResources:Machine_WorkAreaWidth
 
 		public static string Machine_WorkAreaWidth { get { return GetResourceString("Machine_WorkAreaWidth"); } }
@@ -1047,6 +1139,32 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string FeederRotation90 = "FeederRotation90";
 			public const string FeederRotationMinus90 = "FeederRotationMinus90";
 			public const string Feeders_Title = "Feeders_Title";
+			public const string GCode_BottomLightOff = "GCode_BottomLightOff";
+			public const string GCode_BottomLightOn = "GCode_BottomLightOn";
+			public const string GCode_Description = "GCode_Description";
+			public const string GCode_Dwell = "GCode_Dwell";
+			public const string GCode_HomeAllCommand = "GCode_HomeAllCommand";
+			public const string GCode_HomeXCommand = "GCode_HomeXCommand";
+			public const string GCode_HomeYCommand = "GCode_HomeYCommand";
+			public const string GCode_HomeZCommand = "GCode_HomeZCommand";
+			public const string GCode_LeftVacuumOff = "GCode_LeftVacuumOff";
+			public const string GCode_LeftVacuumOn = "GCode_LeftVacuumOn";
+			public const string GCode_LeftVacuumResponseExample = "GCode_LeftVacuumResponseExample";
+			public const string GCode_ParseLeftVacuumRegEx = "GCode_ParseLeftVacuumRegEx";
+			public const string GCode_ParseRightVacuumRegEx = "GCode_ParseRightVacuumRegEx";
+			public const string GCode_ParseStatus_RegularExpression = "GCode_ParseStatus_RegularExpression";
+			public const string GCode_ParseStatusRegularExpressionHelp = "GCode_ParseStatusRegularExpressionHelp";
+			public const string GCode_ReadLeftVacuumCmd = "GCode_ReadLeftVacuumCmd";
+			public const string GCode_ReadRightVacuumCmd = "GCode_ReadRightVacuumCmd";
+			public const string GCode_RequestStatusCommand = "GCode_RequestStatusCommand";
+			public const string GCode_RightVacuumOff = "GCode_RightVacuumOff";
+			public const string GCode_RightVacuumOn = "GCode_RightVacuumOn";
+			public const string GCode_RightVacuumResponseExample = "GCode_RightVacuumResponseExample";
+			public const string GCode_StatusResponseExample = "GCode_StatusResponseExample";
+			public const string GCode_TopLightOff = "GCode_TopLightOff";
+			public const string GCode_TopLightOn = "GCode_TopLightOn";
+			public const string GCodeMapping_Title = "GCodeMapping_Title";
+			public const string GCodeMappings_Title = "GCodeMappings_Title";
 			public const string Machine_Description = "Machine_Description";
 			public const string Machine_FeederRail_Description = "Machine_FeederRail_Description";
 			public const string Machine_FeederRail_FirstFeederOffset = "Machine_FeederRail_FirstFeederOffset";
@@ -1061,10 +1179,16 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Machine_FeederRails = "Machine_FeederRails";
 			public const string Machine_FrameHeight = "Machine_FrameHeight";
 			public const string Machine_FrameWidth = "Machine_FrameWidth";
+			public const string Machine_GCode = "Machine_GCode";
+			public const string Machine_GCode_Description = "Machine_GCode_Description";
+			public const string Machine_GCodeMapping = "Machine_GCodeMapping";
+			public const string Machine_GCodeMapping_Select = "Machine_GCodeMapping_Select";
 			public const string Machine_JogFeedRate = "Machine_JogFeedRate";
 			public const string Machine_MaxFeedRate = "Machine_MaxFeedRate";
 			public const string Machine_Title = "Machine_Title";
 			public const string Machine_WorkAreaHeight = "Machine_WorkAreaHeight";
+			public const string Machine_WorkAreaOrigin = "Machine_WorkAreaOrigin";
+			public const string Machine_WorkAreaOrigin_Help = "Machine_WorkAreaOrigin_Help";
 			public const string Machine_WorkAreaWidth = "Machine_WorkAreaWidth";
 			public const string Machines_Title = "Machines_Title";
 			public const string MachineStagingPlate_Description = "MachineStagingPlate_Description";

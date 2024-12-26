@@ -929,11 +929,6 @@
   <data name="Machine_FeederRail_Height" xml:space="preserve">
     <value>Rail Height</value>
   </data>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="Machine_FeederRail_Origin" type="System.Resources.ResXNullRef, System.Windows.Forms">
-    <value />
-    <comment>Rail Origin</comment>
-  </data>
   <data name="Machine_FeederRail_Origin_Help" xml:space="preserve">
     <value>The bottom left or origin of the the feeder rail.  This will be the XY location before the rail is rotated.</value>
   </data>
@@ -944,7 +939,7 @@
     <value>Top Light On</value>
   </data>
   <data name="GCode_TopLightOff" xml:space="preserve">
-    <value />
+    <value>Top Light Off</value>
   </data>
   <data name="GCode_BottomLightOn" xml:space="preserve">
     <value>Bottom Light On</value>
@@ -1011,5 +1006,32 @@
   </data>
   <data name="Machine_GCode_Description" xml:space="preserve">
     <value>Defines GCode Commands and how those results should be parsed.</value>
+  </data>
+  <data name="Machine_FeederRail_Origin" xml:space="preserve">
+    <value>Rail Origin</value>
+  </data>
+  <data name="Machine_WorkAreaOrigin" xml:space="preserve">
+    <value>Work Area Origin</value>
+  </data>
+  <data name="Machine_WorkAreaOrigin_Help" xml:space="preserve">
+    <value>Offset from the bottom left of the frame to the bottom left of the work area.</value>
+  </data>
+  <data name="GCodeMappings_Title" xml:space="preserve">
+    <value>GCode Mappings</value>
+  </data>
+  <data name="GCode_Description" xml:space="preserve">
+    <value>A GCode mapping file defines the GCodes that are used to sent to a machine. </value>
+  </data>
+  <data name="GCode_Dwell" xml:space="preserve">
+    <value>Dwell Command</value>
+  </data>
+  <data name="GCodeMapping_Title" xml:space="preserve">
+    <value>GCode Mapping</value>
+  </data>
+  <data name="Machine_GCodeMapping" xml:space="preserve">
+    <value>GCode Mapping</value>
+  </data>
+  <data name="Machine_GCodeMapping_Select" xml:space="preserve">
+    <value>-select gcode mapping-</value>
   </data>
 </root>

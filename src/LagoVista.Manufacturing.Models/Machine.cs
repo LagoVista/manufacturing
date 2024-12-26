@@ -351,6 +351,10 @@ namespace LagoVista.Manufacturing.Models
 
         public int ProbeTimeoutSeconds { get; set; }
 
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_GCodeMapping, WaterMark: ManufacturingResources.Names.Machine_GCodeMapping_Select, EntityHeaderPickerUrl: "/api/mfg/gcodemappings", 
+            FieldType: FieldTypes.EntityHeaderPicker, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader<GCodeMapping> GcodeMapping { get; set; }
+
         private int _workAreaWidth;
         [FormField(LabelResource: ManufacturingResources.Names.Machine_WorkAreaWidth, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public int WorkAreaWidth
@@ -366,6 +370,10 @@ namespace LagoVista.Manufacturing.Models
             get { return _workAreaHeight; }
             set { Set(ref _workAreaHeight, value); }
         }
+
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_WorkAreaOrigin, HelpResource:ManufacturingResources.Names.Machine_WorkAreaOrigin_Help, FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> WorkAreaOrigin { get; set; } = new Point2D<double>(0,0);
+       
 
         [FormField(LabelResource: ManufacturingResources.Names.Machine_FrameWidth, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public int FrameWidth { get; set; } = 680;
@@ -581,6 +589,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Key),
                 nameof(WorkAreaWidth),
                 nameof(WorkAreaHeight),
+                nameof(WorkAreaOrigin),
                 nameof(FrameWidth),
                 nameof(FrameHeight),
             };
@@ -590,6 +599,7 @@ namespace LagoVista.Manufacturing.Models
         {
             return new List<string>()
             {
+                nameof(GcodeMapping),
                 nameof(MaximumFeedRate),
                 nameof(JogFeedRate),
                 nameof(Nozzles),

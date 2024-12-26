@@ -19,6 +19,7 @@ namespace LagoVista.Manufacturing
             services.AddTransient<IPartPackManager, PartPackManager>();
             services.AddTransient<ICircuitBoardManager, CircuitBoardManager>();
             services.AddTransient<IComponentOrderManager, ComponentOrderManager>();
+            services.AddTransient<IGCodeMappingManager, GCodeMappingManager>();
             services.AddTransient<IDigiKeyLookupService, DigiKeyLookupService>();
             services.AddTransient<IPnPMachineNozzleTipManager, PnPMachineNozzleManager>();
         }

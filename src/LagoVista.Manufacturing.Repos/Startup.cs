@@ -18,6 +18,7 @@ namespace LagoVista.Manufacturing.Repos
             services.AddTransient<ICircuitBoardRepo, CircuitBoardRepo>();
             services.AddTransient<IPnpMachineNozzleTipReo, PnPMachineNozzleTipRepo>();
             services.AddTransient<IComponentOrderRepo, ComponentOrderRepo>();
+            services.AddTransient<IGCodeMappingRepo, GCodeMappingRepo>();
         }
     }
 }

@@ -58,7 +58,7 @@ namespace LagoVista.Manufacturing.Models
         }
 
         [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_InnerDiameter, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public int InnnerDiameter { get; set; }
+        public int InnerDiameter { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_OuterDiameter, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public int OuterDiameter { get; set; }
@@ -97,7 +97,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(SafeMoveHeight),
                 nameof(PickHeight),
                 nameof(BoardHeight),
-                nameof(InnnerDiameter),
+                nameof(InnerDiameter),
                 nameof(OuterDiameter),
                 nameof(ToolRackLocation),
                 nameof(IdleVacuum),

@@ -27,13 +27,13 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Icon { get; set; } = "icon-ae-control-panel";
 
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_NumberSlots, FieldType: FieldTypes.Integer, ResourceType: typeof(ManufacturingResources))]
-        public int NumberSlots { get; set; }
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_NumberSlots, FieldType: FieldTypes.Integer, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public int NumberSlots { get; set; } = 25;
 
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_SlotWidth, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
-        public double SlotWidth { get; set; }
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_SlotWidth, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double SlotWidth { get; set; } = 10;
 
-        private EntityHeader<FeederRotations> _rotation;
+        private EntityHeader<FeederRotations> _rotation = EntityHeader<FeederRotations>.Create(FeederRotations.Zero);
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_Rotation, FieldType: FieldTypes.Picker, EnumType: typeof(FeederRotations), IsRequired: true,
             WaterMark: ManufacturingResources.Names.Feeder_Rotation_Select, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<FeederRotations> Rotation
@@ -42,17 +42,18 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _rotation, value);
         }
 
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_FirstFeederOffset, HelpResource:ManufacturingResources.Names.Machine_FeederRail_FirstFeederOffset_Help, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
-        public double FirstFeederOffset { get; set; }
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_FirstFeederOffset, HelpResource: ManufacturingResources.Names.Machine_FeederRail_FirstFeederOffset_Help, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
+        public double FirstFeederOffset { get; set; } = 20;
 
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_Origin, HelpResource: ManufacturingResources.Names.Machine_FeederRail_Origin_Help, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
-        public Point2D<double> Origin { get; set; }
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_Origin, IsRequired: true, HelpResource: ManufacturingResources.Names.Machine_FeederRail_Origin_Help,
+            FieldType: FieldTypes.Point2D, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> Origin { get; set; } = new Point2D<double>(0, 0);
 
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_Width, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
-        public double RailWidth { get; set; }
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_Width, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double RailWidth { get; set; } = 600;
 
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_Height, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
-        public double RailHeight { get; set; }
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_Height, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double RailHeight { get; set; } = 20;
 
 
         public List<string> GetFormFields()
@@ -62,6 +63,9 @@ namespace LagoVista.Manufacturing.Models
                   nameof(Name),
                   nameof(Key),
                   nameof(Icon),
+                nameof(FirstFeederOffset),
+                nameof(NumberSlots),
+                nameof(SlotWidth),
             };
         }
 
@@ -69,12 +73,10 @@ namespace LagoVista.Manufacturing.Models
         {
             return new List<string>()
             {
+                nameof(Rotation),
                 nameof(Origin),
                 nameof(RailWidth),
                 nameof(RailHeight),
-                nameof(FirstFeederOffset),
-                nameof(NumberSlots),
-                nameof(SlotWidth),
             };
         }
     }
