@@ -6,6 +6,8 @@ using LagoVista.Manufacturing.Models;
 using LagoVista.IoT.Logging.Loggers;
 using System.Threading.Tasks;
 using LagoVista.Manufacturing.Repos;
+using System.Linq;
+using LagoVista.Core.Exceptions;
 
 namespace LagoVista.Manufacturing.Repo.Repos
 {
@@ -36,9 +38,22 @@ namespace LagoVista.Manufacturing.Repo.Repos
             return GetDocumentAsync(id);
         }
 
+        public async Task<Feeder> GetFeederByFeederIdAsync(string feederId)
+        {
+            var feeders = await base.QueryAsync(fdr => fdr.FeederId == feederId);
+           
+            if (!feeders.Any())
+                throw new RecordNotFoundException(nameof(Feeder), $"FeederId={feederId}");
+
+            if(feeders.Count() > 1)
+                throw new RecordNotFoundException(nameof(Feeder), $"Multiple Records for FeederId={feederId}");
+
+            return feeders.Single();
+        }
+
         public async Task<ListResponse<Feeder>> GetFeedersForMachineAsync(string machineId)
         {
-            return  ListResponse<Feeder>.Create(await  base.QueryAsync(fdr => fdr.Machine.Id == machineId));
+            return  ListResponse<Feeder>.Create(await base.QueryAsync(fdr => fdr.Machine.Id == machineId));
         }
 
         public Task<ListResponse<FeederSummary>> GetFeederSummariesAsync(string orgId, ListRequest listRequest)

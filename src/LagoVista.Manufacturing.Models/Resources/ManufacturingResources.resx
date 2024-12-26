@@ -1034,4 +1034,12 @@
   <data name="Machine_GCodeMapping_Select" xml:space="preserve">
     <value>-select gcode mapping-</value>
   </data>
+  <data name="Machine_FeederRail_StartSlotIndex" xml:space="preserve">
+    <value>Start Slot Index</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="Machine_FeederRail_StartSlotIndex_Help" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+    <comment>Feeder rail indexes are at the machine level.  If you have more than one feeder rail, you can configure that start index here.</comment>
+  </data>
 </root>

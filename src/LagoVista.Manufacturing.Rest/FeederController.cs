@@ -27,10 +27,16 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             _machineManager = machineManager;
         }
 
-        [HttpGet("/api/mfg/Feeder/{id}")]
+        [HttpGet("/api/mfg/feeder/{id}")]
         public async Task<DetailResponse<Feeder>> GetFeeder(string id, bool loadcomponent = false)
         {
             return DetailResponse<Feeder>.Create(await _mgr.GetFeederAsync(id, loadcomponent, OrgEntityHeader, UserEntityHeader));
+        }
+
+        [HttpGet("/api/mfg/feeder/feederid/{id}")]
+        public async Task<DetailResponse<Feeder>> GetFeederByFeederId(string id, bool loadcomponent = false)
+        {
+            return DetailResponse<Feeder>.Create(await _mgr.GetFeederByFeederIdAsync(id, loadcomponent, OrgEntityHeader, UserEntityHeader));
         }
 
         [HttpGet("/api/mfg/Feeder/factory")]
@@ -45,7 +51,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         [HttpDelete("/api/mfg/Feeder/{id}")]
         public async Task<InvokeResult> DeleteFeeder(string id)
         {
-            return await _mgr.DeleteCommponentAsync(id, OrgEntityHeader, UserEntityHeader);
+            return await _mgr.DeleteFeederAsync(id, OrgEntityHeader, UserEntityHeader);
         }
 
         [HttpPost("/api/mfg/Feeder")]

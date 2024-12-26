@@ -1,4 +1,4 @@
-﻿/*12/25/2024 6:58:32 PM*/
+﻿/*12/26/2024 7:50:40 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -644,6 +644,16 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Machine_FeederRail_SlotWidth
 
 		public static string Machine_FeederRail_SlotWidth { get { return GetResourceString("Machine_FeederRail_SlotWidth"); } }
+//Resources:ManufacturingResources:Machine_FeederRail_StartSlotIndex
+
+		public static string Machine_FeederRail_StartSlotIndex { get { return GetResourceString("Machine_FeederRail_StartSlotIndex"); } }
+//Resources:ManufacturingResources:Machine_FeederRail_StartSlotIndex_Help
+
+
+		///<summary>
+		///Feeder rail indexes are at the machine level.  If you have more than one feeder rail, you can configure that start index here.
+		///</summary>
+		public static string Machine_FeederRail_StartSlotIndex_Help { get { return GetResourceString("Machine_FeederRail_StartSlotIndex_Help"); } }
 //Resources:ManufacturingResources:Machine_FeederRail_Title
 
 		public static string Machine_FeederRail_Title { get { return GetResourceString("Machine_FeederRail_Title"); } }
@@ -1174,6 +1184,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Machine_FeederRail_Origin = "Machine_FeederRail_Origin";
 			public const string Machine_FeederRail_Origin_Help = "Machine_FeederRail_Origin_Help";
 			public const string Machine_FeederRail_SlotWidth = "Machine_FeederRail_SlotWidth";
+			public const string Machine_FeederRail_StartSlotIndex = "Machine_FeederRail_StartSlotIndex";
+			public const string Machine_FeederRail_StartSlotIndex_Help = "Machine_FeederRail_StartSlotIndex_Help";
 			public const string Machine_FeederRail_Title = "Machine_FeederRail_Title";
 			public const string Machine_FeederRail_Width = "Machine_FeederRail_Width";
 			public const string Machine_FeederRails = "Machine_FeederRails";

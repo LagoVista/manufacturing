@@ -33,6 +33,10 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_SlotWidth, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double SlotWidth { get; set; } = 10;
 
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_StartSlotIndex, HelpResource: ManufacturingResources.Names.Machine_FeederRail_StartSlotIndex_Help, 
+            FieldType: FieldTypes.Integer, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public int SlotStartIndex { get; set; } = 1;
+
         private EntityHeader<FeederRotations> _rotation = EntityHeader<FeederRotations>.Create(FeederRotations.Zero);
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_Rotation, FieldType: FieldTypes.Picker, EnumType: typeof(FeederRotations), IsRequired: true,
             WaterMark: ManufacturingResources.Names.Feeder_Rotation_Select, ResourceType: typeof(ManufacturingResources))]
@@ -60,10 +64,11 @@ namespace LagoVista.Manufacturing.Models
         {
             return new List<string>()
             {
-                  nameof(Name),
-                  nameof(Key),
-                  nameof(Icon),
+                nameof(Name),
+                nameof(Key),
+                nameof(Icon),
                 nameof(FirstFeederOffset),
+                nameof(SlotStartIndex),
                 nameof(NumberSlots),
                 nameof(SlotWidth),
             };

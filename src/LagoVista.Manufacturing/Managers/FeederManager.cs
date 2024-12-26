@@ -44,11 +44,6 @@ namespace LagoVista.Manufacturing.Managers
             return await base.CheckForDepenenciesAsync(part);
         }
 
-        public Task<InvokeResult> DeleteCommponentAsync(string id, EntityHeader org, EntityHeader user)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<InvokeResult> DeleteFeederAsync(string id, EntityHeader org, EntityHeader user)
         {
             var feeder = await _feederRepo.GetFeederAsync(id);
@@ -61,6 +56,22 @@ namespace LagoVista.Manufacturing.Managers
         public async Task<Feeder> GetFeederAsync(string id, bool loadComponent, EntityHeader org, EntityHeader user)
         {
             var feeder = await _feederRepo.GetFeederAsync(id);
+            if (!EntityHeader.IsNullOrEmpty(feeder.Component) && loadComponent)
+            {
+                feeder.Component.Value = await _componentManager.GetComponentAsync(feeder.Component.Id, true, org, user);
+                if (!EntityHeader.IsNullOrEmpty(feeder.Component.Value.ComponentPackage))
+                {
+                    feeder.Component.Value.ComponentPackage.Value = await _packageRepo.GetComponentPackageAsync(feeder.Component.Value.ComponentPackage.Id);
+                }
+            }
+
+            await AuthorizeAsync(feeder, AuthorizeActions.Read, user, org);
+            return feeder;
+        }
+
+        public async Task<Feeder> GetFeederByFeederIdAsync(string feederId, bool loadComponent, EntityHeader org, EntityHeader user)
+        {
+            var feeder = await _feederRepo.GetFeederByFeederIdAsync(feederId);
             if (!EntityHeader.IsNullOrEmpty(feeder.Component) && loadComponent)
             {
                 feeder.Component.Value = await _componentManager.GetComponentAsync(feeder.Component.Id, true, org, user);

@@ -12,6 +12,7 @@ namespace LagoVista.Manufacturing.Interfaces.Repos
         Task<ListResponse<FeederSummary>> GetFeederSummariesAsync(string id, ListRequest listRequest);
         Task<ListResponse<Feeder>> GetFeedersForMachineAsync(string machineId);
         Task<Feeder> GetFeederAsync(string id);
+        Task<Feeder> GetFeederByFeederIdAsync(string feederId);
         Task DeleteFeederAsync(string id);
     }
 }
