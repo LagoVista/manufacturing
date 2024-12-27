@@ -43,7 +43,7 @@ namespace LagoVista.PickAndPlace.LumenSupport
     }
 
 
-    public class FeederSupport
+    public class PhotonProtocolHandler
     {
         public byte packetID = 0;
 

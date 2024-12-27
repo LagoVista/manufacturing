@@ -10,7 +10,7 @@ namespace LagoVista.PickAndPlace.GCodeTests
 {
     public class Tests
     {
-        FeederSupport _support = new FeederSupport();
+        PhotonProtocolHandler _support = new PhotonProtocolHandler();
 
         private List<string> _commandResponseQUeue ;
 
@@ -34,8 +34,9 @@ namespace LagoVista.PickAndPlace.GCodeTests
 
             Listen(_cancelSource, reader);
 
+            var pCmd = _support.GenerateGCode(FeederCommands.GetId, 0x01);
 
-            await writer.WriteAsync($"{_support.GenerateGCode(FeederCommands.GetId, 0x01)}\n");
+            await writer.WriteAsync($"{pCmd.GCode}\n");
             await writer.FlushAsync();
 
             var endAt = DateTime.Now.AddSeconds(1);
@@ -51,7 +52,9 @@ namespace LagoVista.PickAndPlace.GCodeTests
                             var match = regExp.Match(cmd);
                             if (match.Success)
                             {
-                                Console.WriteLine(match.Groups[1].Value);
+                                var responsePayload = match.Groups[1].Value;
+                                var response = _support.ParseResponse(responsePayload); 
+
                             }
                             else
                                 Console.WriteLine("NO MATCH -> " + cmd);

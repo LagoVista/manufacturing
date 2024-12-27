@@ -37,59 +37,15 @@ namespace LagoVista.PCB.Eagle.Models
 
         public bool IsSMD { get { return SmdPads.Any(); } }
 
-        public static PcbPackage Create(XElement element)
+        private static void SetComponentSize(PcbPackage pck)
         {
-            var Name = element.GetString("name");
-
-            var pck = new PcbPackage()
-            {
-                Id = Guid.NewGuid().ToId(),
-                LibraryName = element.Ancestors(XName.Get("library")).First().Attribute("name").Value,
-                Name = element.GetString("name"),
-                Description = element.GetChildString("description"),
-                Wires = (from childWires in element.Descendants("wire") select PcbLine.Create(childWires)).ToList(),
-                Texts = (from childTexts in element.Descendants("text") select Text.Create(childTexts)).ToList(),
-                SmdPads = (from childSMDs in element.Descendants("smd") select SMDPad.Create(childSMDs)).ToList(),
-                Holes = (from childPads in element.Descendants("hole") select Hole.Create(childPads)).ToList(),
-                Circles = (from childCircles in element.Descendants("circle") select Circle.Create(childCircles)).ToList(),
-                Rects = (from childCircles in element.Descendants("rect") select Rect.Create(childCircles)).ToList(),
-            };
-
-            pck.Key = (pck.LibraryName + pck.Name).ToNuvIoTKey();
-
-            foreach (var padSet in (from childPads in element.Descendants("pad") select Pad.Create(childPads)).ToList())
-                pck.Pads.AddRange(padSet);
-            
-            return pck;
-        }
-
-        public static PcbPackage Create(Footprint fp)
-        {
-            var pck = new PcbPackage()
-            {
-                Id = Guid.NewGuid().ToId(),
-                Key = fp.Name.ToNuvIoTKey(),
-                Name = fp.Name,
-                Circles = fp.FpCircles.Select(cir => Circle.Create(cir)).ToList(),
-                Texts =  fp.FpTexts.Select(txt => Text.Create(txt)).ToList(),
-                Rects = fp.FpRects.Select(rect => Rect.Create(rect)).ToList(),
-                Wires = fp.FpLines.Select(line => PcbLine.Create(line)).ToList(),
-                Polygons = fp.FpPolys.Select(ply => Polygon.Create(ply)).ToList(),
-            };
-
-            foreach(var padSet in fp.Pads.Where(p => fp.Attr != "smd" && p.PadType != "smd").Select(pad => Pad.Create(pad, fp.PositionAt.Angle)).ToList())
-                pck.Pads.AddRange(padSet);
-
-            foreach (var padSet in fp.Pads.Where(p => fp.Attr == "smd" || p.PadType == "smd") .Select(pad => SMDPad.Create(pad, fp.PositionAt.Angle)).ToList())
-                pck.SmdPads.AddRange(padSet);
-
 
             var minX = 99999.0;
             var maxX = -1.0;
             var minY = 99999.0;
             var maxY = -1.0;
-            
-            if(pck.Pads.Any()) minY = Math.Min(minY, pck.Pads.Min(pd => pd.Y - pd.Height));
+
+            if (pck.Pads.Any()) minY = Math.Min(minY, pck.Pads.Min(pd => pd.Y - pd.Height));
             if (pck.Rects.Any()) minY = Math.Min(minY, pck.Rects.Min(pd => pd.Y1));
             if (pck.Rects.Any()) minY = Math.Min(minY, pck.Rects.Min(pd => pd.Y2));
             if (pck.SmdPads.Any()) minY = Math.Min(minY, pck.SmdPads.Min(pd => pd.Y1));
@@ -123,18 +79,69 @@ namespace LagoVista.PCB.Eagle.Models
             if (pck.Circles.Any()) minX = Math.Min(minX, pck.Circles.Min(pd => pd.X - pd.Radius));
 
             if (pck.Pads.Any()) maxX = Math.Max(maxX, pck.Pads.Max(pd => pd.X + pd.Width));
-            if(pck.Rects.Any()) maxX = Math.Max(maxX, pck.Rects.Max(pd => pd.X1));
+            if (pck.Rects.Any()) maxX = Math.Max(maxX, pck.Rects.Max(pd => pd.X1));
             if (pck.Rects.Any()) maxX = Math.Max(maxX, pck.Rects.Max(pd => pd.X2));
             if (pck.SmdPads.Any()) maxX = Math.Max(maxX, pck.SmdPads.Max(pd => pd.X1));
             if (pck.SmdPads.Any()) maxX = Math.Max(maxX, pck.SmdPads.Max(pd => pd.X2));
             if (pck.Wires.Any()) maxX = Math.Max(maxX, pck.Wires.Max(pd => pd.X1));
             if (pck.Wires.Any()) maxX = Math.Max(maxX, pck.Wires.Max(pd => pd.X2));
-            if (pck.Polygons.Any()) maxX = Math.Max(maxX, pck.Polygons.Max(pd => pd.Lines.Max(p=>p.X1)));
+            if (pck.Polygons.Any()) maxX = Math.Max(maxX, pck.Polygons.Max(pd => pd.Lines.Max(p => p.X1)));
             if (pck.Polygons.Any()) maxX = Math.Max(maxX, pck.Polygons.Max(pd => pd.Lines.Max(p => p.X2)));
             if (pck.Circles.Any()) maxX = Math.Max(maxX, pck.Circles.Max(pd => pd.X + pd.Radius));
 
             pck.Width = maxX - minX;
             pck.Height = maxY - minY;
+        }
+
+        public static PcbPackage Create(XElement element)
+        {
+            var Name = element.GetString("name");
+
+            var pck = new PcbPackage()
+            {
+                Id = Guid.NewGuid().ToId(),
+                LibraryName = element.Ancestors(XName.Get("library")).First().Attribute("name").Value,
+                Name = element.GetString("name"),
+                Description = element.GetChildString("description"),
+                Wires = (from childWires in element.Descendants("wire") select PcbLine.Create(childWires)).ToList(),
+                Texts = (from childTexts in element.Descendants("text") select Text.Create(childTexts)).ToList(),
+                SmdPads = (from childSMDs in element.Descendants("smd") select SMDPad.Create(childSMDs)).ToList(),
+                Holes = (from childPads in element.Descendants("hole") select Hole.Create(childPads)).ToList(),
+                Circles = (from childCircles in element.Descendants("circle") select Circle.Create(childCircles)).ToList(),
+                Rects = (from childCircles in element.Descendants("rect") select Rect.Create(childCircles)).ToList(),
+            };
+
+            pck.Key = (pck.LibraryName + pck.Name).ToNuvIoTKey();
+
+            foreach (var padSet in (from childPads in element.Descendants("pad") select Pad.Create(childPads)).ToList())
+                pck.Pads.AddRange(padSet);
+
+            SetComponentSize(pck);
+
+            return pck;
+        }
+
+        public static PcbPackage Create(Footprint fp)
+        {
+            var pck = new PcbPackage()
+            {
+                Id = Guid.NewGuid().ToId(),
+                Key = fp.Name.ToNuvIoTKey(),
+                Name = fp.Name,
+                Circles = fp.FpCircles.Select(cir => Circle.Create(cir)).ToList(),
+                Texts =  fp.FpTexts.Select(txt => Text.Create(txt)).ToList(),
+                Rects = fp.FpRects.Select(rect => Rect.Create(rect)).ToList(),
+                Wires = fp.FpLines.Select(line => PcbLine.Create(line)).ToList(),
+                Polygons = fp.FpPolys.Select(ply => Polygon.Create(ply)).ToList(),
+            };
+
+            foreach(var padSet in fp.Pads.Where(p => fp.Attr != "smd" && p.PadType != "smd").Select(pad => Pad.Create(pad, fp.PositionAt.Angle)).ToList())
+                pck.Pads.AddRange(padSet);
+
+            foreach (var padSet in fp.Pads.Where(p => fp.Attr == "smd" || p.PadType == "smd") .Select(pad => SMDPad.Create(pad, fp.PositionAt.Angle)).ToList())
+                pck.SmdPads.AddRange(padSet);
+
+            SetComponentSize(pck);
 
             return pck;
         }
