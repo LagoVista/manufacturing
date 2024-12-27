@@ -78,10 +78,10 @@ namespace LagoVista.Manufacturing.Managers
             return await _packageRepo.GetComponentPackagesSummariesAsync(org.Id, listRequest);
         }
 
-        public async Task<InvokeResult> SetComponentPadsAsync(string componentId, SMDPad[] pads, EntityHeader org, EntityHeader user)
+        public async Task<InvokeResult> SetLayoutAsync(string componentId, PcbPackage layout, EntityHeader org, EntityHeader user)
         {
             var package = await GetComponentPackageAsync(componentId, org, user);
-            package.SmdPads = pads.ToList();
+            package.Layout = layout;
             return await UpdateComponentPackageAsync(package, org, user);
         }
 

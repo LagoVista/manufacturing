@@ -17,6 +17,6 @@ namespace LagoVista.Manufacturing.Interfaces.Managers
         Task<ComponentPackage> GetComponentPackageAsync(string id, EntityHeader org, EntityHeader user);
         Task<InvokeResult> DeleteCommponentPackageAsync(string id, EntityHeader org, EntityHeader user);
         Task<XDocument> GenerateOpenPnPPackagesForAllComponentPackagesAsync(EntityHeader org, EntityHeader user);
-        Task<InvokeResult> SetComponentPadsAsync(string componentId, SMDPad[] pads, EntityHeader org, EntityHeader user);
+        Task<InvokeResult> SetLayoutAsync(string componentId, PcbPackage package, EntityHeader org, EntityHeader user);
     }
 }

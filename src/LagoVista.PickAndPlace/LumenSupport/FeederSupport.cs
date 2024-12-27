@@ -28,6 +28,19 @@ namespace LagoVista.PickAndPlace.LumenSupport
         public byte PayloadLength { get; set; }
     }
 
+    public class PhotonResponse
+    {
+        public byte ToAddress { get; set; }
+        public byte FromAddress { get; set; }
+        public byte PacketId { get; set; }
+        public byte Status { get; set; }
+        public byte[] Payload { get; set; }
+    }
+    public class PhotonCommand
+    {
+        public string GCode { get; set; }
+        public byte PacketId { get; set; }
+    }
 
 
     public class FeederSupport
@@ -67,60 +80,50 @@ namespace LagoVista.PickAndPlace.LumenSupport
             return (byte)((t >> 8) & 255); // Right shift by 8 and mask with 255 to get the final byte
         }
 
-        public int[] HexStringToIntArray(string e)
+        public static int GetHexVal(char hex)
         {
-            List<int> t = new List<int>(); // Use a List<int> to dynamically store the values
-            Console.WriteLine("string: " + e); // Log the string (similar to `console.log` in JavaScript)
-
-            for (int a = 0; a < e.Length / 2; a++)
-            {
-                int n = a * 2;
-                string i = e.Substring(n, 2); // Extract two characters from the string
-                int l = Convert.ToInt32(i, 16); // Convert the hex string to an integer
-                t.Add(l); // Add the integer to the list
-            }
-
-            return t.ToArray(); // Convert the List to an array and return it
+            int val = (int)hex;
+            return val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
         }
 
-        public bool ValidatePacketCrc(List<byte> e)
+        public static List<byte> GetByteArray(string hex)
         {
-            byte t = e[4]; // Extract the CRC from the fifth byte (index 4)
-            byte[] a = e.Take(4).Concat(e.Skip(5)).ToArray(); // Concatenate the first 4 bytes and the rest after the 5th byte
-            byte n = CalcCRC(new List<byte>(a)); // Calculate CRC of the array excluding the 5th byte
-            if (t != n)
+            if (hex.Length % 2 == 1)
+                throw new Exception("The binary key cannot have an odd number of digits");
+
+            byte[] arr = new byte[hex.Length >> 1];
+
+            for (int i = 0; i < hex.Length >> 1; ++i)
             {
-                Console.WriteLine("Received packet had CRC mismatch.");
-                return false; // CRC mismatch
+                arr[i] = (byte)((GetHexVal(hex[i << 1]) << 4) + (GetHexVal(hex[(i << 1) + 1])));
             }
-            return true; // CRC matched
+
+            return new List<byte>(arr);
         }
 
-        public string IntArrayToHexString(List<byte> buffer)
+        public PhotonResponse ParseResponse(string packet)
         {
-            var bldr = new StringBuilder();
-            foreach (var ch in buffer)
+            var response = new PhotonResponse();
+            var buffer = GetByteArray(packet);
+            response.ToAddress = buffer[0];
+            response.FromAddress = buffer[1];
+            response.PacketId = buffer[2];
+
+            response.Status = buffer[5];
+            response.Payload = buffer.Skip(6).ToArray();
+
+            var crc = buffer[4];
+
+            buffer.RemoveAt(4);
+            if(crc != CalcCRC(buffer))
             {
-                bldr.Append(ch.ToString("X").ToUpper());
+                throw new Exception("CRC Mismatch");
             }
-            return bldr.ToString();
+
+            return response;
         }
 
-        public string GetGcodeFromPacketAndPayloadArray(List<byte> buffer)
-        {
-            var bldr = new StringBuilder();
-            foreach (var ch in buffer)
-            {
-                var chout = ch.ToString("X2");
-                Console.WriteLine(chout);
-                bldr.Append(ch.ToString("X2").ToUpper());
-            }
-            bldr.ToString();
-            Console.WriteLine($"Final String {bldr.ToString()}");
-            return $"M485 {bldr}";
-        }
-
-        public string GenerateGCode(FeederCommands command, byte toAddress = 0, byte[] p = null)
+        public PhotonCommand GenerateGCode(FeederCommands command, byte toAddress = 0, byte[] p = null)
         {
             var payload = p == null ? new List<byte>() : new List<byte>( p);
             payload.Insert(0, (byte)command);
@@ -141,105 +144,33 @@ namespace LagoVista.PickAndPlace.LumenSupport
                 throw new ArgumentException($"Command {command} expects a payload.");
             }
             
-            var buffer = new List<byte>();
-            buffer.Add(toAddress);
-            buffer.Add(0x00);
-            buffer.Add(packetID);
-            buffer.Add(cmdStructure.PayloadLength == 0 ? (byte)payload.Count : cmdStructure.PayloadLength);
-            Console.WriteLine("Header => " + string.Join(", ", buffer));
+            var buffer = new List<byte>
+            {
+                toAddress,
+                0x00,
+                packetID,
+                cmdStructure.PayloadLength == 0 ? (byte)payload.Count : cmdStructure.PayloadLength
+            };
             buffer.AddRange(payload);
-
 
             var crc = CalcCRC(buffer);
             buffer.Insert(4,crc);
 
-    // Get the final GCode
-            var gCode = GetGcodeFromPacketAndPayloadArray(buffer);
-            Console.WriteLine(gCode);
+            var bldr = new StringBuilder();
+            foreach (var ch in buffer)
+            {
+                bldr.Append(ch.ToString("X2").ToUpper());
+            }
 
+            var cmd = new PhotonCommand()
+            {
+                GCode = $"M485 {bldr}",
+                PacketId = packetID
+            };
+ 
             packetID = (packetID < 255) ? (byte)(packetID + 1) : (byte)0;
 
-            return gCode;
-
-            //// Clear serial buffer and send data
-            //serial.ClearBuffer();
-            //await serial.SendAsync(new List<byte> { (byte)l.Length }); // Send the command (send a byte array in this case)
-
-            //long s = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-            //bool packetReceived = false;
-
-            //// Wait for the serial response (with timeout)
-            //while (true)
-            //{
-            //    if (await serial.DelayAsync(10)) // Simulate delay of 10 ms
-            //    {
-            //        if (DateTimeOffset.Now.ToUnixTimeMilliseconds() - s > 400)
-            //        {
-            //            Console.WriteLine("Timeout: didn'address get serial response.");
-            //            return false;
-            //        }
-
-            //        bool p = false;
-            //        Console.WriteLine(serial.ReceiveBuffer);
-
-            //        // Regex pattern for 'ok'
-            //        Regex f = new Regex("ok");
-
-            //        foreach (var w in serial.ReceiveBuffer)
-            //        {
-            //            if (f.IsMatch(w.ToString()))
-            //            {
-            //                p = true;
-            //                break;
-            //            }
-            //        }
-
-            //        if (p)
-            //            break;
-            //    }
-            //}
-
-            //byte currentPacketID = packetID;
-            //packetID = (packetID < 255) ? (byte)(packetID + 1) : (byte)0;
-
-            //string r = "";
-            //Regex u = new Regex("rs485-reply:");
-
-            //foreach (var w in serial.ReceiveBuffer)
-            //{
-            //    if (u.IsMatch(w.ToString()))
-            //    {
-            //        r = u.Match(w.ToString()).Groups[1].Value;
-            //        break;
-            //    }
-            //}
-
-            //if (r == "TIMEOUT")
-            //{
-            //    Console.WriteLine("Received TIMEOUT.");
-            //    return false;
-            //}
-
-            //if (string.IsNullOrEmpty(r))
-            //{
-            //    modal.Show("Photon Support", "Your version of Marlin does not support Photon. Please update Marlin to the version in the <a href='https://github.com/opulo-inc/lumenpnp/releases'>latest LumenPnP release</a> using the instructions <a href='https://docs.opulo.io/byop/motherboard/update-firmware/'>here</a>.");
-            //    return false;
-            //}
-
-            //byte[] h = HexStringToIntArray(r);
-
-            //// Validate CRC and check packet ID
-            //if (ValidatePacketCrc(h))
-            //{
-            //    if (h[2] != currentPacketID)
-            //    {
-            //        Console.WriteLine("Returning packet ID mismatched sent packet ID.");
-            //        return false;
-            //    }
-            //    return true;
-            //}
-
-            //return false;
+            return cmd;        
         }
     }
 }

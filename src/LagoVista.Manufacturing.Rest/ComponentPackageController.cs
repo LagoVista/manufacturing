@@ -78,10 +78,10 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return _mgr.GetComponentPackagesSummariesAsync(GetListRequestFromHeader(), OrgEntityHeader, UserEntityHeader);
         }
 
-        [HttpPost("/api/mfg/component/package/{id}/setpads")]
-        public Task<InvokeResult> SetPads(string id, [FromBody] SMDPad[] pads)
+        [HttpPost("/api/mfg/component/package/{id}/layout")]
+        public Task<InvokeResult> SetPads(string id, [FromBody] PcbPackage layout)
         {
-            return _mgr.SetComponentPadsAsync(id, pads, OrgEntityHeader, UserEntityHeader);
+            return _mgr.SetLayoutAsync(id, layout, OrgEntityHeader, UserEntityHeader);
         }
 
     }
