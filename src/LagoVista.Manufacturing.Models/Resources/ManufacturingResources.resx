@@ -1090,4 +1090,7 @@
   <data name="MachineStagingPlate_Origin_Origin_Approx" xml:space="preserve">
     <value>Approximate Origin</value>
   </data>
+  <data name="Feeder_PickHeight" xml:space="preserve">
+    <value>Pick Height</value>
+  </data>
 </root>

@@ -28,21 +28,21 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         }
 
         [HttpGet("/api/mfg/feeder/{id}")]
-        public async Task<DetailResponse<Feeder>> GetFeeder(string id, bool loadcomponent = false)
+        public async Task<DetailResponse<AutoFeeder>> GetFeeder(string id, bool loadcomponent = false)
         {
-            return DetailResponse<Feeder>.Create(await _mgr.GetFeederAsync(id, loadcomponent, OrgEntityHeader, UserEntityHeader));
+            return DetailResponse<AutoFeeder>.Create(await _mgr.GetFeederAsync(id, loadcomponent, OrgEntityHeader, UserEntityHeader));
         }
 
         [HttpGet("/api/mfg/feeder/feederid/{id}")]
-        public async Task<DetailResponse<Feeder>> GetFeederByFeederId(string id, bool loadcomponent = false)
+        public async Task<DetailResponse<AutoFeeder>> GetFeederByFeederId(string id, bool loadcomponent = false)
         {
-            return DetailResponse<Feeder>.Create(await _mgr.GetFeederByFeederIdAsync(id, loadcomponent, OrgEntityHeader, UserEntityHeader));
+            return DetailResponse<AutoFeeder>.Create(await _mgr.GetFeederByFeederIdAsync(id, loadcomponent, OrgEntityHeader, UserEntityHeader));
         }
 
         [HttpGet("/api/mfg/Feeder/factory")]
-        public DetailResponse<Feeder> CreateFeeder()
+        public DetailResponse<AutoFeeder> CreateFeeder()
         {
-            var form = DetailResponse<Feeder>.Create();
+            var form = DetailResponse<AutoFeeder>.Create();
             SetAuditProperties(form.Model);
             SetOwnedProperties(form.Model);
             return form;
@@ -55,13 +55,13 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         }
 
         [HttpPost("/api/mfg/Feeder")]
-        public Task<InvokeResult> AddFeederPackageAsync([FromBody] Feeder feeder)
+        public Task<InvokeResult> AddFeederPackageAsync([FromBody] AutoFeeder feeder)
         {
             return _mgr.AddFeederAsync(feeder, OrgEntityHeader, UserEntityHeader);
         }
 
         [HttpPut("/api/mfg/Feeder")]
-        public Task<InvokeResult> UpdateFeederPackage([FromBody] Feeder feeder)
+        public Task<InvokeResult> UpdateFeederPackage([FromBody] AutoFeeder feeder)
         {
             SetUpdatedProperties(feeder);
             return _mgr.UpdateFeederAsync(feeder, OrgEntityHeader, UserEntityHeader);
@@ -74,7 +74,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         }
 
         [HttpGet("/api/mfg/machine/{machineid}/feeders")]
-        public Task<ListResponse<Feeder>> GetFeedersForMachine(string machineid, bool loadcomponents)
+        public Task<ListResponse<AutoFeeder>> GetFeedersForMachine(string machineid, bool loadcomponents)
         {
             return _mgr.GetFeedersForMachineAsync(machineid, loadcomponents, OrgEntityHeader, UserEntityHeader);
         }

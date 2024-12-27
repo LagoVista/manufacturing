@@ -11,7 +11,7 @@ using LagoVista.Core.Exceptions;
 
 namespace LagoVista.Manufacturing.Repo.Repos
 {
-    public class FeederRepo : DocumentDBRepoBase<Feeder>, IFeederRepo
+    public class FeederRepo : DocumentDBRepoBase<AutoFeeder>, IFeederRepo
     {
         private bool _shouldConsolidateCollections;
 
@@ -23,7 +23,7 @@ namespace LagoVista.Manufacturing.Repo.Repos
 
         protected override bool ShouldConsolidateCollections => _shouldConsolidateCollections;
 
-        public Task AddFeederAsync(Feeder Feeder)
+        public Task AddFeederAsync(AutoFeeder Feeder)
         {
             return CreateDocumentAsync(Feeder);
         }
@@ -33,35 +33,35 @@ namespace LagoVista.Manufacturing.Repo.Repos
             return DeleteDocumentAsync(id);
         }
 
-        public Task<Feeder> GetFeederAsync(string id)
+        public Task<AutoFeeder> GetFeederAsync(string id)
         {
             return GetDocumentAsync(id);
         }
 
-        public async Task<Feeder> GetFeederByFeederIdAsync(string feederId)
+        public async Task<AutoFeeder> GetFeederByFeederIdAsync(string feederId)
         {
             var feeders = await base.QueryAsync(fdr => fdr.FeederId == feederId);
            
             if (!feeders.Any())
-                throw new RecordNotFoundException(nameof(Feeder), $"FeederId={feederId}");
+                throw new RecordNotFoundException(nameof(AutoFeeder), $"FeederId={feederId}");
 
             if(feeders.Count() > 1)
-                throw new RecordNotFoundException(nameof(Feeder), $"Multiple Records for FeederId={feederId}");
+                throw new RecordNotFoundException(nameof(AutoFeeder), $"Multiple Records for FeederId={feederId}");
 
             return feeders.Single();
         }
 
-        public async Task<ListResponse<Feeder>> GetFeedersForMachineAsync(string machineId)
+        public async Task<ListResponse<AutoFeeder>> GetFeedersForMachineAsync(string machineId)
         {
-            return  ListResponse<Feeder>.Create(await base.QueryAsync(fdr => fdr.Machine.Id == machineId));
+            return  ListResponse<AutoFeeder>.Create(await base.QueryAsync(fdr => fdr.Machine.Id == machineId));
         }
 
         public Task<ListResponse<FeederSummary>> GetFeederSummariesAsync(string orgId, ListRequest listRequest)
         {
-            return base.QuerySummaryAsync<FeederSummary, Feeder>(qry => qry.IsPublic == true || qry.OwnerOrganization.Id == orgId, itm => itm.Name, listRequest);
+            return base.QuerySummaryAsync<FeederSummary, AutoFeeder>(qry => qry.IsPublic == true || qry.OwnerOrganization.Id == orgId, itm => itm.Name, listRequest);
         }
 
-        public Task UpdateFeederAsync(Feeder Feeder)
+        public Task UpdateFeederAsync(AutoFeeder Feeder)
         {
             return UpsertDocumentAsync(Feeder);
         }

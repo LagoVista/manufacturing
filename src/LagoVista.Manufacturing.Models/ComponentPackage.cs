@@ -189,7 +189,7 @@ namespace LagoVista.Manufacturing.Models
 
         [JsonIgnore]
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_SpacingX, FieldType: FieldTypes.Decimal, IsRequired: false, IsUserEditable:false, ResourceType: typeof(ManufacturingResources))]
-        public decimal? SpacingX { get
+        public double? SpacingX { get
             {
                 if (EntityHeader.IsNullOrEmpty(TapePitch))
                     return null;
@@ -214,7 +214,7 @@ namespace LagoVista.Manufacturing.Models
         [JsonIgnore]
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_HoleSpacing, FieldType: FieldTypes.Decimal,
             IsRequired: false, IsUserEditable:false, ResourceType: typeof(ManufacturingResources))]
-        public decimal HoleSpacing { get { return 4; } }
+        public double HoleSpacing { get { return 4; } }
 
 
         [JsonIgnore]
@@ -222,7 +222,7 @@ namespace LagoVista.Manufacturing.Models
                 HelpResource: ManufacturingResources.Names.ComponentPackage_CenterX_Help, FieldType: FieldTypes.Decimal,
                 IsRequired: false, IsUserEditable:false, 
                 ResourceType: typeof(ManufacturingResources))]
-        public decimal? CenterX
+        public double? CenterX
         {
             get
             {
@@ -234,7 +234,7 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_CenterY, 
             HelpResource: ManufacturingResources.Names.ComponentPackage_CenterY_Help, 
             FieldType: FieldTypes.Decimal, IsRequired: false, IsUserEditable:false, ResourceType: typeof(ManufacturingResources))]
-        public decimal? CenterY 
+        public double? CenterY 
         { 
             get
             {
@@ -243,13 +243,13 @@ namespace LagoVista.Manufacturing.Models
 
                 switch (TapeSize.Value)
                 {
-                    case TapeSizes.EightMM: return 1.75m + 3.5m;
-                    case TapeSizes.TwelveMM: return 1.75m + 5.5m;
-                    case TapeSizes.SixteenMM: return 1.75m + 7.5m;
-                    case TapeSizes.TwentyMM: return 1.75m + 9.5m;
-                    case TapeSizes.TwentyFourMM: return 1.75m + 11.5m;
-                    case TapeSizes.ThirtyTwoMM: return 1.75m + 15.5m;
-                    case TapeSizes.FortyFourMM: return 1.75m + 21.5m;
+                    case TapeSizes.EightMM: return 1.75 + 3.5;
+                    case TapeSizes.TwelveMM: return 1.75 + 5.5;
+                    case TapeSizes.SixteenMM: return 1.75 + 7.5;
+                    case TapeSizes.TwentyMM: return 1.75 + 9.5;
+                    case TapeSizes.TwentyFourMM: return 1.75 + 11.5;
+                    case TapeSizes.ThirtyTwoMM: return 1.75 + 15.5;
+                    case TapeSizes.FortyFourMM: return 1.75 + 21.5;
                 }
 
                 return null;
@@ -259,7 +259,7 @@ namespace LagoVista.Manufacturing.Models
         [JsonIgnore]
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeWidth, 
              FieldType: FieldTypes.Decimal, IsRequired: false, IsUserEditable:false, ResourceType: typeof(ManufacturingResources))]
-        public decimal? TapeWidth
+        public double? TapeWidth
         {
             get
             {

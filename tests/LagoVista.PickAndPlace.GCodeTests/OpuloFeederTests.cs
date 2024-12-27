@@ -1,6 +1,3 @@
-using LagoVista.Core.IOC;
-using LagoVista.Core.Networking.Interfaces;
-using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.LumenSupport;
 using System.Net.Sockets;
@@ -35,7 +32,7 @@ namespace LagoVista.PickAndPlace.GCodeTests
             Listen(_cancelSource, reader);
 
             var pCmd = _support.GenerateGCode(FeederCommands.GetId, 0x01);
-
+            Console.WriteLine(pCmd.GCode);
             await writer.WriteAsync($"{pCmd.GCode}\n");
             await writer.FlushAsync();
 
@@ -53,8 +50,8 @@ namespace LagoVista.PickAndPlace.GCodeTests
                             if (match.Success)
                             {
                                 var responsePayload = match.Groups[1].Value;
-                                var response = _support.ParseResponse(responsePayload); 
-
+                                var response = _support.ParseResponse(responsePayload);
+                                Console.WriteLine(response.Payload.ToString());
                             }
                             else
                                 Console.WriteLine("NO MATCH -> " + cmd);

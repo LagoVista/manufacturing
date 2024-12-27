@@ -7,12 +7,12 @@ namespace LagoVista.Manufacturing.Interfaces.Repos
 {
     public interface IFeederRepo
     {
-        Task AddFeederAsync(Feeder feeder);
-        Task UpdateFeederAsync(Feeder feeder);
+        Task AddFeederAsync(AutoFeeder feeder);
+        Task UpdateFeederAsync(AutoFeeder feeder);
         Task<ListResponse<FeederSummary>> GetFeederSummariesAsync(string id, ListRequest listRequest);
-        Task<ListResponse<Feeder>> GetFeedersForMachineAsync(string machineId);
-        Task<Feeder> GetFeederAsync(string id);
-        Task<Feeder> GetFeederByFeederIdAsync(string feederId);
+        Task<ListResponse<AutoFeeder>> GetFeedersForMachineAsync(string machineId);
+        Task<AutoFeeder> GetFeederAsync(string id);
+        Task<AutoFeeder> GetFeederByFeederIdAsync(string feederId);
         Task DeleteFeederAsync(string id);
     }
 }

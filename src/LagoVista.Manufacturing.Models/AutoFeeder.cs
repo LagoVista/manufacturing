@@ -13,13 +13,13 @@ namespace LagoVista.Manufacturing.Models
 
     public enum FeederRotations
     {
-        [EnumLabel(Feeder.FeederRotation0, ManufacturingResources.Names.TapeRotation_0, typeof(ManufacturingResources))]
+        [EnumLabel(AutoFeeder.FeederRotation0, ManufacturingResources.Names.TapeRotation_0, typeof(ManufacturingResources))]
         Zero,
-        [EnumLabel(Feeder.FeederRotation90, ManufacturingResources.Names.TapeRotation_90, typeof(ManufacturingResources))]
+        [EnumLabel(AutoFeeder.FeederRotation90, ManufacturingResources.Names.TapeRotation_90, typeof(ManufacturingResources))]
         Ninety,
-        [EnumLabel(Feeder.FeederRotationMinus90, ManufacturingResources.Names.TapeRotation_Minus90, typeof(ManufacturingResources))]
+        [EnumLabel(AutoFeeder.FeederRotationMinus90, ManufacturingResources.Names.TapeRotation_Minus90, typeof(ManufacturingResources))]
         MinusNinety,
-        [EnumLabel(Feeder.FeederRotation180, ManufacturingResources.Names.TapeRotation_180, typeof(ManufacturingResources))]
+        [EnumLabel(AutoFeeder.FeederRotation180, ManufacturingResources.Names.TapeRotation_180, typeof(ManufacturingResources))]
         OneEighty
     }
 
@@ -28,7 +28,7 @@ namespace LagoVista.Manufacturing.Models
             Icon: "icon-pz-searching-2", Cloneable: true,
             SaveUrl: "/api/mfg/feeder", GetUrl: "/api/mfg/Feeder/{id}", GetListUrl: "/api/mfg/feeders", FactoryUrl: "/api/mfg/feeder/factory",
             DeleteUrl: "/api/mfg/feeder/{id}", ListUIUrl: "/mfg/fFeeders", EditUIUrl: "/mfg/feeder/{id}", CreateUIUrl: "/mfg/feeder/add")]
-    public class Feeder : MfgModelBase, IValidateable, IFormDescriptor, ISummaryFactory, IIDEntity
+    public class AutoFeeder : MfgModelBase, IValidateable, IFormDescriptor, ISummaryFactory, IIDEntity
     {
 
         public const string FeederRotation0 = "zero";
@@ -70,6 +70,14 @@ namespace LagoVista.Manufacturing.Models
         {
             get => _pickLocation;
             set => Set(ref _pickLocation, value);
+        }
+
+        private double _pickHeight;
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_PickLocation, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
+        public double PickHeight 
+        {
+            get => _pickHeight;
+            set => Set(ref _pickHeight, value);
         }
 
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_Machine, WaterMark: ManufacturingResources.Names.Feeder_Machine_Select, EntityHeaderPickerUrl: "/api/mfg/machines", FieldType: FieldTypes.EntityHeaderPicker, ResourceType: typeof(ManufacturingResources))]

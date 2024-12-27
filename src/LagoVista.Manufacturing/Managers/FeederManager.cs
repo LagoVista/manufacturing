@@ -28,7 +28,7 @@ namespace LagoVista.Manufacturing.Managers
             _packageRepo = packageRepo ?? throw new ArgumentNullException(nameof(packageRepo));
 
         }
-        public async Task<InvokeResult> AddFeederAsync(Feeder feeder, EntityHeader org, EntityHeader user)
+        public async Task<InvokeResult> AddFeederAsync(AutoFeeder feeder, EntityHeader org, EntityHeader user)
         {
             await AuthorizeAsync(feeder, AuthorizeActions.Create, user, org);
             ValidationCheck(feeder, Actions.Create);
@@ -53,7 +53,7 @@ namespace LagoVista.Manufacturing.Managers
             return InvokeResult.Success;
         }
 
-        public async Task<Feeder> GetFeederAsync(string id, bool loadComponent, EntityHeader org, EntityHeader user)
+        public async Task<AutoFeeder> GetFeederAsync(string id, bool loadComponent, EntityHeader org, EntityHeader user)
         {
             var feeder = await _feederRepo.GetFeederAsync(id);
             if (!EntityHeader.IsNullOrEmpty(feeder.Component) && loadComponent)
@@ -69,7 +69,7 @@ namespace LagoVista.Manufacturing.Managers
             return feeder;
         }
 
-        public async Task<Feeder> GetFeederByFeederIdAsync(string feederId, bool loadComponent, EntityHeader org, EntityHeader user)
+        public async Task<AutoFeeder> GetFeederByFeederIdAsync(string feederId, bool loadComponent, EntityHeader org, EntityHeader user)
         {
             var feeder = await _feederRepo.GetFeederByFeederIdAsync(feederId);
             if (!EntityHeader.IsNullOrEmpty(feeder.Component) && loadComponent)
@@ -85,9 +85,9 @@ namespace LagoVista.Manufacturing.Managers
             return feeder;
         }
 
-        public async Task<ListResponse<Feeder>> GetFeedersForMachineAsync(string machineId, bool loadComponent, EntityHeader org, EntityHeader user)
+        public async Task<ListResponse<AutoFeeder>> GetFeedersForMachineAsync(string machineId, bool loadComponent, EntityHeader org, EntityHeader user)
         {
-            await AuthorizeOrgAccessAsync(user, org.Id, typeof(Feeder));
+            await AuthorizeOrgAccessAsync(user, org.Id, typeof(AutoFeeder));
             var response = await _feederRepo.GetFeedersForMachineAsync(machineId);
             if (loadComponent)
             {
@@ -109,11 +109,11 @@ namespace LagoVista.Manufacturing.Managers
 
         public async Task<ListResponse<FeederSummary>> GetFeedersSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user)
         {
-            await AuthorizeOrgAccessAsync(user, org.Id, typeof(Feeder));
+            await AuthorizeOrgAccessAsync(user, org.Id, typeof(AutoFeeder));
             return await _feederRepo.GetFeederSummariesAsync(org.Id, listRequest);
         }
 
-        public async Task<InvokeResult> UpdateFeederAsync(Feeder feeder, EntityHeader org, EntityHeader user)
+        public async Task<InvokeResult> UpdateFeederAsync(AutoFeeder feeder, EntityHeader org, EntityHeader user)
         {
             await AuthorizeAsync(feeder, AuthorizeActions.Update, user, org);
             ValidationCheck(feeder, Actions.Update);

@@ -26,15 +26,8 @@ namespace LagoVista.Manufacturing.Managers
         }
         public async Task<InvokeResult> AddMachineAsync(Machine machine, EntityHeader org, EntityHeader user)
         {
-            Console.WriteLine("==== 1) Adding machine  ==>" + machine.Name);
-
             await AuthorizeAsync(machine, AuthorizeActions.Create, user, org);
-            Console.WriteLine("==== 2) Adding machine  ==>" + machine.Name);
-
             ValidationCheck(machine, Actions.Create);
-
-            Console.WriteLine("==== 3) Adding machine  ==>" + machine.Name);
-
             await _machineRepo.AddMachineAsync(machine);
 
             return InvokeResult.Success;
@@ -83,6 +76,7 @@ namespace LagoVista.Manufacturing.Managers
 
             return InvokeResult.Success;
         }
+
 
         public static List<EnumDescription> GetStagingPlateRows()
         {
