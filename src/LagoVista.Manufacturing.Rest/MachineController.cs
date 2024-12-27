@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using LagoVista.IoT.Logging.Utils;
 using System;
+using LagoVista.Core;
+using LagoVista.Manufacturing.Managers;
 
 namespace LagoVista.Manufacturing.Rest.Controllers
 {
@@ -51,7 +53,12 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         [HttpGet("/api/mfg/machine/stagingplate/factory")]
         public DetailResponse<MachineStagingPlate> CreateStagingPlate()
         {
-            return DetailResponse<MachineStagingPlate>.Create();
+            var form = DetailResponse<MachineStagingPlate>.Create();
+            form.View[nameof(MachineStagingPlate.ReferenceHoleColumn1).CamelCase()].Options = MachineManager.GetStagingPlateColumns();
+            form.View[nameof(MachineStagingPlate.ReferenceHoleRow1).CamelCase()].Options = MachineManager.GetStagingPlateRows();
+            form.View[nameof(MachineStagingPlate.ReferenceHoleColumn2).CamelCase()].Options = MachineManager.GetStagingPlateColumns();
+            form.View[nameof(MachineStagingPlate.ReferenceHoleRow2).CamelCase()].Options = MachineManager.GetStagingPlateRows();
+            return form;
         }
 
         [HttpGet("/api/mfg/machine/feederrail/factory")]

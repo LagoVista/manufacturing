@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>LagoVista.Manufacturing.Repos</id>
-    <version>3.0.2778.1829</version>
+    <version>3.0.2780.1457</version>
     <authors>Software Logistics, LLC</authors>
     <owners>Software Logistics, LLC</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -12,13 +12,13 @@
     <copyright>Copyright Software Logistics - 2024</copyright>
     <tags>HomeAutomation IoT</tags>
     <icon>LagoVistaIcon.png</icon>
-    <releaseNotes>Build Date: 12/24/2024 11:29:39 PM UTC</releaseNotes>
+    <releaseNotes>Build Date: 12/26/2024 7:57:49 PM UTC</releaseNotes>
     <repository url="https://www.github.com/lagovista" type="git" branch="master"></repository>
     <dependencies>
       <group targetFramework="netstandard2.1">
-        <dependency id="LagoVista.CloudStorage" version="3.0.2777.1110" />
-        <dependency id="LagoVista.Manufacturing.Models" version="3.0.2778.1829" />
-        <dependency id="LagoVista.Manufacturing" version="3.0.2778.1829" />
+        <dependency id="LagoVista.CloudStorage" version="3.0.2780.1319" />
+        <dependency id="LagoVista.Manufacturing.Models" version="3.0.2780.1457" />
+        <dependency id="LagoVista.Manufacturing" version="3.0.2780.1457" />
       </group>
     </dependencies>
   </metadata>

@@ -43,6 +43,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LagoVista.MSDMarkwort.Kicad
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LagoVista.MSDMarkwort.Kicad.Parser.PcbNew", "src\MSDMarkwort.Kicad.Parser.PcbNew\LagoVista.MSDMarkwort.Kicad.Parser.PcbNew.csproj", "{43C184BA-98D2-4675-B4B4-023E80A690A7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LagoVista.PickAndPlace.GCodeTests", "tests\LagoVista.PickAndPlace.GCodeTests\LagoVista.PickAndPlace.GCodeTests.csproj", "{F987D140-52C5-4FA0-BFEC-260658866677}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -113,6 +115,10 @@ Global
 		{43C184BA-98D2-4675-B4B4-023E80A690A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43C184BA-98D2-4675-B4B4-023E80A690A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43C184BA-98D2-4675-B4B4-023E80A690A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F987D140-52C5-4FA0-BFEC-260658866677}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F987D140-52C5-4FA0-BFEC-260658866677}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F987D140-52C5-4FA0-BFEC-260658866677}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F987D140-52C5-4FA0-BFEC-260658866677}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -134,6 +140,7 @@ Global
 		{0E8A5D71-F1AF-45E6-BDD6-AE73E3FA63A0} = {9AE8147B-C2A5-468B-B695-75942BCC8771}
 		{4FB67624-C335-4E6F-9683-68E9BAF057E3} = {9AE8147B-C2A5-468B-B695-75942BCC8771}
 		{43C184BA-98D2-4675-B4B4-023E80A690A7} = {9AE8147B-C2A5-468B-B695-75942BCC8771}
+		{F987D140-52C5-4FA0-BFEC-260658866677} = {F812E9FC-77A8-4106-9B91-5A4666FAE5F1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A071B13F-9FB8-48FF-A256-D739F9F59005}

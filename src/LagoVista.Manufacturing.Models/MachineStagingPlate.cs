@@ -15,7 +15,7 @@ namespace LagoVista.Manufacturing.Models
         ManufacturingResources.Names.MachineStagingPlate_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources),
         Icon: "icon-ae-control-panel", Cloneable: true,
         FactoryUrl: "/api/mfg/machine/stagingplate/factory")]
-    public class MachineStagingPlate : ModelBase, IFormDescriptor
+    public class MachineStagingPlate : ModelBase, IFormDescriptor, IFormDescriptorCol2
     {
 
         public string Id { get; set; } = Guid.NewGuid().ToId();
@@ -50,14 +50,41 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _firstHole, value);
         }
 
-        private Point2D<double> _origin = new Point2D<double>(0,0);
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Origin, HelpResource: ManufacturingResources.Names.Common_Origin_Help,
-            FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public Point2D<double> Origin
+        [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlate_Origin_Origin_Approx, HelpResource: ManufacturingResources.Names.MachineStagingPlate_Origin_Help, FieldType: FieldTypes.Point2D, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> Origin { get; set; }
+
+
+        Point2D<double> _referenceHoleLocation1 = new Point2D<double>();
+        [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlate_ReferenceHoleLocation1, HelpResource: ManufacturingResources.Names.MachineStagingPlate_ReferenceHoleLocation_Help, FieldType: FieldTypes.Point2D, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> ReferenceHoleLocation1
         {
-            get => _origin;
-            set => Set(ref _origin, value);
+            get => _referenceHoleLocation1;
+            set => Set(ref _referenceHoleLocation1, value);
         }
+
+        [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlate_ReferenceHoleCol1, HelpResource: ManufacturingResources.Names.MachineStagingPlate_ReferenceHoleCol_Help, AddEnumSelect: true, FieldType: FieldTypes.Picker, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader ReferenceHoleColumn1 { get; set; }
+
+        [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlate_ReferenceHoleRow1, HelpResource: ManufacturingResources.Names.MachineStagingPlate_ReferenceHoleRow_Help, AddEnumSelect: true, FieldType: FieldTypes.Picker, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader ReferenceHoleRow1{ get; set; }
+
+
+        Point2D<double> _referenceHoleLocation2 =new Point2D<double>();
+        [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlate_ReferenceHoleLocation2, HelpResource: ManufacturingResources.Names.MachineStagingPlate_ReferenceHoleLocation_Help,  FieldType: FieldTypes.Point2D, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> ReferenceHoleLocation2
+        {
+            get => _referenceHoleLocation2;
+            set => Set(ref _referenceHoleLocation2, value);
+        }
+
+        [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlate_ReferenceHoleCol2, HelpResource: ManufacturingResources.Names.MachineStagingPlate_ReferenceHoleCol_Help, AddEnumSelect: true, FieldType: FieldTypes.Picker, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader ReferenceHoleColumn2 { get; set; }
+
+        [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlate_ReferenceHoleRow2, HelpResource: ManufacturingResources.Names.MachineStagingPlate_ReferenceHoleRow_Help, AddEnumSelect: true, FieldType: FieldTypes.Picker, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader ReferenceHoleRow2 { get; set; }
+
+
+
 
         public EntityHeader ToEntityHeader()
         {
@@ -73,11 +100,24 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Key),
                 nameof(Icon),
                 nameof(Size),
-                nameof(Origin),
-                nameof(FirstHole),                
+                nameof(FirstHole),
                 nameof(HolesStaggered),
                 nameof(HoleSpacing),
                 nameof(Color),
+            };
+        }
+
+        public List<string> GetFormFieldsCol2()
+        {
+            return new List<string>()
+            {
+                nameof(Origin),
+                nameof(ReferenceHoleColumn1),
+                nameof(ReferenceHoleRow1),
+                nameof(ReferenceHoleLocation1),
+                nameof(ReferenceHoleColumn2),
+                nameof(ReferenceHoleRow2),
+                nameof(ReferenceHoleLocation2),
             };
         }
     }

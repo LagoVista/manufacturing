@@ -14,6 +14,7 @@ using LagoVista.Core.Models.Drawing;
 using System;
 using LagoVista.Core;
 using System.Linq;
+using LagoVista.Manufacturing.Managers;
 
 namespace LagoVista.Manufacturing.Rest.Controllers
 {
@@ -34,7 +35,10 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         [HttpGet("/api/mfg/stripfeeder/{id}")]
         public async Task<DetailResponse<StripFeeder>> GetStripFeeder(string id, bool loadcomponent = false)
         {
-            return DetailResponse<StripFeeder>.Create(await _mgr.GetStripFeederAsync(id, loadcomponent, OrgEntityHeader, UserEntityHeader));
+            var form = DetailResponse<StripFeeder>.Create(await _mgr.GetStripFeederAsync(id, loadcomponent, OrgEntityHeader, UserEntityHeader));
+            form.View[nameof(StripFeeder.ReferenceHoleColumn).CamelCase()].Options = MachineManager.GetStagingPlateColumns();
+            form.View[nameof(StripFeeder.ReferenceHoleRow).CamelCase()].Options = MachineManager.GetStagingPlateRows();
+            return form;
         }
 
         [HttpGet("/api/mfg/stripfeeder/factory")]
@@ -49,6 +53,10 @@ namespace LagoVista.Manufacturing.Rest.Controllers
                 Notes = "",
                 RefHoleOffset = new Point2D<double>(0, 0),
             });
+
+            form.View[nameof(StripFeeder.ReferenceHoleColumn).CamelCase()].Options = MachineManager.GetStagingPlateColumns();
+            form.View[nameof(StripFeeder.ReferenceHoleRow).CamelCase()].Options = MachineManager.GetStagingPlateRows();
+
             SetAuditProperties(form.Model);
             SetOwnedProperties(form.Model);
             return form;
@@ -91,8 +99,8 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return _mgr.GetStripFeedersForMachineAsync(machineid, loadcomponents, OrgEntityHeader, UserEntityHeader);
         }
 
-        [HttpGet("/mft/machine/{machineid}/stagingplate/{plateid}/col/{col}/stripfeeder/{feederid}/attach")]
-        public async Task<InvokeResult> AttachToMachine(string machineid, string plateid, string col, string feederid)
+        [HttpGet("/api/mfg/machine/{machineid}/stagingplate/{plateid}/{row}/{col}/stripfeeder/{feederid}/attach")]
+        public async Task<InvokeResult> AttachToMachine(string machineid, string plateid, string row, string col, string feederid)
         {
             var machine = await _machineManager.GetMachineAsync(machineid, OrgEntityHeader, UserEntityHeader);
             var plate = machine.StagingPlates.SingleOrDefault(plt => plt.Id == plateid);
@@ -101,9 +109,24 @@ namespace LagoVista.Manufacturing.Rest.Controllers
                 return InvokeResult.FromError("Could not find staging plate.");
             }
 
+            var rowOption = MachineManager.GetStagingPlateRows().SingleOrDefault(opt => opt.Id == row);
+            if (rowOption == null)
+            {
+                return InvokeResult.FromError($"Could not find row for {row} .");
+            }
+
+            var colOption = MachineManager.GetStagingPlateColumns().SingleOrDefault(opt => opt.Id == col);
+            if (colOption == null)
+            {
+                return InvokeResult.FromError($"Could not find row col {col} .");
+            }
+
+
             var feeder = await _mgr.GetStripFeederAsync(feederid, false, OrgEntityHeader, UserEntityHeader);
             feeder.Machine = machine.ToEntityHeader();
             feeder.StagingPlate = plate.ToEntityHeader();
+            feeder.ReferenceHoleRow = rowOption.ToEntityHeader();
+            feeder.ReferenceHoleColumn = colOption.ToEntityHeader();
             return await _mgr.UpdateStripFeederAsync(feeder, OrgEntityHeader, UserEntityHeader);
         }
     }

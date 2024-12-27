@@ -813,10 +813,10 @@
     <value>First Hole</value>
   </data>
   <data name="MachineStagingPlate_FirstHole_Help" xml:space="preserve">
-    <value>Distance from Origin (Bottom Left) to First Hole</value>
+    <value>Distance from Origin (Bottom Left) to First Hole. This is used to generate the grid.  Reference Hole Column, Row and Location are used to accurately place the staging plate in the workspace</value>
   </data>
-  <data name="MachineStagingPlate_OriginX_Help" xml:space="preserve">
-    <value>Location of the bottom left of the staging plate with respect to the machine origin</value>
+  <data name="MachineStagingPlate_Origin_Help" xml:space="preserve">
+    <value>Location of the bottom left of the staging plate with respect to the frame origin.  This is used to render the machine graphics. Accurate information will be captured with Reference Hole Column, Row and Location.</value>
   </data>
   <data name="ToolNozzleTip_Title" xml:space="preserve">
     <value>Tool Nozzle Tip</value>
@@ -894,7 +894,7 @@
     <value>This is true if the the holes are diagonally aligned, this is false if the holes are in solid lines.</value>
   </data>
   <data name="StripFeeder_RowOneRefHoleOffset_Help" xml:space="preserve">
-    <value>The offset from the origin or bottom left of the feeder to the reference hole for the first row.</value>
+    <value>The offset from the origin or bottom left of the feeder to the reference hole for the first row, assuming that the the tape holes are in the top of the feeder.</value>
   </data>
   <data name="StripFeeder_AngleOffset_Help" xml:space="preserve">
     <value>The angle offset for this strip feeder to correct for any installation errors.  This is usually calibrated by the machine and not manually entered.</value>
@@ -1037,9 +1037,57 @@
   <data name="Machine_FeederRail_StartSlotIndex" xml:space="preserve">
     <value>Start Slot Index</value>
   </data>
+  <data name="MachineStagingPlate_ReferenceHoleCol_Help" xml:space="preserve">
+    <value>Column where the hole to identify the staging plate location is located.</value>
+  </data>
+  <data name="MachineStagingPlate_ReferenceHoleRow_Help" xml:space="preserve">
+    <value>Row in which the reference hole is located to identify staging plate location</value>
+  </data>
+  <data name="MachineStagingPlate_ReferenceHoleLocation1" xml:space="preserve">
+    <value>Reference Hole Location 1</value>
+  </data>
+  <data name="MachineStagingPlate_ReferenceHoleLocation_Help" xml:space="preserve">
+    <value>XY Coodinate of the center of the refrence hole to identify staging plate location. This is generally set via machine vision and not through the web interface.  Two points are used to compensate for installation angle errors.</value>
+  </data>
+  <data name="StripFeeder_ReferenceHoleOffset" xml:space="preserve">
+    <value>Reference Hole Offset</value>
+  </data>
+  <data name="StripFeeder_ReferenceHoleOffset_Help" xml:space="preserve">
+    <value>Provide the XY offset from the bottom left origin of the strip feeder to the reference hole location.  This is assuming that the feeder is horizontal.</value>
+  </data>
+  <data name="StripFeeder_ReferenceHole_Row" xml:space="preserve">
+    <value>Mounting Reference Hole Row</value>
+  </data>
+  <data name="StripFeeder_ReferenceHole_Col" xml:space="preserve">
+    <value>Mounting Reference Hole Column</value>
+  </data>
+  <data name="StripFeeder_ReferenceHole_Row_Help" xml:space="preserve">
+    <value>The row of the hole in the staging plate where the strip feeder reference hole is mounted.</value>
+  </data>
+  <data name="StripFeeder_ReferenceHole_Col_Help" xml:space="preserve">
+    <value>The column of the staging plate where the reference hole of the strip feeder is mounted.</value>
+  </data>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="Machine_FeederRail_StartSlotIndex_Help" type="System.Resources.ResXNullRef, System.Windows.Forms">
     <value />
     <comment>Feeder rail indexes are at the machine level.  If you have more than one feeder rail, you can configure that start index here.</comment>
+  </data>
+  <data name="MachineStagingPlate_ReferenceHoleCol1" xml:space="preserve">
+    <value>Reference Hole Column 1</value>
+  </data>
+  <data name="MachineStagingPlate_ReferenceHoleRow1" xml:space="preserve">
+    <value>Reference Hole Row 1</value>
+  </data>
+  <data name="MachineStagingPlate_ReferenceHoleLocation2" xml:space="preserve">
+    <value>Reference Hole Location 2</value>
+  </data>
+  <data name="MachineStagingPlate_ReferenceHoleCol2" xml:space="preserve">
+    <value>Reference Hole Column 2</value>
+  </data>
+  <data name="MachineStagingPlate_ReferenceHoleRow2" xml:space="preserve">
+    <value>Reference Hole Row 2</value>
+  </data>
+  <data name="MachineStagingPlate_Origin_Origin_Approx" xml:space="preserve">
+    <value>Approximate Origin</value>
   </data>
 </root>

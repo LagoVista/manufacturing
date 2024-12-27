@@ -108,7 +108,7 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_StagingPlate, IsUserEditable:false, FieldType: FieldTypes.EntityHeaderPicker, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader StagingPlate { get; set; }
 
-        private Point2D<double> _origin;
+        private Point2D<double> _origin = new Point2D<double>();
         [FormField(LabelResource: ManufacturingResources.Names.Common_Origin, HelpResource: ManufacturingResources.Names.Common_Origin_Help, FieldType: FieldTypes.Point2D, ResourceType: typeof(ManufacturingResources))]
         public Point2D<double> Origin
         {
@@ -144,7 +144,7 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _rowWidth, value);
         }
 
-        public double _rowCount;
+        private double _rowCount;
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_RowCount, FieldType: FieldTypes.Integer, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double RowCount
         {
@@ -152,7 +152,7 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _rowCount, value);
         }
 
-        public double _feederWidth;
+        private double _feederWidth;
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_FeederWidth, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double FeederWidth
         {
@@ -162,6 +162,21 @@ namespace LagoVista.Manufacturing.Models
 
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Rows, ChildListDisplayMembers:"rowIndex,component.text", FactoryUrl: "/api/mfg/stripfeeder/row/factory", FieldType: FieldTypes.ChildListInline, ResourceType: typeof(ManufacturingResources))]
         public List<StripFeederRow> Rows { get; set; } = new List<StripFeederRow>();
+
+
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_ReferenceHole_Col, HelpResource: ManufacturingResources.Names.StripFeeder_ReferenceHole_Col_Help, FieldType: FieldTypes.Picker, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader ReferenceHoleColumn { get; set; }
+
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_ReferenceHole_Row, HelpResource: ManufacturingResources.Names.StripFeeder_ReferenceHole_Row_Help, FieldType: FieldTypes.Picker, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader ReferenceHoleRow { get; set; }
+
+        Point2D<double> _referenceHoleLocation = new Point2D<double>();
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_ReferenceHoleOffset, HelpResource: ManufacturingResources.Names.StripFeeder_ReferenceHoleOffset_Help, FieldType: FieldTypes.Point2D, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> ReferenceHoleLocation
+        {
+            get => _referenceHoleLocation;
+            set => Set(ref _referenceHoleLocation, value);
+        }
 
         public List<string> GetFormFields()
         {
@@ -177,6 +192,9 @@ namespace LagoVista.Manufacturing.Models
                 nameof(FeedDirection),
                 nameof(Color),
                 nameof(Description),
+                nameof(PickHeight),
+                nameof(RowOneRefHoleOffset),
+                nameof(Origin),
             };
         }
 
@@ -204,9 +222,9 @@ namespace LagoVista.Manufacturing.Models
         {
             return new List<string>()
             {
-                nameof(PickHeight),
-                nameof(RowOneRefHoleOffset),
-                nameof(Origin),
+                nameof(ReferenceHoleColumn),
+                nameof(ReferenceHoleRow),                
+                nameof(ReferenceHoleLocation),
                 nameof(RowCount),
                 nameof(FeederLength),
                 nameof(FeederWidth),

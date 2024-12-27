@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>LagoVista.MSDMarkwort.Kicad.Parser.Model</id>
-    <version>3.0.2778.1829</version>
+    <version>3.0.2780.1457</version>
     <authors>Software Logistics, LLC</authors>
     <owners>Software Logistics, LLC</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -12,12 +12,12 @@
     <copyright>Copyright Software Logistics - 2024</copyright>
     <tags>HomeAutomation IoT</tags>
     <icon>LagoVistaIcon.png</icon>
-    <releaseNotes>Build Date: 12/24/2024 11:29:39 PM UTC</releaseNotes>
+    <releaseNotes>Build Date: 12/26/2024 7:57:49 PM UTC</releaseNotes>
     <repository url="https://www.github.com/lagovista" type="git" branch="master"></repository>
     <dependencies>
       <group targetFramework="netstandard2.0">
         <dependency id="Microsoft.SourceLink.GitHub" version="8.0.0" />
-        <dependency id="LagoVista.MSDMarkwort.Kicad.Parser.Base" version="3.0.2778.1829" />
+        <dependency id="LagoVista.MSDMarkwort.Kicad.Parser.Base" version="3.0.2780.1457" />
       </group>
     </dependencies>
   </metadata>

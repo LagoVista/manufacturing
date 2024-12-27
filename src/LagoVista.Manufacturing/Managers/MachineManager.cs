@@ -10,6 +10,7 @@ using LagoVista.IoT.Logging.Loggers;
 using System;
 using static LagoVista.Core.Models.AuthorizeResult;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace LagoVista.Manufacturing.Managers
 {
@@ -17,7 +18,7 @@ namespace LagoVista.Manufacturing.Managers
     {
         private readonly IMachineRepo _machineRepo;
 
-        public MachineManager(IMachineRepo machienRepo, 
+        public MachineManager(IMachineRepo machienRepo,
             IAdminLogger logger, IAppConfig appConfig, IDependencyManager depmanager, ISecurity security) :
             base(logger, appConfig, depmanager, security)
         {
@@ -81,6 +82,46 @@ namespace LagoVista.Manufacturing.Managers
             await _machineRepo.UpdateMachineAsync(machine);
 
             return InvokeResult.Success;
+        }
+
+        public static List<EnumDescription> GetStagingPlateRows()
+        {
+            var options = new List<EnumDescription>();
+            options.Add(new EnumDescription() { Id = "-1", Key = "-1", Text = "-select row-", Name = "-select row-", Label = "-select row-" });
+
+            for (int idx = 65; idx <= 71; ++idx)
+            {
+                options.Add(new EnumDescription()
+                {
+                    Id = $"{Char.ConvertFromUtf32(idx)}",
+                    Key = $"{Char.ConvertFromUtf32(idx)}",
+                    Label = $"{Char.ConvertFromUtf32(idx)}",
+                    Text = $"{Char.ConvertFromUtf32(idx)}",
+                    Name = $"{Char.ConvertFromUtf32(idx)}",
+                });
+            }
+
+            return options;
+        }
+
+        public static List<EnumDescription> GetStagingPlateColumns()
+        {
+            var options = new List<EnumDescription>();
+            options.Add(new EnumDescription() { Id = "-1", Key = "-1", Text = "-select column-", Name = "-select column-", Label = "-select column-" });
+
+            for (int idx = 1; idx <= 39; ++idx)
+            {
+                options.Add(new EnumDescription()
+                {
+                    Id = $"{idx}",
+                    Key = $"{idx}",
+                    Label = $"{idx}",
+                    Text = $"{idx}",
+                    Name = $"{idx}"
+                });
+            }
+
+            return options;
         }
     }
 }
