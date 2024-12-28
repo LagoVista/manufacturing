@@ -17,11 +17,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             GoToPartOnBoardCommand = new RelayCommand(() => GoToPartOnBoard());
             GoToPartPositionInTrayCommand = new RelayCommand(GoToPartPositionInTray);
 
-            SelectMachineFileCommand = new RelayCommand(SelectMachineFile);
-            SelectBoardFileCommand = new RelayCommand(SelectBoardFile);
-
-            RefreshBoardCommand = new RelayCommand(RefreshBoard);
-
             HomingCycleCommand = new RelayCommand(() => Machine.HomingCycle());
 
             AlignBottomCameraCommand = new RelayCommand(() => AlignBottomCamera());
@@ -75,6 +70,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             ExportBOMCommand = new RelayCommand(ExportBOM);
 
+            GoToFiducial1Command = new RelayCommand(() => GoToFiducial(1));
+            GoToFiducial2Command = new RelayCommand(() => GoToFiducial(2));
 
             GoToRefHoleCommand = new RelayCommand(() => GoToRefPoint(), () => SelectedPartStrip != null);
             SetRefHoleCommand = new RelayCommand(() => SetRefPoint(), () => SelectedPartStrip != null);

@@ -31,6 +31,7 @@
             </MenuItem>
             <MenuItem Header="GCode">
                 <MenuItem Header="Open GCode" Command="{Binding OpenGCodeCommand}" />
+                <MenuItem Header="Open PnP Job" x:Name="OpenPnPJob" Click="OpenPnPJob_Click" />
                 <MenuItem Header="Save Modified GCode" Command="{Binding SaveModifiedGCodeCommamnd}" />
                 <MenuItem Header="Close GCode File" Command="{Binding ClearGCodeCommand}" />
                 <MenuItem  Header="Recent GCode Files" x:Name="RecentGCodeFiles" />
@@ -61,17 +62,6 @@
                 <Separator />
             </MenuItem>
             <MenuItem Header="Organization"  x:Name="OrganizationMenu">
-            </MenuItem>
-            <MenuItem Header="Pick and Place" >
-                <MenuItem Header="New PnP Job" x:Name="NewPnPJob" Click="NewPnPJob_Click" />
-                <MenuItem Header="Open PnP Job" x:Name="OpenPnPJob" Click="OpenPnPJob_Click" />
-                <MenuItem Header="Edit PnP Job" x:Name="EditPnPJob" Click="EditPnPJob_Click" IsEnabled="False" />
-                <Separator/>
-                <MenuItem  Header="Recent PnP Jobs" x:Name="RecentPNPJobs" />
-                <Separator />
-                <MenuItem Header="Close PnP Job" x:Name="ClosePnPJob" Click="ClosePnPJob_Click" IsEnabled="False" />
-                <Separator/>
-                <MenuItem Header="Edit Package Library" x:Name="EditPackageLibrary" Click="EditPackageLibrary_Click" />
             </MenuItem>
             <MenuItem Header="View" >
                 <MenuItem Header="Home" Tag="HomingView" Click="ViewMenu_Show" />

@@ -1,4 +1,5 @@
 ﻿using LagoVista.Core.Models.Drawing;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PCB.Eagle.Models;
 using LagoVista.PickAndPlace.Models;
 using LagoVista.PickAndPlace.ViewModels;
@@ -13,8 +14,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 {
     public partial class PnPJobViewModel
     {
-        private LagoVista.PickAndPlace.Models.PnPJob _job;
-        public LagoVista.PickAndPlace.Models.PnPJob Job
+        private PickAndPlaceJob _job;
+        public PickAndPlaceJob Job
         {
             get { return _job; }
             set
@@ -49,7 +50,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         public BuildFlavor SelectedBuildFlavor
         {
             get => _selectedBuildFlavor;
-            set
+            set               
             {
                 Set(ref _selectedBuildFlavor, value);
                 PopulateConfigurationParts();
@@ -179,9 +180,9 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             get => SelectedPart?.PartStrip;
         }
 
-        public PrintedCircuitBoard Board
+        public CircuitBoardRevision Board
         {
-            get { return Job.Board; }
+            get { return Job.BoardRevision; }
         }
 
         PickAndPlace.Models.Package _selectedPartPackage;
@@ -210,12 +211,12 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             }
         }
 
-        public Point2D<double> BoardOffset => _job == null ? new Point2D<double>(0,0) : _job.BoardOffset;
+        public Point2D<double> BoardOffset =>new Point2D<double>(0, 0);// : _job.BoardOffset;
 
-        public ObservableCollection<Part> Parts
-        {
-            get { return _job == null ? new ObservableCollection<Part>() : Job.Parts; }
-        }
+        //public ObservableCollection<PcbComponent> Parts
+        //{
+        //    //get { return _job == null ? new ObservableCollection<PcbComponent>() : Job.BoardRevision.PcbComponents; }
+        //}
 
         public ObservableCollection<PlaceableParts> ConfigurationParts { get; } = new ObservableCollection<PlaceableParts>();
 

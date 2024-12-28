@@ -18,6 +18,8 @@ using LagoVista.UserAdmin.Models.Orgs;
 using LagoVista.UserAdmin.Models.Users;
 using System.Xml.Linq;
 using LagoVista.PCB.Eagle.Managers;
+using System.Diagnostics;
+using LagoVista.Manufacturing.Models;
 
 namespace LagoVista.PickAndPlace.App
 {
@@ -90,8 +92,7 @@ namespace LagoVista.PickAndPlace.App
             foreach (var file in ViewModel.MRUs.PnPJobs)
             {
                 var pnpJobMenu = new MenuItem() { Header = file, Tag = file };
-                pnpJobMenu.Click += PnpJobMenu_Click; ;
-                RecentPNPJobs.Items.Add(pnpJobMenu);
+//                pnpJobMenu.Click += PnpJobMenu_Click; ;
             }
 
             foreach (var file in ViewModel.MRUs.BoardFiles)
@@ -169,15 +170,6 @@ namespace LagoVista.PickAndPlace.App
             }
 
 
-        }
-
-        private async void PnpJobMenu_Click(object sender, RoutedEventArgs e)
-        {
-            var menu = sender as MenuItem;
-            
-            await OpenPnPJobAsync(menu.Tag as string);
-
-            await _pnpJob.OpenAsync();
         }
 
         private async void GcodeFile_Click(object sender, RoutedEventArgs e)
@@ -383,77 +375,26 @@ namespace LagoVista.PickAndPlace.App
             librWindow.ShowDialog();
         }
         
-        private async Task OpenPnPJobAsync(string fileName)
-        {
-            _pnpJobFileName = fileName;
-            ViewModel.AddPnPJobFile(fileName);
-            _pnpJob = await Core.PlatformSupport.Services.Storage.GetAsync<PnPJob>(fileName);
-            await _pnpJob.OpenAsync();
-            var pnpViewModel = new PnPJobViewModel(ViewModel.Machine);
-            
-            pnpViewModel.InitJob(_pnpJob);
-            pnpViewModel.FileName = fileName;
-            await pnpViewModel.InitAsync();
-            var jobWindow = new Views.PNPJobWindow();
-            jobWindow.DataContext = pnpViewModel;
-            jobWindow.Show();
-            EditPnPJob.IsEnabled = true;
-            ClosePnPJob.IsEnabled = true;
-            FeederAlignementView.IsEnabled = true;
-        }
-
         private async void OpenPnPJob_Click(object sender, RoutedEventArgs e)
         {
-            var file = await Core.PlatformSupport.Services.Popups.ShowOpenFileAsync(Constants.PickAndPlaceProject);
-            if (!String.IsNullOrEmpty(file) && System.IO.File.Exists(file))
-            {                
-                await OpenPnPJobAsync(file);
-            }
-        }
-
-        PnPJob _pnpJob;
-        String _pnpJobFileName;
-
-
-        private async void NewPnPJob_Click(object sender, RoutedEventArgs e)
-        {
-            //pnpJob.Board = ViewModel.Machine.PCBManager.Board;
-            // pnpJob.PnPMachinePath = ViewModel.Machine.Settings.DefaultPnPMachineFile;
-
-
-
-            // pnpJob.EagleBRDFilePath = ViewModel.Machine.PCBManager.Project.EagleBRDFilePath;
-
-
-            var file = await Core.PlatformSupport.Services.Popups.ShowOpenFileAsync(Constants.FileFilterPCB);
-            if (!String.IsNullOrEmpty(file) && System.IO.File.Exists(file))
+            var openJob = new OpenObjectView(_restClient);
+            openJob.Owner = this;
+            openJob.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            openJob.ShowDialog();
+            if (openJob.DialogResult.HasValue && openJob.DialogResult.Value)
             {
-                var doc = XDocument.Load(file);
-                var job = new PnPJob();
-                job.Board = EagleParser.ReadPCB(doc);
-                job.EagleBRDFilePath = file;
-
-                var pnpViewModel = new PnPJobViewModel(ViewModel.Machine);
-                pnpViewModel.InitJob(job);
-                await pnpViewModel.InitAsync();
-                var jobWindow = new Views.PNPJobWindow();
-                jobWindow.DataContext = pnpViewModel;
-                jobWindow.Owner = this;
-                jobWindow.Show();
-                EditPnPJob.IsEnabled = true;
-                FeederAlignementView.IsEnabled = true;
-
-                if (String.IsNullOrEmpty(pnpViewModel.FileName))
-                {
-                    //         _pnpJob = pnpJob;
-                    _pnpJobFileName = pnpViewModel.FileName;
-                    EditPnPJob.IsEnabled = true;
-                    ClosePnPJob.IsEnabled = true;
-                    FeederAlignementView.IsEnabled = true;
+                Debug.WriteLine(openJob.SelectedItem.Name);
+                var result = await _restClient.GetAsync<DetailResponse<PickAndPlaceJob>>($"/api/mfg/pnpjob/{openJob.SelectedItem.Id}");
+                if (result.Successful) {
+                    var pnpWindow = new Views.PNPJobWindow();
+                    var vm = new PnPJobViewModel(ViewModel.Machine);
+                    vm.Job = result.Result.Model;                   
+                    pnpWindow.DataContext = vm;
+                    pnpWindow.Show();
                 }
             }
         }
-
+        
         private void ViewMenu_Show(object sender, RoutedEventArgs e)
         {
             var menu = sender as MenuItem;
@@ -465,34 +406,6 @@ namespace LagoVista.PickAndPlace.App
                 case "Calibration": new Views.MVCalibrationView(ViewModel.Machine).Show(); break;
                 case "PickAndPlace": new Views.MVPNPView(ViewModel.Machine).Show(); break;
             }
-        }
-
-        private async void EditPnPJob_Click(object sender, RoutedEventArgs e)
-        {
-            if (_pnpJob != null)
-            {
-                var pnpViewModel = new PnPJobViewModel(ViewModel.Machine);
-                pnpViewModel.FileName = _pnpJobFileName;
-                pnpViewModel.InitJob(_pnpJob);
-                await pnpViewModel.InitAsync();
-                var jobWindow = new Views.PNPJobWindow();
-                jobWindow.DataContext = pnpViewModel;
-                //jobWindow.Owner = this;
-                jobWindow.Show();
-            }
-            else
-            {
-                MessageBox.Show("Please open a PnP Job First");
-            }
-        }
-
-        private void ClosePnPJob_Click(object sender, RoutedEventArgs e)
-        {
-            _pnpJob = null;
-            _pnpJobFileName = null;
-            EditPnPJob.IsEnabled = false;
-            FeederAlignementView.IsEnabled = false;
-            ClosePnPJob.IsEnabled = false;
         }
 
         private async void MachineControl_Click(object sender, RoutedEventArgs e)

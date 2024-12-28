@@ -103,8 +103,17 @@
         <TabControl Grid.Row="1" Grid.Column="1" Focusable="False" >
             <TabItem Header="Machine">
             <Grid>
-                
-            </Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"></RowDefinition>
+                        <RowDefinition Height="*"></RowDefinition>
+                    </Grid.RowDefinitions>      
+                <StackPanel>
+                        <Label Content="{Binding Machine.Settings.Name}"></Label>
+                        <Label Content="{Binding Job.Name}"></Label>
+                    </StackPanel>
+
+                    <Controls:MachineRender Grid.Row="1" ></Controls:MachineRender>
+                </Grid>
             </TabItem>
  
             <TabItem Header="Job">

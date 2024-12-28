@@ -1,6 +1,7 @@
 ﻿using LagoVista.Core.Attributes;
 using LagoVista.Core.Interfaces;
 using LagoVista.Core.Models;
+using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models.Resources;
 using LagoVista.PCB.Eagle.Models;
@@ -31,6 +32,28 @@ namespace LagoVista.Manufacturing.Models
                 Key = Key,
                 IsPublic = IsPublic
             };
+        }
+
+        private Point2D<double> _boardScaler =  new Point2D<double>(1,1);
+        public Point2D<double> BoardScaler
+        {
+            get { return _boardScaler; }
+            set {  Set(ref _boardScaler, value); }
+        }
+
+        private Point2D<double> _boardOffset = new Point2D<double>(0,0);
+        public Point2D<double> BoardOffset
+        {
+            get { return _boardOffset; }
+            set { Set(ref _boardOffset, value); }
+        }
+
+
+        private Point2D<double> _boardOrigin = new Point2D<double>(0, 0);
+        public Point2D<double> BoardOrigin
+        {
+            get { return _boardOrigin; }
+            set { Set(ref _boardOrigin, value); }
         }
 
         [FormField(LabelResource: ManufacturingResources.Names.PickAndPlaceJob_CurrentSerialNumber, FieldType: FieldTypes.Integer,  ResourceType: typeof(ManufacturingResources))]

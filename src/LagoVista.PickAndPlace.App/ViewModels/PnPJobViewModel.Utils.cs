@@ -18,37 +18,12 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
 
 
-            if (false && !String.IsNullOrEmpty(_job.PnPMachinePath) && System.IO.File.Exists(_job.PnPMachinePath))
-            {
-                PnPMachine = await PnPMachineManager.GetPnPMachineAsync(_job.PnPMachinePath);
-                PackageLibraryVM.SetMachine(PnPMachine);
-                PartStripsViewModel.SetMachine(PnPMachine, _job.PnPMachinePath);
-                StripFeederVM.SetMachine(PnPMachine, _job.PnPMachinePath);
-            }
-
             await ToolAlignmentVM.InitAsync();
             StartCapture();
         }
 
         private void PopulateParts()
         {
-            Parts.Clear();
-
-            foreach (var entry in _billOfMaterials.SMDEntries)
-            {
-                if (!Parts.Where(prt => prt.PackageName == entry.Package.Name &&
-                                        prt.LibraryName == entry.Package.LibraryName &&
-                                        prt.Value == entry.Value).Any())
-                {
-                    Parts.Add(new Part()
-                    {
-                        Count = entry.Components.Count,
-                        LibraryName = entry.Package.LibraryName,
-                        PackageName = entry.Package.Name,
-                        Value = entry.Value
-                    });
-                }
-            }
         }
 
         public void ExportBOM()

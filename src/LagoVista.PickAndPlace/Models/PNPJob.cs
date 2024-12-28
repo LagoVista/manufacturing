@@ -9,7 +9,7 @@ using System.Xml.Linq;
 
 namespace LagoVista.PickAndPlace.Models
 {
-    public class PnPJob : ModelBase
+    public class PnPJobLegacy : ModelBase
     {
         PrintedCircuitBoard _board;
         [JsonIgnore]
@@ -19,7 +19,7 @@ namespace LagoVista.PickAndPlace.Models
             set { _board = value; }
         }
 
-        public PnPJob()
+        public PnPJobLegacy()
         {
             Parts = new ObservableCollection<Part>();
             BuildFlavors = new ObservableCollection<BuildFlavor>();

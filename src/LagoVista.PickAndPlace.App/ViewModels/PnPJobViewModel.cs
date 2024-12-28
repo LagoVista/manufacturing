@@ -32,40 +32,39 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             PackageLibraryVM = new PackageLibraryViewModel();
             PartStripsViewModel = new PartStripsViewModel(machine, this, StripFeederVM);
             ToolAlignmentVM = new ToolAlignmentViewModel(machine);
+            AddCommands();
         }
 
-        public void InitJob(PnPJob job)
+        public void InitJob()
         {
-            _billOfMaterials = new BOM(job.Board);
-            _job = job;
+            //_billOfMaterials = new BOM(job.Board);
+            //_job = job;
             _isDirty = true;
-            AddCommands();
+            
 
-            PartStripsViewModel.InitJob(job);
+            //PartStripsViewModel.InitJob(job);
 
-            BuildFlavors = job.BuildFlavors;
-            SelectedBuildFlavor = job.BuildFlavors.FirstOrDefault();
-            if (SelectedBuildFlavor == null)
-            {
-                SelectedBuildFlavor = new BuildFlavor()
-                {
-                    Name = "Default"
-                };
+            //BuildFlavors = job.BuildFlavors;
+            //SelectedBuildFlavor = job.BuildFlavors.FirstOrDefault();
+            //if (SelectedBuildFlavor == null)
+            //{
+            //    SelectedBuildFlavor = new BuildFlavor()
+            //    {
+            //        Name = "Default"
+            //    };
 
-                foreach (var entry in _billOfMaterials.SMDEntries)
-                {
-                    foreach (var component in entry.Components)
-                    {
-                        component.Included = true;
-                        SelectedBuildFlavor.Components.Add(component);
-                    }
-                }
+            //    foreach (var entry in _billOfMaterials.SMDEntries)
+            //    {
+            //        foreach (var component in entry.Components)
+            //        {
+            //            component.Included = true;
+            //            SelectedBuildFlavor.Components.Add(component);
+            //        }
+            //    }
 
-                job.BuildFlavors.Add(SelectedBuildFlavor);
-            }
+            //    job.BuildFlavors.Add(SelectedBuildFlavor);
+            //}
 
-            GoToFiducial1Command = new RelayCommand(() => GoToFiducial(1));
-            GoToFiducial2Command = new RelayCommand(() => GoToFiducial(2));
 
             PopulateParts();
             PopulateConfigurationParts();

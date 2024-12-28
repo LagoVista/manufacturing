@@ -18,7 +18,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         private PnPMachine _pnpMachine;
         private StripFeederViewModel _stripFeederVM;
         private string _pnpJobFileName;
-        private PnPJob _job;
+        //private PnPJob _job;
 
         enum InspectStates
         {
@@ -53,10 +53,10 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             _stripFeederVM = stripFeederVM;
         }
 
-        public void InitJob(PnPJob job)
-        {
-            _job = job;
-        }
+        //public void InitJob(PnPJob job)
+        //{
+        //    _job = job;
+        //}
 
         private void RefreshCommandEnabled()
         {

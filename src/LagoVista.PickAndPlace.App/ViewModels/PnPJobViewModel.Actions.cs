@@ -27,10 +27,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             await Storage.StoreAsync(Job, FileName);
 
-            if (!String.IsNullOrEmpty(Job.PnPMachinePath) && PnPMachine != null)
-            {
-                await PnPMachineManager.SavePackagesAsync(PnPMachine, Job.PnPMachinePath);
-            }
 
             _isDirty = false;
             SaveCommand.RaiseCanExecuteChanged();
@@ -45,30 +41,30 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         private async void SetFiducialCalibration(object obj)
         {
             var idx = Convert.ToInt32(obj);
-            switch (idx)
-            {
-                case 1:
-                    {
-                        var boardOffset = new Point2D<double>()
-                        {
-                            X = Job.BoardFiducial1.X - Machine.NormalizedPosition.X,
-                            Y = Job.BoardFiducial1.Y - Machine.NormalizedPosition.Y
-                        };
+            //switch (idx)
+            //{
+            //    case 1:
+            //        {
+            //            var boardOffset = new Point2D<double>()
+            //            {
+            //                X = Job.BoardFiducial1.X - Machine.NormalizedPosition.X,
+            //                Y = Job.BoardFiducial1.Y - Machine.NormalizedPosition.Y
+            //            };
 
-                        Job.BoardOffset = boardOffset;
-                        await SaveJobAsync();
-                    }
-                    break;
-                case 2:
-                    {
-                        var scaler = new Point2D<double>();
-                        scaler.X = 1 - (Job.BoardFiducial2.X - (Machine.NormalizedPosition.X + Job.BoardOffset.X)) / Job.BoardFiducial2.X;
-                        scaler.Y = 1 - (Job.BoardFiducial2.Y - (Machine.NormalizedPosition.Y + Job.BoardOffset.Y)) / Job.BoardFiducial2.Y;
-                        Job.BoardScaler = scaler;
-                        await SaveJobAsync();
-                    }
-                    break;
-            }
+            //            Job.BoardOffset = boardOffset;
+            //            await SaveJobAsync();
+            //        }
+            //        break;
+            //    case 2:
+            //        {
+            //            var scaler = new Point2D<double>();
+            //            scaler.X = 1 - (Job.BoardFiducial2.X - (Machine.NormalizedPosition.X + Job.BoardOffset.X)) / Job.BoardFiducial2.X;
+            //            scaler.Y = 1 - (Job.BoardFiducial2.Y - (Machine.NormalizedPosition.Y + Job.BoardOffset.Y)) / Job.BoardFiducial2.Y;
+            //            Job.BoardScaler = scaler;
+            //            await SaveJobAsync();
+            //        }
+            //        break;
+            //}
         }
 
         private async void GoToFiducial(int idx)
@@ -79,30 +75,30 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             switch (idx)
             {
-                case 0:
-                    {
-                        Machine.GotoWorkspaceHome();
-                        //var gcode = $"G1 X{Machine.Settings.MachineFiducial.X} Y{Machine.Settings.MachineFiducial.Y} F{Machine.Settings.FastFeedRate}";
-                        SelectMVProfile("mchfiducual");
-                        //Machine.SendCommand(gcode);
-                    }
-                    break;
-                case 1:
-                    {
-                        Machine.GotoWorkspaceHome();
-                        var gcode = $"G1 X{(Job.BoardFiducial1.X * Job.BoardScaler.X) + Machine.Settings.PCBOffset.X} Y{(Job.BoardFiducial1.Y * Job.BoardScaler.Y) + Machine.Settings.PCBOffset.Y} F{Machine.Settings.FastFeedRate}";
-                        SelectMVProfile("brdfiducual");
-                        Machine.SendCommand(gcode);
-                    }
-                    break;
-                case 2:
-                    {
-                        Machine.GotoWorkspaceHome();
-                        var gcode = $"G1 X{(Job.BoardFiducial2.X * Job.BoardScaler.X) + Machine.Settings.PCBOffset.X} Y{(Job.BoardFiducial2.Y * Job.BoardScaler.Y) + Machine.Settings.PCBOffset.X} F{Machine.Settings.FastFeedRate}";
-                        SelectMVProfile("brdfiducual");
-                        Machine.SendCommand(gcode);
-                    }
-                    break;
+                //case 0:
+                //    {
+                //        Machine.GotoWorkspaceHome();
+                //        //var gcode = $"G1 X{Machine.Settings.MachineFiducial.X} Y{Machine.Settings.MachineFiducial.Y} F{Machine.Settings.FastFeedRate}";
+                //        SelectMVProfile("mchfiducual");
+                //        //Machine.SendCommand(gcode);
+                //    }
+                //    break;
+                //case 1:
+                //    {
+                //        Machine.GotoWorkspaceHome();
+                //        var gcode = $"G1 X{(Job.BoardFiducial1.X * Job.BoardScaler.X) + Machine.Settings.PCBOffset.X} Y{(Job.BoardFiducial1.Y * Job.BoardScaler.Y) + Machine.Settings.PCBOffset.Y} F{Machine.Settings.FastFeedRate}";
+                //        SelectMVProfile("brdfiducual");
+                //        Machine.SendCommand(gcode);
+                //    }
+                //    break;
+                //case 2:
+                //    {
+                //        Machine.GotoWorkspaceHome();
+                //        var gcode = $"G1 X{(Job.BoardFiducial2.X * Job.BoardScaler.X) + Machine.Settings.PCBOffset.X} Y{(Job.BoardFiducial2.Y * Job.BoardScaler.Y) + Machine.Settings.PCBOffset.X} F{Machine.Settings.FastFeedRate}";
+                //        SelectMVProfile("brdfiducual");
+                //        Machine.SendCommand(gcode);
+                //    }
+                //    break;
             }
         }
 
@@ -243,56 +239,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             }
         }
 
-        public async void SelectMachineFile()
-        {
-            var result = await Popups.ShowOpenFileAsync(Constants.PnPMachine);
-            if (!String.IsNullOrEmpty(result))
-            {
-                try
-                {
-                    Job.PnPMachinePath = result;
-                    PnPMachine = await PnPMachineManager.GetPnPMachineAsync(result);
-                    await SaveJobAsync();
-                }
-                catch
-                {
-                    await Popups.ShowAsync("Could not open packages");
-                }
-            }
-        }
 
-        public void RefreshBoard()
-        {
-            foreach(var flavor in Job.BuildFlavors)
-            {
-                foreach (var component in flavor.Components)
-                {
-                    var part = Job.Board.Components.Where(cmp => cmp.Name == component.Name).FirstOrDefault();
-                    component.X = part.X;
-                    component.Y = part.Y;
-                    component.Rotation = part.Rotation;
-                }
-            }
-        }
-
-        public async void SelectBoardFile()
-        {
-            var result = await Popups.ShowOpenFileAsync(Constants.FileFilterPCB);
-            if (!String.IsNullOrEmpty(result))
-            {
-                try
-                {
-                    Job.EagleBRDFilePath = result;
-                    await SaveJobAsync();
-
-
-                }
-                catch
-                {
-                    await Popups.ShowAsync("Could not open packages");
-                }
-            }
-        }
 
     }
 }

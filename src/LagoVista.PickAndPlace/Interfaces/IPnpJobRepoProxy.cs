@@ -1,4 +1,5 @@
-﻿using LagoVista.PickAndPlace.Models;
+﻿using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,8 +9,8 @@ namespace LagoVista.PickAndPlace.Interfaces
 {
     public interface IPnpJobRepoProxy
     {
-        Task<List<PnPJob>> GetPickAndPlaceJobsAsync();
-        Task<PnPJob> GetPickAndPlaceJobAsync(string id);
+        Task<List<PickAndPlaceJob>> GetPickAndPlaceJobsAsync();
+        Task<PickAndPlaceJob> GetPickAndPlaceJobAsync(string id);
 
     }
 }

@@ -62,7 +62,14 @@ namespace LagoVista.PickAndPlace.App
                 Port = 443
             };
 
-            LagoVista.Client.Core.Startup.Init(local);
+            var dev = new ServerInfo()
+            {
+                RootUrl = "dev-api.nuviot.com",
+                SSL = true,
+                Port = 443
+            };
+
+            LagoVista.Client.Core.Startup.Init(dev);
         }
     }
 
