@@ -13,12 +13,12 @@ using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace
 {
-    public class SimulatedMachine : ISerialPort
+    public class SimulatedSerialPort : ISerialPort
     {
         FirmwareTypes _firmwareType;
         Stream _simulatedStream;
 
-        public SimulatedMachine(FirmwareTypes firmwareType)
+        public SimulatedSerialPort(FirmwareTypes firmwareType)
         {
             _firmwareType = firmwareType;
         }

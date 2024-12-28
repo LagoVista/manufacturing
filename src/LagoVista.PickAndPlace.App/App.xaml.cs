@@ -45,6 +45,7 @@ namespace LagoVista.PickAndPlace.App
             SLWIOC.RegisterSingleton<INetworkService, NetworkService>();
             SLWIOC.RegisterSingleton<IAppConfig, _appCOnfg>();
             SLWIOC.RegisterSingleton<IClientAppInfo, ClientAppInfo>();
+            SLWIOC.RegisterSingleton<ITimerFactory, TimerFactory>();
 
             var local = new ServerInfo()
             {
@@ -61,7 +62,7 @@ namespace LagoVista.PickAndPlace.App
                 Port = 443
             };
 
-            LagoVista.Client.Core.Startup.Init(live);
+            LagoVista.Client.Core.Startup.Init(local);
         }
     }
 

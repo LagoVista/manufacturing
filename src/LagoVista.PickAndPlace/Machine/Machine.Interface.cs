@@ -17,10 +17,26 @@ namespace LagoVista.PickAndPlace
         
         ISocketClient _socketClient;
 
+        public async Task ConnectAsync(SimulatedSerialPort port)
+        {
+            Connected = true;
+
+            _cancelSource = new CancellationTokenSource();
+
+            AddStatusMessage(StatusMessageTypes.Info, $"Opened Serial Port");
+
+            await port.OpenAsync();
+
+            await Task.Run(() =>
+            {
+                Work(port.InputStream, port.OutputStream);
+            }, _cancelSource.Token);
+        }
+
+
         public async Task ConnectAsync(SerialPort port)
         {
             _port = port;
-            //var pnpPort = port as IPnPSerialPort; 
 
             if (Connected)
                 throw new Exception("Can't Connect: Already Connected");

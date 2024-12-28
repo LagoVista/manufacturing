@@ -92,6 +92,9 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _tapeSize, value);
         }
 
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_AdvanceGCode, HelpResource: ManufacturingResources.Names.Feeder_AdvanceGCode_Help, FieldType: FieldTypes.Text, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public string AdvanceGCode { get; set; }
+
         private EntityHeader<FeederRotations> _tapeAngle;
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_Rotation, FieldType: FieldTypes.Picker, EnumType:typeof(FeederRotations), IsRequired:true, 
             WaterMark:ManufacturingResources.Names.Feeder_Rotation_Select, ResourceType: typeof(ManufacturingResources))]
@@ -111,6 +114,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(FeederId),
                 nameof(Machine),
                 nameof(TapeSize),
+                nameof(AdvanceGCode),
                 nameof(PickLocation),
                 nameof(Rotation),
                 nameof(Component),

@@ -151,7 +151,7 @@ namespace LagoVista.PickAndPlace.ViewModels
                 (
                 (Machine.Settings.ConnectionType == ConnectionTypes.Serial_Port && Machine.Settings.CurrentSerialPort != null && Machine.Settings.CurrentSerialPort.Id != "empty")
                 || (Machine.Settings.ConnectionType == ConnectionTypes.Network && !String.IsNullOrEmpty(Machine.Settings.IPAddress))
-                );
+                || Machine.Settings.MachineType == FirmwareTypes.SimulatedMachine);
         }
 
         public bool CanHomeAndReset()

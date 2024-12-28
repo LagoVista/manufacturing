@@ -151,6 +151,7 @@ namespace LagoVista.PickAndPlace.Interfaces
         /// <param name="serialPort"></param>
         /// <returns></returns>
         Task ConnectAsync(SerialPort serialPort);
+        Task ConnectAsync(SimulatedSerialPort serialPort);
 
 
         /// <summary>

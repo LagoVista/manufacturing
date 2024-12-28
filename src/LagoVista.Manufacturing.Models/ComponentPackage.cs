@@ -98,7 +98,7 @@ namespace LagoVista.Manufacturing.Models
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.ComponentPackage_TItle, ManufacturingResources.Names.ComponentPackage_Description,
-            ManufacturingResources.Names.ComponentPackage_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-stamp-2", Cloneable: true,
+            ManufacturingResources.Names.ComponentPackage_Description, EntityDescriptionAttribute.EntityTypes.Manufacturing, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-stamp-2", Cloneable: true,
             SaveUrl: "/api/mfg/component/package", GetUrl: "/api/mfg/component/package/{id}", GetListUrl: "/api/mfg/component/packages", FactoryUrl: "/api/mfg/component/package/factory", DeleteUrl: "/api/mfg/component/package/{id}",
             ListUIUrl: "/mfg/component/packages", EditUIUrl: "/mfg/component/package/{id}", CreateUIUrl: "/mfg/component/package/add", CanExport:true, CanImport:true)]
     public class ComponentPackage : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IIDEntity, IFormConditionalFields

@@ -10,7 +10,7 @@ using System.Text;
 namespace LagoVista.Manufacturing.Models
 {
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.ComponentPurchase_Title, ManufacturingResources.Names.ComponentPurchase_Description,
-        ManufacturingResources.Names.ComponentPurchase_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-device-model", Cloneable: true,
+        ManufacturingResources.Names.ComponentPurchase_Description, EntityDescriptionAttribute.EntityTypes.ChildObject, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-device-model", Cloneable: true,
         FactoryUrl: "/api/mfg/component/purchase/factory")]
     public class ComponentPurchase : IIDEntity, INamedEntity, IFormDescriptor, IValidateable
     {

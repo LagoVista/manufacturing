@@ -26,7 +26,7 @@ namespace LagoVista.Manufacturing.Models
 
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.ComponentOrder_Title, ManufacturingResources.Names.ComponentOrder_Description,
-    ManufacturingResources.Names.ComponentOrder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-product-1", Cloneable: true,
+    ManufacturingResources.Names.ComponentOrder_Description, EntityDescriptionAttribute.EntityTypes.Manufacturing, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-product-1", Cloneable: true,
         SaveUrl: "/api/mfg/order", GetUrl: "/api/mfg/order/{id}", GetListUrl: "/api/mfg/orders", FactoryUrl: "/api/mfg/order/factory", DeleteUrl: "/api/mfg/order/{id}",
         ListUIUrl: "/mfg/orders", EditUIUrl: "/mfg/orders/{id}", CreateUIUrl: "/mfg/orders/add")]
     public class ComponentOrder : MfgModelBase, ISummaryFactory, IFormDescriptor, IFormDescriptorCol2, IFormDescriptorBottom, IFormConditionalFields, IFormAdditionalActions

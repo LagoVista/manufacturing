@@ -8,10 +8,10 @@ using System.Collections.Generic;
 namespace LagoVista.Manufacturing.Models
 {
 
-    [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.PartPack_Title, ManufacturingResources.Names.PartPack_Description,
-    ManufacturingResources.Names.PartPack_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-control-panel", Cloneable: true,
-    SaveUrl: "/api/mfg/partpack", GetUrl: "/api/mfg/partpack/{id}", GetListUrl: "/api/mfg/partpacks", FactoryUrl: "/api/mfg/partpack/factory", DeleteUrl: "/api/mfg/partpack/{id}",
-    ListUIUrl: "/mfg/partpacks", EditUIUrl: "/mfg/partpack/{id}", CreateUIUrl: "/mfg/partpack/add")]
+    [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.PickAndPlaceJob_Title, ManufacturingResources.Names.PickAndPlaceJob_Description,
+    ManufacturingResources.Names.PickAndPlaceJob_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-control-panel", Cloneable: true,
+    SaveUrl: "/api/mfg/pnpjob", GetUrl: "/api/mfg/pnpjob/{id}", GetListUrl: "/api/mfg/pnpjobs", FactoryUrl: "/api/mfg/pnpjob/factory", DeleteUrl: "/api/mfg/pnpjob/{id}",
+    ListUIUrl: "/mfg/pnpjobs", EditUIUrl: "/mfg/pnpjob/{id}", CreateUIUrl: "/mfg/pnpjob/add")]
     public class PickAndPlaceJob : MfgModelBase, IValidateable, IFormDescriptor, ISummaryFactory, IIDEntity
     {
 
@@ -48,10 +48,10 @@ namespace LagoVista.Manufacturing.Models
         }
     }
 
-    [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.PartPack_Title, ManufacturingResources.Names.PartPack_Description,
-        ManufacturingResources.Names.PartPack_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-control-panel", Cloneable: true,
-        SaveUrl: "/api/mfg/partpack", GetUrl: "/api/mfg/partpack/{id}", GetListUrl: "/api/mfg/partpacks", FactoryUrl: "/api/mfg/partpack/factory", DeleteUrl: "/api/mfg/partpack/{id}",
-        ListUIUrl: "/mfg/partpacks", EditUIUrl: "/mfg/partpack/{id}", CreateUIUrl: "/mfg/partpack/add")]
+    [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.PickAndPlaceJob_Title, ManufacturingResources.Names.PickAndPlaceJob_Description,
+        ManufacturingResources.Names.PartPack_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-control-panel", Cloneable: true,
+        SaveUrl: "/api/mfg/pnpjob", GetUrl: "/api/mfg/pnpjob/{id}", GetListUrl: "/api/mfg/pnpjobs", FactoryUrl: "/api/mfg/pnpjob/factory", DeleteUrl: "/api/mfg/pnpjob/{id}",
+        ListUIUrl: "/mfg/pnpjobs", EditUIUrl: "/mfg/pnpjob/{id}", CreateUIUrl: "/mfg/pnpjob/add")]
     public class PickAndPlaceJobSummary : SummaryData
     {
 

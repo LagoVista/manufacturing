@@ -9,7 +9,7 @@ using System.Text;
 namespace LagoVista.Manufacturing.Models
 {
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.NozzleTip_Title, ManufacturingResources.Names.NozzleTip_Description,
-        ManufacturingResources.Names.NozzleTip_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-fo-landing-page", Cloneable: true,
+        ManufacturingResources.Names.NozzleTip_Description, EntityDescriptionAttribute.EntityTypes.ChildObject, ResourceType: typeof(ManufacturingResources), Icon: "icon-fo-landing-page", Cloneable: true,
         SaveUrl: "/api/mfg/nozzletip", GetUrl: "/api/mfg/nozzletips/{id}", GetListUrl: "/api/mfg/nozzletips", FactoryUrl: "/api/mfg/nozzletip/factory",
         DeleteUrl: "/api/mfg/nozzletip/{id}", ListUIUrl: "/mfg/nozzletips", EditUIUrl: "/mfg/nozzletip/{id}", CreateUIUrl: "/mfg/nozzletip/add")]
     public class PnPMachineNozzleTip : MfgModelBase, IFormDescriptor, IIconEntity, ISummaryFactory

@@ -10,7 +10,7 @@ using System.Collections.Generic;
 namespace LagoVista.Manufacturing.Models
 {
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Component_Title, ManufacturingResources.Names.Component_Description,
-        ManufacturingResources.Names.Component_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-core-1", Cloneable: true,
+        ManufacturingResources.Names.Component_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-core-1", Cloneable: true,
         SaveUrl: "/api/mfg/component", GetUrl: "/api/mfg/component/{id}", GetListUrl: "/api/mfg/components", FactoryUrl: "/api/mfg/component/factory", DeleteUrl: "/api/mfg/component/{id}",
         ListUIUrl: "/mfg/components", EditUIUrl: "/mfg/component/{id}", CreateUIUrl: "/mfg/component/add")]
     public class Component : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IIDEntity, IFormAdditionalActions
@@ -205,7 +205,7 @@ namespace LagoVista.Manufacturing.Models
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Component_Title, ManufacturingResources.Names.Component_Title,
-        ManufacturingResources.Names.Component_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-core-1", Cloneable: true,
+        ManufacturingResources.Names.Component_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-core-1", Cloneable: true,
         SaveUrl: "/api/component", GetUrl: "/api/component/{id}", GetListUrl: "/api/compoents", FactoryUrl: "/api/mfg/component/factory", DeleteUrl: "/api/component/{id}",
         ListUIUrl: "/mfg/components", EditUIUrl: "/mfg/component/{id}", CreateUIUrl: "/mfg/component/add")]
     public class ComponentSummary : SummaryData
@@ -224,7 +224,7 @@ namespace LagoVista.Manufacturing.Models
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Component_Title, ManufacturingResources.Names.ComponentAttributes_Title,
-        ManufacturingResources.Names.ComponentAttribute_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources),FactoryUrl: "/api/mfg/component/attribute/factory")]
+        ManufacturingResources.Names.ComponentAttribute_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources),FactoryUrl: "/api/mfg/component/attribute/factory")]
     public class ComponentAttribute : IFormDescriptor
     {
         public ComponentAttribute()

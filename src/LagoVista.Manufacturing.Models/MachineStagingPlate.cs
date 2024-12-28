@@ -12,7 +12,7 @@ namespace LagoVista.Manufacturing.Models
 {
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.MachineStagingPlate_Title, ManufacturingResources.Names.MachineStagingPlate_Description,
-        ManufacturingResources.Names.MachineStagingPlate_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources),
+        ManufacturingResources.Names.MachineStagingPlate_Description, EntityDescriptionAttribute.EntityTypes.ChildObject, ResourceType: typeof(ManufacturingResources),
         Icon: "icon-ae-control-panel", Cloneable: true,
         FactoryUrl: "/api/mfg/machine/stagingplate/factory")]
     public class MachineStagingPlate : ModelBase, IFormDescriptor, IFormDescriptorCol2

@@ -10,7 +10,7 @@ using System.Collections.Generic;
 namespace LagoVista.Manufacturing.Models
 {
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.NozzleTip_Title, ManufacturingResources.Names.NozzleTip_Description,
-        ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources),
+        ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.ChildObject, ResourceType: typeof(ManufacturingResources),
         Icon: "icon-ae-creative", Cloneable: true,
         FactoryUrl: "/api/mfg/machine/nozzletip/factory")]
     public class ToolNozzleTip : ModelBase, IFormDescriptor

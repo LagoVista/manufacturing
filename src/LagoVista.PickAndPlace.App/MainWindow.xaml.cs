@@ -73,7 +73,7 @@ namespace LagoVista.PickAndPlace.App
                             var menuItem = item as MenuItem;
                             if (menuItem != null)
                             {
-                                //  menuItem.IsChecked = (string)menuItem.Tag == ViewModel.Machine.MachineRepo.CurrentMachineId;
+                                  menuItem.IsChecked = (string)menuItem.Tag == Settings.Default.CurrentMachineId;
                             }
                         }
                     }

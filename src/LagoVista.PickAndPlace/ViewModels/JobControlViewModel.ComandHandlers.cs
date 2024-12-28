@@ -144,9 +144,9 @@ namespace LagoVista.PickAndPlace.ViewModels
             }
             else
             {
-                if (Machine.Settings.CurrentSerialPort.Name == "Simulated")
+                if (Machine.Settings.MachineType == FirmwareTypes.SimulatedMachine)
                 {
-                    //await Machine.ConnectAsync(new SimulatedMachine(Machine.Settings.MachineType));
+                    await Machine.ConnectAsync(new SimulatedSerialPort(Machine.Settings.MachineType));
                 }
                 else if(Machine.Settings.ConnectionType == Manufacturing.Models.ConnectionTypes.Serial_Port)
                 {

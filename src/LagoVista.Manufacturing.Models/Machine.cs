@@ -140,7 +140,7 @@ namespace LagoVista.Manufacturing.Models
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Machine_Title, ManufacturingResources.Names.Machine_Description,
-        ManufacturingResources.Names.Machine_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-ruler", Cloneable: true,
+        ManufacturingResources.Names.Machine_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-ruler", Cloneable: true,
         SaveUrl: "/api/mfg/machine", GetUrl: "/api/mfg/machine/{id}", GetListUrl: "/api/mfg/machines", FactoryUrl: "/api/mfg/machine/factory",
         DeleteUrl: "/api/mfg/machine/{id}", ListUIUrl: "/mfg/machinesettings", EditUIUrl: "/mfg/machine/{id}", CreateUIUrl: "/mfg/machine/add")]
     public class Machine : MfgModelBase, ISummaryFactory, INotifyPropertyChanged, IFormDescriptor, IFormDescriptorCol2
@@ -610,7 +610,7 @@ namespace LagoVista.Manufacturing.Models
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Machine_Title, ManufacturingResources.Names.Machine_Description,
-        ManufacturingResources.Names.Machine_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-ruler", Cloneable: true,
+        ManufacturingResources.Names.Machine_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-ruler", Cloneable: true,
         SaveUrl: "/api/mfg/machine", GetUrl: "/api/mfg/machine/{id}", GetListUrl: "/api/mfg/machines", FactoryUrl: "/api/mfg/machine/factory",
         DeleteUrl: "/api/mfg/machine/{id}", ListUIUrl: "/mfg/machinesettings", EditUIUrl: "/mfg/machine/{id}", CreateUIUrl: "/mfg/machine/add")]
     public class MachineSummary : SummaryData

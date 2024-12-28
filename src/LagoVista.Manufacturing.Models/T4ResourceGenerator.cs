@@ -1,4 +1,4 @@
-﻿/*12/26/2024 1:32:14 PM*/
+﻿/*12/28/2024 7:00:54 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -485,6 +485,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:FeedDirection_Forwards
 
 		public static string FeedDirection_Forwards { get { return GetResourceString("FeedDirection_Forwards"); } }
+//Resources:ManufacturingResources:Feeder_AdvanceGCode
+
+		public static string Feeder_AdvanceGCode { get { return GetResourceString("Feeder_AdvanceGCode"); } }
+//Resources:ManufacturingResources:Feeder_AdvanceGCode_Help
+
+		public static string Feeder_AdvanceGCode_Help( string slot, string feederid) { return GetResourceString("Feeder_AdvanceGCode_Help", "{slot}", slot, "{feederid}", feederid); }
 //Resources:ManufacturingResources:Feeder_Component_Select
 
 		public static string Feeder_Component_Select { get { return GetResourceString("Feeder_Component_Select"); } }
@@ -500,6 +506,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Feeder_Machine_Select
 
 		public static string Feeder_Machine_Select { get { return GetResourceString("Feeder_Machine_Select"); } }
+//Resources:ManufacturingResources:Feeder_PickHeight
+
+		public static string Feeder_PickHeight { get { return GetResourceString("Feeder_PickHeight"); } }
 //Resources:ManufacturingResources:Feeder_PickLocation
 
 		public static string Feeder_PickLocation { get { return GetResourceString("Feeder_PickLocation"); } }
@@ -551,6 +560,21 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:GCode_Dwell
 
 		public static string GCode_Dwell { get { return GetResourceString("GCode_Dwell"); } }
+//Resources:ManufacturingResources:GCode_EmergencyStop
+
+		public static string GCode_EmergencyStop { get { return GetResourceString("GCode_EmergencyStop"); } }
+//Resources:ManufacturingResources:GCode_Exchaust1_Off
+
+		public static string GCode_Exchaust1_Off { get { return GetResourceString("GCode_Exchaust1_Off"); } }
+//Resources:ManufacturingResources:GCode_Exchaust1_On
+
+		public static string GCode_Exchaust1_On { get { return GetResourceString("GCode_Exchaust1_On"); } }
+//Resources:ManufacturingResources:GCode_Exchaust2_Off
+
+		public static string GCode_Exchaust2_Off { get { return GetResourceString("GCode_Exchaust2_Off"); } }
+//Resources:ManufacturingResources:GCode_Exchaust2_On
+
+		public static string GCode_Exchaust2_On { get { return GetResourceString("GCode_Exchaust2_On"); } }
 //Resources:ManufacturingResources:GCode_HomeAllCommand
 
 		public static string GCode_HomeAllCommand { get { return GetResourceString("GCode_HomeAllCommand"); } }
@@ -563,6 +587,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:GCode_HomeZCommand
 
 		public static string GCode_HomeZCommand { get { return GetResourceString("GCode_HomeZCommand"); } }
+//Resources:ManufacturingResources:GCode_Laser_Off
+
+		public static string GCode_Laser_Off { get { return GetResourceString("GCode_Laser_Off"); } }
+//Resources:ManufacturingResources:GCode_Laser_On
+
+		public static string GCode_Laser_On { get { return GetResourceString("GCode_Laser_On"); } }
 //Resources:ManufacturingResources:GCode_LeftVacuumOff
 
 		public static string GCode_LeftVacuumOff { get { return GetResourceString("GCode_LeftVacuumOff"); } }
@@ -602,9 +632,18 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:GCode_RightVacuumResponseExample
 
 		public static string GCode_RightVacuumResponseExample { get { return GetResourceString("GCode_RightVacuumResponseExample"); } }
+//Resources:ManufacturingResources:GCode_SpindleOff
+
+		public static string GCode_SpindleOff { get { return GetResourceString("GCode_SpindleOff"); } }
+//Resources:ManufacturingResources:GCode_SpindleOn
+
+		public static string GCode_SpindleOn { get { return GetResourceString("GCode_SpindleOn"); } }
 //Resources:ManufacturingResources:GCode_StatusResponseExample
 
 		public static string GCode_StatusResponseExample { get { return GetResourceString("GCode_StatusResponseExample"); } }
+//Resources:ManufacturingResources:GCode_ToolChange
+
+		public static string GCode_ToolChange { get { return GetResourceString("GCode_ToolChange"); } }
 //Resources:ManufacturingResources:GCode_TopLightOff
 
 		public static string GCode_TopLightOff { get { return GetResourceString("GCode_TopLightOff"); } }
@@ -649,10 +688,6 @@ namespace LagoVista.Manufacturing.Models.Resources
 		public static string Machine_FeederRail_StartSlotIndex { get { return GetResourceString("Machine_FeederRail_StartSlotIndex"); } }
 //Resources:ManufacturingResources:Machine_FeederRail_StartSlotIndex_Help
 
-
-		///<summary>
-		///Feeder rail indexes are at the machine level.  If you have more than one feeder rail, you can configure that start index here.
-		///</summary>
 		public static string Machine_FeederRail_StartSlotIndex_Help { get { return GetResourceString("Machine_FeederRail_StartSlotIndex_Help"); } }
 //Resources:ManufacturingResources:Machine_FeederRail_Title
 
@@ -870,6 +905,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Pfb_Revision_Revision
 
 		public static string Pfb_Revision_Revision { get { return GetResourceString("Pfb_Revision_Revision"); } }
+//Resources:ManufacturingResources:PickAndPlaceJob_Description
+
+		public static string PickAndPlaceJob_Description { get { return GetResourceString("PickAndPlaceJob_Description"); } }
 //Resources:ManufacturingResources:PickAndPlaceJob_Title
 
 		public static string PickAndPlaceJob_Title { get { return GetResourceString("PickAndPlaceJob_Title"); } }
@@ -1179,11 +1217,14 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentPurchase_Vendor = "ComponentPurchase_Vendor";
 			public const string FeedDirection_Backwards = "FeedDirection_Backwards";
 			public const string FeedDirection_Forwards = "FeedDirection_Forwards";
+			public const string Feeder_AdvanceGCode = "Feeder_AdvanceGCode";
+			public const string Feeder_AdvanceGCode_Help = "Feeder_AdvanceGCode_Help";
 			public const string Feeder_Component_Select = "Feeder_Component_Select";
 			public const string Feeder_Description = "Feeder_Description";
 			public const string Feeder_FeederId = "Feeder_FeederId";
 			public const string Feeder_Machine = "Feeder_Machine";
 			public const string Feeder_Machine_Select = "Feeder_Machine_Select";
+			public const string Feeder_PickHeight = "Feeder_PickHeight";
 			public const string Feeder_PickLocation = "Feeder_PickLocation";
 			public const string Feeder_Rotation = "Feeder_Rotation";
 			public const string Feeder_Rotation_Select = "Feeder_Rotation_Select";
@@ -1201,10 +1242,17 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string GCode_BottomLightOn = "GCode_BottomLightOn";
 			public const string GCode_Description = "GCode_Description";
 			public const string GCode_Dwell = "GCode_Dwell";
+			public const string GCode_EmergencyStop = "GCode_EmergencyStop";
+			public const string GCode_Exchaust1_Off = "GCode_Exchaust1_Off";
+			public const string GCode_Exchaust1_On = "GCode_Exchaust1_On";
+			public const string GCode_Exchaust2_Off = "GCode_Exchaust2_Off";
+			public const string GCode_Exchaust2_On = "GCode_Exchaust2_On";
 			public const string GCode_HomeAllCommand = "GCode_HomeAllCommand";
 			public const string GCode_HomeXCommand = "GCode_HomeXCommand";
 			public const string GCode_HomeYCommand = "GCode_HomeYCommand";
 			public const string GCode_HomeZCommand = "GCode_HomeZCommand";
+			public const string GCode_Laser_Off = "GCode_Laser_Off";
+			public const string GCode_Laser_On = "GCode_Laser_On";
 			public const string GCode_LeftVacuumOff = "GCode_LeftVacuumOff";
 			public const string GCode_LeftVacuumOn = "GCode_LeftVacuumOn";
 			public const string GCode_LeftVacuumResponseExample = "GCode_LeftVacuumResponseExample";
@@ -1218,7 +1266,10 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string GCode_RightVacuumOff = "GCode_RightVacuumOff";
 			public const string GCode_RightVacuumOn = "GCode_RightVacuumOn";
 			public const string GCode_RightVacuumResponseExample = "GCode_RightVacuumResponseExample";
+			public const string GCode_SpindleOff = "GCode_SpindleOff";
+			public const string GCode_SpindleOn = "GCode_SpindleOn";
 			public const string GCode_StatusResponseExample = "GCode_StatusResponseExample";
+			public const string GCode_ToolChange = "GCode_ToolChange";
 			public const string GCode_TopLightOff = "GCode_TopLightOff";
 			public const string GCode_TopLightOn = "GCode_TopLightOn";
 			public const string GCodeMapping_Title = "GCodeMapping_Title";
@@ -1306,6 +1357,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Pcb_Variants = "Pcb_Variants";
 			public const string Pcbs_Title = "Pcbs_Title";
 			public const string Pfb_Revision_Revision = "Pfb_Revision_Revision";
+			public const string PickAndPlaceJob_Description = "PickAndPlaceJob_Description";
 			public const string PickAndPlaceJob_Title = "PickAndPlaceJob_Title";
 			public const string StripFeeder_AngleOffset = "StripFeeder_AngleOffset";
 			public const string StripFeeder_AngleOffset_Help = "StripFeeder_AngleOffset_Help";

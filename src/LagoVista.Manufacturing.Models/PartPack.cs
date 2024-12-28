@@ -8,7 +8,7 @@ using System.Collections.Generic;
 namespace LagoVista.Manufacturing.Models
 {
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.PartPack_Title, ManufacturingResources.Names.PartPack_Description,
-            ManufacturingResources.Names.PartPack_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-fo-folders", Cloneable: true,
+            ManufacturingResources.Names.PartPack_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-fo-folders", Cloneable: true,
             SaveUrl: "/api/mfg/partpack", GetUrl: "/api/mfg/partpack/{id}", GetListUrl: "/api/mfg/partpacks", FactoryUrl: "/api/mfg/partpack/factory", DeleteUrl: "/api/mfg/partpack/{id}",
             ListUIUrl: "/mfg/partpacks", EditUIUrl: "/mfg/partpack/{id}", CreateUIUrl: "/mfg/partpack/add")]
     public class PartPack : MfgModelBase, IValidateable, IFormDescriptor, ISummaryFactory, IIDEntity
@@ -50,7 +50,7 @@ namespace LagoVista.Manufacturing.Models
 
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.PartPacks_Title, ManufacturingResources.Names.PartPack_Description,
-           ManufacturingResources.Names.PartPack_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-stamp-2", Cloneable: true,
+           ManufacturingResources.Names.PartPack_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-fo-folders", Cloneable: true,
            SaveUrl: "/api/mfg/partpack", GetUrl: "/api/mfg/partpack/{id}", GetListUrl: "/api/mfg/partpacks", FactoryUrl: "/api/mfg/partpack/factory", DeleteUrl: "/api/mfg/partpack/{id}",
            ListUIUrl: "/mfg/partpacks", EditUIUrl: "/mfg/partpack/{id}", CreateUIUrl: "/mfg/partpack/add")]
     public class PartPackSummary : SummaryData

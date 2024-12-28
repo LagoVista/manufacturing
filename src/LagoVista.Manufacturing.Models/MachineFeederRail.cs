@@ -11,7 +11,7 @@ using System.Text;
 namespace LagoVista.Manufacturing.Models
 {
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Machine_FeederRail_Title, ManufacturingResources.Names.Machine_FeederRail_Description,
-        ManufacturingResources.Names.Machine_FeederRail_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources),
+        ManufacturingResources.Names.Machine_FeederRail_Description, EntityDescriptionAttribute.EntityTypes.ChildObject, ResourceType: typeof(ManufacturingResources),
         Icon: "icon-ae-control-panel", Cloneable: true,
         FactoryUrl: "/api/mfg/machine/feederrail/factory")]
     public class MachineFeederRail : ModelBase, IFormDescriptor, IFormDescriptorCol2

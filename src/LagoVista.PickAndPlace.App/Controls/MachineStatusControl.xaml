@@ -32,7 +32,7 @@
             </Style>
          </Grid.Resources>
         <Rectangle Fill="Gray" Opacity="0.15" Grid.RowSpan="8" Grid.ColumnSpan="2" />
-        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" FontSize="24" Grid.Column="0"  Text="{Binding Machine.Settings.MachineName, FallbackValue=Laser Cutter Machine}" Style="{StaticResource Value}" />
+        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" FontSize="24" Grid.Column="0"  Text="{Binding Machine.Settings.Name, FallbackValue=-no machine-}" Style="{StaticResource Value}" />
         <TextBlock Text="Buffer:" Margin="0,0,5,0" Grid.Row="1" />
         <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="1">
             <TextBlock Style="{StaticResource Value}" Text="{Binding Machine.UnacknowledgedBytesSent, Mode=OneWay, FallbackValue=20}"/>

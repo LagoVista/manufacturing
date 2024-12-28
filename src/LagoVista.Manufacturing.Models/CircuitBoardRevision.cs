@@ -12,7 +12,7 @@ using System.Runtime.InteropServices;
 namespace LagoVista.Manufacturing.Models
 {
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Pcb_Revision_Title, ManufacturingResources.Names.Pcb_Revision_Description,
-       ManufacturingResources.Names.Pcb_Revision_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-core-1", Cloneable: true,
+       ManufacturingResources.Names.Pcb_Revision_Description, EntityDescriptionAttribute.EntityTypes.ChildObject, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-core-1", Cloneable: true,
        FactoryUrl: "/api/mfg/pcb/revision/factory")]
     public class CircuitBoardRevision : IIDEntity, IValidateable, IFormDescriptor, IFormDescriptorCol2
     {
