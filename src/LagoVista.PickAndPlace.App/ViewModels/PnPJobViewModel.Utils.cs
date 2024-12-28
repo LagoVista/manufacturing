@@ -16,8 +16,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             await base.InitAsync();
             LoadingMask = false;
 
-
-
             await ToolAlignmentVM.InitAsync();
             StartCapture();
         }
@@ -46,47 +44,44 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         private void PopulateConfigurationParts()
         {
             ConfigurationParts.Clear();
-            if (SelectedBuildFlavor != null)
+            var commonParts = Job.BoardRevision.PcbComponents.Where(prt => prt.Included).GroupBy(prt => prt.PackageAndValue.ToLower());
+
+            foreach (var entry in commonParts)
             {
-                var commonParts = SelectedBuildFlavor.Components.Where(prt => prt.Included).GroupBy(prt => prt.Key.ToLower());
-
-                foreach (var entry in commonParts)
+                var part = new PlaceableParts()
                 {
-                    var part = new PlaceableParts()
-                    {
-                        Count = entry.Count(),
-                        Value = entry.First().Value.ToUpper(),
-                        Package = entry.First().PackageName.ToUpper(),
+                    Count = entry.Count(),
+                    Value = entry.First().Value.ToUpper(),
+                    Package = entry.First().PackageName.ToUpper(),
 
-                    };
+                };
 
-                    part.Parts = new ObservableCollection<PcbComponent>();
+                part.Parts = new ObservableCollection<PcbComponent>();
 
-                    foreach (var specificPart in entry)
-                    {
-                        var placedPart = SelectedBuildFlavor.Components.Where(cmp => cmp.Name == specificPart.Name && cmp.Key == specificPart.Key).FirstOrDefault();
-                        if (placedPart != null)
-                        {
-                            part.Parts.Add(placedPart);
-                        }
-                    }
-
-                    ConfigurationParts.Add(part);
-                }
-
-                if (_pnpMachine != null)
+                foreach (var specificPart in entry)
                 {
-                    foreach (var part in ConfigurationParts)
+                    var placedPart = Job.BoardRevision.PcbComponents.Where(cmp => cmp.Name == specificPart.Name && cmp.Key == specificPart.Key).FirstOrDefault();
+                    if (placedPart != null)
                     {
-                        StripFeederVM.ResolvePart(part);
+                        part.Parts.Add(placedPart);
                     }
                 }
 
-                InspectIndex = 0;
-                PrevInspectCommand.RaiseCanExecuteChanged();
-                NextInspectCommand.RaiseCanExecuteChanged();
-                FirstInspectCommand.RaiseCanExecuteChanged();
+                ConfigurationParts.Add(part);
             }
+
+            if (_pnpMachine != null)
+            {
+                foreach (var part in ConfigurationParts)
+                {
+                    StripFeederVM.ResolvePart(part);
+                }
+            }
+
+            InspectIndex = 0;
+            PrevInspectCommand.RaiseCanExecuteChanged();
+            NextInspectCommand.RaiseCanExecuteChanged();
+            FirstInspectCommand.RaiseCanExecuteChanged();
         }
 
         private void SetNewHome()

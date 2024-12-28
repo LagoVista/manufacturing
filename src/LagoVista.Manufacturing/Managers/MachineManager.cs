@@ -17,12 +17,14 @@ namespace LagoVista.Manufacturing.Managers
     public class MachineManager : ManagerBase, IMachineManager
     {
         private readonly IMachineRepo _machineRepo;
+        private readonly IGCodeMappingRepo _gcodeRepo;
 
-        public MachineManager(IMachineRepo machienRepo,
+        public MachineManager(IMachineRepo machienRepo, IGCodeMappingRepo gcodeRepo,
             IAdminLogger logger, IAppConfig appConfig, IDependencyManager depmanager, ISecurity security) :
             base(logger, appConfig, depmanager, security)
         {
             _machineRepo = machienRepo;
+            _gcodeRepo = gcodeRepo;
         }
         public async Task<InvokeResult> AddMachineAsync(Machine machine, EntityHeader org, EntityHeader user)
         {
@@ -47,18 +49,22 @@ namespace LagoVista.Manufacturing.Managers
 
         public async Task<InvokeResult> DeleteMachineAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _machineRepo.GetMachineAsync(id);
-            await ConfirmNoDepenenciesAsync(part);
-            await AuthorizeAsync(part, AuthorizeActions.Delete, user, org);
+            var machine = await _machineRepo.GetMachineAsync(id);
+            await ConfirmNoDepenenciesAsync(machine);
+            await AuthorizeAsync(machine, AuthorizeActions.Delete, user, org);
             await _machineRepo.DeleteMachineAsync(id);
             return InvokeResult.Success;
         }
 
         public async Task<Machine> GetMachineAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _machineRepo.GetMachineAsync(id);
-            await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
-            return part;
+            var machine = await _machineRepo.GetMachineAsync(id);
+            await AuthorizeAsync(machine, AuthorizeActions.Read, user, org);
+            if(!EntityHeader.IsNullOrEmpty(machine.GcodeMapping))
+            {
+                machine.GcodeMapping.Value = await _gcodeRepo.GetGCodeMappingAsync(machine.GcodeMapping.Id);
+            }
+            return machine;
         }
 
 

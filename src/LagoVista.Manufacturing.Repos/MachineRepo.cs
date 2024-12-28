@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using LagoVista.Manufacturing.Repos;
 using LagoVista.IoT.Logging.Utils;
 using System;
+using LagoVista.Core.Models;
 
 namespace LagoVista.Manufacturing.Repo.Repos
 {
@@ -47,6 +48,9 @@ namespace LagoVista.Manufacturing.Repo.Repos
 
         public Task UpdateMachineAsync(Machine machine)
         {
+            if (!EntityHeader.IsNullOrEmpty(machine.GcodeMapping))
+                machine.GcodeMapping.Value = null;
+
             return UpsertDocumentAsync(machine);
         }
 

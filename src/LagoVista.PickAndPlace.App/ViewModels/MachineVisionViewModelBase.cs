@@ -3,7 +3,9 @@ using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
+using LagoVista.Client.Core;
 using LagoVista.Core.Commanding;
+using LagoVista.Core.IOC;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.PickAndPlace.Interfaces;
@@ -53,25 +55,28 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 EntityHeader.Create("partinspection", "Part Inspection"),
             };
 
-            CurrentMVProfile = MVProfiles.SingleOrDefault(mv => mv.Id == "default");
+            _currentMVProfile = MVProfiles.SingleOrDefault(mv => mv.Id == "default");
+            LoadProfiles();
         }
 
-        public override async Task InitAsync()
+        public override Task InitAsync()
         {
-            await LoadProfilesAsync();
+            return Task.CompletedTask;
         }
 
-        private async Task LoadProfilesAsync()
+        private void LoadProfiles()
         {
-            var topFileName = CurrentMVProfile?.Id == "default" || CurrentMVProfile == null ? "TopCameraVision.json" : $"Top.{CurrentMVProfile.Id}.mv.json";
-            var bottomFileName = CurrentMVProfile?.Id == "default" || CurrentMVProfile == null ? "BottomCameraVision.json" : $"Bottom.{CurrentMVProfile.Id}.mv.json";
 
-            _topCameraProfile = await Storage.GetAsync<Models.VisionProfile>(topFileName);
-            _bottomCameraProfile = await Storage.GetAsync<Models.VisionProfile>(bottomFileName);
+            var topProfileId = $"top-{CurrentMVProfile.Id}";
+            var bottomProfileId = $"bottom-{CurrentMVProfile.Id}";
+
+            _topCameraProfile = Machine.Settings.VisionProfiles.FirstOrDefault(prof => prof.Name == topProfileId);
+            _bottomCameraProfile = Machine.Settings.VisionProfiles.FirstOrDefault(prof => prof.Name == bottomProfileId);
 
             if (_topCameraProfile == null)
-            {
-                _topCameraProfile = await Storage.GetAsync<Models.VisionProfile>("TopCameraVision.json");
+            {   
+               
+                _topCameraProfile = Machine.Settings.VisionProfiles.FirstOrDefault(prof => prof.Name == "top-default");
                 if (_topCameraProfile == null)
                 {
                     _topCameraProfile = new VisionProfile();
@@ -80,7 +85,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             if (_bottomCameraProfile == null)
             {
-                _bottomCameraProfile = await Storage.GetAsync<Models.VisionProfile>("BottomCameraVision.json");
+                _topCameraProfile = Machine.Settings.VisionProfiles.FirstOrDefault(prof => prof.Name == "bottom-default");
                 if (_bottomCameraProfile == null)
                 {
                     _bottomCameraProfile = new VisionProfile();
@@ -98,17 +103,19 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             Machine.BottomLightOn = !AdjustingTopCamera && _bottomCameraProfile.LightOn;
         }
 
-        private async void LoadProfiles()
-        {
-            await LoadProfilesAsync();
-        }
-
         public List<EntityHeader> MVProfiles { get; }
 
         EntityHeader _currentMVProfile;
         public EntityHeader CurrentMVProfile
         {
-            get => _currentMVProfile;
+            get
+            {
+                if(_currentMVProfile == null)
+                {
+                    _currentMVProfile = MVProfiles.Single(pr => pr.Id == "default");
+                }
+                return _currentMVProfile;
+            }
             set
             {
                 SaveProfile();
@@ -126,11 +133,21 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         {
             if (CurrentMVProfile != null)
             {
-                var topFileName = CurrentMVProfile.Id == "default" ? "TopCameraVision.json" : $"Top.{CurrentMVProfile.Id}.mv.json";
-                var bottomFileName = CurrentMVProfile.Id == "default" ? "BottomCameraVision.json" : $"Bottom.{CurrentMVProfile.Id}.mv.json";
+                _topCameraProfile.Name = $"top-{CurrentMVProfile.Id}";
+                _bottomCameraProfile.Name = $"bottom-{CurrentMVProfile.Id}";
 
-                await Storage.StoreAsync(_topCameraProfile, topFileName);
-                await Storage.StoreAsync(_bottomCameraProfile, bottomFileName);
+                var top = Machine.Settings.VisionProfiles.FirstOrDefault(vp => vp.Name == _topCameraProfile.Name);
+                if (top != null)
+                    Machine.Settings.VisionProfiles.Remove(top);
+
+                var bottom = Machine.Settings.VisionProfiles.FirstOrDefault(vp => vp.Name == _bottomCameraProfile.Name);
+                if (bottom != null)
+                    Machine.Settings.VisionProfiles.Remove(bottom);
+
+                Machine.Settings.VisionProfiles.Add(_topCameraProfile);
+                Machine.Settings.VisionProfiles.Add(_bottomCameraProfile);
+                var rest = SLWIOC.Get<IRestClient>();
+                var result = await rest.PutAsync("/api/mfg/machine", Machine.Settings);
             }
         }
 

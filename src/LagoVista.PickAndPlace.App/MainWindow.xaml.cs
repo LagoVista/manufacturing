@@ -385,10 +385,15 @@ namespace LagoVista.PickAndPlace.App
             {
                 Debug.WriteLine(openJob.SelectedItem.Name);
                 var result = await _restClient.GetAsync<DetailResponse<PickAndPlaceJob>>($"/api/mfg/pnpjob/{openJob.SelectedItem.Id}");
+                var stripFeeders = await _restClient.GetAsync<ListResponse<LagoVista.Manufacturing.Models.StripFeeder>>($"/api/mfg/machine/{openJob.SelectedItem.Id}/stripfeeders?loadcomponents=true");
+                var autoFeeders = await _restClient.GetAsync<ListResponse<LagoVista.Manufacturing.Models.AutoFeeder>>($"/api/mfg/machine/{openJob.SelectedItem.Id}/feeders?loadcomponents=true");
                 if (result.Successful) {
                     var pnpWindow = new Views.PNPJobWindow();
                     var vm = new PnPJobViewModel(ViewModel.Machine);
-                    vm.Job = result.Result.Model;                   
+                    vm.Job = result.Result.Model;
+                    await vm.InitAsync();
+                    vm.StripFeeders = new System.Collections.ObjectModel.ObservableCollection<Manufacturing.Models.StripFeeder>(stripFeeders.Result.Model);
+                    vm.AutoFeeders = new System.Collections.ObjectModel.ObservableCollection<AutoFeeder>(autoFeeders.Result.Model);
                     pnpWindow.DataContext = vm;
                     pnpWindow.Show();
                 }

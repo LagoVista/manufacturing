@@ -29,10 +29,7 @@
             <ModelVisual3D x:Name="PickHeadLayer" />
             <ModelVisual3D x:Name="PCBLayer" />
 
-
-            <h:GridLinesVisual3D x:Name="ModelGrid" MinorDistance="10"  MajorDistance="100" 
-           	    Width="1024"
-                Length ="1024"  />
+            <h:GridLinesVisual3D x:Name="ModelGrid" MinorDistance="50"  MajorDistance="250"  Width="1024" Length ="1024"  />
 
         </h:HelixViewport3D>
             

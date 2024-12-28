@@ -75,6 +75,9 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             set { Set(ref _isEditing, value); }
         }
 
+        public ObservableCollection<AutoFeeder> AutoFeeders { get; set; }
+        public ObservableCollection<LagoVista.Manufacturing.Models.StripFeeder> StripFeeders { get; set; }
+
 
         public string TargetAngle { get => $"Rotation: {_targetAngle}"; }
 

@@ -5,6 +5,7 @@ using LagoVista.Core.Models;
 using LagoVista.PCB.Eagle.Extensions;
 using LagoVista.PCB.Eagle.Resources;
 using MSDMarkwort.Kicad.Parser.PcbNew.Models.PartFootprint;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -96,6 +97,15 @@ namespace LagoVista.PCB.Eagle.Models
 
         public string Id { get; set; }
         public string Key { get; set; }
+
+        [JsonIgnore]
+        public string PackageAndValue
+        {
+            get
+            {
+                return $"{PackageName}{Value}";
+            }
+        }
 
         public string Name { get; set; }
         public string LibraryName { get; set; }

@@ -51,6 +51,15 @@ namespace LagoVista.Manufacturing.Models
 
         public List<PcbPackage> PhysicalPackages { get; set; } = new List<PcbPackage>();
 
+        public List<Via> Vias { get; set; } = new List<Via>();
+
+        public List<Hole> Holes { get; set; } = new List<Hole>();
+
+        public List<PcbLine> TopWires { get; set; }
+        public List<PcbLine> BottomWires { get; set; }
+
+        public List<PcbLayer> Layers { get; set; }
+
 
         [FormField(LabelResource: ManufacturingResources.Names.Common_Width, FieldType: FieldTypes.Decimal, IsUserEditable:false, ResourceType: typeof(ManufacturingResources))]
         public double? Width { get; set; }

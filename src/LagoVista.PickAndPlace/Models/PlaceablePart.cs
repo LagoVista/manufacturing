@@ -1,5 +1,6 @@
 ﻿using LagoVista.PCB.Eagle.Models;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace LagoVista.PickAndPlace.Models
 {
@@ -16,5 +17,13 @@ namespace LagoVista.PickAndPlace.Models
 
         public string StripFeederPackage { get; set; }
         public string StripFeeder { get; set; }
+
+        public string PartsNames
+        {
+            get
+            {
+                return string.Join(',', Parts.Select(prt => prt.Name));
+            }
+        }
     }
 }

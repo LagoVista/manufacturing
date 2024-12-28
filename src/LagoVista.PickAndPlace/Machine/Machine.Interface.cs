@@ -245,17 +245,21 @@ namespace LagoVista.PickAndPlace
                 {
                     lock (_queueAccessLocker)
                     {
-                        if (highPriority)
+                        var cmds = cmd.Split('|');
+                        foreach (var cmd in cmds)
                         {
-                            _toSendPriority.Enqueue(cmd);
-                        }
-                        else
-                        {
-                            _toSend.Enqueue(cmd);
-                            if (Settings.MachineType == FirmwareTypes.LagoVista_PnP ||
-                                Settings.MachineType == FirmwareTypes.SimulatedMachine ||
-                                Settings.MachineType == FirmwareTypes.Repeteir_PnP)
-                                PendingQueue.Add(cmd);
+                            if (highPriority)
+                            {
+                                _toSendPriority.Enqueue(cmd);
+                            }
+                            else
+                            {
+                                _toSend.Enqueue(cmd);
+                                if (Settings.MachineType == FirmwareTypes.LagoVista_PnP ||
+                                    Settings.MachineType == FirmwareTypes.SimulatedMachine ||
+                                    Settings.MachineType == FirmwareTypes.Repeteir_PnP)
+                                    PendingQueue.Add(cmd);
+                            }
                         }
                     }
                 });

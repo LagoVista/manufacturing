@@ -16,12 +16,12 @@ namespace LagoVista.Manufacturing.Rest.Controllers
 {
     [ConfirmedUser]
     [Authorize]
-    public class FeederController : LagoVistaBaseController
+    public class AutoFeederController : LagoVistaBaseController
     {
         private readonly IFeederManager _mgr;
         private readonly IMachineManager _machineManager;
 
-        public FeederController(UserManager<AppUser> userManager, IAdminLogger logger, IMachineManager machineManager, IFeederManager mgr) : base(userManager, logger)
+        public AutoFeederController(UserManager<AppUser> userManager, IAdminLogger logger, IMachineManager machineManager, IFeederManager mgr) : base(userManager, logger)
         {
             _mgr = mgr;
             _machineManager = machineManager;

@@ -118,73 +118,42 @@
  
             <TabItem Header="Job">
                 <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="470*"/>
-                        <ColumnDefinition Width="6*"/>
-                        <ColumnDefinition Width="11*"/>
-                        <ColumnDefinition Width="1100*"/>
+                        <ColumnDefinition Width="50*"/>
+                        <ColumnDefinition Width="50*"/>
                     </Grid.ColumnDefinitions>
-                    <Grid Grid.ColumnSpan="4">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="auto" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120" />
-                            <ColumnDefinition Width="123.619" />
-                            <ColumnDefinition Width="76.381"/>
-                            <ColumnDefinition Width="80" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="400" />
-                        </Grid.ColumnDefinitions>
-
-                        <Label Content="Machine File" Margin="0,0,0,28" Grid.RowSpan="2" />
-                        <Controls:MaskingTextBox Text="{Binding Path=Job.PnPMachinePath, Mode=TwoWay}" Grid.Column="1" Margin="4,4,0,4" Grid.ColumnSpan="2" />
-                        <Button Content="..." Width="30" HorizontalAlignment="Left" Grid.Column="3" Margin="0,4,0,4" Command="{Binding SelectMachineFileCommand}" />
-
-                        <Label Content="Board File" Grid.Row="1" Margin="0,0,0,26" Grid.RowSpan="2" />
-                        <Controls:MaskingTextBox Text="{Binding Path=Job.EagleBRDFilePath, Mode=TwoWay}" Grid.Row="1" Grid.Column="1" Margin="4,4,0,4" Grid.ColumnSpan="2" />
-                        <StackPanel Grid.Row="1" Grid.Column="3" Orientation="Horizontal" Margin="0,0,0,26" Grid.RowSpan="2">
-                            <Button Content="..." Width="20" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="2" Margin="0,4,4,4" Command="{Binding SelectBoardFileCommand}" />
-                            <Button Content="Refresh" Width="30" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="2" Margin="0,4,4,4" Command="{Binding RefreshBoardCommand}" />
-                        </StackPanel>
-
-
-                        <Label Content="Fiducial 1 - X" Grid.Row="2" Margin="0,0,0,26" Grid.RowSpan="2" />
-                        <Controls:MaskingTextBox Text="{Binding Job.BoardFiducial1.X, Mode=TwoWay}"  UnitType="Size"  Grid.Row="2" Grid.Column="1" Margin="0,4,0,4" Width="80" HorizontalAlignment="Left" />
-                        <Button Grid.Row="2" Grid.Column="1" Grid.RowSpan="2" Width="60" Style="{StaticResource CommandButton}" Content="Set" Margin="90,10,50,10" Command="{Binding SetFiducialCalibrationCommand}" CommandParameter="1" Grid.ColumnSpan="2"></Button>
-
-                        <Label Content="Fiducial 1 - Y" Grid.Row="3" Margin="0,0,0,26" Grid.RowSpan="2" />
-                        <Controls:MaskingTextBox Text="{Binding Job.BoardFiducial1.Y, Mode=TwoWay}"  UnitType="Size"  Grid.Row="3" Grid.Column="1" Margin="0,4,0,4" Width="80" HorizontalAlignment="Left" />
-                        <Label Content="Fiducial 2 - X" Grid.Row="4" Margin="0,0,0,26" Grid.RowSpan="2" />
-                        <Controls:MaskingTextBox Text="{Binding Job.BoardFiducial2.X, Mode=TwoWay}"  UnitType="Size"  Grid.Row="4" Grid.Column="1" Margin="0,4,0,4" Width="80" HorizontalAlignment="Left" />
-                        <Button Grid.Row="4" Grid.Column="1" Grid.RowSpan="2" Width="60" Style="{StaticResource CommandButton}" Content="Set" Margin="90,10,50,10" Command="{Binding SetFiducialCalibrationCommand}" CommandParameter="2" Grid.ColumnSpan="2"></Button>
-                        <Label Content="Fiducial 2 - Y" Grid.Row="5" Margin="0,0,0,26" Grid.RowSpan="2" />
-                        <Controls:MaskingTextBox Text="{Binding Job.BoardFiducial2.Y, Mode=TwoWay}"  UnitType="Size " Grid.Row="5" Grid.Column="1" Margin="0,4,0,4" Width="80" HorizontalAlignment="Left" />
-
-                        <Label Content="Board Scaler X" Grid.Row="6" Margin="0,0,0,26" Grid.RowSpan="2" />
-                        <Controls:MaskingTextBox Text="{Binding Job.BoardScaler.X, Mode=TwoWay}"  UnitType="Size"  Grid.Row="6" Grid.Column="1" Margin="0,4,0,4" Width="80" HorizontalAlignment="Left" />
-                        <Label Content="Board Scaler Y" Grid.Row="7" Margin="0,0,0,26" Grid.RowSpan="2" />
-                        <Controls:MaskingTextBox Text="{Binding Job.BoardScaler.Y, Mode=TwoWay}"  UnitType="Size"  Grid.Row="7" Grid.Column="1" Margin="0,4,0,4" Width="80" HorizontalAlignment="Left" />
-
-                        <Label Content="PartStrip Scaler X" Grid.Row="8" Margin="0,0,0,26" Grid.RowSpan="2" />
-                        <Controls:MaskingTextBox Text="{Binding Machine.Settings.PartStripScaler.X, Mode=TwoWay}"  UnitType="Size"  Grid.Row="8" Grid.Column="1" Margin="0,4,0,4" Width="80" HorizontalAlignment="Left" />
-                        <Label Content="PartStrip Scaler Y" Grid.Row="9" Margin="0,0,0,26" Grid.RowSpan="2" />
-                        <Controls:MaskingTextBox Text="{Binding Machine.Settings.PartStripScaler.Y, Mode=TwoWay}"  UnitType="Size"  Grid.Row="9" Grid.Column="1" Margin="0,4,0,4" Width="80" HorizontalAlignment="Left" />
-
-                        <ListBox Grid.Row="11" HorizontalAlignment="Left" Grid.Column="4" VerticalAlignment="Bottom" Height="250" ItemsSource="{Binding CalibrationUpdates}" Grid.RowSpan="2" />
-                    </Grid>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Command="{Binding RefreshConfigurationPartsCommand}">Refresh</Button>
+                    </StackPanel>
+                    <DataGrid ItemsSource="{Binding Job.BoardRevision.PcbComponents}"  CanUserAddRows="false" AutoGenerateColumns="False" Grid.Row="1" >
+                        <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Header="Place" Binding="{Binding Included, Mode=TwoWay}" />
+                            <DataGridCheckBoxColumn Header="Manual" Binding="{Binding ManualPlace, Mode=TwoWay}" />
+                            <DataGridCheckBoxColumn Header="Fiducial" Binding="{Binding Fiducial, Mode=TwoWay}" />
+                            
+                            <DataGridTextColumn Header="Name" Width="80" Binding="{Binding Name, Mode=TwoWay}"  />
+                            <DataGridTextColumn Header="Package" Width="*" Binding="{Binding PackageName, Mode=TwoWay}"  />
+                            <DataGridTextColumn Header="Value" Width="*" Binding="{Binding Value, Mode=TwoWay}"  />
+                            <DataGridTextColumn Header="Layer" Width="*" Binding="{Binding Layer.Text, Mode=TwoWay}"  />
+                            <DataGridTextColumn Header="Mapped Component" Width="*" Binding="{Binding Component.Text, Mode=TwoWay}"  />
+                            <DataGridTextColumn Header="X" Width="75" Binding="{Binding X, Mode=TwoWay}"  />
+                            <DataGridTextColumn Header="Y" Width="75" Binding="{Binding Y, Mode=TwoWay}"  />
+                            <DataGridTextColumn Header="Rotation" Width="75" Binding="{Binding Rotation, Mode=TwoWay}"  />
+                            
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <DataGrid ItemsSource="{Binding ConfigurationParts}" Grid.Column="1" Grid.Row="1" CanUserAddRows="false" AutoGenerateColumns="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Count" Width="80" Binding="{Binding Count, Mode=TwoWay}"  />
+                            <DataGridTextColumn Header="Package" Width="200" Binding="{Binding Package, Mode=TwoWay}"  />
+                            <DataGridTextColumn Header="Value" Width="200" Binding="{Binding Value, Mode=TwoWay}"  />
+                            <DataGridTextColumn Header="Names" Width="*" Binding="{Binding PartsNames}"  />
+                        </DataGrid.Columns>
+                    </DataGrid>
                 </Grid>
 
             </TabItem>

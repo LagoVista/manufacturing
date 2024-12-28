@@ -180,6 +180,7 @@ namespace LagoVista.PickAndPlace.App.Controls
             }
 
             StagingPlatesLayer.Content = modelGroup;
+            //StagingPlatesLayer.Transform = new TranslateTransform3D(scrapX, scrapY, 0);            
         }
 
         private void Refresh_Click(object sender, RoutedEventArgs e)
