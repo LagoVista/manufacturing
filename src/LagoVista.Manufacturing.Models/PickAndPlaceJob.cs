@@ -3,6 +3,7 @@ using LagoVista.Core.Interfaces;
 using LagoVista.Core.Models;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models.Resources;
+using LagoVista.PCB.Eagle.Models;
 using System.Collections.Generic;
 
 namespace LagoVista.Manufacturing.Models
@@ -32,12 +33,22 @@ namespace LagoVista.Manufacturing.Models
             };
         }
 
+        [FormField(LabelResource: ManufacturingResources.Names.PickAndPlaceJob_CurrentSerialNumber, FieldType: FieldTypes.Integer,  ResourceType: typeof(ManufacturingResources))]
+        public int CurrentSerialNumber { get; set; } = 1000;
+
+
+        [FormField(LabelResource: ManufacturingResources.Names.PickAndPlaceJob_Board, IsUserEditable:false, FieldType: FieldTypes.EntityHeaderPicker, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader Board { get; set; }
+
+        public CircuitBoardRevision BoardRevision { get; set; }
+
         public List<string> GetFormFields()
         {
             return new List<string>()
             {
                 nameof(Name),
                 nameof(Key),
+                nameof(Board),
                 nameof(Description)
             };
         }

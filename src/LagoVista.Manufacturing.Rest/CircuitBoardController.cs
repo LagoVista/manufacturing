@@ -10,6 +10,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using System.ComponentModel;
+using System;
+using System.Linq;
+using Amazon.Runtime.Internal.Util;
+using LagoVista.Core;
 
 namespace LagoVista.Manufacturing.Rest.Controllers
 {
@@ -18,10 +23,12 @@ namespace LagoVista.Manufacturing.Rest.Controllers
     public class CircuitBoardController : LagoVistaBaseController
     {
         private readonly ICircuitBoardManager _mgr;
+        private readonly IPickAndPlaceJobManager _pnpJobManager;
 
-        public CircuitBoardController(UserManager<AppUser> userManager, IAdminLogger logger, ICircuitBoardManager mgr) : base(userManager, logger)
+        public CircuitBoardController(UserManager<AppUser> userManager, IAdminLogger logger, ICircuitBoardManager mgr, IPickAndPlaceJobManager pnpJobManager) : base(userManager, logger)
         {
-            _mgr = mgr;
+            _mgr = mgr ?? throw new ArgumentNullException(nameof(mgr));
+            _pnpJobManager = pnpJobManager ?? throw new ArgumentNullException(nameof(pnpJobManager));
         }
 
         [HttpGet("/api/mfg/pcb/{id}")]
@@ -76,5 +83,26 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return _mgr.GetCircuitBoardsSummariesAsync(GetListRequestFromHeader(), OrgEntityHeader, UserEntityHeader);
         }
 
+        [HttpGet("/api/mfg/pcb/{id}/revision/{revid}/job")]
+        public async Task<InvokeResult<string>> CreatePNPJob(string id, string revid, string name)
+        {
+            var brd = await _mgr.GetCircuitBoardAsync(id, OrgEntityHeader, UserEntityHeader);
+            var rev = brd.Revisions.SingleOrDefault(rev => rev.Id == revid);
+            if (rev == null)
+                return InvokeResult<string>.FromError("Could not create board revision.");
+
+            var job = new PickAndPlaceJob();
+            SetOwnedProperties(job);
+            SetAuditProperties(job);
+            var stamp = DateTime.Now;
+            job.Name = name ?? $"{brd.Name} {brd.Revision} {stamp.Year}-{stamp.Month}-{stamp.Day} {stamp.Hour}:{stamp.Minute}";
+            job.Key = job.Name.ToNuvIoTKey();
+            job.Board = brd.ToEntityHeader();
+            job.BoardRevision = rev;
+
+            await _pnpJobManager.AddPickAndPlaceJobAsync(job, OrgEntityHeader, UserEntityHeader);
+
+            return InvokeResult<string>.Create(job.Id);
+        }
     }
 }

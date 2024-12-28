@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace LagoVista.PickAndPlace.Util
+namespace LagoVista.Manufacturing.Util
 {
     public class PartManager
     {

@@ -85,7 +85,7 @@ namespace LagoVista.Manufacturing.Models
 
         [FormField(LabelResource: ManufacturingResources.Names.GCode_RequestStatusCommand, FieldType: FieldTypes.Text, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public string RequestStatusCommand { get; set; }
-        [FormField(LabelResource: ManufacturingResources.Names.GCode_ParseStatus_RegularExpression, FieldType: FieldTypes.Text, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.GCode_ParseStatus_RegularExpression, HelpResource:  ManufacturingResources.Names.GCode_ParseStatusRegularExpressionHelp, FieldType: FieldTypes.Text, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public string ParseStatusRegEx { get; set; }
         [FormField(LabelResource: ManufacturingResources.Names.GCode_StatusResponseExample, FieldType: FieldTypes.Text, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public string StatusResponseExample { get; set; }
@@ -132,6 +132,7 @@ namespace LagoVista.Manufacturing.Models
             {
                 nameof(Name),
                 nameof(Icon),
+                nameof(Key),
                 nameof(TopLightOn),
                 nameof(TopLightOff),
                 nameof(BottmLightOn),
@@ -157,8 +158,9 @@ namespace LagoVista.Manufacturing.Models
                 nameof(RightVacuumOn),
                 nameof(RightVacuumOff),
                 nameof(ReadRightVacuumCmd),
-                nameof(ParseRightVacuumRegEx),
                 nameof(RightVacuumResponseExample),
+                nameof(ParseRightVacuumRegEx),
+                
 
                 nameof(LeftVacuumOn),
                 nameof(LeftVacuumOff),

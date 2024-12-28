@@ -1,4 +1,4 @@
-﻿/*12/28/2024 7:00:54 AM*/
+﻿/*12/28/2024 11:34:48 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -905,6 +905,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Pfb_Revision_Revision
 
 		public static string Pfb_Revision_Revision { get { return GetResourceString("Pfb_Revision_Revision"); } }
+//Resources:ManufacturingResources:PickAndPlaceJob_Board
+
+		public static string PickAndPlaceJob_Board { get { return GetResourceString("PickAndPlaceJob_Board"); } }
+//Resources:ManufacturingResources:PickAndPlaceJob_CurrentSerialNumber
+
+		public static string PickAndPlaceJob_CurrentSerialNumber { get { return GetResourceString("PickAndPlaceJob_CurrentSerialNumber"); } }
 //Resources:ManufacturingResources:PickAndPlaceJob_Description
 
 		public static string PickAndPlaceJob_Description { get { return GetResourceString("PickAndPlaceJob_Description"); } }
@@ -1357,6 +1363,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Pcb_Variants = "Pcb_Variants";
 			public const string Pcbs_Title = "Pcbs_Title";
 			public const string Pfb_Revision_Revision = "Pfb_Revision_Revision";
+			public const string PickAndPlaceJob_Board = "PickAndPlaceJob_Board";
+			public const string PickAndPlaceJob_CurrentSerialNumber = "PickAndPlaceJob_CurrentSerialNumber";
 			public const string PickAndPlaceJob_Description = "PickAndPlaceJob_Description";
 			public const string PickAndPlaceJob_Title = "PickAndPlaceJob_Title";
 			public const string StripFeeder_AngleOffset = "StripFeeder_AngleOffset";

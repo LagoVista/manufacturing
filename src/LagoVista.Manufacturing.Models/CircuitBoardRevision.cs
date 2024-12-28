@@ -76,6 +76,11 @@ namespace LagoVista.Manufacturing.Models
             };
         }
 
+        public EntityHeader ToEntityHeader()
+        {
+            return new EntityHeader() { Id = Id, Text = Revision };
+        }
+
         public List<string> GetFormFieldsCol2()
         {
             return new List<string>()
