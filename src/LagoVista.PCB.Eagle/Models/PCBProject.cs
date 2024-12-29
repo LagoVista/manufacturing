@@ -70,10 +70,10 @@ namespace LagoVista.PCB.Eagle.Models
             var radius = HoldDownDiameter / 2;
             var drills = new List<Drill>
             {
-                new Drill() { X = ScrapSides - (HoldDownBoardOffset + radius), Y = ScrapTopBottom - (HoldDownBoardOffset + radius), Diameter = HoldDownDiameter, Name = "HoldDown_BottomLeft" },
-                new Drill() { X = board.Width + ScrapSides + HoldDownBoardOffset + radius, Y = ScrapTopBottom - (HoldDownBoardOffset + radius), Diameter = HoldDownDiameter, Name = "HoldDown_BottomRight" },
-                new Drill() { X = ScrapSides - (HoldDownBoardOffset + radius), Y = board.Height + ScrapTopBottom + HoldDownBoardOffset + radius, Diameter = HoldDownDiameter, Name = "HoldDown_TopLeft" },
-                new Drill() { X = board.Width + ScrapSides + HoldDownBoardOffset + radius, Y = board.Height + ScrapTopBottom + HoldDownBoardOffset + radius, Diameter = HoldDownDiameter, Name = "HoldDown_TopRight" }
+                new Drill() { X = ScrapSides - (HoldDownBoardOffset + radius), Y = ScrapTopBottom - (HoldDownBoardOffset + radius), D = HoldDownDiameter },
+                new Drill() { X = board.Width + ScrapSides + HoldDownBoardOffset + radius, Y = ScrapTopBottom - (HoldDownBoardOffset + radius), D = HoldDownDiameter },
+                new Drill() { X = ScrapSides - (HoldDownBoardOffset + radius), Y = board.Height + ScrapTopBottom + HoldDownBoardOffset + radius, D = HoldDownDiameter },
+                new Drill() { X = board.Width + ScrapSides + HoldDownBoardOffset + radius, Y = board.Height + ScrapTopBottom + HoldDownBoardOffset + radius, D = HoldDownDiameter }
             };
             return drills;
         }

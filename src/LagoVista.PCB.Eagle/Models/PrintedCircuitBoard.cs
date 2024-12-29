@@ -25,12 +25,12 @@ namespace LagoVista.PCB.Eagle.Models
         {
             get
             {
-                var drillsLayer = Layers.Where(layer => layer.Layer.Value == PCBLayers.Drills).FirstOrDefault();
+                var drillsLayer = Layers.Where(layer => layer.Layer == PCBLayers.Drills).FirstOrDefault();
                 if(drillsLayer == null)
                 {
                     return new List<Drill>();
                 }
-                var drills = Layers.Where(layer => layer.Layer.Value == PCBLayers.Drills).FirstOrDefault().Drills;
+                var drills = Layers.Where(layer => layer.Layer == PCBLayers.Drills).FirstOrDefault().Drills;
                 foreach (var via in Vias)
                 {
                     var existingDrill = drills.Where(drl => drl.X == via.X && drl.Y == via.Y);
@@ -38,11 +38,11 @@ namespace LagoVista.PCB.Eagle.Models
                     /* Vias have drills/holes on top and bottom, only need one */
                     if (!existingDrill.Any())
                     {
-                        drills.Add(new Drill() { X = via.X, Y = via.Y, Diameter = via.DrillDiameter });
+                        drills.Add(new Drill() { X = via.X, Y = via.Y, D = via.DrillDiameter });
                     }
                 }
 
-                var drillFromHolesLayer = Layers.Where(layer => layer.Layer.Value == PCBLayers.Drills).FirstOrDefault().Drills;
+                var drillFromHolesLayer = Layers.Where(layer => layer.Layer == PCBLayers.Drills).FirstOrDefault().Drills;
                 drills.AddRange(drillFromHolesLayer);
 
                 return drills;
@@ -54,7 +54,7 @@ namespace LagoVista.PCB.Eagle.Models
             get
             {
                 /* Probably get this down to about 25% of the lines w/ effective linq...in a hurry KDW 2017-03-15 */
-                var drills = Drills.GroupBy(drl => drl.Diameter);
+                var drills = Drills.GroupBy(drl => drl.D);
                 var bits = new List<DrillBit>();
                 var toolIndex = 1;
 
@@ -62,7 +62,7 @@ namespace LagoVista.PCB.Eagle.Models
                 {
                     bits.Add(new DrillBit()
                     {
-                        Diameter = drill.First().Diameter,
+                        Diameter = drill.First().D,
                     });
                 }
 
@@ -81,16 +81,16 @@ namespace LagoVista.PCB.Eagle.Models
             get
             {
 
-                var holesLayer = Layers.Where(layer => layer.Layer.Value == PCBLayers.Holes).FirstOrDefault();
+                var holesLayer = Layers.Where(layer => layer.Layer == PCBLayers.Holes).FirstOrDefault();
                 if(holesLayer == null)
                     return new List<Hole>();
 
-                foreach (var hole in Layers.Where(layer => layer.Layer.Value == PCBLayers.Holes).FirstOrDefault().Holes)
+                foreach (var hole in Layers.Where(layer => layer.Layer == PCBLayers.Holes).FirstOrDefault().Holes)
                 {
-                    Debug.WriteLine(hole.X + " " + hole.Y + " " + hole.Drill);
+                    Debug.WriteLine(hole.X + " " + hole.Y + " " + hole.D);
                 }
 
-                return Layers.Where(layer => layer.Layer.Value == PCBLayers.Holes).FirstOrDefault().Holes;
+                return Layers.Where(layer => layer.Layer == PCBLayers.Holes).FirstOrDefault().Holes;
             }
         }
         public List<PcbLine> UnroutedWires { get; set; }

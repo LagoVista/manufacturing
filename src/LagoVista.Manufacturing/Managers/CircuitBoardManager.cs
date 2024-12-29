@@ -46,15 +46,6 @@ namespace LagoVista.Manufacturing.Managers
                         return result.ToInvokeResult();
                     }
                 }
-
-                if (revision.Variants.Count == 0)
-                {
-                    revision.Variants.Add(new CircuitBoardVariant()
-                    {
-                        PartName = "Default",
-                        PcbComponents = revision.PcbComponents
-                    });
-                }
             }
 
             await _circuitBoardRepo.AddCircuitBoardAsync(pcb);
@@ -92,6 +83,10 @@ namespace LagoVista.Manufacturing.Managers
                     revision.Width = pcb.Width;
                     revision.Height = pcb.Height;
                     revision.Outline = pcb.Outline;
+                    revision.TopWires = pcb.TopWires;
+                    revision.BottomWires = pcb.BottomWires;
+                    revision.Vias = pcb.Vias;
+                    revision.Holes = pcb.Holes;
                 }
                 else if(media.FileName.EndsWith("kicad_pcb"))
                 {
@@ -171,15 +166,6 @@ namespace LagoVista.Manufacturing.Managers
                     {
                         return result.ToInvokeResult();
                     }
-                }
-
-                if (revision.Variants.Count == 0)
-                {
-                    revision.Variants.Add(new CircuitBoardVariant()
-                    {
-                        PartName = "Default",
-                        PcbComponents = revision.PcbComponents
-                    });
                 }
 
                 foreach (var cmp in revision.PcbComponents)

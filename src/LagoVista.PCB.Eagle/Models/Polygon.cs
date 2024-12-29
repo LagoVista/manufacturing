@@ -11,15 +11,15 @@ namespace LagoVista.PCB.Eagle.Models
     public class Polygon
     {
         public List<PolyLine> Lines { get; set; } = new List<PolyLine>();
-        public EntityHeader<PCBLayers> Layer { get; set; }
-        public string Stroke { get; set; }
+        public PCBLayers L { get; set; }
+        public string S { get; set; }
 
         public static Polygon Create(FpPoly poly)
         {
             var p = new Polygon()
             {
-                Layer = poly.Layer.FromKiCadLayer(),
-                Stroke = poly.Stroke.Color.ToString(poly.Layer),
+                L = poly.Layer.FromKiCadLayer(),
+                S = poly.Stroke.Color.ToString(poly.Layer),
             };
 
             for (var idx = 0; idx < poly.Pts.Positions.Count; ++idx)

@@ -9,8 +9,6 @@ namespace LagoVista.PCB.Eagle.Models
         public EntityHeader<PCBLayers> Layer { get; set; }
         public double X { get; set; }
         public double Y { get; set; }
-        public double OriginX { get; set; }
-        public double OriginY { get; set; }
         public double DrillDiameter { get; set; }
         public string Fill { get; set; }
 
@@ -22,10 +20,7 @@ namespace LagoVista.PCB.Eagle.Models
                 DrillDiameter = element.GetDouble("drill"),
                 X = element.GetDouble("x"),
                 Y = element.GetDouble("y"),
-                OriginX = element.GetDouble("x"),
-                OriginY = element.GetDouble("y"),
                 Fill = ((int)PCBLayers.Vias).FromEagleColor()
-
             };
         }
     }

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using LagoVista.Core.Models;
 using LagoVista.PCB.Eagle.Extensions;
 using MSDMarkwort.Kicad.Parser.PcbNew.Models.PartFootprint.PartFp;
+using Newtonsoft.Json;
 
 namespace LagoVista.PCB.Eagle.Models
 {
@@ -18,10 +19,11 @@ namespace LagoVista.PCB.Eagle.Models
         public double X2 { get; set; }
         public double Y1 { get; set; }
         public double Y2 { get; set; }
-        public double Width { get; set; }
-        public string Stroke { get; set; }
-        public EntityHeader<PCBLayers> Layer { get; set; }
+        public double W { get; set; }
+        public string S { get; set; }
+        public PCBLayers L { get; set; }
 
+        [JsonIgnore]
         public double Length
         {
             get
@@ -30,6 +32,7 @@ namespace LagoVista.PCB.Eagle.Models
             }
         }
 
+        [JsonIgnore]
         public double Angle
         {
             get
@@ -49,13 +52,13 @@ namespace LagoVista.PCB.Eagle.Models
 
             var rect = new Rect()
             {
-                Layer = element.GetInt32("layer").FromEagleLayer(),
+                L = element.GetInt32("layer").FromEagleLayer(),
                 X1 = element.GetDouble("x1"),
                 X2 = element.GetDouble("x2"),
                 Y1 = element.GetDouble("y1"),
                 Y2 = element.GetDouble("y2"),
-                Width = element.GetDouble("width"),
-                Stroke = element.GetInt32("layer").FromEagleColor()
+                W = element.GetDouble("width"),
+                S = element.GetInt32("layer").FromEagleColor()
             };
 
             return rect;
@@ -66,7 +69,7 @@ namespace LagoVista.PCB.Eagle.Models
             // Note KiCad has origin at top of PCB, we normalize everything to be at bottom left, therefore just negate the Y values since they are relative to origin.
             return new Rect()
             {
-                Layer = rect.Layer.FromKiCadLayer(),
+                L = rect.Layer.FromKiCadLayer(),
                 X1 = rect.StartPosition.X,
                 Y1 = -rect.StartPosition.Y,
                 X2 = rect.EndPosition.X,

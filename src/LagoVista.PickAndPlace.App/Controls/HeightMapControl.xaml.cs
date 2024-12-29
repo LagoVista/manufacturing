@@ -55,9 +55,9 @@ namespace LagoVista.PickAndPlace.App.Controls
 
             if (_topWiresVisible)
             {
-                foreach (var wireSection in board.TopWires.GroupBy(wre => wre.Width))
+                foreach (var wireSection in board.TopWires.GroupBy(wre => wre.W))
                 {
-                    var width = wireSection.First().Width;
+                    var width = wireSection.First().W;
 
                     foreach (var wire in wireSection)
                     {
@@ -76,9 +76,9 @@ namespace LagoVista.PickAndPlace.App.Controls
 
             if (_bottomWiresVisible)
             {
-                foreach (var wireSection in board.BottomWires.GroupBy(wre => wre.Width))
+                foreach (var wireSection in board.BottomWires.GroupBy(wre => wre.W))
                 {
-                    var width = wireSection.First().Width;
+                    var width = wireSection.First().W;
 
                     foreach (var wire in wireSection)
                     {
@@ -101,12 +101,12 @@ namespace LagoVista.PickAndPlace.App.Controls
                 {
                     var padMeshBuilder = new MeshBuilder(false, false);
 
-                    padMeshBuilder.AddBox(new Rect3D(pad.OriginX - (pad.DX / 2), pad.OriginY - (pad.DY / 2), -0.1, (pad.DX), (pad.DY), 0.2));
-                    var box = new GeometryModel3D() { Geometry = padMeshBuilder.ToMesh(true), Material = element.Layer.Value == PCBLayers.TopCopper ? copperMaterial : grayMaterial };
+                    padMeshBuilder.AddBox(new Rect3D(pad.OrgX - (pad.DX / 2), pad.OrgY - (pad.DY / 2), -0.1, (pad.DX), (pad.DY), 0.2));
+                    var box = new GeometryModel3D() { Geometry = padMeshBuilder.ToMesh(true), Material = element.Layer == PCBLayers.TopCopper ? copperMaterial : grayMaterial };
 
                     var transformGroup = new Transform3DGroup();
                     transformGroup.Children.Add(new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 0, 1), element.Rotation)));
-                    transformGroup.Children.Add(new TranslateTransform3D(new Vector3D(element.X.Value, element.Y.Value, element.Layer.Value == PCBLayers.TopCopper ? 0 : 0.05)));
+                    transformGroup.Children.Add(new TranslateTransform3D(new Vector3D(element.X.Value, element.Y.Value, element.Layer == PCBLayers.TopCopper ? 0 : 0.05)));
 
                     box.Transform = transformGroup;
 
@@ -116,12 +116,12 @@ namespace LagoVista.PickAndPlace.App.Controls
                 foreach (var pad in element.Pads)
                 {
                     var padCopperMeshBuilder = new MeshBuilder(false, false);
-                    padCopperMeshBuilder.AddCylinder(new Point3D(pad.X, pad.Y, 0), new Point3D(pad.X, pad.Y, 0.1), pad.DrillDiameter * 0.75);
+                    padCopperMeshBuilder.AddCylinder(new Point3D(pad.X, pad.Y, 0), new Point3D(pad.X, pad.Y, 0.1), pad.D * 0.75);
                     var padCopper = new GeometryModel3D() { Geometry = padCopperMeshBuilder.ToMesh(true), Material = copperMaterial };
                     modelGroup.Children.Add(padCopper);
 
                     var padDrillMeshBuilder = new MeshBuilder(false, false);
-                    padDrillMeshBuilder.AddCylinder(new Point3D(pad.X, pad.Y, 0), new Point3D(pad.X, pad.Y, 0.101), pad.DrillDiameter / 2);
+                    padDrillMeshBuilder.AddCylinder(new Point3D(pad.X, pad.Y, 0), new Point3D(pad.X, pad.Y, 0.101), pad.D / 2);
                     var padDrill = new GeometryModel3D() { Geometry = padDrillMeshBuilder.ToMesh(true), Material = blackMaterial };
                     modelGroup.Children.Add(padDrill);
                 }
@@ -151,7 +151,7 @@ namespace LagoVista.PickAndPlace.App.Controls
                 foreach (var circle in board.Holes)
                 {
                     var circleMeshBuilder = new MeshBuilder(false, false);
-                    circleMeshBuilder.AddCylinder(new Point3D(circle.X, circle.Y, 0), new Point3D(circle.X, circle.Y, 0.01), circle.Drill / 2);
+                    circleMeshBuilder.AddCylinder(new Point3D(circle.X, circle.Y, 0), new Point3D(circle.X, circle.Y, 0.01), circle.D / 2);
                     modelGroup.Children.Add(new GeometryModel3D() { Geometry = circleMeshBuilder.ToMesh(true), Material = blackMaterial });
                 }
 
@@ -166,7 +166,7 @@ namespace LagoVista.PickAndPlace.App.Controls
 
                 var boardEdgeMeshBuilder = new MeshBuilder(false, false);
 
-                var cornerWires = board.Layers.Where(layer => layer.Layer.Value == PCBLayers.BoardOutline).FirstOrDefault().Wires.Where(wire => wire.Curve.HasValue == true);
+                var cornerWires = board.Layers.Where(layer => layer.Layer == PCBLayers.BoardOutline).FirstOrDefault().Wires.Where(wire => wire.Crv.HasValue == true);
                 var radius = cornerWires.Any() ? Math.Abs(cornerWires.First().X1 - cornerWires.First().X2) : 0;
                 if (radius == 0)
                 {

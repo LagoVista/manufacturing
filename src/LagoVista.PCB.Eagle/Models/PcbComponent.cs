@@ -123,8 +123,8 @@ namespace LagoVista.PCB.Eagle.Models
       
         public EntityHeader Component { get; set; }
 
-        public EntityHeader<PCBLayers> Layer { get; set; }
-
+        public PCBLayers Layer { get; set; }
+        
 
         public EntityHeader<PcbPackage> Package { get; set; }
 
@@ -202,7 +202,7 @@ namespace LagoVista.PCB.Eagle.Models
                 Id = Guid.NewGuid().ToId(),
                 Key = element.GetString("name").ToNuvIoTKey() + "cmp",
                 Name = element.GetString("name"),
-                Layer = element.GetString("rot").StartsWith("M") ? EntityHeader<PCBLayers>.Create(PCBLayers.BottomCopper) : EntityHeader<PCBLayers>.Create(PCBLayers.TopCopper),
+                Layer = element.GetString("rot").StartsWith("M") ? PCBLayers.BottomCopper : PCBLayers.TopCopper,
                 LibraryName = element.GetString("library"),
                 PackageName = element.GetString("package"),
                 Rotation = element.GetString("rot").ToAngle(),
@@ -230,9 +230,6 @@ namespace LagoVista.PCB.Eagle.Models
                 Rotation = fp.PositionAt.Angle,
                 Layer = fp.Layer.FromKiCadLayer()
             };
-
-            if (reference == "TP8")
-                Debugger.Break();
 
             var pck = PcbPackage.Create(fp);
             cmp.Package = EntityHeader<PcbPackage>.Create(pck);

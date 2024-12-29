@@ -9,7 +9,7 @@ namespace LagoVista.PickAndPlace.Interfaces
     public interface IHeightMapManager : INotifyPropertyChanged
     {
         /// <summary>
-        /// The current Height Map
+        /// The current H Map
         /// </summary>
         HeightMap HeightMap { get; }
 
@@ -37,17 +37,17 @@ namespace LagoVista.PickAndPlace.Interfaces
         void CreateTestPattern();
 
         /// <summary>
-        /// Start a Height Map Probing Job
+        /// Start a H Map Probing Job
         /// </summary>
         void StartProbing();
 
         /// <summary>
-        /// Pause the current Height Map Probing Job
+        /// Pause the current H Map Probing Job
         /// </summary>
         void PauseProbing();
 
         /// <summary>
-        /// Cancel the current Height Map Probing Job
+        /// Cancel the current H Map Probing Job
         /// </summary>
         void CancelProbing();
 

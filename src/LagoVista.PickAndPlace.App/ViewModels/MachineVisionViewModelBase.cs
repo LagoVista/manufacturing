@@ -447,7 +447,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 Line(output, (int)rect.Right, (int)rect.Bottom, (int)rect.Left, (int)rect.Bottom, System.Drawing.Color.White);
                 Line(output, (int)rect.Left, (int)rect.Bottom, (int)rect.Left, (int)rect.Top, System.Drawing.Color.White);
 
-                //var msg = $"{rect.Angle:0.0} {(rect.Size.Width / Machine.Settings.InspectionCameraPixelsPerMM):0.0}x{(rect.Size.Height / Machine.Settings.InspectionCameraPixelsPerMM):0.0}";
+                //var msg = $"{rect.Angle:0.0} {(rect.Sz.W / Machine.Settings.InspectionCameraPixelsPerMM):0.0}x{(rect.Sz.H / Machine.Settings.InspectionCameraPixelsPerMM):0.0}";
 
                 //var center = new Point()
                 //{
@@ -455,7 +455,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 //    Y = (int)rect.Center.Y,
                 //};
 
-                //CvInvoke.PutText(output, msg, center, FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Stroke.White).MCvScalar);
+                //CvInvoke.PutText(output, msg, center, FontFace.HersheyPlain, 1, new Bgr(System.Drawing.S.White).MCvScalar);
             }
 
         }
@@ -575,10 +575,10 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                                             //_rectP4.Add(p4);
 
                                             /*
-                                            CvInvoke.Line(output, point1, point2, new Bgr(System.Drawing.Stroke.Red).MCvScalar);
-                                            CvInvoke.Line(output, point2, point3, new Bgr(System.Drawing.Stroke.Red).MCvScalar);
-                                            CvInvoke.Line(output, point3, point4, new Bgr(System.Drawing.Stroke.Red).MCvScalar);
-                                            CvInvoke.Line(output, point4, point1, new Bgr(System.Drawing.Stroke.Red).MCvScalar);
+                                            CvInvoke.Line(output, point1, point2, new Bgr(System.Drawing.S.Red).MCvScalar);
+                                            CvInvoke.Line(output, point2, point3, new Bgr(System.Drawing.S.Red).MCvScalar);
+                                            CvInvoke.Line(output, point3, point4, new Bgr(System.Drawing.S.Red).MCvScalar);
+                                            CvInvoke.Line(output, point4, point1, new Bgr(System.Drawing.S.Red).MCvScalar);
                                             */
                                         }
                                     }
@@ -605,10 +605,10 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
                 //if (avg1 != null && avg2 != null && avg3 != null && avg4 != null)
                 //{
-                //    Line(output, (int)avg1.X, (int)avg1.Y, (int)avg2.X, (int)avg2.Y, System.Drawing.Stroke.Red);
-                //    Line(output, (int)avg2.X, (int)avg2.Y, (int)avg3.X, (int)avg3.Y, System.Drawing.Stroke.Red);
-                //    Line(output, (int)avg3.X, (int)avg3.Y, (int)avg4.X, (int)avg4.Y, System.Drawing.Stroke.Red);
-                //    Line(output, (int)avg4.X, (int)avg4.Y, (int)avg1.X, (int)avg1.Y, System.Drawing.Stroke.Red);
+                //    Line(output, (int)avg1.X, (int)avg1.Y, (int)avg2.X, (int)avg2.Y, System.Drawing.S.Red);
+                //    Line(output, (int)avg2.X, (int)avg2.Y, (int)avg3.X, (int)avg3.Y, System.Drawing.S.Red);
+                //    Line(output, (int)avg3.X, (int)avg3.Y, (int)avg4.X, (int)avg4.Y, System.Drawing.S.Red);
+                //    Line(output, (int)avg4.X, (int)avg4.Y, (int)avg1.X, (int)avg1.Y, System.Drawing.S.Red);
                 //}
             }
         }

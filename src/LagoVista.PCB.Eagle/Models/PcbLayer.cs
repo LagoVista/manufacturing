@@ -29,7 +29,7 @@ namespace LagoVista.PCB.Eagle.Models
         public string Name { get; set; }
         public string Key { get; set; }
 
-        public EntityHeader<PCBLayers> Layer { get; set; }
+        public PCBLayers Layer { get; set; }
         public int Color { get; set; }
         public int Fill { get; set; }
 

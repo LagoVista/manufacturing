@@ -45,7 +45,7 @@ namespace LagoVista.PCB.Eagle.Models
             var minY = 99999.0;
             var maxY = -1.0;
 
-            if (pck.Pads.Any()) minY = Math.Min(minY, pck.Pads.Min(pd => pd.Y - pd.Height));
+            if (pck.Pads.Any()) minY = Math.Min(minY, pck.Pads.Min(pd => pd.Y - pd.H));
             if (pck.Rects.Any()) minY = Math.Min(minY, pck.Rects.Min(pd => pd.Y1));
             if (pck.Rects.Any()) minY = Math.Min(minY, pck.Rects.Min(pd => pd.Y2));
             if (pck.SmdPads.Any()) minY = Math.Min(minY, pck.SmdPads.Min(pd => pd.Y1));
@@ -54,9 +54,9 @@ namespace LagoVista.PCB.Eagle.Models
             if (pck.Wires.Any()) minY = Math.Min(minY, pck.Wires.Min(pd => pd.Y2));
             if (pck.Polygons.Any()) minY = Math.Min(minY, pck.Polygons.Min(pd => pd.Lines.Min(p => p.Y1)));
             if (pck.Polygons.Any()) minY = Math.Min(minY, pck.Polygons.Min(pd => pd.Lines.Min(p => p.Y2)));
-            if (pck.Circles.Any()) minY = Math.Min(minY, pck.Circles.Min(pd => pd.Y - pd.Radius));
+            if (pck.Circles.Any()) minY = Math.Min(minY, pck.Circles.Min(pd => pd.Y - pd.R));
 
-            if (pck.Pads.Any()) maxY = Math.Max(maxY, pck.Pads.Max(pd => pd.Y + pd.Height));
+            if (pck.Pads.Any()) maxY = Math.Max(maxY, pck.Pads.Max(pd => pd.Y + pd.H));
             if (pck.Rects.Any()) maxY = Math.Max(maxY, pck.Rects.Max(pd => pd.Y1));
             if (pck.Rects.Any()) maxY = Math.Max(maxY, pck.Rects.Max(pd => pd.Y2));
             if (pck.SmdPads.Any()) maxY = Math.Max(maxY, pck.SmdPads.Max(pd => pd.Y1));
@@ -65,9 +65,9 @@ namespace LagoVista.PCB.Eagle.Models
             if (pck.Wires.Any()) maxY = Math.Max(maxY, pck.Wires.Max(pd => pd.Y2));
             if (pck.Polygons.Any()) maxY = Math.Max(maxY, pck.Polygons.Max(pd => pd.Lines.Max(p => p.Y1)));
             if (pck.Polygons.Any()) maxY = Math.Max(maxY, pck.Polygons.Max(pd => pd.Lines.Max(p => p.Y2)));
-            if (pck.Circles.Any()) maxY = Math.Max(maxY, pck.Circles.Max(pd => pd.Y + pd.Radius));
+            if (pck.Circles.Any()) maxY = Math.Max(maxY, pck.Circles.Max(pd => pd.Y + pd.R));
 
-            if (pck.Pads.Any()) minX = Math.Min(minX, pck.Pads.Min(pd => pd.X - pd.Width));
+            if (pck.Pads.Any()) minX = Math.Min(minX, pck.Pads.Min(pd => pd.X - pd.W));
             if (pck.Rects.Any()) minX = Math.Min(minX, pck.Rects.Min(pd => pd.X1));
             if (pck.Rects.Any()) minX = Math.Min(minX, pck.Rects.Min(pd => pd.X2));
             if (pck.SmdPads.Any()) minX = Math.Min(minX, pck.SmdPads.Min(pd => pd.X1));
@@ -76,9 +76,9 @@ namespace LagoVista.PCB.Eagle.Models
             if (pck.Wires.Any()) minX = Math.Min(minX, pck.Wires.Min(pd => pd.X2));
             if (pck.Polygons.Any()) minX = Math.Min(minX, pck.Polygons.Min(pd => pd.Lines.Min(p => p.X1)));
             if (pck.Polygons.Any()) minX = Math.Min(minX, pck.Polygons.Min(pd => pd.Lines.Min(p => p.X2)));
-            if (pck.Circles.Any()) minX = Math.Min(minX, pck.Circles.Min(pd => pd.X - pd.Radius));
+            if (pck.Circles.Any()) minX = Math.Min(minX, pck.Circles.Min(pd => pd.X - pd.R));
 
-            if (pck.Pads.Any()) maxX = Math.Max(maxX, pck.Pads.Max(pd => pd.X + pd.Width));
+            if (pck.Pads.Any()) maxX = Math.Max(maxX, pck.Pads.Max(pd => pd.X + pd.W));
             if (pck.Rects.Any()) maxX = Math.Max(maxX, pck.Rects.Max(pd => pd.X1));
             if (pck.Rects.Any()) maxX = Math.Max(maxX, pck.Rects.Max(pd => pd.X2));
             if (pck.SmdPads.Any()) maxX = Math.Max(maxX, pck.SmdPads.Max(pd => pd.X1));
@@ -87,7 +87,7 @@ namespace LagoVista.PCB.Eagle.Models
             if (pck.Wires.Any()) maxX = Math.Max(maxX, pck.Wires.Max(pd => pd.X2));
             if (pck.Polygons.Any()) maxX = Math.Max(maxX, pck.Polygons.Max(pd => pd.Lines.Max(p => p.X1)));
             if (pck.Polygons.Any()) maxX = Math.Max(maxX, pck.Polygons.Max(pd => pd.Lines.Max(p => p.X2)));
-            if (pck.Circles.Any()) maxX = Math.Max(maxX, pck.Circles.Max(pd => pd.X + pd.Radius));
+            if (pck.Circles.Any()) maxX = Math.Max(maxX, pck.Circles.Max(pd => pd.X + pd.R));
 
             pck.Width = maxX - minX;
             pck.Height = maxY - minY;

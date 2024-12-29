@@ -26,7 +26,7 @@ namespace LagoVista.Pcb.Tests
 
             foreach (var pad in r1.Package.Value.SmdPads)
             {
-                Console.WriteLine($"{pad.Name} + {pad.X1}x{pad.Y1} - ({pad.X2}x{pad.Y2}) O={pad.OriginX}x{pad.OriginY} - size={pad.DX}x{pad.DY} ");
+                Console.WriteLine($"{pad.N} + {pad.X1}x{pad.Y1} - ({pad.X2}x{pad.Y2}) O={pad.OrgX}x{pad.OrgY} - size={pad.DX}x{pad.DY} ");
             }
         }
 
@@ -57,7 +57,7 @@ namespace LagoVista.Pcb.Tests
 
                 foreach (var pad in r1.Package.Value.SmdPads)
                 {
-                    Console.WriteLine($"F350  -> Start=({pad.X1}x{pad.Y1}) - End=({pad.X2} x {pad.Y2}) O=({pad.OriginX} x {pad.OriginY}) - size=({pad.DX} x {pad.DY})");
+                    Console.WriteLine($"F350  -> Start=({pad.X1}x{pad.Y1}) - End=({pad.X2} x {pad.Y2}) O=({pad.OrgX} x {pad.OrgY}) - size=({pad.DX} x {pad.DY})");
                 }
             }
 
@@ -71,7 +71,7 @@ namespace LagoVista.Pcb.Tests
 
                 foreach (var pad in r1.Package.Value.SmdPads)
                 {
-                    Console.WriteLine($"KICAD -> Start=({pad.X1}x{pad.Y1}) - End=({pad.X2} x {pad.Y2}) O=({pad.OriginX} x {pad.OriginY}) - size=({pad.DX} x {pad.DY})");
+                    Console.WriteLine($"KICAD -> Start=({pad.X1}x{pad.Y1}) - End=({pad.X2} x {pad.Y2}) O=({pad.OrgX} x {pad.OrgY}) - size=({pad.DX} x {pad.DY})");
                 }
             }
         }
@@ -91,7 +91,7 @@ namespace LagoVista.Pcb.Tests
 
                 foreach (var pad in r1.Package.Value.SmdPads)
                 {
-                    Console.WriteLine($"{pad.Name} + {pad.X1}x{pad.Y1} - ({pad.X2}x{pad.Y2}) O={pad.OriginX}x{pad.OriginY} - size={pad.DX}x{pad.DY} ");
+                    Console.WriteLine($"{pad.N} + {pad.X1}x{pad.Y1} - ({pad.X2}x{pad.Y2}) O={pad.OrgX}x{pad.OrgY} - size={pad.DX}x{pad.DY} ");
                 }
             }
         }

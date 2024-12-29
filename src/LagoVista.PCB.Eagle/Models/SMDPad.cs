@@ -11,10 +11,10 @@ namespace LagoVista.PCB.Eagle.Models
 {
     public class SMDPad
     {
-        public EntityHeader<PCBLayers> Layer { get; set; }
-        public string Name { get; set; }
-        public double OriginX { get; set; }
-        public double OriginY { get; set; }
+        public PCBLayers Layer { get; set; }
+        public string N { get; set; }
+        public double OrgX { get; set; }
+        public double OrgY { get; set; }
 
         public double X1 { get; set; }
         public double Y1 { get; set; }
@@ -22,10 +22,10 @@ namespace LagoVista.PCB.Eagle.Models
         public double Y2 { get; set; }
         public double DX { get; set; }
         public double DY { get; set; }
-        public double? Roundness { get; set; }
-        public double Rotation { get; set; }
-        public string Shape { get; set; }
-        public string Fill { get; set; }
+        public double? Rnd { get; set; }
+        public double A { get; set; }
+        public string Shp { get; set; }
+        public string F { get; set; }
 
         public SMDPad ApplyRotation(double angle)
         {
@@ -64,20 +64,20 @@ namespace LagoVista.PCB.Eagle.Models
             var smd = new SMDPad()
             {
                 Layer = element.GetInt32("layer").FromEagleLayer(),
-                Name = element.GetString("name"),
-                OriginX = element.GetDouble("x"),
-                OriginY = element.GetDouble("y"),
+                N = element.GetString("name"),
+                OrgX = element.GetDouble("x"),
+                OrgY = element.GetDouble("y"),
                 DX = element.GetDouble("dx"),
                 DY = element.GetDouble("dy"),
-                Roundness = element.GetDoubleNullable("roundness"),
-                Rotation = element.GetString("rot").ToAngle(),
-                Fill = element.GetInt32("layer").FromEagleColor(),
+                Rnd = element.GetDoubleNullable("roundness"),
+                A = element.GetString("rot").ToAngle(),
+                F = element.GetInt32("layer").FromEagleColor(),
             };
 
-            smd.Shape = smd.Roundness > 0 ? "roundrect" : "rect";
+            smd.Shp = smd.Rnd > 0 ? "roundrect" : "rect";
 
-            smd.X1 = Math.Round(smd.OriginX - (smd.DX / 2), 3);
-            smd.Y1 = Math.Round(smd.OriginY - (smd.DY / 2), 3);
+            smd.X1 = Math.Round(smd.OrgX - (smd.DX / 2), 3);
+            smd.Y1 = Math.Round(smd.OrgY - (smd.DY / 2), 3);
             smd.X2 = Math.Round(smd.X1 + smd.DX, 3);
             smd.Y2 = Math.Round(smd.Y1 + smd.DY, 3);
 
@@ -94,20 +94,20 @@ namespace LagoVista.PCB.Eagle.Models
                 var smd = new SMDPad()
                 {
                     Layer = pad.Layers.FirstOrDefault().FromKiCadLayer(),
-                    Name = pad.PadNumber,
-                    OriginX = pad.PositionAt.X,
-                    OriginY = -pad.PositionAt.Y,
+                    N = pad.PadNumber,
+                    OrgX = pad.PositionAt.X,
+                    OrgY = -pad.PositionAt.Y,
                     DX = pad.Size.Width,
                     DY = pad.Size.Height,
-                    Rotation = (pad.PositionAt.Angle - fpAngle),                    
+                    A = (pad.PositionAt.Angle - fpAngle),                    
                 };
 
-                smd.X1 = Math.Round(smd.OriginX - (smd.DX / 2), 3);
-                smd.Y1 = Math.Round(smd.OriginY - (smd.DY / 2), 2);
+                smd.X1 = Math.Round(smd.OrgX - (smd.DX / 2), 3);
+                smd.Y1 = Math.Round(smd.OrgY - (smd.DY / 2), 2);
                 smd.X2 = Math.Round(smd.X1 + smd.DX, 3);
                 smd.Y2 = Math.Round(smd.Y1 + smd.DY, 3);
-                smd.Shape = pad.Shape;
-                smd.Fill = MSDMarkwort.Kicad.Parser.Model.Common.Color.LayerToColor(layer);
+                smd.Shp = pad.Shape;
+                smd.F = MSDMarkwort.Kicad.Parser.Model.Common.Color.LayerToColor(layer);
                 pads.Add(smd);
             }
 

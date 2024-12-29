@@ -50,7 +50,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             //{
             //    SelectedBuildFlavor = new BuildFlavor()
             //    {
-            //        Name = "Default"
+            //        N = "Default"
             //    };
 
             //    foreach (var entry in _billOfMaterials.SMDEntries)

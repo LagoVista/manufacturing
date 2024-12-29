@@ -44,7 +44,7 @@ namespace LagoVista.PickAndPlace.ViewModels
                 {
                     var doc = XDocument.Load(Project.EagleBRDFilePath);
                     PCB = EagleParser.ReadPCB(doc);
-                    Project.FiducialOptions = PCB.Holes.Where(drl => drl.Drill > 2).ToList();
+                    Project.FiducialOptions = PCB.Holes.Where(drl => drl.D > 2).ToList();
                 }
                 catch (Exception) { }
             }
@@ -80,7 +80,7 @@ namespace LagoVista.PickAndPlace.ViewModels
 
                     var doc = XDocument.Load(Project.EagleBRDFilePath);
                     PCB = EagleParser.ReadPCB(doc);
-                    Project.FiducialOptions = PCB.Holes.Where(drl => drl.Drill > 2).ToList();
+                    Project.FiducialOptions = PCB.Holes.Where(drl => drl.D > 2).ToList();
                 }
                 catch
                 {

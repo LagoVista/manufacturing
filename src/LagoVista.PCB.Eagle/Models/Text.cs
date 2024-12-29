@@ -8,13 +8,13 @@ namespace LagoVista.PCB.Eagle.Models
 {
     public class Text
     {
-        public EntityHeader<PCBLayers> Layer { get; set; }
+        public PCBLayers L { get; set; }
         public double X { get; set; }
         public double Y { get; set; }
-        public string Value { get; set; }
-        public double Size { get; set; }
-        public double Rotation { get; set; }
-        public string Storke { get; set; }
+        public string V { get; set; }
+        public double Sz { get; set; }
+        public double A { get; set; }
+        public string S { get; set; }
 
 
         public static Text Create(XElement element)
@@ -23,12 +23,13 @@ namespace LagoVista.PCB.Eagle.Models
 
             var text = new Text()
             {
-                Layer = element.GetInt32("layer").FromEagleLayer(),
+                L = element.GetInt32("layer").FromEagleLayer(),
                 X = element.GetDouble("x"),
                 Y = element.GetDouble("y"),
-                Value = element.Value,
-                Size = element.GetDouble("size"),                
-                Rotation = element.GetString("rot")?.ToAngle() ?? 0
+                V = element.Value,
+                Sz = element.GetDouble("size"),
+                A = element.GetString("rot")?.ToAngle() ?? 0,
+                S = element.GetInt32("layer").FromEagleColor()
             };            
 
             return text;
@@ -39,11 +40,11 @@ namespace LagoVista.PCB.Eagle.Models
             // Note KiCad has origin at top of PCB, we normalize everything to be at bottom left, therefore just negate the Y values since they are relative to origin.
             return new Text()
             {
-                Layer = text.Layer.FromKiCadLayer(),
+                L = text.Layer.FromKiCadLayer(),
                 X = text.PositionAt.X,
                 Y = -text.PositionAt.Y,
-                Value = text.Text,
-                Storke = text.Stroke.Color.ToString(text.Layer)
+                V = text.Text,
+                S = text.Stroke.Color.ToString(text.Layer)
             };
         }
     }

@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace LagoVista.PCB.Eagle.Models
@@ -17,27 +14,30 @@ namespace LagoVista.PCB.Eagle.Models
 
         public static Signal Create(XElement element)
         {
-            return new Signal()
+            var signal = new Signal()
             {
                 Name = element.GetString("name"),
-                Wires = (from childWires in element.Descendants("wire") select PcbLine.Create(childWires)).ToList(),
                 Contacts = (from refs in element.Descendants("contactref") select ContactRef.Create(refs)).ToList(),
             };
+
+            signal.Wires = (from childWires in element.Descendants("wire") select PcbLine.Create(childWires, signal.Name)).ToList();
+           
+            return signal;
         }
 
         public List<PcbLine> UnroutedWires
         {
-            get { return Wires.Where(wire => wire.Layer.Value == PCBLayers.Unrouted).ToList(); }
+            get { return Wires.Where(wire => wire.L == PCBLayers.Unrouted).ToList(); }
         }
 
         public List<PcbLine> TopWires
         {
-            get { return Wires.Where(wire => wire.Layer.Value == PCBLayers.TopCopper).ToList(); }
+            get { return Wires.Where(wire => wire.L == PCBLayers.TopCopper).ToList(); }
         }
 
         public List<PcbLine> BottomWires
         {
-            get { return Wires.Where(wire => wire.Layer.Value == PCBLayers.BottomCopper).ToList(); }
+            get { return Wires.Where(wire => wire.L == PCBLayers.BottomCopper).ToList(); }
         }
 
         private List<Trace> FindTraces(List<PcbLine> unprocessedWires)

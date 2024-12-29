@@ -9,40 +9,72 @@ namespace LagoVista.PCB.Eagle.Extensions
 {
     public static class LayerUtils
     {
-        public static EntityHeader<PCBLayers> FromEagleLayer(this int layerNumber)
+        //public static EntityHeader<PCBLayers> FromEagleLayer(this int layerNumber)
+        //{
+        //    switch (layerNumber)
+        //    {
+        //        case 1: return (PCBLayers.TopCopper);
+        //        case 16: return (PCBLayers.BottomCopper);
+        //        case 17: return (PCBLayers.Pads);
+        //        case 18: return (PCBLayers.Vias);
+        //        case 21: return (PCBLayers.TopSilk);
+        //        case 22: return (PCBLayers.BottomSilk);
+        //        case 44: return (PCBLayers.Drills);
+        //        case 45: return (PCBLayers.Holes);
+        //        case 20: return (PCBLayers.BoardOutline);
+        //        case 51: return (PCBLayers.TopDocument);
+        //        case 52: return (PCBLayers.BottomDocument);
+        //        case 25: return (PCBLayers.TopNames);
+        //        case 26: return (PCBLayers.BottomNames);
+        //        case 27: return (PCBLayers.TopValues);
+        //        case 28: return (PCBLayers.BottomValues);
+        //        case 29: return (PCBLayers.TopSolderMask);
+        //        case 30: return (PCBLayers.BottomSolderMask);
+        //        case 31: return (PCBLayers.TopStencil);
+        //        case 32: return (PCBLayers.BottomRestrict);
+        //        case 41: return (PCBLayers.TopRestrict);
+        //        case 42: return (PCBLayers.BottomRestrict);
+        //        case 49: return (PCBLayers.TopDocument);
+        //        case 47: return (PCBLayers.Measures);
+        //        case 19: return (PCBLayers.Unrouted);
+        //        default:
+        //            {
+        //                var eh = (PCBLayers.Other);
+        //                eh.Text = $"Unspported layer: {layerNumber}";
+        //                return eh;
+        //            }
+        //    };
+        //}
+
+        public static PCBLayers FromEagleLayer(this int layerNumber)
         {
             switch (layerNumber)
             {
-                case 1: return EntityHeader<PCBLayers>.Create(PCBLayers.TopCopper);
-                case 16: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomCopper);
-                case 17: return EntityHeader<PCBLayers>.Create(PCBLayers.Pads);
-                case 18: return EntityHeader<PCBLayers>.Create(PCBLayers.Vias);
-                case 21: return EntityHeader<PCBLayers>.Create(PCBLayers.TopSilk);
-                case 22: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomSilk);
-                case 44: return EntityHeader<PCBLayers>.Create(PCBLayers.Drills);
-                case 45: return EntityHeader<PCBLayers>.Create(PCBLayers.Holes);
-                case 20: return EntityHeader<PCBLayers>.Create(PCBLayers.BoardOutline);
-                case 51: return EntityHeader<PCBLayers>.Create(PCBLayers.TopDocument);
-                case 52: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomDocument);
-                case 25: return EntityHeader<PCBLayers>.Create(PCBLayers.TopNames);
-                case 26: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomNames);
-                case 27: return EntityHeader<PCBLayers>.Create(PCBLayers.TopValues);
-                case 28: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomValues);
-                case 29: return EntityHeader<PCBLayers>.Create(PCBLayers.TopSolderMask);
-                case 30: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomSolderMask);
-                case 31: return EntityHeader<PCBLayers>.Create(PCBLayers.TopStencil);
-                case 32: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomRestrict);
-                case 41: return EntityHeader<PCBLayers>.Create(PCBLayers.TopRestrict);
-                case 42: return EntityHeader<PCBLayers>.Create(PCBLayers.BottomRestrict);
-                case 49: return EntityHeader<PCBLayers>.Create(PCBLayers.TopDocument);
-                case 47: return EntityHeader<PCBLayers>.Create(PCBLayers.Measures);
-                case 19: return EntityHeader<PCBLayers>.Create(PCBLayers.Unrouted);
-                default:
-                    {
-                        var eh = EntityHeader<PCBLayers>.Create(PCBLayers.Other);
-                        eh.Text = $"Unspported layer: {layerNumber}";
-                        return eh;
-                    }
+                case 1: return (PCBLayers.TopCopper);
+                case 16: return (PCBLayers.BottomCopper);
+                case 17: return (PCBLayers.Pads);
+                case 18: return (PCBLayers.Vias);
+                case 21: return (PCBLayers.TopSilk);
+                case 22: return (PCBLayers.BottomSilk);
+                case 44: return (PCBLayers.Drills);
+                case 45: return (PCBLayers.Holes);
+                case 20: return (PCBLayers.BoardOutline);
+                case 51: return (PCBLayers.TopDocument);
+                case 52: return (PCBLayers.BottomDocument);
+                case 25: return (PCBLayers.TopNames);
+                case 26: return (PCBLayers.BottomNames);
+                case 27: return (PCBLayers.TopValues);
+                case 28: return (PCBLayers.BottomValues);
+                case 29: return (PCBLayers.TopSolderMask);
+                case 30: return (PCBLayers.BottomSolderMask);
+                case 31: return (PCBLayers.TopStencil);
+                case 32: return (PCBLayers.BottomRestrict);
+                case 41: return (PCBLayers.TopRestrict);
+                case 42: return (PCBLayers.BottomRestrict);
+                case 49: return (PCBLayers.TopDocument);
+                case 47: return (PCBLayers.Measures);
+                case 19: return (PCBLayers.Unrouted);
+                default: return PCBLayers.Other;
             };
         }
 
@@ -72,40 +104,65 @@ namespace LagoVista.PCB.Eagle.Extensions
                 case 32: return "#AFAF00";
                 case 41: return "#ff0000";
                 case 42: return "#7f0000";
-                case 19: return "#a0a028";                
+                case 19: return "#a0a028";
                 case 47: return "#5fffff";
-                default: return "#ffffff"; 
+                default: return "#ffffff";
             };
         }
 
-        public static EntityHeader<PCBLayers> FromKiCadLayer(this string layerName)
+        public static PCBLayers FromKiCadLayer(this string layerName)
         {
-            switch(layerName)
+            switch (layerName)
             {
-                case "F.Cu": return EntityHeader<PCBLayers>.Create(PCBLayers.TopCopper);
-                case "B.Cu": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomCopper);
-                case "F.Silkscreen": return EntityHeader<PCBLayers>.Create(PCBLayers.TopSilk);
-                case "F.SilkS": return EntityHeader<PCBLayers>.Create(PCBLayers.TopSilk);
-                case "B.Silkscreen": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomSilk);
-                case "B.SilkS": return EntityHeader<PCBLayers>.Create(PCBLayers.TopSilk);
-                case "Edge.Cuts": return EntityHeader<PCBLayers>.Create(PCBLayers.BoardOutline);
-                case "F.Fab": return EntityHeader<PCBLayers>.Create(PCBLayers.TopNames);
-                case "B.Fab": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomNames);
-                case "F.Mask": return EntityHeader<PCBLayers>.Create(PCBLayers.TopSolderMask);
-                case "B.Mask": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomSolderMask);
-                case "F.Paste": return EntityHeader<PCBLayers>.Create(PCBLayers.TopStencil);
-                case "B.Paste": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomStencil);
-                case "F.CrtYd": return EntityHeader<PCBLayers>.Create(PCBLayers.TopRestrict);
-                case "B.CrtYd": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomRestrict);
-                case "F.Courtyard": return EntityHeader<PCBLayers>.Create(PCBLayers.TopRestrict);
-                case "B.Courtyard": return EntityHeader<PCBLayers>.Create(PCBLayers.BottomRestrict);
-                default:
-                    {
-                        var eh = EntityHeader<PCBLayers>.Create(PCBLayers.Other);
-                        eh.Text = $"Unsupported Layer: {layerName}";
-                        return eh;
-                    }
-                 }
+                case "F.Cu": return (PCBLayers.TopCopper);
+                case "B.Cu": return (PCBLayers.BottomCopper);
+                case "F.Silkscreen": return (PCBLayers.TopSilk);
+                case "F.SilkS": return (PCBLayers.TopSilk);
+                case "B.Silkscreen": return (PCBLayers.BottomSilk);
+                case "B.SilkS": return (PCBLayers.TopSilk);
+                case "Edge.Cuts": return (PCBLayers.BoardOutline);
+                case "F.Fab": return (PCBLayers.TopNames);
+                case "B.Fab": return (PCBLayers.BottomNames);
+                case "F.Mask": return (PCBLayers.TopSolderMask);
+                case "B.Mask": return (PCBLayers.BottomSolderMask);
+                case "F.Paste": return (PCBLayers.TopStencil);
+                case "B.Paste": return (PCBLayers.BottomStencil);
+                case "F.CrtYd": return (PCBLayers.TopRestrict);
+                case "B.CrtYd": return (PCBLayers.BottomRestrict);
+                case "F.Courtyard": return (PCBLayers.TopRestrict);
+                case "B.Courtyard": return (PCBLayers.BottomRestrict);
+                default: return PCBLayers.Other;
             }
+        }
+
+        //public static EntityHeader<PCBLayers> FromKiCadLayer(this string layerName)
+        //{
+        //    switch (layerName)
+        //    {
+        //        case "F.Cu": return (PCBLayers.TopCopper);
+        //        case "B.Cu": return (PCBLayers.BottomCopper);
+        //        case "F.Silkscreen": return (PCBLayers.TopSilk);
+        //        case "F.SilkS": return (PCBLayers.TopSilk);
+        //        case "B.Silkscreen": return (PCBLayers.BottomSilk);
+        //        case "B.SilkS": return (PCBLayers.TopSilk);
+        //        case "Edge.Cuts": return (PCBLayers.BoardOutline);
+        //        case "F.Fab": return (PCBLayers.TopNames);
+        //        case "B.Fab": return (PCBLayers.BottomNames);
+        //        case "F.Mask": return (PCBLayers.TopSolderMask);
+        //        case "B.Mask": return (PCBLayers.BottomSolderMask);
+        //        case "F.Paste": return (PCBLayers.TopStencil);
+        //        case "B.Paste": return (PCBLayers.BottomStencil);
+        //        case "F.CrtYd": return (PCBLayers.TopRestrict);
+        //        case "B.CrtYd": return (PCBLayers.BottomRestrict);
+        //        case "F.Courtyard": return (PCBLayers.TopRestrict);
+        //        case "B.Courtyard": return (PCBLayers.BottomRestrict);
+        //        default:
+        //            {
+        //                var eh = (PCBLayers.Other);
+        //                eh.Text = $"Unsupported Layer: {layerName}";
+        //                return eh;
+        //            }
+        //    }
+        //}
     }
 }

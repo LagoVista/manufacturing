@@ -49,7 +49,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             try
             {
                 var cameras = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
-                //    var camera = cameras.FirstOrDefault(cam => cam.Name == cameraName);
+                //    var camera = cameras.FirstOrDefault(cam => cam.N == cameraName);
                 var camera = cameras.Select((cam, idx) => new { cam = cam, index = idx }).FirstOrDefault(cam => cam.cam.Name == cameraName);
                 if (camera != null)
                     return new VideoCapture(camera.index);

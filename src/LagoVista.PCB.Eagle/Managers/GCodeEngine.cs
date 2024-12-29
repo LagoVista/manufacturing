@@ -18,7 +18,7 @@ namespace LagoVista.PCB.Eagle.Managers
             {
                 foreach (var bit in consolidatedBit.Bits)
                 {
-                    if (bit.Diameter == drill.Diameter)
+                    if (bit.Diameter == drill.D)
                     {
                         return new DrillBit()
                         {
@@ -53,22 +53,20 @@ namespace LagoVista.PCB.Eagle.Managers
                     var consolidatedBit = GetConsolidated(drill, pcbProject.ConsolidatedDrillRack);
 
                     /* If it found a match replace it, otherwise assign to original */
-                    modifiedDrill.Name = consolidatedBit == null ? String.Empty : consolidatedBit.ToolName;
-                    modifiedDrill.Diameter = consolidatedBit == null ? drill.Diameter : consolidatedBit.Diameter;
+                    modifiedDrill.D = consolidatedBit == null ? drill.D : consolidatedBit.Diameter;
 
                     modifiedDrills.Add(modifiedDrill);
                 }
 
-                var tools = modifiedDrills.GroupBy(drl => drl.Diameter);
+                var tools = modifiedDrills.GroupBy(drl => drl.D);
 
                 var bits = (from tool
                          in tools
-                            orderby tool.First().Diameter
+                            orderby tool.First().D
                             select new DrillRackInfo()
                             {
-                                Diameter = tool.First().Diameter,
+                                Diameter = tool.First().D,
                                 DrillCount = tool.Count(),
-                                DrillName = tool.First().Name,
                             }).ToList();
 
                 var idx = 1;
@@ -85,13 +83,12 @@ namespace LagoVista.PCB.Eagle.Managers
             else
             {
                 return (from tool
-                         in pcb.Drills.GroupBy(drl => drl.Diameter)
-                        orderby tool.First().Diameter
+                         in pcb.Drills.GroupBy(drl => drl.D)
+                        orderby tool.First().D
                         select new DrillRackInfo()
                         {
-                            Diameter = tool.First().Diameter,
+                            Diameter = tool.First().D,
                             DrillCount = tool.Count(),
-                            DrillName = tool.First().Name
                         }).ToList();
             }
         }
@@ -119,25 +116,24 @@ namespace LagoVista.PCB.Eagle.Managers
                     };
 
                     var consolidatedBit = GetConsolidated(drill, pcbProject.ConsolidatedDrillRack);
-                    modifiedDrill.Name = consolidatedBit == null ? drill.Name : consolidatedBit.ToolName.Replace("TC","T");
-                    modifiedDrill.Diameter = consolidatedBit == null ? drill.Diameter : consolidatedBit.Diameter;
+                    modifiedDrill.D = consolidatedBit == null ? drill.D : consolidatedBit.Diameter;
 
                     modifiedDrills.Add(modifiedDrill);
                 }
 
-                var tools = modifiedDrills.GroupBy(drl => drl.Diameter);
+                var tools = modifiedDrills.GroupBy(drl => drl.D);
                 foreach(var tool in tools)
                 {
-                    bldr.AppendLine($"( {tool.First().Name.Replace("TC","T")} : {tool.First().Diameter.ToDim()} ) ");
+                    bldr.AppendLine($"( {tool.First().D.ToString().Replace("TC","T")} : {tool.First().D.ToDim()} ) ");
                 }
                 
 
                 /* Should be OK to do first here */
-                foreach (var tool in tools.OrderBy(tl => tl.First().Diameter))
+                foreach (var tool in tools.OrderBy(tl => tl.First().D))
                 {
                     bldr.AppendLine("M05");
                     bldr.AppendLine($"G0 Z{pcbProject.DrillSafeHeight.ToDim()}");
-                    bldr.AppendLine($"M06 {tool.First().Name.Replace("TC","T")}; {tool.First().Diameter.ToDim()}");
+                    bldr.AppendLine($"M06 {tool.First().D.ToString().Replace("TC","T")}; {tool.First().D.ToDim()}");
                     bldr.AppendLine($"G0 Z{pcbProject.DrillSafeHeight.ToDim()}");
                     bldr.AppendLine($"G00 X0.0000 Y0.0000");
                     bldr.AppendLine("M03");
@@ -271,7 +267,7 @@ namespace LagoVista.PCB.Eagle.Managers
             double width = pcb.Width;
             double height = pcb.Height;
 
-            var cornerWires = pcb.Layers.Where(layer => layer.Layer.Value == PCBLayers.BoardOutline).FirstOrDefault().Wires.Where(wire => wire.Curve.HasValue == true);
+            var cornerWires = pcb.Layers.Where(layer => layer.Layer == PCBLayers.BoardOutline).FirstOrDefault().Wires.Where(wire => wire.Crv.HasValue == true);
 
             /* Major hack here */
             var radius = cornerWires.Any() ? Math.Abs(cornerWires.First().X1 - cornerWires.First().X2) : 0;

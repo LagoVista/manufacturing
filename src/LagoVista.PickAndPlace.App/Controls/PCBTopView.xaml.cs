@@ -39,10 +39,10 @@ namespace LagoVista.PickAndPlace.App.Controls
 
                 foreach (var drill in manager.Board.Drills)
                 {
-                    var ellipse = new Ellipse() { Width = drill.Diameter * 10.0, Height = drill.Diameter * 10.0 };
+                    var ellipse = new Ellipse() { Width = drill.D * 10.0, Height = drill.D * 10.0 };
                     ellipse.Fill = Brushes.Black;
-                    var x = Mirrored ? ((manager.Board.Width - (drill.X + (drill.Diameter / 2))) + offsetX) : ((drill.X - (drill.Diameter / 2)) + offsetX);
-                    var y = ((manager.Board.Height - (drill.Y + (drill.Diameter / 2))) + offsetY);
+                    var x = Mirrored ? ((manager.Board.Width - (drill.X + (drill.D / 2))) + offsetX) : ((drill.X - (drill.D / 2)) + offsetX);
+                    var y = ((manager.Board.Height - (drill.Y + (drill.D / 2))) + offsetY);
 
                     ellipse.SetValue(Canvas.TopProperty, y * 10);
                     ellipse.SetValue(Canvas.LeftProperty, x * 10);
@@ -53,7 +53,7 @@ namespace LagoVista.PickAndPlace.App.Controls
                         X = Mirrored ? ((manager.Board.Width - drill.X) + offsetX) : (drill.X + offsetX),
                         Y = drill.Y + offsetY
                     };
-                    ellipse.ToolTip = $"{drillPoint.X}x{drillPoint.Y} - {drill.Diameter} Dia.";
+                    ellipse.ToolTip = $"{drillPoint.X}x{drillPoint.Y} - {drill.D} Dia.";
 
                     ellipse.Tag = drillPoint;
 
@@ -69,7 +69,7 @@ namespace LagoVista.PickAndPlace.App.Controls
                 outline.Width = manager.Board.Width * 10;
                 outline.Height = manager.Board.Height * 10;
 
-                var cornerWires = manager.Board.Layers.Where(layer => layer.Layer.Value == PCBLayers.BoardOutline).FirstOrDefault().Wires.Where(wire => wire.Curve.HasValue == true);
+                var cornerWires = manager.Board.Layers.Where(layer => layer.Layer == PCBLayers.BoardOutline).FirstOrDefault().Wires.Where(wire => wire.Crv.HasValue == true);
                 var radius = cornerWires.Any() ? Math.Abs(cornerWires.First().X1 - cornerWires.First().X2) : 0;
                 outline.RadiusX = radius * 10;
                 outline.RadiusY = radius * 10;

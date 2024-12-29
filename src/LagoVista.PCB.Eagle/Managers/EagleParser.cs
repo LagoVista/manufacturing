@@ -47,31 +47,30 @@ namespace LagoVista.PCB.Eagle.Managers
 
                 foreach (var layer in pcb.Layers)
                 {
-                    layer.Wires = pcb.Plain.Wires.Where(wire => wire.Layer.Value == layer.Layer.Value).ToList();
-                    if (layer.Layer.Value == PCBLayers.Pads)
+                    layer.Wires = pcb.Plain.Wires.Where(wire => wire.L == layer.Layer).ToList();
+                    if (layer.Layer == PCBLayers.Pads)
                     {
                         foreach (var pad in element.Package.Value.Pads)
                         {
                             var rotatedPad = pad.ApplyRotation(element.Rotation);
-                            layer.Pads.Add(new Models.Pad() { DrillDiameter = rotatedPad.DrillDiameter, X = element.X.Value + rotatedPad.X, Y = element.Y.Value + rotatedPad.Y, RotateStr = pad.RotateStr });
+                            layer.Pads.Add(new Models.Pad() { D = rotatedPad.D, X = element.X.Value + rotatedPad.X, Y = element.Y.Value + rotatedPad.Y, A = pad.A });
                         }
                     }
 
-                    if (layer.Layer.Value == Models.PCBLayers.Drills)
+                    if (layer.Layer == Models.PCBLayers.Drills)
                     {
                         foreach (var hole in element.Package.Value.Pads)
                         {
                             var rotatedHole = hole.ApplyRotation(element.Rotation);
-                            layer.Drills.Add(new Models.Drill() { Diameter = hole.DrillDiameter, X = element.X.Value + rotatedHole.X, Y = element.Y.Value + rotatedHole.Y, Name=hole.Name });
+                            layer.Drills.Add(new Models.Drill() { D = hole.D, X = element.X.Value + rotatedHole.X, Y = element.Y.Value + rotatedHole.Y });
                         }
                     }
 
-                    if (layer.Layer.Value == Models.PCBLayers.Holes)
+                    if (layer.Layer == Models.PCBLayers.Holes)
                     {
                         foreach(var hole in element.Holes)
                         {
-                            layer.Holes.Add(new Models.Hole() { Drill = hole.Drill, X = hole.X, Y = hole.Y, Name=element.Name });
-                            layer.Drills.Add(new Models.Drill() { Diameter = hole.Drill, X = hole.X, Y = hole.Y, Name = element.Name });
+                            layer.Holes.Add(new Models.Hole() { D = hole.D, X = hole.X, Y = hole.Y });
                         }
                     }
                 }
@@ -88,7 +87,7 @@ namespace LagoVista.PCB.Eagle.Managers
                 pcb.BottomWires.AddRange(signal.BottomWires);
             }
 
-            var outlineWires = pcb.Layers.Where(layer => layer.Layer.Value == PCBLayers.BoardOutline).FirstOrDefault().Wires;
+            var outlineWires = pcb.Layers.Where(layer => layer.Layer == PCBLayers.BoardOutline).FirstOrDefault().Wires;
 
             foreach (var outline in outlineWires)
             {
@@ -100,7 +99,7 @@ namespace LagoVista.PCB.Eagle.Managers
 
             foreach (var via in pcb.Vias)
             {
-                pcb.Layers.Where(layer => layer.Layer.Value == PCBLayers.Vias).First().Vias.Add(via);
+                pcb.Layers.Where(layer => layer.Layer == PCBLayers.Vias).First().Vias.Add(via);
             }
 
             return pcb;
