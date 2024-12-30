@@ -1,5 +1,6 @@
 ﻿using LagoVista.Core.Commanding;
 using LagoVista.Core.Models;
+using LagoVista.Core.PlatformSupport;
 using LagoVista.Core.Validation;
 using LagoVista.Core.ViewModels;
 using LagoVista.PickAndPlace.Interfaces;
@@ -13,16 +14,16 @@ using System.Text;
 
 namespace LagoVista.PickAndPlace.ViewModels
 {
-    public class VisionManagerViewModel : ViewModelBase, IVisionProfileManagerViewModel
+    public class VisionProfileManagerViewModel : ViewModelBase, IVisionProfileManagerViewModel
     {
-        private readonly IMachine _machine;
+        private readonly IMachineRepo _machineRepo;
 
         private VisionSettings _topCameraProfile;
         private VisionSettings _bottomCameraProfile;
 
-        public VisionManagerViewModel(IMachine machine)
+        public VisionProfileManagerViewModel(IMachineRepo machineRepo, ILogger logger)
         {
-            _machine = machine;
+            _machineRepo = machineRepo;
 
             MVProfiles = new List<EntityHeader>()
             {
@@ -81,10 +82,10 @@ namespace LagoVista.PickAndPlace.ViewModels
         {
             if (CurrentMVProfile != null)
             {
-                var existing = _machine.Settings.VisionProfiles.FirstOrDefault(vp => vp.Id == CurrentMVProfile.Id);
+                var existing = _machineRepo.CurrentMachine.Settings.VisionProfiles.FirstOrDefault(vp => vp.Id == CurrentMVProfile.Id);
                 if (existing == null)
                 {
-                    _machine.Settings.VisionProfiles.Add(new VisionProfile()
+                    _machineRepo.CurrentMachine.Settings.VisionProfiles.Add(new VisionProfile()
                     {
                         Name = CurrentMVProfile.Text,
                         Id = CurrentMVProfile.Id,
@@ -98,19 +99,21 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         private void LoadProfiles()
         {
-            var profile = _machine.Settings.VisionProfiles.SingleOrDefault(prf => prf.Id == CurrentMVProfile.Id);
+            var profile = _machineRepo.CurrentMachine.Settings.VisionProfiles.SingleOrDefault(prf => prf.Id == CurrentMVProfile.Id);
             if (profile == null)
             {
-                var defaultProfile = _machine.Settings.VisionProfiles.FirstOrDefault(prof => prof.Name == "default");
+                var defaultProfile = _machineRepo.CurrentMachine.Settings.VisionProfiles.FirstOrDefault(prof => prof.Name == "default");
                 if (defaultProfile == null)
                 {
-                    defaultProfile = new VisionProfile()
+                    profile = new VisionProfile()
                     {
                         Name = "Default",
                         Id = "fefault",
                         BottomProfile = new VisionSettings(),
                         TopProfile = new VisionSettings()
                     };
+
+                    _machineRepo.CurrentMachine.Settings.VisionProfiles.Add(profile);
                 }
                 else
                 {
@@ -125,26 +128,23 @@ namespace LagoVista.PickAndPlace.ViewModels
                     profile.TopProfile = JsonConvert.DeserializeObject<VisionSettings>(JsonConvert.SerializeObject(defaultProfile.TopProfile));
                 };
             }
-            else
-            {
-                _bottomCameraProfile = profile.BottomProfile;
-                _topCameraProfile = profile.TopProfile;
-            }
 
+            BottomCameraProfile = profile.BottomProfile;
+            TopCameraProfile = profile.TopProfile;
 
             SaveProfile();
 
-            _machine.TopLightOn = _topCameraProfile.LightOn;
-            _machine.TopRed = _topCameraProfile.LightRed;
-            _machine.TopGreen = _topCameraProfile.LightGreen;
-            _machine.TopBlue = _topCameraProfile.LightBlue;
-            _machine.TopPower = _topCameraProfile.LightPower;
+            _machineRepo.CurrentMachine.TopLightOn = _topCameraProfile.LightOn;
+            _machineRepo.CurrentMachine.TopRed = _topCameraProfile.LightRed;
+            _machineRepo.CurrentMachine.TopGreen = _topCameraProfile.LightGreen;
+            _machineRepo.CurrentMachine.TopBlue = _topCameraProfile.LightBlue;
+            _machineRepo.CurrentMachine.TopPower = _topCameraProfile.LightPower;
 
-            _machine.BottomLightOn = _bottomCameraProfile.LightOn;
-            _machine.BottomRed = _bottomCameraProfile.LightRed;
-            _machine.BottomGreen = _bottomCameraProfile.LightGreen;
-            _machine.BottomBlue = _bottomCameraProfile.LightBlue;
-            _machine.BottomPower = _bottomCameraProfile.LightPower;
+            _machineRepo.CurrentMachine.BottomLightOn = _bottomCameraProfile.LightOn;
+            _machineRepo.CurrentMachine.BottomRed = _bottomCameraProfile.LightRed;
+            _machineRepo.CurrentMachine.BottomGreen = _bottomCameraProfile.LightGreen;
+            _machineRepo.CurrentMachine.BottomBlue = _bottomCameraProfile.LightBlue;
+            _machineRepo.CurrentMachine.BottomPower = _bottomCameraProfile.LightPower;
         }
 
         public VisionSettings BottomCameraProfile

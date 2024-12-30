@@ -16,7 +16,7 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         public bool CanChangeMachineConfig
         {
-            get { return !_machine.Connected; }
+            get { return !_machineRepo.CurrentMachine.Connected; }
         }
 
 

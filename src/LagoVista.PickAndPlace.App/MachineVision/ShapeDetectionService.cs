@@ -25,14 +25,14 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
         ILocatorViewModel _locatorViewModel;
         LocatedByCamera _camera;
-        IMachine _machine;
+        IMachineRepo _machineRepo;
 
         const double PIXEL_PER_MM = 20.0;
-        public ShapeDetectionService(IMachine machine, ILocatorViewModel locatorViewModel, LocatedByCamera camera)
+        public ShapeDetectionService(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel, LocatedByCamera camera)
         {
-            _locatorViewModel = locatorViewModel ?? throw new ArgumentNullException(nameof(locatorViewModel));
+            _locatorViewModel = locatorViewModel ?? throw new ArgumentNullException(nameof(locatorViewModel));            
+            _machineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
             _camera = camera;
-            _machine = machine;
         }
 
         public VisionSettings VisionSettings { get; set; }
@@ -345,7 +345,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                                             matrix.TransformPoints(p);
                                             FoundRectangle = rect;
 
-                                            var msg = $"{rect.Angle:0.0} {(rect.Size.Width / _machine.Settings.InspectionCameraPixelsPerMM):0.0}x{(rect.Size.Height / _machine.Settings.InspectionCameraPixelsPerMM):0.0}";
+                                            var msg = $"{rect.Angle:0.0} {(rect.Size.Width / _machineRepo.CurrentMachine.Settings.InspectionCameraPixelsPerMM):0.0}x{(rect.Size.Height / _machineRepo.CurrentMachine.Settings.InspectionCameraPixelsPerMM):0.0}";
                                             _imageHelper.DrawRect(output, p, msg, System.Drawing.Color.Red);
                                         }
                                     }
@@ -437,7 +437,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
                                 var output = VisionSettings.ShowOriginalImage ? raw : (IInputOutputArray)input;
 
-                                if (!_machine.Busy)
+                                if (!_machineRepo.CurrentMachine.Busy)
                                 {
                                     if (VisionSettings.Show200PixelSquare) ShowCalibrationSquare(output, img.Size);
                                     if (VisionSettings.ShowCrossHairs) DrawCrossHairs(output, profile, img.Size);

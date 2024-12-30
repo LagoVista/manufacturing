@@ -6,6 +6,7 @@ using LagoVista.PCB.Eagle.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels;
 using LagoVista.PickAndPlace.ViewModels;
+using System;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.App.ViewModels
@@ -19,23 +20,25 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         private BOM _billOfMaterials;
         private int _partIndex = 0;
 
-        private IMachine _machine;
+        private IMachineRepo _machineRepo;
 
 
-        public PnPJobViewModel(IMachine machine, IRestClient restClient) 
+        public PnPJobViewModel(IMachineRepo machineRepo, IRestClient restClient) 
         {
-            _restClient = SLWIOC.Get<IRestClient>();
+            _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
+            _machineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
+
             //StripFeederVM = new StripFeederViewModel(machine, this);
 
-            VisionManagerVM = new VisionManagerViewModel(machine);
-            LocatorVM = new LocatorViewModel(machine);
+            //VisionManagerVM = new VisionProfileManagerViewModel(machine);
+            //LocatorVM = new LocatorViewModel(machine);
 
-            ToolAlignmentVM = new ToolAlignmentViewModel(machine, LocatorVM, VisionManagerVM);
+            //ToolAlignmentVM = new ToolAlignmentViewModel(machine, LocatorVM, VisionManagerVM);
 
-            NozzleTipCalibrationVM = new NozzleTipCalibrationViewModel(machine, LocatorVM, VisionManagerVM);
-            FiducialVM = new FiducialViewModel(machine, LocatorVM);
-            PartsVM = new PartsViewModel(machine, LocatorVM, restClient);
-            HomingVM = new HomingViewModel(machine, VisionManagerVM, LocatorVM);
+            //NozzleTipCalibrationVM = new NozzleTipCalibrationViewModel(machine, LocatorVM, VisionManagerVM);
+            //FiducialVM = new FiducialViewModel(machine, LocatorVM);
+            //PartsVM = new PartsViewModel(machine, LocatorVM, restClient);
+            //HomingVM = new HomingViewModel(machine, VisionManagerVM, LocatorVM);
             AddCommands();
         }
 

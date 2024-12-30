@@ -24,59 +24,59 @@ namespace LagoVista.PickAndPlace.ViewModels
             SetToPickHeightCommand = new RelayCommand((obj) => SetToPickHeight(), CanJog);
             SetToPlaceHeightCommand = new RelayCommand((obj) => SetToBoardHeight(), CanJog);
 
-            SetWorkspaceHomeCommand = new RelayCommand((obj) => Machine.SetWorkspaceHome(), CanJog);
-            GotoWorkspaceHomeCommand = new RelayCommand((obj) => Machine.GotoWorkspaceHome(), CanJog);
+            SetWorkspaceHomeCommand = new RelayCommand((obj) => _machineRepo.CurrentMachine.SetWorkspaceHome(), CanJog);
+            GotoWorkspaceHomeCommand = new RelayCommand((obj) => _machineRepo.CurrentMachine.GotoWorkspaceHome(), CanJog);
 
-            Machine.PropertyChanged += Machine_PropertyChanged;
+            _machineRepo.CurrentMachine.PropertyChanged += Machine_PropertyChanged;
         }
 
         void SetToMoveHeight()
         {
-            if (Machine.Settings.MachineType == FirmwareTypes.LagoVista_PnP)
+            if (_machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.LagoVista_PnP)
             {
-                Machine.SendCommand("M54");
+                _machineRepo.CurrentMachine.SendCommand("M54");
             }
             else
             {
-                Machine.SendCommand($"G0 Z{Machine.Settings.ToolSafeMoveHeight} F5000");
+                _machineRepo.CurrentMachine.SendCommand($"G0 Z{_machineRepo.CurrentMachine.Settings.ToolSafeMoveHeight} F5000");
             }
         }
 
         void SetToPickHeight()
         {
-            if (Machine.Settings.MachineType == FirmwareTypes.LagoVista_PnP)
+            if (_machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.LagoVista_PnP)
             {
-                Machine.SendCommand("M55");
+                _machineRepo.CurrentMachine.SendCommand("M55");
             }
             else
             {
-                Machine.SendCommand($"G0 Z{Machine.Settings.ToolPickHeight} F5000");
+                _machineRepo.CurrentMachine.SendCommand($"G0 Z{_machineRepo.CurrentMachine.Settings.ToolPickHeight} F5000");
             }
         }
 
         void SetToBoardHeight()
         {
-            if (Machine.Settings.MachineType == FirmwareTypes.LagoVista_PnP)
+            if (_machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.LagoVista_PnP)
             {
-                Machine.SendCommand("M56");
+                _machineRepo.CurrentMachine.SendCommand("M56");
             }
             else
             {
-                Machine.SendCommand($"G0 Z{Machine.Settings.ToolBoardHeight} F5000");
+                _machineRepo.CurrentMachine.SendCommand($"G0 Z{_machineRepo.CurrentMachine.Settings.ToolBoardHeight} F5000");
             }
         }
 
         void MoveToBottomCamera()
         {
-            if (Machine.Settings.MachineType == FirmwareTypes.LagoVista_PnP)
+            if (_machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.LagoVista_PnP)
             {
-                Machine.SendCommand("M52");
+                _machineRepo.CurrentMachine.SendCommand("M52");
             }
             else
             {
-                if (Machine.Settings.PartInspectionCamera?.AbsolutePosition != null)
+                if (_machineRepo.CurrentMachine.Settings.PartInspectionCamera?.AbsolutePosition != null)
                 {
-                    Machine.SendCommand($"G0 X{Machine.Settings.PartInspectionCamera.AbsolutePosition.X} Y{Machine.Settings.PartInspectionCamera.AbsolutePosition.Y} Z{Machine.Settings.PartInspectionCamera.FocusHeight} F1{Machine.Settings.FastFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"G0 X{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.X} Y{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.Y} Z{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.FocusHeight} F1{_machineRepo.CurrentMachine.Settings.FastFeedRate}");
                 }
             }
         }
@@ -114,11 +114,11 @@ namespace LagoVista.PickAndPlace.ViewModels
             if (e.PropertyName == nameof(Machine.Settings))
             {
                 /* Keep the saved values as temp vars since updating the StepMode will overwrite */
-                var originalXYStepSize = Machine.Settings.XYStepSize;
-                var originalZStepSize = Machine.Settings.ZStepSize;
+                var originalXYStepSize = _machineRepo.CurrentMachine.Settings.XYStepSize;
+                var originalZStepSize = _machineRepo.CurrentMachine.Settings.ZStepSize;
 
-                XYStepMode = Machine.Settings.XYStepMode;
-                ZStepMode = Machine.Settings.ZStepMode;
+                XYStepMode = _machineRepo.CurrentMachine.Settings.XYStepMode;
+                ZStepMode = _machineRepo.CurrentMachine.Settings.ZStepMode;
 
                 XYStepSizeSlider = originalXYStepSize;
                 ZStepSizeSlider = originalZStepSize;
@@ -127,66 +127,66 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         public bool CanSetCamera(object param)
         {
-            return Machine.ViewType == ViewTypes.Tool1;
+            return _machineRepo.CurrentMachine.ViewType == ViewTypes.Tool1;
         }
 
         public bool CanSetTool1(object param)
         {
-            return Machine.ViewType == ViewTypes.Camera;
+            return _machineRepo.CurrentMachine.ViewType == ViewTypes.Camera;
         }
 
         public void SetCamera()
         {
-            Machine.SendCommand(SafeHeightGCodeGCode());
-            Machine.SetViewTypeAsync(ViewTypes.Camera);
+            _machineRepo.CurrentMachine.SendCommand(SafeHeightGCodeGCode());
+            _machineRepo.CurrentMachine.SetViewTypeAsync(ViewTypes.Camera);
         }
 
         private string SafeHeightGCodeGCode()
         {
-            return $"G0 Z{Machine.Settings.ToolSafeMoveHeight} F{Machine.Settings.FastFeedRate}";
+            return $"G0 Z{_machineRepo.CurrentMachine.Settings.ToolSafeMoveHeight} F{_machineRepo.CurrentMachine.Settings.FastFeedRate}";
         }
 
 
         public void SetTool1()
         {
-            Machine.SendCommand(SafeHeightGCodeGCode());
-            Machine.SetViewTypeAsync(ViewTypes.Tool1);
+            _machineRepo.CurrentMachine.SendCommand(SafeHeightGCodeGCode());
+            _machineRepo.CurrentMachine.SetViewTypeAsync(ViewTypes.Tool1);
         }
 
 
         public bool CanHome(object param)
         {
-            return Machine.Connected && Machine.Mode == OperatingMode.Manual;
+            return _machineRepo.CurrentMachine.Connected && _machineRepo.CurrentMachine.Mode == OperatingMode.Manual;
         }
 
         public bool CanResetAxis(object param)
         {
-            return Machine.Connected && Machine.Mode == OperatingMode.Manual;
+            return _machineRepo.CurrentMachine.Connected && _machineRepo.CurrentMachine.Mode == OperatingMode.Manual;
         }
 
         public bool CanJog(object param)
         {
-            return Machine.Connected && Machine.Mode == OperatingMode.Manual;
+            return _machineRepo.CurrentMachine.Connected && _machineRepo.CurrentMachine.Mode == OperatingMode.Manual;
         }
 
         public bool CanCycleStart()
         {
-            return Machine.Connected;
+            return _machineRepo.CurrentMachine.Connected;
         }
 
         public bool CanFeedHold()
         {
-            return Machine.Connected;
+            return _machineRepo.CurrentMachine.Connected;
         }
 
         public bool CanSoftReset()
         {
-            return Machine.Connected;
+            return _machineRepo.CurrentMachine.Connected;
         }
 
         public bool CanClearAlarm()
         {
-            return Machine.Connected && Machine.Mode == OperatingMode.Alarm;
+            return _machineRepo.CurrentMachine.Connected && _machineRepo.CurrentMachine.Mode == OperatingMode.Alarm;
         }
 
         public RelayCommand JogCommand { get; private set; }

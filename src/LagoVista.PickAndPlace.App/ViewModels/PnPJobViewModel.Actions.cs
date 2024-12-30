@@ -20,8 +20,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         
         public void GotoWorkspaceHome()
         {
-            _machine.SendCommand(SafeHeightGCodeGCode());
-            _machine.GotoWorkspaceHome();
+             _machineRepo.CurrentMachine.SendCommand(SafeHeightGCodeGCode());
+             _machineRepo.CurrentMachine.GotoWorkspaceHome();
                         
             VisionManagerVM.SelectMVProfile("mchfiducual");
         }
@@ -33,15 +33,15 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         public void HomeViaOrigin()
         {
-            _machine.SendCommand(SafeHeightGCodeGCode());
-            _machine.HomeViaOrigin();
+             _machineRepo.CurrentMachine.SendCommand(SafeHeightGCodeGCode());
+             _machineRepo.CurrentMachine.HomeViaOrigin();
             VisionManagerVM.SelectMVProfile("mchfiducual");
        }
 
         public void GoToPCBOrigin()
         {
-            _machine.SendCommand(SafeHeightGCodeGCode());
-            _machine.GotoPoint(_machine.Settings.PCBOffset.X, _machine.Settings.PCBOffset.Y, _machine.Settings.FastFeedRate);
+             _machineRepo.CurrentMachine.SendCommand(SafeHeightGCodeGCode());
+             _machineRepo.CurrentMachine.GotoPoint( _machineRepo.CurrentMachine.Settings.PCBOffset.X,  _machineRepo.CurrentMachine.Settings.PCBOffset.Y,  _machineRepo.CurrentMachine.Settings.FastFeedRate);
             VisionManagerVM.SelectMVProfile("brdfiducual");            
         }
 

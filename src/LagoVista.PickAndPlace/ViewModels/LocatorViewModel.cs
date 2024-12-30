@@ -1,4 +1,5 @@
 ﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.PlatformSupport;
 using LagoVista.Core.ViewModels;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels;
@@ -12,10 +13,12 @@ namespace LagoVista.PickAndPlace.ViewModels
 
     public class LocatorViewModel : ViewModelBase, ILocatorViewModel
     {
-        IMachine _machine;
-        public LocatorViewModel(IMachine machine)
+        IMachineRepo _machineRepo;
+        ILogger _logger;
+        public LocatorViewModel(IMachineRepo machineRepo, ILogger logger)
         {
-            _machine = machine;
+            _machineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             AbortMVLocatorCommand = new RelayCommand(() => SetLocatorState(MVLocatorState.Idle));
         }
 

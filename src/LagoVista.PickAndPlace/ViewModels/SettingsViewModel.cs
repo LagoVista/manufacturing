@@ -16,7 +16,7 @@ namespace LagoVista.PickAndPlace.ViewModels
     public partial class SettingsViewModel : INotifyPropertyChanged
     {
         LagoVista.Manufacturing.Models.Machine _settings;
-        IMachine _machine;
+        IMachineRepo _machineRepo;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -28,12 +28,12 @@ namespace LagoVista.PickAndPlace.ViewModels
             );
         }
 
-        public SettingsViewModel(IMachine machine, LagoVista.Manufacturing.Models.Machine settings) //: base(machine)
+        public SettingsViewModel(IMachineRepo machineRepo, LagoVista.Manufacturing.Models.Machine settings) //: base(machine)
         {
 
             Cameras = new List<MachineCamera>();
             _settings = settings;
-            _machine = machine;
+            _machineRepo = machineRepo;
             InitComamnds();
             Init();
         }

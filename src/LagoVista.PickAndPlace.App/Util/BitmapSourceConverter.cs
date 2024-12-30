@@ -30,7 +30,7 @@ namespace Emgu.CV.WPF
         /// <returns>The equivalent BitmapSource</returns>
         public static BitmapSource ToBitmapSource(UMat image)
         {
-            if(image == null)
+            if(image == null && image.GetData() != null)
             {
                 return null;
             }

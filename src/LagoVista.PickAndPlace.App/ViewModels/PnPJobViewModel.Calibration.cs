@@ -17,34 +17,34 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             LocatorVM.SetLocatorState(MVLocatorState.Idle);
         }
 
-        public async void Perform_machineAlignment()
+        public async void Perform_machineCurrentMachineAlignment()
         {
-            _machine.SendCommand(SafeHeightGCodeGCode());
+             _machineRepo.CurrentMachine.SendCommand(SafeHeightGCodeGCode());
             LocatorVM.SetLocatorState(MVLocatorState.Idle);
 
-            _machine.HomeViaOrigin();
+             _machineRepo.CurrentMachine.HomeViaOrigin();
 
-            await _machine.SetViewTypeAsync(ViewTypes.Camera);
-            _machine.GotoWorkspaceHome();
+            await  _machineRepo.CurrentMachine.SetViewTypeAsync(ViewTypes.Camera);
+             _machineRepo.CurrentMachine.GotoWorkspaceHome();
 
-            _machine.GotoPoint(_machine.Settings.DefaultWorkspaceHome.X, _machine.Settings.DefaultWorkspaceHome.Y, true);
+             _machineRepo.CurrentMachine.GotoPoint( _machineRepo.CurrentMachine.Settings.DefaultWorkspaceHome.X,  _machineRepo.CurrentMachine.Settings.DefaultWorkspaceHome.Y, true);
 
             VisionManagerVM.SelectMVProfile("mchfiducual");
 
             LocatorVM.SetLocatorState(MVLocatorState.MachineFidicual);
         }
 
-        public void Goto_machineFiducial()
+        public void GotoMachineFiducial()
         {
 //            GoToFiducial(0);
         }
 
-        public void Set_machineFiducial()
+        public void SeMachineFiducial()
         {
-            if (MessageBox.Show("Are you sure you want to reset the _machine fiducial?", "Reset?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            if (MessageBox.Show("Are you sure you want to reset the  _machineRepo.CurrentMachine fiducial?", "Reset?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
-                _machine.Settings.MachineFiducial.X = _machine.NormalizedPosition.X;
-                _machine.Settings.MachineFiducial.Y = _machine.NormalizedPosition.Y;
+                 _machineRepo.CurrentMachine.Settings.MachineFiducial.X =  _machineRepo.CurrentMachine.NormalizedPosition.X;
+                 _machineRepo.CurrentMachine.Settings.MachineFiducial.Y =  _machineRepo.CurrentMachine.NormalizedPosition.Y;
             }
 
             //await SaveMachineAsync();
@@ -53,7 +53,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         public async void GoToRefPoint()
         {
             VisionManagerVM.SelectMVProfile("tapehold");
-            await _machine.SetViewTypeAsync(ViewTypes.Camera);
+            await  _machineRepo.CurrentMachine.SetViewTypeAsync(ViewTypes.Camera);
 
             throw new NotImplementedException();
         }
@@ -89,7 +89,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         {
             //switch (LocatorVM.LocatorState)
             //{
-            //    case MVLocatorState._machineFidicual:
+            //    case MVLocatorState. _machineRepo.CurrentMachineFidicual:
             //        JogToLocation(point);
             //        break;
             //    case MVLocatorState.WorkHome:

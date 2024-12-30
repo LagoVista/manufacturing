@@ -62,8 +62,8 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         private void InitChildViewModels()
         {
-            JobControlVM = new JobControlViewModel(Machine);
-            MachineControlVM = new MachineControlViewModel(Machine);
+            //JobControlVM = new JobControlViewModel(Machine);
+            //MachineControlVM = new MachineControlViewModel(Machine);
         }
 
         public async Task LoadMRUs()

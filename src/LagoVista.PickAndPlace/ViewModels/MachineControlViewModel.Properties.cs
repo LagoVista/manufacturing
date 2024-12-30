@@ -30,10 +30,10 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         public double XYStepSize
         {
-            get { return Machine.Settings.XYStepSize; }
+            get { return _machineRepo.CurrentMachine.Settings.XYStepSize; }
             set
             {
-                Machine.Settings.XYStepSize = value;
+                _machineRepo.CurrentMachine.Settings.XYStepSize = value;
                 RaisePropertyChanged();
             }
         }
@@ -80,10 +80,10 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         public double ZStepSize
         {
-            get { return Machine.Settings.ZStepSize; }
+            get { return _machineRepo.CurrentMachine.Settings.ZStepSize; }
             set
             {
-                Machine.Settings.ZStepSize = value;
+                _machineRepo.CurrentMachine.Settings.ZStepSize = value;
                 RaisePropertyChanged();
             }
         }
@@ -105,10 +105,13 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         public StepModes XYStepMode
         {
-            get { return Machine.Settings.XYStepMode; }
+            get 
+            {
+                return _machineRepo.CurrentMachine.Settings.XYStepMode;
+            }
             set
             {
-                Machine.Settings.XYStepMode = value;
+               _machineRepo.CurrentMachine.Settings.XYStepMode = value;
                 RaisePropertyChanged();
                 switch (XYStepMode)
                 {
@@ -153,10 +156,13 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         public StepModes ZStepMode
         {
-            get { return Machine.Settings.ZStepMode; }
+            get 
+            {
+                    return _machineRepo.CurrentMachine.Settings.XYStepMode;
+            }
             set
             {
-                Machine.Settings.ZStepMode = value;
+                _machineRepo.CurrentMachine.Settings.ZStepMode = value;
                 RaisePropertyChanged();
                 switch (ZStepMode)
                 {

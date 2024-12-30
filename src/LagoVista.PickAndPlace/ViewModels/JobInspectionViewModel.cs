@@ -1,4 +1,5 @@
 ﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.PlatformSupport;
 using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
@@ -10,14 +11,16 @@ namespace LagoVista.PickAndPlace.ViewModels
 {
     public class JobInspectionViewModel : ViewModelBase, IJobInspectionViewModel
     {
-        private int _inspectIndex; 
-        private readonly IMachine _machine;
+        private int _inspectIndex;
+        private readonly IMachineRepo _machineRepo;
+        private readonly ILogger _logger;
         private readonly ILocatorViewModel _locatorViewMoel;
 
-        public JobInspectionViewModel(IMachine machine, ILocatorViewModel locatorViewModel)
+        public JobInspectionViewModel(IMachineRepo machineRepo, ILogger logger, ILocatorViewModel locatorViewModel)
         {
             _locatorViewMoel = locatorViewModel;
-            _machine = machine;
+            _machineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             NextInspectCommand = new RelayCommand(NextInspect, () => _inspectIndex <  - 1);
             PrevInspectCommand = new RelayCommand(PrevInspect, () => _inspectIndex > 0);

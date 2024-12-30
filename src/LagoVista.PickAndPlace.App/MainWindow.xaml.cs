@@ -192,12 +192,12 @@ namespace LagoVista.PickAndPlace.App
 
         private void SettingsMenu_Click(object sender, RoutedEventArgs e)
         {
-            new SettingsWindow(ViewModel.Machine, ViewModel.Machine.Settings, false).ShowDialog();
+            //new SettingsWindow(ViewModel.Machine, ViewModel.Machine.Settings, false).ShowDialog();
         }
 
         private async void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            ImageSensor.ShutDown();
+            //ImageSensor.ShutDown();
             if (ViewModel.Machine.Connected)
             {
                 await ViewModel.Machine.DisconnectAsync();
@@ -261,33 +261,33 @@ namespace LagoVista.PickAndPlace.App
         private void EditMachineMenu_Click(object sender, RoutedEventArgs e)
         {
             //Clone in case we cancel.
-            var clonedSettings = ViewModel.Machine.Settings.Clone();
-            var dlg = new SettingsWindow(ViewModel.Machine, clonedSettings, false);
-            dlg.Owner = this;
-            dlg.ShowDialog();
-            if (dlg.DialogResult.HasValue && dlg.DialogResult.Value)
-            {
-                ViewModel.Machine.Settings = clonedSettings;
-            }
+            //var clonedSettings = ViewModel.Machine.Settings.Clone();
+            //var dlg = new SettingsWindow(ViewModel.Machine, clonedSettings, false);
+            //dlg.Owner = this;
+            //dlg.ShowDialog();
+            //if (dlg.DialogResult.HasValue && dlg.DialogResult.Value)
+            //{
+            //    ViewModel.Machine.Settings = clonedSettings;
+            //}
         }
 
         private async void NewMachinePRofile_Click(object sender, RoutedEventArgs e)
         {
-            var machineResult = await _restClient.GetAsync<DetailResponse<LagoVista.Manufacturing.Models.Machine>>("/api/mfg/machine/factory");
-            machineResult.Result.Model.ApplyDefaults();
-            var settings = machineResult.Result.Model;
+            //var machineResult = await _restClient.GetAsync<DetailResponse<LagoVista.Manufacturing.Models.Machine>>("/api/mfg/machine/factory");
+            //machineResult.Result.Model.ApplyDefaults();
+            //var settings = machineResult.Result.Model;
 
-            var dlg = new SettingsWindow(ViewModel.Machine, settings, true);
-            dlg.Owner = this;
-            dlg.ShowDialog();
-            if (dlg.DialogResult.HasValue && dlg.DialogResult.Value)
-            {
-                    var menu = new MenuItem() { Header = settings.Name };
-                    menu.Tag = settings.Id;
-                    menu.Click += ChangeMachine_Click;
+            //var dlg = new SettingsWindow(ViewModel.Machine, settings, true);
+            //dlg.Owner = this;
+            //dlg.ShowDialog();
+            //if (dlg.DialogResult.HasValue && dlg.DialogResult.Value)
+            //{
+            //        var menu = new MenuItem() { Header = settings.Name };
+            //        menu.Tag = settings.Id;
+            //        menu.Click += ChangeMachine_Click;
 
-                    MachinesMenu.Items.Add(menu);
-            }
+            //        MachinesMenu.Items.Add(menu);
+            //}
         }
 
         private void PCB2GCode_Click(object sender, RoutedEventArgs e)
@@ -304,12 +304,12 @@ namespace LagoVista.PickAndPlace.App
 
         private async void OpenPCBProject_Click(object sender, RoutedEventArgs e)
         {
-            var file = await Core.PlatformSupport.Services.Popups.ShowOpenFileAsync(Constants.PCBProject);
-            if (!String.IsNullOrEmpty(file))
-            {
-                await ViewModel.OpenProjectAsync(file);
-                ViewModel.Machine.PCBManager.Project = ViewModel.Project;
-            }
+            //var file = await Core.PlatformSupport.Services.Popups.ShowOpenFileAsync(Constants.PCBProject);
+            //if (!String.IsNullOrEmpty(file))
+            //{
+            //    await ViewModel.OpenProjectAsync(file);
+            //    ViewModel.Machine.PCBManager.Project = ViewModel.Project;
+            //}
 
 
         }
@@ -379,10 +379,10 @@ namespace LagoVista.PickAndPlace.App
                 var autoFeeders = await _restClient.GetAsync<ListResponse<LagoVista.Manufacturing.Models.AutoFeeder>>($"/api/mfg/machine/{openJob.SelectedItem.Id}/feeders?loadcomponents=true");
                 if (result.Successful) {
                     var pnpWindow = new Views.PNPJobWindow();
-                    var vm = new PnPJobViewModel(ViewModel.Machine, _restClient);
-                    vm.Job = result.Result.Model;
-                    await vm.InitAsync();
-                    pnpWindow.DataContext = vm;
+                    //var vm = new PnPJobViewModel(ViewModel.Machine, _restClient);
+                    //vm.Job = result.Result.Model;
+                    //await vm.InitAsync();
+                    //pnpWindow.DataContext = vm;
                     pnpWindow.Show();
                 }
             }

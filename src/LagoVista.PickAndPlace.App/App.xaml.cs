@@ -11,8 +11,12 @@ using LagoVista.Core.ViewModels;
 using LagoVista.Core.WPF.PlatformSupport;
 using LagoVista.IoT.Logging.Loggers;
 using LagoVista.IoT.Logging.Models;
+using LagoVista.PickAndPlace.App.MachineVision;
 using LagoVista.PickAndPlace.App.Services;
+using LagoVista.PickAndPlace.App.ViewModels;
 using LagoVista.PickAndPlace.Interfaces;
+using LagoVista.PickAndPlace.Interfaces.ViewModels;
+using LagoVista.PickAndPlace.Repos;
 using LagoVista.PickAndPlace.ViewModels;
 using LagoVista.XPlat.WPF.Services;
 using System;
@@ -46,7 +50,8 @@ namespace LagoVista.PickAndPlace.App
             SLWIOC.RegisterSingleton<IAppConfig, _appCOnfg>();
             SLWIOC.RegisterSingleton<IClientAppInfo, ClientAppInfo>();
             SLWIOC.RegisterSingleton<ITimerFactory, TimerFactory>();
-
+            SLWIOC.Register<IStorageService, Core.WPF.PlatformSupport.StorageService>();
+            
             var local = new ServerInfo()
             {
                 RootUrl = "localhost",
@@ -70,6 +75,12 @@ namespace LagoVista.PickAndPlace.App
             };
 
             LagoVista.Client.Core.Startup.Init(dev);
+
+            SLWIOC.RegisterSingleton<IMachineRepo, MachineRepo>();
+            SLWIOC.RegisterSingleton<ILocatorViewModel, LocatorViewModel>();
+            SLWIOC.Register<IImageCaptureService, ImageCaptureService>();
+            SLWIOC.RegisterSingleton<IVisionProfileManagerViewModel, VisionProfileManagerViewModel>();
+
         }
     }
 

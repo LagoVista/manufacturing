@@ -3,6 +3,7 @@ using LagoVista.Core.Commanding;
 using LagoVista.Core.IOC;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
+using LagoVista.Core.PlatformSupport;
 using LagoVista.Core.Validation;
 using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
@@ -25,18 +26,20 @@ namespace LagoVista.PickAndPlace.ViewModels
         ObservableCollection<StripFeeder> _stripFeeders;
         ObservableCollection<AutoFeeder> _autoFeeders;
 
-        IRestClient _restClient;
-        IMachine _machine;
-        ILocatorViewModel _locatorViewModel;
+        private readonly IRestClient _restClient;
+        private readonly IMachineRepo  _machineRepo;
+        private readonly ILogger _logger;
+        private readonly ILocatorViewModel _locatorViewModel;
 
         PickAndPlaceJob _job;
 
-        public PartsViewModel(IMachine machine, ILocatorViewModel locatorViewModel, IRestClient restClient)
+        public PartsViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel, IRestClient restClient, ILogger logger)
         {
-            _machine = machine;
+             _machineRepo = machineRepo;
             _restClient = restClient;
             _locatorViewModel = locatorViewModel;
-            _sfLocator = new StripFeederLocatorService(machine.Settings);
+            _sfLocator = new StripFeederLocatorService(machineRepo.CurrentMachine.Settings);
+            _logger = logger;
 
             RefreshBoardCommand = new RelayCommand(() => RefreshAsync());
             RefreshConfigurationPartsCommand = new RelayCommand(RefreshConfigurationParts);
@@ -44,8 +47,8 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         public async new Task<InvokeResult> InitAsync()
         {
-            var stripFeeders = await _restClient.GetListResponseAsync<StripFeeder>($"/api/mfg/machine/{_machine.Settings.Id}/autofeeders?loadcomponents=true");
-            var autoFeeders = await _restClient.GetListResponseAsync<AutoFeeder>($"/api/mfg/machine/{_machine.Settings.Id}/stripfeeders?loadcomponents=true");
+            var stripFeeders = await _restClient.GetListResponseAsync<StripFeeder>($"/api/mfg/machine/{ _machineRepo.CurrentMachine.Settings.Id}/autofeeders?loadcomponents=true");
+            var autoFeeders = await _restClient.GetListResponseAsync<AutoFeeder>($"/api/mfg/machine/{ _machineRepo.CurrentMachine.Settings.Id}/stripfeeders?loadcomponents=true");
 
             _stripFeeders = new ObservableCollection<StripFeeder>(stripFeeders.Model);
             _autoFeeders = new ObservableCollection<AutoFeeder>(autoFeeders.Model);
@@ -71,8 +74,8 @@ namespace LagoVista.PickAndPlace.ViewModels
             return InitAsync();
         }
 
-        public ObservableCollection<MachineStagingPlate> StagingPlates { get => _machine.Settings.StagingPlates; }
-        public ObservableCollection<MachineFeederRail> FeederRails { get => _machine.Settings.FeederRails; }
+        public ObservableCollection<MachineStagingPlate> StagingPlates { get =>  _machineRepo.CurrentMachine.Settings.StagingPlates; }
+        public ObservableCollection<MachineFeederRail> FeederRails { get =>  _machineRepo.CurrentMachine.Settings.FeederRails; }
 
         public ObservableCollection<StripFeeder> StripFeeders { get => _stripFeeders; }
         public ObservableCollection<AutoFeeder> AutoFeeders { get => _autoFeeders; }

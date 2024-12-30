@@ -11,24 +11,24 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         private async Task SendInstructionSequenceAsync(List<string> cmds)
         {
             var file = GCodeFile.FromList(cmds, Logger);
-            _machine.SetFile(file);
-            _machine.GCodeFileManager.StartJob();
-            while (_machine.Mode == OperatingMode.SendingGCodeFile) await Task.Delay(1);
+             _machineRepo.CurrentMachine.SetFile(file);
+             _machineRepo.CurrentMachine.GCodeFileManager.StartJob();
+            while ( _machineRepo.CurrentMachine.Mode == OperatingMode.SendingGCodeFile) await Task.Delay(1);
         }
 
         private string SafeHeightGCodeGCode()
         {
-            return $"G0 Z{_machine.Settings.ToolSafeMoveHeight} F{_machine.Settings.FastFeedRate}";
+            return $"G0 Z{ _machineRepo.CurrentMachine.Settings.ToolSafeMoveHeight} F{ _machineRepo.CurrentMachine.Settings.FastFeedRate}";
         }
 
         private string PickHeightGCode()
         {
-            return $"G0 Z{_machine.Settings.ToolPickHeight} F{_machine.Settings.FastFeedRate}";
+            return $"G0 Z{ _machineRepo.CurrentMachine.Settings.ToolPickHeight} F{ _machineRepo.CurrentMachine.Settings.FastFeedRate}";
         }
 
         private string PlaceHeightGCode(ComponentPackage package)
         {
-            return $"G0 Z{_machine.Settings.ToolBoardHeight - package.Height} F{_machine.Settings.FastFeedRate}";
+            return $"G0 Z{ _machineRepo.CurrentMachine.Settings.ToolBoardHeight - package.Height} F{ _machineRepo.CurrentMachine.Settings.FastFeedRate}";
         }
 
         private string DwellGCode(int pauseMS)
@@ -56,24 +56,24 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         private string ProduceVacuumGCode(bool value)
         {
-            switch (_machine.Settings.MachineType)
+            switch ( _machineRepo.CurrentMachine.Settings.MachineType)
             {
                 case FirmwareTypes.Repeteir_PnP: return $"M42 P27 S{(value ? 255 : 0)}";
                 case FirmwareTypes.LagoVista_PnP: return $"M64 S{(value ? 255 : 0)}";
             }
 
-            throw new Exception($"Can't produce vacuum GCode for machien type: {_machine.Settings.MachineType} .");
+            throw new Exception($"Can't produce vacuum GCode for machien type: { _machineRepo.CurrentMachine.Settings.MachineType} .");
         }
 
         private string ProducePuffGCode(bool value)
         {
-            switch (_machine.Settings.MachineType)
+            switch ( _machineRepo.CurrentMachine.Settings.MachineType)
             {
                 case FirmwareTypes.Repeteir_PnP:
                     return ($"M42 P23 S{(value ? 255 : 0)}\n");
             }
 
-            throw new Exception($"Can't produce vacuum GCode for machien type: {_machine.Settings.MachineType} .");
+            throw new Exception($"Can't produce vacuum GCode for machien type: { _machineRepo.CurrentMachine.Settings.MachineType} .");
         }
     }
 }

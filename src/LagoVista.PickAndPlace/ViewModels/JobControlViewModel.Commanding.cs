@@ -45,10 +45,10 @@ namespace LagoVista.PickAndPlace.ViewModels
             GotoWorkspaceHomeCommand = new RelayCommand(GotoWorkspaceHome, CanMove);
             SetWorkspaceHomeCommand = new RelayCommand(SetWorkspaceHome, CanMove);
 
-            Machine.PropertyChanged += _machine_PropertyChanged;
+            _machineRepo.CurrentMachine.PropertyChanged += _machine_PropertyChanged;
             //Machine.Settings.PropertyChanged += _machine_PropertyChanged;
-            Machine.HeightMapManager.PropertyChanged += HeightMapManager_PropertyChanged;
-            Machine.GCodeFileManager.PropertyChanged += GCodeFileManager_PropertyChanged;
+            _machineRepo.CurrentMachine.HeightMapManager.PropertyChanged += HeightMapManager_PropertyChanged;
+            _machineRepo.CurrentMachine.GCodeFileManager.PropertyChanged += GCodeFileManager_PropertyChanged;
         }
 
         private void GCodeFileManager_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -94,33 +94,33 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         public bool CanManipulateLaser()
         {
-            return Machine.IsInitialized &&
-                Machine.Settings.MachineType == FirmwareTypes.Marlin_Laser &&
-                Machine.Connected &&
-                Machine.Mode == OperatingMode.Manual;
+            return _machineRepo.CurrentMachine.IsInitialized &&
+                _machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.Marlin_Laser &&
+                _machineRepo.CurrentMachine.Connected &&
+                _machineRepo.CurrentMachine.Mode == OperatingMode.Manual;
         }
 
         public bool CanManipulateSpindle()
         {
-            return Machine.IsInitialized &&
-                Machine.Settings.MachineType == FirmwareTypes.GRBL1_1 &&
-                Machine.Connected &&
-                Machine.Mode == OperatingMode.Manual;
+            return _machineRepo.CurrentMachine.IsInitialized &&
+                _machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.GRBL1_1 &&
+                _machineRepo.CurrentMachine.Connected &&
+                _machineRepo.CurrentMachine.Mode == OperatingMode.Manual;
         }
 
         public bool CanMove()
         {
-            return Machine.IsInitialized &&
-                Machine.Connected &&
-                Machine.Mode == OperatingMode.Manual;
+            return _machineRepo.CurrentMachine.IsInitialized &&
+                _machineRepo.CurrentMachine.Connected &&
+                _machineRepo.CurrentMachine.Mode == OperatingMode.Manual;
         }
 
         public bool CanMoveToWorkspaceHome()
         {
-            return Machine.IsInitialized &&
-          Machine.Settings.MachineType == FirmwareTypes.GRBL1_1 &&
-          Machine.Connected &&
-          Machine.Mode == OperatingMode.Manual;
+            return _machineRepo.CurrentMachine.IsInitialized &&
+          _machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.GRBL1_1 &&
+          _machineRepo.CurrentMachine.Connected &&
+          _machineRepo.CurrentMachine.Mode == OperatingMode.Manual;
         }
 
         private void HeightMapManager_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -147,90 +147,90 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         public bool CanChangeConnectionStatus()
         {
-            return Machine.IsInitialized &&
+            return _machineRepo.CurrentMachine.IsInitialized &&
                 (
-                (Machine.Settings.ConnectionType == ConnectionTypes.Serial_Port && Machine.Settings.CurrentSerialPort != null && Machine.Settings.CurrentSerialPort.Id != "empty")
-                || (Machine.Settings.ConnectionType == ConnectionTypes.Network && !String.IsNullOrEmpty(Machine.Settings.IPAddress))
-                || Machine.Settings.MachineType == FirmwareTypes.SimulatedMachine);
+                (_machineRepo.CurrentMachine.Settings.ConnectionType == ConnectionTypes.Serial_Port && _machineRepo.CurrentMachine.Settings.CurrentSerialPort != null && _machineRepo.CurrentMachine.Settings.CurrentSerialPort.Id != "empty")
+                || (_machineRepo.CurrentMachine.Settings.ConnectionType == ConnectionTypes.Network && !String.IsNullOrEmpty(_machineRepo.CurrentMachine.Settings.IPAddress))
+                || _machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.SimulatedMachine);
         }
 
         public bool CanHomeAndReset()
         {
-            return Machine.IsInitialized && Machine.Connected;
+            return _machineRepo.CurrentMachine.IsInitialized && _machineRepo.CurrentMachine.Connected;
         }
 
         public bool CanSendGcodeFile()
         {
-            return Machine.IsInitialized &&
-                Machine.GCodeFileManager.HasValidFile &&
-                Machine.Connected &&
-                Machine.Mode == OperatingMode.Manual;
+            return _machineRepo.CurrentMachine.IsInitialized &&
+                _machineRepo.CurrentMachine.GCodeFileManager.HasValidFile &&
+                _machineRepo.CurrentMachine.Connected &&
+                _machineRepo.CurrentMachine.Mode == OperatingMode.Manual;
         }
 
         public bool CanClearAlarm()
         {
-            return Machine.IsInitialized &&
-                   Machine.Connected &&
-                   Machine.Status.ToLower() == "alarm";
+            return _machineRepo.CurrentMachine.IsInitialized &&
+                   _machineRepo.CurrentMachine.Connected &&
+                   _machineRepo.CurrentMachine.Status.ToLower() == "alarm";
         }
 
         public bool FavoritesAvailable()
         {
-            return Machine.IsInitialized &&
-                Machine.Connected
-                && Machine.Mode == OperatingMode.Manual;
+            return _machineRepo.CurrentMachine.IsInitialized &&
+                _machineRepo.CurrentMachine.Connected
+                && _machineRepo.CurrentMachine.Mode == OperatingMode.Manual;
         }
 
         public bool CanPauseJob()
         {
-            return Machine.IsInitialized &&
-                Machine.Mode == OperatingMode.SendingGCodeFile ||
-                Machine.Mode == OperatingMode.ProbingHeightMap ||
-                Machine.Mode == OperatingMode.ProbingHeight;
+            return _machineRepo.CurrentMachine.IsInitialized &&
+                _machineRepo.CurrentMachine.Mode == OperatingMode.SendingGCodeFile ||
+                _machineRepo.CurrentMachine.Mode == OperatingMode.ProbingHeightMap ||
+                _machineRepo.CurrentMachine.Mode == OperatingMode.ProbingHeight;
         }
 
 
         public bool CanProbeHeightMap()
         {
-            return Machine.IsInitialized &&
-                Machine.Connected
-                && Machine.Mode == OperatingMode.Manual
-                && Machine.HeightMapManager.HasHeightMap;
+            return _machineRepo.CurrentMachine.IsInitialized &&
+                _machineRepo.CurrentMachine.Connected
+                && _machineRepo.CurrentMachine.Mode == OperatingMode.Manual
+                && _machineRepo.CurrentMachine.HeightMapManager.HasHeightMap;
         }
 
         public bool CanProbe()
         {
-            return Machine.IsInitialized &&
-                Machine.Connected
-                && Machine.Mode == OperatingMode.Manual;
+            return _machineRepo.CurrentMachine.IsInitialized &&
+                _machineRepo.CurrentMachine.Connected
+                && _machineRepo.CurrentMachine.Mode == OperatingMode.Manual;
         }
 
         public bool CanPauseFeed()
         {
-            return (Machine.IsInitialized &&
-                        Machine.Connected &&
-                        Machine.Status != "Hold");
+            return (_machineRepo.CurrentMachine.IsInitialized &&
+                        _machineRepo.CurrentMachine.Connected &&
+                        _machineRepo.CurrentMachine.Status != "Hold");
         }
 
         public bool CanResumeFeed()
         {
-            return (Machine.IsInitialized &&
-                        Machine.Connected &&
-                        Machine.Status == "Hold");
+            return (_machineRepo.CurrentMachine.IsInitialized &&
+                        _machineRepo.CurrentMachine.Connected &&
+                        _machineRepo.CurrentMachine.Status == "Hold");
         }
 
         public bool CanStopJob()
         {
-            return Machine.IsInitialized &&
-                Machine.Mode == OperatingMode.SendingGCodeFile ||
-                Machine.Mode == OperatingMode.ProbingHeightMap ||
-                Machine.Mode == OperatingMode.ProbingHeight;
+            return _machineRepo.CurrentMachine.IsInitialized &&
+                _machineRepo.CurrentMachine.Mode == OperatingMode.SendingGCodeFile ||
+                _machineRepo.CurrentMachine.Mode == OperatingMode.ProbingHeightMap ||
+                _machineRepo.CurrentMachine.Mode == OperatingMode.ProbingHeight;
         }
 
 
         public bool CanSendEmergencyStop()
         {
-            return Machine.IsInitialized && Machine.Connected;
+            return _machineRepo.CurrentMachine.IsInitialized && _machineRepo.CurrentMachine.Connected;
         }
 
         public RelayCommand StopCommand { get; private set; }

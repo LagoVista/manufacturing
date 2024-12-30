@@ -44,11 +44,11 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         private void SetNewHome()
         {
-            //_machine.SendCommand($"G92 X{_machine.Settings._machineFiducial.X} Y{_machine.Settings._machineFiducial.Y}");
-            _machine.SendCommand($"G92 X0 Y0");
-            _machine.SendCommand(SafeHeightGCodeGCode());
-            var gcode = $"G1 X0 Y0 F{_machine.Settings.FastFeedRate}";
-            _machine.SendCommand(gcode);           
+            // _machineRepo.CurrentMachine.SendCommand($"G92 X{ _machineRepo.CurrentMachine.Settings. _machineRepo.CurrentMachineFiducial.X} Y{ _machineRepo.CurrentMachine.Settings. _machineRepo.CurrentMachineFiducial.Y}");
+             _machineRepo.CurrentMachine.SendCommand($"G92 X0 Y0");
+             _machineRepo.CurrentMachine.SendCommand(SafeHeightGCodeGCode());
+            var gcode = $"G1 X0 Y0 F{ _machineRepo.CurrentMachine.Settings.FastFeedRate}";
+             _machineRepo.CurrentMachine.SendCommand(gcode);           
             LocatorVM.SetLocatorState(MVLocatorState.Default);
         }
     }

@@ -6,13 +6,13 @@ namespace LagoVista.PickAndPlace.ViewModels
 {
     public class FiducialViewModel : ViewModelBase
     {
-        private readonly IMachine _machine;
+        private readonly IMachineRepo _machineRepo;
         private readonly ILocatorViewModel _locatorViewMoel;
 
-        public FiducialViewModel(IMachine machine, ILocatorViewModel locatorViewModel)
+        public FiducialViewModel(IMachineRepo repo, ILocatorViewModel locatorViewModel)
         {
             _locatorViewMoel = locatorViewModel;
-            _machine = machine;
+            _machineRepo = repo;
         }
 
         private string _status;

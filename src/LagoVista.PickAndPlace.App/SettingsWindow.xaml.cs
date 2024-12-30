@@ -19,12 +19,12 @@ namespace LagoVista.PickAndPlace.App
         LagoVista.Manufacturing.Models.Machine _settings;
         private bool _newMachine;
 
-        public SettingsWindow(IMachine machine, LagoVista.Manufacturing.Models.Machine settings, bool newMachine, int index = 0)
+        public SettingsWindow(IMachineRepo machineRepo, LagoVista.Manufacturing.Models.Machine settings, bool newMachine, int index = 0)
         {
             _settings = settings;
             _newMachine = newMachine;
 
-            DataContext = new SettingsViewModel(machine, _settings);
+            DataContext = new SettingsViewModel(machineRepo, _settings);
 
             var cameras = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
             var idx = 0;

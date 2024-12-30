@@ -1,4 +1,5 @@
-﻿using LagoVista.Core.ViewModels;
+﻿using LagoVista.Core.PlatformSupport;
+using LagoVista.Core.ViewModels;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels;
 using System;
@@ -10,14 +11,16 @@ namespace LagoVista.PickAndPlace.ViewModels
 {
     public class HomingViewModel : ViewModelBase, IHomingViewModel
     {
-        private readonly IMachine _machine;
+        private readonly IMachineRepo _machineRepo;
+        private readonly ILogger _logger;
         private readonly ILocatorViewModel _locatorViewModel;
         private readonly IVisionProfileManagerViewModel _visionManagerViewModel;
 
-        public HomingViewModel(IMachine machine, IVisionProfileManagerViewModel visionManagerViewModel, ILocatorViewModel locatorViewModel)
+        public HomingViewModel(IMachineRepo machineRepo, IVisionProfileManagerViewModel visionManagerViewModel, ILocatorViewModel locatorViewModel, ILogger logger)
         {
             _locatorViewModel = locatorViewModel;
-            _machine = machine;
+            _machineRepo = machineRepo;
+            _logger = logger;
             _visionManagerViewModel = visionManagerViewModel;
         }
 
@@ -35,8 +38,8 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         public Task WorkSpaceHomeAsync()
         {
-            _machine.SendSafeMoveHeight();
-            _machine.GotoWorkspaceHome();
+            _machineRepo.CurrentMachine.SendSafeMoveHeight();
+            _machineRepo.CurrentMachine.GotoWorkspaceHome();
             _visionManagerViewModel.SelectProfile("mchfiducual");
 
             _locatorViewModel.SetLocatorState(MVLocatorState.WorkHome);

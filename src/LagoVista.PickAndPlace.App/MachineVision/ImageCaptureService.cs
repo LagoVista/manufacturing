@@ -9,14 +9,14 @@ using LagoVista.PickAndPlace.Models;
 using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
 namespace LagoVista.PickAndPlace.App.MachineVision
 {
-    public class ImageCaptureService : ViewModelBase, INotifyPropertyChanged
+    public class ImageCaptureService : ViewModelBase, IImageCaptureService, INotifyPropertyChanged
     {
-        public event PropertyChangedEventHandler PropertyChanged;
         private bool _running;
         private double _lastBrightness = -9999;
         private double _lastFocus = -9999;
@@ -26,34 +26,64 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
         private object _captureLocker = new object();
 
-        private readonly IMachine _machine;
+        private readonly IMachineRepo _machineRepo;
         private VisionSettings _visionSettings;
         ShapeDetectionService _shapeDetectorService;
         ILocatorViewModel _locatorViewModel;
         LocatedByCamera _camera;
 
-        public ImageCaptureService(IMachine machine, ILocatorViewModel locatorViewModel, LocatedByCamera camera, VisionSettings visionSettings)
+        private readonly IVisionProfileManagerViewModel _visionProfileManager;
+
+        public LocatedByCamera Camera 
+        { 
+            get { return _camera; } 
+            set
+            {
+                Set(ref _camera, value);
+                switch(_camera)
+                {
+                    case LocatedByCamera.PartInspection:
+                        _visionSettings = _visionProfileManager.BottomCameraProfile;
+                        break;
+                    case LocatedByCamera.Position:
+                        _visionSettings = _visionProfileManager.TopCameraProfile;
+                        break;
+                }
+            }
+        }
+
+        public ImageCaptureService(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel, IVisionProfileManagerViewModel visionProfileManager)
         {
-            _visionSettings = visionSettings;
-            _machine = machine;
-            _locatorViewModel = locatorViewModel;
-            _camera = camera;
-            _shapeDetectorService = new ShapeDetectionService(machine, _locatorViewModel, camera);
+            _visionProfileManager = visionProfileManager ?? throw new ArgumentNullException(nameof(visionProfileManager));
+            _machineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
+            _locatorViewModel = locatorViewModel ?? throw new ArgumentNullException(nameof(locatorViewModel));
+
+            StartCaptureCommand = new RelayCommand(StartCapture);
+            StopCaptureCommand = new RelayCommand(StopCapture);
         }
 
 
+        public VisionSettings Profile
+        {
+            get { return _visionSettings; }
+        }
+
         public void StartCapture()
         {
+
             if (_capture != null)
             {
                 return;
             }
 
+            _shapeDetectorService = new ShapeDetectionService(_machineRepo, _locatorViewModel, _camera);
+
+
             try
             {
                 LoadingMask = true;
 
-                var cameraName = _camera == LocatedByCamera.Position ? _machine.Settings.PositioningCamera?.Name : _machine.Settings.PartInspectionCamera?.Name;
+                var cameraName = _camera == LocatedByCamera.Position ? _machineRepo.CurrentMachine.Settings.PositioningCamera?.Name : _machineRepo.CurrentMachine.Settings.PartInspectionCamera?.Name;
 
                 if (String.IsNullOrEmpty(cameraName))
                 {
@@ -62,7 +92,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 }
 
                 _capture = InitCapture(cameraName);
-                if(_capture == null)
+                if (_capture == null)
                 {
                     MessageBox.Show($"Could not load {cameraName} camera.");
                 }
@@ -71,12 +101,33 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 _capture.Set(Emgu.CV.CvEnum.CapProp.FrameHeight, 480);
                 _capture.Set(Emgu.CV.CvEnum.CapProp.AutoExposure, 0);
 
+                Run();                
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Could not start video, please restart your application: " + ex.Message);
             }
         }
+
+        private VideoCapture InitCapture(string cameraName)
+        {
+            try
+            {
+                var cameras = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
+                //    var camera = cameras.FirstOrDefault(cam => cam.N == cameraName);
+                var camera = cameras.Select((cam, idx) => new { cam = cam, index = idx }).FirstOrDefault(cam => cam.cam.Name == cameraName);
+                if (camera != null)
+                    return new VideoCapture(camera.index);
+                else
+                    return null;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Could not open camera: " + ex.Message);
+                return null;
+            }
+        }
+
 
         public void StopCapture()
         {
@@ -105,27 +156,9 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             }
         }
 
-        private VideoCapture InitCapture(string cameraName)
-        {
-            try
-            {
-                var cameras = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
-                //    var camera = cameras.FirstOrDefault(cam => cam.N == cameraName);
-                var camera = cameras.Select((cam, idx) => new { cam = cam, index = idx }).FirstOrDefault(cam => cam.cam.Name == cameraName);
-                if (camera != null)
-                    return new VideoCapture(camera.index);
-                else
-                    return null;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Could not open camera: " + ex.Message);
-                return null;
-            }
-        }
+ 
 
-
-        public void Run()
+        public async void Run()
         {
             _running = true;
             while (_running)
@@ -157,7 +190,6 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                         _lastExposure = _visionSettings.Exposure;
                     }
 
-
                     using (var originalFrame = _capture.QueryFrame())
                     {
                         if (originalFrame != null)
@@ -171,14 +203,14 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                                     {
                                         if (_visionSettings.PerformShapeDetection)
                                         {
-                                            using (var results = _shapeDetectorService.PerformShapeDetection(resized, _machine.Settings.PositioningCamera, _visionSettings))
+                                            using (var results = _shapeDetectorService.PerformShapeDetection(resized, _machineRepo.CurrentMachine.Settings.PositioningCamera, _visionSettings))
                                             {
                                                 CaptureImage = Emgu.CV.WPF.BitmapSourceConvert.ToBitmapSource(results);
                                             }
                                         }
                                         else
                                         {
-                                            CaptureImage = Emgu.CV.WPF.BitmapSourceConvert.ToBitmapSource(resized.ToUMat());
+                                            CaptureImage = Emgu.CV.WPF.BitmapSourceConvert.ToBitmapSource(img.ToUMat());
                                         }
                                     }
                                 }
@@ -190,6 +222,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 else
                     CaptureImage = new BitmapImage(new Uri("/Imgs/TestPattern.jpg", UriKind.Relative));
 
+                await Task.Delay(50);
             }
         }
 
@@ -210,5 +243,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             get => _loadingMasking;
             set => Set(ref _loadingMasking, value);
         }
+
+        public IMachineRepo MachineRepo => _machineRepo;
     }
 }

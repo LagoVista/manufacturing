@@ -54,7 +54,7 @@ namespace LagoVista.PickAndPlace.App
                     }
                 }
 
-                var main = new MainWindow();
+                var main = new Home();
                 main.Show();
                 this.Close();
             }
@@ -105,9 +105,7 @@ namespace LagoVista.PickAndPlace.App
                     await _authManager.PersistAsync();
                 }
 
-
-
-                var main = new MainWindow();
+                var main = new Home();
                 main.Show();
 
                 this.Close();

@@ -5,8 +5,8 @@ namespace LagoVista.PickAndPlace.ViewModels
 {
     public partial class JobControlViewModel
     {
-        public bool IsCreatingHeightMap { get { return Machine.Mode == OperatingMode.ProbingHeightMap; } }
-        public bool IsProbingHeight { get { return Machine.Mode == OperatingMode.ProbingHeight; } }
-        public bool IsRunningJob { get { return Machine.Mode == OperatingMode.SendingGCodeFile; } }
+        public bool IsCreatingHeightMap { get { return _machineRepo.CurrentMachine.Mode == OperatingMode.ProbingHeightMap; } }
+        public bool IsProbingHeight { get { return _machineRepo.CurrentMachine.Mode == OperatingMode.ProbingHeight; } }
+        public bool IsRunningJob { get { return _machineRepo.CurrentMachine.Mode == OperatingMode.SendingGCodeFile; } }
     }
 }

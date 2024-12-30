@@ -1,12 +1,16 @@
-﻿using LagoVista.PickAndPlace.Interfaces;
+﻿using LagoVista.Core.ViewModels;
+using LagoVista.PickAndPlace.Interfaces;
+using System;
 
 namespace LagoVista.PickAndPlace.ViewModels
 {
-    public partial class JobControlViewModel : GCodeAppViewModelBase
+    public partial class JobControlViewModel : ViewModelBase
     {
-        public JobControlViewModel(IMachine machine) : base(machine)
+        IMachineRepo _machineRepo;
+
+        public JobControlViewModel(IMachineRepo machineRepo)
         {
-            InitCommands();
+            _machineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
         }
     }
 }

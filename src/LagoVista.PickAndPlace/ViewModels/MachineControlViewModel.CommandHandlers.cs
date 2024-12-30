@@ -10,106 +10,106 @@ namespace LagoVista.PickAndPlace.ViewModels
     {
         public void CycleStart()
         {
-            Machine.CycleStart();
+            _machineRepo.CurrentMachine.CycleStart();
         }
 
         public void SoftReset()
         {
-            Machine.SoftReset();
+            _machineRepo.CurrentMachine.SoftReset();
         }
 
         public void FeedHold()
         {
-            Machine.FeedHold();
+            _machineRepo.CurrentMachine.FeedHold();
         }
 
         public void ClearAlarm()
         {
-            Machine.ClearAlarm();
+            _machineRepo.CurrentMachine.ClearAlarm();
         }
 
         private void RelativeJog(JogDirections direction)
         {
-            Machine.SendCommand("G91");
+            _machineRepo.CurrentMachine.SendCommand("G91");
 
             switch (direction)
             {
                 case JogDirections.XPlus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} X{XYStepSize.ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{_machineRepo.CurrentMachine.Settings.JogGCodeCommand} X{XYStepSize.ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
                 case JogDirections.YPlus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} Y{(XYStepSize).ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{_machineRepo.CurrentMachine.Settings.JogGCodeCommand} Y{(XYStepSize).ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
                 case JogDirections.ZPlus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} Z{(ZStepSize).ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} Z{(ZStepSize).ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
                 case JogDirections.XMinus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} X{(-XYStepSize).ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} X{(-XYStepSize).ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
                 case JogDirections.YMinus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} Y{(-XYStepSize).ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} Y{(-XYStepSize).ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
                 case JogDirections.ZMinus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} Z{(-ZStepSize).ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} Z{(-ZStepSize).ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
                 case JogDirections.T0Minus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} Z{(-ZStepSize).ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} Z{(-ZStepSize).ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
                 case JogDirections.T0Plus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} Z{(ZStepSize).ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} Z{(ZStepSize).ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
                 case JogDirections.T1Minus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} Z{(-ZStepSize).ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} Z{(-ZStepSize).ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
                 case JogDirections.T1Plus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} Z{(ZStepSize).ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} Z{(ZStepSize).ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
             }
 
-            Machine.SendCommand("G90");
+            _machineRepo.CurrentMachine.SendCommand("G90");
         }
 
         private const double ShaftOffsetCorrection = 0.5;
 
         private void AbsoluteJog(JogDirections direction)
         {
-            var current = Machine.WorkspacePosition;
+            var current = _machineRepo.CurrentMachine.WorkspacePosition;
 
             switch (direction)
             {
                 case JogDirections.XPlus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} X{(current.X + XYStepSize).ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} X{(current.X + XYStepSize).ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
                 case JogDirections.YPlus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} Y{(current.Y + XYStepSize).ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} Y{(current.Y + XYStepSize).ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
                 case JogDirections.ZPlus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} Z{(current.Z + ZStepSize).ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} Z{(current.Z + ZStepSize).ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
                 case JogDirections.XMinus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} X{(current.X - XYStepSize).ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} X{(current.X - XYStepSize).ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
                 case JogDirections.YMinus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} Y{(current.Y - XYStepSize).ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} Y{(current.Y - XYStepSize).ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
                 case JogDirections.ZMinus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} Z{(current.Z - ZStepSize).ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} Z{(current.Z - ZStepSize).ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
                 case JogDirections.T0Minus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} Z{(Machine.Tool0 - ZStepSize).ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} Z{(_machineRepo.CurrentMachine.Tool0 - ZStepSize).ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
                 case JogDirections.T0Plus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} Z{(Machine.Tool0 + ZStepSize).ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} Z{(_machineRepo.CurrentMachine.Tool0 + ZStepSize).ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
                 case JogDirections.T1Minus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} Z{(Machine.Tool1 - ZStepSize).ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} Z{(_machineRepo.CurrentMachine.Tool1 - ZStepSize).ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
                 case JogDirections.T1Plus:
-                    Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} Z{(Machine.Tool1 + ZStepSize).ToDim()} F{Machine.Settings.JogFeedRate}");
+                    _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} Z{(_machineRepo.CurrentMachine.Tool1 + ZStepSize).ToDim()} F{ _machineRepo.CurrentMachine.Settings.JogFeedRate}");
                     break;
                 case JogDirections.CMinus:
                     {
-                        var newAngle = Math.Round(Machine.Tool2 - 90);
+                        var newAngle = Math.Round(_machineRepo.CurrentMachine.Tool2 - 90);
                         var normalizedAngle = newAngle % 360;
                         if (normalizedAngle < 0)
                         {
@@ -119,13 +119,13 @@ namespace LagoVista.PickAndPlace.ViewModels
                         var xOffset = -(Math.Sin(normalizedAngle.ToRadians()) * ShaftOffsetCorrection);
                         var yOffset = -(Math.Cos(normalizedAngle.ToRadians()) * ShaftOffsetCorrection);
 
-                        Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} E{(newAngle).ToDim()} F5000");
-                        Machine.SendCommand("G90");
+                        _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} E{(newAngle).ToDim()} F5000");
+                        _machineRepo.CurrentMachine.SendCommand("G90");
 
-                        Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} E{(newAngle).ToDim()} F5000");
-                        /*                        Machine.SendCommand("G91");
-                                                Machine.SendCommand($"G0 X{xOffset.ToDim()}  Y{yOffset.ToDim()}");
-                                                Machine.SendCommand("G90");*/
+                        _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} E{(newAngle).ToDim()} F5000");
+                        /*                        _machineRepo.CurrentMachine.SendCommand("G91");
+                                                _machineRepo.CurrentMachine.SendCommand($"G0 X{xOffset.ToDim()}  Y{yOffset.ToDim()}");
+                                                _machineRepo.CurrentMachine.SendCommand("G90");*/
 
                         Debug.WriteLine($"New Angle {newAngle}°, Normalized {normalizedAngle}° Correction: ({xOffset.ToDim()} - {yOffset.ToDim()})");
                     }
@@ -133,7 +133,7 @@ namespace LagoVista.PickAndPlace.ViewModels
 
                 case JogDirections.CPlus:
                     {
-                        var newAngle = Math.Round(Machine.Tool2 + 90);
+                        var newAngle = Math.Round(_machineRepo.CurrentMachine.Tool2 + 90);
                         var normalizedAngle = newAngle % 360;
                         if (normalizedAngle < 0)
                         {
@@ -143,10 +143,10 @@ namespace LagoVista.PickAndPlace.ViewModels
                         var xOffset = -(Math.Sin(normalizedAngle.ToRadians()) * ShaftOffsetCorrection);
                         var yOffset = -(Math.Cos(normalizedAngle.ToRadians()) * ShaftOffsetCorrection);
 
-                        Machine.SendCommand($"{Machine.Settings.JogGCodeCommand} E{(newAngle).ToDim()} F5000");
+                        _machineRepo.CurrentMachine.SendCommand($"{ _machineRepo.CurrentMachine.Settings.JogGCodeCommand} E{(newAngle).ToDim()} F5000");
                         /*Machine.SendCommand("G91");
-                        Machine.SendCommand($"G0 X{xOffset.ToDim()}  Y{yOffset.ToDim()}");
-                        Machine.SendCommand("G90");*/
+                        _machineRepo.CurrentMachine.SendCommand($"G0 X{xOffset.ToDim()}  Y{yOffset.ToDim()}");
+                        _machineRepo.CurrentMachine.SendCommand("G90");*/
 
                         Debug.WriteLine($"New Angle {newAngle}°, Normalized {normalizedAngle}° Correction: ({xOffset.ToDim()} - {yOffset.ToDim()})");
 
@@ -157,11 +157,11 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         public void Jog(JogDirections direction)
         {
-            if ((Machine.Settings.MachineType == FirmwareTypes.Repeteir_PnP ||
-                Machine.Settings.MachineType == FirmwareTypes.LumenPnP_V4_Marlin ||
-                Machine.Settings.MachineType == FirmwareTypes.Marlin_Laser ||
-                Machine.Settings.MachineType == FirmwareTypes.Marlin ||
-                Machine.Settings.MachineType == FirmwareTypes.GRBL1_1) &&
+            if ((_machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.Repeteir_PnP ||
+                _machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.LumenPnP_V4_Marlin ||
+                _machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.Marlin_Laser ||
+                _machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.Marlin ||
+                _machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.GRBL1_1) &&
                 (direction != JogDirections.CMinus && direction != JogDirections.CPlus)
                 )
             {
@@ -178,31 +178,31 @@ namespace LagoVista.PickAndPlace.ViewModels
             switch (axis)
             {
                 case HomeAxis.All:
-                    Machine.SendCommand("G28 X Y");
-                    Machine.SendCommand("T0");
-                    Machine.SendCommand("G28 Z");
-                    Machine.SendCommand("T1");
-                    Machine.SendCommand("G28 Z");
-                    Machine.SendCommand("T1");
-                    Machine.SendCommand("G28 Z");
+                    _machineRepo.CurrentMachine.SendCommand("G28 X Y");
+                    _machineRepo.CurrentMachine.SendCommand("T0");
+                    _machineRepo.CurrentMachine.SendCommand("G28 Z");
+                    _machineRepo.CurrentMachine.SendCommand("T1");
+                    _machineRepo.CurrentMachine.SendCommand("G28 Z");
+                    _machineRepo.CurrentMachine.SendCommand("T1");
+                    _machineRepo.CurrentMachine.SendCommand("G28 Z");
                     break;
                 case HomeAxis.X:
-                    Machine.SendCommand("G28 X");
+                    _machineRepo.CurrentMachine.SendCommand("G28 X");
                     break;
                 case HomeAxis.Y:
-                    Machine.SendCommand("G28 Y");
+                    _machineRepo.CurrentMachine.SendCommand("G28 Y");
                     break;
                 case HomeAxis.Z:
-                    Machine.SendCommand("G28 Z");
+                    _machineRepo.CurrentMachine.SendCommand("G28 Z");
                     break;
                 case HomeAxis.T0:
-                    Machine.SendCommand("G28 Z");
+                    _machineRepo.CurrentMachine.SendCommand("G28 Z");
                     break;
                 case HomeAxis.T1:
-                    Machine.SendCommand("G28 P");
+                    _machineRepo.CurrentMachine.SendCommand("G28 P");
                     break;
                 case HomeAxis.C:
-                    Machine.SendCommand("G28 C");
+                    _machineRepo.CurrentMachine.SendCommand("G28 C");
                     break;
             }
         }
@@ -212,32 +212,32 @@ namespace LagoVista.PickAndPlace.ViewModels
             switch (axis)
             {
                 case ResetAxis.All:
-                    if (Machine.Settings.MachineType == FirmwareTypes.GRBL1_1)
+                    if (_machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.GRBL1_1)
                     {
-                        Machine.SendCommand("G10 P0 L20 X0 Y0 Z0");
+                        _machineRepo.CurrentMachine.SendCommand("G10 P0 L20 X0 Y0 Z0");
                     }
                     else
                     {
-                        Machine.SendCommand("G10 L20 P0 X0 Y0 Z0 C0");
+                        _machineRepo.CurrentMachine.SendCommand("G10 L20 P0 X0 Y0 Z0 C0");
                     }
                     break;
                 case ResetAxis.X:
-                    Machine.SendCommand("G10 L20 P0 X0");
+                    _machineRepo.CurrentMachine.SendCommand("G10 L20 P0 X0");
                     break;
                 case ResetAxis.Y:
-                    Machine.SendCommand("G10 L20 P0 Y0");
+                    _machineRepo.CurrentMachine.SendCommand("G10 L20 P0 Y0");
                     break;
                 case ResetAxis.Z:
-                    Machine.SendCommand("G10 L20 P0 Z0");
+                    _machineRepo.CurrentMachine.SendCommand("G10 L20 P0 Z0");
                     break;
                 case ResetAxis.T0:
-                    Machine.SendCommand("G10 L20 P0 Z0");
+                    _machineRepo.CurrentMachine.SendCommand("G10 L20 P0 Z0");
                     break;
                 case ResetAxis.T1:
-                    Machine.SendCommand("G10 L20 P0 Z0");
+                    _machineRepo.CurrentMachine.SendCommand("G10 L20 P0 Z0");
                     break;
                 case ResetAxis.C:
-                    Machine.SendCommand("G10 L20 P0 C0");
+                    _machineRepo.CurrentMachine.SendCommand("G10 L20 P0 C0");
                     break;
 
 
@@ -251,15 +251,15 @@ namespace LagoVista.PickAndPlace.ViewModels
                 case WindowsKey.Home:
                     if (isControl)
                     {
-                        Machine.SetWorkspaceHome();
+                        _machineRepo.CurrentMachine.SetWorkspaceHome();
                     }
                     else if (isShift)
                     {
-                        Machine.HomingCycle();
+                        _machineRepo.CurrentMachine.HomingCycle();
                     }
                     else
                     {
-                        Machine.GotoWorkspaceHome();
+                        _machineRepo.CurrentMachine.GotoWorkspaceHome();
                     }
 
                     break;

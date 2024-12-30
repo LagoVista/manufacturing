@@ -1,0 +1,29 @@
+﻿<ucb:VMBoundUserControl x:Class="LagoVista.PickAndPlace.App.Controls.MachinesControl"
+             x:TypeArguments="vm:IMachineRepo"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls"
+             xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
+             xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces;assembly=LagoVista.PickAndPlace"
+             mc:Ignorable="d"                           
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Label Content="{Binding CurrentMachine.Settings.Name, FallbackValue=No Current Machine}" ></Label>
+        <ListView ItemsSource="{Binding Machines}" SelectedItem="{Binding SelectedMachine}" Grid.Row="1">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Label Content="{Binding Name}"></Label>   
+                    </Grid>
+                
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>  
+    </Grid>
+</ucb:VMBoundUserControl>

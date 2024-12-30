@@ -382,37 +382,44 @@ namespace LagoVista.Manufacturing.Models
         public int FrameHeight { get; set; } = 600;
 
         public bool AbortOnProbeFail { get; set; }
-        public double ProbeFeed { get; set; }
 
-        private double _xyStepSize;
+
+        double _probeFeed;
+        public double ProbeFeed
+        {
+            get => _probeFeed;
+            set => Set(ref _probeFeed, value);
+        }
+
+        private double _xyStepSize = 1;
         public double XYStepSize
         {
             get { return _xyStepSize; }
             set { Set(ref _xyStepSize, value); }
         }
 
-        private double _zStepSize;
+        private double _zStepSize = 1;
         public double ZStepSize
         {
             get { return _zStepSize; }
             set { Set(ref _zStepSize, value); }
         }
 
-        private MachineOrigin _machineOrigin;
+        private MachineOrigin _machineOrigin = MachineOrigin.Bottom_Left;
         public MachineOrigin MachineOrigin
         {
             get { return _machineOrigin; }
             set { Set(ref _machineOrigin, value); }
         }
 
-        private JogGCodeCommand _jogGCodeCommand;
+        private JogGCodeCommand _jogGCodeCommand = JogGCodeCommand.G1;
         public JogGCodeCommand JogGCodeCommand
         {
             get { return _jogGCodeCommand; }
             set { Set(ref _jogGCodeCommand, value); }
         }
 
-        private MessageVerbosityLevels _messageVerbosity;
+        private MessageVerbosityLevels _messageVerbosity = MessageVerbosityLevels.Normal;
         public MessageVerbosityLevels MessageVerbosity
         {
             get { return _messageVerbosity; }
@@ -435,14 +442,14 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _jogFeedRate, value); }
         }
 
-        private StepModes _xyStepMode;
+        private StepModes _xyStepMode = StepModes.Small;
         public StepModes XYStepMode
         {
             get { return _xyStepMode; }
             set { Set(ref _xyStepMode, value); }
         }
 
-        private StepModes _zStepMode;
+        private StepModes _zStepMode = StepModes.Small;
         public StepModes ZStepMode
         {
             get { return _zStepMode; }

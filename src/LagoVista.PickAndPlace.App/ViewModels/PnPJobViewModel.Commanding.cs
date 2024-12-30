@@ -15,26 +15,24 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             GoToPartOnBoardCommand = new RelayCommand(async () => await GoToPartOnBoard());
             GoToPartPositionInTrayCommand = new RelayCommand(GoToPartPositionInTray);
 
-            HomingCycleCommand = new RelayCommand(() => _machine.HomingCycle());
+            HomingCycleCommand = new RelayCommand(() => _machineRepo.CurrentMachine.HomingCycle());
 
     
             GoToWorkHomeCommand = new RelayCommand(() => GotoWorkspaceHome());
             HomeViaOriginCommand = new RelayCommand(() => HomeViaOrigin());
             SetWorkHomeViaVisionCommand = new RelayCommand(() => SetWorkComeViaVision());
-            SetWorkHomeCommand = new RelayCommand(() => _machine.SetWorkspaceHome());
+            SetWorkHomeCommand = new RelayCommand(() => _machineRepo.CurrentMachine.SetWorkspaceHome());
             GoToPCBOriginCommand = new RelayCommand(() => GoToPCBOrigin());
 
-
-          
 
 
             SetBoardOffsetCommand = new RelayCommand(SetBoardOffset, () => { return true; });
             ClearBoardOffsetCommand = new RelayCommand(ClearBoardOffset, () => { return true; });
 
 
-            //SetBottomCameraPositionCommand = new RelayCommand(SetBottomCamera, () => _machine.Connected);
-            GoTo_machineFiducialCommand = new RelayCommand(Goto_machineFiducial, () => _machine.Connected);
-            Set_machineFiducialCommand = new RelayCommand(Set_machineFiducial, () => _machine.Connected);
+            //SetBottomCameraPositionCommand = new RelayCommand(SetBottomCamera, () => _machineRepo.Connected);
+            GoTo_machineFiducialCommand = new RelayCommand(GotoMachineFiducial, () => _machineRepo.CurrentMachine.Connected);
+            Set_machineFiducialCommand = new RelayCommand(SeMachineFiducial, () => _machineRepo.CurrentMachine.Connected);
 
             ExportBOMCommand = new RelayCommand(ExportBOM);
         }

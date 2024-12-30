@@ -16,142 +16,142 @@ namespace LagoVista.PickAndPlace.ViewModels
     {
         public void EmergencyStop()
         {
-            Machine.EmergencyStop();
+           _machineRepo.CurrentMachine.EmergencyStop();
         }
 
         public void StopJob()
         {
-            Machine.HeightMapManager.Reset();
-            Machine.GCodeFileManager.ResetJob();
-            Machine.SetMode(OperatingMode.Manual);
+           _machineRepo.CurrentMachine.HeightMapManager.Reset();
+           _machineRepo.CurrentMachine.GCodeFileManager.ResetJob();
+           _machineRepo.CurrentMachine.SetMode(OperatingMode.Manual);
         }
 
         public void FeedHold()
         {
-            Machine.FeedHold();
+           _machineRepo.CurrentMachine.FeedHold();
         }
 
         public void CycleStart()
         {
-            Machine.CycleStart();
+           _machineRepo.CurrentMachine.CycleStart();
         }
 
         public void SoftReset()
         {
-            Machine.SoftReset();
-            if(Machine.GCodeFileManager.HasValidFile)
+           _machineRepo.CurrentMachine.SoftReset();
+            if(_machineRepo.CurrentMachine.GCodeFileManager.HasValidFile)
             {
-                Machine.GCodeFileManager.ResetJob();
+               _machineRepo.CurrentMachine.GCodeFileManager.ResetJob();
             }
         }
 
         public void SpindleOn()
         {
-            Machine.SpindleOn();
+           _machineRepo.CurrentMachine.SpindleOn();
         }
 
         public void SpindleOff()
         {
-            Machine.SpindleOff();
+           _machineRepo.CurrentMachine.SpindleOff();
         }
 
         public void LaserOn()
         {
-            Machine.LaserOn();
+           _machineRepo.CurrentMachine.LaserOn();
         }
 
         public void LaserOff()
         {
-            Machine.LaserOff();
+           _machineRepo.CurrentMachine.LaserOff();
         }
 
         public void SetWorkspaceHome()
         {
-            Machine.SetWorkspaceHome();
+           _machineRepo.CurrentMachine.SetWorkspaceHome();
         }
 
         public void GotoWorkspaceHome()
         {
-            Machine.GotoWorkspaceHome();
+           _machineRepo.CurrentMachine.GotoWorkspaceHome();
         }
         
         public void SetFavorite1()
         {
-            Machine.SetFavorite1();
+           _machineRepo.CurrentMachine.SetFavorite1();
         }
 
         public void SetFavorite2()
         {
-            Machine.SetFavorite2();
+           _machineRepo.CurrentMachine.SetFavorite2();
         }
 
         public void GotoFavorite1()
         {
-            Machine.GotoFavorite1();
+           _machineRepo.CurrentMachine.GotoFavorite1();
         }
 
         public void GotoFavorite2()
         {
-            Machine.GotoFavorite2();
+           _machineRepo.CurrentMachine.GotoFavorite2();
         }
 
         public void HomingCycle()
         {
-            Machine.HomingCycle();
+           _machineRepo.CurrentMachine.HomingCycle();
         }
 
         public void HomeViaOrigin()
         {
-            Machine.HomeViaOrigin();
+           _machineRepo.CurrentMachine.HomeViaOrigin();
         }
 
         public void SetAbsoluteWorkSpaceHome()
         {
-            Machine.SetAbsoluteWorkSpaceHome();
+           _machineRepo.CurrentMachine.SetAbsoluteWorkSpaceHome();
         }
 
         public void StartProbe()
         {
-            Machine.ProbingManager.StartProbe();
+           _machineRepo.CurrentMachine.ProbingManager.StartProbe();
         }
 
         public void StartHeightMap()
         {
-            Machine.HeightMapManager.StartProbing();
+           _machineRepo.CurrentMachine.HeightMapManager.StartProbing();
         }
 
         public void SendGCodeFile()
         {
-            Machine.GCodeFileManager.StartJob();
+           _machineRepo.CurrentMachine.GCodeFileManager.StartJob();
         }
 
         public void PauseJob()
         {
-            Machine.SetMode(OperatingMode.Manual);
+           _machineRepo.CurrentMachine.SetMode(OperatingMode.Manual);
         }
 
         public void ClearAlarm()
         {
-            Machine.ClearAlarm();
+           _machineRepo.CurrentMachine.ClearAlarm();
         }
         
 
         public async void Connect()
         {
-            if (Machine.Connected)
+            if (_machineRepo.CurrentMachine.Connected)
             {
-                await Machine.DisconnectAsync();
+                await _machineRepo.CurrentMachine.DisconnectAsync();
             }
             else
             {
-                if (Machine.Settings.MachineType == FirmwareTypes.SimulatedMachine)
+                if (_machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.SimulatedMachine)
                 {
-                    await Machine.ConnectAsync(new SimulatedSerialPort(Machine.Settings.MachineType));
+                    await _machineRepo.CurrentMachine.ConnectAsync(new SimulatedSerialPort(_machineRepo.CurrentMachine.Settings.MachineType));
                 }
-                else if(Machine.Settings.ConnectionType == Manufacturing.Models.ConnectionTypes.Serial_Port)
+                else if(_machineRepo.CurrentMachine.Settings.ConnectionType == Manufacturing.Models.ConnectionTypes.Serial_Port)
                 {
-                    var port1 = new SerialPort(Machine.Settings.CurrentSerialPort.Name, Machine.Settings.CurrentSerialPort.BaudRate);
-                    await Machine.ConnectAsync(port1);
+                    var port1 = new SerialPort(_machineRepo.CurrentMachine.Settings.CurrentSerialPort.Name,_machineRepo.CurrentMachine.Settings.CurrentSerialPort.BaudRate);
+                    await _machineRepo.CurrentMachine.ConnectAsync(port1);
                 }
                 else
                 {
@@ -159,8 +159,8 @@ namespace LagoVista.PickAndPlace.ViewModels
                     {
                         var socketClient = SLWIOC.Create<ISocketClient>();
 
-                        await socketClient.ConnectAsync(Machine.Settings.IPAddress, 3000);
-                        await Machine.ConnectAsync(socketClient);
+                        await socketClient.ConnectAsync(_machineRepo.CurrentMachine.Settings.IPAddress, 3000);
+                        await _machineRepo.CurrentMachine.ConnectAsync(socketClient);
                     }
                     catch(Exception)
                     {
