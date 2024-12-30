@@ -1,4 +1,5 @@
 ﻿using LagoVista.PCB.Eagle.Models;
+using LagoVista.PickAndPlace.Interfaces.ViewModels;
 using LagoVista.PickAndPlace.Managers;
 using LagoVista.PickAndPlace.Models;
 using System;
@@ -28,17 +29,17 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         {
             var bldr = new StringBuilder();
 
-            foreach(var partByValue in SelectedBuildFlavor.Components.Where(prt=>prt.Included).GroupBy(prt=>prt.Value))
-            {
-                var value = partByValue.Key;
-                bldr.Append($"{value}\t");
-                foreach(var part in partByValue)
-                    bldr.Append($"{part.Name}, ");
+           // foreach(var partByValue in SelectedBuildFlavor.Components.Where(prt=>prt.Included).GroupBy(prt=>prt.Value))
+           // {
+           //     var value = partByValue.Key;
+           //     bldr.Append($"{value}\t");
+           //     foreach(var part in partByValue)
+           //         bldr.Append($"{part.Name}, ");
 
-                bldr.AppendLine();
-           }
+           //     bldr.AppendLine();
+           //}
 
-            System.IO.File.WriteAllText(@$"X:\PartList {SelectedBuildFlavor.Name}.txt", bldr.ToString());
+           // System.IO.File.WriteAllText(@$"X:\PartList {SelectedBuildFlavor.Name}.txt", bldr.ToString());
         }
 
         private void PopulateConfigurationParts()
@@ -91,7 +92,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             Machine.SendCommand(SafeHeightGCodeGCode());
             var gcode = $"G1 X0 Y0 F{Machine.Settings.FastFeedRate}";
             Machine.SendCommand(gcode);           
-            LocatorState = MVLocatorState.Default;
+            LocatorVM.LocatorState = MVLocatorState.Default;
         }
     }
 }

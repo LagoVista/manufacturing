@@ -388,8 +388,6 @@ namespace LagoVista.PickAndPlace.App
                     var vm = new PnPJobViewModel(ViewModel.Machine, _restClient);
                     vm.Job = result.Result.Model;
                     await vm.InitAsync();
-                    vm.StripFeeders = new System.Collections.ObjectModel.ObservableCollection<Manufacturing.Models.StripFeeder>(stripFeeders.Result.Model);
-                    vm.AutoFeeders = new System.Collections.ObjectModel.ObservableCollection<AutoFeeder>(autoFeeders.Result.Model);
                     pnpWindow.DataContext = vm;
                     pnpWindow.Show();
                 }

@@ -46,9 +46,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             AbortMVLocatorCommand = new RelayCommand(() => AbortMVLocator());
 
-            NextInspectCommand = new RelayCommand(NextInspect, () => _inspectIndex < ConfigurationParts.Count - 1);
-            PrevInspectCommand = new RelayCommand(PrevInspect, () => _inspectIndex > 0);
-            FirstInspectCommand = new RelayCommand(FirstInspect, () => _inspectIndex > 0);
 
             SetBoardOffsetCommand = new RelayCommand(SetBoardOffset, () => { return true; });
             ClearBoardOffsetCommand = new RelayCommand(ClearBoardOffset, () => { return true; });
@@ -105,18 +102,11 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         public RelayCommand CalibrateBottomCameraCommand { get; private set; }
         public RelayCommand SetFiducialCalibrationCommand { get; private set; }
 
-        public RelayCommand FirstInspectCommand { get; private set; }
-        public RelayCommand NextInspectCommand { get; private set; }
-        public RelayCommand PrevInspectCommand { get; private set; }
-
 
         public RelayCommand GoToRefHoleCommand { get; set; }
         public RelayCommand SetRefHoleCommand { get; set; }
         public RelayCommand GoToCurrentPartInStripCommand { get; set; }
 
-        public RelayCommand GoToInspectPartRefHoleCommand { get; private set; }
-        public RelayCommand SetInspectPartRefHoleCommand { get; private set; }
-        public RelayCommand GoToInspectedPartCommand { get; private set; }
 
         public RelayCommand SetBoardOffsetCommand { get; private set; }
         public RelayCommand ClearBoardOffsetCommand { get; private set; }

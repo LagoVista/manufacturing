@@ -39,8 +39,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         public IJobInspectionViewModel JobInspectionVM { get; }
         public IPartsViewModel PartsVM { get; }
         public ToolAlignmentViewModel ToolAlignmentVM { get; }
-        public LocatorViewModel LocatorVM { get; }
-        public NozzleTipCalibrationViewModel NozzleTipCalibrationVM { get; }
+        public ILocatorViewModel LocatorVM { get; }
+        public INozzleTipCalibrationViewModel NozzleTipCalibrationVM { get; }
         public VisionManagerViewModel VisionManagerVM { get; }
         public HomingViewModel HomingVM { get; }
         public FiducialViewModel FiducialVM { get; }

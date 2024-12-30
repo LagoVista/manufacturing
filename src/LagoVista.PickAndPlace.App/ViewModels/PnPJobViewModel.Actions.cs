@@ -92,7 +92,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         public async void CalibrateBottomCamera()
         {
-            await _nozzleTipCalibrationViewModel.Start();
+            await NozzleTipCalibrationVM.StartAsync();
         }
         
         public void PausePlacement(Object obj)
@@ -111,13 +111,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         public void SetWorkComeViaVision()
         {
-            Machine.SendCommand(SafeHeightGCodeGCode());
-            Machine.GotoWorkspaceHome();
-            SelectMVProfile("mchfiducual");            
-
-            LocatorState = MVLocatorState.WorkHome;
-
-            Status = "Machine Vision - Origin";
         }
 
 

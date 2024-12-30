@@ -1,4 +1,5 @@
 ﻿using LagoVista.Core.Models.Drawing;
+using LagoVista.PickAndPlace.Interfaces.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,13 +14,13 @@ namespace LagoVista.PickAndPlace.App.ViewModels
     {
         private void AbortMVLocator()
         {
-            LocatorState = MVLocatorState.Idle;
+            LocatorVM.LocatorState = MVLocatorState.Idle;
         }
 
         public async void PerformMachineAlignment()
         {
             Machine.SendCommand(SafeHeightGCodeGCode());
-            LocatorState = MVLocatorState.Idle;
+            LocatorVM.LocatorState = MVLocatorState.Idle;
 
             Machine.HomeViaOrigin();
 
@@ -30,7 +31,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             SelectMVProfile("mchfiducual");
 
-            LocatorState = MVLocatorState.MachineFidicual;
+            LocatorVM.LocatorState = MVLocatorState.MachineFidicual;
         }
 
         public void GotoMachineFiducial()
@@ -86,7 +87,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         public override void CircleLocated(Point2D<double> point, double diameter, Point2D<double> stdDeviation)
         {
-            switch (LocatorState)
+            switch (LocatorVM.LocatorState)
             {
                 case MVLocatorState.MachineFidicual:
                     JogToLocation(point);
