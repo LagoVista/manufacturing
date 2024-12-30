@@ -5,9 +5,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Media.Media3D;
 
 namespace LagoVista.PickAndPlace.App.ViewModels
 {
@@ -17,10 +15,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         VideoCapture _bottomCameraCapture;
 
         Object _videoCaptureLocker = new object();
-
-        
-
-        
+       
         private string _status = "Idle";
         public string Status
         {
@@ -74,29 +69,29 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
                 if (_topCameraCapture != null)
                 {
-                    if (_lastTopBrightness != _topCameraProfile.Brightness)
+                    if (_lastTopBrightness != _visionProfileManagerViewModel.TopCameraProfile.Brightness)
                     {
-                        _topCameraCapture.Set(Emgu.CV.CvEnum.CapProp.Brightness, _topCameraProfile.Brightness);
-                        _lastTopBrightness = _topCameraProfile.Brightness;
+                        _topCameraCapture.Set(Emgu.CV.CvEnum.CapProp.Brightness, _visionProfileManagerViewModel.TopCameraProfile.Brightness);
+                        _lastTopBrightness = _visionProfileManagerViewModel.TopCameraProfile.Brightness;
                     }
 
-                    if (_lastTopFocus != _topCameraProfile.Focus)
+                    if (_lastTopFocus != _visionProfileManagerViewModel.TopCameraProfile.Focus)
                     {
 
-                        _topCameraCapture.Set(Emgu.CV.CvEnum.CapProp.Focus, _topCameraProfile.Focus);
-                        _lastTopFocus = _topCameraProfile.Focus;
+                        _topCameraCapture.Set(Emgu.CV.CvEnum.CapProp.Focus, _visionProfileManagerViewModel.TopCameraProfile.Focus);
+                        _lastTopFocus = _visionProfileManagerViewModel.TopCameraProfile.Focus;
                     }
 
-                    if (_lastTopContrast != _topCameraProfile.Contrast)
+                    if (_lastTopContrast != _visionProfileManagerViewModel.TopCameraProfile.Contrast)
                     {
-                        _topCameraCapture.Set(Emgu.CV.CvEnum.CapProp.Contrast, _topCameraProfile.Contrast);
-                        _lastTopContrast = _topCameraProfile.Contrast;
+                        _topCameraCapture.Set(Emgu.CV.CvEnum.CapProp.Contrast, _visionProfileManagerViewModel.TopCameraProfile.Contrast);
+                        _lastTopContrast = _visionProfileManagerViewModel.TopCameraProfile.Contrast;
                     }
 
-                    if (_lastTopExposure != _topCameraProfile.Exposure)
+                    if (_lastTopExposure != _visionProfileManagerViewModel.TopCameraProfile.Exposure)
                     {
-                        _topCameraCapture.Set(Emgu.CV.CvEnum.CapProp.Exposure, _topCameraProfile.Exposure);
-                        _lastTopExposure = _topCameraProfile.Exposure;
+                        _topCameraCapture.Set(Emgu.CV.CvEnum.CapProp.Exposure, _visionProfileManagerViewModel.TopCameraProfile.Exposure);
+                        _lastTopExposure = _visionProfileManagerViewModel.TopCameraProfile.Exposure;
                     }
 
                     if (LoadingMask)
@@ -113,11 +108,11 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                                 img.ROI = new System.Drawing.Rectangle() { X = (img.Size.Width - img.Size.Height) / 2, Width = img.Size.Height, Y = 0, Height = img.Size.Height };
                                 using (var cropped = img.Copy())
                                 {
-                                    using (var resized = cropped.Resize(_topCameraProfile.ZoomLevel, Emgu.CV.CvEnum.Inter.LinearExact))
+                                    using (var resized = cropped.Resize(_visionProfileManagerViewModel.TopCameraProfile.ZoomLevel, Emgu.CV.CvEnum.Inter.LinearExact))
                                     {
-                                        if (_topCameraProfile.PerformShapeDetection)
+                                        if (_visionProfileManagerViewModel.TopCameraProfile.PerformShapeDetection)
                                         {
-                                            using (var results = PerformShapeDetection(resized, Machine.Settings.PositioningCamera, _topCameraProfile))
+                                            using (var results = PerformShapeDetection(resized, Machine.Settings.PositioningCamera, _visionProfileManagerViewModel.TopCameraProfile))
                                             {
                                                 PrimaryCapturedImage = Emgu.CV.WPF.BitmapSourceConvert.ToBitmapSource(results);
                                             }
@@ -141,28 +136,28 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 {
                     //  _bottomCameraCapture.SetCaptureProperty(Emgu.CV.CvEnum.CapProp.AutoExposure, 0);
 
-                    if (_lastBottomBrightness != _bottomCameraProfile.Brightness)
+                    if (_lastBottomBrightness != _visionProfileManagerViewModel.BottomCameraProfile.Brightness)
                     {
-                        _bottomCameraCapture.Set(Emgu.CV.CvEnum.CapProp.Brightness, _bottomCameraProfile.Brightness);
-                        _lastBottomBrightness = _bottomCameraProfile.Brightness;
+                        _bottomCameraCapture.Set(Emgu.CV.CvEnum.CapProp.Brightness, _visionProfileManagerViewModel.BottomCameraProfile.Brightness);
+                        _lastBottomBrightness = _visionProfileManagerViewModel.BottomCameraProfile.Brightness;
                     }
 
-                    if (_lastBottomFocus != _bottomCameraProfile.Focus)
+                    if (_lastBottomFocus != _visionProfileManagerViewModel.BottomCameraProfile.Focus)
                     {
-                        _bottomCameraCapture.Set(Emgu.CV.CvEnum.CapProp.Focus, _bottomCameraProfile.Focus);
-                        _lastBottomFocus = _bottomCameraProfile.Focus;
+                        _bottomCameraCapture.Set(Emgu.CV.CvEnum.CapProp.Focus, _visionProfileManagerViewModel.BottomCameraProfile.Focus);
+                        _lastBottomFocus = _visionProfileManagerViewModel.BottomCameraProfile.Focus;
                     }
 
-                    if (_lastBottomContrast != _bottomCameraProfile.Contrast)
+                    if (_lastBottomContrast != _visionProfileManagerViewModel.BottomCameraProfile.Contrast)
                     {
-                        _bottomCameraCapture.Set(Emgu.CV.CvEnum.CapProp.Contrast, _bottomCameraProfile.Contrast);
-                        _lastBottomContrast = _bottomCameraProfile.Contrast;
+                        _bottomCameraCapture.Set(Emgu.CV.CvEnum.CapProp.Contrast, _visionProfileManagerViewModel.BottomCameraProfile.Contrast);
+                        _lastBottomContrast = _visionProfileManagerViewModel.BottomCameraProfile.Contrast;
                     }
 
-                    if (_lastBottomExposure != _bottomCameraProfile.Exposure)
+                    if (_lastBottomExposure != _visionProfileManagerViewModel.BottomCameraProfile.Exposure)
                     {
-                        _bottomCameraCapture.Set(Emgu.CV.CvEnum.CapProp.Exposure, _bottomCameraProfile.Exposure);
-                        _lastBottomExposure = _bottomCameraProfile.Exposure;
+                        _bottomCameraCapture.Set(Emgu.CV.CvEnum.CapProp.Exposure, _visionProfileManagerViewModel.BottomCameraProfile.Exposure);
+                        _lastBottomExposure = _visionProfileManagerViewModel.BottomCameraProfile.Exposure;
                     }
 
                     using (var originalFrame = _bottomCameraCapture.QueryFrame())
@@ -175,11 +170,11 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                                 img.ROI = new System.Drawing.Rectangle() { X = (img.Size.Width - img.Size.Height) / 2, Width = img.Size.Height, Y = 0, Height = img.Size.Height };
                                 using (var cropped = img.Copy())
                                 {
-                                    using (var resized = cropped.Resize(_bottomCameraProfile.ZoomLevel, Emgu.CV.CvEnum.Inter.LinearExact))
+                                    using (var resized = cropped.Resize(_visionProfileManagerViewModel.BottomCameraProfile.ZoomLevel, Emgu.CV.CvEnum.Inter.LinearExact))
                                     {
-                                        if (_bottomCameraProfile.PerformShapeDetection)
+                                        if (_visionProfileManagerViewModel.BottomCameraProfile.PerformShapeDetection)
                                         {
-                                            using (var results = PerformShapeDetection(resized, Machine.Settings.PositioningCamera, _bottomCameraProfile))
+                                            using (var results = PerformShapeDetection(resized, Machine.Settings.PositioningCamera, _visionProfileManagerViewModel.BottomCameraProfile))
                                             {
 
                                                 SecondaryCapturedImage = Emgu.CV.WPF.BitmapSourceConvert.ToBitmapSource(results);

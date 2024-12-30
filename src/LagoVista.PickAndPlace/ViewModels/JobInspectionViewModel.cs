@@ -138,7 +138,7 @@ namespace LagoVista.PickAndPlace.ViewModels
             set => Set(ref _inspectIndex, value);
         }
 
-        private RefreshCanExecute()
+        private void RefreshCanExecute()
         {
             PrevInspectCommand.RaiseCanExecuteChanged();
             NextInspectCommand.RaiseCanExecuteChanged();

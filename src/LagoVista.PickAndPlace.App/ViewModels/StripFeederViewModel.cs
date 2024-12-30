@@ -188,7 +188,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 return;
             }
 
-            _machine.SendSaveMoveHeight();            
+            _machine.SendSafeMoveHeight();            
 
             _jobVM.SelectMVProfile("tapehole");
             _machine.TopLightOn = false;

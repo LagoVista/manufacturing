@@ -250,7 +250,7 @@ namespace LagoVista.PickAndPlace.Interfaces
         /// <param name="cmd">Text that represents the command</param>
         void SendCommand(String cmd);
 
-        void SendSaveMoveHeight();
+        void SendSafeMoveHeight();
 
         bool LocationUpdateEnabled { get; set; }
 

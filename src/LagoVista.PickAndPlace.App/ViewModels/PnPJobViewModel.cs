@@ -25,14 +25,16 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         {
             _restClient = SLWIOC.Get<IRestClient>();
             StripFeederVM = new StripFeederViewModel(machine, this);
-            ToolAlignmentVM = new ToolAlignmentViewModel(machine);
 
             VisionManagerVM = new VisionManagerViewModel(machine);
             LocatorVM = new LocatorViewModel(machine);
+
+            ToolAlignmentVM = new ToolAlignmentViewModel(machine, LocatorVM, VisionManagerVM);
+
             NozzleTipCalibrationVM = new NozzleTipCalibrationViewModel(machine, LocatorVM, VisionManagerVM);
             FiducialVM = new FiducialViewModel(machine, LocatorVM);
             PartsVM = new PartsViewModel(machine, LocatorVM, restClient);
-
+            HomingVM = new HomingViewModel(machine, VisionManagerVM, LocatorVM);
             AddCommands();
         }
 
@@ -42,7 +44,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             {
                 case MVLocatorState.WorkHome:
                     Machine.SetWorkspaceHome();
-                    LocatorVM.LocatorState = MVLocatorState.Idle;
+                    LocatorVM.SetLocatorState(MVLocatorState.Idle);
                     Status = "W/S Home Found";
                     break;
                 case MVLocatorState.MachineFidicual:

@@ -11,6 +11,7 @@ using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
+using LagoVista.PickAndPlace.Interfaces.ViewModels;
 using LagoVista.PickAndPlace.Models;
 using LagoVista.PickAndPlace.Util;
 using LagoVista.PickAndPlace.ViewModels;
@@ -30,36 +31,20 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         FloatMedianFilter _circleMedianFilter = new FloatMedianFilter(4, 1);
         FloatMedianFilter _circleRadiusMedianFilter = new FloatMedianFilter(4, 1);
 
-        private VisionSettings _topCameraProfile;
-        private VisionSettings _bottomCameraProfile;
+
+        IMachine _machine;
+        ILocatorViewModel _locatorViewModel;
+        IVisionProfileManagerViewModel _visionProfileManagerViewModel;
 
         const double PIXEL_PER_MM = 20.0;
-        public MachineVisionViewModelBase(IMachine machine) : base(machine)
+        public MachineVisionViewModelBase(IMachine machine, ILocatorViewModel locatorViewModel, IVisionProfileManagerViewModel visionProfileManagerViewModel) : base(machine)
         {
-            MachineControls = new MachineControlViewModel(this.Machine);
-            //Profile = new Models.VisionProfile();
-            SaveProfileCommand = new RelayCommand(SaveProfile);
+            _machine = machine ?? throw new ArgumentNullException(nameof(machine));
+            _locatorViewModel = locatorViewModel ?? throw new ArgumentNullException(nameof(locatorViewModel));
+            _visionProfileManagerViewModel = visionProfileManagerViewModel ?? throw new ArgumentNullException(nameof(visionProfileManagerViewModel));
 
             StartCaptureCommand = new RelayCommand(StartCapture, CanPlay);
             StopCaptureCommand = new RelayCommand(StopCapture, CanStop);
-
-            MVProfiles = new List<EntityHeader>()
-            {
-                EntityHeader.Create("default", "Default"),
-                EntityHeader.Create("brdfiducual", "Board Fiducial"),
-                EntityHeader.Create("mchfiducual", "Machine Fiducial"),
-                EntityHeader.Create("tapehole", "Tape Hole"),
-                EntityHeader.Create("tapeholewhite", "Tape Hole (White Tape)"),
-                EntityHeader.Create("tapeholeblack", "Tape Hole (Black Tape)"),
-                EntityHeader.Create("tapeholeclear", "Tape Hole (Clear Tape)"),
-                EntityHeader.Create("squarepart", "Square Part"),
-                EntityHeader.Create("nozzle", "Nozzle"),
-                EntityHeader.Create("nozzlecalibration", "Nozzle Calibration"),
-                EntityHeader.Create("partinspection", "Part Inspection"),
-            };
-
-            _currentMVProfile = MVProfiles.SingleOrDefault(mv => mv.Id == "default");
-            LoadProfiles();
         }
 
         public override Task InitAsync()
@@ -67,117 +52,12 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             return Task.CompletedTask;
         }
 
-        private void LoadProfiles()
-        {
-
-            var topProfileId = $"top-{CurrentMVProfile.Id}";
-            var bottomProfileId = $"bottom-{CurrentMVProfile.Id}";
-
-            var profile = Machine.Settings.VisionProfiles.SingleOrDefault(prf => prf.Id == CurrentMVProfile.Id);
-            if (profile == null)
-            {
-                var defaultProfile = Machine.Settings.VisionProfiles.FirstOrDefault(prof => prof.Name == "default");
-                if (defaultProfile == null)
-                {
-                    defaultProfile = new VisionProfile()
-                    {
-                        Name = "Default",
-                        Id = "fefault",
-                        BottomProfile = new VisionSettings(),
-                        TopProfile = new VisionSettings()
-                    };
-                }
-                else
-                {
-                    profile = new VisionProfile()
-                    {
-                        Name = CurrentMVProfile.Id,
-                        Id = CurrentMVProfile.Id,
-                    };
-
-                    // lazy way to clone an object, maybe not that efficient, but this won't happen often.
-                    profile.BottomProfile = JsonConvert.DeserializeObject<VisionSettings>(JsonConvert.SerializeObject(defaultProfile.BottomProfile));
-                    profile.TopProfile = JsonConvert.DeserializeObject<VisionSettings>(JsonConvert.SerializeObject(defaultProfile.TopProfile));
-                };
-            }
-            else
-            {
-                _bottomCameraProfile = profile.BottomProfile;
-                _topCameraProfile = profile.TopProfile;
-            }
-           
-
-            RaisePropertyChanged(nameof(BottomZoomLevel));
-            RaisePropertyChanged(nameof(TopZoomLevel));
-
-            SaveProfile();
-
-            Machine.TopLightOn = _topCameraProfile.LightOn;
-            Machine.TopRed = _topCameraProfile.LightRed;
-            Machine.TopGreen = _topCameraProfile.LightGreen;
-            Machine.TopBlue = _topCameraProfile.LightBlue;
-            Machine.TopPower = _topCameraProfile.LightPower;
-
-            Machine.BottomLightOn = _bottomCameraProfile.LightOn;
-            Machine.BottomRed = _bottomCameraProfile.LightRed;
-            Machine.BottomGreen = _bottomCameraProfile.LightGreen;
-            Machine.BottomBlue = _bottomCameraProfile.LightBlue;
-            Machine.BottomPower = _bottomCameraProfile.LightPower;
-        }
-
-        public List<EntityHeader> MVProfiles { get; }
-
-        EntityHeader _currentMVProfile;
-        public EntityHeader CurrentMVProfile
-        {
-            get
-            {
-                if(_currentMVProfile == null)
-                {
-                    _currentMVProfile = MVProfiles.Single(pr => pr.Id == "default");
-                }
-                return _currentMVProfile;
-            }
-            set
-            {
-                SaveProfile();
-                Set(ref _currentMVProfile, value);
-                LoadProfiles();
-            }
-        }
-
-        public void SelectMVProfile(string profile)
-        {
-            CurrentMVProfile = MVProfiles.SingleOrDefault(mvp => mvp.Id == profile);
-        }
-
-        public void SaveProfile()
-        {
-            if (CurrentMVProfile != null)
-            {
-                var existing = Machine.Settings.VisionProfiles.FirstOrDefault(vp => vp.Id == CurrentMVProfile.Id);
-                if(existing == null)
-                {
-                    Machine.Settings.VisionProfiles.Add(new VisionProfile()
-                    {
-                        Name = CurrentMVProfile.Text,
-                        Id = CurrentMVProfile.Id,
-                        BottomProfile = _bottomCameraProfile,
-                        TopProfile = _topCameraProfile,                        
-                    });
-
-                }
-            }
-        }
 
         public async Task<InvokeResult> SaveMachineAsync()
         {
             var rest = SLWIOC.Get<IRestClient>();
             return await rest.PutAsync("/api/mfg/machine", Machine.Settings);
         }
-
-        public RelayCommand SaveProfileCommand { get; private set; }
-
 
         protected void Circle(IInputOutputArray img, int x, int y, int radius, System.Drawing.Color color, int thickness = 1)
         {
@@ -252,7 +132,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             Line(destImage, center.X - profile.TargetImageRadius, center.Y, center.X + profile.TargetImageRadius, center.Y, System.Drawing.Color.FromArgb(0x7f, 0xFF, 0xFF, 0XFF));
             Line(destImage, center.X, center.Y - profile.TargetImageRadius, center.X, center.Y + profile.TargetImageRadius, System.Drawing.Color.FromArgb(0x7f, 0xFF, 0xFF, 0XFF));
 
-            if (CurrentMVProfile?.Id == "squarepart")
+            if (_visionProfileManagerViewModel.CurrentMVProfile.Id == "squarepart")
             {
                 Line(destImage, center.X - PartSizeWidth, center.Y - PartSizeHeight, center.X - PartSizeWidth, center.Y + PartSizeHeight, System.Drawing.Color.Yellow);
                 Line(destImage, center.X + PartSizeWidth, center.Y - PartSizeHeight, center.X + PartSizeWidth, center.Y + PartSizeHeight, System.Drawing.Color.Yellow);
@@ -279,7 +159,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         protected virtual void FoundHomePosition()
         {
-            LocatorState = MVLocatorState.Idle;
+            _locatorViewModel.SetLocatorState(MVLocatorState.Idle);
             Machine.SetWorkspaceHome();
         }
 

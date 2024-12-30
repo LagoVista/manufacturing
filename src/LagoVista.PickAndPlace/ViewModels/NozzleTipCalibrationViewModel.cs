@@ -17,11 +17,11 @@ namespace LagoVista.PickAndPlace.ViewModels
         private Dictionary<int, Point2D<double>> _nozzleCalibration;
         private List<Point2D<double>> _averagePoints;
         private readonly IMachine _machine;
-        private readonly IVisionManagerViewModel _visionManagerViewModel;
+        private readonly IVisionProfileManagerViewModel _visionManagerViewModel;
         private readonly ILocatorViewModel _locatorViewModel;
         private int _samplesAtPoint = 0;
 
-        public NozzleTipCalibrationViewModel(IMachine machine, ILocatorViewModel locatorViewModel, IVisionManagerViewModel visionManagerViewModel)
+        public NozzleTipCalibrationViewModel(IMachine machine, ILocatorViewModel locatorViewModel, IVisionProfileManagerViewModel visionManagerViewModel)
         {
             _machine = machine; ;
             _visionManagerViewModel = visionManagerViewModel;
@@ -37,7 +37,7 @@ namespace LagoVista.PickAndPlace.ViewModels
             if (_machine.Settings.PartInspectionCamera?.AbsolutePosition != null)
             {
                 _nozzleCalibration = new Dictionary<int, Point2D<double>>();
-                _machine.SendSaveMoveHeight();
+                _machine.SendSafeMoveHeight();
 
                 // move to what we think is the top angle.
                 _machine.SendCommand($"G0 E0");
@@ -48,7 +48,7 @@ namespace LagoVista.PickAndPlace.ViewModels
                 _machine.SendCommand($"G0 X{_machine.Settings.PartInspectionCamera.AbsolutePosition.X} Y{_machine.Settings.PartInspectionCamera.AbsolutePosition.Y} Z{_machine.Settings.PartInspectionCamera.FocusHeight} F1{_machine.Settings.FastFeedRate}");
             }
 
-            _locatorViewModel.LocatorState = MVLocatorState.NozzleCalibration;
+            _locatorViewModel.SetLocatorState(MVLocatorState.NozzleCalibration);
         }
 
         public void CircleLocation(Point2D<double> center, double diameter, Point2D<double> stdDeviation)
@@ -90,7 +90,7 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         private void FinalizeCameraCalibration()
         {
-            _locatorViewModel.LocatorState = MVLocatorState.Idle;
+            _locatorViewModel.SetLocatorState(MVLocatorState.Idle);
             foreach (var key in _nozzleCalibration.Keys)
             {
                 Debug.WriteLine($"{key},{_nozzleCalibration[key].X},{_nozzleCalibration[key].Y}");

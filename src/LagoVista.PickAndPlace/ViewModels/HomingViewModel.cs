@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels
 {
-    public class HomingViewModel : ViewModelBase
+    public class HomingViewModel : ViewModelBase, IHomingViewModel
     {
         private readonly IMachine _machine;
         private readonly ILocatorViewModel _locatorViewModel;
-        private readonly IVisionManagerViewModel _visionManagerViewModel;
+        private readonly IVisionProfileManagerViewModel _visionManagerViewModel;
 
-        public HomingViewModel(IMachine machine, IVisionManagerViewModel visionManagerViewModel, ILocatorViewModel locatorViewModel)
+        public HomingViewModel(IMachine machine, IVisionProfileManagerViewModel visionManagerViewModel, ILocatorViewModel locatorViewModel)
         {
             _locatorViewModel = locatorViewModel;
             _machine = machine;
@@ -35,7 +35,7 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         public Task WorkSpaceHomeAsync()
         {
-            _machine.SendCommand(SafeHeightGCodeGCode());
+            _machine.SendSafeMoveHeight();
             _machine.GotoWorkspaceHome();
             _visionManagerViewModel.SelectProfile("mchfiducual");
 
@@ -43,6 +43,8 @@ namespace LagoVista.PickAndPlace.ViewModels
 
             Status = "Machine Vision - Origin";
 
+
+            return Task.CompletedTask;
         }
     }
 }

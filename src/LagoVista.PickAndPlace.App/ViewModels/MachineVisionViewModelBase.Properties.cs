@@ -94,7 +94,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             set { Set(ref _secondaryCapturedImage, value); }
         }
 
-        public MachineControlViewModel MachineControls { get; private set; }
 
         private bool _areToolSettingsVisible;
         public bool AreToolSettingsVisible
