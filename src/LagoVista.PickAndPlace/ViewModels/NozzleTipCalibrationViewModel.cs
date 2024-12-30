@@ -1,4 +1,5 @@
-﻿using LagoVista.Core.Models.Drawing;
+﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.ViewModels;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels;
@@ -26,6 +27,8 @@ namespace LagoVista.PickAndPlace.ViewModels
             _machine = machine; ;
             _visionManagerViewModel = visionManagerViewModel;
             _locatorViewModel = locatorViewModel;
+
+            CalibrateBottomCameraCommand = new RelayCommand(async () => await StartAsync());
         }
 
 
@@ -157,5 +160,8 @@ namespace LagoVista.PickAndPlace.ViewModels
             set => Set(ref _status, value);
             get => _status;
         }
+
+        public RelayCommand CalibrateBottomCameraCommand { get; private set; }
+
     }
 }

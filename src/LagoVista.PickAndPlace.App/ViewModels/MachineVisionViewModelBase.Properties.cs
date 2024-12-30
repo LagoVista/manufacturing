@@ -48,7 +48,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         public string CannyLink { get { return "http://docs.opencv.org/2.4/modules/imgproc/doc/feature_detection.html"; } }
         public string CannyLink2 { get { return "https://en.wikipedia.org/wiki/Canny_edge_detector"; } }
         public string CannyLowThresholdHelp { get { return "Threshold for Line Detection"; } }
-        public string CannyHighThresholdHelp { get { return "Recommended to ve set to three times the lower threshold"; } }
+        public string CannyHighThresholdHelp { get { return "Recommended to be set to three times the lower threshold"; } }
         public string CannyHighThresholdTracksLowThresholdHelp { get { return "Force High Threshold to Map to 3x Low Threshold"; } }
         public string CannyApetureSizeHelp { get { return "The size of the Sobel kernel to be used internally"; } }
         public string CannyGradientHelp { get { return "a flag, indicating whether a more accurate  norm  should be used to calculate the image gradient magnitude ( L2gradient=true ), or whether the default  norm  is enough ( L2gradient=false )."; } }
@@ -102,82 +102,51 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             set { Set(ref _areToolSettingsVisible, value); }
         }
 
-        private bool _hasPositionFrame = false;
-        public bool HasPositionFrame
-        {
-            get { return _hasPositionFrame; }
-            set
-            {
-                var oldHasFrame = _hasPositionFrame;
-                Set(ref _hasPositionFrame, value);
+        //private bool _hasPositionFrame = false;
+        //public bool HasPositionFrame
+        //{
+        //    get { return _hasPositionFrame; }
+        //    set
+        //    {
+        //        var oldHasFrame = _hasPositionFrame;
+        //        Set(ref _hasPositionFrame, value);
 
-                if (value && !oldHasFrame)
-                {
-                    CaptureStarted();
-                }
+        //        //if (value && !oldHasFrame)
+        //        //{
+        //        //    CaptureStarted();
+        //        //}
 
-                if (!value && oldHasFrame)
-                {
-                    CaptureEnded();
-                }
-            }
-        }
+        //        //if (!value && oldHasFrame)
+        //        //{
+        //        //    CaptureEnded();
+        //        //}
+        //    }
+        //}
 
-        private bool _hasInspectionFrame = false;
-        public bool HasInspectionFrame
-        {
-            get { return _hasInspectionFrame; }
-            set
-            {
-                var oldHasFrame = _hasInspectionFrame;
-                Set(ref _hasInspectionFrame, value);
+        //private bool _hasInspectionFrame = false;
+        //public bool HasInspectionFrame
+        //{
+        //    get { return _hasInspectionFrame; }
+        //    set
+        //    {
+        //        var oldHasFrame = _hasInspectionFrame;
+        //        Set(ref _hasInspectionFrame, value);
 
-                if (value && !oldHasFrame)
-                {
-                    CaptureStarted();
-                }
+        //        if (value && !oldHasFrame)
+        //        {
+        //            CaptureStarted();
+        //        }
 
-                if (!value && oldHasFrame)
-                {
-                    CaptureEnded();
-                }
-            }
-        }
+        //        if (!value && oldHasFrame)
+        //        {
+        //            CaptureEnded();
+        //        }
+        //    }
+        //}
 
+        //protected virtual void CaptureStarted() { }
 
-        private VisionProfile _profile;
-        public VisionProfile Profile
-        {
-            get { return _profile; }
-            set { Set(ref _profile, value); }
-        }
-
-
-        public double BottomZoomLevel
-        {
-            get { return _bottomCameraProfile == null ? 1 : _bottomCameraProfile.ZoomLevel; }
-            set 
-            { 
-                _bottomCameraProfile.ZoomLevel = value;
-                RaisePropertyChanged(nameof(BottomZoomLevel));
-            }
-        }        
-
-       
-        public double TopZoomLevel
-        {
-            get { return _topCameraProfile == null ? 1 : _topCameraProfile.ZoomLevel; }
-            set 
-            {
-                _topCameraProfile.ZoomLevel = value;
-                RaisePropertyChanged(nameof(TopZoomLevel));
-            }
-        }
-
-
-        protected virtual void CaptureStarted() { }
-
-        protected virtual void CaptureEnded() { }
+        //protected virtual void CaptureEnded() { }
 
 
 

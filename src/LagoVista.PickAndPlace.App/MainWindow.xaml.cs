@@ -364,12 +364,6 @@ namespace LagoVista.PickAndPlace.App
             }
         }
 
-        private void EditPackageLibrary_Click(object sender, RoutedEventArgs e)
-        {
-            var librWindow = new Views.PackageLibraryWindow();
-            librWindow.Owner = this;
-            librWindow.ShowDialog();
-        }
         
         private async void OpenPnPJob_Click(object sender, RoutedEventArgs e)
         {
@@ -401,9 +395,6 @@ namespace LagoVista.PickAndPlace.App
             {
                 case "WorkAlignment": new Views.WorkAlignmentView(ViewModel.Machine).Show(); break;
                 case "ToolAlignment": new Views.ToolAlignment(ViewModel.Machine).Show(); break;
-                case "HomingView": new Views.HomingView(ViewModel.Machine).Show(); break;
-                case "Calibration": new Views.MVCalibrationView(ViewModel.Machine).Show(); break;
-                case "PickAndPlace": new Views.MVPNPView(ViewModel.Machine).Show(); break;
             }
         }
 

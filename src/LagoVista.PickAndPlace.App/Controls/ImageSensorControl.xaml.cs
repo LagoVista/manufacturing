@@ -199,28 +199,5 @@ namespace LagoVista.PickAndPlace.App.Controls
         {
             StartCapture();
         }
-
-        MachineVision _fullScreenWindow;
-
-        private void ShowFullScreenVision_Click(object sender, RoutedEventArgs e)
-        {
-            StopCapture();
-
-            if (_fullScreenWindow != null)
-            {
-                _fullScreenWindow.BringIntoView();
-            }
-            else
-            {
-                _fullScreenWindow = new MachineVision(ViewModel.Machine);
-                _fullScreenWindow.Closed += _fullScreenWindow_Closed;
-                _fullScreenWindow.Show();
-            }
-        }
-
-        private void _fullScreenWindow_Closed(object sender, EventArgs e)
-        {
-            _fullScreenWindow = null;
-        }
     }
 }

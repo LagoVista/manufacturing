@@ -60,5 +60,19 @@ namespace LagoVista.PickAndPlace.Models
         {
             get{ return string.Join(',', Parts.Select(prt => prt.Name));}
         }
+
+        private string _value;
+        public string Value
+        {
+            get => _value;
+            set => Set(ref _value, value);
+        }
+
+        private string _packageName;
+        public string PackageName
+        {
+            get => _packageName;
+            set => Set(ref _packageName, value);
+        }
     }
 }

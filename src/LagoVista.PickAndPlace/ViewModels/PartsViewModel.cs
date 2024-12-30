@@ -1,14 +1,19 @@
 ﻿using LagoVista.Client.Core;
+using LagoVista.Core.Commanding;
 using LagoVista.Core.IOC;
+using LagoVista.Core.Models;
 using LagoVista.Core.Validation;
 using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
 using LagoVista.Manufacturing.Util;
+using LagoVista.PCB.Eagle.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels;
 using LagoVista.PickAndPlace.Models;
+using Microsoft.Extensions.Configuration;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels
@@ -23,12 +28,17 @@ namespace LagoVista.PickAndPlace.ViewModels
         IMachine _machine;
         ILocatorViewModel _locatorViewModel;
 
+        PickAndPlaceJob _job;
+
         public PartsViewModel(IMachine machine, ILocatorViewModel locatorViewModel, IRestClient restClient)
         {
             _machine = machine;
             _restClient = restClient;
             _locatorViewModel = locatorViewModel;
             _sfLocator = new StripFeederLocatorService(machine.Settings);
+
+            RefreshBoardCommand = new RelayCommand(() => RefreshAsync());
+            RefreshConfigurationPartsCommand = new RelayCommand(RefreshConfigurationParts);
         }
 
         public async new Task<InvokeResult> InitAsync()
@@ -77,6 +87,8 @@ namespace LagoVista.PickAndPlace.ViewModels
         AutoFeeder _currentAutoFeeder;
         public AutoFeeder CurrentAutoFeeder { get => _currentAutoFeeder; }
 
+        public ObservableCollection<PlaceableParts> ConfigurationParts { get; private set; } = new ObservableCollection<PlaceableParts>();
+
 
         ComponentPackage _currentPackage;
         public ComponentPackage CurrentPackage { get => _currentPackage; }
@@ -110,6 +122,37 @@ namespace LagoVista.PickAndPlace.ViewModels
         {
             return false;
         }
+
+        public void RefreshConfigurationParts()
+        {
+            ConfigurationParts.Clear();
+            var commonParts = _job.BoardRevision.PcbComponents.Where(prt => prt.Included).GroupBy(prt => prt.PackageAndValue.ToLower());
+
+            foreach (var entry in commonParts)
+            {
+                var part = new PlaceableParts()
+                {
+                    Value = entry.First().Value.ToUpper(),
+                    PackageName = entry.First().PackageName.ToUpper(),
+                };
+
+                part.Parts = new ObservableCollection<PcbComponent>();
+
+                foreach (var specificPart in entry)
+                {
+                    var placedPart = _job.BoardRevision.PcbComponents.Where(cmp => cmp.Name == specificPart.Name && cmp.Key == specificPart.Key).FirstOrDefault();
+                    if (placedPart != null)
+                    {
+                        part.Parts.Add(placedPart);
+                    }
+                }
+
+                ConfigurationParts.Add(part);
+            }
+        }
+
+        public RelayCommand RefreshBoardCommand { get; }
+        public RelayCommand RefreshConfigurationPartsCommand { get; }
 
     }
 }

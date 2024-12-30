@@ -21,6 +21,35 @@ namespace LagoVista.PickAndPlace.Models
             set { _name = value; RaisePropertyChanged(); }
         }
 
+        private bool _showOriginalImage;
+        public bool ShowOriginalImage
+        {
+            get => _showOriginalImage;
+            set => Set(ref _showOriginalImage, value);
+        }
+
+        private bool _show200PixelSquare;
+        public bool Show200PixelSquare
+        {
+            get => _show200PixelSquare;
+            set => Set(ref _show200PixelSquare, value);
+        }
+
+
+        private bool _useBlurredImage;
+        public bool UseBlurredImage
+        {
+            get => _useBlurredImage;
+            set => Set(ref _useBlurredImage, value);
+        }
+
+        private bool _showCrosshairs;
+        public bool ShowCrossHairs
+        {
+            get => _showCrosshairs;
+            set => Set(ref _showCrosshairs, value);
+        }
+
         /* 1-3*/
         private double _brightness = 1.0;
         public double Brightness

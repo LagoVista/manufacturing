@@ -14,13 +14,13 @@ namespace LagoVista.PickAndPlace.App.ViewModels
     {
         private void AbortMVLocator()
         {
-            LocatorVM.LocatorState = MVLocatorState.Idle;
+            LocatorVM.SetLocatorState(MVLocatorState.Idle);
         }
 
         public async void PerformMachineAlignment()
         {
             Machine.SendCommand(SafeHeightGCodeGCode());
-            LocatorVM.LocatorState = MVLocatorState.Idle;
+            LocatorVM.SetLocatorState(MVLocatorState.Idle);
 
             Machine.HomeViaOrigin();
 
@@ -29,9 +29,9 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             Machine.GotoPoint(Machine.Settings.DefaultWorkspaceHome.X, Machine.Settings.DefaultWorkspaceHome.Y, true);
 
-            SelectMVProfile("mchfiducual");
+            VisionManagerVM.SelectMVProfile("mchfiducual");
 
-            LocatorVM.LocatorState = MVLocatorState.MachineFidicual;
+            LocatorVM.SetLocatorState(MVLocatorState.MachineFidicual);
         }
 
         public void GotoMachineFiducial()
@@ -52,7 +52,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         public async void GoToRefPoint()
         {
-            SelectMVProfile("tapehold");
+            VisionManagerVM.SelectMVProfile("tapehold");
             await Machine.SetViewTypeAsync(ViewTypes.Camera);
 
             throw new NotImplementedException();

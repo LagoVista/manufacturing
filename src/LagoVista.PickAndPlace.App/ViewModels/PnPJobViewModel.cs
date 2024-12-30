@@ -13,10 +13,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
     {
         private IRestClient _restClient;
         private bool _isEditing;
-        private bool _isPaused;
         private bool _isDirty = false;
         
-        private bool _isPlacingParts = false;
         private BOM _billOfMaterials;
         private int _partIndex = 0;
 

@@ -138,6 +138,14 @@ namespace LagoVista.PickAndPlace.ViewModels
             set => Set(ref _inspectIndex, value);
         }
 
+        private string _inspectMessage;
+        public string InspectMessage
+        {
+            get => _inspectMessage;
+            set => Set(ref _inspectMessage, value);
+        }
+
+
         private void RefreshCanExecute()
         {
             PrevInspectCommand.RaiseCanExecuteChanged();
