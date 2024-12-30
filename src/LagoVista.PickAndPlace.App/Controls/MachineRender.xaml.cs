@@ -46,7 +46,7 @@ namespace LagoVista.PickAndPlace.App.Controls
         private void MachineRender_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             var vm = DataContext as PnPJobViewModel;
-            Machine = vm.Machine.Settings;
+            //Machine = vm.Machine.Settings;
 
             var maxX = Machine.FrameWidth;
             var maxY = Machine.FrameHeight;

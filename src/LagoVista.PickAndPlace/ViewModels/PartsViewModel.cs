@@ -2,6 +2,7 @@
 using LagoVista.Core.Commanding;
 using LagoVista.Core.IOC;
 using LagoVista.Core.Models;
+using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
 using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
@@ -99,6 +100,7 @@ namespace LagoVista.PickAndPlace.ViewModels
         Manufacturing.Models.Component _componentToBePlaced;
         public Manufacturing.Models.Component CurrentComponentToBePlaced { get => _componentToBePlaced; }
 
+       
         public bool CanMoveToNextInTape()
         {
             return false;

@@ -6,6 +6,7 @@ using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
+using LagoVista.PickAndPlace.Interfaces.ViewModels;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -33,11 +34,16 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         private MachineStagingPlate _plate;
         private StripFeeder _stripFeeder;
 
-        public StripFeederViewModel(IMachine machine, PnPJobViewModel jobVM)
+        private ILocatorViewModel _locatorViewModel;
+        private IVisionProfileManagerViewModel _visionProfileManagerViewModel;
+
+        public StripFeederViewModel(IMachine machine, IVisionProfileManagerViewModel visionProfileViewModel, ILocatorViewModel locatorViewModel, PnPJobViewModel jobVM)
         {
             _machine = machine;
             _jobVM = jobVM;
-            
+            _locatorViewModel = locatorViewModel;
+            _visionProfileManagerViewModel = visionProfileViewModel; ;
+
             GoToCurrentPartCommand = new RelayCommand(() => GoToPart(PositionType.CurrentPart), () => _selectedStripFeederRow != null);
             GoToFirstPartCommand = new RelayCommand(() => GoToPart(PositionType.FirstPart), () => _selectedStripFeederRow != null);
             GoToLastPartCommand = new RelayCommand(() => GoToPart(PositionType.LastPart), () => _selectedStripFeederRow != null);
@@ -114,10 +120,10 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             var package = _selectedStripFeederRow.Component.Value.ComponentPackage.Value;
             _machine.GotoPoint(positon.X, positon.Y, feedRate);
-            _jobVM.PartSizeWidth = Convert.ToInt32(package.Width * 8);
-            _jobVM.PartSizeHeight = Convert.ToInt32(package.Length * 8);
+            //_jobVM.PartSizeWidth = Convert.ToInt32(package.Width * 8);
+            //_jobVM.PartSizeHeight = Convert.ToInt32(package.Length * 8);
 
-            _jobVM.SelectMVProfile("squarepart");
+            //_jobVM.SelectMVProfile("squarepart");
 
             if (positionType == PositionType.CurrentPart)
                 _tempPartIndex = _selectedStripFeederRow.CurrentPartIndex;
@@ -190,7 +196,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             _machine.SendSafeMoveHeight();            
 
-            _jobVM.SelectMVProfile("tapehole");
+            _visionProfileManagerViewModel.SelectProfile("tapehole");
             _machine.TopLightOn = false;
             _machine.BottomLightOn = false;
         }

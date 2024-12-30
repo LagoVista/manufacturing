@@ -25,7 +25,7 @@ namespace LagoVista.PickAndPlace.App.Views
 
         private void MachineVision_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            ViewModel.StopCapture();
+            //ViewModel.StopCapture();
         }
 
         private async void MachineVision_Loaded(object sender, RoutedEventArgs e)

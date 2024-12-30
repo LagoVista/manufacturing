@@ -12,70 +12,55 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         public async void PlaceAllParts()
         {
             _partIndex = 0;
-            Machine.LocationUpdateEnabled = false;
-            await Machine.SetViewTypeAsync(ViewTypes.Tool1);
+            _machine.LocationUpdateEnabled = false;
+            await _machine.SetViewTypeAsync(ViewTypes.Tool1);
             // Make sure any pending location requests have completed.
             await Task.Delay(1000);
-            while (SelectedPart != null && !_isPaused && _partIndex < SelectedPart.Parts.Count)
-            {
-                await PlacePartAsync(true);
-            }
+            //while (SelectedPart != null && !_isPaused && _partIndex < SelectedPart.Parts.Count)
+            //{
+            //    await PlacePartAsync(true);
+            //}
 
             // Disable the stepper motor for the rotation of the nozzle, get's very warm
-            Machine.SendCommand("M18 E");
+            _machine.SendCommand("M18 E");
 
-            Machine.LocationUpdateEnabled = true;
+            _machine.LocationUpdateEnabled = true;
 
-            Machine.VacuumPump = false;
-            Machine.PuffPump = false;
+            _machine.VacuumPump = false;
+            _machine.PuffPump = false;
 
             await SaveJobAsync();
         }
 
         public async void PlacePart()
         {
-            Machine.LocationUpdateEnabled = false;
-            if (_partIndex >= SelectedPart.Parts.Count)
-            {
-                _partIndex = 0;
-            }
+            _machine.LocationUpdateEnabled = false;
+            //if (_partIndex >= SelectedPart.Parts.Count)
+            //{
+            //    _partIndex = 0;
+            //}
 
 
-            await Machine.SetViewTypeAsync(ViewTypes.Tool1);
+            await _machine.SetViewTypeAsync(ViewTypes.Tool1);
             // Make sure any pending location requests have completed.
             await Task.Delay(1000);
             await PlacePartAsync();
-            Machine.LocationUpdateEnabled = true;
+            _machine.LocationUpdateEnabled = true;
 
             // Disable the stepper motor for the rotation of the nozzle, get's very warm
-            Machine.SendCommand("M18 E");
+            _machine.SendCommand("M18 E");
         }
 
         public async Task PlacePartAsync(bool multiple = false)
         {
-            if (_partIndex < SelectedPart.Parts.Count)
-            {
-                _isPlacingParts = true;
-                PlaceCurrentPartCommand.RaiseCanExecuteChanged();
-                PlaceAllPartsCommand.RaiseCanExecuteChanged();
-                PausePlacmentCommand.RaiseCanExecuteChanged();
-                GoToRefHoleCommand.RaiseCanExecuteChanged();
-                SetRefHoleCommand.RaiseCanExecuteChanged();
-                GoToCurrentPartInStripCommand.RaiseCanExecuteChanged();
 
-                if (!Machine.VacuumPump || !Machine.PuffPump)
+                if (!_machine.VacuumPump || !_machine.PuffPump)
                 {
-                    Machine.VacuumPump = true;
-                    Machine.PuffPump = true;
+                    _machine.VacuumPump = true;
+                    _machine.PuffPump = true;
                     await Task.Delay(1000);
                 }
 
-                if (_selectPartToBePlaced == null)
-                {
-                    _partIndex = 0;
-                    _selectPartToBePlaced = SelectedPart.Parts[_partIndex];
-                    RaisePropertyChanged(nameof(SelectedPartToBePlaced));
-                }
 
                 var cmds = new List<string>();
 
@@ -90,43 +75,33 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 cmds.Add(DwellGCode(250)); // Wait 500ms to pickup part.
                 cmds.Add(SafeHeightGCodeGCode()); // Go to move height
 
-                var cRotation = SelectedPartToBePlaced.Rotation + SelectedPartPackage.RotationInTape;
-                if (cRotation != 0 || (!SelectedPartToBePlaced.Polarized && cRotation != 180))
-                {
-                    if (cRotation >= 360)
-                        cRotation -= 360;
-                    //cmds.Add(RotationGCode(cRotation));
-                    //  cmds.Add(WaitForComplete());
-                }
-
-                SelectMVProfile("partinspection");
+                var cRotation = 0;
                 cmds.Add(GetGoToInspectionCameraGCode(cRotation));
                 await SendInstructionSequenceAsync(cmds);
 
-                FoundRectangle = null;
 
                 // Wait for confirmation on all moves
-                while (Machine.Busy)
+                while (_machine.Busy)
                 {
                     await Task.Delay(1);
                 }
 
                 var timeout = DateTime.Now.AddMilliseconds(1000);
 
-                // wait until we identify a rectangle (probably want a time out here)
-                while (!FoundRectangle.HasValue && DateTime.Now < timeout)
-                {
-                    await Task.Delay(1);
-                }
+                //// wait until we identify a rectangle (probably want a time out here)
+                //while (!FoundRectangle.HasValue && DateTime.Now < timeout)
+                //{
+                //    await Task.Delay(1);
+                //}
 
-                if (FoundRectangle.HasValue)
-                {
-                    Debug.WriteLine($"Error: {FoundRectangle.Value.Center.X}x{FoundRectangle.Value.Center.Y} - {FoundRectangle.Value.Angle}");
-                }
-                else
-                {
-                    Debug.WriteLine("we dont have an error so keep going.");
-                }
+                //if (FoundRectangle.HasValue)
+                //{
+                //    Debug.WriteLine($"Error: {FoundRectangle.Value.Center.X}x{FoundRectangle.Value.Center.Y} - {FoundRectangle.Value.Angle}");
+                //}
+                //else
+                //{
+                //    Debug.WriteLine("we dont have an error so keep going.");
+                //}
 
                 //cmds.Clear();
                 //cmds.Add(GetGoToPartOnBoardGCode());
@@ -146,99 +121,81 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
                 //if (!multiple)
                 //{
-                //    Machine.VacuumPump = false;
-                //    Machine.PuffPump = false;
+                //    _machine.VacuumPump = false;
+                //    _machine.PuffPump = false;
 
                 //}
 
-                SelectedPartStrip.CurrentPartIndex++;
-                _partIndex++;
-                if (_partIndex >= SelectedPart.Parts.Count)
-                {
-                    SelectedPart = null;
-                }
-                else
-                {
-                    _selectPartToBePlaced = SelectedPart.Parts[_partIndex];
-                }
-
-                RaisePropertyChanged(nameof(SelectedPartToBePlaced));
-
-
-                _isPlacingParts = false;
-
-                PlaceCurrentPartCommand.RaiseCanExecuteChanged();
-                PlaceAllPartsCommand.RaiseCanExecuteChanged();
-                PausePlacmentCommand.RaiseCanExecuteChanged();
-            }
         }
 
 
         private string GetGoToPartInTrayGCode()
         {
-            var location = StripFeederVM.GetCurrentPartPosition(SelectedPartStrip, PositionType.CurrentPart);
-            if (location != null)
-            {
-                return $"G0 X{location.X} Y{location.Y} F{Machine.Settings.FastFeedRate}";
-            }
-            else
-            {
-                var deltaX = Math.Abs(XPartInTray.Value - Machine.MachinePosition.X);
-                var deltaY = Math.Abs(YPartInTray.Value - Machine.MachinePosition.Y);
-                var feedRate = Machine.Settings.FastFeedRate;
-                return $"G0 X{XPartInTray * Machine.Settings.PartStripScaler.X} Y{YPartInTray * Machine.Settings.PartStripScaler.Y} E0 F{feedRate}";
-            }
+            //var location = StripFeederVM.GetCurrentPartPosition(SelectedPartStrip, PositionType.CurrentPart);
+            //if (location != null)
+            //{
+            //    return $"G0 X{location.X} Y{location.Y} F{_machine.Settings.FastFeedRate}";
+            //}
+            //else
+            //{
+            //    var deltaX = Math.Abs(XPartInTray.Value - _machine._machinePosition.X);
+            //    var deltaY = Math.Abs(YPartInTray.Value - _machine._machinePosition.Y);
+            //    var feedRate = _machine.Settings.FastFeedRate;
+            //    return $"G0 X{XPartInTray * _machine.Settings.PartStripScaler.X} Y{YPartInTray * _machine.Settings.PartStripScaler.Y} E0 F{feedRate}";
+            //}
+
+            return String.Empty;
         }
 
         public void GoToPartPositionInTray()
         {
-            if (SelectedPartPackage != null && SelectedPartStrip != null)
-            {
-                Machine.SendCommand(SafeHeightGCodeGCode());
-                Machine.SendCommand(GetGoToPartInTrayGCode());
-            }
+            //if (SelectedPartPackage != null && SelectedPartStrip != null)
+            //{
+            //    _machine.SendCommand(SafeHeightGCodeGCode());
+            //    _machine.SendCommand(GetGoToPartInTrayGCode());
+            //}
         }
 
-        private String GetGoToPartOnBoardGCodeX()
-        {
-            var offset = (SelectedPartToBePlaced.X - _job.BoardOffset.X) + Machine.Settings.PCBOffset.X;
-            return $"G1 X{offset * Job.BoardScaler.X}  F{Machine.Settings.FastFeedRate}";
-        }
+        //private String GetGoToPartOnBoardGCodeX()
+        //{
+        //    var offset = (SelectedPartToBePlaced.X - _job.BoardOffset.X) + _machine.Settings.PCBOffset.X;
+        //    return $"G1 X{offset * Job.BoardScaler.X}  F{_machine.Settings.FastFeedRate}";
+        //}
 
-        private String GetGoToPartOnBoardGCodeY()
-        {
-            var offset = (SelectedPartToBePlaced.Y - _job.BoardOffset.Y) + Machine.Settings.PCBOffset.Y;
-            return $"G1 Y{offset * Job.BoardScaler.Y} F{Machine.Settings.FastFeedRate}";
-        }
+        //private String GetGoToPartOnBoardGCodeY()
+        //{
+        //    var offset = (SelectedPartToBePlaced.Y - _job.BoardOffset.Y) + _machine.Settings.PCBOffset.Y;
+        //    return $"G1 Y{offset * Job.BoardScaler.Y} F{_machine.Settings.FastFeedRate}";
+        //}
 
-        private String GetGoToPartOnBoardGCode()
-        {
-            var offsetX = (SelectedPartToBePlaced.X - _job.BoardOffset.X) + Machine.Settings.PCBOffset.X;
-            var offsetY = (SelectedPartToBePlaced.Y - _job.BoardOffset.Y) + Machine.Settings.PCBOffset.Y;
-            return $"G1 X{offsetX}  Y{offsetY} F{Machine.Settings.FastFeedRate}";
-        }
+        //private String GetGoToPartOnBoardGCode()
+        //{
+        //    var offsetX = (SelectedPartToBePlaced.X - _job.BoardOffset.X) + _machine.Settings.PCBOffset.X;
+        //    var offsetY = (SelectedPartToBePlaced.Y - _job.BoardOffset.Y) + _machine.Settings.PCBOffset.Y;
+        //    return $"G1 X{offsetX}  Y{offsetY} F{_machine.Settings.FastFeedRate}";
+        //}
 
         private String GetGoToInspectionCameraGCode(double rotation)
         {
-            var offsetX = Machine.Settings.PartInspectionCamera.AbsolutePosition.X;
-            var offsetY = Machine.Settings.PartInspectionCamera.AbsolutePosition.Y;
+            var offsetX = _machine.Settings.PartInspectionCamera.AbsolutePosition.X;
+            var offsetY = _machine.Settings.PartInspectionCamera.AbsolutePosition.Y;
 
-            return $"G1 X{offsetX}  Y{offsetY} Z{Machine.Settings.PartInspectionCamera.FocusHeight} E{rotation} F{Machine.Settings.FastFeedRate}";
+            return $"G1 X{offsetX}  Y{offsetY} Z{_machine.Settings.PartInspectionCamera.FocusHeight} E{rotation} F{_machine.Settings.FastFeedRate}";
         }
 
         public async Task GoToPartOnBoard()
         {
-            if (SelectedPartToBePlaced != null)
-            {
-                await Machine.SetViewTypeAsync(ViewTypes.Camera);
-                Machine.SendCommand(SafeHeightGCodeGCode());
+            //if (SelectedPartToBePlaced != null)
+            //{
+            //    await _machine.SetViewTypeAsync(ViewTypes.Camera);
+            //    _machine.SendCommand(SafeHeightGCodeGCode());
 
-                var offsetY = (SelectedPartToBePlaced.Y - _job.BoardOffset.Y) + Machine.Settings.PCBOffset.Y;
-                var offsetX = (SelectedPartToBePlaced.X - _job.BoardOffset.X) + Machine.Settings.PCBOffset.X;
-                var gcode = $"G1 X{offsetX * Job.BoardScaler.X} Y{offsetY * Job.BoardScaler.Y} F{Machine.Settings.FastFeedRate}";
+            //    var offsetY = (SelectedPartToBePlaced.Y - _job.BoardOffset.Y) + _machine.Settings.PCBOffset.Y;
+            //    var offsetX = (SelectedPartToBePlaced.X - _job.BoardOffset.X) + _machine.Settings.PCBOffset.X;
+            //    var gcode = $"G1 X{offsetX * Job.BoardScaler.X} Y{offsetY * Job.BoardScaler.Y} F{_machine.Settings.FastFeedRate}";
 
-                Machine.SendCommand(gcode);
-            }
+            //    _machine.SendCommand(gcode);
+            //}
         }
     }
 }

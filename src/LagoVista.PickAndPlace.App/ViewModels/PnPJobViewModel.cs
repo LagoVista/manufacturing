@@ -1,6 +1,7 @@
 ﻿using LagoVista.Client.Core;
 using LagoVista.Core.IOC;
 using LagoVista.Core.Models.Drawing;
+using LagoVista.Core.ViewModels;
 using LagoVista.PCB.Eagle.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.App.ViewModels
 {
-    public partial class PnPJobViewModel : MachineVisionViewModelBase
+    public partial class PnPJobViewModel : ViewModelBase
     {
         private IRestClient _restClient;
         private bool _isEditing;
@@ -18,11 +19,13 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         private BOM _billOfMaterials;
         private int _partIndex = 0;
 
+        private IMachine _machine;
 
-        public PnPJobViewModel(IMachine machine, IRestClient restClient) : base(machine)
+
+        public PnPJobViewModel(IMachine machine, IRestClient restClient) 
         {
             _restClient = SLWIOC.Get<IRestClient>();
-            StripFeederVM = new StripFeederViewModel(machine, this);
+            //StripFeederVM = new StripFeederViewModel(machine, this);
 
             VisionManagerVM = new VisionManagerViewModel(machine);
             LocatorVM = new LocatorViewModel(machine);
@@ -36,25 +39,25 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             AddCommands();
         }
 
-        public override void CircleCentered(Point2D<double> point, double diameter)
-        {
-            switch (LocatorVM.LocatorState)
-            {
-                case MVLocatorState.WorkHome:
-                    Machine.SetWorkspaceHome();
-                    LocatorVM.SetLocatorState(MVLocatorState.Idle);
-                    Status = "W/S Home Found";
-                    break;
-                case MVLocatorState.MachineFidicual:
-                    SetNewHome();
-                    break;
-                case MVLocatorState.NozzleCalibration:
-                    PerformBottomCameraCalibration(point, diameter, new Point2D<double>(0, 0));
-                    break;
-                default:
-                    break;
-            }
-        }
+        //public override void CircleCentered(Point2D<double> point, double diameter)
+        //{
+        //    switch (LocatorVM.LocatorState)
+        //    {
+        //        case MVLocatorState.WorkHome:
+        //            Machine.SetWorkspaceHome();
+        //            LocatorVM.SetLocatorState(MVLocatorState.Idle);
+        //            Status = "W/S Home Found";
+        //            break;
+        //        case MVLocatorState.MachineFidicual:
+        //            SetNewHome();
+        //            break;
+        //        case MVLocatorState.NozzleCalibration:
+        //            PerformBottomCameraCalibration(point, diameter, new Point2D<double>(0, 0));
+        //            break;
+        //        default:
+        //            break;
+        //    }
+        //}
 
         public override async Task IsClosingAsync()
         {

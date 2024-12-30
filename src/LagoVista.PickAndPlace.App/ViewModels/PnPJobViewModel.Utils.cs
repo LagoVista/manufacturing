@@ -15,10 +15,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         public override async Task InitAsync()
         {
             await base.InitAsync();
-            LoadingMask = false;
-
             await ToolAlignmentVM.InitAsync();
-            StartCapture();
+            IsBusy = true;
         }
 
         private void PopulateParts()
@@ -46,12 +44,12 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         private void SetNewHome()
         {
-            //Machine.SendCommand($"G92 X{Machine.Settings.MachineFiducial.X} Y{Machine.Settings.MachineFiducial.Y}");
-            Machine.SendCommand($"G92 X0 Y0");
-            Machine.SendCommand(SafeHeightGCodeGCode());
-            var gcode = $"G1 X0 Y0 F{Machine.Settings.FastFeedRate}";
-            Machine.SendCommand(gcode);           
-            LocatorVM.LocatorState = MVLocatorState.Default;
+            //_machine.SendCommand($"G92 X{_machine.Settings._machineFiducial.X} Y{_machine.Settings._machineFiducial.Y}");
+            _machine.SendCommand($"G92 X0 Y0");
+            _machine.SendCommand(SafeHeightGCodeGCode());
+            var gcode = $"G1 X0 Y0 F{_machine.Settings.FastFeedRate}";
+            _machine.SendCommand(gcode);           
+            LocatorVM.SetLocatorState(MVLocatorState.Default);
         }
     }
 }

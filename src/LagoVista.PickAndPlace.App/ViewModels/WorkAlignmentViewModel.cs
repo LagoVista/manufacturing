@@ -7,10 +7,11 @@ using LagoVista.Core;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Managers;
 using LagoVista.Manufacturing.Models;
+using LagoVista.Core.ViewModels;
 
 namespace LagoVista.PickAndPlace.App.ViewModels
 {
-    public class WorkAlignmentViewModel : MachineVisionViewModelBase
+    public class WorkAlignmentViewModel : ViewModelBase
     {
         IBoardAlignmentPositionManager _positionManager;
 
@@ -28,14 +29,15 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         BoardAlignmentState _boardAlignmentState = BoardAlignmentState.Idle;
 
         DateTime _lastActivity;
+        Machine _machine;
 
-        public WorkAlignmentViewModel(IMachine machine) : base(machine)
+        public WorkAlignmentViewModel(IMachine _machine)
         {
             AlignBoardCommand = new RelayCommand(AlignBoard, CanAlignBoard);
             CancelBoardAlignmentCommand = new RelayCommand(CancelBoardAlignment, CanCancelBoardAlignment);
-            EnabledFiducialPickerCommand = new RelayCommand(() => Machine.PCBManager.IsSetFiducialMode = true);
+            EnabledFiducialPickerCommand = new RelayCommand(() => _machine.PCBManager.IsSetFiducialMode = true);
 
-            _positionManager = new BoardAlignmentPositionManager(Machine.PCBManager);
+            _positionManager = new BoardAlignmentPositionManager(_machine.PCBManager);
             _timer = new Timer(Timer_Tick, null, Timeout.Infinite, Timeout.Infinite);
         }
 
@@ -44,9 +46,9 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             switch(_boardAlignmentState)
             {
                 case BoardAlignmentState.MovingToOrigin:
-                    if(!Machine.Busy)
+                    if(!_machine.Busy)
                     {
-                        Machine.SendCommand("G10 L20 P0 X0 Y0");
+                        _machine.SendCommand("G10 L20 P0 X0 Y0");
                         _boardAlignmentState = BoardAlignmentState.Idle;
                         Status = "Completed";
                     }
@@ -70,8 +72,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         {
             await base.InitAsync();
 
-            Machine.PropertyChanged += Machine_PropertyChanged;
-            Machine.PCBManager.PropertyChanged += PCBManager_PropertyChanged;
+            _machine.PropertyChanged += _machine_PropertyChanged;
+            _machine.PCBManager.PropertyChanged += PCBManager_PropertyChanged;
         }
 
         private void PCBManager_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -79,17 +81,17 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             AlignBoardCommand.RaiseCanExecuteChanged();
         }
 
-        private void Machine_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void _machine_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             AlignBoardCommand.RaiseCanExecuteChanged();
         }
 
         public bool CanAlignBoard()
         {
-            return Machine.Mode == OperatingMode.Manual &&
-                   Machine.PCBManager.HasBoard &&
-                   Machine.PCBManager.FirstFiducial != null &&
-                   Machine.PCBManager.SecondFiducial != null;
+            return _machine.Mode == OperatingMode.Manual &&
+                   _machine.PCBManager.HasBoard &&
+                   _machine.PCBManager.FirstFiducial != null &&
+                   _machine.PCBManager.SecondFiducial != null;
         }
 
         public bool CanCancelBoardAlignment()
@@ -114,9 +116,9 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             _timer.Change(0, 500);
         }
 
-        public override void CircleLocated(Point2D<double> offset, double diameter, Point2D<double> stdDev)
+        public  void CircleLocated(Point2D<double> offset, double diameter, Point2D<double> stdDev)
         {
-            if (!Machine.Busy)
+            if (!_machine.Busy)
             {
                 _lastActivity = DateTime.Now;
 
@@ -134,9 +136,9 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             }
         }
        
-        public override void CircleCentered(Point2D<double> point, double diameter)
+        public  void CircleCentered(Point2D<double> point, double diameter)
         {
-            if (!Machine.Busy)
+            if (!_machine.Busy)
             {
                 switch (_boardAlignmentState)
                 {
@@ -146,28 +148,40 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                         _positionManager.FirstLocated = RequestedPosition;
                         _boardAlignmentState = BoardAlignmentState.MovingToSecondFiducial;
 
-                        var fiducialX = RequestedPosition.X + (Machine.PCBManager.SecondFiducial.X - Machine.PCBManager.FirstFiducial.X);
-                        var fiducialY = RequestedPosition.Y + (Machine.PCBManager.SecondFiducial.Y - Machine.PCBManager.FirstFiducial.Y);                        
+                        var fiducialX = RequestedPosition.X + (_machine.PCBManager.SecondFiducial.X - _machine.PCBManager.FirstFiducial.X);
+                        var fiducialY = RequestedPosition.Y + (_machine.PCBManager.SecondFiducial.Y - _machine.PCBManager.FirstFiducial.Y);                        
                         RequestedPosition = new Point2D<double>(fiducialX, fiducialY);                        
 
-                        Machine.GotoPoint(RequestedPosition);
+                        _machine.GotoPoint(RequestedPosition);
 
                         break;
                     case BoardAlignmentState.FindingFiducialTwo:
                         _lastActivity = DateTime.Now;
                         _positionManager.SecondLocated = RequestedPosition;
                         _boardAlignmentState = BoardAlignmentState.MovingToOrigin;
-                        Machine.PCBManager.SetMeasuredOffset(_positionManager.OffsetPoint, _positionManager.RotationOffset.ToDegrees());
-                        Machine.GotoPoint(_positionManager.OffsetPoint);
+                        _machine.PCBManager.SetMeasuredOffset(_positionManager.OffsetPoint, _positionManager.RotationOffset.ToDegrees());
+                        _machine.GotoPoint(_positionManager.OffsetPoint);
                         Status = "Returning to Board Origin";
                         break;
                 }
             }
         }
 
-        public override void CornerLocated(Point2D<double> point, Point2D<double> stdDev)
+        public void JogToLocation(Point2D<double> offset)
         {
-            Machine.BoardAlignmentManager.CornerLocated(point);
+
+        }
+
+        public  void CornerLocated(Point2D<double> point, Point2D<double> stdDev)
+        {
+            _machine.BoardAlignmentManager.CornerLocated(point);
+        }
+
+        Point2D<double> _requestedPosition;
+        public Point2D<double> RequestedPosition
+        {
+            get => _requestedPosition;
+            set => Set(ref _requestedPosition, value);
         }
 
         public RelayCommand AlignBoardCommand { get; private set; }
@@ -184,6 +198,13 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 _timer.Dispose();
                 _timer = null;
             }
+        }
+
+        string _status;
+        public string Status
+        {
+            get => _status;
+            set => Set(ref _status, value);
         }
     }
 }

@@ -397,14 +397,5 @@ namespace LagoVista.PickAndPlace.App
                 case "ToolAlignment": new Views.ToolAlignment(ViewModel.Machine).Show(); break;
             }
         }
-
-        private async void MachineControl_Click(object sender, RoutedEventArgs e)
-        {
-            var mcvm = new MVMachineControlViewModel(ViewModel.Machine);
-            await mcvm.InitAsync();
-            var mcv = new MVMachineControlView();
-            mcv.DataContext = mcvm;
-            mcv.Show();
-        }
     }
 }

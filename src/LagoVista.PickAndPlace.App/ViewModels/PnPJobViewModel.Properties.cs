@@ -49,15 +49,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         private void RefreshCanExecute()
         {
-            SaveCommand.RaiseCanExecuteChanged();
-            MoveToNextComponentInTapeCommand.RaiseCanExecuteChanged();
-            MoveToPreviousComponentInTapeCommand.RaiseCanExecuteChanged();
-            ResetCurrentComponentCommand.RaiseCanExecuteChanged();
-            PlaceCurrentPartCommand.RaiseCanExecuteChanged();
-            PlaceAllPartsCommand.RaiseCanExecuteChanged();
-            GoToCurrentPartInStripCommand.RaiseCanExecuteChanged();
-            GoToRefHoleCommand.RaiseCanExecuteChanged();
-            SetRefHoleCommand.RaiseCanExecuteChanged();
+            SaveCommand.RaiseCanExecuteChanged();            
         }
 
     }

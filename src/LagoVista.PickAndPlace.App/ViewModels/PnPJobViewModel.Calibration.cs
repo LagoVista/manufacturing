@@ -17,43 +17,43 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             LocatorVM.SetLocatorState(MVLocatorState.Idle);
         }
 
-        public async void PerformMachineAlignment()
+        public async void Perform_machineAlignment()
         {
-            Machine.SendCommand(SafeHeightGCodeGCode());
+            _machine.SendCommand(SafeHeightGCodeGCode());
             LocatorVM.SetLocatorState(MVLocatorState.Idle);
 
-            Machine.HomeViaOrigin();
+            _machine.HomeViaOrigin();
 
-            await Machine.SetViewTypeAsync(ViewTypes.Camera);
-            Machine.GotoWorkspaceHome();
+            await _machine.SetViewTypeAsync(ViewTypes.Camera);
+            _machine.GotoWorkspaceHome();
 
-            Machine.GotoPoint(Machine.Settings.DefaultWorkspaceHome.X, Machine.Settings.DefaultWorkspaceHome.Y, true);
+            _machine.GotoPoint(_machine.Settings.DefaultWorkspaceHome.X, _machine.Settings.DefaultWorkspaceHome.Y, true);
 
             VisionManagerVM.SelectMVProfile("mchfiducual");
 
             LocatorVM.SetLocatorState(MVLocatorState.MachineFidicual);
         }
 
-        public void GotoMachineFiducial()
+        public void Goto_machineFiducial()
         {
-            GoToFiducial(0);
+//            GoToFiducial(0);
         }
 
-        public async void SetMachineFiducial()
+        public void Set_machineFiducial()
         {
-            if (MessageBox.Show("Are you sure you want to reset the machine fiducial?", "Reset?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            if (MessageBox.Show("Are you sure you want to reset the _machine fiducial?", "Reset?", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
-                Machine.Settings.MachineFiducial.X = Machine.NormalizedPosition.X;
-                Machine.Settings.MachineFiducial.Y = Machine.NormalizedPosition.Y;
+                _machine.Settings.MachineFiducial.X = _machine.NormalizedPosition.X;
+                _machine.Settings.MachineFiducial.Y = _machine.NormalizedPosition.Y;
             }
 
-            await SaveMachineAsync();
+            //await SaveMachineAsync();
         }
 
         public async void GoToRefPoint()
         {
             VisionManagerVM.SelectMVProfile("tapehold");
-            await Machine.SetViewTypeAsync(ViewTypes.Camera);
+            await _machine.SetViewTypeAsync(ViewTypes.Camera);
 
             throw new NotImplementedException();
         }
@@ -85,34 +85,30 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         }
 
 
-        public override void CircleLocated(Point2D<double> point, double diameter, Point2D<double> stdDeviation)
+        public void CircleLocated(Point2D<double> point, double diameter, Point2D<double> stdDeviation)
         {
-            switch (LocatorVM.LocatorState)
-            {
-                case MVLocatorState.MachineFidicual:
-                    JogToLocation(point);
-                    break;
-                case MVLocatorState.WorkHome:
-                    JogToLocation(point);
-                    break;
-                case MVLocatorState.BoardFidicual1:
-                    JogToLocation(point);
-                    break;
+            //switch (LocatorVM.LocatorState)
+            //{
+            //    case MVLocatorState._machineFidicual:
+            //        JogToLocation(point);
+            //        break;
+            //    case MVLocatorState.WorkHome:
+            //        JogToLocation(point);
+            //        break;
+            //    case MVLocatorState.BoardFidicual1:
+            //        JogToLocation(point);
+            //        break;
 
-                case MVLocatorState.BoardFidicual2:
-                    JogToLocation(point);
-                    break;
-                case MVLocatorState.NozzleCalibration:
-                    PerformBottomCameraCalibration(point, diameter, stdDeviation);
-                    break;
-                default:
-                    break;
-            }
+            //    case MVLocatorState.BoardFidicual2:
+            //        JogToLocation(point);
+            //        break;
+            //    case MVLocatorState.NozzleCalibration:
+            //        PerformBottomCameraCalibration(point, diameter, stdDeviation);
+            //        break;
+            //    default:
+            //        break;
+            //}
         }
 
-        public void SetBottomCamera()
-        {
-            Machine.SendCommand($"G92 X{Machine.Settings.PartInspectionCamera.AbsolutePosition.X} Y{Machine.Settings.PartInspectionCamera.AbsolutePosition.Y}");
-        }
     }
 }

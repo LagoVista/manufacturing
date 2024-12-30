@@ -15,7 +15,7 @@ namespace LagoVista.PickAndPlace.App.Views
             var designTime = System.ComponentModel.DesignerProperties.GetIsInDesignMode(new DependencyObject());
             if (!designTime)
             {
-                ViewModel = new ViewModels.ToolAlignmentViewModel(machine);
+                //ViewModel = new ViewModels.ToolAlignmentViewModel(machine);
 
                 this.Closing += MachineVision_Closing;
                 this.Loaded += MachineVision_Loaded;
@@ -24,7 +24,7 @@ namespace LagoVista.PickAndPlace.App.Views
 
         private void MachineVision_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            ViewModel.StopCapture();
+            //ViewModel.StopCapture();
         }
 
         private async void MachineVision_Loaded(object sender, RoutedEventArgs e)
@@ -45,10 +45,10 @@ namespace LagoVista.PickAndPlace.App.Views
         {
             var percentX = (e.GetPosition(WebCamImage).X / WebCamImage.ActualWidth) - 0.5;
             var percentY = -((e.GetPosition(WebCamImage).Y / WebCamImage.ActualHeight) - 0.5);
-            var absX = percentX * 38 + ViewModel.Machine.MachinePosition.X;
-            var absY = percentY * 28 + ViewModel.Machine.MachinePosition.Y;
+            //var absX = percentX * 38 + ViewModel.Machine.MachinePosition.X;
+            //var absY = percentY * 28 + ViewModel.Machine.MachinePosition.Y;
 
-            ViewModel.Machine.GotoPoint(absX, absY);
+            //ViewModel.Machine.GotoPoint(absX, absY);
         }
 
         private void BirdsEye_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -56,7 +56,7 @@ namespace LagoVista.PickAndPlace.App.Views
             var absX = (e.GetPosition(BirdsEye).X) * 2.0;
             var absY = (BirdsEye.ActualHeight - e.GetPosition(BirdsEye).Y) * 2.0;
 
-            ViewModel.Machine.GotoPoint(absX, absY);
+            //ViewModel.Machine.GotoPoint(absX, absY);
         }
 
         private void ComboBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)

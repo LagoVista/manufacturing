@@ -15,13 +15,13 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             GoToPartOnBoardCommand = new RelayCommand(async () => await GoToPartOnBoard());
             GoToPartPositionInTrayCommand = new RelayCommand(GoToPartPositionInTray);
 
-            HomingCycleCommand = new RelayCommand(() => Machine.HomingCycle());
+            HomingCycleCommand = new RelayCommand(() => _machine.HomingCycle());
 
     
             GoToWorkHomeCommand = new RelayCommand(() => GotoWorkspaceHome());
             HomeViaOriginCommand = new RelayCommand(() => HomeViaOrigin());
             SetWorkHomeViaVisionCommand = new RelayCommand(() => SetWorkComeViaVision());
-            SetWorkHomeCommand = new RelayCommand(() => Machine.SetWorkspaceHome());
+            SetWorkHomeCommand = new RelayCommand(() => _machine.SetWorkspaceHome());
             GoToPCBOriginCommand = new RelayCommand(() => GoToPCBOrigin());
 
 
@@ -32,9 +32,9 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             ClearBoardOffsetCommand = new RelayCommand(ClearBoardOffset, () => { return true; });
 
 
-            SetBottomCameraPositionCommand = new RelayCommand(SetBottomCamera, () => Machine.Connected);
-            GoToMachineFiducialCommand = new RelayCommand(GotoMachineFiducial, () => Machine.Connected);
-            SetMachineFiducialCommand = new RelayCommand(SetMachineFiducial, () => Machine.Connected);
+            //SetBottomCameraPositionCommand = new RelayCommand(SetBottomCamera, () => _machine.Connected);
+            GoTo_machineFiducialCommand = new RelayCommand(Goto_machineFiducial, () => _machine.Connected);
+            Set_machineFiducialCommand = new RelayCommand(Set_machineFiducial, () => _machine.Connected);
 
             ExportBOMCommand = new RelayCommand(ExportBOM);
         }
@@ -43,8 +43,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         public RelayCommand RefreshConfigurationPartsCommand { get; private set; }
         public RelayCommand PrintManualPlaceCommand { get; private set; }
         public RelayCommand SaveCommand { get; private set; }
-        public RelayCommand GoToMachineFiducialCommand { get; private set; }
-        public RelayCommand SetMachineFiducialCommand { get; private set; }
+        public RelayCommand GoTo_machineFiducialCommand { get; private set; }
+        public RelayCommand Set_machineFiducialCommand { get; private set; }
         public RelayCommand GoToPartOnBoardCommand { get; private set; }
         public RelayCommand GoToPartPositionInTrayCommand { get; private set; }
         public RelayCommand MoveToPreviousComponentInTapeCommand { get; set; }
@@ -55,11 +55,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         public RelayCommand SetWorkHomeCommand { get; set; }
         public RelayCommand CloseCommand { get; set; }
         
-
-        public RelayCommand GoToRefHoleCommand { get; set; }
-        public RelayCommand SetRefHoleCommand { get; set; }
-        public RelayCommand GoToCurrentPartInStripCommand { get; set; }
-
 
         public RelayCommand SetBoardOffsetCommand { get; private set; }
         public RelayCommand ClearBoardOffsetCommand { get; private set; }

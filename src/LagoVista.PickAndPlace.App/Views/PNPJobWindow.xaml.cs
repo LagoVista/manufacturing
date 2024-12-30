@@ -23,12 +23,12 @@ namespace LagoVista.PickAndPlace.App.Views
 
         private void PNPJobWindow_KeyUp(object sender, KeyEventArgs e)
         {
-            ViewModel.MachineControls.HandleKeyDown((WindowsKey)e.Key, Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift), Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl));
+//            ViewModel.MachineControls.HandleKeyDown((WindowsKey)e.Key, Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift), Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl));
         }
 
         private void PNPJobWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            ViewModel.StopCapture();
+            //ViewModel.StopCapture();
         }
 
         public PnPJobViewModel ViewModel
@@ -48,19 +48,19 @@ namespace LagoVista.PickAndPlace.App.Views
 
         private void DataGrid_LoadingRow(object sender, DataGridRowEventArgs e)
         {
-            var placeablePart = e.Row.DataContext as PlaceableParts;
-            if (placeablePart != null && placeablePart.PartStrip != null)
-            {
-                if (placeablePart.PartStrip.AvailablePartCount >= placeablePart.Count)
-                {
-                    e.Row.Background = new SolidColorBrush(Colors.Green);
-                    e.Row.Foreground = new SolidColorBrush(Colors.White);
-                }
-                else
-                {
-                    e.Row.Background = new SolidColorBrush(Colors.Yellow);
-                }
-            }
+        //    var placeablePart = e.Row.DataContext as PlaceableParts;
+        //    if (placeablePart != null && placeablePart.PartStrip != null)
+        //    {
+        //        if (placeablePart.PartStrip.AvailablePartCount >= placeablePart.Count)
+        //        {
+        //            e.Row.Background = new SolidColorBrush(Colors.Green);
+        //            e.Row.Foreground = new SolidColorBrush(Colors.White);
+        //        }
+        //        else
+        //        {
+        //            e.Row.Background = new SolidColorBrush(Colors.Yellow);
+        //        }
+        //    }
         }
 
         private void WebCamImage2_MouseDown(object sender, MouseButtonEventArgs e)
