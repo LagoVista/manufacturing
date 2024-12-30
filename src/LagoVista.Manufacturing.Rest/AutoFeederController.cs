@@ -27,19 +27,19 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             _machineManager = machineManager;
         }
 
-        [HttpGet("/api/mfg/feeder/{id}")]
+        [HttpGet("/api/mfg/autofeeder/{id}")]
         public async Task<DetailResponse<AutoFeeder>> GetFeeder(string id, bool loadcomponent = false)
         {
             return DetailResponse<AutoFeeder>.Create(await _mgr.GetFeederAsync(id, loadcomponent, OrgEntityHeader, UserEntityHeader));
         }
 
-        [HttpGet("/api/mfg/feeder/feederid/{id}")]
+        [HttpGet("/api/mfg/autofeeder/feederid/{id}")]
         public async Task<DetailResponse<AutoFeeder>> GetFeederByFeederId(string id, bool loadcomponent = false)
         {
             return DetailResponse<AutoFeeder>.Create(await _mgr.GetFeederByFeederIdAsync(id, loadcomponent, OrgEntityHeader, UserEntityHeader));
         }
 
-        [HttpGet("/api/mfg/Feeder/factory")]
+        [HttpGet("/api/mfg/autofeeder/factory")]
         public DetailResponse<AutoFeeder> CreateFeeder()
         {
             var form = DetailResponse<AutoFeeder>.Create();
@@ -48,38 +48,38 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return form;
         }
 
-        [HttpDelete("/api/mfg/Feeder/{id}")]
+        [HttpDelete("/api/mfg/autofeeder/{id}")]
         public async Task<InvokeResult> DeleteFeeder(string id)
         {
             return await _mgr.DeleteFeederAsync(id, OrgEntityHeader, UserEntityHeader);
         }
 
-        [HttpPost("/api/mfg/Feeder")]
+        [HttpPost("/api/mfg/autofeeder")]
         public Task<InvokeResult> AddFeederPackageAsync([FromBody] AutoFeeder feeder)
         {
             return _mgr.AddFeederAsync(feeder, OrgEntityHeader, UserEntityHeader);
         }
 
-        [HttpPut("/api/mfg/Feeder")]
+        [HttpPut("/api/mfg/autofeeder")]
         public Task<InvokeResult> UpdateFeederPackage([FromBody] AutoFeeder feeder)
         {
             SetUpdatedProperties(feeder);
             return _mgr.UpdateFeederAsync(feeder, OrgEntityHeader, UserEntityHeader);
         }
 
-        [HttpGet("/api/mfg/Feeders")]
+        [HttpGet("/api/mfg/autofeeders")]
         public Task<ListResponse<FeederSummary>> GetFeedersForOrg()
         {
             return _mgr.GetFeedersSummariesAsync(GetListRequestFromHeader(), OrgEntityHeader, UserEntityHeader);
         }
 
-        [HttpGet("/api/mfg/machine/{machineid}/feeders")]
+        [HttpGet("/api/mfg/machine/{machineid}/autofeeders")]
         public Task<ListResponse<AutoFeeder>> GetFeedersForMachine(string machineid, bool loadcomponents)
         {
             return _mgr.GetFeedersForMachineAsync(machineid, loadcomponents, OrgEntityHeader, UserEntityHeader);
         }
 
-        [HttpGet("/mft/machine/{machineid}/feeder/{feederid}/attach")]
+        [HttpGet("/mft/machine/{machineid}/autofeeder/{feederid}/attach")]
         public async Task<InvokeResult> AttachToMachine(string machineid, string feederid)
         {
             var machine = await _machineManager.GetMachineAsync(machineid, OrgEntityHeader, UserEntityHeader);

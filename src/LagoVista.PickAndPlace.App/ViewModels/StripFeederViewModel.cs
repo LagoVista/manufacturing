@@ -1,18 +1,16 @@
-﻿using DirectShowLib.BDA;
-using LagoVista.Core;
+﻿using LagoVista.Client.Core;
 using LagoVista.Core.Commanding;
+using LagoVista.Core.IOC;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.ViewModels;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
-using LagoVista.PickAndPlace.Managers;
-using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reflection.PortableExecutable;
 using System.Threading.Tasks;
-using System.Windows.Navigation;
+using System.Windows;
 
 namespace LagoVista.PickAndPlace.App.ViewModels
 {
@@ -27,121 +25,76 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
     public class StripFeederViewModel : ViewModelBase
     {
-        private PnPMachine _pnpMachine;
         private PnPJobViewModel _jobVM;
         public IMachine _machine;
         string _pnpJobFileName;
+        private int _tempPartIndex = 0;
+
+        private MachineStagingPlate _plate;
+        private StripFeeder _stripFeeder;
 
         public StripFeederViewModel(IMachine machine, PnPJobViewModel jobVM)
         {
             _machine = machine;
             _jobVM = jobVM;
-            RaisePropertyChanged(nameof(PartStrips));
-            RaisePropertyChanged(nameof(StripFeederPackages));
+            
+            GoToCurrentPartCommand = new RelayCommand(() => GoToPart(PositionType.CurrentPart), () => _selectedStripFeederRow != null);
+            GoToFirstPartCommand = new RelayCommand(() => GoToPart(PositionType.FirstPart), () => _selectedStripFeederRow != null);
+            GoToLastPartCommand = new RelayCommand(() => GoToPart(PositionType.LastPart), () => _selectedStripFeederRow != null);
+            NextPartCommand = new RelayCommand(NextPart, () => SelectedStripFeederRow != null && SelectedStripFeederRow != null && AvailablePartCount > _tempPartIndex);
+            PrevPartCommand = new RelayCommand(PrevPart, () => SelectedStripFeederRow != null && SelectedStripFeederRow != null && _tempPartIndex > 0);
 
-            GoToCurrentPartCommand = new RelayCommand(() => GoToPart(PositionType.CurrentPart), () => _selectedPartStrip != null);
-            GoToFirstPartCommand = new RelayCommand(() => GoToPart(PositionType.FirstPart), () => _selectedPartStrip != null);
-            GoToLastPartCommand = new RelayCommand(() => GoToPart(PositionType.LastPart), () => _selectedPartStrip != null);
-            NextPartCommand = new RelayCommand(NextPart, () => SelectedPartStrip != null && SelectedPartStrip != null && SelectedPartStrip.AvailablePartCount > SelectedPartStrip.TempPartIndex);
-            PrevPartCommand = new RelayCommand(PrevPart, () => SelectedPartStrip != null && SelectedPartStrip != null && SelectedPartStrip.TempPartIndex > 0);
-            SetCurrentPartIndexCommand = new RelayCommand(SetCurrentPartIndex, () => SelectedPartStrip != null);
+            SetStripFeederRowOffsetCommand = new RelayCommand(() =>
+            {
+                CurrentStripFeederRow.RefHoleOffset = (_machine.MachinePosition.ToPoint2D() - _stripFeeder.Origin).Round(2);
+            }, () => CurrentStripFeederRow != null);
+
+            SetCurrentPartIndexCommand = new RelayCommand(SetCurrentPartIndex, () => SelectedStripFeederRow != null);            
         }
 
-        public void SetMachine(PnPMachine machine, string fileName)
+        public int AvailablePartCount
         {
-            _pnpMachine = machine;
+            get { return -1; }
+        }
+
+        public void SetMachine(string fileName)
+        {
             _pnpJobFileName = fileName;
-
-            RaisePropertyChanged(nameof(StripFeederPackages));
-            AddStripFeederCommand = new RelayCommand(AddStripFeeder, () => CurrentStripFeederPackage != null);
-            AddStripFeederPackageCommand = new RelayCommand(AddStripFeederPackage);
-
-            SaveStripFeederCommand = new RelayCommand(() =>
+            SaveStripFeederCommand = new RelayCommand(async () =>
             {
-                if (String.IsNullOrEmpty(CurrentStripFeeder.Id))
-                {
-                    CurrentStripFeeder.Id = Guid.NewGuid().ToId();
-                    CurrentStripFeederPackage.StripFeeders.Add(CurrentStripFeeder);
-                }
-
-                CurrentStripFeeder = null;
+                await SaveStripFeeder();
+                
+                CurrentStripFeederRow = null;
 
                 RefreshCommandEnabled();
-            }, () => CurrentStripFeeder != null);
-
-            SaveStripFeederPackageCommand = new RelayCommand(() =>
-            {
-                if (String.IsNullOrEmpty(CurrentStripFeederPackage.Id))
-                {
-                    CurrentStripFeederPackage.Id = Guid.NewGuid().ToId();
-                    _pnpMachine.StripFeederPackages.Add(CurrentStripFeederPackage);
-                }
-
-                CurrentStripFeederPackage = null;
-
-                RefreshCommandEnabled();
-            }, () => CurrentStripFeederPackage != null);
+            }, () => CurrentStripFeederRow != null);
 
             CancelStripFeederCommand = new RelayCommand(() =>
             {
-                CurrentStripFeeder = null;
+                CurrentStripFeederRow = null;
                 RefreshCommandEnabled();
-            }, () => CurrentStripFeeder != null);
+            }, () => CurrentStripFeederRow != null);
 
-            CancelStripFeederPackageCommand = new RelayCommand(() =>
-            {
-                CurrentStripFeeder = null;
-                CurrentStripFeederPackage = null;
-                RefreshCommandEnabled();
-            }, () => CurrentStripFeederPackage != null);
 
-            SetStripFeederPackageBottomLeftCommand = new RelayCommand(() =>
-            {
-                CurrentStripFeederPackage.BottomY = _machine.MachinePosition.Y;
-                CurrentStripFeederPackage.LeftX = _machine.MachinePosition.X;
-            }, () => CurrentStripFeederPackage != null);
-
-            SetStripFeederPackageSefaultXCommand = new RelayCommand(() =>
-            {
-                CurrentStripFeederPackage.DefaultRefHoleXOffset = Math.Round(_machine.MachinePosition.X - CurrentStripFeederPackage.LeftX, 1);
-            }, () => CurrentStripFeederPackage != null);
-
-            SetStripXOffsetCommand = new RelayCommand(() =>
-            {
-                CurrentStripFeeder.RefHoleXOffset = Math.Round(_machine.MachinePosition.X - CurrentStripFeederPackage.LeftX, 1);
-            }, () => CurrentStripFeeder != null);
-
-            SetStripYOffsetCommand = new RelayCommand(() =>
-            {
-                CurrentStripFeeder.RefHoleYOffset = Math.Round(_machine.MachinePosition.Y - CurrentStripFeederPackage.BottomY, 1);
-            }, () => CurrentStripFeeder != null);
-
-            GoToStripFeederCommand = new RelayCommand(GoToStripFeeder, () => CurrentStripFeeder != null);
-
-            GoToStripFeederPackageCommand = new RelayCommand(GoToStripFeederPackage, () => CurrentStripFeederPackage != null);
+            GoToStripFeederCommand = new RelayCommand(GoToStripFeeder, () => CurrentStripFeederRow != null);
 
             ClearStripXOffsetCommand = new RelayCommand(() =>
             {
-                CurrentStripFeeder.RefHoleXOffset = null;
-            }, () => CurrentStripFeeder != null);
-
-
+                CurrentStripFeederRow.RefHoleOffset = null;
+            }, () => CurrentStripFeederRow != null);
         }
 
         public void RefreshCommandEnabled()
         {
             AddStripFeederCommand.RaiseCanExecuteChanged();
             AddStripFeederPackageCommand.RaiseCanExecuteChanged();
+
             SaveStripFeederCommand.RaiseCanExecuteChanged();
-            SaveStripFeederPackageCommand.RaiseCanExecuteChanged();
+            
             CancelStripFeederCommand.RaiseCanExecuteChanged();
-            CancelStripFeederPackageCommand.RaiseCanExecuteChanged();
             SetStripFeederPackageBottomLeftCommand.RaiseCanExecuteChanged();
-            SetStripXOffsetCommand.RaiseCanExecuteChanged();
-            SetStripYOffsetCommand.RaiseCanExecuteChanged();
             SetStripFeederPackageSefaultXCommand.RaiseCanExecuteChanged();
             ClearStripXOffsetCommand.RaiseCanExecuteChanged();
-            GoToStripFeederPackageCommand.RaiseCanExecuteChanged();
             GoToStripFeederCommand.RaiseCanExecuteChanged();
             GoToFirstPartCommand.RaiseCanExecuteChanged();
             GoToLastPartCommand.RaiseCanExecuteChanged();
@@ -157,51 +110,26 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             _machine.SendCommand($"G0 Z{_machine.Settings.ProbeSafeHeight.ToDim()}");
 
             var feedRate = _machine.Settings.FastFeedRate;
-            var positon = GetCurrentPartPosition(_selectedPartStrip, positionType);
+            var positon = GetCurrentPartPosition(_selectedStripFeederRow, positionType);
+
+            var package = _selectedStripFeederRow.Component.Value.ComponentPackage.Value;
             _machine.GotoPoint(positon.X, positon.Y, feedRate);
-
-            var package = _jobVM.Packages.FirstOrDefault(pck => pck.Id == _selectedPartStrip.PackageId);
-
             _jobVM.PartSizeWidth = Convert.ToInt32(package.Width * 8);
             _jobVM.PartSizeHeight = Convert.ToInt32(package.Length * 8);
 
             _jobVM.SelectMVProfile("squarepart");
 
+            if (positionType == PositionType.CurrentPart)
+                _tempPartIndex = _selectedStripFeederRow.CurrentPartIndex;
+
             RefreshCommandEnabled();
-        }
-
-        public ObservableCollection<StripFeederPackage> StripFeederPackages => _pnpMachine?.StripFeederPackages;
-
-        StripFeederPackage _currentStripFeederPackage;
-        public StripFeederPackage CurrentStripFeederPackage
-        {
-            get => _currentStripFeederPackage;
-            set
-            {
-                Set(ref _currentStripFeederPackage, value);
-                if (value != null)
-                {
-                    GoToStripFeederPackage();
-                }
-
-                RefreshCommandEnabled();
-            }
-        }
-
-        private void GoToStripFeederPackage()
-        {
-            _jobVM.SelectMVProfile("tapehole");
-
-            _machine.SendCommand($"G0 Z{_machine.Settings.ProbeSafeHeight.ToDim()}");
-
-            _machine.GotoPoint(CurrentStripFeederPackage.LeftX, CurrentStripFeederPackage.BottomY);
         }
 
         private void GotoTempPartLocation()
         {
             _machine.SendCommand($"G0 Z{_machine.Settings.ProbeSafeHeight.ToDim()}");
 
-            var location = GetCurrentPartPosition(SelectedPartStrip, PositionType.TempPartIndex);
+            var location = GetCurrentPartPosition(SelectedStripFeederRow, PositionType.TempPartIndex);
             if (location != null)
             {
                 var deltaX = Math.Abs(location.X - _machine.MachinePosition.X);
@@ -217,36 +145,50 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         public async void SetCurrentPartIndex()
         {
-            SelectedPartStrip.CurrentPartIndex = SelectedPartStrip.TempPartIndex;
-            await PnPMachineManager.SavePackagesAsync(_pnpMachine, _pnpJobFileName);
+
+                SelectedStripFeederRow.CurrentPartIndex = _tempPartIndex;
+                await SaveStripFeeder();
         }
 
+        private async Task SaveStripFeeder()
+        {
+            var restClient = SLWIOC.Get<IRestClient>();
+            await restClient.PutAsync("/api/mfg/stripfeeder", this._stripFeeder);
+        }
 
 
         public void NextPart()
         {
-            if (SelectedPartStrip.TempPartIndex < SelectedPartStrip.AvailablePartCount)
+            if (_tempPartIndex < AvailablePartCount)
             {
-                SelectedPartStrip.TempPartIndex++;
+                _tempPartIndex++;
                 GotoTempPartLocation();
             }
         }
 
         public void PrevPart()
         {
-            if (SelectedPartStrip.TempPartIndex > 0)
+            if (_tempPartIndex > 0)
             {
-                SelectedPartStrip.TempPartIndex--;
+                _tempPartIndex--;
                 GotoTempPartLocation();
             }
         }
         private void GoToStripFeeder()
         {
-            _machine.SendCommand($"G0 Z{_machine.Settings.ProbeSafeHeight.ToDim()}");
+            if (_stripFeeder == null)
+            {
+                MessageBox.Show("Can not go to strip feeder, no current feeder strip row selected.");
+                return;
+            }
 
-            _machine.GotoPoint(CurrentStripFeeder.RefHoleXOffset.HasValue ?
-                    CurrentStripFeeder.RefHoleXOffset.Value + CurrentStripFeederPackage.LeftX : CurrentStripFeederPackage.LeftX + CurrentStripFeederPackage.DefaultRefHoleXOffset,
-                    CurrentStripFeederPackage.BottomY + CurrentStripFeeder.RefHoleYOffset);
+            if(_stripFeeder.Origin == null)
+            {
+                MessageBox.Show("Can not go to strip feeder, could not find origin on strip feeder.");
+                return;
+            }
+
+            _machine.SendSaveMoveHeight();            
 
             _jobVM.SelectMVProfile("tapehole");
             _machine.TopLightOn = false;
@@ -254,144 +196,116 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         }
 
 
-        StripFeeder _currentStripFeeder;
-        public StripFeeder CurrentStripFeeder
+        StripFeederRow _currentStripFeederRow;
+        public StripFeederRow CurrentStripFeederRow
         {
-            get => _currentStripFeeder;
+            get => _currentStripFeederRow;
             set
             {
-                Set(ref _currentStripFeeder, value);
+                Set(ref _currentStripFeederRow, value);
                 if (value != null)
                 {
                     GoToStripFeeder();
-                    if (!EntityHeader.IsNullOrEmpty(value.PartStrip))
-                        _selectedPartStrip = _pnpMachine.PartStrips.FirstOrDefault(prt => prt.Id == value.PartStrip.Id);
-                    else
-                        _selectedPartStrip = null;
-
-                    RaisePropertyChanged(nameof(SelectedPartStrip));
+                    RaisePropertyChanged(nameof(SelectedStripFeederRow));
                 }
 
                 RefreshCommandEnabled();
             }
         }
+        
 
-        public void AddStripFeeder()
+        public Point2D<double> GetCurrentPartPosition(StripFeederRow feederRow, PositionType positionType = PositionType.ReferenceHole)
         {
-            CurrentStripFeeder = new StripFeeder()
+                //var part = feederPackage.StripFeeders.FirstOrDefault(sf => sf.PartStrip?.Id == feederRow?.Id);
+                //var referenceHoleX = feederPackage.LeftX + (part.RefHoleXOffset.HasValue ? part.RefHoleXOffset.Value : feederPackage.DefaultRefHoleXOffset);
+                //var referenceHoleY = feederPackage.BottomY + part.RefHoleYOffset;
+                //var package = _machineComponentManager.Packages.FirstOrDefault(pck => pck.Id == feederRow?.PackageId);
+                //if (package == null)
+                //{
+                //    throw new ArgumentNullException("Could not find package for part.");
+                //}
+
+            if (feederRow.Component != null)
             {
-                Name = $"Row {CurrentStripFeederPackage.StripFeeders.Count + 1}",
-                Index = CurrentStripFeederPackage.StripFeeders.Count + 1,
-                RefHoleYOffset = (CurrentStripFeederPackage.StripFeeders.Count * 9) + 4
-            };
+                MessageBox.Show($"Can not get current position, row does not have a component associated with it Feeder: {_stripFeeder.Name}, Row: {feederRow.Id}. ");
+                return null;
+            }
 
-            RefreshCommandEnabled();
-        }
+            var component = feederRow.Component.Value;
 
-        public void AddStripFeederPackage()
-        {
-            CurrentStripFeederPackage = new StripFeederPackage();
-            CurrentStripFeeder = null;
-            RefreshCommandEnabled();
-        }
-
-        public Point2D<double> GetCurrentPartPosition(PartStrip partStrip, PositionType positionType = PositionType.ReferenceHole)
-        {
-            var feederPackage = (from sfp in _pnpMachine.StripFeederPackages
-                                 where sfp.StripFeeders.Any(sf => sf.PartStrip?.Id == partStrip?.Id)
-                                 select sfp).FirstOrDefault();
-
-            if (feederPackage != null)
+            if(feederRow.Component.Value.ComponentPackage == null || !feederRow.Component.Value.ComponentPackage.HasValue)
             {
-                var part = feederPackage.StripFeeders.FirstOrDefault(sf => sf.PartStrip?.Id == partStrip?.Id);
-                var referenceHoleX = feederPackage.LeftX + (part.RefHoleXOffset.HasValue ? part.RefHoleXOffset.Value : feederPackage.DefaultRefHoleXOffset);
-                var referenceHoleY = feederPackage.BottomY + part.RefHoleYOffset;
-                var package = _pnpMachine.Packages.FirstOrDefault(pck => pck.Id == partStrip?.PackageId);
-                if (package == null)
-                {
-                    throw new ArgumentNullException("Could not find package for part.");
-                }
+                MessageBox.Show($"Can not get part position, component {component.Name} row does not have a package associated with it Feeder: {_stripFeeder.Name}, Row: {feederRow.Id}. ");
+                return null;
+            }
 
-                var xScaler = 0.9965;
+            var package = component.ComponentPackage.Value;
+            if(EntityHeader.IsNullOrEmpty(package.TapePitch))
+            {
+                MessageBox.Show($"Can not get part position, tape pitch on {component.Name}, package: {package.Name} does not have a package associated with it Feeder: {_stripFeeder.Name}, Row: {feederRow.Id}. ");
+                return null;
+            }
 
-                switch (positionType)
-                {
-                    case PositionType.ReferenceHole:
-                        if (_selectedPartStrip != null)
-                            _selectedPartStrip.TempPartIndex = 0;
+            var xScaler = 1;
 
-                        return new Point2D<double>(referenceHoleX, referenceHoleY);
+            var referenceHole = new Point2D<double>(_stripFeeder.Origin.X + feederRow.RefHoleOffset.X, _stripFeeder.Origin.X + feederRow.RefHoleOffset.X);
 
-                    case PositionType.FirstPart:
-                        if (_selectedPartStrip != null)
-                            _selectedPartStrip.TempPartIndex = 0;
+            switch (positionType)
+            {
+                case PositionType.ReferenceHole:
+                        _tempPartIndex = 0;                        
+                    return referenceHole;
 
-                        return new Point2D<double>(referenceHoleX + package.CenterXFromHole, referenceHoleY + package.CenterYFromHole);
+                case PositionType.FirstPart:
+                        _tempPartIndex = 0;
 
-                    case PositionType.CurrentPart:
-                        {
-                            var xOffset = partStrip.CurrentPartIndex * package.SpacingX * xScaler;
-                            if (_selectedPartStrip != null)
-                                _selectedPartStrip.TempPartIndex = _selectedPartStrip.CurrentPartIndex;
-                            return new Point2D<double>(referenceHoleX + package.CenterXFromHole + xOffset, referenceHoleY + package.CenterYFromHole);
-                        }
-                    case PositionType.TempPartIndex:
-                        {
-                            var xOffset = partStrip.TempPartIndex * package.SpacingX * xScaler;
-                            return new Point2D<double>(referenceHoleX + package.CenterXFromHole + xOffset, referenceHoleY + package.CenterYFromHole);
-                        }
-                    case PositionType.LastPart:
-                        {
-                            var partCount = Math.Floor(partStrip.StripLength / package.SpacingX);
-                            var xOffset = partCount * package.SpacingX * xScaler;
-                            _selectedPartStrip.TempPartIndex = Convert.ToInt32(partCount);
-                            return new Point2D<double>(referenceHoleX + package.CenterXFromHole + xOffset, referenceHoleY + package.CenterYFromHole);
-                        }
-                }
+                    return referenceHole + package.PickLocation;
+
+                case PositionType.CurrentPart:
+                    {
+                        _tempPartIndex = feederRow.CurrentPartIndex;
+                        var xOffset = feederRow.CurrentPartIndex * package.SpacingX.Value * xScaler;
+                        return (referenceHole + package.PickLocation).AddToX(xOffset);
+                    }
+                case PositionType.TempPartIndex:
+                    {
+                        var xOffset = _tempPartIndex * package.SpacingX.Value * xScaler;
+                        return (referenceHole + package.PickLocation).AddToX(xOffset);
+                    }
+                case PositionType.LastPart:
+                    {
+                        var xOffset = AvailablePartCount * package.SpacingX.Value * xScaler;
+                        _tempPartIndex = Convert.ToInt32(AvailablePartCount);
+                        return (referenceHole + package.PickLocation).AddToX(xOffset);
+                    }
             }
 
             return null;
         }
 
-        internal void ResolvePart(PlaceableParts part)
+        
+        ObservableCollection<StripFeederRow> _partStrips;
+        public ObservableCollection<StripFeederRow> PartStrips 
         {
-            var strip = _pnpMachine.PartStrips.Where(str => str.PackageName == part.Package && str.Value == part.Value).SingleOrDefault();
-            if (strip != null)
-            {
-                var feederPackage = (from sfp in _pnpMachine.StripFeederPackages
-                                     where sfp.StripFeeders.Any(sf => sf.PartStrip?.Id == strip.Id)
-                                     select sfp).FirstOrDefault();
-
-                if (feederPackage != null)
-                {
-                    var partOnFeeder = feederPackage.StripFeeders.FirstOrDefault(sf => sf.PartStrip?.Id == strip.Id);
-                    part.StripFeederPackage = feederPackage.Name;
-                    part.StripFeeder = partOnFeeder.Name;
-                    part.PartStrip = strip;
-                }
-            }
+            get => _partStrips;
+            set => Set(ref _partStrips, value);
         }
 
-        public ObservableCollection<PartStrip> PartStrips { get => _pnpMachine?.PartStrips; }
-
+        #region Commands
         public RelayCommand AddStripFeederCommand { get; private set; }
         public RelayCommand AddStripFeederPackageCommand { get; private set; }
 
         public RelayCommand SaveStripFeederCommand { get; private set; }
-        public RelayCommand SaveStripFeederPackageCommand { get; private set; }
 
         public RelayCommand CancelStripFeederCommand { get; private set; }
-        public RelayCommand CancelStripFeederPackageCommand { get; private set; }
 
         public RelayCommand SetStripFeederPackageBottomLeftCommand { get; private set; }
 
         public RelayCommand SetStripFeederPackageSefaultXCommand { get; private set; }
 
-        public RelayCommand SetStripXOffsetCommand { get; private set; }
         public RelayCommand ClearStripXOffsetCommand { get; private set; }
-        public RelayCommand SetStripYOffsetCommand { get; private set; }
+        public RelayCommand SetStripFeederRowOffsetCommand { get; private set; }
 
-        public RelayCommand GoToStripFeederPackageCommand { get; private set; }
         public RelayCommand GoToStripFeederCommand { get; private set; }
 
         public RelayCommand GoToCurrentPartCommand { get; }
@@ -401,19 +315,15 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         public RelayCommand SetCurrentPartIndexCommand { get; }
         public RelayCommand NextPartCommand { get; }
         public RelayCommand PrevPartCommand { get; }
+        #endregion
 
-
-        private PartStrip _selectedPartStrip;
-        public PartStrip SelectedPartStrip
+        private StripFeederRow _selectedStripFeederRow;
+        public StripFeederRow SelectedStripFeederRow
         {
-            get => _selectedPartStrip;
+            get => _selectedStripFeederRow;
             set
             {
-                Set(ref _selectedPartStrip, value);
-                if (value != null)
-                {
-                    CurrentStripFeeder.PartStrip = EntityHeader.Create(value.Id, value.ToString());
-                }
+                Set(ref _selectedStripFeederRow, value);
             }
         }
     }

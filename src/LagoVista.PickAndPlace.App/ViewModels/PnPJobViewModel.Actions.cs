@@ -16,29 +16,17 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         public async Task SaveJobAsync()
         {
-            if (String.IsNullOrEmpty(FileName))
-            {
-                FileName = await Popups.ShowSaveFileAsync(Constants.PickAndPlaceProject);
-                if (String.IsNullOrEmpty(FileName))
-                {
-                    return;
-                }
-            }            
-
-            await Storage.StoreAsync(Job, FileName);
-
-
             _isDirty = false;
             SaveCommand.RaiseCanExecuteChanged();
 
-            var rest = SLWIOC.Get<IRestClient>();
 
-            var result = await rest.PutAsync("/api/mfg/machine", Machine.Settings);
+            var rest = SLWIOC.Get<IRestClient>();
+            var result = await _restClient.PutAsync("/api/mfg/pnpjob", _job);
 
             SaveProfile();
         }
 
-        private async void SetFiducialCalibration(object obj)
+        private void SetFiducialCalibration(object obj)
         {
             var idx = Convert.ToInt32(obj);
             //switch (idx)
@@ -73,7 +61,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             await Machine.SetViewTypeAsync(ViewTypes.Camera);
 
-            switch (idx)
+//            switch (idx)
             {
                 //case 0:
                 //    {
@@ -102,16 +90,9 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             }
         }
 
-        public void CalibrateBottomCamera()
+        public async void CalibrateBottomCamera()
         {
-            AlignBottomCamera();
-            _targetAngle = 0;
-            _nozzleCalibration = new Dictionary<int, Point2D<double>>();
-            LocatorState = MVLocatorState.NozzleCalibration;
-            SelectMVProfile("nozzlecalibration");
-            Machine.SendCommand($"G0 E0");
-            _averagePoints = new List<Point2D<double>>();
-
+            await _nozzleTipCalibrationViewModel.Start();
         }
         
         public void PausePlacement(Object obj)
@@ -119,7 +100,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             _isPlacingParts = false;
             _isPaused = true;
         }
-
 
         public void GotoWorkspaceHome()
         {
@@ -155,91 +135,24 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             SelectMVProfile("brdfiducual");            
         }
 
-        public void GoToInspectPartRefHole()
-        {
-            if (SelectedInspectPart.PartStrip != null)
-            {
-                SelectMVProfile("tapehole");
-                Machine.GotoPoint(SelectedInspectPart.PartStrip.ReferenceHoleX * Machine.Settings.PartStripScaler.X, SelectedInspectPart.PartStrip.ReferenceHoleY * Machine.Settings.PartStripScaler.Y, Machine.Settings.FastFeedRate);
-            }
-        }
-
-
-
         public async void Close()
         {
             await SaveJobAsync();
             CloseScreen();
         }
 
-        public async void CloneConfiguration()
-        {
-            var clonedName = await Popups.PromptForStringAsync("Cloned configuration name", isRequired: true);
-            var clonedFlavor = SelectedBuildFlavor.Clone(clonedName);
-            BuildFlavors.Add(clonedFlavor);
-            SelectedBuildFlavor = clonedFlavor;
-        }
-
         public async void PrintManualPlace()
         {
-            var manualParts = SelectedBuildFlavor.Components.Where(prt => prt.ManualPlace);
-            var bldr = new StringBuilder();
-            foreach (var manualPart in manualParts)
-                bldr.AppendLine($"{manualPart.Name}\t\t{manualPart.Value}");
+            //var manualParts = Job SelectedBuildFlavor.Components.Where(prt => prt.ManualPlace);
+            //var bldr = new StringBuilder();
+            //foreach (var manualPart in manualParts)
+            //    bldr.AppendLine($"{manualPart.Name}\t\t{manualPart.Value}");
 
-            var file = await Popups.ShowSaveFileAsync("txt");
-            if(!String.IsNullOrEmpty(file))
-            {
-                System.IO.File.WriteAllText(file, bldr.ToString());
-            }
+            //var file = await Popups.ShowSaveFileAsync("txt");
+            //if(!String.IsNullOrEmpty(file))
+            //{
+            //    System.IO.File.WriteAllText(file, bldr.ToString());
+            //}
         }
-
-        public async void ResetCurrentComponent()
-        {
-            SelectedPartStrip.CurrentPartIndex = 0;
-            RaisePropertyChanged(nameof(XPartInTray));
-            RaisePropertyChanged(nameof(RotationInTape));
-            RaisePropertyChanged(nameof(YPartInTray));
-            RaisePropertyChanged(nameof(SelectedPartStrip));
-            GoToPartPositionInTray();
-            await SaveJobAsync();
-        }
-
-        public async void MoveToPreviousComponent()
-        {
-            if (SelectedPartStrip.CurrentPartIndex > 0)
-            {
-                SelectedPartStrip.CurrentPartIndex--;
-                MoveToNextComponentInTapeCommand.RaiseCanExecuteChanged();
-                MoveToPreviousComponentInTapeCommand.RaiseCanExecuteChanged();
-                ResetCurrentComponentCommand.RaiseCanExecuteChanged();
-                RaisePropertyChanged(nameof(XPartInTray));
-                RaisePropertyChanged(nameof(RotationInTape));
-                RaisePropertyChanged(nameof(YPartInTray));
-                RaisePropertyChanged(nameof(SelectedPartStrip));
-                await SaveJobAsync();
-                GoToPartPositionInTray();
-            }
-        }
-
-        public async void MoveToNextComponentInTape()
-        {
-            if (SelectedPartStrip.CurrentPartIndex < SelectedPartStrip.AvailablePartCount)
-            {
-                SelectedPartStrip.CurrentPartIndex++;
-                MoveToNextComponentInTapeCommand.RaiseCanExecuteChanged();
-                MoveToPreviousComponentInTapeCommand.RaiseCanExecuteChanged();
-                ResetCurrentComponentCommand.RaiseCanExecuteChanged();
-                RaisePropertyChanged(nameof(XPartInTray));
-                RaisePropertyChanged(nameof(RotationInTape));
-                RaisePropertyChanged(nameof(YPartInTray));
-                RaisePropertyChanged(nameof(SelectedPartStrip));
-                await SaveJobAsync();
-                GoToPartPositionInTray();
-            }
-        }
-
-
-
     }
 }

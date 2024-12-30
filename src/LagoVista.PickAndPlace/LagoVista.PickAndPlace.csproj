@@ -1,19 +1,50 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="LagoVista.Core" Version="3.0.2780.1457" />
+    <PackageReference Include="LagoVista.Core" Version="3.0.2783.1539" />
     <PackageReference Include="System.IO.Ports" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\crossplatform\src\LagoVista.Client.Core\LagoVista.Client.Core.csproj" />
     <ProjectReference Include="..\LagoVista.GCode\LagoVista.GCode.csproj" />
-    <ProjectReference Include="..\LagoVista.Manufacturing.Models\LagoVista.Manufacturing.Models.csproj" />
+    <ProjectReference Include="..\LagoVista.Manufacturing\LagoVista.Manufacturing.csproj" />
     <ProjectReference Include="..\LagoVista.PCB.Eagle\LagoVista.PCB.Eagle.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Managers\GCodeFileManager.*.cs">
+      <DependentUpon>Managers\GCodeFileManager.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Managers\HeightMapManager.*.cs">
+      <DependentUpon>Managers\HeightMapManager.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Managers\PCBManager.*.cs">
+      <DependentUpon>Managers\PCBManager.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Managers\ToolChangeManager.*.cs">
+      <DependentUpon>Managers\ToolChangeManager.cs</DependentUpon>
+    </Compile>
+    <Compile Update="ViewModels\JobControlViewModel.*.cs">
+      <DependentUpon>ViewModels\JobControlViewModel.cs</DependentUpon>
+    </Compile>
+    <Compile Update="ViewModels\MachineControlViewModel.*.cs">
+      <DependentUpon>ViewModels\MachineControlViewModel.cs</DependentUpon>
+    </Compile>
+    <Compile Update="ViewModels\MainViewModel.*.cs">
+      <DependentUpon>ViewModels\MainViewModel.cs</DependentUpon>
+    </Compile>
+    <Compile Update="ViewModels\NewHeightMapViewModel.*.cs">
+      <DependentUpon>ViewModels\NewHeightMapViewModel.cs</DependentUpon>
+    </Compile>
+    <Compile Update="ViewModels\SettingsViewModel.*.cs">
+      <DependentUpon>ViewModels\SettingsViewModel.cs</DependentUpon>
+    </Compile>
+
   </ItemGroup>
 
   <ItemGroup>

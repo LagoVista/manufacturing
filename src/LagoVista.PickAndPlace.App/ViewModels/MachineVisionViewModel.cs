@@ -93,7 +93,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 Machine.Settings.PositioningCamera.Tool1Offset = new Point2D<double>(deltaX, deltaY);
             }
 
-        //    await Machine.MachineRepo.SaveAsync();
+            await SaveMachineAsync();
         }
 
         PcbComponent _selectedComponent;

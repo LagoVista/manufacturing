@@ -70,7 +70,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 ConfigurationParts.Add(part);
             }
 
-            if (_pnpMachine != null)
+            if (_machineComponentManager != null)
             {
                 foreach (var part in ConfigurationParts)
                 {

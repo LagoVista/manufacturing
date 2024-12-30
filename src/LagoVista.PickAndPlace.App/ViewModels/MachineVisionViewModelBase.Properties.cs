@@ -145,28 +145,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             }
         }
 
-        private bool _adjustingTopCamera;
-        public bool AdjustingTopCamera
-        {
-            get { return _adjustingTopCamera; }
-            set
-            {
-                Set(ref _adjustingTopCamera, value);
-                Profile = value ? _topCameraProfile : _bottomCameraProfile;
-                if (value)
-                {
-                    Machine.TopLightOn = _topCameraProfile.LightOn;
-                    Machine.BottomLightOn = false;
-                    _topCameraProfile.ForTopCamera = true;
-                }
-                else
-                {
-                    Machine.BottomLightOn = _bottomCameraProfile.LightOn;
-                    Machine.TopLightOn = false;
-                    _topCameraProfile.ForTopCamera = false;
-                }
-            }
-        }
 
         private VisionProfile _profile;
         public VisionProfile Profile
@@ -175,33 +153,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             set { Set(ref _profile, value); }
         }
 
-        public bool LightOn
-        {
-            get => Profile.LightOn;
-            set
-            {
-                Profile.LightOn = value;
-
-                if (AdjustingTopCamera)
-                    Machine.TopLightOn = value;
-                else
-                    Machine.BottomLightOn = value;
-            }
-        }
-
-
-        public double ZoomLevel
-        {
-            get => Profile.ZoomLevel;
-            set
-            {
-                Profile.ZoomLevel = value;
-                if (AdjustingTopCamera)
-                    RaisePropertyChanged(nameof(TopZoomLevel));
-                else
-                    RaisePropertyChanged(nameof(BottomZoomLevel));
-            }
-        }
 
         public double BottomZoomLevel
         {

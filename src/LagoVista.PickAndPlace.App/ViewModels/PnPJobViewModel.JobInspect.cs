@@ -35,7 +35,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         {
             Machine.SendCommand(SafeHeightGCodeGCode());
 
-            var package = _pnpMachine.Packages.Where(pck => pck.Name == SelectedInspectPart.Package).FirstOrDefault();
+            var package = _machineComponentManager.Packages.Where(pck => pck.Name == SelectedInspectPart.Package).FirstOrDefault();
             var partStrip = SelectedInspectPart.PartStrip;
             if (partStrip != null)
             {
@@ -67,7 +67,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             SelectMVProfile("squarepart");
 
-            var package = _pnpMachine.Packages.Where(pck => pck.Name == SelectedInspectPart.Package).FirstOrDefault();
+            var package = _machineComponentManager.Packages.Where(pck => pck.Name == SelectedInspectPart.Package).FirstOrDefault();
             var partStrip = SelectedInspectPart.PartStrip;
 
             var partLocationRatio = (double)partStrip.CurrentPartIndex / (double)partStrip.AvailablePartCount;

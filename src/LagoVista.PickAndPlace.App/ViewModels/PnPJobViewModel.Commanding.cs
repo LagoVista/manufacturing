@@ -9,12 +9,11 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         {
             SaveCommand = new RelayCommand(async () => await SaveJobAsync());
             CloseCommand = new RelayCommand(Close);
-            CloneCommand = new RelayCommand(CloneConfiguration);
-
+            
             PrintManualPlaceCommand = new RelayCommand(PrintManualPlace);
             PeformMachineAlignmentCommand = new RelayCommand(PerformMachineAlignment);
 
-            GoToPartOnBoardCommand = new RelayCommand(() => GoToPartOnBoard());
+            GoToPartOnBoardCommand = new RelayCommand(async () => await GoToPartOnBoard());
             GoToPartPositionInTrayCommand = new RelayCommand(GoToPartPositionInTray);
 
             HomingCycleCommand = new RelayCommand(() => Machine.HomingCycle());
@@ -29,9 +28,12 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             SetWorkHomeCommand = new RelayCommand(() => Machine.SetWorkspaceHome());
             GoToPCBOriginCommand = new RelayCommand(() => GoToPCBOrigin());
 
-            MoveToPreviousComponentInTapeCommand = new RelayCommand(MoveToPreviousComponent, () => SelectedPartStrip != null && SelectedPartStrip.CurrentPartIndex > 0);
-            MoveToNextComponentInTapeCommand = new RelayCommand(MoveToNextComponentInTape, () => SelectedPartStrip != null && SelectedPartStrip.CurrentPartIndex < SelectedPartStrip.ReferenceHoleX);
+            MoveToPreviousComponentInTapeCommand = new RelayCommand(() => { }, () => PartsVM.CanMoveToReferenceHoleInTape() );
+            MoveToNextComponentInTapeCommand = new RelayCommand(() => { }, () => PartsVM.CanMoveToNextInTape());
+
+
             RefreshConfigurationPartsCommand = new RelayCommand(PopulateConfigurationParts);
+            
             GoToPartInTrayCommand = new RelayCommand(GoToPartPositionInTray);
 
             PlaceCurrentPartCommand = new RelayCommand(PlacePart, CanPlacePart);
@@ -48,19 +50,12 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             PrevInspectCommand = new RelayCommand(PrevInspect, () => _inspectIndex > 0);
             FirstInspectCommand = new RelayCommand(FirstInspect, () => _inspectIndex > 0);
 
-            SetBoardOffsetCommand = new RelayCommand(SetBoardOffset, () => SelectedPartToBePlaced != null);
-            ClearBoardOffsetCommand = new RelayCommand(ClearBoardOffset, () => SelectedPartToBePlaced != null);
+            SetBoardOffsetCommand = new RelayCommand(SetBoardOffset, () => { return true; });
+            ClearBoardOffsetCommand = new RelayCommand(ClearBoardOffset, () => { return true; });
 
-            GoToInspectPartRefHoleCommand = new RelayCommand(() =>
-            {
-                GoToInspectPartRefHole();
-            }, () => SelectedInspectPart != null);
+            GoToInspectPartRefHoleCommand = new RelayCommand(() => { }, () => SelectedInspectPart != null);
 
-            SetInspectPartRefHoleCommand = new RelayCommand(() =>
-            {
-                SelectedInspectPart.PartStrip.ReferenceHoleX = Machine.MachinePosition.X * (1 / Machine.Settings.PartStripScaler.X);
-                SelectedInspectPart.PartStrip.ReferenceHoleY = Machine.MachinePosition.Y * (1 / Machine.Settings.PartStripScaler.Y);
-            }, () => SelectedInspectPart != null);
+            SetInspectPartRefHoleCommand = new RelayCommand(() => { }, () => { return true; });
 
             GoToInspectedPartCommand = new RelayCommand(GoToFirstPartInPartsToPlace, () => SelectedInspectPart != null);
 
@@ -74,15 +69,14 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             GoToFiducial2Command = new RelayCommand(() => GoToFiducial(2));
 
             GoToRefHoleCommand = new RelayCommand(() => GoToRefPoint(), () => SelectedPartStrip != null);
-            SetRefHoleCommand = new RelayCommand(() => SetRefPoint(), () => SelectedPartStrip != null);
-            GoToCurrentPartInStripCommand = new RelayCommand(() => GoToCurrentPartInPartStrip(), () => SelectedPartStrip != null);
+            SetRefHoleCommand = new RelayCommand(async () => await SetRefPoint(), () => SelectedPartStrip != null);
+            GoToCurrentPartInStripCommand = new RelayCommand(async () => await GoToCurrentPartInPartStrip(), () => SelectedPartStrip != null);
         }
 
         public RelayCommand HomingCycleCommand { get; private set; }
         public RelayCommand GoToCurrentPartCommand { get; private set; }
         public RelayCommand AddFeederCommand { get; private set; }
         public RelayCommand RefreshConfigurationPartsCommand { get; private set; }
-        public RelayCommand CloneCommand { get; private set; }
         public RelayCommand PrintManualPlaceCommand { get; private set; }
         public RelayCommand SaveCommand { get; private set; }
         public RelayCommand GoToMachineFiducialCommand { get; private set; }

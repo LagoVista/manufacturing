@@ -1,83 +1,48 @@
-﻿using LagoVista.Core.Commanding;
-using LagoVista.Core.Models;
+﻿using LagoVista.Client.Core;
+using LagoVista.Core.IOC;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.PCB.Eagle.Models;
 using LagoVista.PickAndPlace.Interfaces;
-using LagoVista.PickAndPlace.Models;
+using LagoVista.PickAndPlace.Interfaces.ViewModels;
 using LagoVista.PickAndPlace.ViewModels;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.App.ViewModels
 {
     public partial class PnPJobViewModel : MachineVisionViewModelBase
     {
+        private IRestClient _restClient;
         private bool _isEditing;
         private bool _isPaused;
         private bool _isDirty = false;
-        private Dictionary<int, Point2D<double>> _nozzleCalibration;
-        private int samplesAtPoint = 0;
-        private int _targetAngle = 0;
-        private List<Point2D<double>> _averagePoints;
+        
         private bool _isPlacingParts = false;
         private BOM _billOfMaterials;
         private int _partIndex = 0;
 
 
-        public PnPJobViewModel(IMachine machine) : base(machine)
+        public PnPJobViewModel(IMachine machine, IRestClient restClient) : base(machine)
         {
-
+            _restClient = SLWIOC.Get<IRestClient>();
             StripFeederVM = new StripFeederViewModel(machine, this);
-            PackageLibraryVM = new PackageLibraryViewModel();
-            PartStripsViewModel = new PartStripsViewModel(machine, this, StripFeederVM);
             ToolAlignmentVM = new ToolAlignmentViewModel(machine);
+
+            VisionManagerVM = new VisionManagerViewModel(machine);
+            LocatorVM = new LocatorViewModel(machine);
+            NozzleTipCalibrationVM = new NozzleTipCalibrationViewModel(machine, LocatorVM, VisionManagerVM);
+            FiducialVM = new FiducialViewModel(machine, LocatorVM);
+            PartsVM = new PartsViewModel(machine, LocatorVM, restClient);
+
             AddCommands();
-        }
-
-        public void InitJob()
-        {
-            //_billOfMaterials = new BOM(job.Board);
-            //_job = job;
-            _isDirty = true;
-            
-
-            //PartStripsViewModel.InitJob(job);
-
-            //BuildFlavors = job.BuildFlavors;
-            //SelectedBuildFlavor = job.BuildFlavors.FirstOrDefault();
-            //if (SelectedBuildFlavor == null)
-            //{
-            //    SelectedBuildFlavor = new BuildFlavor()
-            //    {
-            //        N = "Default"
-            //    };
-
-            //    foreach (var entry in _billOfMaterials.SMDEntries)
-            //    {
-            //        foreach (var component in entry.Components)
-            //        {
-            //            component.Included = true;
-            //            SelectedBuildFlavor.Components.Add(component);
-            //        }
-            //    }
-
-            //    job.BuildFlavors.Add(SelectedBuildFlavor);
-            //}
-
-
-            PopulateParts();
-            PopulateConfigurationParts();
-
         }
 
         public override void CircleCentered(Point2D<double> point, double diameter)
         {
-            switch (LocatorState)
+            switch (LocatorVM.LocatorState)
             {
                 case MVLocatorState.WorkHome:
                     Machine.SetWorkspaceHome();
-                    LocatorState = MVLocatorState.Idle;
+                    LocatorVM.LocatorState = MVLocatorState.Idle;
                     Status = "W/S Home Found";
                     break;
                 case MVLocatorState.MachineFidicual:

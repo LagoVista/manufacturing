@@ -11,7 +11,7 @@ namespace LagoVista.PickAndPlace.App.Controls
 {
     public partial class ImageSensorControl
     {
-        public void CornerDetection(VisionProfile profile, Mat img)
+        public void CornerDetection(VisionSettings profile, Mat img)
         {
             var output = new Mat();
             var outputNormalized = new Mat();
@@ -33,7 +33,7 @@ namespace LagoVista.PickAndPlace.App.Controls
 
         }
 
-        public Result PerformShapeDetection(VisionProfile profile, Image<Bgr,byte> img)
+        public Result PerformShapeDetection(VisionSettings profile, Image<Bgr,byte> img)
         {
 
             using (Image<Gray, Byte> gray = img.Convert<Gray, Byte>())

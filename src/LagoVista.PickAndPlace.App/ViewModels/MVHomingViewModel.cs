@@ -60,14 +60,13 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             Machine.HomingCycle();
         }
 
-        public async void BeginMVHomingCycle()
+        public void BeginMVHomingCycle()
         {
             Machine.PCBManager.Tool1Navigation = true;
             
             _state = States.MVHoming;
             Machine.HomeViaOrigin();
             Machine.GotoPoint(Machine.Settings.DefaultWorkspaceHome.X, Machine.Settings.DefaultWorkspaceHome.Y, true);
-          //  await Machine.MachineRepo.SaveAsync();
         }
 
         public void CalibrateFiducialHome()

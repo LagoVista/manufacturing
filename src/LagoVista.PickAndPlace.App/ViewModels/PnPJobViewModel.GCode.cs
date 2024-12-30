@@ -26,7 +26,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             return $"G0 Z{Machine.Settings.ToolPickHeight} F{Machine.Settings.FastFeedRate}";
         }
 
-        private string PlaceHeightGCode(PickAndPlace.Models.Package package)
+        private string PlaceHeightGCode(ComponentPackage package)
         {
             return $"G0 Z{Machine.Settings.ToolBoardHeight - package.Height} F{Machine.Settings.FastFeedRate}";
         }

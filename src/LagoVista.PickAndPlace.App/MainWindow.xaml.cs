@@ -236,7 +236,7 @@ namespace LagoVista.PickAndPlace.App
             }
         }
 
-        private async void Window_Closed(object sender, EventArgs e)
+        private void Window_Closed(object sender, EventArgs e)
         {
            // await ViewModel.Machine.MachineRepo.SaveAsync();
         }
@@ -258,7 +258,7 @@ namespace LagoVista.PickAndPlace.App
             Close();
         }
 
-        private async void EditMachineMenu_Click(object sender, RoutedEventArgs e)
+        private void EditMachineMenu_Click(object sender, RoutedEventArgs e)
         {
             //Clone in case we cancel.
             var clonedSettings = ViewModel.Machine.Settings.Clone();
@@ -268,10 +268,6 @@ namespace LagoVista.PickAndPlace.App
             if (dlg.DialogResult.HasValue && dlg.DialogResult.Value)
             {
                 ViewModel.Machine.Settings = clonedSettings;
-                //ViewModel.Machine.MachineRepo.Machines.Remove(ViewModel.Machine.Settings);
-                //ViewModel.Machine.MachineRepo.Machines.Add(clonedSettings);
-                //ViewModel.Machine.Settings = clonedSettings;
-                //await ViewModel.Machine.MachineRepo.SaveAsync();
             }
         }
 
@@ -389,7 +385,7 @@ namespace LagoVista.PickAndPlace.App
                 var autoFeeders = await _restClient.GetAsync<ListResponse<LagoVista.Manufacturing.Models.AutoFeeder>>($"/api/mfg/machine/{openJob.SelectedItem.Id}/feeders?loadcomponents=true");
                 if (result.Successful) {
                     var pnpWindow = new Views.PNPJobWindow();
-                    var vm = new PnPJobViewModel(ViewModel.Machine);
+                    var vm = new PnPJobViewModel(ViewModel.Machine, _restClient);
                     vm.Job = result.Result.Model;
                     await vm.InitAsync();
                     vm.StripFeeders = new System.Collections.ObjectModel.ObservableCollection<Manufacturing.Models.StripFeeder>(stripFeeders.Result.Model);

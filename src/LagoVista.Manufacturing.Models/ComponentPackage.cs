@@ -1,6 +1,7 @@
 ﻿using LagoVista.Core.Attributes;
 using LagoVista.Core.Interfaces;
 using LagoVista.Core.Models;
+using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models.Resources;
@@ -154,13 +155,13 @@ namespace LagoVista.Manufacturing.Models
 
 
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_PartWidth, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public decimal Width { get; set; }
+        public double Width { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_PartLength, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public decimal Length { get; set; }
+        public double Length { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_PartHeight, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public decimal Height { get; set; }
+        public double Height { get; set; }
 
         public PcbPackage Layout { get; set; }
 
@@ -227,6 +228,18 @@ namespace LagoVista.Manufacturing.Models
             get
             {
                 return (SpacingX.HasValue) ? SpacingX + 2 : null;
+            }
+        }
+
+        [JsonIgnore]
+        public Point2D<double> PickLocation
+        {
+            get
+            {
+                if (EntityHeader.IsNullOrEmpty(TapeSize))
+                    return null;
+
+                return new Point2D<double>(CenterX.Value, CenterY.Value);
             }
         }
 
@@ -421,16 +434,16 @@ namespace LagoVista.Manufacturing.Models
         public string Units { get; set; }
 
         [XmlAttribute(AttributeName = "body-width")]
-        public decimal BodyWidth { get; set; }
+        public double BodyWidth { get; set; }
 
         [XmlAttribute(AttributeName = "body-height")]
-        public decimal BodyHeight { get; set; }
+        public double BodyHeight { get; set; }
 
         [XmlAttribute(AttributeName = "outer-dimension")]
-        public decimal OuterDimension { get; set; }
+        public double OuterDimension { get; set; }
 
         [XmlAttribute(AttributeName = "inner-dimension")]
-        public decimal InnerDimension { get; set; }
+        public double InnerDimension { get; set; }
 
         [XmlAttribute(AttributeName = "pad-count")]
         public int PadCount { get; set; }

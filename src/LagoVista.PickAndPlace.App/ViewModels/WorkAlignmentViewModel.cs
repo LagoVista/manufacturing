@@ -176,13 +176,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         public RelayCommand EnabledFiducialPickerCommand { get; private set; }
 
-        private string _status = "Idle";
-        public string Status
-        {
-            get { return _status; }
-            set { Set(ref _status, value); }
-        }
-
         public void Dispose()
         {
             if (_timer != null)

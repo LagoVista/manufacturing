@@ -5,6 +5,15 @@ namespace LagoVista.PickAndPlace.Models
 {
     public class VisionProfile : ModelBase
     {
+        public string Name { get; set; }
+        public string Id { get; set; }
+
+        public VisionSettings BottomProfile {  get; set; }
+        public VisionSettings TopProfile { get; set; }
+    }
+
+    public class VisionSettings : ModelBase
+    {
         private string _name;
         public string Name
         {
@@ -55,13 +64,6 @@ namespace LagoVista.PickAndPlace.Models
         {
             get { return _exposure; }
             set { _exposure = Math.Round(value, 1); RaisePropertyChanged(); }
-        }
-
-        private bool _rotate180;
-        public bool Rotate180
-        {
-            get => _rotate180;
-            set { Set (ref _rotate180, value); }
         }
 
         private bool _findRectangles;
@@ -349,6 +351,41 @@ namespace LagoVista.PickAndPlace.Models
         {
             get { return _lightOn; }
             set { Set(ref _lightOn, value); }
+        }
+
+        private byte _red;
+        public byte LightRed
+        {
+            get { return _red; }
+            set { Set(ref _red, value); }
+        }
+
+        private byte _green;
+        public byte LightGreen
+        {
+            get { return _green; }
+            set { Set(ref _green, value); }
+        }
+
+        private byte _blue;
+        public byte LightBlue
+        {
+            get { return _blue; }
+            set { Set(ref _blue, value); }
+        }
+
+        private byte _power;
+        public byte LightPower
+        {
+            get { return _power; }
+            set { Set(ref _power, value); }
+        }
+
+        private bool _performShapeDetection;
+        public bool PerformShapeDetection
+        {
+            get { return _performShapeDetection; }
+            set { Set(ref _performShapeDetection, value); }
         }
     }
 }

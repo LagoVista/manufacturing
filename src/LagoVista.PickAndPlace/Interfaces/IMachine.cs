@@ -250,6 +250,8 @@ namespace LagoVista.PickAndPlace.Interfaces
         /// <param name="cmd">Text that represents the command</param>
         void SendCommand(String cmd);
 
+        void SendSaveMoveHeight();
+
         bool LocationUpdateEnabled { get; set; }
 
         /// <summary>
@@ -265,5 +267,14 @@ namespace LagoVista.PickAndPlace.Interfaces
         LagoVista.Manufacturing.Models.Machine Settings { get; set; }
 
         ObservableCollection<string> PendingQueue { get; }
+
+        byte TopRed { get; set; }
+        byte BottomRed { get; set; }
+        byte TopGreen { get; set; }
+        byte BottomGreen { get; set; }
+        byte TopBlue { get; set; }
+        byte BottomBlue { get; set; }
+        byte TopPower { get; set; }
+        byte BottomPower { get; set; }
     }
 }

@@ -1,12 +1,7 @@
-﻿using LagoVista.Core.Models;
-using LagoVista.Core.Models.Drawing;
+﻿using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
-using RingCentral;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace LagoVista.Manufacturing.Util
 {
@@ -17,7 +12,6 @@ namespace LagoVista.Manufacturing.Util
         {
             _machine = machine;
         }
-
 
         public InvokeResult<Point2D<double>> GetStripFeederOrigin(StripFeeder stripFeeder)
         {

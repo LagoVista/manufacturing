@@ -2,6 +2,7 @@
 using LagoVista.Core.Models;
 using System;
 using LagoVista.Core;
+using MSDMarkwort.Kicad.Parser.PcbNew.Models.PartLayers;
 
 namespace LagoVista.Manufacturing.Models
 {
@@ -27,8 +28,29 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _tool1Offset, value); }
         }
 
+        private bool _mirrorYAxis;
+        public bool MirrorYAxis 
+        { 
+            get { return _mirrorYAxis; }
+            set { Set(ref _mirrorYAxis, value); }
+        }
 
-        public Point2D<double> Tool2Offset { get; set; }
+
+        private bool _mirrorXAxis;
+        public bool MirrorXAxis 
+        {
+            get => _mirrorXAxis;
+            set {  Set(ref _mirrorXAxis, value); }
+        }
+
+
+        private Point2D<double> _tool2Offset;
+        public Point2D<double> Tool2Offset
+        {
+            get { return _tool2Offset; }
+            set { Set(ref _tool2Offset, value); }
+        }
+
         public Point2D<double> Tool3Offset { get; set; }
     }
 }

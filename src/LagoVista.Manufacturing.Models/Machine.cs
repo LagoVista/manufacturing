@@ -481,8 +481,6 @@ namespace LagoVista.Manufacturing.Models
 
 
         public FirmwareTypes MachineType { get; set; }
-
-        private string _settingsName;
     
         public List<string> Validate()
         {

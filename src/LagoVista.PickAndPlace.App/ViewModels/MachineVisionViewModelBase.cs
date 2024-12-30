@@ -8,10 +8,13 @@ using LagoVista.Core.Commanding;
 using LagoVista.Core.IOC;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
+using LagoVista.Core.Validation;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Models;
 using LagoVista.PickAndPlace.Util;
 using LagoVista.PickAndPlace.ViewModels;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -27,8 +30,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         FloatMedianFilter _circleMedianFilter = new FloatMedianFilter(4, 1);
         FloatMedianFilter _circleRadiusMedianFilter = new FloatMedianFilter(4, 1);
 
-        private VisionProfile _topCameraProfile;
-        private VisionProfile _bottomCameraProfile;
+        private VisionSettings _topCameraProfile;
+        private VisionSettings _bottomCameraProfile;
 
         const double PIXEL_PER_MM = 20.0;
         public MachineVisionViewModelBase(IMachine machine) : base(machine)
@@ -70,37 +73,56 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             var topProfileId = $"top-{CurrentMVProfile.Id}";
             var bottomProfileId = $"bottom-{CurrentMVProfile.Id}";
 
-            _topCameraProfile = Machine.Settings.VisionProfiles.FirstOrDefault(prof => prof.Name == topProfileId);
-            _bottomCameraProfile = Machine.Settings.VisionProfiles.FirstOrDefault(prof => prof.Name == bottomProfileId);
-
-            if (_topCameraProfile == null)
-            {   
-               
-                _topCameraProfile = Machine.Settings.VisionProfiles.FirstOrDefault(prof => prof.Name == "top-default");
-                if (_topCameraProfile == null)
-                {
-                    _topCameraProfile = new VisionProfile();
-                }
-            }
-
-            if (_bottomCameraProfile == null)
+            var profile = Machine.Settings.VisionProfiles.SingleOrDefault(prf => prf.Id == CurrentMVProfile.Id);
+            if (profile == null)
             {
-                _topCameraProfile = Machine.Settings.VisionProfiles.FirstOrDefault(prof => prof.Name == "bottom-default");
-                if (_bottomCameraProfile == null)
+                var defaultProfile = Machine.Settings.VisionProfiles.FirstOrDefault(prof => prof.Name == "default");
+                if (defaultProfile == null)
                 {
-                    _bottomCameraProfile = new VisionProfile();
+                    defaultProfile = new VisionProfile()
+                    {
+                        Name = "Default",
+                        Id = "fefault",
+                        BottomProfile = new VisionSettings(),
+                        TopProfile = new VisionSettings()
+                    };
                 }
-            }
+                else
+                {
+                    profile = new VisionProfile()
+                    {
+                        Name = CurrentMVProfile.Id,
+                        Id = CurrentMVProfile.Id,
+                    };
 
-            AdjustingTopCamera = _topCameraProfile.ForTopCamera;
+                    // lazy way to clone an object, maybe not that efficient, but this won't happen often.
+                    profile.BottomProfile = JsonConvert.DeserializeObject<VisionSettings>(JsonConvert.SerializeObject(defaultProfile.BottomProfile));
+                    profile.TopProfile = JsonConvert.DeserializeObject<VisionSettings>(JsonConvert.SerializeObject(defaultProfile.TopProfile));
+                };
+            }
+            else
+            {
+                _bottomCameraProfile = profile.BottomProfile;
+                _topCameraProfile = profile.TopProfile;
+            }
+           
+
             RaisePropertyChanged(nameof(BottomZoomLevel));
             RaisePropertyChanged(nameof(TopZoomLevel));
-            RaisePropertyChanged(nameof(LightOn));
 
             SaveProfile();
 
-            Machine.TopLightOn = AdjustingTopCamera && _topCameraProfile.LightOn;
-            Machine.BottomLightOn = !AdjustingTopCamera && _bottomCameraProfile.LightOn;
+            Machine.TopLightOn = _topCameraProfile.LightOn;
+            Machine.TopRed = _topCameraProfile.LightRed;
+            Machine.TopGreen = _topCameraProfile.LightGreen;
+            Machine.TopBlue = _topCameraProfile.LightBlue;
+            Machine.TopPower = _topCameraProfile.LightPower;
+
+            Machine.BottomLightOn = _bottomCameraProfile.LightOn;
+            Machine.BottomRed = _bottomCameraProfile.LightRed;
+            Machine.BottomGreen = _bottomCameraProfile.LightGreen;
+            Machine.BottomBlue = _bottomCameraProfile.LightBlue;
+            Machine.BottomPower = _bottomCameraProfile.LightPower;
         }
 
         public List<EntityHeader> MVProfiles { get; }
@@ -129,26 +151,29 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             CurrentMVProfile = MVProfiles.SingleOrDefault(mvp => mvp.Id == profile);
         }
 
-        public async void SaveProfile()
+        public void SaveProfile()
         {
             if (CurrentMVProfile != null)
             {
-                _topCameraProfile.Name = $"top-{CurrentMVProfile.Id}";
-                _bottomCameraProfile.Name = $"bottom-{CurrentMVProfile.Id}";
+                var existing = Machine.Settings.VisionProfiles.FirstOrDefault(vp => vp.Id == CurrentMVProfile.Id);
+                if(existing == null)
+                {
+                    Machine.Settings.VisionProfiles.Add(new VisionProfile()
+                    {
+                        Name = CurrentMVProfile.Text,
+                        Id = CurrentMVProfile.Id,
+                        BottomProfile = _bottomCameraProfile,
+                        TopProfile = _topCameraProfile,                        
+                    });
 
-                var top = Machine.Settings.VisionProfiles.FirstOrDefault(vp => vp.Name == _topCameraProfile.Name);
-                if (top != null)
-                    Machine.Settings.VisionProfiles.Remove(top);
-
-                var bottom = Machine.Settings.VisionProfiles.FirstOrDefault(vp => vp.Name == _bottomCameraProfile.Name);
-                if (bottom != null)
-                    Machine.Settings.VisionProfiles.Remove(bottom);
-
-                Machine.Settings.VisionProfiles.Add(_topCameraProfile);
-                Machine.Settings.VisionProfiles.Add(_bottomCameraProfile);
-                var rest = SLWIOC.Get<IRestClient>();
-                var result = await rest.PutAsync("/api/mfg/machine", Machine.Settings);
+                }
             }
+        }
+
+        public async Task<InvokeResult> SaveMachineAsync()
+        {
+            var rest = SLWIOC.Get<IRestClient>();
+            return await rest.PutAsync("/api/mfg/machine", Machine.Settings);
         }
 
         public RelayCommand SaveProfileCommand { get; private set; }
@@ -210,7 +235,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         }
 
         #region Show Cross Hairs
-        private void DrawCrossHairs(IInputOutputArray destImage, VisionProfile profile, System.Drawing.Size size)
+        private void DrawCrossHairs(IInputOutputArray destImage, VisionSettings profile, System.Drawing.Size size)
         {
             var center = new Point2D<int>()
             {
@@ -277,8 +302,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 if (_stabilizedPointCount > 5)
                 {
                     var offsetX = (offset.X / 20);
-                    var newLocationX = Profile.Rotate180 ? Math.Round(Machine.MachinePosition.X + offsetX, 4) : Math.Round(Machine.MachinePosition.X - offsetX, 4);
-                    var newLocationY = Math.Round(Machine.MachinePosition.Y + (offset.Y / 20), 4);
+                    var newLocationX = Machine.Settings.PositioningCamera.MirrorXAxis ? Math.Round(Machine.MachinePosition.X + offsetX, 4) : Math.Round(Machine.MachinePosition.X - offsetX, 4);
+                    var newLocationY = Machine.Settings.PositioningCamera.MirrorYAxis ? Math.Round(Machine.MachinePosition.Y + (offset.Y / 20), 4) : Math.Round(Machine.MachinePosition.Y - (offset.Y / 20), 4);
                     RequestedPosition = new Point2D<double>() { X = newLocationX, Y = newLocationY };
 
                     Machine.GotoPoint(RequestedPosition, true);
@@ -295,7 +320,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         int _stabilizedPointCount = 0;
 
         #region Find Circles
-        private void FindCircles(IInputOutputArray input, IInputOutputArray output, System.Drawing.Size size, VisionProfile profile)
+        private void FindCircles(IInputOutputArray input, IInputOutputArray output, System.Drawing.Size size, VisionSettings profile)
         {
             var center = new Point2D<int>()
             {
@@ -367,7 +392,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         #endregion
 
         #region Find Corners
-        private void FindCorners(Image<Gray, byte> blurredGray, IInputOutputArray output, System.Drawing.Size size, VisionProfile profile)
+        private void FindCorners(Image<Gray, byte> blurredGray, IInputOutputArray output, System.Drawing.Size size, VisionSettings profile)
         {
             var center = new Point2D<int>()
             {
@@ -461,7 +486,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         }
 
         #region Find Rotated Rectangles
-        private void FindRectangles(Image<Gray, byte> input, IInputOutputArray output, System.Drawing.Size size, VisionProfile profile)
+        private void FindRectangles(Image<Gray, byte> input, IInputOutputArray output, System.Drawing.Size size, VisionSettings profile)
         {
             UMat edges = new UMat();
 
@@ -614,7 +639,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         }
         #endregion
 
-        public UMat PerformShapeDetection(Image<Bgr, byte> img, VisionProfile profile)
+        public UMat PerformShapeDetection(Image<Bgr, byte> img, MachineCamera camera, VisionSettings profile)
         {
             if (img == null)
             {
@@ -627,7 +652,13 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
                 using (var rotated = new Image<Bgr, byte>(img.Size))
                 {
-                    if (profile.Rotate180)
+                    if (camera.MirrorXAxis)
+                    {
+                        CvInvoke.Flip(img, rotated, FlipType.Horizontal);
+                        img = rotated;
+                    }
+
+                    if (camera.MirrorYAxis)
                     {
                         CvInvoke.Flip(img, rotated, FlipType.Horizontal);
                         img = rotated;
@@ -710,7 +741,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 /*NOP, sometimes OpenCV acts a little funny. */
                 return null;

@@ -18,26 +18,10 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         Object _videoCaptureLocker = new object();
 
-        public enum MVLocatorState
-        {
-            Idle,
-            MachineFidicual,
-            BoardFidicual1,
-            BoardFidicual2,
-            Default,
-            NozzleCalibration,
-            WorkHome,
+        
 
-        }
-
-        private MVLocatorState _mvLocatorState = MVLocatorState.Default;
-        public MVLocatorState LocatorState
-        {
-            get => _mvLocatorState;
-            set => _mvLocatorState = value;
-        }
-
-        private string _status;
+        
+        private string _status = "Idle";
         public string Status
         {
             get => _status;
@@ -131,9 +115,9 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                                 {
                                     using (var resized = cropped.Resize(_topCameraProfile.ZoomLevel, Emgu.CV.CvEnum.Inter.LinearExact))
                                     {
-                                        if (AdjustingTopCamera)
+                                        if (_topCameraProfile.PerformShapeDetection)
                                         {
-                                            using (var results = PerformShapeDetection(resized, _topCameraProfile))
+                                            using (var results = PerformShapeDetection(resized, Machine.Settings.PositioningCamera, _topCameraProfile))
                                             {
                                                 PrimaryCapturedImage = Emgu.CV.WPF.BitmapSourceConvert.ToBitmapSource(results);
                                             }
@@ -193,9 +177,9 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                                 {
                                     using (var resized = cropped.Resize(_bottomCameraProfile.ZoomLevel, Emgu.CV.CvEnum.Inter.LinearExact))
                                     {
-                                        if (!AdjustingTopCamera)
+                                        if (_bottomCameraProfile.PerformShapeDetection)
                                         {
-                                            using (var results = PerformShapeDetection(resized, _bottomCameraProfile))
+                                            using (var results = PerformShapeDetection(resized, Machine.Settings.PositioningCamera, _bottomCameraProfile))
                                             {
 
                                                 SecondaryCapturedImage = Emgu.CV.WPF.BitmapSourceConvert.ToBitmapSource(results);

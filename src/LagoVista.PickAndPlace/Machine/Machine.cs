@@ -171,5 +171,10 @@ namespace LagoVista.PickAndPlace
 
             SendCommand($"{cmd} X{x.ToDim()} Y{y.ToDim()} Z{z.ToDim()}");
         }
+
+        public void SendSaveMoveHeight()
+        {
+            SendCommand($"GO Z{Settings.ToolSafeMoveHeight}");
+        }
     }
 }
