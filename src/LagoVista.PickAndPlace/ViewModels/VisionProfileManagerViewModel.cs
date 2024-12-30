@@ -97,7 +97,7 @@ namespace LagoVista.PickAndPlace.ViewModels
             }
         }
 
-        private void LoadProfiles()
+        public void LoadProfiles()
         {
             var profile = _machineRepo.CurrentMachine.Settings.VisionProfiles.SingleOrDefault(prf => prf.Id == CurrentMVProfile.Id);
             if (profile == null)
@@ -108,7 +108,7 @@ namespace LagoVista.PickAndPlace.ViewModels
                     profile = new VisionProfile()
                     {
                         Name = "Default",
-                        Id = "fefault",
+                        Id = "default",
                         BottomProfile = new VisionSettings(),
                         TopProfile = new VisionSettings()
                     };

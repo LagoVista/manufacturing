@@ -76,11 +76,12 @@ namespace LagoVista.PickAndPlace.App
 
             LagoVista.Client.Core.Startup.Init(dev);
 
+            SLWIOC.Register<IVisionProfileViewModel, VisionProfileViewModel>();
             SLWIOC.RegisterSingleton<IMachineRepo, MachineRepo>();
             SLWIOC.RegisterSingleton<ILocatorViewModel, LocatorViewModel>();
             SLWIOC.Register<IImageCaptureService, ImageCaptureService>();
             SLWIOC.RegisterSingleton<IVisionProfileManagerViewModel, VisionProfileManagerViewModel>();
-
+            SLWIOC.Register<IMachineControlViewModel, MachineControlViewModel>();
         }
     }
 

@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Views"
         mc:Ignorable="d"
         xmlns:Controls="clr-namespace:LagoVista.PickAndPlace.App.Controls"
-        Title="VisionSettingsView" Height="450" Width="800">
+        Title="VisionSettingsView" Height="800" Width="480">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -14,9 +14,9 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <Button Command="{Binding SaveCommand}">Save</Button>
+        <Controls:MVViewOptions Grid.Row="0" VerticalAlignment="Bottom"  />
         <Controls:ImageAdjustments  Grid.Row="1"  />
-        <Controls:MVViewOptions Grid.Row="2" VerticalAlignment="Bottom"  />
+        <Button Margin="20" Width="120" Height="32" HorizontalAlignment="Right" Grid.Row="2" Command="{Binding SaveCommand}">Save</Button>
 
     </Grid>
 </Window>

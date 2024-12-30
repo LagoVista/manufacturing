@@ -27,6 +27,12 @@ namespace LagoVista.PickAndPlace.ViewModels
             SetWorkspaceHomeCommand = new RelayCommand((obj) => _machineRepo.CurrentMachine.SetWorkspaceHome(), CanJog);
             GotoWorkspaceHomeCommand = new RelayCommand((obj) => _machineRepo.CurrentMachine.GotoWorkspaceHome(), CanJog);
 
+            _machineRepo.PropertyChanged += _machineRepo_PropertyChanged;
+            _machineRepo.CurrentMachine.PropertyChanged += Machine_PropertyChanged;
+        }
+
+        private void _machineRepo_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
             _machineRepo.CurrentMachine.PropertyChanged += Machine_PropertyChanged;
         }
 

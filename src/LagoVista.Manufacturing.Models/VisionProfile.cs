@@ -43,7 +43,7 @@ namespace LagoVista.PickAndPlace.Models
             set => Set(ref _useBlurredImage, value);
         }
 
-        private bool _showCrosshairs;
+        private bool _showCrosshairs = true;
         public bool ShowCrossHairs
         {
             get => _showCrosshairs;
@@ -59,7 +59,7 @@ namespace LagoVista.PickAndPlace.Models
         }
 
         /* 0-100*/
-        private double _contrast = 50;
+        private double _contrast = 25;
         public double Contrast
         {
             get { return _contrast; }
@@ -88,7 +88,7 @@ namespace LagoVista.PickAndPlace.Models
         }
 
 
-        private double _exposure = 50;
+        private double _exposure = 0;
         public double Exposure
         {
             get { return _exposure; }

@@ -3,6 +3,7 @@ using Emgu.CV;
 using Emgu.CV.Structure;
 using LagoVista.Core.Commanding;
 using LagoVista.Core.ViewModels;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels;
 using LagoVista.PickAndPlace.Models;
@@ -27,29 +28,23 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         private object _captureLocker = new object();
 
         private readonly IMachineRepo _machineRepo;
-        private VisionSettings _visionSettings;
         ShapeDetectionService _shapeDetectorService;
         ILocatorViewModel _locatorViewModel;
-        LocatedByCamera _camera;
+        LocatedByCamera _activeCamera;
 
         private readonly IVisionProfileManagerViewModel _visionProfileManager;
 
-        public LocatedByCamera Camera 
-        { 
-            get { return _camera; } 
-            set
-            {
-                Set(ref _camera, value);
-                switch(_camera)
-                {
-                    case LocatedByCamera.PartInspection:
-                        _visionSettings = _visionProfileManager.BottomCameraProfile;
-                        break;
-                    case LocatedByCamera.Position:
-                        _visionSettings = _visionProfileManager.TopCameraProfile;
-                        break;
-                }
-            }
+        public LocatedByCamera ActiveCamera 
+        {
+            get => _activeCamera;
+            set => Set(ref _activeCamera, value);            
+        }
+
+        MachineCamera _camera;
+        public MachineCamera Camera
+        {
+            get => _camera;
+            set => Set(ref _camera, value);
         }
 
         public ImageCaptureService(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel, IVisionProfileManagerViewModel visionProfileManager)
@@ -65,7 +60,17 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
         public VisionSettings Profile
         {
-            get { return _visionSettings; }
+            get {
+                switch (_activeCamera)
+                {
+                    case LocatedByCamera.PartInspection:
+                        return _visionProfileManager.BottomCameraProfile;
+                    case LocatedByCamera.Position:
+                        return _visionProfileManager.TopCameraProfile;
+                }
+
+                throw new InvalidOperationException($"Invalid Camera {_activeCamera}");
+            }
         }
 
         public void StartCapture()
@@ -76,14 +81,15 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 return;
             }
 
-            _shapeDetectorService = new ShapeDetectionService(_machineRepo, _locatorViewModel, _camera);
-
+            _shapeDetectorService = new ShapeDetectionService(_machineRepo, _locatorViewModel, _activeCamera);
 
             try
             {
                 LoadingMask = true;
 
-                var cameraName = _camera == LocatedByCamera.Position ? _machineRepo.CurrentMachine.Settings.PositioningCamera?.Name : _machineRepo.CurrentMachine.Settings.PartInspectionCamera?.Name;
+                Camera = _activeCamera == LocatedByCamera.Position ? _machineRepo.CurrentMachine.Settings.PositioningCamera : _machineRepo.CurrentMachine.Settings.PartInspectionCamera;
+
+                var cameraName = Camera?.Name;
 
                 if (String.IsNullOrEmpty(cameraName))
                 {
@@ -166,28 +172,28 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
                 if (_capture != null)
                 {
-                    if (_lastBrightness != _visionSettings.Brightness)
+                    if (_lastBrightness != Profile.Brightness)
                     {
-                        _capture.Set(Emgu.CV.CvEnum.CapProp.Brightness, _visionSettings.Brightness);
-                        _lastBrightness = _visionSettings.Brightness;
+                        _capture.Set(Emgu.CV.CvEnum.CapProp.Brightness, Profile.Brightness);
+                        _lastBrightness = Profile.Brightness;
                     }
 
-                    if (_lastFocus != _visionSettings.Focus)
+                    if (_lastFocus != Profile.Focus)
                     {
-                        _capture.Set(Emgu.CV.CvEnum.CapProp.Focus, _visionSettings.Focus);
-                        _lastFocus = _visionSettings.Focus;
+                        _capture.Set(Emgu.CV.CvEnum.CapProp.Focus, Profile.Focus);
+                        _lastFocus = Profile.Focus;
                     }
 
-                    if (_lastTopContrast != _visionSettings.Contrast)
+                    if (_lastTopContrast != Profile.Contrast)
                     {
-                        _capture.Set(Emgu.CV.CvEnum.CapProp.Contrast, _visionSettings.Contrast);
-                        _lastTopContrast = _visionSettings.Contrast;
+                        _capture.Set(Emgu.CV.CvEnum.CapProp.Contrast, Profile.Contrast);
+                        _lastTopContrast = Profile.Contrast;
                     }
 
-                    if (_lastExposure != _visionSettings.Exposure)
+                    if (_lastExposure != Profile.Exposure)
                     {
-                        _capture.Set(Emgu.CV.CvEnum.CapProp.Exposure, _visionSettings.Exposure);
-                        _lastExposure = _visionSettings.Exposure;
+                        _capture.Set(Emgu.CV.CvEnum.CapProp.Exposure, Profile.Exposure);
+                        _lastExposure = Profile.Exposure;
                     }
 
                     using (var originalFrame = _capture.QueryFrame())
@@ -199,11 +205,11 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                                 img.ROI = new System.Drawing.Rectangle() { X = (img.Size.Width - img.Size.Height) / 2, Width = img.Size.Height, Y = 0, Height = img.Size.Height };
                                 using (var cropped = img.Copy())
                                 {
-                                    using (var resized = cropped.Resize(_visionSettings.ZoomLevel, Emgu.CV.CvEnum.Inter.LinearExact))
+                                    using (var resized = cropped.Resize(Profile.ZoomLevel, Emgu.CV.CvEnum.Inter.LinearExact))
                                     {
-                                        if (_visionSettings.PerformShapeDetection)
+                                        if (Profile.PerformShapeDetection)
                                         {
-                                            using (var results = _shapeDetectorService.PerformShapeDetection(resized, _machineRepo.CurrentMachine.Settings.PositioningCamera, _visionSettings))
+                                            using (var results = _shapeDetectorService.PerformShapeDetection(resized, _machineRepo.CurrentMachine.Settings.PositioningCamera, Profile))
                                             {
                                                 CaptureImage = Emgu.CV.WPF.BitmapSourceConvert.ToBitmapSource(results);
                                             }

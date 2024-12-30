@@ -1,13 +1,18 @@
 ﻿using LagoVista.Client.Core;
+using LagoVista.Core.Commanding;
+using LagoVista.Core.IOC;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Core.PlatformSupport;
 using LagoVista.Core.Validation;
 using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
+using LagoVista.PickAndPlace.Interfaces.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
+using System.IO.Ports;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -25,6 +30,8 @@ namespace LagoVista.PickAndPlace.Repos
             _storageService = storageService ?? throw new ArgumentNullException(nameof(restClient));
             CurrentMachine = new Machine();
             CurrentMachine.Settings = new Manufacturing.Models.Machine();
+
+            ConnectCommand = new RelayCommand(Connect, () => this.HasValidMachine);
         }
 
         public IMachine CurrentMachine { get; set; }
@@ -49,7 +56,7 @@ namespace LagoVista.PickAndPlace.Repos
         public async Task<InvokeResult> LoadCurrentMachineAsync()
         {
             var machineId = await _storageService.GetKVPAsync<string>("current_machine_id");
-            if(!String.IsNullOrEmpty(machineId))
+            if (!String.IsNullOrEmpty(machineId))
             {
                 return await LoadMachineAsync(machineId);
             }
@@ -71,6 +78,9 @@ namespace LagoVista.PickAndPlace.Repos
                 RaisePropertyChanged(nameof(CurrentMachine));
                 await _storageService.StoreKVP("current_machine_id", id);
                 HasValidMachine = true;
+
+                SLWIOC.Get<IVisionProfileManagerViewModel>().LoadProfiles();
+
                 return InvokeResult.Success;
             }
             else
@@ -98,7 +108,7 @@ namespace LagoVista.PickAndPlace.Repos
 
         ObservableCollection<MachineSummary> _machines;
         public ObservableCollection<MachineSummary> Machines
-        { 
+        {
             get => _machines;
             set => Set(ref _machines, value);
         }
@@ -108,9 +118,45 @@ namespace LagoVista.PickAndPlace.Repos
         {
             get => _selectedMachine;
             set
-            {                
+            {
                 if (value != null && value.Id != _selectedMachine?.Id)
                     LoadMachine(value.Id);
+            }
+        }
+
+        public RelayCommand ConnectCommand {get;}
+
+        public async void Connect()
+        {
+            if (CurrentMachine.Connected)
+            {
+                await CurrentMachine.DisconnectAsync();
+            }
+            else
+            {
+                if (CurrentMachine.Settings.MachineType == FirmwareTypes.SimulatedMachine)
+                {
+                    await CurrentMachine.ConnectAsync(new SimulatedSerialPort(CurrentMachine.Settings.MachineType));
+                }
+                else if (CurrentMachine.Settings.ConnectionType == Manufacturing.Models.ConnectionTypes.Serial_Port)
+                {
+                    var port1 = new SerialPort(CurrentMachine.Settings.CurrentSerialPort.Name, CurrentMachine.Settings.CurrentSerialPort.BaudRate);
+                    await CurrentMachine.ConnectAsync(port1);
+                }
+                else
+                {
+                    try
+                    {
+                        var socketClient = SLWIOC.Create<ISocketClient>();
+
+                        await socketClient.ConnectAsync(CurrentMachine.Settings.IPAddress, 3000);
+                        await CurrentMachine.ConnectAsync(socketClient);
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+                }
             }
         }
 

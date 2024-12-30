@@ -7,6 +7,7 @@
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls"
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces;assembly=LagoVista.PickAndPlace"
+            xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
              mc:Ignorable="d"                           
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
@@ -14,7 +15,45 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Label Content="{Binding CurrentMachine.Settings.Name, FallbackValue=No Current Machine}" ></Label>
+        <Grid.Resources>
+            <Style TargetType="fa:ImageAwesome">
+                <Setter Property="Width"  Value="72"/>
+                <Setter Property="Height"  Value="72"/>
+                <Setter Property="Margin" Value="4" />
+                <Setter Property="Foreground" Value="LightGray" />
+            </Style>
+            <Style TargetType="fa:ImageAwesome" x:Key="StartType">
+                <Setter Property="Width"  Value="36"/>
+                <Setter Property="Height"  Value="36"/>
+                <Setter Property="Margin" Value="0,0,10,3" />
+                <Setter Property="Foreground" Value="#444" />
+                <Setter Property="HorizontalAlignment" Value="Right" />
+                <Setter Property="VerticalAlignment" Value="Bottom" />
+            </Style>
+
+            <Style TargetType="Button">
+                <Setter Property="Height"  Value="110"/>
+                <Setter Property="Width"  Value="100"/>
+                <Setter Property="Margin"  Value="2"/>
+            </Style>
+            <Style TargetType="TextBlock">
+                <Setter Property="Height"  Value="34"/>
+                <Setter Property="FontSize"  Value="18"/>
+                <Setter Property="TextAlignment" Value="Center" />
+            </Style>
+        </Grid.Resources>
+        <StackPanel Orientation="Horizontal">
+            <Button Command="{Binding ConnectCommand}" Grid.Column="0" >
+                <Button.Content>
+                    <StackPanel>
+                        <fa:ImageAwesome Icon="PowerOff" Foreground="{Binding CurrentMachine.Connected, Converter={StaticResource ColorEnabledConverter}, ConverterParameter=Green, FallbackValue=LightGray}" />
+                        <TextBlock Text="{Binding ConnectText, FallbackValue=On}" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+            <Label Content="{Binding CurrentMachine.Settings.Name, FallbackValue=No Current Machine}" ></Label>
+        </StackPanel>
+        
         <ListView ItemsSource="{Binding Machines}" SelectedItem="{Binding SelectedMachine}" Grid.Row="1">
             <ListView.ItemTemplate>
                 <DataTemplate>

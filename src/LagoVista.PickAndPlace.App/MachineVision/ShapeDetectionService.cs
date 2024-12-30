@@ -33,6 +33,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             _locatorViewModel = locatorViewModel ?? throw new ArgumentNullException(nameof(locatorViewModel));            
             _machineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
             _camera = camera;
+            _imageHelper = new ImageHelper();  
         }
 
         public VisionSettings VisionSettings { get; set; }
@@ -374,6 +375,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             {
                 return null;
             }
+
+            VisionSettings = profile;
 
             try
             {
