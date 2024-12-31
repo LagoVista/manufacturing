@@ -18,9 +18,9 @@ namespace LagoVista.Manufacturing.Models
         public string Icon { get; set; } = "icon-fo-folders";
 
 
-        public FeederSummary CreateSummary()
+        public AutoFeederSummary CreateSummary()
         {
-            return new FeederSummary()
+            return new AutoFeederSummary()
             {
                 Id = Id,
                 Name = Name,

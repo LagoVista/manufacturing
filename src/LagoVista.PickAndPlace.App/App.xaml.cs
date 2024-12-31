@@ -15,6 +15,7 @@ using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
+using LagoVista.PickAndPlace.LumenSupport;
 using LagoVista.PickAndPlace.Repos;
 using LagoVista.PickAndPlace.ViewModels;
 using LagoVista.PickAndPlace.ViewModels.Machine;
@@ -50,7 +51,8 @@ namespace LagoVista.PickAndPlace.App
             SLWIOC.RegisterSingleton<IClientAppInfo, ClientAppInfo>();
             SLWIOC.RegisterSingleton<ITimerFactory, TimerFactory>();
             SLWIOC.Register<IStorageService, Core.WPF.PlatformSupport.StorageService>();
-            
+            SLWIOC.Register<IPhotonProtocolHandler, PhotonProtocolHandler>();
+
             var local = new ServerInfo()
             {
                 RootUrl = "localhost",
@@ -85,7 +87,8 @@ namespace LagoVista.PickAndPlace.App
             SLWIOC.Register<ICurrentMachineViewModel, CurrentMachineViewModel>();
             SLWIOC.Register<INozzleChangeViewModel, NozzleChangeViewModel>();
             SLWIOC.RegisterSingleton<IPartsViewModel, PartsViewModel>();
-            SLWIOC.RegisterSingleton<IPickAndPlaceJobViewModel, PickAndPlaceJobViewModel>();            
+            SLWIOC.RegisterSingleton<IPickAndPlaceJobViewModel, PickAndPlaceJobViewModel>();
+            SLWIOC.RegisterSingleton<IPhotonFeederViewModel, PhotonFeederViewModel>();
         }
     }
 

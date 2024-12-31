@@ -47,9 +47,9 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_Slot, FieldType: FieldTypes.Integer, ResourceType: typeof(ManufacturingResources))]
         public int Slot { get; set; }
 
-        public FeederSummary CreateSummary()
+        public AutoFeederSummary CreateSummary()
         {
-            return new FeederSummary()
+            return new AutoFeederSummary()
             {
                 Id = Id,
                 Name = Name,
@@ -149,7 +149,7 @@ namespace LagoVista.Manufacturing.Models
             ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-stamp-2", Cloneable: true,
             SaveUrl: "/api/mfg/feeder", GetUrl: "/api/mfg/feeder/{id}", GetListUrl: "/api/mfg/feeders", FactoryUrl: "/api/mfg/feeder/factory",
             DeleteUrl: "/api/mfg/feeder/{id}", ListUIUrl: "/mfg/feeders", EditUIUrl: "/mfg/feeder/{id}", CreateUIUrl: "/mfg/feeder/add")]
-    public class FeederSummary : SummaryData
+    public class AutoFeederSummary : SummaryData
     {
         public string ComponentId { get; set; }
         public string ComponentKey { get; set; }

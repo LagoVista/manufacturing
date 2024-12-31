@@ -107,7 +107,7 @@ namespace LagoVista.Manufacturing.Managers
             return response;
         }
 
-        public async Task<ListResponse<FeederSummary>> GetFeedersSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user)
+        public async Task<ListResponse<AutoFeederSummary>> GetFeedersSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user)
         {
             await AuthorizeOrgAccessAsync(user, org.Id, typeof(AutoFeeder));
             return await _feederRepo.GetFeederSummariesAsync(org.Id, listRequest);

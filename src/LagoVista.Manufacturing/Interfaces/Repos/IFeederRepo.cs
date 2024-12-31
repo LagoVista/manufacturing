@@ -9,7 +9,7 @@ namespace LagoVista.Manufacturing.Interfaces.Repos
     {
         Task AddFeederAsync(AutoFeeder feeder);
         Task UpdateFeederAsync(AutoFeeder feeder);
-        Task<ListResponse<FeederSummary>> GetFeederSummariesAsync(string id, ListRequest listRequest);
+        Task<ListResponse<AutoFeederSummary>> GetFeederSummariesAsync(string id, ListRequest listRequest);
         Task<ListResponse<AutoFeeder>> GetFeedersForMachineAsync(string machineId);
         Task<AutoFeeder> GetFeederAsync(string id);
         Task<AutoFeeder> GetFeederByFeederIdAsync(string feederId);

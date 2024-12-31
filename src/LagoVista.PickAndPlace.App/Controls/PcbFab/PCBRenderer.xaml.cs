@@ -199,8 +199,8 @@ namespace LagoVista.PickAndPlace.App.Controls
             }
         }
 
-        public static readonly DependencyProperty CircuitBoardRevisionProperty = DependencyProperty.RegisterAttached(nameof(Board), typeof(CircuitBoardRevision), typeof(PCBRenderer), new FrameworkPropertyMetadata(OnBoardChanged)); 
-        public CircuitBoardRevision Board
+        public static readonly DependencyProperty CircuitBoardRevisionProperty = DependencyProperty.RegisterAttached(nameof(CircuitBoard), typeof(CircuitBoardRevision), typeof(PCBRenderer), new FrameworkPropertyMetadata(OnBoardChanged)); 
+        public CircuitBoardRevision CircuitBoard
         {
             get => (CircuitBoardRevision)GetValue(CircuitBoardRevisionProperty);
             set => SetValue(CircuitBoardRevisionProperty, value);
@@ -210,8 +210,8 @@ namespace LagoVista.PickAndPlace.App.Controls
         private static void OnPropChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
         {
             var host = dependencyObject as PCBRenderer;
-            if (host.Board != null)
-                host.RenderRevision(host.Board);
+            if (host.CircuitBoard != null)
+                host.RenderRevision(host.CircuitBoard);
         }
 
         public static readonly DependencyProperty TopWiresVisibleProperty = DependencyProperty.RegisterAttached(nameof(TopWiresVisible), typeof(bool), typeof(PCBRenderer), new FrameworkPropertyMetadata(OnPropChanged));

@@ -68,7 +68,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if (jobLoadReslut.Successful)
             {
                 Job = jobLoadReslut.Result.Model;
-                Board = Job.BoardRevision;
+                CircuitBoard = Job.BoardRevision;
                 await _storageService.StoreKVP<string>("last-job-id", jobId);
                 RefreshConfigurationParts();
             }
@@ -147,7 +147,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
 
         CircuitBoardRevision _board;
-        public CircuitBoardRevision Board
+        public CircuitBoardRevision CircuitBoard
         {
             get => _board;
             set => Set(ref _board, value);

@@ -19,6 +19,6 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand ReloadJobCommand { get; }
         RelayCommand RefreshConfigurationPartsCommand { get; }
         RelayCommand SaveCommand { get; }
-        CircuitBoardRevision Board { get; }
+        CircuitBoardRevision CircuitBoard { get; }
     }
 }

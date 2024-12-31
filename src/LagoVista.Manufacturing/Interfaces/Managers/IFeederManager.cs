@@ -10,7 +10,7 @@ namespace LagoVista.Manufacturing.Interfaces.Managers
     {
         Task<InvokeResult> AddFeederAsync(AutoFeeder feeder, EntityHeader org, EntityHeader user);
         Task<InvokeResult> UpdateFeederAsync(AutoFeeder feeder, EntityHeader org, EntityHeader user);
-        Task<ListResponse<FeederSummary>> GetFeedersSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user);
+        Task<ListResponse<AutoFeederSummary>> GetFeedersSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user);
         Task<AutoFeeder> GetFeederAsync(string id, bool loadComponent, EntityHeader org, EntityHeader user);
         Task<AutoFeeder> GetFeederByFeederIdAsync(string feederId, bool loadComponent, EntityHeader org, EntityHeader user);
         Task<ListResponse<AutoFeeder>> GetFeedersForMachineAsync(string machineId, bool loadComponent, EntityHeader org, EntityHeader user);

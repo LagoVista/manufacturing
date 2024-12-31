@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LagoVista.PickAndPlace.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -34,7 +35,8 @@ namespace LagoVista.PickAndPlace.LumenSupport
         public byte FromAddress { get; set; }
         public byte PacketId { get; set; }
         public byte Status { get; set; }
-        public byte[] Payload { get; set; }
+        public byte[] BinaryPayload { get; set; }
+        public string TextPayload { get; set; }
     }
     public class PhotonCommand
     {
@@ -43,7 +45,7 @@ namespace LagoVista.PickAndPlace.LumenSupport
     }
 
 
-    public class PhotonProtocolHandler
+    public class PhotonProtocolHandler : IPhotonProtocolHandler
     {
         public byte packetID = 0;
 
@@ -110,7 +112,9 @@ namespace LagoVista.PickAndPlace.LumenSupport
             response.PacketId = buffer[2];
 
             response.Status = buffer[5];
-            response.Payload = buffer.Skip(6).ToArray();
+
+            response.BinaryPayload = buffer.Skip(6).ToArray();
+            response.TextPayload = packet.Substring(12);
 
             var crc = buffer[4];
 

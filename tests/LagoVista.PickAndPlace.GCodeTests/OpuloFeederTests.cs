@@ -31,8 +31,8 @@ namespace LagoVista.PickAndPlace.GCodeTests
 
             Listen(_cancelSource, reader);
 
-            var pCmd = _support.GenerateGCode(FeederCommands.GetId, 0x01);
-            Console.WriteLine(pCmd.GCode);
+            var pCmd = _support.GenerateGCode(FeederCommands.GetId, 4);
+            Console.WriteLine($"--> {pCmd.GCode}");
             await writer.WriteAsync($"{pCmd.GCode}\n");
             await writer.FlushAsync();
 
@@ -51,10 +51,10 @@ namespace LagoVista.PickAndPlace.GCodeTests
                             {
                                 var responsePayload = match.Groups[1].Value;
                                 var response = _support.ParseResponse(responsePayload);
-                                Console.WriteLine(response.Payload.ToString());
+                                Console.WriteLine($"<-- +++ {response.TextPayload}");
                             }
                             else
-                                Console.WriteLine("NO MATCH -> " + cmd);
+                                Console.WriteLine($"<-- --- {cmd}");
                         }
 
                         _commandResponseQUeue.Clear();

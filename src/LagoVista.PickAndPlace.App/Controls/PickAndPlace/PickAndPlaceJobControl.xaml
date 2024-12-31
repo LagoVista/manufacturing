@@ -88,7 +88,7 @@
                 </DataGrid>
         </Grid>
 
-        <pcb:PCBRenderer Grid.Column="1" TopWiresVisible="true" BottomWiresVisible="true" PCBVisible="true" CenterBoard="true" Grid.Row="2" Board="{Binding Board}" ></pcb:PCBRenderer>
+        <pcb:PCBRenderer Grid.Column="1" TopWiresVisible="true" BottomWiresVisible="true" PCBVisible="true" CenterBoard="true" Grid.Row="2" CircuitBoard="{Binding CircuitBoard}" ></pcb:PCBRenderer>
         
     </Grid>
 </ucb:VMBoundUserControl>
