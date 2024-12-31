@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LagoVista.PickAndPlace.Managers
+namespace LagoVista.PickAndPlace.Managers.PcbFab
 {
     /* 
      * This class is responsible for taking in two fiducials for exactpositions on a PCB

@@ -12,7 +12,7 @@ using LagoVista.Core;
 using System.Diagnostics;
 using LagoVista.Manufacturing.Models;
 
-namespace LagoVista.PickAndPlace.Managers
+namespace LagoVista.PickAndPlace.Managers.PcbFab
 {
     public class BoardAlignmentManager : Core.Models.ModelBase, IBoardAlignmentManager, IDisposable
     {
@@ -183,7 +183,7 @@ namespace LagoVista.PickAndPlace.Managers
 
                 var deltaX = Math.Abs(machinePosition.X - _targetLocation.X);
                 var deltaY = Math.Abs(machinePosition.Y - _targetLocation.Y);
-                isOnTargetLocation = (deltaX < EPSILON_MACHINE_POSITION && deltaY < EPSILON_MACHINE_POSITION);
+                isOnTargetLocation = deltaX < EPSILON_MACHINE_POSITION && deltaY < EPSILON_MACHINE_POSITION;
 
                 switch (State)
                 {
@@ -220,7 +220,7 @@ namespace LagoVista.PickAndPlace.Managers
 
         public void JogToFindCenter(Point2D<double> machine, Point2D<double> cameraOffsetPixels)
         {
-            _targetLocation = new Point2D<double>(_machinePosition.X - (cameraOffsetPixels.X / 20), _machinePosition.Y + (cameraOffsetPixels.Y / 20));
+            _targetLocation = new Point2D<double>(_machinePosition.X - cameraOffsetPixels.X / 20, _machinePosition.Y + cameraOffsetPixels.Y / 20);
             _lastEvent = DateTime.Now;
 
             _machine.SendCommand($"G0 X{_targetLocation.X.ToDim()} Y{_targetLocation.Y.ToDim()}");
@@ -269,7 +269,7 @@ namespace LagoVista.PickAndPlace.Managers
                     {
                         _pointStabilizationFilter.Reset();
                         _positionManager.FirstLocated = _machinePosition;
-                       
+
                         _machine.AddStatusMessage(StatusMessageTypes.Info, "Board Alignment - Centered First Fiducial ");
                         _machine.AddStatusMessage(StatusMessageTypes.Info, "Board Alignment - Jogging to Expected Second Fiducial");
 
@@ -321,7 +321,7 @@ namespace LagoVista.PickAndPlace.Managers
                 case BoardAlignmentManagerStates.CenteringSecondFiducial: break;
             }
         }
-        
+
 
         public BoardAlignmentManagerStates State
         {
@@ -329,7 +329,7 @@ namespace LagoVista.PickAndPlace.Managers
             set
             {
                 Set(ref _state, value);
-                switch(value)
+                switch (value)
                 {
                     case BoardAlignmentManagerStates.BoardAlignmentDetermined: Status = "Finished"; break;
                     case BoardAlignmentManagerStates.CenteringFirstFiducial: Status = "Centering on First Fiducial"; break;
