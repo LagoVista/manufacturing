@@ -1,4 +1,5 @@
 ﻿using LagoVista.PickAndPlace.Interfaces;
+using LagoVista.PickAndPlace.ViewModels.Obsolete;
 using System;
 using System.Collections.Generic;
 using System.Linq;

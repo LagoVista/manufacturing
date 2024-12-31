@@ -34,7 +34,6 @@ namespace LagoVista.PickAndPlace.App
             {
                 Id = "-1",
                 Name = "none",
-                CameraIndex = -1
             });
 
             foreach (var camera in cameras)
@@ -43,7 +42,6 @@ namespace LagoVista.PickAndPlace.App
                 {
                     Id = camera.DevicePath,
                     Name = camera.Name,
-                    CameraIndex = idx++
                 });
             }
 

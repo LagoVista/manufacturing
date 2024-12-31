@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>LagoVista.GCode</id>
-    <version>3.0.2785.0829</version>
+    <version>3.0.2785.1157</version>
     <authors>Software Logistics, LLC</authors>
     <owners>Software Logistics, LLC</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -12,11 +12,11 @@
     <copyright>Copyright Software Logistics - 2024</copyright>
     <tags>HomeAutomation IoT</tags>
     <icon>LagoVistaIcon.png</icon>
-    <releaseNotes>Build Date: 12/31/2024 1:29:46 PM UTC</releaseNotes>
+    <releaseNotes>Build Date: 12/31/2024 4:57:07 PM UTC</releaseNotes>
     <repository url="https://www.github.com/lagovista" type="git" branch="master"></repository>
     <dependencies>
       <group targetFramework="netstandard2.0">
-        <dependency id="LagoVista.Core" version="3.0.2785.0829" />
+        <dependency id="LagoVista.Core" version="3.0.2785.1157" />
       </group>
     </dependencies>
   </metadata>

@@ -6,6 +6,7 @@ using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Manufacturing.Models;
 using LagoVista.Client.Core;
 using System;
+using LagoVista.PickAndPlace.ViewModels.Obsolete;
 
 namespace LagoVista.PickAndPlace.ViewModels
 {

@@ -6,7 +6,7 @@
              xmlns:cvts="clr-namespace:LagoVista.PickAndPlace.App.Converters"
              xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
          
-             xmlns:ctls="clr-namespace:LagoVista.PickAndPlace.App.Controls"
+             xmlns:ctls="clr-namespace:LagoVista.PickAndPlace.App.Controls.UI"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="400">
     <UserControl.Resources>

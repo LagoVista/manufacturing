@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 
-namespace LagoVista.PickAndPlace.App.Controls
+namespace LagoVista.PickAndPlace.App.Controls.UI
 {
     public class MaskingTextBox : TextBox
     {
@@ -37,15 +37,15 @@ namespace LagoVista.PickAndPlace.App.Controls
                     case UnitTypes.Size:
                     case UnitTypes.Seconds:
                         double value;
-                        if (Double.TryParse(newText, out value))
+                        if (double.TryParse(newText, out value))
                         {
-                            if(Min.HasValue)
+                            if (Min.HasValue)
                             {
                                 if (value < Min.Value)
                                     e.Handled = true;
                             }
 
-                            if(Max.HasValue)
+                            if (Max.HasValue)
                             {
                                 if (value > Max.Value)
                                     e.Handled = true;

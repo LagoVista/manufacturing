@@ -15,7 +15,7 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
 using LagoVista.PickAndPlace.Util;
-using LagoVista.PickAndPlace.ViewModels;
+using LagoVista.PickAndPlace.ViewModels.Obsolete;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

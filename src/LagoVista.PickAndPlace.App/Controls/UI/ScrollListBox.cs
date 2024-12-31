@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LagoVista.PickAndPlace.App.Controls
+namespace LagoVista.PickAndPlace.App.Controls.UI
 {
     public class ListBoxScroll : System.Windows.Controls.ListBox
     {

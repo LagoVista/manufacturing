@@ -21,6 +21,7 @@ using LagoVista.PCB.Eagle.Managers;
 using System.Diagnostics;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab;
+using LagoVista.PickAndPlace.App.Views.UI;
 
 namespace LagoVista.PickAndPlace.App
 {

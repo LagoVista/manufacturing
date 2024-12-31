@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:cvts="clr-namespace:LagoVista.PickAndPlace.App.Converters"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:ctls="clr-namespace:LagoVista.PickAndPlace.App.Controls"
+             xmlns:ui="clr-namespace:LagoVista.PickAndPlace.App.Controls.UI"
              xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
@@ -29,13 +29,13 @@
                 </Button.Content>
             </Button>
         </Grid>
-        <ctls:ListBoxScroll  HorizontalContentAlignment="Stretch"
+        <ui:ListBoxScroll  HorizontalContentAlignment="Stretch"
                              Grid.Row="1"
                  SelectedIndex="{Binding Path=MachineRepo.CurrentMachine.MessageCount, Mode=OneWay}"
                  ItemsSource="{Binding Path=MachineRepo.CurrentMachine.Messages}"
                  IsHitTestVisible="False" BorderThickness="0"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" >
-            <ctls:ListBoxScroll.ItemTemplate>
+            <ui:ListBoxScroll.ItemTemplate>
                 <DataTemplate>
                     <Grid Background="{Binding MessageType, Converter={StaticResource MessageTypeBackgroundColorConverter}}" >
                         <Grid.ColumnDefinitions>
@@ -48,21 +48,21 @@
                         <TextBlock Text="{Binding Message}" Grid.Column="2" Foreground="{Binding MessageType, Converter={StaticResource MessageTypeForegroundColorConverter}}" />
                     </Grid>
                 </DataTemplate>
-            </ctls:ListBoxScroll.ItemTemplate>
-        </ctls:ListBoxScroll>
+            </ui:ListBoxScroll.ItemTemplate>
+        </ui:ListBoxScroll>
 
-        <ctls:ListBoxScroll  HorizontalContentAlignment="Stretch"
+        <ui:ListBoxScroll  HorizontalContentAlignment="Stretch"
                              Grid.Row="1"
                              Grid.Column="1"
                  ItemsSource="{Binding Path=MachineRepo.CurrentMachine.PendingQueue}"
                  IsHitTestVisible="False" BorderThickness="0"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" >
-            <ctls:ListBoxScroll.ItemTemplate>
+            <ui:ListBoxScroll.ItemTemplate>
                 <DataTemplate>
                        <TextBlock Text="{Binding .}"  />
                 </DataTemplate>
-            </ctls:ListBoxScroll.ItemTemplate>
-        </ctls:ListBoxScroll>
+            </ui:ListBoxScroll.ItemTemplate>
+        </ui:ListBoxScroll>
 
     </Grid>
 </UserControl>

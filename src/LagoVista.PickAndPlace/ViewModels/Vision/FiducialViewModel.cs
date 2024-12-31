@@ -2,9 +2,9 @@
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 
-namespace LagoVista.PickAndPlace.ViewModels
+namespace LagoVista.PickAndPlace.ViewModels.Vision
 {
-    public class FiducialViewModel : ViewModelBase
+    public class FiducialViewModel : ViewModelBase, IFiducialViewModel
     {
         private readonly IMachineRepo _machineRepo;
         private readonly ILocatorViewModel _locatorViewMoel;

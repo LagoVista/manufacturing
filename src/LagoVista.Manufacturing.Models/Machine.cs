@@ -456,6 +456,12 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _zStepMode, value); }
         }
 
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_Cameras, FactoryUrl: "/api/mfg/machine/camera/factory", FieldType: FieldTypes.ChildListInline, OpenByDefault: true, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public ObservableCollection<MachineCamera> Cameras { get; set; } = new ObservableCollection<MachineCamera>();
+
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_ToolHeads, FactoryUrl: "/api/mfg/machine/toolhead/factory", FieldType: FieldTypes.ChildListInline, OpenByDefault:true, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public ObservableCollection<MachineToolHead> ToolHeads { get; set; } = new ObservableCollection<MachineToolHead>();
+
         private MachineCamera _positioningCamera;
         public MachineCamera PositioningCamera
         {
@@ -610,6 +616,8 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Nozzles),
                 nameof(StagingPlates),
                 nameof(FeederRails),
+                nameof(ToolHeads),
+                nameof(Cameras),
             };
         }
     }

@@ -49,6 +49,19 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return DetailResponse<ToolNozzleTip>.Create();
         }
 
+        [HttpGet("/api/mfg/machine/camera/factory")]
+        public DetailResponse<MachineCamera> CreateCamera()
+        {
+            return DetailResponse<MachineCamera>.Create();
+        }
+
+
+        [HttpGet("/api/mfg/machine/toolhead/factory")]
+        public DetailResponse<MachineToolHead> CreateToolHead()
+        {
+            return DetailResponse<MachineToolHead>.Create();
+        }
+
 
         [HttpGet("/api/mfg/machine/stagingplate/factory")]
         public DetailResponse<MachineStagingPlate> CreateStagingPlate()

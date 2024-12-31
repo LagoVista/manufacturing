@@ -20,7 +20,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace LagoVista.PickAndPlace.App.Views
+namespace LagoVista.PickAndPlace.App.Views.UI
 {
     /// <summary>
     /// Interaction logic for OpenObjectView.xaml

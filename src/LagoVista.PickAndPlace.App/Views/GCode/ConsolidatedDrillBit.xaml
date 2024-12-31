@@ -8,7 +8,7 @@
         WindowStyle="ToolWindow"
         WindowStartupLocation="CenterOwner"
        
-        xmlns:ctls="clr-namespace:LagoVista.PickAndPlace.App.Controls"
+        xmlns:ctls="clr-namespace:LagoVista.PickAndPlace.App.Controls.UI"
         Title="Consolidated Drill" Height="150" Width="300">
     <Grid>
         <Grid.RowDefinitions>

@@ -848,43 +848,43 @@
                                 <Label Content="Name" />
                                 <TextBox Text="{Binding Name, Mode=TwoWay}" Grid.Column="1" />
 
-                                <Label Content="Length" Grid.Row="1" />
-                                <Controls:MaskingTextBox Text="{Binding Length, Mode=TwoWay}"  UnitType="Size" Grid.Row="1" Grid.Column="1" />
+<!--                                <Label Content="Length" Grid.Row="1" />
+                                <ui:MaskingTextBox Text="{Binding Length, Mode=TwoWay}"  UnitType="Size" Grid.Row="1" Grid.Column="1" />
                                 <Label Content="(mm)" Grid.Row="1" Grid.Column="2" />
 
                                 <Label Content="Width" Grid.Row="2" />
-                                <Controls:MaskingTextBox Text="{Binding Width, Mode=TwoWay}"   UnitType="Size" Grid.Row="2" Grid.Column="1" />
+                                <ui:MaskingTextBox Text="{Binding Width, Mode=TwoWay}"   UnitType="Size" Grid.Row="2" Grid.Column="1" />
                                 <Label Content="(mm)" Grid.Row="2" Grid.Column="2" />
 
                                 <Label Content="Height" Grid.Row="3" />
-                                <Controls:MaskingTextBox Text="{Binding Height, Mode=TwoWay}"  UnitType="Size" Grid.Row="3" Grid.Column="1"  />
+                                <ui:MaskingTextBox Text="{Binding Height, Mode=TwoWay}"  UnitType="Size" Grid.Row="3" Grid.Column="1"  />
                                 <Label Content="(mm)" Grid.Row="3" Grid.Column="2" />
 
                                 <Label Content="Tape Width" Grid.Row="4" />
-                                <Controls:MaskingTextBox Text="{Binding TapeWidth, Mode=TwoWay}"  UnitType="Size" Grid.Row="4" Grid.Column="1"  />
+                                <ui:MaskingTextBox Text="{Binding TapeWidth, Mode=TwoWay}"  UnitType="Size" Grid.Row="4" Grid.Column="1"  />
                                 <Label Content="(mm)" Grid.Row="4" Grid.Column="2" />
 
                                 <Label Content="Hole Spacing" Grid.Row="5" />
-                                <Controls:MaskingTextBox Text="{Binding HoleSpacing, Mode=TwoWay}"  UnitType="Size" Grid.Row="5" Grid.Column="1"  />
+                                <ui:MaskingTextBox Text="{Binding HoleSpacing, Mode=TwoWay}"  UnitType="Size" Grid.Row="5" Grid.Column="1"  />
                                 <Label Content="(mm)" Grid.Row="5" Grid.Column="2" />
 
                                 <Label Content="Center X from hole" Grid.Row="6" />
-                                <Controls:MaskingTextBox Text="{Binding CenterXFromHole, Mode=TwoWay}"   UnitType="Size" Grid.Row="6" Grid.Column="1" />
+                                <ui:MaskingTextBox Text="{Binding CenterXFromHole, Mode=TwoWay}"   UnitType="Size" Grid.Row="6" Grid.Column="1" />
                                 <Label Content="(mm)" Grid.Row="6" Grid.Column="2" />
 
                                 <Label Content="Center Y from hole" Grid.Row="7" />
-                                <Controls:MaskingTextBox Text="{Binding CenterYFromHole, Mode=TwoWay}"  UnitType="Size" Grid.Row="7" Grid.Column="1"  />
+                                <ui:MaskingTextBox Text="{Binding CenterYFromHole, Mode=TwoWay}"  UnitType="Size" Grid.Row="7" Grid.Column="1"  />
                                 <Label Content="(mm)" Grid.Row="7" Grid.Column="2" />
 
 
                                 <Label Content="Spacing X" Grid.Row="8" />
-                                <Controls:MaskingTextBox Text="{Binding SpacingX, Mode=TwoWay}"  UnitType="Size" Grid.Row="8" Grid.Column="1"  />
+                                <ui:MaskingTextBox Text="{Binding SpacingX, Mode=TwoWay}"  UnitType="Size" Grid.Row="8" Grid.Column="1"  />
                                 <Label Content="(mm)" Grid.Row="8" Grid.Column="2" />
 
 
                                 <Label Content="Rotation in tape" Grid.Row="9" />
-                                <Controls:MaskingTextBox Text="{Binding RotationInTape, Mode=TwoWay}"  UnitType="Size" Grid.Row="9" Grid.Column="1"  />
-                                <Label Content="(deg)" Grid.Row="9" Grid.Column="2" />
+                                <uiontrols:MaskingTextBox Text="{Binding RotationInTape, Mode=TwoWay}"  UnitType="Size" Grid.Row="9" Grid.Column="1"  />
+                                <Label Content="(deg)" Grid.Row="9" Grid.Column="2" />-->
                             </Grid>
                             <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="3" HorizontalAlignment="Right">
                                 <StackPanel.Resources>

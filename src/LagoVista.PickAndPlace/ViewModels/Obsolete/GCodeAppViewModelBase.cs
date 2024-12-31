@@ -5,7 +5,7 @@ using LagoVista.PickAndPlace.Interfaces;
 using System;
 using System.Collections.Generic;
 
-namespace LagoVista.PickAndPlace.ViewModels
+namespace LagoVista.PickAndPlace.ViewModels.Obsolete
 {
     public class GCodeAppViewModelBase : ViewModelBase
     {
@@ -34,20 +34,20 @@ namespace LagoVista.PickAndPlace.ViewModels
             else
             {
                 action();
-            }            
+            }
         }
 
         private int _commandBufferLocation = 0;
-        private List<String> _commandBuffer = new List<string>();
+        private List<string> _commandBuffer = new List<string>();
 
         public void ManualSend()
         {
             _commandBuffer.Add(ManualCommandText);
             _commandBufferLocation = _commandBuffer.Count;
-            if (!String.IsNullOrEmpty(ManualCommandText))
+            if (!string.IsNullOrEmpty(ManualCommandText))
             {
                 Machine.SendCommand(ManualCommandText);
-                ManualCommandText = String.Empty;
+                ManualCommandText = string.Empty;
             }
         }
 
@@ -75,8 +75,8 @@ namespace LagoVista.PickAndPlace.ViewModels
             }
         }
 
-        private String _manualCommandText;
-        public String ManualCommandText
+        private string _manualCommandText;
+        public string ManualCommandText
         {
             get { return _manualCommandText; }
             set
