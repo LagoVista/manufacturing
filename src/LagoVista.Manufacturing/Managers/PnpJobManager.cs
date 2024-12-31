@@ -10,32 +10,35 @@ using LagoVista.IoT.Logging.Loggers;
 using System;
 using static LagoVista.Core.Models.AuthorizeResult;
 using System.Threading.Tasks;
+using System.Drawing.Text;
+using System.Collections.Generic;
 
 namespace LagoVista.Manufacturing.Managers
 {
     public class PickAndPlaceJobManager : ManagerBase, IPickAndPlaceJobManager
     {
         private readonly IPickAndPlaceJobRepo _PickAndPlaceJobRepo;
+        private readonly IComponentRepo _componentRepo;
 
         public PickAndPlaceJobManager(IPickAndPlaceJobRepo partRepo, IAdminLogger logger, IAppConfig appConfig, IDependencyManager depmanager, ISecurity security) :
             base(logger, appConfig, depmanager, security)
         {
             _PickAndPlaceJobRepo = partRepo;
         }
-        public async Task<InvokeResult> AddPickAndPlaceJobAsync(PickAndPlaceJob part, EntityHeader org, EntityHeader user)
+        public async Task<InvokeResult> AddPickAndPlaceJobAsync(PickAndPlaceJob job, EntityHeader org, EntityHeader user)
         {
-            await AuthorizeAsync(part, AuthorizeActions.Create, user, org);
-            ValidationCheck(part, Actions.Create);
-            await _PickAndPlaceJobRepo.AddPickAndPlaceJobAsync(part);
+            await AuthorizeAsync(job, AuthorizeActions.Create, user, org);
+            ValidationCheck(job, Actions.Create);
+            await _PickAndPlaceJobRepo.AddPickAndPlaceJobAsync(job);
 
             return InvokeResult.Success;
         }
 
         public async Task<DependentObjectCheckResult> CheckInUseAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _PickAndPlaceJobRepo.GetPickAndPlaceJobAsync(id);
-            await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
-            return await base.CheckForDepenenciesAsync(part);
+            var job = await _PickAndPlaceJobRepo.GetPickAndPlaceJobAsync(id);
+            await AuthorizeAsync(job, AuthorizeActions.Read, user, org);
+            return await base.CheckForDepenenciesAsync(job);
         }
 
         public Task<InvokeResult> DeleteCommponentAsync(string id, EntityHeader org, EntityHeader user)
@@ -45,18 +48,18 @@ namespace LagoVista.Manufacturing.Managers
 
         public async Task<InvokeResult> DeletePickAndPlaceJobAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _PickAndPlaceJobRepo.GetPickAndPlaceJobAsync(id);
-            await ConfirmNoDepenenciesAsync(part);
-            await AuthorizeAsync(part, AuthorizeActions.Delete, user, org);
+            var job = await _PickAndPlaceJobRepo.GetPickAndPlaceJobAsync(id);
+            await ConfirmNoDepenenciesAsync(job);
+            await AuthorizeAsync(job, AuthorizeActions.Delete, user, org);
             await _PickAndPlaceJobRepo.DeletePickAndPlaceJobAsync(id);
             return InvokeResult.Success;
         }
 
         public async Task<PickAndPlaceJob> GetPickAndPlaceJobAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _PickAndPlaceJobRepo.GetPickAndPlaceJobAsync(id);
-            await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
-            return part;
+            var job = await _PickAndPlaceJobRepo.GetPickAndPlaceJobAsync(id);
+            await AuthorizeAsync(job, AuthorizeActions.Read, user, org);
+            return job;
         }
 
 
@@ -66,11 +69,11 @@ namespace LagoVista.Manufacturing.Managers
             return await _PickAndPlaceJobRepo.GetPickAndPlaceJobSummariesAsync(org.Id, listRequest);
         }
 
-        public async Task<InvokeResult> UpdatePickAndPlaceJobAsync(PickAndPlaceJob part, EntityHeader org, EntityHeader user)
+        public async Task<InvokeResult> UpdatePickAndPlaceJobAsync(PickAndPlaceJob job, EntityHeader org, EntityHeader user)
         {
-            await AuthorizeAsync(part, AuthorizeActions.Update, user, org);
-            ValidationCheck(part, Actions.Update);
-            await _PickAndPlaceJobRepo.UpdatePickAndPlaceJobAsync(part);
+            await AuthorizeAsync(job, AuthorizeActions.Update, user, org);
+            ValidationCheck(job, Actions.Update);
+            await _PickAndPlaceJobRepo.UpdatePickAndPlaceJobAsync(job);
 
             return InvokeResult.Success;
         }

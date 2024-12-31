@@ -3,14 +3,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:ui="clr-namespace:LagoVista.PickAndPlace.App.Controls.UI"
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls"
              xmlns:h="http://helix-toolkit.org/wpf" mc:Ignorable="d" d:DesignHeight="500" d:DesignWidth="1000">
     <Grid>
-        <h:HelixViewport3D Name="viewport" ShowViewCube="False" Panel.ZIndex="0"   >
+        
+        <h:HelixViewport3D Name="viewport" ShowViewCube="true" Panel.ZIndex="0" ShowCameraInfo="true"  >
             <h:HelixViewport3D.Camera >
-                <PerspectiveCamera x:Name="Camera" Position="50, -120,70" LookDirection="0, 4,-1.7" UpDirection="0,0,1"/>
+                <PerspectiveCamera x:Name="Camera" Position="-50,-100,100" LookDirection="1.5,3,-3" UpDirection="0,0,1"/>
             </h:HelixViewport3D.Camera>
-            
+
+            <h:DefaultLights />
+
             <ModelVisual3D x:Name="PCBLayer" />
 
             <h:GridLinesVisual3D x:Name="ModelGrid" MinorDistance="10"  MajorDistance="100" 
@@ -18,5 +22,6 @@
                 Length ="{Binding Machine.Settings.WorkAreaWidth, FallbackValue=100}"  />
 
         </h:HelixViewport3D>
+        <ui:Viewer3DControls RenderWidth="100" Camera="{Binding ElementName=Camera}"  RenderHeight="100"></ui:Viewer3DControls>
     </Grid>
 </UserControl>

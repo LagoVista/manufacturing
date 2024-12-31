@@ -8,6 +8,7 @@ using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Managers;
 using LagoVista.Manufacturing.Models;
 using LagoVista.Core.ViewModels;
+using LagoVista.PickAndPlace.Managers.PcbFab;
 
 namespace LagoVista.PickAndPlace.App.ViewModels
 {

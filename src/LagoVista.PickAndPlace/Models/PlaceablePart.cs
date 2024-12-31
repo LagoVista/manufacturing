@@ -74,5 +74,19 @@ namespace LagoVista.PickAndPlace.Models
             get => _packageName;
             set => Set(ref _packageName, value);
         }
+
+        private string _packageId;
+        public string PackageId
+        {
+            get => _packageId;
+            set => Set(ref _packageName, value);
+        }
+
+        private string _componentName;
+        public string ComponentName
+        {
+            get => _componentName;
+            set => Set(ref _componentName, value);
+        }
     }
 }

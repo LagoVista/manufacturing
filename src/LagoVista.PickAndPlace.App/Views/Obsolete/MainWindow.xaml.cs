@@ -399,5 +399,10 @@ namespace LagoVista.PickAndPlace.App
                 case "ToolAlignment": new Views.ToolAlignment(ViewModel.Machine).Show(); break;
             }
         }
+
+        private void HeightMapControl_Loaded(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

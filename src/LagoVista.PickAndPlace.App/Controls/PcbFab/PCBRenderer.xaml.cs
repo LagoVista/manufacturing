@@ -1,21 +1,13 @@
 ﻿using HelixToolkit.Wpf;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PCB.Eagle.Models;
+using LagoVista.PickAndPlace.App.Controls.UI;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace LagoVista.PickAndPlace.App.Controls
 {
@@ -28,10 +20,6 @@ namespace LagoVista.PickAndPlace.App.Controls
         {
             InitializeComponent();
         }
-
-        public bool TopWiresVisible { get; set; }
-        public bool BottomWiresVisible { get; set; }
-        public bool PCBVisible { get; set; }
 
         public void RenderRevision(CircuitBoardRevision board)
         {
@@ -161,7 +149,8 @@ namespace LagoVista.PickAndPlace.App.Controls
 
                 var boardEdgeMeshBuilder = new MeshBuilder(false, false);
 
-                var cornerWires = board.Layers.Where(layer => layer.Layer == PCBLayers.BoardOutline).FirstOrDefault().Wires.Where(wire => wire.Crv.HasValue == true);
+                //var cornerWires = board.Layers.Where(layer => layer.Layer == PCBLayers.BoardOutline).FirstOrDefault().Wires.Where(wire => wire.Crv.HasValue == true);
+                var cornerWires = board.Outline.Where(lne=> lne.Crv > 0);
                 var radius = cornerWires.Any() ? Math.Abs(cornerWires.First().X1 - cornerWires.First().X2) : 0;
                 if (radius == 0)
                 {
@@ -185,6 +174,86 @@ namespace LagoVista.PickAndPlace.App.Controls
             }
 
             PCBLayer.Content = modelGroup;
+
+            if (CenterBoard)
+            {
+                PCBLayer.Transform = new TranslateTransform3D(-board.Width.Value / 2, - board.Height.Value / 2, 0);
+                Camera.LookAt(new Point3D(0, 0, 0), 2);
+            }
+            else
+            {
+                Camera.LookAt(new Point3D(RenderOriginX + board.Width.Value / 2, RenderOriginY - board.Width.Value, 0), 0);
+                PCBLayer.Transform = new TranslateTransform3D(RenderOriginX, RenderOriginY, 2);
+            }
         }
+
+        private static void OnBoardChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
+        {
+            var host = dependencyObject as PCBRenderer;
+            var newRevision = e.NewValue as CircuitBoardRevision;
+            var oldRevision = e.OldValue as CircuitBoardRevision;
+
+            if(newRevision != null)
+            {
+                host.RenderRevision(newRevision);
+            }
+        }
+
+        public static readonly DependencyProperty CircuitBoardRevisionProperty = DependencyProperty.RegisterAttached(nameof(Board), typeof(CircuitBoardRevision), typeof(PCBRenderer), new FrameworkPropertyMetadata(OnBoardChanged)); 
+        public CircuitBoardRevision Board
+        {
+            get => (CircuitBoardRevision)GetValue(CircuitBoardRevisionProperty);
+            set => SetValue(CircuitBoardRevisionProperty, value);
+        }
+
+
+        private static void OnPropChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
+        {
+            var host = dependencyObject as PCBRenderer;
+            if (host.Board != null)
+                host.RenderRevision(host.Board);
+        }
+
+        public static readonly DependencyProperty TopWiresVisibleProperty = DependencyProperty.RegisterAttached(nameof(TopWiresVisible), typeof(bool), typeof(PCBRenderer), new FrameworkPropertyMetadata(OnPropChanged));
+        public bool TopWiresVisible
+        {
+            get => (bool)GetValue(TopWiresVisibleProperty);
+            set => SetValue(TopWiresVisibleProperty, value);
+        }
+
+        public static readonly DependencyProperty BottomWiresVisibleProperty = DependencyProperty.RegisterAttached(nameof(BottomWiresVisible), typeof(bool), typeof(PCBRenderer), new FrameworkPropertyMetadata(OnPropChanged));
+        public bool BottomWiresVisible
+        {
+            get => (bool)GetValue(BottomWiresVisibleProperty);
+            set => SetValue(BottomWiresVisibleProperty, value);
+        }
+
+        public static readonly DependencyProperty PCBVisibleProperty = DependencyProperty.RegisterAttached(nameof(PCBVisible), typeof(bool), typeof(PCBRenderer), new FrameworkPropertyMetadata(OnPropChanged));
+        public bool PCBVisible
+        {
+            get => (bool)GetValue(PCBVisibleProperty);
+            set => SetValue(PCBVisibleProperty, value);
+        }
+
+        public static readonly DependencyProperty RenderOriginXProperty = DependencyProperty.RegisterAttached(nameof(RenderOriginX), typeof(double), typeof(PCBRenderer), new FrameworkPropertyMetadata(OnPropChanged));
+        public double RenderOriginX
+        {
+            get => (double)GetValue(RenderOriginXProperty);
+            set => SetValue(RenderOriginXProperty, value);
+        }
+
+        public static readonly DependencyProperty RenderOriginYProperty = DependencyProperty.RegisterAttached(nameof(RenderOriginY), typeof(double), typeof(PCBRenderer), new FrameworkPropertyMetadata(OnPropChanged));
+        public double RenderOriginY
+        {
+            get => (double)GetValue(RenderOriginYProperty);
+            set => SetValue(RenderOriginYProperty, value);
+        }
+
+        public static readonly DependencyProperty CenterBoardProperty = DependencyProperty.RegisterAttached(nameof(CenterBoard), typeof(bool), typeof(PCBRenderer), new FrameworkPropertyMetadata(OnPropChanged));
+        public bool CenterBoard
+        {
+            get => (bool)GetValue(CenterBoardProperty);
+            set => SetValue(CenterBoardProperty, value);
+        }      
     }
 }

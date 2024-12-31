@@ -10,6 +10,7 @@ using LagoVista.Core;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.GCode;
 using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.Managers.PcbFab;
 
 namespace LagoVista.PickAndPlace
 {
@@ -36,7 +37,7 @@ namespace LagoVista.PickAndPlace
 
             var pointStabilizationFilter = new PointStabilizationFilter(Constants.PixelToleranceEpsilon, Constants.PixelStabilizationToleranceCount);
 
-            BoardAlignmentManager = new Managers.BoardAlignmentManager(this, Core.PlatformSupport.Services.Logger, PCBManager, pointStabilizationFilter);
+            BoardAlignmentManager = new BoardAlignmentManager(this, Core.PlatformSupport.Services.Logger, PCBManager, pointStabilizationFilter);
         }
 
         public Task InitAsync()

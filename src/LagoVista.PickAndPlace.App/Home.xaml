@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ctls="clr-namespace:LagoVista.PickAndPlace.App.Controls"
+        xmlns:pnpc="clr-namespace:LagoVista.PickAndPlace.App.Controls.PickAndPlace"
         xmlns:local="clr-namespace:LagoVista.PickAndPlace.App"
         mc:Ignorable="d"
         Title="Home" Height="1200" Width="1920">
@@ -27,16 +28,37 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
-                <ctls:MachineRender ></ctls:MachineRender>
-                <ctls:ToolAlignment></ctls:ToolAlignment>
-                <ctls:MachineStatusControl  Width="200" Height="150" HorizontalAlignment="RIght" VerticalAlignment="Bottom" />
+                <TabControl>
+                    <TabItem Header="Home">
+                        <ctls:MachineRender ></ctls:MachineRender>
+                    </TabItem>
+                    <TabItem Header="Alignment">
+                        <ctls:ToolAlignment></ctls:ToolAlignment>
+                    </TabItem>
+                    <TabItem Header="Machine">
+                        <pnpc:PickAndPlaceMachineControl></pnpc:PickAndPlaceMachineControl>
+                    </TabItem>
+                    <TabItem Header="Prepare Job">
+                        <pnpc:PrepareJob></pnpc:PrepareJob>
+                    </TabItem>
+                    <TabItem Header="Run Job">
+                        <pnpc:PickAndPlaceJobControl></pnpc:PickAndPlaceJobControl>
+                    </TabItem>
+                </TabControl>
+
+                
+
                 <ctls:ManualSend Grid.Row="1" VerticalAlignment="Bottom"/>
+
+                
             </Grid>
-            
+
+            <ctls:MachineStatusControl  Width="200" Height="150" HorizontalAlignment="RIght" VerticalAlignment="Bottom" Grid.Column="2" />
+
             <Grid Grid.Column="2" Grid.RowSpan="2">
                 <StackPanel>
-                 <ctls:MachinesControl Grid.Row="2"/>
-                 <ctls:MachineControl  Grid.RowSpan="2"></ctls:MachineControl>
+                    <ctls:MachinesControl Grid.Row="2"/>
+                    <ctls:MachineControl  Grid.RowSpan="2"></ctls:MachineControl>
                 </StackPanel>
             </Grid>
 

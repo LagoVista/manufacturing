@@ -119,13 +119,10 @@ namespace LagoVista.PCB.Eagle.Models
         public bool ManualPlace { get; set; }
         public bool Fiducial { get; set; }
         public string Function { get; set; }
-        public string Notes { get; set; }
-      
+        public string Notes { get; set; }      
         public EntityHeader Component { get; set; }
-
         public PCBLayers Layer { get; set; }
         
-
         public EntityHeader<PcbPackage> Package { get; set; }
 
         public List<Pad> Pads

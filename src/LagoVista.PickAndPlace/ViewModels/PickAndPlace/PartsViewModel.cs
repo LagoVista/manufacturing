@@ -159,7 +159,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 var part = new PlaceableParts()
                 {
                     Value = entry.First().Value.ToUpper(),
+                    PackageId = entry.First().Package?.Id,
                     PackageName = entry.First().PackageName.ToUpper(),
+                    ComponentName = entry.First().Component?.Text,
                 };
 
                 part.Parts = new ObservableCollection<PcbComponent>();

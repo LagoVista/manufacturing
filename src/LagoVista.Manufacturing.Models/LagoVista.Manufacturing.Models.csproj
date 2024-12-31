@@ -9,7 +9,7 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="LagoVista.UserAdmin.Models" Version="3.0.2785.1157" />
+    <PackageReference Include="LagoVista.UserAdmin.Models" Version="3.0.2785.1328" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LagoVista.PCB.Eagle\LagoVista.PCB.Eagle.csproj" />

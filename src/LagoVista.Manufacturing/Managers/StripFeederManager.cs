@@ -10,6 +10,7 @@ using LagoVista.IoT.Logging.Loggers;
 using System;
 using static LagoVista.Core.Models.AuthorizeResult;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace LagoVista.Manufacturing.Managers
 {
@@ -85,6 +86,8 @@ namespace LagoVista.Manufacturing.Managers
             var response = await _stripFeederRepo.GetStripFeedersForMachineAsync(machineId);
             if (loadComponent)
             {
+                var packageCache = new Dictionary<string, ComponentPackage>();
+
                 foreach (var feeder in response.Model)
                 {
                     foreach (var row in feeder.Rows)
@@ -94,7 +97,15 @@ namespace LagoVista.Manufacturing.Managers
                             row.Component.Value = await _componentManager.GetComponentAsync(row.Component.Id, true, org, user);
                             if (!EntityHeader.IsNullOrEmpty(row.Component.Value.ComponentPackage))
                             {
-                                row.Component.Value.ComponentPackage.Value = await _packageRepo.GetComponentPackageAsync(row.Component.Value.ComponentPackage.Id);
+                                if (packageCache.ContainsKey(row.Component.Value.ComponentPackage.Id))
+                                {
+                                    row.Component.Value.ComponentPackage.Value = packageCache[row.Component.Value.ComponentPackage.Id];
+                                }
+                                else
+                                {
+                                    row.Component.Value.ComponentPackage.Value = await _packageRepo.GetComponentPackageAsync(row.Component.Value.ComponentPackage.Id);
+                                    packageCache.Add(row.Component.Value.ComponentPackage.Id, row.Component.Value.ComponentPackage.Value);
+                                }
                             }
                         }
                     }
