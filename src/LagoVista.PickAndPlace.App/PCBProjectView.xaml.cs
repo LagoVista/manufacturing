@@ -1,5 +1,6 @@
 ﻿using LagoVista.PCB.Eagle.Models;
-using LagoVista.PickAndPlace.ViewModels;
+using LagoVista.PickAndPlace.ViewModels.PcbFab;
+using LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab;
 using System;
 using System.Windows;
 using System.Windows.Controls;

@@ -7,7 +7,7 @@ using LagoVista.Core.Validation;
 using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
-using LagoVista.PickAndPlace.Interfaces.ViewModels;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

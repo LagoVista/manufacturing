@@ -7,7 +7,7 @@
              xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls"
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
-             xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels;assembly=LagoVista.PickAndPlace"
+             xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;assembly=LagoVista.PickAndPlace"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid  >

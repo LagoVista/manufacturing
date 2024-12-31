@@ -24,7 +24,7 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         public MainViewModel(string currentMachineId) : base()
         {
-            Machine = new Machine();
+            Machine = new LagoVista.PickAndPlace.Machine();
 
             InitCommands();
             InitChildViewModels();
@@ -62,7 +62,7 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         private void InitChildViewModels()
         {
-            //JobControlVM = new JobControlViewModel(Machine);
+            //JobControlVM = new GCodeJobControlViewModel(Machine);
             //MachineControlVM = new MachineControlViewModel(Machine);
         }
 

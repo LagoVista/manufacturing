@@ -1,5 +1,5 @@
 ﻿using LagoVista.PCB.Eagle.Models;
-using LagoVista.PickAndPlace.Interfaces.ViewModels;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Managers;
 using LagoVista.PickAndPlace.Models;
 using System;

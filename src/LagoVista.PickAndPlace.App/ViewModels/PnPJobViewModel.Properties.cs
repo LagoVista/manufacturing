@@ -1,8 +1,12 @@
 ﻿using LagoVista.Manufacturing.Models;
 using LagoVista.PCB.Eagle.Models;
-using LagoVista.PickAndPlace.Interfaces.ViewModels;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Managers;
 using LagoVista.PickAndPlace.ViewModels;
+using LagoVista.PickAndPlace.ViewModels.Machine;
+using LagoVista.PickAndPlace.ViewModels.PickAndPlace;
+using LagoVista.PickAndPlace.ViewModels.Vision;
 using System.Collections.ObjectModel;
 
 namespace LagoVista.PickAndPlace.App.ViewModels

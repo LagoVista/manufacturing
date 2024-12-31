@@ -11,8 +11,8 @@ namespace LagoVista.PickAndPlace.ViewModels
 {
     public partial class MainViewModel
     {
-        public JobControlViewModel JobControlVM { get; private set; }
-        public MachineControlViewModel MachineControlVM { get; private set; }
+        public GCode.GCodeJobControlViewModel JobControlVM { get; private set; }
+        public Machine.MachineControlViewModel MachineControlVM { get; private set; }
 
         PcbProject _project;
         public PcbProject Project
@@ -48,9 +48,9 @@ namespace LagoVista.PickAndPlace.ViewModels
             ProjectFiles = new List<string>();
         }
 
-        public List<String> PnPJobs { get; set; }
-        public List<String> GCodeFiles { get; set; }
-        public List<String> BoardFiles { get; set; }
-        public List<String> ProjectFiles { get; set; }
+        public List<string> PnPJobs { get; set; }
+        public List<string> GCodeFiles { get; set; }
+        public List<string> BoardFiles { get; set; }
+        public List<string> ProjectFiles { get; set; }
     }
 }

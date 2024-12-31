@@ -20,6 +20,7 @@ using System.Xml.Linq;
 using LagoVista.PCB.Eagle.Managers;
 using System.Diagnostics;
 using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab;
 
 namespace LagoVista.PickAndPlace.App
 {

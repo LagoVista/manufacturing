@@ -1,6 +1,6 @@
-﻿using LagoVista.PickAndPlace.App.ViewModels;
-using System.Windows;
+﻿using System.Windows;
 using LagoVista.PickAndPlace.Interfaces;
+using LagoVista.PickAndPlace.ViewModels.PickAndPlace;
 
 namespace LagoVista.PickAndPlace.App.Views
 {

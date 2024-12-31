@@ -1,6 +1,6 @@
 ﻿using LagoVista.Core.ViewModels;
 using LagoVista.PickAndPlace.Interfaces;
-using LagoVista.PickAndPlace.Interfaces.ViewModels;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 
 namespace LagoVista.PickAndPlace.ViewModels
 {

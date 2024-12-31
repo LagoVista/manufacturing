@@ -4,7 +4,6 @@ using Emgu.CV.Util;
 using Emgu.CV;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Manufacturing.Models;
-using LagoVista.PickAndPlace.Interfaces.ViewModels;
 using LagoVista.PickAndPlace.Models;
 using LagoVista.PickAndPlace.Util;
 using System;
@@ -12,6 +11,7 @@ using System.Drawing;
 using LagoVista.Core.ViewModels;
 using System.Drawing.Drawing2D;
 using LagoVista.PickAndPlace.Interfaces;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 
 namespace LagoVista.PickAndPlace.App.MachineVision
 {

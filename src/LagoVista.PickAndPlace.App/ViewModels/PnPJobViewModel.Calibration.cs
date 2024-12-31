@@ -1,5 +1,5 @@
 ﻿using LagoVista.Core.Models.Drawing;
-using LagoVista.PickAndPlace.Interfaces.ViewModels;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

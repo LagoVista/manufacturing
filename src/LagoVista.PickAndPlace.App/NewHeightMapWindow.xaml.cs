@@ -1,6 +1,7 @@
 ﻿using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Models;
 using LagoVista.PickAndPlace.ViewModels;
+using LagoVista.PickAndPlace.ViewModels.PcbFab;
 using System.Windows;
 
 namespace LagoVista.PickAndPlace.App

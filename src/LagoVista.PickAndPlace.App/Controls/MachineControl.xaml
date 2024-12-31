@@ -6,7 +6,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
-             xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels;assembly=LagoVista.PickAndPlace"                        
+             xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;assembly=LagoVista.PickAndPlace"                        
              mc:Ignorable="d" 
              Background="Gray"
              d:DesignHeight="800" d:DesignWidth="300">

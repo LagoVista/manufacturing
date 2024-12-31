@@ -4,6 +4,7 @@ using SharpDX.XInput;
 using System.Threading;
 using LagoVista.PickAndPlace.ViewModels;
 using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.ViewModels.Machine;
 
 namespace LagoVista.PickAndPlace.App.Controls
 {

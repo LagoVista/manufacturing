@@ -1,6 +1,6 @@
 ﻿using HelixToolkit.Wpf;
 using LagoVista.PickAndPlace.App.ViewModels;
-using LagoVista.PickAndPlace.Interfaces.ViewModels;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.XPlat;
 using System;
 using System.Collections.Generic;

@@ -5,6 +5,7 @@ using LagoVista.Core.IOC;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.ViewModels;
+using LagoVista.PickAndPlace.ViewModels.Machine;
 using System;
 using System.Windows;
 

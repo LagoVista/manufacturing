@@ -51,6 +51,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Interfaces\ViewModels\GCode\" />
+    <Folder Include="Interfaces\ViewModels\PcbFab\" />
     <Folder Include="Proxies\" />
   </ItemGroup>
 

@@ -12,9 +12,14 @@ using LagoVista.IoT.Logging.Models;
 using LagoVista.PickAndPlace.App.MachineVision;
 using LagoVista.PickAndPlace.App.Services;
 using LagoVista.PickAndPlace.Interfaces;
-using LagoVista.PickAndPlace.Interfaces.ViewModels;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Repos;
 using LagoVista.PickAndPlace.ViewModels;
+using LagoVista.PickAndPlace.ViewModels.Machine;
+using LagoVista.PickAndPlace.ViewModels.PickAndPlace;
+using LagoVista.PickAndPlace.ViewModels.Vision;
 using LagoVista.XPlat.WPF.Services;
 using System;
 using System.Collections.Generic;
@@ -79,6 +84,10 @@ namespace LagoVista.PickAndPlace.App
             SLWIOC.Register<IMachineControlViewModel, MachineControlViewModel>();
             SLWIOC.Register<IManualSendViewModel, ManualSendViewModel>();
             SLWIOC.Register<ICurrentMachineViewModel, CurrentMachineViewModel>();
+            SLWIOC.Register<IPickAndPlaceJobViewModel, PickAndPlaceJobViewModel>();
+            SLWIOC.Register<INozzleChangeViewModel, NozzleChangeViewModel>();
+            SLWIOC.Register<IPickAndPlaceJobViewModel, PickAndPlaceJobViewModel>();
+
         }
     }
 
