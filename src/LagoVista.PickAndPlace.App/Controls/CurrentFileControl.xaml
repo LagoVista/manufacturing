@@ -27,22 +27,22 @@
                 <ColumnDefinition Width="auto" />
             </Grid.ColumnDefinitions>
 
-            <TextBlock Text="{Binding Path=Machine.GCodeFileManager.FileName, FallbackValue=MyFile.nc}" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding Path=MachineRepo.CurrentMachine.GCodeFileManager.FileName, FallbackValue=MyFile.nc}" VerticalAlignment="Center" />
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top"   >
-                <Label Content="{Binding Path=Machine.GCodeFileManager.Head, FallbackValue=-}" Margin="0,0,-6,0"/>
+                <Label Content="{Binding Path=MachineRepo.CurrentMachine.GCodeFileManager.Head, FallbackValue=-}" Margin="0,0,-6,0"/>
                 <Label Content="/"/>
-                <Label Content="{Binding Path=Machine.GCodeFileManager.TotalLines, FallbackValue=-}" Margin="-8,0,0,0"/>
+                <Label Content="{Binding Path=MachineRepo.CurrentMachine.GCodeFileManager.TotalLines, FallbackValue=-}" Margin="-8,0,0,0"/>
             </StackPanel>
 
             <StackPanel Grid.Column="2" Orientation="Horizontal" >
-                <Label Content="{Binding Path=Machine.GCodeFileManager.EstimatedTimeRemaining.Minutes, FallbackValue=0}"  />
+                <Label Content="{Binding Path=MachineRepo.CurrentMachine.GCodeFileManager.EstimatedTimeRemaining.Minutes, FallbackValue=0}"  />
                 <Label Content=":" />
-                <Label Content="{Binding Path=Machine.GCodeFileManager.EstimatedTimeRemaining.Seconds, FallbackValue=00, StringFormat=00}"  />
+                <Label Content="{Binding Path=MachineRepo.CurrentMachine.GCodeFileManager.EstimatedTimeRemaining.Seconds, FallbackValue=00, StringFormat=00}"  />
             </StackPanel>
             <StackPanel Grid.Column="3" Orientation="Horizontal">
                 <Label Content="Rate: " />
-                <Label Content="{Binding Path=Machine.GCodeFileManager.CurrentCommand.Feed}" />
+                <Label Content="{Binding Path=MachineRepo.CurrentMachine.GCodeFileManager.CurrentCommand.Feed}" />
             </StackPanel>
             <StackPanel Grid.Column="4" Orientation="Horizontal">
                 <Button BorderBrush="Transparent"  Background="Transparent"  x:Name="EditGCode" Click="EditGCode_Click"  >
@@ -59,9 +59,9 @@
         </Grid>
 
         <ctls:ListBoxScroll Grid.Row="1" x:Name="ListViewFile"
-                            SelectedIndex="{Binding Path=Machine.GCodeFileManager.Tail}" 
+                            SelectedIndex="{Binding Path=MachineRepo.CurrentMachine.GCodeFileManager.Tail}" 
                             HorizontalContentAlignment="Stretch" 
-                            ItemsSource="{Binding Path=Machine.GCodeFileManager.Commands}"
+                            ItemsSource="{Binding Path=MachineRepo.CurrentMachine.GCodeFileManager.Commands}"
                             IsHitTestVisible="False" BorderThickness="0"
                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" >
 

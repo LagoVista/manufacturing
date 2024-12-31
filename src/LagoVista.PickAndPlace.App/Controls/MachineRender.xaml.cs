@@ -1,34 +1,43 @@
 ﻿using HelixToolkit.Wpf;
-using LagoVista.Manufacturing.Models;
-using LagoVista.PCB.Eagle.Models;
 using LagoVista.PickAndPlace.App.ViewModels;
+using LagoVista.PickAndPlace.Interfaces.ViewModels;
+using LagoVista.XPlat;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Collections.ObjectModel;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace LagoVista.PickAndPlace.App.Controls
 {
     /// <summary>
     /// Interaction logic for MachineRender.xaml
     /// </summary>
-    public partial class MachineRender : UserControl
+    public partial class MachineRender : VMBoundUserControl<IPartsViewModel>
     {
         public MachineRender()
         {
             InitializeComponent();
             DataContextChanged += MachineRender_DataContextChanged;
+        }
+
+        private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == nameof(IPartsViewModel.Machine))
+            {
+                Machine = ViewModel.Machine.Settings;
+            }
+
+            if(e.PropertyName == nameof(IPartsViewModel.StripFeeders))
+            {
+                StripFeeders = ViewModel.StripFeeders;
+            }
+
+            if(e.PropertyName == nameof(IPartsViewModel.AutoFeeders))
+            {
+                AutoFeeders = ViewModel.AutoFeeders;
+            }
         }
 
         Material copperMaterial = MaterialHelper.CreateMaterial(Color.FromRgb(0xb8, 0x73, 0x33));
@@ -45,20 +54,8 @@ namespace LagoVista.PickAndPlace.App.Controls
 
         private void MachineRender_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            var vm = DataContext as PnPJobViewModel;
-            //Machine = vm.Machine.Settings;
-
-            var maxX = Machine.FrameWidth;
-            var maxY = Machine.FrameHeight;
-            var factor = Machine.FrameHeight / 10;
-
-            var max = Math.Max(maxX, maxY);
-            var x = (max / 2) + 0;
-            var y = -12 * factor;
-            var z = 7 * factor;
-
-            Camera.Position = new Point3D(x, y, z);
-            var dir = Camera.LookDirection;
+            if(ViewModel != null)
+                ViewModel.PropertyChanged += ViewModel_PropertyChanged;
         }
 
         LagoVista.Manufacturing.Models.Machine _machine;
@@ -68,14 +65,25 @@ namespace LagoVista.PickAndPlace.App.Controls
                 _machine = value;
                 if (_machine != null)
                 {
+                    var maxX = Machine.FrameWidth;
+                    var maxY = Machine.FrameHeight;
+                    var factor = Machine.FrameHeight / 10;
+
+                    var max = Math.Max(maxX, maxY);
+                    var x = (max / 2) + 0;
+                    var y = -12 * factor;
+                    var z = 7 * factor;
+
+                    Camera.Position = new Point3D(x, y, z);
+                    var dir = Camera.LookDirection;
                     RenderStagingPlates(value);
                     RenderFrame(value);
                 }
             }
         }
 
-        List<LagoVista.Manufacturing.Models.StripFeeder> _stripFeeders;
-        public List<LagoVista.Manufacturing.Models.StripFeeder> StripFeeders
+        ObservableCollection<LagoVista.Manufacturing.Models.StripFeeder> _stripFeeders;
+        public ObservableCollection<LagoVista.Manufacturing.Models.StripFeeder> StripFeeders
         {
             get => _stripFeeders;
             set
@@ -86,13 +94,13 @@ namespace LagoVista.PickAndPlace.App.Controls
             }
         }
 
-        public void RenderStripFeeders(List<LagoVista.Manufacturing.Models.StripFeeder> feeders)
+        public void RenderStripFeeders(ObservableCollection<LagoVista.Manufacturing.Models.StripFeeder> feeders)
         {
 
         }
 
-        List<LagoVista.Manufacturing.Models.AutoFeeder> _autoFeeders;
-        public List<LagoVista.Manufacturing.Models.AutoFeeder> AutoFeeders
+        ObservableCollection<LagoVista.Manufacturing.Models.AutoFeeder> _autoFeeders;
+        public ObservableCollection<LagoVista.Manufacturing.Models.AutoFeeder> AutoFeeders
         {
             get => _autoFeeders;
             set
@@ -104,7 +112,7 @@ namespace LagoVista.PickAndPlace.App.Controls
         }
 
 
-        public void RenderAutoFeeders(List<LagoVista.Manufacturing.Models.AutoFeeder> feeders)
+        public void RenderAutoFeeders(ObservableCollection<LagoVista.Manufacturing.Models.AutoFeeder> feeders)
         {
 
         }

@@ -6,6 +6,7 @@ using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models.Resources;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace LagoVista.Manufacturing.Models
@@ -26,8 +27,8 @@ namespace LagoVista.Manufacturing.Models
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Feeder_Title, ManufacturingResources.Names.Feeder_Description,
             ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), 
             Icon: "icon-pz-searching-2", Cloneable: true,
-            SaveUrl: "/api/mfg/feeder", GetUrl: "/api/mfg/Feeder/{id}", GetListUrl: "/api/mfg/feeders", FactoryUrl: "/api/mfg/feeder/factory",
-            DeleteUrl: "/api/mfg/feeder/{id}", ListUIUrl: "/mfg/fFeeders", EditUIUrl: "/mfg/feeder/{id}", CreateUIUrl: "/mfg/feeder/add")]
+            SaveUrl: "/api/mfg/autofeeder", GetUrl: "/api/mfg/autoFeeder/{id}", GetListUrl: "/api/mfg/autofeeders", FactoryUrl: "/api/mfg/autofeeder/factory",
+            DeleteUrl: "/api/mfg/autofeeder/{id}", ListUIUrl: "/mfg/autoFeeders", EditUIUrl: "/mfg/autofeeder/{id}", CreateUIUrl: "/mfg/autofeeder/add")]
     public class AutoFeeder : MfgModelBase, IValidateable, IFormDescriptor, ISummaryFactory, IIDEntity
     {
 
@@ -40,10 +41,8 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
         public string Icon { get; set; } = "icon-pz-searching-2";
 
-
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_FeederId, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
         public string FeederId { get; set; }
-
 
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_Slot, FieldType: FieldTypes.Integer, ResourceType: typeof(ManufacturingResources))]
         public int Slot { get; set; }
@@ -65,7 +64,7 @@ namespace LagoVista.Manufacturing.Models
         }
 
         private Point2D<double> _pickLocation;
-        [FormField(LabelResource: ManufacturingResources.Names.Feeder_PickLocation, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_PickLocation, FieldType: FieldTypes.Point2D, ResourceType: typeof(ManufacturingResources))]
         public Point2D<double> PickLocation
         {
             get => _pickLocation;
@@ -73,11 +72,19 @@ namespace LagoVista.Manufacturing.Models
         }
 
         private double _pickHeight;
-        [FormField(LabelResource: ManufacturingResources.Names.Feeder_PickLocation, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_PickHeight, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
         public double PickHeight 
         {
             get => _pickHeight;
             set => Set(ref _pickHeight, value);
+        }
+
+        private int _partCount;
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_PartCount, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
+        public int PartCount
+        {
+            get => _partCount;
+            set => Set(ref _partCount, value);
         }
 
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_Machine, WaterMark: ManufacturingResources.Names.Feeder_Machine_Select, EntityHeaderPickerUrl: "/api/mfg/machines", FieldType: FieldTypes.EntityHeaderPicker, ResourceType: typeof(ManufacturingResources))]
@@ -116,6 +123,8 @@ namespace LagoVista.Manufacturing.Models
                 nameof(TapeSize),
                 nameof(AdvanceGCode),
                 nameof(PickLocation),
+                nameof(PickHeight),
+                nameof(PartCount),
                 nameof(Rotation),
                 nameof(Component),
                 nameof(Description)

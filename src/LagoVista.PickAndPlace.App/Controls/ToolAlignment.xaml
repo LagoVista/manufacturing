@@ -1,0 +1,199 @@
+﻿<ucb:VMBoundUserControl x:Class="LagoVista.PickAndPlace.App.Controls.ToolAlignment"
+             x:TypeArguments="vm:ICurrentMachineViewModel"                        
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
+             xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels;assembly=LagoVista.PickAndPlace" 
+             xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid Width="600" >
+            <Grid.Resources>
+                <Style TargetType="Button" BasedOn="{StaticResource CommandButton}" >
+                    <Setter Property="Width" Value="50" />
+                    <Setter Property="Height" Value="24" />
+                </Style>
+                <Style TargetType="Label" x:Key="ValueLabel">
+                    <Setter Property="FontWeight" Value="Bold" />
+                </Style>
+                <Style TargetType="Label" x:Key="ValueContent">
+                    <Setter Property="HorizontalAlignment" Value="Right" />
+                    <Setter Property="Margin" Value="0,0,5,0" />
+                </Style>
+
+            </Grid.Resources>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="48"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid  Grid.RowSpan="2" Background="White"  >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="85*"/>
+                    <ColumnDefinition Width="412*"/>
+                </Grid.ColumnDefinitions>
+                <ScrollViewer Grid.ColumnSpan="2">
+                    <StackPanel Margin="10">
+                        <TextBlock Text="Calibrate Machine Locations" FontWeight="Bold"  FontSize="18"/>
+                        <TextBlock Text="Before Beginning, Make Sure you have set the Home Position over the Homing Fiducial via Machine Vision" Margin="0,0,0,5" TextWrapping="Wrap" />
+                        <TextBlock Text="NOTE: To use the tool calibration mode you must use camera navigation." Margin="0,0,0,5" TextWrapping="Wrap" />
+
+                        <TextBlock Text="Step 1 - Machine Fiducial Location"  FontWeight="Bold" FontSize="16" />
+                        <TextBlock Text="Center the Top Camera over a known location such as a via on a PCB, or drill a hole.  Then press Set Top Camera Location." TextWrapping="Wrap" Margin="0,0,0,5"  />
+
+                        <Grid Margin="0,0,0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="75" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="50" />
+                            </Grid.ColumnDefinitions>
+                            <Label Style="{StaticResource ValueLabel}" Content="Known Ref:"  />
+                            <Label Style="{StaticResource ValueContent}" Content="{Binding Machine.Settings.DefaultWorkspaceHome, Converter={StaticResource Point2TextConverter}}" Grid.Column="1" />
+                            <Button Command="{Binding ToolAlignmentVM.SetAbsoluteWorkSpaceHomeCommand}" Content="Set" Margin="0,0,0,0" Grid.Column="2" />
+                        </Grid>
+
+
+                        <TextBlock Text="Step 1 - Positioning Camera Location"  FontWeight="Bold" FontSize="16" />
+                        <TextBlock Text="Center the Top Camera over a known location such as a via on a PCB, or drill a hole.  Then press Set Top Camera Location." TextWrapping="Wrap" Margin="0,0,0,5"  />
+
+                        <Grid Margin="0,0,0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="75" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="50" />
+                            </Grid.ColumnDefinitions>
+                            <Label Style="{StaticResource ValueLabel}" Content="Known Ref:"  />
+                            <Label Style="{StaticResource ValueContent}" Content="{Binding Machine.Settings.KnownCalibrationPoint, Converter={StaticResource Point2TextConverter}}" Grid.Column="1" />
+                            <Button Command="{Binding ToolAlignmentVM.MarkTool1LocationCommand}" Content="Set" Margin="0,0,0,0" Grid.Column="2" />
+                            <Button Command="{Binding ToolAlignmentVM.GoToMarkTool1LocationCommand}" Content="Go" Margin="0,0,0,0" Grid.Column="3" />
+                        </Grid>
+
+                        <TextBlock Text="Step 2 - Set Place Head Location"  FontWeight="Bold" FontSize="16" />
+                        <TextBlock Text="Center Tool 1 over the location found in step one and press Set " TextWrapping="Wrap" Margin="0,0,0,5"  />
+                        <Grid Margin="0,0,0,5"  >
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="60" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="50" />
+                            </Grid.ColumnDefinitions>
+
+                            <Label Style="{StaticResource ValueLabel}" Content="Offset" />
+                            <TextBox Text="{Binding Machine.Settings.Tool1Offset.X, Mode=TwoWay}" Grid.Column="1" Height="18" TextAlignment="Right" />
+                            <TextBox Text="{Binding Machine.Settings.Tool1Offset.Y, Mode=TwoWay}" Grid.Column="2" Height="18" TextAlignment="Right" />
+                            <Button Command="{Binding ToolAlignmentVM.SetToolOneLocationCommand}" Margin="0,0,0,0" Content="Set" Grid.Column="3" />
+                            <Button Command="{Binding ToolAlignmentVM.GoToolOneLocationCommand}" Margin="0,0,0,0" Content="Go" Grid.Column="4" />
+                        </Grid>
+
+                        <TextBlock Text="Step 3 - Bottom Camera" FontWeight="Bold" FontSize="16" />
+                        <TextBlock Text="Center Place Head over Bottom Facing Camera" TextWrapping="Wrap" Margin="0,0,0,5"  />
+                        <Grid Margin="0,0,0,5"  >
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="60" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="100" />
+                            </Grid.ColumnDefinitions>
+                            <Label Style="{StaticResource ValueLabel}" Content="Location:"/>
+                            <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center" Margin="0,-10,0,0"  >
+                                <TextBlock>
+                                    <TextBlock.Text>
+                                        <MultiBinding StringFormat="{}({0},{1:0.00},{2:0.00})">
+                                            <Binding Path="ToolAlignmentVM.BottomCameraLocation.X" />
+                                            <Binding Path="ToolAlignmentVM.BottomCameraLocation.Y" />
+                                            <Binding Path="ToolAlignmentVM.BottomCameraLocation.Z" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                <Button Command="{Binding ToolAlignmentVM.SetBottomCameraLocationCommand}"  Margin="0,0,0,0" Content="Set"  />
+                                <Button Command="{Binding ToolAlignmentVM.GoToBottomCameraLocationCommand}"  Margin="0,0,0,0" Content="Go" />
+                            </StackPanel>
+                        </Grid>
+
+
+                        <TextBlock Text="Step 4 - Tool 2 Location (optional)"  FontWeight="Bold" FontSize="16" />
+                        <TextBlock Text="Move Tool 1 over the center of the bottom facing camera and rotate the C Axis." TextWrapping="Wrap" Margin="0,0,0,5"  />
+                        <Grid Margin="0,0,0,5"  >
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="80" />
+                            </Grid.ColumnDefinitions>
+                            <Label Style="{StaticResource ValueLabel}" Content="Tool 2 Location" />
+                            <TextBlock Text="{Binding Machine.Settings.Tool2Offset, Converter={StaticResource Point2TextConverter}}" Grid.Column="1" />
+                            <Button Command="{Binding ToolAlignmentVM.SetToolTwoLocationCommand}" Content="Set" Grid.Column="2" />
+                        </Grid>
+
+
+                        <Button Command="{Binding ToolAlignmentVM.AddNozzleCommand}" HorizontalAlignment="Right">Add</Button>
+                        <TextBox Text="{Binding Machine.Settings.CurrentNozzle.Name}" />
+                        <ComboBox ItemsSource="{Binding Machine.Settings.Nozzles}" SelectedItem="{Binding Machine.Settings.CurrentNozzle, Mode=TwoWay}" DisplayMemberPath="Name"  />
+
+                        <TextBlock Text="Step 5 - Safe Move Height" FontWeight="Bold" FontSize="16" />
+                        <TextBlock Text="Move the Pick head to the location to be set when the picked component is being moved." TextWrapping="Wrap" Margin="0,0,0,5"  />
+                        <Grid Margin="0,0,0,5"  >
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="80" />
+                            </Grid.ColumnDefinitions>
+                            <Label Style="{StaticResource ValueLabel}" Content="Safe Move Height" />
+                            <Label Style="{StaticResource ValueContent}" Content="{Binding Machine.Settings.ToolSafeMoveHeight}" Grid.Column="1" />
+                            <Button Command="{Binding ToolAlignmentVM.SetToolOneMovePositionCommand}" Content="Set" Grid.Column="3"/>
+                        </Grid>
+
+                        <TextBlock Text="Step 6 - Pick Height" FontWeight="Bold" FontSize="16" />
+                        <TextBlock Text="Set the Pick head to the location where it will pick the default size component" TextWrapping="Wrap" Margin="0,0,0,5"  />
+                        <Grid Margin="0,0,0,5"  >
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="80" />
+                            </Grid.ColumnDefinitions>
+                            <Label Style="{StaticResource ValueLabel}" Content="Pick Height" />
+                            <Label Style="{StaticResource ValueContent}" Content="{Binding Machine.Settings.ToolPickHeight}" Grid.Column="1"  />
+                            <Button Command="{Binding ToolAlignmentVM.SetToolOnePickPositionCommand}" Content="Set" Grid.Column="3" />
+                        </Grid>
+
+                        <TextBlock Text="Step 7 - Board Height" FontWeight="Bold" FontSize="16" />
+                        <TextBlock Text="Position to tool so that it just touches the board and press set." TextWrapping="Wrap" Margin="0,0,0,5"  />
+                        <Grid Margin="0,0,0,5"  >
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="80" />
+                            </Grid.ColumnDefinitions>
+                            <Label Style="{StaticResource ValueLabel}" Content="Board  Height" />
+                            <Label Style="{StaticResource ValueContent}" Content="{Binding Machine.Settings.ToolBoardHeight}" Grid.Column="1"  />
+                            <Button Command="{Binding ToolAlignmentVM.SetToolOnePlacePositionCommand}" Content="Set" Grid.Column="2" />
+                        </Grid>
+
+                        <TextBlock Text="Step 8 - Pixels per MM (Top Camera)" FontWeight="Bold" FontSize="16" />
+                        <TextBlock Text="Position Ruler with MM on the work space bed and trun on the 200 px square." TextWrapping="Wrap" Margin="0,0,0,5"  />
+                        <Grid Margin="0,0,0,5"  >
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="80" />
+                            </Grid.ColumnDefinitions>
+                            <Label Style="{StaticResource ValueLabel}" Content="Pixels per MM" />
+                            <TextBox  Text="{Binding Machine.Settings.PositionCameraPixelsPerMM}" Grid.Column="1"  />
+                        </Grid>
+
+                        <Button Command="{Binding ToolAlignmentVM.SaveCalibrationCommand}" Content="Save" HorizontalAlignment="Right" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+
+    </Grid>
+</ucb:VMBoundUserControl>

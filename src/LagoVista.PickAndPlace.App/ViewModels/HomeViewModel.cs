@@ -35,5 +35,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         {
             IsBusy = true;
         }
+
+        public IMachineRepo MachineRepo => _machineRepo;
     }
 }

@@ -82,6 +82,11 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _feedDirection, value);
         }
 
+
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_FeederId, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
+        public string FeederId { get; set; }
+
+
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_RowOneRefHoleOffset, HelpResource:ManufacturingResources.Names.StripFeeder_RowOneRefHoleOffset_Help, FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public Point2D<double> RowOneRefHoleOffset { get; set; }
 
@@ -182,6 +187,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Name),
                 nameof(Key),                
                 nameof(TapeSize),
+                nameof(FeederId),
                 nameof(Orientation),
                 nameof(FeedDirection),
             };

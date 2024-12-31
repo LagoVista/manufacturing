@@ -11,11 +11,11 @@ using LagoVista.Core.Exceptions;
 
 namespace LagoVista.Manufacturing.Repo.Repos
 {
-    public class FeederRepo : DocumentDBRepoBase<AutoFeeder>, IFeederRepo
+    public class AutoFeederRepo : DocumentDBRepoBase<AutoFeeder>, IFeederRepo
     {
         private bool _shouldConsolidateCollections;
 
-        public FeederRepo(IManufacturingRepoSettings settings, IAdminLogger logger, ICacheProvider cacheProvider, IDependencyManager dependencyMgr) :
+        public AutoFeederRepo(IManufacturingRepoSettings settings, IAdminLogger logger, ICacheProvider cacheProvider, IDependencyManager dependencyMgr) :
             base(settings.ManufacturingDocDbStorage.Uri, settings.ManufacturingDocDbStorage.AccessKey, settings.ManufacturingDocDbStorage.ResourceName, logger, cacheProvider, dependencyMgr)
         {
             _shouldConsolidateCollections = settings.ShouldConsolidateCollections;
@@ -63,6 +63,9 @@ namespace LagoVista.Manufacturing.Repo.Repos
 
         public Task UpdateFeederAsync(AutoFeeder Feeder)
         {
+            if (Feeder.Component != null)
+                Feeder.Component = null;
+
             return UpsertDocumentAsync(Feeder);
         }
 

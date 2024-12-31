@@ -1,4 +1,5 @@
-﻿using LagoVista.PickAndPlace.ViewModels;
+﻿using LagoVista.PickAndPlace.App.ViewModels;
+using LagoVista.PickAndPlace.ViewModels;
 using System.ComponentModel;
 using System.Windows.Controls;
 
@@ -20,7 +21,7 @@ namespace LagoVista.PickAndPlace.App.Controls
         {
             if (_gCodeWindow == null)
             {
-                _gCodeWindow = new GCodeWindow(DataContext as MainViewModel);
+                _gCodeWindow = new GCodeWindow(DataContext as HomeViewModel);
                 _gCodeWindow.Owner = MainWindow.This;
                 _gCodeWindow.Closing += _window_Closing;
                 _gCodeWindow.Show();

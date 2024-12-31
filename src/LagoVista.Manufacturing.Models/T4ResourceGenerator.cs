@@ -1,4 +1,4 @@
-﻿/*12/28/2024 11:34:48 AM*/
+﻿/*12/31/2024 8:27:05 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -506,6 +506,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Feeder_Machine_Select
 
 		public static string Feeder_Machine_Select { get { return GetResourceString("Feeder_Machine_Select"); } }
+//Resources:ManufacturingResources:Feeder_PartCount
+
+		public static string Feeder_PartCount { get { return GetResourceString("Feeder_PartCount"); } }
 //Resources:ManufacturingResources:Feeder_PickHeight
 
 		public static string Feeder_PickHeight { get { return GetResourceString("Feeder_PickHeight"); } }
@@ -1230,6 +1233,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Feeder_FeederId = "Feeder_FeederId";
 			public const string Feeder_Machine = "Feeder_Machine";
 			public const string Feeder_Machine_Select = "Feeder_Machine_Select";
+			public const string Feeder_PartCount = "Feeder_PartCount";
 			public const string Feeder_PickHeight = "Feeder_PickHeight";
 			public const string Feeder_PickLocation = "Feeder_PickLocation";
 			public const string Feeder_Rotation = "Feeder_Rotation";

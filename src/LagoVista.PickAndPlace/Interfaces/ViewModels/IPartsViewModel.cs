@@ -1,5 +1,6 @@
 ﻿using LagoVista.Core.Commanding;
 using LagoVista.Core.Validation;
+using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Models;
 using System.Collections.ObjectModel;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels
 {
-    public interface IPartsViewModel
+    public interface IPartsViewModel : IViewModel
     {
         Task<InvokeResult> SaveCurrentFeederAsync();
         Task<InvokeResult> RefreshAsync();
@@ -20,6 +21,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels
         ObservableCollection<PlaceableParts> ConfigurationParts { get; }
         void RefreshConfigurationParts();
         RelayCommand RefreshBoardCommand { get; }
+
+        IMachine Machine { get; }
 
         ObservableCollection<MachineStagingPlate> StagingPlates { get; }
         ObservableCollection<MachineFeederRail> FeederRails { get; }

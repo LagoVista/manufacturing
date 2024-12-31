@@ -36,6 +36,7 @@ namespace LagoVista.PickAndPlace.ViewModels
         public PartsViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel, IRestClient restClient, ILogger logger)
         {
              _machineRepo = machineRepo;
+            _machineRepo.MachineChanged += _machineRepo_MachineChanged;
             _restClient = restClient;
             _locatorViewModel = locatorViewModel;
             _sfLocator = new StripFeederLocatorService(machineRepo.CurrentMachine.Settings);
@@ -45,16 +46,28 @@ namespace LagoVista.PickAndPlace.ViewModels
             RefreshConfigurationPartsCommand = new RelayCommand(RefreshConfigurationParts);
         }
 
+        private async void _machineRepo_MachineChanged(object sender, IMachine e)
+        {
+            if (e.Settings.Id != Machine?.Settings.Id)
+            {
+                Machine = e;
+                await InitAsync();
+            }
+        }
+
         public async new Task<InvokeResult> InitAsync()
         {
-            var stripFeeders = await _restClient.GetListResponseAsync<StripFeeder>($"/api/mfg/machine/{ _machineRepo.CurrentMachine.Settings.Id}/autofeeders?loadcomponents=true");
-            var autoFeeders = await _restClient.GetListResponseAsync<AutoFeeder>($"/api/mfg/machine/{ _machineRepo.CurrentMachine.Settings.Id}/stripfeeders?loadcomponents=true");
+            if (_machineRepo.HasValidMachine)
+            {
+                var autoFeeders = await _restClient.GetListResponseAsync<AutoFeeder>($"/api/mfg/machine/{_machineRepo.CurrentMachine.Settings.Id}/autofeeders?loadcomponents=true");
+                var stripFeeders = await _restClient.GetListResponseAsync<StripFeeder>($"/api/mfg/machine/{_machineRepo.CurrentMachine.Settings.Id}/stripfeeders?loadcomponents=true");
 
-            _stripFeeders = new ObservableCollection<StripFeeder>(stripFeeders.Model);
-            _autoFeeders = new ObservableCollection<AutoFeeder>(autoFeeders.Model);
+                _stripFeeders = new ObservableCollection<StripFeeder>(stripFeeders.Model);
+                _autoFeeders = new ObservableCollection<AutoFeeder>(autoFeeders.Model);
 
-            RaisePropertyChanged(nameof(StripFeeders));
-            RaisePropertyChanged(nameof(AutoFeeders));
+                RaisePropertyChanged(nameof(StripFeeders));
+                RaisePropertyChanged(nameof(AutoFeeders));
+            }
 
             return InvokeResult.Success;
         }
@@ -126,6 +139,13 @@ namespace LagoVista.PickAndPlace.ViewModels
         public bool CanMoveToCurrentPartInTape()
         {
             return false;
+        }
+
+        private IMachine _machine;
+        public IMachine Machine
+        {
+            get => _machine;
+            set => Set(ref _machine, value);
         }
 
         public void RefreshConfigurationParts()

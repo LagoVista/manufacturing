@@ -31,8 +31,8 @@
         </Grid>
         <ctls:ListBoxScroll  HorizontalContentAlignment="Stretch"
                              Grid.Row="1"
-                 SelectedIndex="{Binding Path=Machine.MessageCount, Mode=OneWay}"
-                 ItemsSource="{Binding Path=Machine.Messages}"
+                 SelectedIndex="{Binding Path=MachineRepo.CurrentMachine.MessageCount, Mode=OneWay}"
+                 ItemsSource="{Binding Path=MachineRepo.CurrentMachine.Messages}"
                  IsHitTestVisible="False" BorderThickness="0"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" >
             <ctls:ListBoxScroll.ItemTemplate>
@@ -54,7 +54,7 @@
         <ctls:ListBoxScroll  HorizontalContentAlignment="Stretch"
                              Grid.Row="1"
                              Grid.Column="1"
-                 ItemsSource="{Binding Path=Machine.PendingQueue}"
+                 ItemsSource="{Binding Path=MachineRepo.CurrentMachine.PendingQueue}"
                  IsHitTestVisible="False" BorderThickness="0"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" >
             <ctls:ListBoxScroll.ItemTemplate>

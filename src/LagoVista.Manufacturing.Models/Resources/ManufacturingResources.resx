@@ -1136,4 +1136,7 @@
   <data name="Feeder_AdvanceGCode_Help" xml:space="preserve">
     <value>GCode used to advance the feeder.  Will replace the following parameters {slot} {feederid} within the GCode.</value>
   </data>
+  <data name="Feeder_PartCount" xml:space="preserve">
+    <value>Part Count</value>
+  </data>
 </root>

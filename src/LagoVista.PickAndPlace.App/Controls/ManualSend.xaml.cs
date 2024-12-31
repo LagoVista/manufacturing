@@ -1,4 +1,6 @@
-﻿using LagoVista.PickAndPlace.ViewModels;
+﻿using LagoVista.PickAndPlace.Interfaces.ViewModels;
+using LagoVista.PickAndPlace.ViewModels;
+using LagoVista.XPlat;
 using System.Windows.Controls;
 
 namespace LagoVista.PickAndPlace.App.Controls
@@ -6,17 +8,13 @@ namespace LagoVista.PickAndPlace.App.Controls
     /// <summary>
     /// Interaction logic for ManualSend.xaml
     /// </summary>
-    public partial class ManualSend : UserControl
+    public partial class ManualSend : VMBoundUserControl<IManualSendViewModel>
     {
         public ManualSend()
         {
             InitializeComponent();
         }
     
-        public GCodeAppViewModelBase ViewModel
-        {
-            get { return DataContext as GCodeAppViewModelBase; }
-        }
 
         private void TextBoxManual_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {

@@ -1,4 +1,5 @@
-﻿using LagoVista.PickAndPlace.ViewModels;
+﻿using LagoVista.PickAndPlace.App.ViewModels;
+using LagoVista.PickAndPlace.ViewModels;
 using System.Windows;
 
 namespace LagoVista.PickAndPlace.App
@@ -8,7 +9,7 @@ namespace LagoVista.PickAndPlace.App
     /// </summary>
     public partial class GCodeWindow : Window
     {
-        public GCodeWindow(MainViewModel mainViewModel)
+        public GCodeWindow(HomeViewModel mainViewModel)
         {
             InitializeComponent();
 

@@ -24,10 +24,15 @@ namespace LagoVista.PickAndPlace.Repos
         private readonly IStorageService _storageService;
         private readonly ILogger _logger;
 
+
+        public event EventHandler<IMachine> MachineChanged;
+
+
         public MachineRepo(IRestClient restClient, IStorageService storageService, ILogger logger)
         {
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
             _storageService = storageService ?? throw new ArgumentNullException(nameof(restClient));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             CurrentMachine = new Machine();
             CurrentMachine.Settings = new Manufacturing.Models.Machine();
 
@@ -66,18 +71,26 @@ namespace LagoVista.PickAndPlace.Repos
             }
         }
 
+        private void CurrentMachine_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            RaisePropertyChanged(e.PropertyName);
+        }
+
         public async Task<InvokeResult> LoadMachineAsync(string id)
         {
             var result = await _restClient.GetAsync<DetailResponse<LagoVista.Manufacturing.Models.Machine>>($"/api/mfg/machine/{id}");
             if (result.Successful)
             {
                 CurrentMachine = new Machine();
+                CurrentMachine.PropertyChanged += CurrentMachine_PropertyChanged;
                 CurrentMachine.Settings = result.Result.Model;
                 _selectedMachine = result.Result.Model.CreateSummary();
                 RaisePropertyChanged(nameof(SelectedMachine));
                 RaisePropertyChanged(nameof(CurrentMachine));
+                await CurrentMachine.InitAsync();
                 await _storageService.StoreKVP("current_machine_id", id);
                 HasValidMachine = true;
+                MachineChanged?.Invoke(this, CurrentMachine);
 
                 SLWIOC.Get<IVisionProfileManagerViewModel>().LoadProfiles();
 
@@ -114,6 +127,7 @@ namespace LagoVista.PickAndPlace.Repos
         }
 
         MachineSummary _selectedMachine;
+
         public MachineSummary SelectedMachine
         {
             get => _selectedMachine;

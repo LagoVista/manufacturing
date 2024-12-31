@@ -13,5 +13,18 @@ namespace LagoVista.PickAndPlace.App.Controls
         {
             InitializeComponent();
         }
+
+        private void Settings_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            // Clone in case we cancel.
+            var clonedSettings = ViewModel.CurrentMachine.Settings.Clone();
+            var dlg = new SettingsWindow(ViewModel, clonedSettings, false);
+            dlg.Owner = System.Windows.Application.Current.MainWindow;
+            dlg.ShowDialog();
+            if (dlg.DialogResult.HasValue && dlg.DialogResult.Value)
+            {
+                ViewModel.CurrentMachine.Settings = clonedSettings;
+            }
+        }
     }
 }

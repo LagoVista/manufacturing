@@ -1,7 +1,5 @@
 ﻿using LagoVista.Client.Core;
-using LagoVista.Client.Core.Auth;
 using LagoVista.Client.Core.Models;
-using LagoVista.Client.Core.Net;
 using LagoVista.Core;
 using LagoVista.Core.Interfaces;
 using LagoVista.Core.IOC;
@@ -13,7 +11,6 @@ using LagoVista.IoT.Logging.Loggers;
 using LagoVista.IoT.Logging.Models;
 using LagoVista.PickAndPlace.App.MachineVision;
 using LagoVista.PickAndPlace.App.Services;
-using LagoVista.PickAndPlace.App.ViewModels;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels;
 using LagoVista.PickAndPlace.Repos;
@@ -21,10 +18,7 @@ using LagoVista.PickAndPlace.ViewModels;
 using LagoVista.XPlat.WPF.Services;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -76,12 +70,15 @@ namespace LagoVista.PickAndPlace.App
 
             LagoVista.Client.Core.Startup.Init(dev);
 
-            SLWIOC.Register<IVisionProfileViewModel, VisionProfileViewModel>();
             SLWIOC.RegisterSingleton<IMachineRepo, MachineRepo>();
             SLWIOC.RegisterSingleton<ILocatorViewModel, LocatorViewModel>();
+            SLWIOC.Register<IVisionProfileViewModel, VisionProfileViewModel>();
+            SLWIOC.RegisterSingleton<IPartsViewModel, PartsViewModel>();
             SLWIOC.Register<IImageCaptureService, ImageCaptureService>();
             SLWIOC.RegisterSingleton<IVisionProfileManagerViewModel, VisionProfileManagerViewModel>();
             SLWIOC.Register<IMachineControlViewModel, MachineControlViewModel>();
+            SLWIOC.Register<IManualSendViewModel, ManualSendViewModel>();
+            SLWIOC.Register<ICurrentMachineViewModel, CurrentMachineViewModel>();
         }
     }
 

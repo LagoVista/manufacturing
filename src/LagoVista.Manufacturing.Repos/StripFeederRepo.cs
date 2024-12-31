@@ -50,7 +50,11 @@ namespace LagoVista.Manufacturing.Repo.Repos
 
         public Task UpdateStripFeederAsync(StripFeeder stripFeeder)
         {
-       //     if (stripFeeder.Component != null) stripFeeder.Component.V = null;
+            foreach(var row in stripFeeder.Rows)
+            {
+                if (row.Component != null)
+                    row.Component.Value = null;
+            }
             return UpsertDocumentAsync(stripFeeder);
         }
     }
