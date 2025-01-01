@@ -1,8 +1,8 @@
-﻿/*12/31/2024 11:29:49 AM*/
+﻿/*1/1/2025 5:38:54 AM*/
 using System.Globalization;
 using System.Reflection;
 
-//Resources:ManufacturingResources:Common_Category
+//Resources:ManufacturingResources:AutoFeederTemplate_Description
 namespace LagoVista.Manufacturing.Models.Resources
 {
 	public class ManufacturingResources
@@ -56,6 +56,15 @@ namespace LagoVista.Manufacturing.Models.Resources
 			return new HtmlString(str);
         }*/
 		
+		public static string AutoFeederTemplate_Description { get { return GetResourceString("AutoFeederTemplate_Description"); } }
+//Resources:ManufacturingResources:AutoFeederTemplate_Title
+
+		public static string AutoFeederTemplate_Title { get { return GetResourceString("AutoFeederTemplate_Title"); } }
+//Resources:ManufacturingResources:AutoFeederTemplates_Title
+
+		public static string AutoFeederTemplates_Title { get { return GetResourceString("AutoFeederTemplates_Title"); } }
+//Resources:ManufacturingResources:Common_Category
+
 		public static string Common_Category { get { return GetResourceString("Common_Category"); } }
 //Resources:ManufacturingResources:Common_Color
 
@@ -99,6 +108,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Common_LastUpdatedBy
 
 		public static string Common_LastUpdatedBy { get { return GetResourceString("Common_LastUpdatedBy"); } }
+//Resources:ManufacturingResources:Common_Length
+
+		public static string Common_Length { get { return GetResourceString("Common_Length"); } }
 //Resources:ManufacturingResources:Common_Name
 
 		public static string Common_Name { get { return GetResourceString("Common_Name"); } }
@@ -108,9 +120,6 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Common_Notes
 
 		public static string Common_Notes { get { return GetResourceString("Common_Notes"); } }
-//Resources:ManufacturingResources:Common_Offset
-
-		public static string Common_Offset { get { return GetResourceString("Common_Offset"); } }
 //Resources:ManufacturingResources:Common_Origin
 
 		public static string Common_Origin { get { return GetResourceString("Common_Origin"); } }
@@ -503,6 +512,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Feeder_FeederId
 
 		public static string Feeder_FeederId { get { return GetResourceString("Feeder_FeederId"); } }
+//Resources:ManufacturingResources:Feeder_FiducialOffsetFromSlotOriign
+
+		public static string Feeder_FiducialOffsetFromSlotOriign { get { return GetResourceString("Feeder_FiducialOffsetFromSlotOriign"); } }
+//Resources:ManufacturingResources:Feeder_FiducialOffsetFromSlotOriign_Help
+
+		public static string Feeder_FiducialOffsetFromSlotOriign_Help { get { return GetResourceString("Feeder_FiducialOffsetFromSlotOriign_Help"); } }
 //Resources:ManufacturingResources:Feeder_Machine
 
 		public static string Feeder_Machine { get { return GetResourceString("Feeder_Machine"); } }
@@ -518,6 +533,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Feeder_PickLocation
 
 		public static string Feeder_PickLocation { get { return GetResourceString("Feeder_PickLocation"); } }
+//Resources:ManufacturingResources:Feeder_PickOffsetFromSlotOriign
+
+		public static string Feeder_PickOffsetFromSlotOriign { get { return GetResourceString("Feeder_PickOffsetFromSlotOriign"); } }
+//Resources:ManufacturingResources:Feeder_PickOffsetFromSlotOriign_Help
+
+		public static string Feeder_PickOffsetFromSlotOriign_Help { get { return GetResourceString("Feeder_PickOffsetFromSlotOriign_Help"); } }
 //Resources:ManufacturingResources:Feeder_Rotation
 
 		public static string Feeder_Rotation { get { return GetResourceString("Feeder_Rotation"); } }
@@ -662,9 +683,6 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:GCodeMappings_Title
 
 		public static string GCodeMappings_Title { get { return GetResourceString("GCodeMappings_Title"); } }
-//Resources:ManufacturingResources:Machine_Cameras
-
-		public static string Machine_Cameras { get { return GetResourceString("Machine_Cameras"); } }
 //Resources:ManufacturingResources:Machine_Description
 
 		public static string Machine_Description { get { return GetResourceString("Machine_Description"); } }
@@ -734,9 +752,6 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Machine_Title
 
 		public static string Machine_Title { get { return GetResourceString("Machine_Title"); } }
-//Resources:ManufacturingResources:Machine_ToolHeads
-
-		public static string Machine_ToolHeads { get { return GetResourceString("Machine_ToolHeads"); } }
 //Resources:ManufacturingResources:Machine_WorkAreaHeight
 
 		public static string Machine_WorkAreaHeight { get { return GetResourceString("Machine_WorkAreaHeight"); } }
@@ -749,48 +764,6 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Machine_WorkAreaWidth
 
 		public static string Machine_WorkAreaWidth { get { return GetResourceString("Machine_WorkAreaWidth"); } }
-//Resources:ManufacturingResources:MachineCamera_AbsolutePosition
-
-		public static string MachineCamera_AbsolutePosition { get { return GetResourceString("MachineCamera_AbsolutePosition"); } }
-//Resources:ManufacturingResources:MachineCamera_Description
-
-		public static string MachineCamera_Description { get { return GetResourceString("MachineCamera_Description"); } }
-//Resources:ManufacturingResources:MachineCamera_DeviceId
-
-		public static string MachineCamera_DeviceId { get { return GetResourceString("MachineCamera_DeviceId"); } }
-//Resources:ManufacturingResources:MachineCamera_FocusHeight
-
-		public static string MachineCamera_FocusHeight { get { return GetResourceString("MachineCamera_FocusHeight"); } }
-//Resources:ManufacturingResources:MachineCamera_MirrorX
-
-		public static string MachineCamera_MirrorX { get { return GetResourceString("MachineCamera_MirrorX"); } }
-//Resources:ManufacturingResources:MachineCamera_MirrorY
-
-		public static string MachineCamera_MirrorY { get { return GetResourceString("MachineCamera_MirrorY"); } }
-//Resources:ManufacturingResources:MachineCamera_PixelsPerMM
-
-		public static string MachineCamera_PixelsPerMM { get { return GetResourceString("MachineCamera_PixelsPerMM"); } }
-//Resources:ManufacturingResources:MachineCamera_PixelsPerMM_Help
-
-		public static string MachineCamera_PixelsPerMM_Help { get { return GetResourceString("MachineCamera_PixelsPerMM_Help"); } }
-//Resources:ManufacturingResources:MachineCamera_Title
-
-		public static string MachineCamera_Title { get { return GetResourceString("MachineCamera_Title"); } }
-//Resources:ManufacturingResources:MachineCamera_Type
-
-		public static string MachineCamera_Type { get { return GetResourceString("MachineCamera_Type"); } }
-//Resources:ManufacturingResources:MachineCamera_Type_Observation
-
-		public static string MachineCamera_Type_Observation { get { return GetResourceString("MachineCamera_Type_Observation"); } }
-//Resources:ManufacturingResources:MachineCamera_Type_PartInspection
-
-		public static string MachineCamera_Type_PartInspection { get { return GetResourceString("MachineCamera_Type_PartInspection"); } }
-//Resources:ManufacturingResources:MachineCamera_Type_Position
-
-		public static string MachineCamera_Type_Position { get { return GetResourceString("MachineCamera_Type_Position"); } }
-//Resources:ManufacturingResources:MachineCamera_Type_Select
-
-		public static string MachineCamera_Type_Select { get { return GetResourceString("MachineCamera_Type_Select"); } }
 //Resources:ManufacturingResources:Machines_Title
 
 		public static string Machines_Title { get { return GetResourceString("Machines_Title"); } }
@@ -851,39 +824,6 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:MachineStagingPlates_Title
 
 		public static string MachineStagingPlates_Title { get { return GetResourceString("MachineStagingPlates_Title"); } }
-//Resources:ManufacturingResources:MachineToolHead_Description
-
-		public static string MachineToolHead_Description { get { return GetResourceString("MachineToolHead_Description"); } }
-//Resources:ManufacturingResources:MachineToolHead_PickHeight
-
-		public static string MachineToolHead_PickHeight { get { return GetResourceString("MachineToolHead_PickHeight"); } }
-//Resources:ManufacturingResources:MachineToolHead_PickHeight_Help
-
-		public static string MachineToolHead_PickHeight_Help { get { return GetResourceString("MachineToolHead_PickHeight_Help"); } }
-//Resources:ManufacturingResources:MachineToolHead_PlaceHeight
-
-		public static string MachineToolHead_PlaceHeight { get { return GetResourceString("MachineToolHead_PlaceHeight"); } }
-//Resources:ManufacturingResources:MachineToolHead_PlaceHight_Help
-
-		public static string MachineToolHead_PlaceHight_Help { get { return GetResourceString("MachineToolHead_PlaceHight_Help"); } }
-//Resources:ManufacturingResources:MachineToolHead_Title
-
-		public static string MachineToolHead_Title { get { return GetResourceString("MachineToolHead_Title"); } }
-//Resources:ManufacturingResources:MachineToolHead_Type
-
-		public static string MachineToolHead_Type { get { return GetResourceString("MachineToolHead_Type"); } }
-//Resources:ManufacturingResources:MachineToolHead_Type_Laser
-
-		public static string MachineToolHead_Type_Laser { get { return GetResourceString("MachineToolHead_Type_Laser"); } }
-//Resources:ManufacturingResources:MachineToolHead_Type_PartNozzle
-
-		public static string MachineToolHead_Type_PartNozzle { get { return GetResourceString("MachineToolHead_Type_PartNozzle"); } }
-//Resources:ManufacturingResources:MachineToolHead_Type_Select
-
-		public static string MachineToolHead_Type_Select { get { return GetResourceString("MachineToolHead_Type_Select"); } }
-//Resources:ManufacturingResources:MachineToolHead_Type_Spindle
-
-		public static string MachineToolHead_Type_Spindle { get { return GetResourceString("MachineToolHead_Type_Spindle"); } }
 //Resources:ManufacturingResources:NozzleTip_BoardHeight
 
 		public static string NozzleTip_BoardHeight { get { return GetResourceString("NozzleTip_BoardHeight"); } }
@@ -1100,6 +1040,15 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:StripFeeders_Title
 
 		public static string StripFeeders_Title { get { return GetResourceString("StripFeeders_Title"); } }
+//Resources:ManufacturingResources:StripFeederTemplate_Description
+
+		public static string StripFeederTemplate_Description { get { return GetResourceString("StripFeederTemplate_Description"); } }
+//Resources:ManufacturingResources:StripFeederTemplate_Title
+
+		public static string StripFeederTemplate_Title { get { return GetResourceString("StripFeederTemplate_Title"); } }
+//Resources:ManufacturingResources:StripFeederTemplates_Title
+
+		public static string StripFeederTemplates_Title { get { return GetResourceString("StripFeederTemplates_Title"); } }
 //Resources:ManufacturingResources:TapePitch_12
 
 		public static string TapePitch_12 { get { return GetResourceString("TapePitch_12"); } }
@@ -1169,6 +1118,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 
 		public static class Names
 		{
+			public const string AutoFeederTemplate_Description = "AutoFeederTemplate_Description";
+			public const string AutoFeederTemplate_Title = "AutoFeederTemplate_Title";
+			public const string AutoFeederTemplates_Title = "AutoFeederTemplates_Title";
 			public const string Common_Category = "Common_Category";
 			public const string Common_Color = "Common_Color";
 			public const string Common_CreatedBy = "Common_CreatedBy";
@@ -1184,10 +1136,10 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Common_Key_Validation = "Common_Key_Validation";
 			public const string Common_LastUpdated = "Common_LastUpdated";
 			public const string Common_LastUpdatedBy = "Common_LastUpdatedBy";
+			public const string Common_Length = "Common_Length";
 			public const string Common_Name = "Common_Name";
 			public const string Common_Note = "Common_Note";
 			public const string Common_Notes = "Common_Notes";
-			public const string Common_Offset = "Common_Offset";
 			public const string Common_Origin = "Common_Origin";
 			public const string Common_Origin_Help = "Common_Origin_Help";
 			public const string Common_PageNumberOne = "Common_PageNumberOne";
@@ -1316,11 +1268,15 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Feeder_Component_Select = "Feeder_Component_Select";
 			public const string Feeder_Description = "Feeder_Description";
 			public const string Feeder_FeederId = "Feeder_FeederId";
+			public const string Feeder_FiducialOffsetFromSlotOriign = "Feeder_FiducialOffsetFromSlotOriign";
+			public const string Feeder_FiducialOffsetFromSlotOriign_Help = "Feeder_FiducialOffsetFromSlotOriign_Help";
 			public const string Feeder_Machine = "Feeder_Machine";
 			public const string Feeder_Machine_Select = "Feeder_Machine_Select";
 			public const string Feeder_PartCount = "Feeder_PartCount";
 			public const string Feeder_PickHeight = "Feeder_PickHeight";
 			public const string Feeder_PickLocation = "Feeder_PickLocation";
+			public const string Feeder_PickOffsetFromSlotOriign = "Feeder_PickOffsetFromSlotOriign";
+			public const string Feeder_PickOffsetFromSlotOriign_Help = "Feeder_PickOffsetFromSlotOriign_Help";
 			public const string Feeder_Rotation = "Feeder_Rotation";
 			public const string Feeder_Rotation_Select = "Feeder_Rotation_Select";
 			public const string Feeder_Slot = "Feeder_Slot";
@@ -1369,7 +1325,6 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string GCode_TopLightOn = "GCode_TopLightOn";
 			public const string GCodeMapping_Title = "GCodeMapping_Title";
 			public const string GCodeMappings_Title = "GCodeMappings_Title";
-			public const string Machine_Cameras = "Machine_Cameras";
 			public const string Machine_Description = "Machine_Description";
 			public const string Machine_FeederRail_Description = "Machine_FeederRail_Description";
 			public const string Machine_FeederRail_FirstFeederOffset = "Machine_FeederRail_FirstFeederOffset";
@@ -1393,25 +1348,10 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Machine_JogFeedRate = "Machine_JogFeedRate";
 			public const string Machine_MaxFeedRate = "Machine_MaxFeedRate";
 			public const string Machine_Title = "Machine_Title";
-			public const string Machine_ToolHeads = "Machine_ToolHeads";
 			public const string Machine_WorkAreaHeight = "Machine_WorkAreaHeight";
 			public const string Machine_WorkAreaOrigin = "Machine_WorkAreaOrigin";
 			public const string Machine_WorkAreaOrigin_Help = "Machine_WorkAreaOrigin_Help";
 			public const string Machine_WorkAreaWidth = "Machine_WorkAreaWidth";
-			public const string MachineCamera_AbsolutePosition = "MachineCamera_AbsolutePosition";
-			public const string MachineCamera_Description = "MachineCamera_Description";
-			public const string MachineCamera_DeviceId = "MachineCamera_DeviceId";
-			public const string MachineCamera_FocusHeight = "MachineCamera_FocusHeight";
-			public const string MachineCamera_MirrorX = "MachineCamera_MirrorX";
-			public const string MachineCamera_MirrorY = "MachineCamera_MirrorY";
-			public const string MachineCamera_PixelsPerMM = "MachineCamera_PixelsPerMM";
-			public const string MachineCamera_PixelsPerMM_Help = "MachineCamera_PixelsPerMM_Help";
-			public const string MachineCamera_Title = "MachineCamera_Title";
-			public const string MachineCamera_Type = "MachineCamera_Type";
-			public const string MachineCamera_Type_Observation = "MachineCamera_Type_Observation";
-			public const string MachineCamera_Type_PartInspection = "MachineCamera_Type_PartInspection";
-			public const string MachineCamera_Type_Position = "MachineCamera_Type_Position";
-			public const string MachineCamera_Type_Select = "MachineCamera_Type_Select";
 			public const string Machines_Title = "Machines_Title";
 			public const string MachineStagingPlate_Description = "MachineStagingPlate_Description";
 			public const string MachineStagingPlate_FirstHole = "MachineStagingPlate_FirstHole";
@@ -1432,17 +1372,6 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string MachineStagingPlate_ReferenceHoleRow2 = "MachineStagingPlate_ReferenceHoleRow2";
 			public const string MachineStagingPlate_Title = "MachineStagingPlate_Title";
 			public const string MachineStagingPlates_Title = "MachineStagingPlates_Title";
-			public const string MachineToolHead_Description = "MachineToolHead_Description";
-			public const string MachineToolHead_PickHeight = "MachineToolHead_PickHeight";
-			public const string MachineToolHead_PickHeight_Help = "MachineToolHead_PickHeight_Help";
-			public const string MachineToolHead_PlaceHeight = "MachineToolHead_PlaceHeight";
-			public const string MachineToolHead_PlaceHight_Help = "MachineToolHead_PlaceHight_Help";
-			public const string MachineToolHead_Title = "MachineToolHead_Title";
-			public const string MachineToolHead_Type = "MachineToolHead_Type";
-			public const string MachineToolHead_Type_Laser = "MachineToolHead_Type_Laser";
-			public const string MachineToolHead_Type_PartNozzle = "MachineToolHead_Type_PartNozzle";
-			public const string MachineToolHead_Type_Select = "MachineToolHead_Type_Select";
-			public const string MachineToolHead_Type_Spindle = "MachineToolHead_Type_Spindle";
 			public const string NozzleTip_BoardHeight = "NozzleTip_BoardHeight";
 			public const string NozzleTip_Description = "NozzleTip_Description";
 			public const string NozzleTip_IdleVacuum = "NozzleTip_IdleVacuum";
@@ -1515,6 +1444,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string StripFeederRow_RowIndex = "StripFeederRow_RowIndex";
 			public const string StripFeederRow_Title = "StripFeederRow_Title";
 			public const string StripFeeders_Title = "StripFeeders_Title";
+			public const string StripFeederTemplate_Description = "StripFeederTemplate_Description";
+			public const string StripFeederTemplate_Title = "StripFeederTemplate_Title";
+			public const string StripFeederTemplates_Title = "StripFeederTemplates_Title";
 			public const string TapePitch_12 = "TapePitch_12";
 			public const string TapePitch_16 = "TapePitch_16";
 			public const string TapePitch_2 = "TapePitch_2";

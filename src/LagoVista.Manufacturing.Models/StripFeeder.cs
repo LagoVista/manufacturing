@@ -31,7 +31,7 @@ namespace LagoVista.Manufacturing.Models
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.StripFeeder_Title, ManufacturingResources.Names.StripFeeder_Description,
-               ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-fo-left", Cloneable: true,
+               ManufacturingResources.Names.StripFeeder_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-fo-left", Cloneable: true,
                SaveUrl: "/api/mfg/stripfeeder", GetUrl: "/api/mfg/stripfeeder/{id}", GetListUrl: "/api/mfg/stripfeeders", FactoryUrl: "/api/mfg/stripfeeder/factory",
                DeleteUrl: "/api/mfg/stripfeeder/{id}", ListUIUrl: "/mfg/stripfeeders", EditUIUrl: "/mfg/stripfeeder/{id}", CreateUIUrl: "/mfg/stripfeeder/add")]
     public class StripFeeder : MfgModelBase, IValidateable, IFormDescriptorAdvanced, IFormDescriptorAdvancedCol2, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IIDEntity, IFormAdditionalActions, IFormDescriptorBottom
@@ -130,14 +130,6 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_Machine, WaterMark: ManufacturingResources.Names.Feeder_Machine_Select, EntityHeaderPickerUrl: "/api/mfg/machines", IsUserEditable:false, FieldType: FieldTypes.EntityHeaderPicker, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader Machine { get; set; }
 
-        private double _feederLength = 120;
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_FeederLength, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double FeederLength
-        {
-            get => _feederLength;
-            set => Set(ref _feederLength, value);
-        }
-
         public double _rowWidth;
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_RowWidth, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double RowWidth
@@ -155,11 +147,27 @@ namespace LagoVista.Manufacturing.Models
         }
 
         private double _feederWidth;
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_FeederWidth, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Width, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double FeederWidth
         {
             get => _feederWidth;
             set => Set(ref _feederWidth, value);
+        }
+
+        private double _feederLength = 120;
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Length, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double FeederLength
+        {
+            get => _feederLength;
+            set => Set(ref _feederLength, value);
+        }
+
+        private double _feederHeight = 12;
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Height, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double FeederHeight
+        {
+            get => _feederHeight;
+            set => Set(ref _feederHeight, value);
         }
 
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Rows, ChildListDisplayMembers:"rowIndex,component.text", FactoryUrl: "/api/mfg/stripfeeder/row/factory", FieldType: FieldTypes.ChildListInline, ResourceType: typeof(ManufacturingResources))]
@@ -220,6 +228,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(RowCount),
                 nameof(FeederLength),
                 nameof(FeederWidth),
+                nameof(FeederHeight),
                 nameof(RowWidth),
             };
         }

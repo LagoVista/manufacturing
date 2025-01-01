@@ -903,7 +903,7 @@
     <value>Frame Width</value>
   </data>
   <data name="Machine_FrameHeight" xml:space="preserve">
-    <value>Frame Height</value>
+    <value>Frame_Height</value>
   </data>
   <data name="Machine_FeederRail_Title" xml:space="preserve">
     <value>Feeder Rail</value>
@@ -1139,88 +1139,37 @@
   <data name="Feeder_PartCount" xml:space="preserve">
     <value>Part Count</value>
   </data>
-  <data name="MachineToolHead_Title" xml:space="preserve">
-    <value>Tool Head</value>
+  <data name="Feeder_PickOffsetFromSlotOriign" xml:space="preserve">
+    <value>Offset from Slot Origin</value>
   </data>
-  <data name="MachineToolHead_Description" xml:space="preserve">
-    <value>The Tool Head is the part of the machine that will do the work such as a place head or router.</value>
+  <data name="Feeder_PickOffsetFromSlotOriign_Help" xml:space="preserve">
+    <value>The offset from the slot origin on the feeder rail to the pick location</value>
   </data>
-  <data name="MachineToolHead_Type_Laser" xml:space="preserve">
-    <value>Laser</value>
+  <data name="Feeder_FiducialOffsetFromSlotOriign" xml:space="preserve">
+    <value>Fiducial Offset from Slot Origin</value>
   </data>
-  <data name="MachineToolHead_Type_Spindle" xml:space="preserve">
-    <value>Spindle</value>
+  <data name="Feeder_FiducialOffsetFromSlotOriign_Help" xml:space="preserve">
+    <value>The offset from the origin on the feeder rail to the location of the fiducial on the feeder.</value>
   </data>
-  <data name="MachineToolHead_Type_PartNozzle" xml:space="preserve">
-    <value>Part Nozzle</value>
+  <data name="AutoFeederTemplate_Title" xml:space="preserve">
+    <value>Auto Feeder Template</value>
   </data>
-  <data name="MachineToolHead_Type_Select" xml:space="preserve">
-    <value>-select type-</value>
+  <data name="AutoFeederTemplate_Description" xml:space="preserve">
+    <value>Default parameters that can be used to create auto feeders.</value>
   </data>
-  <data name="MachineToolHead_Type" xml:space="preserve">
-    <value>Type</value>
+  <data name="StripFeederTemplate_Title" xml:space="preserve">
+    <value>Strip Feeder Template</value>
   </data>
-  <data name="Common_Offset" xml:space="preserve">
-    <value>Offset</value>
+  <data name="StripFeederTemplates_Title" xml:space="preserve">
+    <value>Strip Feeder Templates</value>
   </data>
-  <data name="MachineToolHead_PickHeight" xml:space="preserve">
-    <value>Pick Height</value>
+  <data name="StripFeederTemplate_Description" xml:space="preserve">
+    <value>Default Parameters used to create Strip Feeders</value>
   </data>
-  <data name="MachineToolHead_PlaceHeight" xml:space="preserve">
-    <value>Place Height</value>
+  <data name="AutoFeederTemplates_Title" xml:space="preserve">
+    <value>Auto Feeder Templates</value>
   </data>
-  <data name="MachineToolHead_PickHeight_Help" xml:space="preserve">
-    <value>Pick Height for this tool head that does not include the height of the nozzle.</value>
-  </data>
-  <data name="MachineToolHead_PlaceHight_Help" xml:space="preserve">
-    <value>Place Height for this tool head that does not include the height of the nozzle.</value>
-  </data>
-  <data name="MachineCamera_Title" xml:space="preserve">
-    <value>Camera</value>
-  </data>
-  <data name="MachineCamera_Description" xml:space="preserve">
-    <value>Camera that is attached to the machine</value>
-  </data>
-  <data name="MachineCamera_Type" xml:space="preserve">
-    <value>Camera Type</value>
-  </data>
-  <data name="MachineCamera_Type_Position" xml:space="preserve">
-    <value>Position</value>
-  </data>
-  <data name="MachineCamera_Type_PartInspection" xml:space="preserve">
-    <value>Part Inspection</value>
-  </data>
-  <data name="MachineCamera_Type_Observation" xml:space="preserve">
-    <value>Observation</value>
-  </data>
-  <data name="MachineCamera_Type_Select" xml:space="preserve">
-    <value>-select camera type-</value>
-  </data>
-  <data name="MachineCamera_MirrorX" xml:space="preserve">
-    <value>Mirror X Axis</value>
-  </data>
-  <data name="MachineCamera_MirrorY" xml:space="preserve">
-    <value>Mirror Y Axis</value>
-  </data>
-  <data name="MachineCamera_DeviceId" xml:space="preserve">
-    <value>Camera Device Id</value>
-  </data>
-  <data name="MachineCamera_FocusHeight" xml:space="preserve">
-    <value>Focus Height</value>
-  </data>
-  <data name="MachineCamera_AbsolutePosition" xml:space="preserve">
-    <value>Absolute Position</value>
-  </data>
-  <data name="MachineCamera_PixelsPerMM" xml:space="preserve">
-    <value>Pixels per Millimeter</value>
-  </data>
-  <data name="MachineCamera_PixelsPerMM_Help" xml:space="preserve">
-    <value>Place a ruler on to the work surface turn on the 200 pixel square in the camera view.  Note the number of millimeters in 200 pixels, dive the number of millimeters by 200 and enter that number.</value>
-  </data>
-  <data name="Machine_Cameras" xml:space="preserve">
-    <value>Cameras</value>
-  </data>
-  <data name="Machine_ToolHeads" xml:space="preserve">
-    <value>Tool Heads</value>
+  <data name="Common_Length" xml:space="preserve">
+    <value>Length</value>
   </data>
 </root>
