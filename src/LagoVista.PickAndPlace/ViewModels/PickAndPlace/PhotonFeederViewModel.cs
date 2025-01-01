@@ -12,6 +12,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
@@ -22,6 +23,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         IRestClient _restClient;
         ILogger _logger;
         IPhotonProtocolHandler _protocolHandler;
+
+        private class FeederSearchResult
+        {
+            public byte Slot { get; set; }
+            public bool Found { get; set; }
+            public string Address { get; set; }
+        }
+
 
         public PhotonFeederViewModel(IMachineRepo machineRepo, IPhotonProtocolHandler protocolHandler, IRestClient restClient, ILogger logger)
         {
@@ -42,9 +51,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             return base.InitAsync();
         }
 
-        private bool _completed;
+        private int _currentPacketId;
 
-        private Dictionary<byte, string> responses = new Dictionary<byte, string>();
+        private Dictionary<byte, FeederSearchResult> _feederDiscoverResults = new Dictionary<byte, FeederSearchResult>();
 
 
         private void CurrentMachine_LineReceived(object sender, string e)
@@ -59,42 +68,82 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
                     Debug.WriteLine(e);
                     var parsed = _protocolHandler.ParseResponse(responsePayload);
-                    _completed = true;
-                    responses.Add(parsed.PacketId, parsed.TextPayload);
+                    _completed.Set();
+                    _feederDiscoverResults[parsed.PacketId].Found = true;
+                    _feederDiscoverResults[parsed.PacketId].Address = parsed.TextPayload;
                 }
                 catch (Exception ex)
                 {
                     Debug.WriteLine(ex.ToString());
                 }
             }
+            else if (e.ToLower() == "rs485-reply: timeout")
+            {
+                _completed.Set();
+            }
         }
 
-        public async void Discover()
+        ManualResetEventSlim _completed = new ManualResetEventSlim();
+
+        public void Discover()
         {
-            Task.Run(async () =>
+            if (!_machineRepo.CurrentMachine.Connected)
             {
+                _machineRepo.CurrentMachine.AddStatusMessage(StatusMessageTypes.Info, "Machine is not connected, can not discover feeders.");
+                return;
+            }
+
+            DiscoveredFeeders.Clear();
+            SlotSearchIndex = 0;
+            new Thread(() =>
+            {
+                _feederDiscoverResults.Clear();
                 _machineRepo.CurrentMachine.LineReceived += CurrentMachine_LineReceived;
                 byte idx = 1;
-                while (idx <= FeedersToSearch)
+                while (idx <= SlotsToSearch)
                 {
+                    _completed.Reset();
                     var gcode = _protocolHandler.GenerateGCode(LumenSupport.FeederCommands.GetId, idx);
+                    _currentPacketId = gcode.PacketId;
+                    _feederDiscoverResults.Add(gcode.PacketId, new FeederSearchResult() { Slot = idx });
                     _machineRepo.CurrentMachine.SendCommand(gcode.GCode);
-                    var attempt = 0;
-                    while (!_completed || attempt++ > 200)
-                        await Task.Delay(5);
+                    var attepmtCount = 0;
+                    while (!_completed.IsSet && ++attepmtCount < 200)
+                        _completed.Wait(5);
 
-                    if (responses.ContainsKey(gcode.PacketId))
+                    Debug.WriteLine("Attempt Count: " + attepmtCount);
+
+                    if (_feederDiscoverResults[gcode.PacketId].Found)
                     {
                         DispatcherServices.Invoke(() =>
                         {
-                            DiscoveredFeeders.Add(new PhotonFeeder() { Address = responses[gcode.PacketId], Slot = idx });
+                            SlotSearchIndex = idx;
+                            Status = $"Found {_feederDiscoverResults[gcode.PacketId].Address} at address slot {_feederDiscoverResults[gcode.PacketId].Slot}";
+                            DiscoveredFeeders.Add(new PhotonFeeder()
+                            {
+                                Address = _feederDiscoverResults[gcode.PacketId].Address,
+                                Slot = _feederDiscoverResults[gcode.PacketId].Slot
+                            });
+                        });
+                    }
+                    else
+                    {
+                        DispatcherServices.Invoke(() =>
+                        {
+                            SlotSearchIndex = idx;
+                            Status = $"No feeder at slot {_feederDiscoverResults[gcode.PacketId].Slot}";
                         });
                     }
                     idx++;
                 }
 
+                DispatcherServices.Invoke(() =>
+                {
+                    Status = $"Found {DiscoveredFeeders.Count} feeders.";
+                });
+
                 _machineRepo.CurrentMachine.LineReceived -= CurrentMachine_LineReceived;
-            });
+            }).Start();
         }
 
         private ObservableCollection<PhotonFeeder> _discoveredFeeders = new ObservableCollection<PhotonFeeder>();
@@ -114,11 +163,25 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public AutoFeeder SelectedFeeder { get; private set; }
 
-        private int _feedersToSearch = 50;
-        public int FeedersToSearch
+        private byte _slotsToSearch = 50;
+        public byte SlotsToSearch
         {
-            get => _feedersToSearch;
-            set => Set(ref _feedersToSearch, value);
+            get => _slotsToSearch;
+            set => Set(ref _slotsToSearch, value);
+        }
+
+        private byte _searchIndex;
+        public byte SlotSearchIndex
+        {
+            get => _searchIndex;
+            set => Set(ref _searchIndex, value);
+        }
+
+        private string _status;
+        public string Status
+        {
+            get => _status;
+            set => Set(ref _status, value);
         }
     }
 }

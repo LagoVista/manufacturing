@@ -14,6 +14,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand<int> NextPartCommand { get; }
         RelayCommand DiscoverFeedersCommand { get; }
         RelayCommand AddFeederCommand { get; }
-        int FeedersToSearch { get; set; }
+        byte SlotsToSearch { get; set; }
+        byte SlotSearchIndex { get; set; }
+        string Status { get; set; }
     }
 }
