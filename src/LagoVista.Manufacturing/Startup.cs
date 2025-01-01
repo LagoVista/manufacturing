@@ -11,7 +11,7 @@ namespace LagoVista.Manufacturing
         public static void ConfigureServices(IServiceCollection services)
         {
             services.AddTransient<IComponentManager, ComponentManager>();
-            services.AddTransient<IFeederManager, FeederManager>();
+            services.AddTransient<IAutoFeederManager, AutoFeederManager>();
             services.AddTransient<IStripFeederManager, StripFeederManager>();
             services.AddTransient<IComponentPackageManager, ComponentPackageManager>();
             services.AddTransient<IMachineManager, MachineManager>();

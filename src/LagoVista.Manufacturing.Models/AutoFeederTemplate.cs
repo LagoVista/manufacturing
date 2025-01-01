@@ -39,6 +39,11 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _pickLocation, value);
         }
 
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_Protocol, FieldType: FieldTypes.Picker, EnumType: typeof(FeederProtocols),
+            WaterMark: ManufacturingResources.Names.Feeder_Protocol_Select, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader<FeederProtocols> Protocol { get; set; }
+
+
         [FormField(LabelResource: ManufacturingResources.Names.Common_Color, FieldType: FieldTypes.Color, ResourceType: typeof(ManufacturingResources))]
         public string Color
         {
@@ -119,11 +124,14 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Name),
                 nameof(Key),
                 nameof(Color),
+                nameof(TapeSize),
+                nameof(Protocol),
                 nameof(FeederWidth),
                 nameof(FeederLength),
                 nameof(FeederHeight),
                 nameof(FiducialOffset),
-                nameof(PickOffset)
+                nameof(PickOffset),
+                nameof(AdvanceGCode)
             };
         }
     }

@@ -170,7 +170,7 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _feederHeight, value);
         }
 
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Rows, ChildListDisplayMembers:"rowIndex,component.text", FactoryUrl: "/api/mfg/stripfeeder/row/factory", FieldType: FieldTypes.ChildListInline, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Rows, OpenByDefault:true, ChildListDisplayMembers:"rowIndex,component.text", FactoryUrl: "/api/mfg/stripfeeder/row/factory", FieldType: FieldTypes.ChildListInline, ResourceType: typeof(ManufacturingResources))]
         public List<StripFeederRow> Rows { get; set; } = new List<StripFeederRow>();
 
 

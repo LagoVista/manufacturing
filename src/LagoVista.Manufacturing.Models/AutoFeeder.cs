@@ -4,6 +4,7 @@ using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models.Resources;
+using LagoVista.UserAdmin.Models.Orgs;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -24,6 +25,15 @@ namespace LagoVista.Manufacturing.Models
         OneEighty
     }
 
+    public enum FeederProtocols
+    {
+        [EnumLabel(AutoFeeder.FeederProtocol_Phonton, ManufacturingResources.Names.FeederProtocol_Phonton, typeof(ManufacturingResources))]
+        Phonton,
+
+        [EnumLabel(AutoFeeder.FeederProtocol_Other, ManufacturingResources.Names.FeederProtocol_Other, typeof(ManufacturingResources))]
+        Other
+    }
+
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Feeder_Title, ManufacturingResources.Names.Feeder_Description,
             ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), 
             Icon: "icon-pz-searching-2", Cloneable: true,
@@ -36,6 +46,9 @@ namespace LagoVista.Manufacturing.Models
         public const string FeederRotation90 = "ninety";
         public const string FeederRotationMinus90 = "minusninety";
         public const string FeederRotation180 = "oneeighty";
+
+        public const string FeederProtocol_Phonton = "photon";
+        public const string FeederProtocol_Other = "other";
 
 
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
@@ -98,6 +111,10 @@ namespace LagoVista.Manufacturing.Models
             get => _tapeSize;
             set => Set(ref _tapeSize, value);
         }
+
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_Protocol, FieldType: FieldTypes.Picker, EnumType: typeof(FeederProtocols),
+            WaterMark: ManufacturingResources.Names.Feeder_Protocol_Select, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader<FeederProtocols> Protocol { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_AdvanceGCode, HelpResource: ManufacturingResources.Names.Feeder_AdvanceGCode_Help, FieldType: FieldTypes.Text, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public string AdvanceGCode { get; set; }
@@ -168,6 +185,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Component),
                 nameof(PartCount),
                 nameof(TapeSize),
+                nameof(Protocol),
                 nameof(Key),
                 nameof(Color),
                 nameof(Slot),
@@ -175,6 +193,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Machine),
                 nameof(AdvanceGCode),
                 nameof(Rotation),
+                nameof(Protocol),
                 nameof(Description)
             };
         }

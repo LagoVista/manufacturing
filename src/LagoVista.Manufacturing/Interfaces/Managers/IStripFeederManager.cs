@@ -14,6 +14,7 @@ namespace LagoVista.Manufacturing.Interfaces.Managers
         Task<StripFeeder> GetStripFeederAsync(string id, bool loadComponent, EntityHeader org, EntityHeader user);
         Task<ListResponse<StripFeeder>> GetStripFeedersForMachineAsync(string machineId, bool loadComponent, EntityHeader org, EntityHeader user);
         Task<InvokeResult> DeleteStripFeederAsycn(string id, EntityHeader org, EntityHeader user);
+        Task<StripFeeder> CreateFromTemplateAsync(string templateId, EntityHeader org, EntityHeader user);
 
     }
 }

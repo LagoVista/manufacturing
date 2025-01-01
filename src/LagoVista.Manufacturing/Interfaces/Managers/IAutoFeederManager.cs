@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LagoVista.Manufacturing.Interfaces.Managers
 {
-    public interface IFeederManager
+    public interface IAutoFeederManager
     {
         Task<InvokeResult> AddFeederAsync(AutoFeeder feeder, EntityHeader org, EntityHeader user);
         Task<InvokeResult> UpdateFeederAsync(AutoFeeder feeder, EntityHeader org, EntityHeader user);
@@ -15,6 +15,7 @@ namespace LagoVista.Manufacturing.Interfaces.Managers
         Task<AutoFeeder> GetFeederByFeederIdAsync(string feederId, bool loadComponent, EntityHeader org, EntityHeader user);
         Task<ListResponse<AutoFeeder>> GetFeedersForMachineAsync(string machineId, bool loadComponent, EntityHeader org, EntityHeader user);
         Task<InvokeResult> DeleteFeederAsync(string id, EntityHeader org, EntityHeader user);
+        Task<AutoFeeder> CreateFromTemplateAsync(string templateId, EntityHeader org, EntityHeader user);
 
     }
 }

@@ -26,14 +26,14 @@ namespace LagoVista.Manufacturing.Managers
         {
             await AuthorizeAsync(stripFeederTemplate, AuthorizeActions.Create, user, org);
             ValidationCheck(stripFeederTemplate, Actions.Create);
-            await _stripFeederTemplateRepo.AddFeederAsync(stripFeederTemplate);
+            await _stripFeederTemplateRepo.AddStripFeederTemplateAsync(stripFeederTemplate);
 
             return InvokeResult.Success;
         }
 
         public async Task<DependentObjectCheckResult> CheckInUseAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _stripFeederTemplateRepo.GetFeederAsync(id);
+            var part = await _stripFeederTemplateRepo.GetStripFeederTemplateAsync(id);
             await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
             return await base.CheckForDepenenciesAsync(part);
         }
@@ -45,16 +45,16 @@ namespace LagoVista.Manufacturing.Managers
 
         public async Task<InvokeResult> DeleteStripFeederTemplateAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _stripFeederTemplateRepo.GetFeederAsync(id);
+            var part = await _stripFeederTemplateRepo.GetStripFeederTemplateAsync(id);
             await ConfirmNoDepenenciesAsync(part);
             await AuthorizeAsync(part, AuthorizeActions.Delete, user, org);
-            await _stripFeederTemplateRepo.DeleteFeederAsync(id);
+            await _stripFeederTemplateRepo.DeleteStripFeederTemplateAsync(id);
             return InvokeResult.Success;
         }
 
         public async Task<StripFeederTemplate> GetStripFeederTemplateAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _stripFeederTemplateRepo.GetFeederAsync(id);
+            var part = await _stripFeederTemplateRepo.GetStripFeederTemplateAsync(id);
             await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
             return part;
         }
@@ -63,14 +63,14 @@ namespace LagoVista.Manufacturing.Managers
         public async Task<ListResponse<StripFeederTemplateSummary>> GetStripFeederTemplateSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user)
         {
             await AuthorizeOrgAccessAsync(user, org.Id, typeof(StripFeederTemplate));
-            return await _stripFeederTemplateRepo.GetFeederSummariesAsync(org.Id, listRequest);
+            return await _stripFeederTemplateRepo.GetStripFeederTemplateSummariesAsync(org.Id, listRequest);
         }
 
         public async Task<InvokeResult> UpdateStripFeederTemplateAsync(StripFeederTemplate stripFeederTemplate, EntityHeader org, EntityHeader user)
         {
             await AuthorizeAsync(stripFeederTemplate, AuthorizeActions.Update, user, org);
             ValidationCheck(stripFeederTemplate, Actions.Update);
-            await _stripFeederTemplateRepo.UpdateFeederAsync(stripFeederTemplate);
+            await _stripFeederTemplateRepo.UpdateStripFeederTemplateAsync(stripFeederTemplate);
 
             return InvokeResult.Success;
         }

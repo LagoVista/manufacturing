@@ -11,22 +11,25 @@ using System;
 using static LagoVista.Core.Models.AuthorizeResult;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using LagoVista.Core;
 
 namespace LagoVista.Manufacturing.Managers
 {
     public class StripFeederManager : ManagerBase, IStripFeederManager
     {
         private readonly IStripFeederRepo _stripFeederRepo;
+        private readonly IStripFeederTemplateRepo _stripFeederTemplateRepo;
         private readonly IComponentManager _componentManager;
         private readonly IComponentPackageRepo _packageRepo;
 
-        public StripFeederManager(IStripFeederRepo stripFeederRepo, IComponentManager componentManager, IComponentPackageRepo packageRepo,
+        public StripFeederManager(IStripFeederRepo stripFeederRepo, IStripFeederTemplateRepo stripFeederTemplateRepo, IComponentManager componentManager, IComponentPackageRepo packageRepo,
             IAdminLogger logger, IAppConfig appConfig, IDependencyManager depmanager, ISecurity security) :
             base(logger, appConfig, depmanager, security)
         {
             _stripFeederRepo = stripFeederRepo ?? throw new ArgumentNullException(nameof(stripFeederRepo));
             _componentManager = componentManager ?? throw new ArgumentNullException(nameof(componentManager));
             _packageRepo = packageRepo ?? throw new ArgumentNullException(nameof(packageRepo));
+            _stripFeederTemplateRepo = stripFeederTemplateRepo ?? throw new ArgumentNullException(nameof(stripFeederTemplateRepo));
         }
         public async Task<InvokeResult> AddStripFeederAsync(StripFeeder feeder, EntityHeader org, EntityHeader user)
         {
@@ -42,6 +45,42 @@ namespace LagoVista.Manufacturing.Managers
             var feeder = await _stripFeederRepo.GetStripFeederAsync(id);
             await AuthorizeAsync(feeder, AuthorizeActions.Read, user, org);
             return await base.CheckForDepenenciesAsync(feeder);
+        }
+
+        public async Task<StripFeeder> CreateFromTemplateAsync(string templateId, EntityHeader org, EntityHeader user)
+        {
+            var timeStamp = DateTime.UtcNow.ToJSONString();
+
+            var template = await _stripFeederTemplateRepo.GetStripFeederTemplateAsync(templateId);
+            await AuthorizeAsync(template, AuthorizeActions.Read, user, org);
+            var feeder = new StripFeeder()
+            {
+                Id = Guid.NewGuid().ToId(),
+                CreatedBy = user,
+                LastUpdatedBy = user,
+                CreationDate = timeStamp,
+                LastUpdatedDate = timeStamp,
+                TapeSize = template.TapeSize,
+                Color = template.Color,
+                OwnerOrganization = org,
+                FeederHeight = template.FeederHeight,
+                FeederWidth = template.FeederWidth,
+                FeederLength = template.FeederLength,
+                RowCount = template.RowCount,
+                RowWidth = template.RowWidth,
+            };
+
+            for(var idx = 0; idx < feeder.RowCount; ++idx)
+            {
+                feeder.Rows.Add(new StripFeederRow()
+                {
+                     Id = Guid.NewGuid().ToId(),
+                     RowIndex = idx + 1,
+                     CurrentPartIndex = 1,
+                });
+            }
+
+            return feeder;
         }
 
         public async Task<InvokeResult> DeleteStripFeederAsycn(string id, EntityHeader org, EntityHeader user)

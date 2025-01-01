@@ -23,27 +23,27 @@ namespace LagoVista.Manufacturing.Repos
 
         protected override bool ShouldConsolidateCollections => _shouldConsolidateCollections;
 
-        public Task AddFeederAsync(AutoFeederTemplate autoFeederTemplate)
+        public Task AddAutoFeederTemplateAsync(AutoFeederTemplate autoFeederTemplate)
         {
             return CreateDocumentAsync(autoFeederTemplate);
         }
 
-        public Task DeleteFeederAsync(string id)
+        public Task DeleteAutoFeederTemplateAsync(string id)
         {
             return DeleteDocumentAsync(id);
         }
 
-        public Task<AutoFeederTemplate> GetFeederAsync(string id)
+        public Task<AutoFeederTemplate> GetAutoFeederTemplateAsync(string id)
         {
             return GetDocumentAsync(id);
         }
 
-        public Task<ListResponse<AutoFeederTemplateSummary>> GetFeederSummariesAsync(string orgId, ListRequest listRequest)
+        public Task<ListResponse<AutoFeederTemplateSummary>> GetAutoFeederTemplateSummariesAsync(string orgId, ListRequest listRequest)
         {
             return base.QuerySummaryAsync<AutoFeederTemplateSummary, AutoFeederTemplate>(qry => qry.IsPublic == true || qry.OwnerOrganization.Id == orgId, itm => itm.Name, listRequest);
         }
 
-        public Task UpdateFeederAsync(AutoFeederTemplate autoFeederTemplate)
+        public Task UpdateAutoFeederTemplateAsync(AutoFeederTemplate autoFeederTemplate)
         {
             return UpsertDocumentAsync(autoFeederTemplate);
         }

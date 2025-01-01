@@ -18,10 +18,10 @@ namespace LagoVista.Manufacturing.Rest.Controllers
     [Authorize]
     public class AutoFeederController : LagoVistaBaseController
     {
-        private readonly IFeederManager _mgr;
+        private readonly IAutoFeederManager _mgr;
         private readonly IMachineManager _machineManager;
 
-        public AutoFeederController(UserManager<AppUser> userManager, IAdminLogger logger, IMachineManager machineManager, IFeederManager mgr) : base(userManager, logger)
+        public AutoFeederController(UserManager<AppUser> userManager, IAdminLogger logger, IMachineManager machineManager, IAutoFeederManager mgr) : base(userManager, logger)
         {
             _mgr = mgr;
             _machineManager = machineManager;
@@ -43,6 +43,16 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         public DetailResponse<AutoFeeder> CreateFeeder()
         {
             var form = DetailResponse<AutoFeeder>.Create();
+            SetAuditProperties(form.Model);
+            SetOwnedProperties(form.Model);
+            return form;
+        }
+
+        [HttpGet("/api/mfg/autofeeder/template/{templateid}/factory")]
+        public async Task<DetailResponse<AutoFeeder>> CreateFromTemplate(string templateid)
+        {
+            var feeder = await _mgr.CreateFromTemplateAsync(templateid, OrgEntityHeader, UserEntityHeader);
+            var form = DetailResponse<AutoFeeder>.Create(feeder, false);
             SetAuditProperties(form.Model);
             SetOwnedProperties(form.Model);
             return form;

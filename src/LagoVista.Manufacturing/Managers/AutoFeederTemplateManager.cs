@@ -26,14 +26,14 @@ namespace LagoVista.Manufacturing.Managers
         {
             await AuthorizeAsync(autoFeederTemplate, AuthorizeActions.Create, user, org);
             ValidationCheck(autoFeederTemplate, Actions.Create);
-            await _autoFeederTemplateRepo.AddFeederAsync(autoFeederTemplate);
+            await _autoFeederTemplateRepo.AddAutoFeederTemplateAsync(autoFeederTemplate);
 
             return InvokeResult.Success;
         }
 
         public async Task<DependentObjectCheckResult> CheckInUseAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _autoFeederTemplateRepo.GetFeederAsync(id);
+            var part = await _autoFeederTemplateRepo.GetAutoFeederTemplateAsync(id);
             await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
             return await base.CheckForDepenenciesAsync(part);
         }
@@ -45,16 +45,16 @@ namespace LagoVista.Manufacturing.Managers
 
         public async Task<InvokeResult> DeleteAutoFeederTemplateAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _autoFeederTemplateRepo.GetFeederAsync(id);
+            var part = await _autoFeederTemplateRepo.GetAutoFeederTemplateAsync(id);
             await ConfirmNoDepenenciesAsync(part);
             await AuthorizeAsync(part, AuthorizeActions.Delete, user, org);
-            await _autoFeederTemplateRepo.DeleteFeederAsync(id);
+            await _autoFeederTemplateRepo.DeleteAutoFeederTemplateAsync(id);
             return InvokeResult.Success;
         }
 
         public async Task<AutoFeederTemplate> GetAutoFeederTemplateAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _autoFeederTemplateRepo.GetFeederAsync(id);
+            var part = await _autoFeederTemplateRepo.GetAutoFeederTemplateAsync(id);
             await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
             return part;
         }
@@ -62,14 +62,14 @@ namespace LagoVista.Manufacturing.Managers
         public async Task<ListResponse<AutoFeederTemplateSummary>> GetAutoFeederTemplateSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user)
         {
             await AuthorizeOrgAccessAsync(user, org.Id, typeof(AutoFeederTemplate));
-            return await _autoFeederTemplateRepo.GetFeederSummariesAsync(org.Id, listRequest);
+            return await _autoFeederTemplateRepo.GetAutoFeederTemplateSummariesAsync(org.Id, listRequest);
         }
 
         public async Task<InvokeResult> UpdateAutoFeederTemplateAsync(AutoFeederTemplate autoFeederTemplate, EntityHeader org, EntityHeader user)
         {
             await AuthorizeAsync(autoFeederTemplate, AuthorizeActions.Update, user, org);
             ValidationCheck(autoFeederTemplate, Actions.Update);
-            await _autoFeederTemplateRepo.UpdateFeederAsync(autoFeederTemplate);
+            await _autoFeederTemplateRepo.UpdateAutoFeederTemplateAsync(autoFeederTemplate);
 
             return InvokeResult.Success;
         }

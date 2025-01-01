@@ -62,6 +62,16 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return form;
         }
 
+        [HttpGet("/api/mfg/stripfeeder/template/{templateid}/factory")]
+        public async Task<DetailResponse<StripFeeder>> CreateFromTemplate(string templateid)
+        {
+            var feeder = await _mgr.CreateFromTemplateAsync(templateid, OrgEntityHeader, UserEntityHeader);
+            var form = DetailResponse<StripFeeder>.Create(feeder, false);
+            SetAuditProperties(form.Model);
+            SetOwnedProperties(form.Model);
+            return form;
+        }
+
         [HttpGet("/api/mfg/stripfeeder/row/factory")]
         public DetailResponse<StripFeederRow> CreateStripFeederFow()
         {

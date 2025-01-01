@@ -10,20 +10,24 @@ using LagoVista.IoT.Logging.Loggers;
 using System;
 using static LagoVista.Core.Models.AuthorizeResult;
 using System.Threading.Tasks;
+using LagoVista.Core;
+using System.ComponentModel.DataAnnotations;
 
 namespace LagoVista.Manufacturing.Managers
 {
-    public class FeederManager : ManagerBase, IFeederManager
+    public class AutoFeederManager : ManagerBase, IAutoFeederManager
     {
         private readonly IAutoFeederRepo _feederRepo;
         private readonly IComponentManager _componentManager;
         private readonly IComponentPackageRepo _packageRepo;
+        private readonly IAutoFeederTemplateRepo _autoFeederTemplateRepo;
 
-        public FeederManager(IAutoFeederRepo feederRepo, IComponentManager componentManager, IComponentPackageRepo packageRepo,
+        public AutoFeederManager(IAutoFeederRepo feederRepo, IAutoFeederTemplateRepo autoFeederTemplateRepo, IComponentManager componentManager, IComponentPackageRepo packageRepo,
             IAdminLogger logger, IAppConfig appConfig, IDependencyManager depmanager, ISecurity security) :
             base(logger, appConfig, depmanager, security)
         {
             _feederRepo = feederRepo;
+            _autoFeederTemplateRepo = autoFeederTemplateRepo;
             _componentManager = componentManager ?? throw new ArgumentNullException(nameof(componentManager));
             _packageRepo = packageRepo ?? throw new ArgumentNullException(nameof(packageRepo));
 
@@ -42,6 +46,33 @@ namespace LagoVista.Manufacturing.Managers
             var part = await _feederRepo.GetFeederAsync(id);
             await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
             return await base.CheckForDepenenciesAsync(part);
+        }
+
+        public async Task<AutoFeeder> CreateFromTemplateAsync(string templateId, EntityHeader org, EntityHeader user)
+        {
+            var timeStamp = DateTime.UtcNow.ToJSONString();
+
+            var template = await _autoFeederTemplateRepo.GetAutoFeederTemplateAsync(templateId);
+            var feeder = new AutoFeeder()
+            {
+                Id = Guid.NewGuid().ToId(),
+                CreatedBy = user,
+                LastUpdatedBy = user,
+                CreationDate = timeStamp,
+                LastUpdatedDate = timeStamp,
+                TapeSize = template.TapeSize,
+                Color = template.Color,
+                OwnerOrganization = org,
+                FeederHeight = template.FeederHeight,
+                Protocol = template.Protocol,
+                FeederWidth = template.FeederWidth,
+                FeederLength = template.FeederLength,
+                FiducialOffset = template.FiducialOffset,
+                PickOffset = template.PickOffset,
+                AdvanceGCode = template.AdvanceGCode,
+                Description = template.Description,
+            };
+            return  feeder;
         }
 
         public async Task<InvokeResult> DeleteFeederAsync(string id, EntityHeader org, EntityHeader user)
