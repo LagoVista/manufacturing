@@ -382,28 +382,28 @@ namespace LagoVista.PickAndPlace.Models
             set { Set(ref _lightOn, value); }
         }
 
-        private byte _red;
+        private byte _red = 0xFF;
         public byte LightRed
         {
             get { return _red; }
             set { Set(ref _red, value); }
         }
 
-        private byte _green;
+        private byte _green = 0xFF;
         public byte LightGreen
         {
             get { return _green; }
             set { Set(ref _green, value); }
         }
 
-        private byte _blue;
+        private byte _blue = 0xFF;
         public byte LightBlue
         {
             get { return _blue; }
             set { Set(ref _blue, value); }
         }
 
-        private byte _power;
+        private byte _power = 0xFF;
         public byte LightPower
         {
             get { return _power; }

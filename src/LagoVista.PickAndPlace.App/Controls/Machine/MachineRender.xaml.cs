@@ -142,7 +142,7 @@ namespace LagoVista.PickAndPlace.App.Controls
             foreach (var feederRail in machine.FeederRails)
             {
                 var feederMeshBuilder = new MeshBuilder(false, false);
-                var rect = new Rect3D(0, feederRail.Origin.Y, -43, machine.FrameWidth, 20, 20);
+                var rect = new Rect3D(0, feederRail.FirstFeederOrigin.Y, -43, machine.FrameWidth, 20, 20);
                 feederMeshBuilder.AddBox(rect);
                 var feederRailModel = new GeometryModel3D() { Geometry = feederMeshBuilder.ToMesh(true), Material = grayMaterial };
                 modelGroup.Children.Add(feederRailModel);                

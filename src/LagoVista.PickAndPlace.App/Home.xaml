@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ctls="clr-namespace:LagoVista.PickAndPlace.App.Controls"
         xmlns:pnpc="clr-namespace:LagoVista.PickAndPlace.App.Controls.PickAndPlace"
+        xmlns:mch="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine"
         xmlns:local="clr-namespace:LagoVista.PickAndPlace.App"
         mc:Ignorable="d"
         Title="Home" Height="1200" Width="1920">
@@ -35,6 +36,10 @@
                     <TabItem Header="Alignment">
                         <ctls:ToolAlignment></ctls:ToolAlignment>
                     </TabItem>
+                    <TabItem Header="Utilities">
+                            <mch:MachineUtilitiesControl></mch:MachineUtilitiesControl>
+                    </TabItem>
+
                     <TabItem Header="Machine">
                         <Grid>
                         <pnpc:PickAndPlaceMachineControl></pnpc:PickAndPlaceMachineControl>

@@ -1,4 +1,4 @@
-﻿/*1/1/2025 8:09:08 AM*/
+﻿/*1/1/2025 10:36:53 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -572,9 +572,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:FeederProtocol_Other
 
 		public static string FeederProtocol_Other { get { return GetResourceString("FeederProtocol_Other"); } }
-//Resources:ManufacturingResources:FeederProtocol_Phonton
+//Resources:ManufacturingResources:FeederProtocol_Photon
 
-		public static string FeederProtocol_Phonton { get { return GetResourceString("FeederProtocol_Phonton"); } }
+		public static string FeederProtocol_Photon { get { return GetResourceString("FeederProtocol_Photon"); } }
 //Resources:ManufacturingResources:FeederRotation0
 
 		public static string FeederRotation0 { get { return GetResourceString("FeederRotation0"); } }
@@ -707,24 +707,18 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Machine_FeederRail_Description
 
 		public static string Machine_FeederRail_Description { get { return GetResourceString("Machine_FeederRail_Description"); } }
-//Resources:ManufacturingResources:Machine_FeederRail_FirstFeederOffset
+//Resources:ManufacturingResources:Machine_FeederRail_FirstFeederOrigin
 
-		public static string Machine_FeederRail_FirstFeederOffset { get { return GetResourceString("Machine_FeederRail_FirstFeederOffset"); } }
-//Resources:ManufacturingResources:Machine_FeederRail_FirstFeederOffset_Help
+		public static string Machine_FeederRail_FirstFeederOrigin { get { return GetResourceString("Machine_FeederRail_FirstFeederOrigin"); } }
+//Resources:ManufacturingResources:Machine_FeederRail_FirstFeederOrigin_Help
 
-		public static string Machine_FeederRail_FirstFeederOffset_Help { get { return GetResourceString("Machine_FeederRail_FirstFeederOffset_Help"); } }
+		public static string Machine_FeederRail_FirstFeederOrigin_Help { get { return GetResourceString("Machine_FeederRail_FirstFeederOrigin_Help"); } }
 //Resources:ManufacturingResources:Machine_FeederRail_Height
 
 		public static string Machine_FeederRail_Height { get { return GetResourceString("Machine_FeederRail_Height"); } }
 //Resources:ManufacturingResources:Machine_FeederRail_NumberSlots
 
 		public static string Machine_FeederRail_NumberSlots { get { return GetResourceString("Machine_FeederRail_NumberSlots"); } }
-//Resources:ManufacturingResources:Machine_FeederRail_Origin
-
-		public static string Machine_FeederRail_Origin { get { return GetResourceString("Machine_FeederRail_Origin"); } }
-//Resources:ManufacturingResources:Machine_FeederRail_Origin_Help
-
-		public static string Machine_FeederRail_Origin_Help { get { return GetResourceString("Machine_FeederRail_Origin_Help"); } }
 //Resources:ManufacturingResources:Machine_FeederRail_SlotWidth
 
 		public static string Machine_FeederRail_SlotWidth { get { return GetResourceString("Machine_FeederRail_SlotWidth"); } }
@@ -1384,7 +1378,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string FeederOrientation_Horizontal = "FeederOrientation_Horizontal";
 			public const string FeederOrientation_Vertical = "FeederOrientation_Vertical";
 			public const string FeederProtocol_Other = "FeederProtocol_Other";
-			public const string FeederProtocol_Phonton = "FeederProtocol_Phonton";
+			public const string FeederProtocol_Photon = "FeederProtocol_Photon";
 			public const string FeederRotation0 = "FeederRotation0";
 			public const string FeederRotation180 = "FeederRotation180";
 			public const string FeederRotation90 = "FeederRotation90";
@@ -1429,12 +1423,10 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Machine_Cameras = "Machine_Cameras";
 			public const string Machine_Description = "Machine_Description";
 			public const string Machine_FeederRail_Description = "Machine_FeederRail_Description";
-			public const string Machine_FeederRail_FirstFeederOffset = "Machine_FeederRail_FirstFeederOffset";
-			public const string Machine_FeederRail_FirstFeederOffset_Help = "Machine_FeederRail_FirstFeederOffset_Help";
+			public const string Machine_FeederRail_FirstFeederOrigin = "Machine_FeederRail_FirstFeederOrigin";
+			public const string Machine_FeederRail_FirstFeederOrigin_Help = "Machine_FeederRail_FirstFeederOrigin_Help";
 			public const string Machine_FeederRail_Height = "Machine_FeederRail_Height";
 			public const string Machine_FeederRail_NumberSlots = "Machine_FeederRail_NumberSlots";
-			public const string Machine_FeederRail_Origin = "Machine_FeederRail_Origin";
-			public const string Machine_FeederRail_Origin_Help = "Machine_FeederRail_Origin_Help";
 			public const string Machine_FeederRail_SlotWidth = "Machine_FeederRail_SlotWidth";
 			public const string Machine_FeederRail_StartSlotIndex = "Machine_FeederRail_StartSlotIndex";
 			public const string Machine_FeederRail_StartSlotIndex_Help = "Machine_FeederRail_StartSlotIndex_Help";

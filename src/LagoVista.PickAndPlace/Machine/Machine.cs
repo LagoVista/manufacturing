@@ -18,6 +18,8 @@ namespace LagoVista.PickAndPlace
     {
         public event PropertyChangedEventHandler PropertyChanged;
         public event EventHandler<string> LineReceived;
+        public event EventHandler MachineConnected;
+        public event EventHandler MachineDisconnected;
 
         public Machine()
         {

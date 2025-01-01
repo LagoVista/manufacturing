@@ -27,7 +27,7 @@ namespace LagoVista.Manufacturing.Models
 
     public enum FeederProtocols
     {
-        [EnumLabel(AutoFeeder.FeederProtocol_Phonton, ManufacturingResources.Names.FeederProtocol_Phonton, typeof(ManufacturingResources))]
+        [EnumLabel(AutoFeeder.FeederProtocol_Phonton, ManufacturingResources.Names.FeederProtocol_Photon, typeof(ManufacturingResources))]
         Phonton,
 
         [EnumLabel(AutoFeeder.FeederProtocol_Other, ManufacturingResources.Names.FeederProtocol_Other, typeof(ManufacturingResources))]

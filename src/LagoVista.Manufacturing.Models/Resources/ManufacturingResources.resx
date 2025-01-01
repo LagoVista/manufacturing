@@ -336,10 +336,10 @@
     <value>-select feeder-</value>
   </data>
   <data name="Feeders_Title" xml:space="preserve">
-    <value>Auto Feeders</value>
+    <value>Feeders</value>
   </data>
   <data name="Feeder_Description" xml:space="preserve">
-    <value>Auto Feeders use tape reels to supply components to create a circuit board.</value>
+    <value>A feeder is a device that provides parts for a pick and place machine.</value>
   </data>
   <data name="Feeder_Title" xml:space="preserve">
     <value>Feeder</value>
@@ -903,7 +903,7 @@
     <value>Frame Width</value>
   </data>
   <data name="Machine_FrameHeight" xml:space="preserve">
-    <value>Frame_Height</value>
+    <value>Frame Height</value>
   </data>
   <data name="Machine_FeederRail_Title" xml:space="preserve">
     <value>Feeder Rail</value>
@@ -917,20 +917,14 @@
   <data name="Machine_FeederRail_SlotWidth" xml:space="preserve">
     <value>Slot Width</value>
   </data>
-  <data name="Machine_FeederRail_FirstFeederOffset" xml:space="preserve">
-    <value>First Feeder Offset</value>
-  </data>
-  <data name="Machine_FeederRail_FirstFeederOffset_Help" xml:space="preserve">
-    <value>Offset from the left origin to the left edge of the first feeder.</value>
-  </data>
   <data name="Machine_FeederRail_Width" xml:space="preserve">
     <value>Rail Width</value>
   </data>
   <data name="Machine_FeederRail_Height" xml:space="preserve">
     <value>Rail Height</value>
   </data>
-  <data name="Machine_FeederRail_Origin_Help" xml:space="preserve">
-    <value>The bottom left or origin of the the feeder rail.  This will be the XY location before the rail is rotated.</value>
+  <data name="Machine_FeederRail_FirstFeederOrigin_Help" xml:space="preserve">
+    <value>The XY location of the first feeder with respect to the center of the feeder rail and center of the feeder body. This value can be obtained by finding the center of the rail in the Y Axis and center of the body of the first feeder in the X Axis (assuming the feeders are aligned with the Y Axis of the machine.</value>
   </data>
   <data name="Machine_FeederRails" xml:space="preserve">
     <value>Feeder Rails</value>
@@ -1007,8 +1001,8 @@
   <data name="Machine_GCode_Description" xml:space="preserve">
     <value>Defines GCode Commands and how those results should be parsed.</value>
   </data>
-  <data name="Machine_FeederRail_Origin" xml:space="preserve">
-    <value>Rail Origin</value>
+  <data name="Machine_FeederRail_FirstFeederOrigin" xml:space="preserve">
+    <value>First Feeder Origin</value>
   </data>
   <data name="Machine_WorkAreaOrigin" xml:space="preserve">
     <value>Work Area Origin</value>
@@ -1139,39 +1133,6 @@
   <data name="Feeder_PartCount" xml:space="preserve">
     <value>Part Count</value>
   </data>
-  <data name="Feeder_PickOffsetFromSlotOriign" xml:space="preserve">
-    <value>Offset from Slot Origin</value>
-  </data>
-  <data name="Feeder_PickOffsetFromSlotOriign_Help" xml:space="preserve">
-    <value>The offset from the slot origin on the feeder rail to the pick location</value>
-  </data>
-  <data name="Feeder_FiducialOffsetFromSlotOriign" xml:space="preserve">
-    <value>Fiducial Offset from Slot Origin</value>
-  </data>
-  <data name="Feeder_FiducialOffsetFromSlotOriign_Help" xml:space="preserve">
-    <value>The offset from the origin on the feeder rail to the location of the fiducial on the feeder.</value>
-  </data>
-  <data name="AutoFeederTemplate_Title" xml:space="preserve">
-    <value>Auto Feeder Template</value>
-  </data>
-  <data name="AutoFeederTemplate_Description" xml:space="preserve">
-    <value>Default parameters that can be used to create auto feeders.</value>
-  </data>
-  <data name="StripFeederTemplate_Title" xml:space="preserve">
-    <value>Strip Feeder Template</value>
-  </data>
-  <data name="StripFeederTemplates_Title" xml:space="preserve">
-    <value>Strip Feeder Templates</value>
-  </data>
-  <data name="StripFeederTemplate_Description" xml:space="preserve">
-    <value>Default Parameters used to create Strip Feeders</value>
-  </data>
-  <data name="AutoFeederTemplates_Title" xml:space="preserve">
-    <value>Auto Feeder Templates</value>
-  </data>
-  <data name="Common_Length" xml:space="preserve">
-    <value>Length</value>
-  </data>
   <data name="MachineToolHead_Title" xml:space="preserve">
     <value>Tool Head</value>
   </data>
@@ -1256,7 +1217,40 @@
   <data name="Machine_ToolHeads" xml:space="preserve">
     <value>Tool Heads</value>
   </data>
-  <data name="FeederProtocol_Phonton" xml:space="preserve">
+  <data name="Feeder_PickOffsetFromSlotOriign" xml:space="preserve">
+    <value>Offset from Slot Origin</value>
+  </data>
+  <data name="Feeder_PickOffsetFromSlotOriign_Help" xml:space="preserve">
+    <value>The offset from the slot origin on the feeder rail to the pick location</value>
+  </data>
+  <data name="Feeder_FiducialOffsetFromSlotOriign" xml:space="preserve">
+    <value>Fiducial Offset from Slot Origin</value>
+  </data>
+  <data name="Feeder_FiducialOffsetFromSlotOriign_Help" xml:space="preserve">
+    <value>The offset from the origin on the feeder rail to the location of the fiducial on the feeder.</value>
+  </data>
+  <data name="AutoFeederTemplate_Title" xml:space="preserve">
+    <value>Auto Feeder Template</value>
+  </data>
+  <data name="AutoFeederTemplate_Description" xml:space="preserve">
+    <value>Default parameters that can be used to create auto feeders.</value>
+  </data>
+  <data name="StripFeederTemplate_Title" xml:space="preserve">
+    <value>Strip Feeder Template</value>
+  </data>
+  <data name="StripFeederTemplates_Title" xml:space="preserve">
+    <value>Strip Feeder Templates</value>
+  </data>
+  <data name="StripFeederTemplate_Description" xml:space="preserve">
+    <value>Default Parameters used to create Strip Feeders</value>
+  </data>
+  <data name="AutoFeederTemplates_Title" xml:space="preserve">
+    <value>Auto Feeder Templates</value>
+  </data>
+  <data name="Common_Length" xml:space="preserve">
+    <value>Length</value>
+  </data>
+  <data name="FeederProtocol_Photon" xml:space="preserve">
     <value>Photon</value>
   </data>
   <data name="FeederProtocol_Other" xml:space="preserve">

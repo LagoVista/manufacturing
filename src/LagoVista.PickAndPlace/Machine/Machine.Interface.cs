@@ -1,5 +1,6 @@
 ﻿using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.PlatformSupport;
+using LagoVista.Core.Validation;
 using LagoVista.GCode;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
@@ -14,7 +15,7 @@ namespace LagoVista.PickAndPlace
     public partial class Machine
     {
         SerialPort _port;
-        
+
         ISocketClient _socketClient;
 
         public async Task ConnectAsync(SimulatedSerialPort port)
@@ -81,7 +82,7 @@ namespace LagoVista.PickAndPlace
                 _port = port;
 
                 AddStatusMessage(StatusMessageTypes.Info, $"Opened Serial Port");
-
+                MachineConnected?.Invoke(this, null);
                 await Task.Run(() =>
                 {
                     Work(_port.BaseStream, _port.BaseStream);
@@ -89,6 +90,7 @@ namespace LagoVista.PickAndPlace
             }
             catch (Exception ex)
             {
+                MachineDisconnected?.Invoke(this, null);
                 _port = null;
                 Connected = false;
                 AddStatusMessage(StatusMessageTypes.Warning, $"Could not open serial port: " + ex.Message);
@@ -104,18 +106,25 @@ namespace LagoVista.PickAndPlace
 
         public async Task ConnectAsync(ISocketClient socketClient)
         {
-            _socketClient = socketClient;
-            _cancelSource = new CancellationTokenSource();
-
-            Connected = true;
-            Mode = OperatingMode.Manual;
-
-            AddStatusMessage(StatusMessageTypes.Info, $"Opened Network Connection");
-
-            await Task.Run(() =>
+            try
             {
-                Work(socketClient.InputStream, socketClient.OutputStream);
-            }, _cancelSource.Token);
+                _socketClient = socketClient;
+                _cancelSource = new CancellationTokenSource();
+
+                Connected = true;
+                Mode = OperatingMode.Manual;
+
+                AddStatusMessage(StatusMessageTypes.Info, $"Opened Network Connection");
+                MachineConnected?.Invoke(this, null);
+                await Task.Run(() =>
+                {
+                    Work(socketClient.InputStream, socketClient.OutputStream);
+                }, _cancelSource.Token);
+            }
+            catch (Exception ex)
+            {
+                MachineDisconnected?.Invoke(this, null);
+            }
         }
 
         private object _queueAccessLocker = new object();
@@ -227,6 +236,7 @@ namespace LagoVista.PickAndPlace
                         _toSendPriority.Enqueue(((char)0x18).ToString());
                     else if (Settings.MachineType == FirmwareTypes.Repeteir_PnP)
                         _toSendPriority.Enqueue("M112");
+
 
                     VacuumPump = false;
                     PuffPump = false;
@@ -368,6 +378,58 @@ namespace LagoVista.PickAndPlace
                     SetWorkspaceHome();
                 }
             }
+        }
+
+
+
+        public async Task<InvokeResult<ulong>> ReadLeftVacuumAsync()
+        {
+            // Select multiplexer At addr 112 - Left Pressure Monitor is at port 1
+            I2CSend(112, 1);
+
+            // Requst MSB 23:16 Register: 0x06
+            I2CSend(109, 6);
+            var result = await I2CReadHexByte(109);
+            if (!result.Successful) return InvokeResult<ulong>.FromInvokeResult(result.ToInvokeResult());
+            var msb = result.Result;
+            // Request CSB 15-8 Register: 0x07
+            I2CSend(109, 7);
+            result = await I2CReadHexByte(109);
+            if (!result.Successful) return InvokeResult<ulong>.FromInvokeResult(result.ToInvokeResult());
+            var csb = result.Result;
+
+            // Request CSB 7-0 Register: 0x08
+            I2CSend(109, 8);
+            result = await I2CReadHexByte(109);
+            if (!result.Successful) return InvokeResult<ulong>.FromInvokeResult(result.ToInvokeResult());
+            var lsb = result.Result;
+
+            return InvokeResult<ulong>.Create((ulong)(msb << 16 | csb << 8 | lsb));
+        }
+
+        public async Task<InvokeResult<ulong>> ReadRightVacuumAsync()
+        {
+            // Select multiplexer At addr 112 - right Pressure Monitor is at port 2
+            I2CSend(112, 2);
+
+            // Requst MSB 23:16 Register: 0x06
+            I2CSend(109, 6);
+            var result = await I2CReadHexByte(109);
+            if (!result.Successful) return InvokeResult<ulong>.FromInvokeResult(result.ToInvokeResult());
+            var msb = result.Result;
+            // Request CSB 15-8 Register: 0x07
+            I2CSend(109, 7);
+            result = await I2CReadHexByte(109);
+            if (!result.Successful) return InvokeResult<ulong>.FromInvokeResult(result.ToInvokeResult());
+            var csb = result.Result;
+
+            // Request CSB 7-0 Register: 0x08
+            I2CSend(109, 8);
+            result = await I2CReadHexByte(109);
+            if (!result.Successful) return InvokeResult<ulong>.FromInvokeResult(result.ToInvokeResult());
+            var lsb = result.Result;
+
+            return InvokeResult<ulong>.Create((ulong)(msb << 16 | csb << 8 | lsb));
         }
 
         public void HomeViaOrigin()

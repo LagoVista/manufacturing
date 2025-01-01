@@ -46,12 +46,9 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _rotation, value);
         }
 
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_FirstFeederOffset, HelpResource: ManufacturingResources.Names.Machine_FeederRail_FirstFeederOffset_Help, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
-        public double FirstFeederOffset { get; set; } = 20;
-
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_Origin, IsRequired: true, HelpResource: ManufacturingResources.Names.Machine_FeederRail_Origin_Help,
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_FirstFeederOrigin, IsRequired: true, HelpResource: ManufacturingResources.Names.Machine_FeederRail_FirstFeederOrigin_Help,
             FieldType: FieldTypes.Point2D, ResourceType: typeof(ManufacturingResources))]
-        public Point2D<double> Origin { get; set; } = new Point2D<double>(0, 0);
+        public Point2D<double> FirstFeederOrigin { get; set; } = new Point2D<double>(0, 0);
 
         [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_Width, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double RailWidth { get; set; } = 600;
@@ -67,7 +64,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Name),
                 nameof(Key),
                 nameof(Icon),
-                nameof(FirstFeederOffset),
+                nameof(FirstFeederOrigin),
                 nameof(SlotStartIndex),
                 nameof(NumberSlots),
                 nameof(SlotWidth),
@@ -79,7 +76,6 @@ namespace LagoVista.Manufacturing.Models
             return new List<string>()
             {
                 nameof(Rotation),
-                nameof(Origin),
                 nameof(RailWidth),
                 nameof(RailHeight),
             };

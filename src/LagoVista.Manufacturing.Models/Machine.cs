@@ -338,6 +338,8 @@ namespace LagoVista.Manufacturing.Models
         public string Icon { get; set; } = "icon-pz-ruler";
 
 
+        public Point2D<double> DefaultToolReferencePoint { get; set; }
+
         public string DefaultPnPMachineFile { get; set; }
 
         public bool EnableCodePreview { get; set; }
@@ -454,6 +456,62 @@ namespace LagoVista.Manufacturing.Models
         {
             get { return _zStepMode; }
             set { Set(ref _zStepMode, value); }
+        }
+
+        private bool _hasLeftVacuumSensor;
+        public bool HasLeftVacuumSensor
+        {
+            get => _hasLeftVacuumSensor;
+            set => Set(ref _hasLeftVacuumSensor, value);
+        }
+
+        private bool _hasRightVacuumSensor;
+        public bool HasRightVacuumSensor
+        {
+            get => _hasRightVacuumSensor;
+            set => Set(ref _hasRightVacuumSensor, value);
+        }
+
+        private bool _hasLeftVacuum;
+        public bool HasLeftVacuum
+        {
+            get => _hasLeftVacuum;
+            set => Set(ref _hasLeftVacuum, value);
+        }
+
+        private bool _hasRightVacuum;
+        public bool HasRightVacuum
+        {
+            get => _hasRightVacuum;
+            set => Set(ref _hasRightVacuum, value);
+        }
+
+        private ulong _maxLeftVacuum;
+        public ulong MaxLeftVacuum
+        {
+            get => _maxLeftVacuum;
+            set => Set(ref _maxLeftVacuum, value);
+        }
+
+        private ulong _maxRightVacuum;
+        public ulong MaxRightVacuum
+        {
+            get => _maxRightVacuum;
+            set => Set(ref _maxRightVacuum, value);
+        }
+
+        private ulong _minLeftVacuum;
+        public ulong MinLeftVacuum
+        {
+            get => _minLeftVacuum;
+            set => Set(ref _minLeftVacuum, value);
+        }
+
+        private ulong _minRightVacuum;
+        public ulong MinRightVacuum
+        {
+            get => _minRightVacuum;
+            set => Set(ref _minRightVacuum, value);
         }
 
         [FormField(LabelResource: ManufacturingResources.Names.Machine_Cameras, FactoryUrl: "/api/mfg/machine/camera/factory", FieldType: FieldTypes.ChildListInline, OpenByDefault: true, IsRequired: true, ResourceType: typeof(ManufacturingResources))]

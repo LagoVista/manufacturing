@@ -231,6 +231,7 @@ namespace LagoVista.PickAndPlace
             {
                 _topRed = value;
                 RaisePropertyChanged();
+                UpdateTopLight();
             }
         }
 
@@ -242,6 +243,7 @@ namespace LagoVista.PickAndPlace
             {
                 _bottomRed = value;
                 RaisePropertyChanged();
+                UpdateBottomLight();
             }
         }
 
@@ -254,6 +256,7 @@ namespace LagoVista.PickAndPlace
             {
                 _topGreen = value;
                 RaisePropertyChanged();
+                UpdateBottomLight();
             }
         }
 
@@ -265,6 +268,7 @@ namespace LagoVista.PickAndPlace
             {
                 _bottomGreen = value;
                 RaisePropertyChanged();
+                UpdateBottomLight();
             }
         }
 
@@ -276,6 +280,7 @@ namespace LagoVista.PickAndPlace
             {
                 _topBlue = value;
                 RaisePropertyChanged();
+                UpdateBottomLight();
             }
         }
 
@@ -287,6 +292,7 @@ namespace LagoVista.PickAndPlace
             {
                 _bottomBlue = value;
                 RaisePropertyChanged();
+                UpdateBottomLight();
             }
         }
 
@@ -298,6 +304,7 @@ namespace LagoVista.PickAndPlace
             {
                 _topPower = value;
                 RaisePropertyChanged();
+                UpdateTopLight();
             }
         }
 
@@ -309,6 +316,23 @@ namespace LagoVista.PickAndPlace
             {
                 _bottomPower = value;
                 RaisePropertyChanged();
+                UpdateBottomLight();
+            }
+        }
+
+        private void UpdateTopLight()
+        {
+            if (TopLightOn)
+            {
+                Enqueue(ConvertTopLightColors(Settings.GcodeMapping.Value.TopLightOn));
+            }
+        }
+
+        private void UpdateBottomLight()
+        {
+            if (TopLightOn)
+            {
+                Enqueue(ConvertTopLightColors(Settings.GcodeMapping.Value.TopLightOn));
             }
         }
 
@@ -330,7 +354,7 @@ namespace LagoVista.PickAndPlace
             set
             {
                 if (_topLightOn != value)
-                {                     
+                {
                     switch (Settings.MachineType)
                     {
                         case FirmwareTypes.Repeteir_PnP: Enqueue($"M42 P31 S{(value ? 0 : 255)}"); break;
@@ -381,6 +405,42 @@ namespace LagoVista.PickAndPlace
             }
         }
 
+
+        private bool _leftVacuumPump = false;
+        public bool LeftVacuumPump
+        {
+            get { return _leftVacuumPump; }
+            set
+            {
+                if (Settings.GcodeMapping.Value != null)
+                {
+                    if (value)
+                        Enqueue(Settings.GcodeMapping.Value.LeftVacuumOn);
+                    else
+                        Enqueue(Settings.GcodeMapping.Value.LeftVacuumOff);
+                }
+
+                _leftVacuumPump = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private bool _rightVacuumPump = false;
+        public bool RightVacuumPump
+        {
+            get { return _rightVacuumPump; }
+            set
+            {
+                if (value)
+                    Enqueue(Settings.GcodeMapping.Value.RightVacuumOn);
+                else
+                    Enqueue(Settings.GcodeMapping.Value.RightVacuumOff);
+
+                _rightVacuumPump = value;
+                RaisePropertyChanged();
+            }
+        }
+
         private bool _vacuumPump = false;
         public bool VacuumPump
         {
@@ -395,7 +455,7 @@ namespace LagoVista.PickAndPlace
                             Enqueue($"M42 P10 S{(value ? 255 : 0)}");
                             break;
                         case FirmwareTypes.LagoVista_PnP:
-                            Enqueue($"M64 S{(value ? 255 : 0)}");                            
+                            Enqueue($"M64 S{(value ? 255 : 0)}");
                             break;
                         default:
                             if (Settings.GcodeMapping.Value != null)
@@ -414,6 +474,28 @@ namespace LagoVista.PickAndPlace
             }
         }
 
+        ulong _leftVacuum;
+        public ulong LeftVacuum
+        {
+            get => _leftVacuum;
+            set
+            {
+                _leftVacuum = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        ulong _rightVacuum;
+        public ulong RightVacuum
+        {
+            get => _rightVacuum;
+            set
+            {
+                _rightVacuum = value;
+                RaisePropertyChanged();
+            }
+        }
+
         private bool _puffPump = false;
         public bool PuffPump
         {
@@ -424,11 +506,11 @@ namespace LagoVista.PickAndPlace
                 {
                     switch (Settings.MachineType)
                     {
-                        case FirmwareTypes.Repeteir_PnP: 
+                        case FirmwareTypes.Repeteir_PnP:
                             Enqueue($"M42 P07 S{(value ? 255 : 0)}");
                             break;
-                        case FirmwareTypes.LagoVista_PnP: 
-                            Enqueue($"M63 S{(value ? 255 : 0)}");                            
+                        case FirmwareTypes.LagoVista_PnP:
+                            Enqueue($"M63 S{(value ? 255 : 0)}");
                             break;
                         default:
                             if (Settings.GcodeMapping.Value != null)
@@ -462,7 +544,7 @@ namespace LagoVista.PickAndPlace
                             Enqueue($"M42 P23 S{(value ? 255 : 0)}");
                             break;
                         default:
-                            if(Settings.GcodeMapping.Value != null)
+                            if (Settings.GcodeMapping.Value != null)
                             {
                                 Enqueue(Settings.GcodeMapping.Value.ReadLeftVacuumCmd);
                             }
@@ -487,7 +569,7 @@ namespace LagoVista.PickAndPlace
                     switch (Settings.MachineType)
                     {
                         case FirmwareTypes.Repeteir_PnP:
-                                Enqueue($"M42 P23 S{(value ? 255 : 0)}");
+                            Enqueue($"M42 P23 S{(value ? 255 : 0)}");
                             break;
                         default:
                             if (Settings.GcodeMapping.Value != null)
@@ -516,11 +598,11 @@ namespace LagoVista.PickAndPlace
                     {
                         case FirmwareTypes.Repeteir_PnP:
                             Enqueue($"M42 P27 S{(value ? 255 : 0)}");
-                            
+
                             break;
                         case FirmwareTypes.LagoVista_PnP:
-                            
-                            Enqueue($"M64 S{(value ? 255 : 0)}"); 
+
+                            Enqueue($"M64 S{(value ? 255 : 0)}");
                             break;
                     }
 

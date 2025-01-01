@@ -1,5 +1,6 @@
 ﻿using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.PlatformSupport;
+using LagoVista.Core.Validation;
 using LagoVista.GCode;
 using LagoVista.Manufacturing.Models;
 using System;
@@ -15,6 +16,9 @@ namespace LagoVista.PickAndPlace.Interfaces
     public interface IMachine : INotifyPropertyChanged
     {
         event EventHandler<string> LineReceived;
+
+        event EventHandler MachineConnected;
+        event EventHandler MachineDisconnected;
 
         /// <summary>
         /// As commands are sent to the machine the number of bytes for that command are added to 
@@ -66,10 +70,20 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         bool TopLightOn { get; set; }
         bool BottomLightOn { get; set; }
+        
         bool VacuumPump { get; set; }
         bool PuffPump { get; set; }
         bool VacuumSolendoid { get; set; }
         bool PuffSolenoid { get; set; }
+
+        bool LeftVacuumPump { get; set; }
+        bool RightVacuumPump { get; set; }
+
+        ulong RightVacuum { get; set; }
+        ulong LeftVacuum { get; set; }
+
+        Task<InvokeResult<ulong>> ReadLeftVacuumAsync();
+        Task<InvokeResult<ulong>> ReadRightVacuumAsync();
 
         /// <summary>
         /// Current mode of the machine, such as Connected, Running a Job, etc....
@@ -278,5 +292,9 @@ namespace LagoVista.PickAndPlace.Interfaces
         byte BottomBlue { get; set; }
         byte TopPower { get; set; }
         byte BottomPower { get; set; }
+
+        void I2CSend(byte address, byte register);
+        void I2CSend(byte address, byte[] buffer);
+        Task<InvokeResult<byte>> I2CReadHexByte(byte address);
     }
 }
