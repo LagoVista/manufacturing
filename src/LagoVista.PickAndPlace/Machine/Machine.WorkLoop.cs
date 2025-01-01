@@ -212,7 +212,10 @@ namespace LagoVista.PickAndPlace
             if (lineTask.IsCompleted)
             {
                 if (lineTask.Status != TaskStatus.Faulted)
+                {
+                    LineReceived?.Invoke(this, lineTask.Result);
                     ProcessResponseLine(lineTask.Result);
+                }
             }
         }
 

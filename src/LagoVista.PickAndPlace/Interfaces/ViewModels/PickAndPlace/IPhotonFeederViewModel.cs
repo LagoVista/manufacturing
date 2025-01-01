@@ -11,9 +11,9 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         AutoFeeder SelectedFeeder { get;}
         ObservableCollection<AutoFeederSummary> ExistingAutoFeeders { get; }
         ObservableCollection<PhotonFeeder> DiscoveredFeeders { get; }
-
         RelayCommand<int> NextPartCommand { get; }
-        RelayCommand DiscoverFeeders { get; }
+        RelayCommand DiscoverFeedersCommand { get; }
         RelayCommand AddFeederCommand { get; }
+        int FeedersToSearch { get; set; }
     }
 }

@@ -6,10 +6,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls.PickAndPlace"
              mc:Ignorable="d" 
+                d:DataContext="{d:DesignInstance vm:IPhotonFeederViewModel }"
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;assembly=LagoVista.PickAndPlace"                                        
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
-    </Grid>
+    <StackPanel>
+        <TextBox Width="120" Height="20" Text="{Binding FeedersToSearch}"></TextBox>
+        <Button Style="{StaticResource CommandButton}" Command="{Binding DiscoverFeedersCommand}" Content="Discover" ></Button>
+        <DataGrid ItemStringFormat="{Binding DiscoveredFeeders}"></DataGrid>
+    </StackPanel>
 </ucb:VMBoundUserControl>

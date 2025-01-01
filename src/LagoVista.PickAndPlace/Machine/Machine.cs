@@ -17,6 +17,7 @@ namespace LagoVista.PickAndPlace
     public partial class Machine : IMachine
     {
         public event PropertyChangedEventHandler PropertyChanged;
+        public event EventHandler<string> LineReceived;
 
         public Machine()
         {

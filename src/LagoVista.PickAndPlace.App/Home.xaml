@@ -36,7 +36,10 @@
                         <ctls:ToolAlignment></ctls:ToolAlignment>
                     </TabItem>
                     <TabItem Header="Machine">
+                        <Grid>
                         <pnpc:PickAndPlaceMachineControl></pnpc:PickAndPlaceMachineControl>
+                        <pnpc:PhotonFeedersControl></pnpc:PhotonFeedersControl>
+                        </Grid>
                     </TabItem>
                     <TabItem Header="Prepare Job">
                         <pnpc:PrepareJob></pnpc:PrepareJob>
@@ -45,9 +48,6 @@
                         <pnpc:PickAndPlaceJobControl></pnpc:PickAndPlaceJobControl>
                     </TabItem>
                 </TabControl>
-
-                
-
                 <ctls:ManualSend Grid.Row="1" VerticalAlignment="Bottom"/>
 
                 

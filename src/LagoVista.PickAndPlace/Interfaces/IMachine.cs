@@ -14,6 +14,8 @@ namespace LagoVista.PickAndPlace.Interfaces
 
     public interface IMachine : INotifyPropertyChanged
     {
+        event EventHandler<string> LineReceived;
+
         /// <summary>
         /// As commands are sent to the machine the number of bytes for that command are added to 
         /// the UnacknowledgedByteSet property, once the command has been acknowledged the number 
