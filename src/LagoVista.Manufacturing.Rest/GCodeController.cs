@@ -26,9 +26,9 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         }
 
         [HttpGet("/api/mfg/gcodemapping/{id}")]
-        public async Task<DetailResponse<GCodeMapping>> GetGCodeMapping(string id, bool loadcomponent = false)
+        public async Task<DetailResponse<GCodeMapping>> GetGCodeMapping(string id)
         {
-            return DetailResponse<GCodeMapping>.Create(await _mgr.GetGCodeMappingAsync(id, loadcomponent, OrgEntityHeader, UserEntityHeader));
+            return DetailResponse<GCodeMapping>.Create(await _mgr.GetGCodeMappingAsync(id, OrgEntityHeader, UserEntityHeader));
         }
 
         [HttpGet("/api/mfg/gcodemapping/factory")]

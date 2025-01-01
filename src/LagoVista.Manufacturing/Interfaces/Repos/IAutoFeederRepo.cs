@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace LagoVista.Manufacturing.Interfaces.Repos
 {
-    public interface IFeederRepo
+    public interface IAutoFeederRepo
     {
         Task AddFeederAsync(AutoFeeder feeder);
         Task UpdateFeederAsync(AutoFeeder feeder);

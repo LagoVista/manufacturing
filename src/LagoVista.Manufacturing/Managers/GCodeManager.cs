@@ -53,7 +53,7 @@ namespace LagoVista.Manufacturing.Managers
             return InvokeResult.Success;
         }
 
-        public async Task<GCodeMapping> GetGCodeMappingAsync(string id, bool loadComponent, EntityHeader org, EntityHeader user)
+        public async Task<GCodeMapping> GetGCodeMappingAsync(string id,  EntityHeader org, EntityHeader user)
         {
             var GCodeMapping = await _repo.GetGCodeMappingAsync(id);
             await AuthorizeAsync(GCodeMapping, AuthorizeActions.Read, user, org);

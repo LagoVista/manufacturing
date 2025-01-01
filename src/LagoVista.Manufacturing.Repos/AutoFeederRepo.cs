@@ -11,7 +11,7 @@ using LagoVista.Core.Exceptions;
 
 namespace LagoVista.Manufacturing.Repo.Repos
 {
-    public class AutoFeederRepo : DocumentDBRepoBase<AutoFeeder>, IFeederRepo
+    public class AutoFeederRepo : DocumentDBRepoBase<AutoFeeder>, IAutoFeederRepo
     {
         private bool _shouldConsolidateCollections;
 

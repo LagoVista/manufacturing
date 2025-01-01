@@ -11,7 +11,7 @@ namespace LagoVista.Manufacturing.Interfaces.Managers
         Task<InvokeResult> AddGCodeMappingAsync(GCodeMapping mapping, EntityHeader org, EntityHeader user);
         Task<InvokeResult> UpdateGCodeMappingAsync(GCodeMapping mapping, EntityHeader org, EntityHeader user);
         Task<ListResponse<GCodeMappingSummary>> GetGCodeMappingsSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user);
-        Task<GCodeMapping> GetGCodeMappingAsync(string id, bool loadComponent, EntityHeader org, EntityHeader user);
+        Task<GCodeMapping> GetGCodeMappingAsync(string id, EntityHeader org, EntityHeader user);
         Task<InvokeResult> DeleteGCodeMappingAsync(string id, EntityHeader org, EntityHeader user);
     }
 }

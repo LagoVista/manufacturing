@@ -12,13 +12,15 @@ namespace LagoVista.Manufacturing.Repos
             services.AddTransient<IStripFeederRepo, StripFeederRepo>();
             services.AddTransient<IComponentPackageRepo, ComponentPackageRepo>();
             services.AddTransient<IPartPackRepo, PartPackRepo>();
-            services.AddTransient<IFeederRepo, AutoFeederRepo>();
+            services.AddTransient<IAutoFeederRepo, AutoFeederRepo>();
             services.AddTransient<IMachineRepo, MachineRepo>();
             services.AddTransient<IPickAndPlaceJobRepo, PickAndPlaceJobRepo>();
             services.AddTransient<ICircuitBoardRepo, CircuitBoardRepo>();
             services.AddTransient<IPnpMachineNozzleTipReo, PnPMachineNozzleTipRepo>();
             services.AddTransient<IComponentOrderRepo, ComponentOrderRepo>();
             services.AddTransient<IGCodeMappingRepo, GCodeMappingRepo>();
+            services.AddTransient<IStripFeederTemplateRepo, StripFeederTemplateRepo>();
+            services.AddTransient<IAutoFeederTemplateRepo, AutoFeederTemplateRepo>();
         }
     }
 }

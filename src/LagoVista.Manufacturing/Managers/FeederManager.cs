@@ -15,11 +15,11 @@ namespace LagoVista.Manufacturing.Managers
 {
     public class FeederManager : ManagerBase, IFeederManager
     {
-        private readonly IFeederRepo _feederRepo;
+        private readonly IAutoFeederRepo _feederRepo;
         private readonly IComponentManager _componentManager;
         private readonly IComponentPackageRepo _packageRepo;
 
-        public FeederManager(IFeederRepo feederRepo, IComponentManager componentManager, IComponentPackageRepo packageRepo,
+        public FeederManager(IAutoFeederRepo feederRepo, IComponentManager componentManager, IComponentPackageRepo packageRepo,
             IAdminLogger logger, IAppConfig appConfig, IDependencyManager depmanager, ISecurity security) :
             base(logger, appConfig, depmanager, security)
         {
