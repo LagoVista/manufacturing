@@ -82,6 +82,8 @@ namespace LagoVista.PickAndPlace.Interfaces
         ulong RightVacuum { get; set; }
         ulong LeftVacuum { get; set; }
 
+        bool IsPnPMachine { get; }
+
         Task<InvokeResult<ulong>> ReadLeftVacuumAsync();
         Task<InvokeResult<ulong>> ReadRightVacuumAsync();
 

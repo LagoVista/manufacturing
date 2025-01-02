@@ -1,44 +1,25 @@
 ﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.Models;
 using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Models;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace LagoVista.PickAndPlace.ViewModels.Vision
 {
-    public class VisionProfileViewModel : ViewModelBase, IVisionProfileViewModel
+    public class VisionProfileViewModel : MachineViewModelBase, IVisionProfileViewModel
     {
-        private readonly IMachineRepo _machineRepo;
-        private readonly IVisionProfileManagerViewModel _visionProfileManager;
 
-        public VisionProfileViewModel(IMachineRepo machineRepo, IVisionProfileManagerViewModel visionProfileManager)
+        public VisionProfileViewModel(IMachineRepo machineRepo) : base (machineRepo) 
         {
-            _machineRepo = machineRepo;
-            _visionProfileManager = visionProfileManager;
-
-            SaveCommand = new RelayCommand(() => Save());
+            VisionProfiles = new ObservableCollection<EntityHeader>(VisionProfile.DefaultVisionProfiles);
         }
-
-        public async void Save()
-        {
-            _visionProfileManager.SaveProfile();
-            await _machineRepo.SaveCurrentMachineAsync();
-        }
-
-        private VisionSettings _profile;
-        public VisionSettings Profile
-        {
-            get => _profile;
-            set => Set(ref _profile, value);
-        }
-
-        private MachineCamera _machineCamera;
-        public MachineCamera Camera
-        {
-            get => _machineCamera;
-            set => Set(ref _machineCamera, value);
-        }
+       
 
         public string PolygonHelp { get { return "http://docs.opencv.org/2.4/doc/tutorials/imgproc/shapedescriptors/bounding_rects_circles/bounding_rects_circles.html?highlight=approxpolydp"; } }
         public string PolygonEpsilonHelp { get { return "Parameter specifying the approximation accuracy. This is the maximum distance between the original curve and its approximation"; } }
@@ -77,6 +58,71 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         public string GaussianSigmaYHelp { get { return "Gaussian kernel standard deviation in Y direction; if sigmaY is zero, it is set to be equal to sigmaX, if both sigmas are zeros, they are computed from ksize.width and ksize.height , respectively (see getGaussianKernel() for details); to fully control the result regardless of possible future modifications of all this semantics, it is recommended to specify all of ksize, sigmaX, and sigmaY"; } }
 
 
+        ObservableCollection<EntityHeader> _visionProfiles;
+        public  ObservableCollection<EntityHeader> VisionProfiles
+        {
+            get => _visionProfiles;
+            set => Set(ref _visionProfiles, value);
+        }
+
         public RelayCommand SaveCommand { get; }
+
+        private string _selectedCameraDevicePath;
+        public string SelectedCameraDevicePath
+        {
+            get { return _selectedCameraDevicePath; }
+            set 
+            { 
+                if(value != "-1"  && value != Camera.CameraDevice?.Id)
+                {
+                    Camera.CameraDevice = CameraList.FirstOrDefault(x => x.Id == value);
+                }
+
+                Set(ref _selectedCameraDevicePath, value); 
+            }
+        }
+
+        ObservableCollection<EntityHeader> _cameraList;
+        public ObservableCollection<EntityHeader> CameraList
+        {
+            get => _cameraList;
+            set => Set(ref _cameraList, value);
+        }
+
+        public string SelectedProfile
+        {
+            get => Camera.CurrentVisionProfile.Key;
+            set
+            {
+                if(Camera.CurrentVisionProfile.Key != value)
+                {
+                    var profile = Camera.VisionProfiles.Where(pf => pf.Key == value).SingleOrDefault();
+                    if (profile == null)
+                    {
+                        var defaultProfile = VisionProfiles.FirstOrDefault(vp => vp.Key == VisionProfile.VisionProfile_Defauilt);
+                        var newProfile = JsonConvert.DeserializeObject<VisionProfile>(JsonConvert.SerializeObject(defaultProfile));
+                        var ehProfile = VisionProfiles.FirstOrDefault(pf => pf.Key == value);
+                        newProfile.Key = ehProfile.Key;
+                        newProfile.Id = ehProfile.Id;
+                        newProfile.Name = ehProfile.Text;
+                        Camera.VisionProfiles.Add(newProfile);
+                        Camera.CurrentVisionProfile = newProfile;
+                    }
+                    else
+                        Camera.CurrentVisionProfile = profile;
+
+                    RaisePropertyChanged(nameof(Profile));
+                }
+            }
+        }
+
+        public VisionProfile Profile {  get => Camera.CurrentVisionProfile; }
+
+        MachineCamera _camera;
+        public MachineCamera Camera
+        {
+            get => _camera;
+            set => Set(ref _camera, value);    
+        }
     }
 }

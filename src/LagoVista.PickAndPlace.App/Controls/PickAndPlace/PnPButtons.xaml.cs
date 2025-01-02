@@ -49,72 +49,75 @@ namespace LagoVista.PickAndPlace.App.Controls
 
         void ReadController(object state)
         {
-            if (this._viewModel != null &&
-                _controller.IsConnected  //&& 
-                //!_viewModel.Machine.Connected && 
-                //_viewModel.Machine.Mode == OperatingMode.Manual
-                )
+            if(_viewModel.MachineRepo.CurrentMachine.IsPnPMachine && _viewModel.MachineRepo.CurrentMachine.Connected)
             {
-                var controllerState = _controller.GetState();
-                if (_lastState.HasValue)
+                if (this._viewModel != null &&
+                    _controller.IsConnected  //&& 
+                                             //!_viewModel.Machine.Connected && 
+                                             //_viewModel.Machine.Mode == OperatingMode.Manual
+                    )
                 {
-                    var btn = controllerState.Gamepad.Buttons;
-                    if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.A))
+                    var controllerState = _controller.GetState();
+                    if (_lastState.HasValue)
                     {
-                        _viewModel.XYStepMode = StepModes.Small;
-                        _viewModel.ZStepMode = StepModes.Micro;
+                        var btn = controllerState.Gamepad.Buttons;
+                        if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.A))
+                        {
+                            _viewModel.XYStepMode = StepModes.Small;
+                            _viewModel.ZStepMode = StepModes.Micro;
+                        }
+
+                        if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.X))
+                        {
+                            _viewModel.XYStepMode = StepModes.Medium;
+                            _viewModel.ZStepMode = StepModes.Small;
+                        }
+
+                        if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.B))
+                        {
+                            _viewModel.XYStepMode = StepModes.Large;
+                            _viewModel.ZStepMode = StepModes.Medium;
+                        }
+
+                        if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.Y))
+                        {
+                            _viewModel.XYStepMode = StepModes.XLarge;
+                            _viewModel.ZStepMode = StepModes.Large;
+                        }
+
+                        if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.DPadDown))
+                        {
+                            _viewModel.Jog(JogDirections.YMinus);
+                        }
+
+                        if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.DPadUp))
+                        {
+                            _viewModel.Jog(JogDirections.YPlus);
+                        }
+
+                        if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.DPadLeft))
+                        {
+                            _viewModel.Jog(JogDirections.XMinus);
+                        }
+
+                        if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.DPadRight))
+                        {
+                            _viewModel.Jog(JogDirections.XPlus);
+                        }
+
+                        if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.LeftShoulder))
+                        {
+                            _viewModel.Jog(JogDirections.ZMinus);
+                        }
+
+                        if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.RightShoulder))
+                        {
+                            _viewModel.Jog(JogDirections.ZPlus);
+                        }
                     }
 
-                    if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.X))
-                    {
-                        _viewModel.XYStepMode = StepModes.Medium;
-                        _viewModel.ZStepMode = StepModes.Small;
-                    }
-
-                    if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.B))
-                    {
-                        _viewModel.XYStepMode = StepModes.Large;
-                        _viewModel.ZStepMode = StepModes.Medium;
-                    }
-
-                    if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.Y))
-                    {
-                        _viewModel.XYStepMode = StepModes.XLarge;
-                        _viewModel.ZStepMode = StepModes.Large;
-                    }
-
-                    if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.DPadDown))
-                    {
-                        _viewModel.Jog(JogDirections.YMinus);
-                    }
-
-                    if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.DPadUp))
-                    {
-                        _viewModel.Jog(JogDirections.YPlus);
-                    }
-
-                    if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.DPadLeft))
-                    {
-                        _viewModel.Jog(JogDirections.XMinus);
-                    }
-
-                    if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.DPadRight))
-                    {
-                        _viewModel.Jog(JogDirections.XPlus);
-                    }
-
-                    if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.LeftShoulder))
-                    {
-                        _viewModel.Jog(JogDirections.ZMinus);
-                    }
-
-                    if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.RightShoulder))
-                    {
-                        _viewModel.Jog(JogDirections.ZPlus);
-                    }
+                    _lastState = controllerState;
                 }
-
-                _lastState = controllerState;
             }
         }
     }

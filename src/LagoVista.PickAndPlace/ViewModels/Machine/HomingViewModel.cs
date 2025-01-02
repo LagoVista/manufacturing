@@ -16,14 +16,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private readonly IMachineRepo _machineRepo;
         private readonly ILogger _logger;
         private readonly ILocatorViewModel _locatorViewModel;
-        private readonly IVisionProfileManagerViewModel _visionManagerViewModel;
 
-        public HomingViewModel(IMachineRepo machineRepo, IVisionProfileManagerViewModel visionManagerViewModel, ILocatorViewModel locatorViewModel, ILogger logger)
+        public HomingViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel, ILogger logger)
         {
             _locatorViewModel = locatorViewModel;
             _machineRepo = machineRepo;
             _logger = logger;
-            _visionManagerViewModel = visionManagerViewModel;
         }
 
         private string _status;
@@ -42,7 +40,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         {
             _machineRepo.CurrentMachine.SendSafeMoveHeight();
             _machineRepo.CurrentMachine.GotoWorkspaceHome();
-            _visionManagerViewModel.SelectProfile("mchfiducual");
 
             _locatorViewModel.SetLocatorState(MVLocatorState.WorkHome);
 

@@ -1,25 +1,55 @@
 ﻿using LagoVista.Core.Models;
+using LagoVista.Manufacturing.Models.Resources;
 using System;
+using System.Collections.Generic;
 
 namespace LagoVista.PickAndPlace.Models
 {
     public class VisionProfile : ModelBase
     {
-        public string Name { get; set; }
-        public string Id { get; set; }
+        public static List<EntityHeader> DefaultVisionProfiles
+        {
+            get
+            {
+                return new List<EntityHeader>()
+                {
+                    EntityHeader.Create(VisionProfile_Defauilt,VisionProfile_Defauilt, ManufacturingResources.VisionProfile_Defauilt),
+                    EntityHeader.Create(VisionProfile_BoardFiducial,VisionProfile_BoardFiducial, ManufacturingResources.VisionProfile_BoardFiducial),
+                    EntityHeader.Create(VisionProfile_MachineFiducual, VisionProfile_MachineFiducual, ManufacturingResources.VisionProfile_MachineFiducual),
+                    EntityHeader.Create(VisionProfile_Nozzle,VisionProfile_Nozzle, ManufacturingResources.VisionProfile_Nozzle),
+                    EntityHeader.Create(VisionProfile_NozzleCalibration, VisionProfile_NozzleCalibration, ManufacturingResources.VisionProfile_NozzleCalibration),
+                    EntityHeader.Create(VisionProfile_PartInspection, VisionProfile_PartInspection, ManufacturingResources.VisionProfile_PartInspection),
+                    EntityHeader.Create(VisionProfile_SquarePart,VisionProfile_SquarePart, ManufacturingResources.VisionProfile_SquarePart),
+                    EntityHeader.Create(VisionProfile_TapeHole,VisionProfile_TapeHole, ManufacturingResources.VisionProfile_TapeHole),
+                    EntityHeader.Create(VisionProfile_TapeHoleBlackTape,VisionProfile_TapeHoleBlackTape, ManufacturingResources.VisionProfile_TapeHoleBlackTape),
+                    EntityHeader.Create(VisionProfile_TapeHoleClearTape, VisionProfile_TapeHoleClearTape, ManufacturingResources.VisionProfile_TapeHoleClearTape),
+                    EntityHeader.Create(VisionProfile_TapeHoleWhiteTape,VisionProfile_TapeHoleWhiteTape, ManufacturingResources.VisionProfile_TapeHoleWhiteTape),
+                };
+            }
+        }
 
-        public VisionSettings BottomProfile {  get; set; }
-        public VisionSettings TopProfile { get; set; }
-    }
+        public const string VisionProfile_Defauilt = "default";
+        public const string VisionProfile_BoardFiducial = "brdfiducial";
+        public const string VisionProfile_MachineFiducual = "macfiducial";
+        public const string VisionProfile_TapeHole = "tapehole";
+        public const string VisionProfile_TapeHoleWhiteTape= "tapeholewhite";
+        public const string VisionProfile_TapeHoleBlackTape = "tapeholeblack";
+        public const string VisionProfile_TapeHoleClearTape = "tapeholeclear";
+        public const string VisionProfile_SquarePart = "squarepart";
+        public const string VisionProfile_Nozzle = "nozzle";
+        public const string VisionProfile_NozzleCalibration = "nozzlecalibration";
+        public const string VisionProfile_PartInspection = "partinspection";
 
-    public class VisionSettings : ModelBase
-    {
         private string _name;
         public string Name
         {
             get { return _name; }
             set { _name = value; RaisePropertyChanged(); }
         }
+
+        public string Id { get; set; }
+
+        public string Key { get; set; }
 
         private bool _showOriginalImage;
         public bool ShowOriginalImage
@@ -51,7 +81,7 @@ namespace LagoVista.PickAndPlace.Models
         }
 
         /* 1-3*/
-        private double _brightness = 1.0;
+        private double _brightness = 50;
         public double Brightness
         {
             get { return _brightness; }
@@ -59,7 +89,7 @@ namespace LagoVista.PickAndPlace.Models
         }
 
         /* 0-100*/
-        private double _contrast = 25;
+        private double _contrast = 50;
         public double Contrast
         {
             get { return _contrast; }
@@ -99,7 +129,7 @@ namespace LagoVista.PickAndPlace.Models
         public bool FindRectangles
         {
             get => _findRectangles;
-            set {  Set(ref _findRectangles, value); }
+            set { Set(ref _findRectangles, value); }
         }
 
         private bool _findCircles;
@@ -248,9 +278,9 @@ namespace LagoVista.PickAndPlace.Models
         }
 
         private double _zoomLevel = 1;
-        public double ZoomLevel 
-        { 
-            set { Set(ref _zoomLevel, value);  }
+        public double ZoomLevel
+        {
+            set { Set(ref _zoomLevel, value); }
             get { return _zoomLevel; }
         }
 

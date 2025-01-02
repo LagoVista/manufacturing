@@ -36,14 +36,12 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         private StripFeeder _stripFeeder;
 
         private ILocatorViewModel _locatorViewModel;
-        private IVisionProfileManagerViewModel _visionProfileManagerViewModel;
-
-        public StripFeederViewModel(IMachine machine, IVisionProfileManagerViewModel visionProfileViewModel, ILocatorViewModel locatorViewModel, PnPJobViewModel jobVM)
+        
+        public StripFeederViewModel(IMachine machine, ILocatorViewModel locatorViewModel, PnPJobViewModel jobVM)
         {
             _machine = machine;
             _jobVM = jobVM;
             _locatorViewModel = locatorViewModel;
-            _visionProfileManagerViewModel = visionProfileViewModel; ;
 
             GoToCurrentPartCommand = new RelayCommand(() => GoToPart(PositionType.CurrentPart), () => _selectedStripFeederRow != null);
             GoToFirstPartCommand = new RelayCommand(() => GoToPart(PositionType.FirstPart), () => _selectedStripFeederRow != null);
@@ -197,7 +195,6 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             _machine.SendSafeMoveHeight();            
 
-            _visionProfileManagerViewModel.SelectProfile("tapehole");
             _machine.TopLightOn = false;
             _machine.BottomLightOn = false;
         }

@@ -53,14 +53,11 @@
         <Label Content="Invert"  Grid.Row="2" Grid.Column="2" />
         <CheckBox IsChecked="{Binding Profile.Invert, Mode=TwoWay}" Grid.Row="2" Grid.Column="3" />
 
-
         <Label Content="Flip Horizontal"  Grid.Row="3" Grid.Column="2" />
         <CheckBox IsChecked="{Binding Camera.MirrorXAxis, Mode=TwoWay}" Grid.Row="3" Grid.Column="3" />
 
-
         <Label Content="Flip Vertical"  Grid.Row="4" Grid.Column="2" />
         <CheckBox IsChecked="{Binding Camera.MirrorYAxis, Mode=TwoWay}" Grid.Row="4" Grid.Column="3" />
-
 
         <Label Content="Use Blurred"  Grid.Row="1" />
         <CheckBox IsChecked="{Binding Profile.UseBlurredImage, Mode=TwoWay}" Grid.Row="1" Grid.Column="1" />
@@ -80,7 +77,6 @@
         <Label Content="200px Square"  Grid.Row="6" />
         <CheckBox IsChecked="{Binding Profile.Show200PixelSquare, Mode=TwoWay}" Grid.Row="6" Grid.Column="1" />
 
-
         <Label Content="Cross Hairs"  Grid.Row="6" Grid.Column="2" />
         <CheckBox IsChecked="{Binding Profile.ShowCrossHairs, Mode=TwoWay}" Grid.Row="6" Grid.Column="3" />
 
@@ -92,5 +88,8 @@
 
         <Label Grid.Row="8" Content="Vision State:" ></Label>
         <Label Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2" Content="{Binding LocatorState}"></Label>
+
+        <Label Grid.Row="9">Camera</Label>
+        <ComboBox Grid.Row="9" Grid.Column="2" ItemsSource="{Binding CameraList}" DisplayMemberPath="Text" SelectedValuePath="Id" SelectedValue="{Binding SelectedCameraDevicePath}"></ComboBox>
     </Grid>
 </UserControl>

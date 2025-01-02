@@ -1,14 +1,19 @@
 ﻿using DirectShowLib;
 using Emgu.CV;
 using Emgu.CV.Structure;
+using LagoVista.Core;
 using LagoVista.Core.Commanding;
+using LagoVista.Core.Models;
 using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
+using LagoVista.Manufacturing.Models.Resources;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
+using LagoVista.PickAndPlace.ViewModels;
 using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,7 +22,7 @@ using System.Windows.Media.Imaging;
 
 namespace LagoVista.PickAndPlace.App.MachineVision
 {
-    public class ImageCaptureService : ViewModelBase, IImageCaptureService, INotifyPropertyChanged
+    public class ImageCaptureService : MachineViewModelBase, IImageCaptureService, INotifyPropertyChanged
     {
         private bool _running;
         private double _lastBrightness = -9999;
@@ -28,17 +33,15 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
         private object _captureLocker = new object();
 
-        private readonly IMachineRepo _machineRepo;
         ShapeDetectionService _shapeDetectorService;
         ILocatorViewModel _locatorViewModel;
-        LocatedByCamera _activeCamera;
+        CameraTypes _cameraType;
 
-        private readonly IVisionProfileManagerViewModel _visionProfileManager;
 
-        public LocatedByCamera ActiveCamera 
+        public CameraTypes CameraType
         {
-            get => _activeCamera;
-            set => Set(ref _activeCamera, value);            
+            get => _cameraType;
+            set => Set(ref _cameraType, value);            
         }
 
         MachineCamera _camera;
@@ -48,64 +51,82 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             set => Set(ref _camera, value);
         }
 
-        public ImageCaptureService(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel, IVisionProfileManagerViewModel visionProfileManager)
-        {
-            _visionProfileManager = visionProfileManager ?? throw new ArgumentNullException(nameof(visionProfileManager));
-            _machineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
+        public ImageCaptureService(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel) : base(machineRepo)
+        {            
             _locatorViewModel = locatorViewModel ?? throw new ArgumentNullException(nameof(locatorViewModel));
 
             StartCaptureCommand = new RelayCommand(StartCapture);
             StopCaptureCommand = new RelayCommand(StopCapture);
         }
 
-
-        public VisionSettings Profile
+        protected override void MachineChanged(IMachine machine)
         {
-            get {
-                switch (_activeCamera)
-                {
-                    case LocatedByCamera.PartInspection:
-                        return _visionProfileManager.BottomCameraProfile;
-                    case LocatedByCamera.Position:
-                        return _visionProfileManager.TopCameraProfile;
-                }
+            Camera = machine.Settings.Cameras.FirstOrDefault(c => c.CameraType.Value == CameraType);
 
-                throw new InvalidOperationException($"Invalid Camera {_activeCamera}");
+            Camera.CurrentVisionProfile = Camera.VisionProfiles.FirstOrDefault(prf => prf.Key == VisionProfile.VisionProfile_Defauilt);
+            if (Camera.CurrentVisionProfile == null)
+            {
+                var profile = new VisionProfile()
+                {
+                    Id = Guid.NewGuid().ToId(),
+                    Key = VisionProfile.VisionProfile_Defauilt,
+                    Name = ManufacturingResources.VisionProfile_Defauilt
+                };
+
+                Camera.VisionProfiles.Add(profile);
+
+                Camera.CurrentVisionProfile = profile;
             }
+        }
+
+        public override Task InitAsync()
+        {
+            return base.InitAsync();
+        }
+
+        public VisionProfile Profile
+        {
+            get => Camera?.CurrentVisionProfile;
         }
 
         public void StartCapture()
         {
+            if (Camera == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning, $"There are not cameras confirgured for {CameraType} for this machine..");
+                MessageBox.Show($"Please add a camera to this machine and set it's type to {CameraType}.");
+                return;
+            }
 
+            if (EntityHeader.IsNullOrEmpty(Camera.CameraDevice))
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning, $"Need to associate a physical camera with this camera definition.");
+                MessageBox.Show("Please open the camera settings and associate a physical camera.");
+                return;
+            }
+
+
+         
             if (_capture != null)
             {
                 return;
             }
 
-            _shapeDetectorService = new ShapeDetectionService(_machineRepo, _locatorViewModel, _activeCamera);
+            _shapeDetectorService = new ShapeDetectionService(_machineRepo, _locatorViewModel, _cameraType);
 
             try
             {
                 LoadingMask = true;
 
-                Camera = _activeCamera == LocatedByCamera.Position ? _machineRepo.CurrentMachine.Settings.PositioningCamera : _machineRepo.CurrentMachine.Settings.PartInspectionCamera;
-
-                var cameraName = Camera?.Name;
-
-                if (String.IsNullOrEmpty(cameraName))
+                _capture = InitCapture(Camera.CameraDevice.Id);
+                if (_capture == null)
                 {
-                    MessageBox.Show("Please Select a Camera");
+                    MessageBox.Show($"Could not load {Camera.CameraDevice.Text}");
                     return;
                 }
 
-                _capture = InitCapture(cameraName);
-                if (_capture == null)
-                {
-                    MessageBox.Show($"Could not load {cameraName} camera.");
-                }
-
-                _capture.Set(Emgu.CV.CvEnum.CapProp.FrameWidth, 480);
-                _capture.Set(Emgu.CV.CvEnum.CapProp.FrameHeight, 480);
+                _capture.Set(Emgu.CV.CvEnum.CapProp.FrameWidth, Camera.ImageSize.X);
+                _capture.Set(Emgu.CV.CvEnum.CapProp.FrameHeight, Camera.ImageSize.Y);
                 _capture.Set(Emgu.CV.CvEnum.CapProp.AutoExposure, 0);
 
                 Run();                
@@ -116,13 +137,13 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             }
         }
 
-        private VideoCapture InitCapture(string cameraName)
+        private VideoCapture InitCapture(string devicePath)
         {
             try
             {
                 var cameras = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
-                //    var camera = cameras.FirstOrDefault(cam => cam.N == cameraName);
-                var camera = cameras.Select((cam, idx) => new { cam = cam, index = idx }).FirstOrDefault(cam => cam.cam.Name == cameraName);
+                //    var camera = cameras.FirstOrDefault(cam => cam.N == devicePath);
+                var camera = cameras.Select((cam, idx) => new { DevicePath = cam.DevicePath, index = idx }).FirstOrDefault(cam => cam.DevicePath == devicePath);
                 if (camera != null)
                     return new VideoCapture(camera.index);
                 else

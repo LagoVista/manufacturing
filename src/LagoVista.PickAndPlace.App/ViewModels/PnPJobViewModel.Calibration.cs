@@ -29,7 +29,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
              _machineRepo.CurrentMachine.GotoPoint( _machineRepo.CurrentMachine.Settings.DefaultWorkspaceHome.X,  _machineRepo.CurrentMachine.Settings.DefaultWorkspaceHome.Y, true);
 
-            VisionManagerVM.SelectMVProfile("mchfiducual");
+            //VisionManagerVM.SelectMVProfile("mchfiducual");
 
             LocatorVM.SetLocatorState(MVLocatorState.MachineFidicual);
         }
@@ -52,7 +52,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         public async void GoToRefPoint()
         {
-            VisionManagerVM.SelectMVProfile("tapehold");
+            //VisionManagerVM.SelectMVProfile("tapehold");
             await  _machineRepo.CurrentMachine.SetViewTypeAsync(ViewTypes.Camera);
 
             throw new NotImplementedException();

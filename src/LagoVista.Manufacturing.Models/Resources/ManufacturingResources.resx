@@ -1268,4 +1268,40 @@
   <data name="MachineToolHead_CurrentNozzle" xml:space="preserve">
     <value>Current Nozzle</value>
   </data>
+  <data name="VisionProfile_Defauilt" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="VisionProfile_BoardFiducial" xml:space="preserve">
+    <value>Board Fiducial</value>
+  </data>
+  <data name="VisionProfile_MachineFiducual" xml:space="preserve">
+    <value>Machine Fiducial</value>
+  </data>
+  <data name="VisionProfile_TapeHole" xml:space="preserve">
+    <value>Tape Hole</value>
+  </data>
+  <data name="VisionProfile_TapeHoleWhiteTape" xml:space="preserve">
+    <value>Tape Hole (White Tape)</value>
+  </data>
+  <data name="VisionProfile_TapeHoleBlackTape" xml:space="preserve">
+    <value>Tape Hole (Black Tape)</value>
+  </data>
+  <data name="VisionProfile_TapeHoleClearTape" xml:space="preserve">
+    <value>Tape Hole (Clear Tape)</value>
+  </data>
+  <data name="VisionProfile_SquarePart" xml:space="preserve">
+    <value>Square Part</value>
+  </data>
+  <data name="VisionProfile_Nozzle" xml:space="preserve">
+    <value>Nozzle</value>
+  </data>
+  <data name="VisionProfile_NozzleCalibration" xml:space="preserve">
+    <value>Nozzle Calibration</value>
+  </data>
+  <data name="VisionProfile_PartInspection" xml:space="preserve">
+    <value>Part Inspection</value>
+  </data>
+  <data name="MachineCamera_ImageSize" xml:space="preserve">
+    <value>Image Size</value>
+  </data>
 </root>

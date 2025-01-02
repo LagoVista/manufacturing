@@ -154,8 +154,6 @@ namespace LagoVista.Manufacturing.Models
         public double ArcToLineSegmentLength { get; set; }
         public double SplitSegmentLength { get; set; }
 
-        public List<VisionProfile> VisionProfiles { get; set; } = new List<VisionProfile>();
-
         private Point2D<double> _knownCalibrationPoint = new Point2D<double>();
         public Point2D<double> KnownCalibrationPoint
         {
@@ -242,9 +240,11 @@ namespace LagoVista.Manufacturing.Models
 
 
         [JsonIgnore]
-        public double ToolSafeMoveHeight
+        public double? ToolSafeMoveHeight
         {
-            get { return _currentNozzle.SafeMoveHeight; }
+            get { 
+                return _currentNozzle?.SafeMoveHeight; 
+            }
             set
             {
                 _currentNozzle.SafeMoveHeight = value;
@@ -253,9 +253,9 @@ namespace LagoVista.Manufacturing.Models
         }
 
         [JsonIgnore]
-        public double ToolPickHeight
+        public double? ToolPickHeight
         {
-            get { return _currentNozzle.PickHeight; }
+            get { return _currentNozzle?.PickHeight; }
             set
             {
                 _currentNozzle.PickHeight = value;
@@ -323,9 +323,9 @@ namespace LagoVista.Manufacturing.Models
         /// heights for the different nozzles.
         /// </summary>
         [JsonIgnore]
-        public double ToolBoardHeight
+        public double? ToolBoardHeight
         {
-            get { return CurrentNozzle.BoardHeight; }
+            get { return CurrentNozzle?.BoardHeight; }
             set
             {
                 CurrentNozzle.BoardHeight = value;
@@ -449,14 +449,14 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _jogFeedRate, value); }
         }
 
-        private StepModes _xyStepMode = StepModes.Small;
+        private StepModes _xyStepMode = StepModes.Medium;
         public StepModes XYStepMode
         {
             get { return _xyStepMode; }
             set { Set(ref _xyStepMode, value); }
         }
 
-        private StepModes _zStepMode = StepModes.Small;
+        private StepModes _zStepMode = StepModes.Medium;
         public StepModes ZStepMode
         {
             get { return _zStepMode; }

@@ -24,11 +24,11 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         ImageHelper _imageHelper;
 
         ILocatorViewModel _locatorViewModel;
-        LocatedByCamera _camera;
+        CameraTypes _camera;
         IMachineRepo _machineRepo;
 
         const double PIXEL_PER_MM = 20.0;
-        public ShapeDetectionService(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel, LocatedByCamera camera)
+        public ShapeDetectionService(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel, CameraTypes camera)
         {
             _locatorViewModel = locatorViewModel ?? throw new ArgumentNullException(nameof(locatorViewModel));            
             _machineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
@@ -36,7 +36,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             _imageHelper = new ImageHelper();  
         }
 
-        public VisionSettings VisionSettings { get; set; }
+        public VisionProfile VisionSettings { get; set; }
 
         private Point2D<double> _foundCorner;
         public Point2D<double> FoundCorner
@@ -59,7 +59,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         }
 
         #region Show Cross Hairs
-        private void DrawCrossHairs(IInputOutputArray destImage, VisionSettings profile, System.Drawing.Size size)
+        private void DrawCrossHairs(IInputOutputArray destImage, VisionProfile profile, System.Drawing.Size size)
         {
             var center = new Point2D<int>()
             {
@@ -106,7 +106,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         int _stabilizedPointCount = 0;
 
         #region Find_imageHelper.Circles
-        private void FindCircles(IInputOutputArray input, IInputOutputArray output, System.Drawing.Size size, VisionSettings profile)
+        private void FindCircles(IInputOutputArray input, IInputOutputArray output, System.Drawing.Size size, VisionProfile profile)
         {
             var center = new Point2D<int>()
             {
@@ -178,7 +178,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         #endregion
 
         #region Find Corners
-        private void FindCorners(Image<Gray, byte> blurredGray, IInputOutputArray output, System.Drawing.Size size, VisionSettings profile)
+        private void FindCorners(Image<Gray, byte> blurredGray, IInputOutputArray output, System.Drawing.Size size, VisionProfile profile)
         {
             var center = new Point2D<int>()
             {
@@ -272,7 +272,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         }
 
         #region Find Rotated Rectangles
-        private void FindRectangles(Image<Gray, byte> input, IInputOutputArray output, System.Drawing.Size size, VisionSettings profile)
+        private void FindRectangles(Image<Gray, byte> input, IInputOutputArray output, System.Drawing.Size size, VisionProfile profile)
         {
             UMat edges = new UMat();
 
@@ -369,7 +369,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         
         #endregion
 
-        public UMat PerformShapeDetection(Image<Bgr, byte> img, MachineCamera camera, VisionSettings profile)
+        public UMat PerformShapeDetection(Image<Bgr, byte> img, MachineCamera camera, VisionProfile profile)
         {
             if (img == null)
             {

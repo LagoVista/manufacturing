@@ -29,7 +29,7 @@
                 </Button.Content>
             </Button>
         </Grid>
-        <ui:ListBoxScroll  HorizontalContentAlignment="Stretch"
+        <ui:ListBoxScroll HorizontalContentAlignment="Stretch"
                              Grid.Row="1"
                  SelectedIndex="{Binding Path=MachineRepo.CurrentMachine.MessageCount, Mode=OneWay}"
                  ItemsSource="{Binding Path=MachineRepo.CurrentMachine.Messages}"

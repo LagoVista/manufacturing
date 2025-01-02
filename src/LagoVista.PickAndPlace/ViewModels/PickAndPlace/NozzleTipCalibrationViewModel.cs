@@ -19,14 +19,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private Dictionary<int, Point2D<double>> _nozzleCalibration;
         private List<Point2D<double>> _averagePoints;
         private readonly IMachineRepo _machineRepo;
-        private readonly IVisionProfileManagerViewModel _visionManagerViewModel;
         private readonly ILocatorViewModel _locatorViewModel;
         private int _samplesAtPoint = 0;
 
-        public NozzleTipCalibrationViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel, IVisionProfileManagerViewModel visionManagerViewModel)
+        public NozzleTipCalibrationViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel)
         {
             _machineRepo = machineRepo; ;
-            _visionManagerViewModel = visionManagerViewModel;
             _locatorViewModel = locatorViewModel;
 
             CalibrateBottomCameraCommand = new RelayCommand(async () => await StartAsync());
@@ -47,7 +45,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _machineRepo.CurrentMachine.SendCommand($"G0 E0");
                 await _machineRepo.CurrentMachine.SetViewTypeAsync(ViewTypes.Tool1);
 
-                _visionManagerViewModel.SelectProfile("nozzle");
 
                 _machineRepo.CurrentMachine.SendCommand($"G0 X{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.X} Y{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.Y} Z{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.FocusHeight} F1{_machineRepo.CurrentMachine.Settings.FastFeedRate}");
             }

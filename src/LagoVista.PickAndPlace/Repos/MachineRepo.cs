@@ -92,7 +92,6 @@ namespace LagoVista.PickAndPlace.Repos
                 HasValidMachine = true;
                 MachineChanged?.Invoke(this, CurrentMachine);
 
-                SLWIOC.Get<IVisionProfileManagerViewModel>().LoadProfiles();
 
                 return InvokeResult.Success;
             }

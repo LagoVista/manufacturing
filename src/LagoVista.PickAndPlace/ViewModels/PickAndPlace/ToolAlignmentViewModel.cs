@@ -16,13 +16,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private readonly ILogger _logger;
         private readonly IMachineRepo _machineRepo;
         private readonly ILocatorViewModel _locatorViewModel;
-        private readonly IVisionProfileManagerViewModel _visionManagerViewModel;
 
-        public ToolAlignmentViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel, IVisionProfileManagerViewModel visionManagerViewModel, ILogger logger)
+        public ToolAlignmentViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel, ILogger logger)
         {
             _machineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
             _locatorViewModel = locatorViewModel ?? throw new ArgumentNullException(nameof(locatorViewModel));
-            _visionManagerViewModel = visionManagerViewModel ?? throw new ArgumentNullException(nameof(visionManagerViewModel));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             SetToolOneMovePositionCommand = new RelayCommand(SetTool1MovePosition, () => _machineRepo.CurrentMachine.Connected && _machineRepo.CurrentMachine.ViewType == ViewTypes.Camera);

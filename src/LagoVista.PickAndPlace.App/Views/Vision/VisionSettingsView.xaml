@@ -4,6 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Views"
+        xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;assembly=LagoVista.PickAndPlace"                                        
+        d:DataContext="{d:DesignInstance vm:IVisionProfileViewModel }"
         mc:Ignorable="d"
         xmlns:Controls="clr-namespace:LagoVista.PickAndPlace.App.Controls"
         Title="VisionSettingsView" Height="800" Width="480">
@@ -12,11 +14,13 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <Controls:MVViewOptions Grid.Row="0" VerticalAlignment="Bottom"  />
-        <Controls:ImageAdjustments  Grid.Row="1"  />
-        <Button Margin="20" Width="120" Height="32" HorizontalAlignment="Right" Grid.Row="2" Command="{Binding SaveCommand}">Save</Button>
+        <ComboBox ItemsSource="{Binding VisionProfiles}" SelectedValuePath="Key" SelectedValue="{Binding SelectedProfile}" ></ComboBox>
+        <Controls:MVViewOptions Grid.Row="1" VerticalAlignment="Bottom"  />
+        <Controls:ImageAdjustments  Grid.Row="2"  />
+        <Button Style="{StaticResource CommandButton}" Margin="20" Width="120" Height="32" HorizontalAlignment="Right" Grid.Row="3" Command="{Binding SaveMachineConfigurationCommand}">Save</Button>
 
     </Grid>
 </Window>

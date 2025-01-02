@@ -7,6 +7,8 @@ using LagoVista.Core.Attributes;
 using LagoVista.Manufacturing.Models.Resources;
 using LagoVista.Core.Interfaces;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using LagoVista.PickAndPlace.Models;
 
 namespace LagoVista.Manufacturing.Models
 {
@@ -47,8 +49,8 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Icon { get; set; } = "icon-ae-camera";
 
-        [FormField(LabelResource: ManufacturingResources.Names.MachineCamera_DeviceId, FieldType: FieldTypes.Text, IsUserEditable:false, ResourceType: typeof(ManufacturingResources))]
-        public string CameraDeviceId { get; set; }
+        [FormField(LabelResource: ManufacturingResources.Names.MachineCamera_DeviceId, FieldType: FieldTypes.Text, IsUserEditable: false, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader CameraDevice { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.MachineCamera_Type, WaterMark:ManufacturingResources.Names.MachineCamera_Type_Select, FieldType: FieldTypes.Picker, EnumType:typeof(CameraTypes), IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<CameraTypes> CameraType { get; set; }
@@ -97,6 +99,12 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _pixelsPerMM, value); }
         }
 
+        [FormField(LabelResource: ManufacturingResources.Names.MachineCamera_ImageSize, FieldType: FieldTypes.Point2DSize, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> ImageSize { get; set; } = new Point2D<double>(480, 480);
+
+        public ObservableCollection<VisionProfile> VisionProfiles { get; set; } = new ObservableCollection<VisionProfile>();
+
+        public VisionProfile CurrentVisionProfile { get; set; }
 
         public Point2D<double> Tool3Offset { get; set; }
 
@@ -108,7 +116,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Key),
                 nameof(CameraType),
                 nameof(Icon),
-                nameof(CameraDeviceId),
+                nameof(CameraDevice),
                 nameof(MirrorXAxis),
                 nameof(MirrorYAxis),
                 nameof(AbsolutePosition),

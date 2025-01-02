@@ -322,15 +322,15 @@ namespace LagoVista.PickAndPlace
 
         private void UpdateTopLight()
         {
-            if (TopLightOn)
+            if (TopLightOn && Connected)
             {
                 Enqueue(ConvertTopLightColors(Settings.GcodeMapping.Value.TopLightOn));
             }
         }
-
+        
         private void UpdateBottomLight()
-        {
-            if (TopLightOn)
+        { 
+            if (TopLightOn && Connected)
             {
                 Enqueue(ConvertTopLightColors(Settings.GcodeMapping.Value.TopLightOn));
             }

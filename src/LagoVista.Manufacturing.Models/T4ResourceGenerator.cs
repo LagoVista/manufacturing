@@ -1,4 +1,4 @@
-﻿/*1/2/2025 12:59:33 PM*/
+﻿/*1/2/2025 3:38:48 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -791,6 +791,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:MachineCamera_FocusHeight
 
 		public static string MachineCamera_FocusHeight { get { return GetResourceString("MachineCamera_FocusHeight"); } }
+//Resources:ManufacturingResources:MachineCamera_ImageSize
+
+		public static string MachineCamera_ImageSize { get { return GetResourceString("MachineCamera_ImageSize"); } }
 //Resources:ManufacturingResources:MachineCamera_MirrorX
 
 		public static string MachineCamera_MirrorX { get { return GetResourceString("MachineCamera_MirrorX"); } }
@@ -1211,6 +1214,39 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ToolNozzleTip_Title
 
 		public static string ToolNozzleTip_Title { get { return GetResourceString("ToolNozzleTip_Title"); } }
+//Resources:ManufacturingResources:VisionProfile_BoardFiducial
+
+		public static string VisionProfile_BoardFiducial { get { return GetResourceString("VisionProfile_BoardFiducial"); } }
+//Resources:ManufacturingResources:VisionProfile_Defauilt
+
+		public static string VisionProfile_Defauilt { get { return GetResourceString("VisionProfile_Defauilt"); } }
+//Resources:ManufacturingResources:VisionProfile_MachineFiducual
+
+		public static string VisionProfile_MachineFiducual { get { return GetResourceString("VisionProfile_MachineFiducual"); } }
+//Resources:ManufacturingResources:VisionProfile_Nozzle
+
+		public static string VisionProfile_Nozzle { get { return GetResourceString("VisionProfile_Nozzle"); } }
+//Resources:ManufacturingResources:VisionProfile_NozzleCalibration
+
+		public static string VisionProfile_NozzleCalibration { get { return GetResourceString("VisionProfile_NozzleCalibration"); } }
+//Resources:ManufacturingResources:VisionProfile_PartInspection
+
+		public static string VisionProfile_PartInspection { get { return GetResourceString("VisionProfile_PartInspection"); } }
+//Resources:ManufacturingResources:VisionProfile_SquarePart
+
+		public static string VisionProfile_SquarePart { get { return GetResourceString("VisionProfile_SquarePart"); } }
+//Resources:ManufacturingResources:VisionProfile_TapeHole
+
+		public static string VisionProfile_TapeHole { get { return GetResourceString("VisionProfile_TapeHole"); } }
+//Resources:ManufacturingResources:VisionProfile_TapeHoleBlackTape
+
+		public static string VisionProfile_TapeHoleBlackTape { get { return GetResourceString("VisionProfile_TapeHoleBlackTape"); } }
+//Resources:ManufacturingResources:VisionProfile_TapeHoleClearTape
+
+		public static string VisionProfile_TapeHoleClearTape { get { return GetResourceString("VisionProfile_TapeHoleClearTape"); } }
+//Resources:ManufacturingResources:VisionProfile_TapeHoleWhiteTape
+
+		public static string VisionProfile_TapeHoleWhiteTape { get { return GetResourceString("VisionProfile_TapeHoleWhiteTape"); } }
 
 		public static class Names
 		{
@@ -1457,6 +1493,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string MachineCamera_Description = "MachineCamera_Description";
 			public const string MachineCamera_DeviceId = "MachineCamera_DeviceId";
 			public const string MachineCamera_FocusHeight = "MachineCamera_FocusHeight";
+			public const string MachineCamera_ImageSize = "MachineCamera_ImageSize";
 			public const string MachineCamera_MirrorX = "MachineCamera_MirrorX";
 			public const string MachineCamera_MirrorY = "MachineCamera_MirrorY";
 			public const string MachineCamera_PixelsPerMM = "MachineCamera_PixelsPerMM";
@@ -1597,6 +1634,17 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string TapeSize_8 = "TapeSize_8";
 			public const string ToolNozzleTip_Description = "ToolNozzleTip_Description";
 			public const string ToolNozzleTip_Title = "ToolNozzleTip_Title";
+			public const string VisionProfile_BoardFiducial = "VisionProfile_BoardFiducial";
+			public const string VisionProfile_Defauilt = "VisionProfile_Defauilt";
+			public const string VisionProfile_MachineFiducual = "VisionProfile_MachineFiducual";
+			public const string VisionProfile_Nozzle = "VisionProfile_Nozzle";
+			public const string VisionProfile_NozzleCalibration = "VisionProfile_NozzleCalibration";
+			public const string VisionProfile_PartInspection = "VisionProfile_PartInspection";
+			public const string VisionProfile_SquarePart = "VisionProfile_SquarePart";
+			public const string VisionProfile_TapeHole = "VisionProfile_TapeHole";
+			public const string VisionProfile_TapeHoleBlackTape = "VisionProfile_TapeHoleBlackTape";
+			public const string VisionProfile_TapeHoleClearTape = "VisionProfile_TapeHoleClearTape";
+			public const string VisionProfile_TapeHoleWhiteTape = "VisionProfile_TapeHoleWhiteTape";
 		}
 	}
 }

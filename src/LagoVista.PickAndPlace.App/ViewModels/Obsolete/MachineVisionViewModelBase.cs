@@ -35,14 +35,12 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         IMachine _machine;
         ILocatorViewModel _locatorViewModel;
-        IVisionProfileManagerViewModel _visionProfileManagerViewModel;
-
+        
         const double PIXEL_PER_MM = 20.0;
-        public MachineVisionViewModelBase(IMachine machine, ILocatorViewModel locatorViewModel, IVisionProfileManagerViewModel visionProfileManagerViewModel) : base(machine)
+        public MachineVisionViewModelBase(IMachine machine, ILocatorViewModel locatorViewModel) : base(machine)
         {
             _machine = machine ?? throw new ArgumentNullException(nameof(machine));
             _locatorViewModel = locatorViewModel ?? throw new ArgumentNullException(nameof(locatorViewModel));
-            _visionProfileManagerViewModel = visionProfileManagerViewModel ?? throw new ArgumentNullException(nameof(visionProfileManagerViewModel));
 
         }
 
@@ -114,7 +112,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         }
 
         #region Show Cross Hairs
-        private void DrawCrossHairs(IInputOutputArray destImage, VisionSettings profile, System.Drawing.Size size)
+        private void DrawCrossHairs(IInputOutputArray destImage, VisionProfile profile, System.Drawing.Size size)
         {
             var center = new Point2D<int>()
             {
@@ -131,15 +129,15 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             Line(destImage, center.X - profile.TargetImageRadius, center.Y, center.X + profile.TargetImageRadius, center.Y, System.Drawing.Color.FromArgb(0x7f, 0xFF, 0xFF, 0XFF));
             Line(destImage, center.X, center.Y - profile.TargetImageRadius, center.X, center.Y + profile.TargetImageRadius, System.Drawing.Color.FromArgb(0x7f, 0xFF, 0xFF, 0XFF));
 
-            if (_visionProfileManagerViewModel.CurrentMVProfile.Id == "squarepart")
-            {
-                Line(destImage, center.X - PartSizeWidth, center.Y - PartSizeHeight, center.X - PartSizeWidth, center.Y + PartSizeHeight, System.Drawing.Color.Yellow);
-                Line(destImage, center.X + PartSizeWidth, center.Y - PartSizeHeight, center.X + PartSizeWidth, center.Y + PartSizeHeight, System.Drawing.Color.Yellow);
+            //if (_visionProfileManagerViewModel.CurrentMVProfile.Id == "squarepart")
+            //{
+            //    Line(destImage, center.X - PartSizeWidth, center.Y - PartSizeHeight, center.X - PartSizeWidth, center.Y + PartSizeHeight, System.Drawing.Color.Yellow);
+            //    Line(destImage, center.X + PartSizeWidth, center.Y - PartSizeHeight, center.X + PartSizeWidth, center.Y + PartSizeHeight, System.Drawing.Color.Yellow);
 
-                Line(destImage, center.X - PartSizeWidth, center.Y + PartSizeHeight, center.X + PartSizeWidth, center.Y + PartSizeHeight, System.Drawing.Color.Yellow);
-                Line(destImage, center.X - PartSizeWidth, center.Y - PartSizeHeight, center.X + PartSizeWidth, center.Y - PartSizeHeight, System.Drawing.Color.Yellow);
-            }
-            else
+            //    Line(destImage, center.X - PartSizeWidth, center.Y + PartSizeHeight, center.X + PartSizeWidth, center.Y + PartSizeHeight, System.Drawing.Color.Yellow);
+            //    Line(destImage, center.X - PartSizeWidth, center.Y - PartSizeHeight, center.X + PartSizeWidth, center.Y - PartSizeHeight, System.Drawing.Color.Yellow);
+            //}
+            //else
             {
                 Circle(destImage, center.X, center.Y, profile.TargetImageRadius, System.Drawing.Color.Yellow);
             }
@@ -199,7 +197,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         int _stabilizedPointCount = 0;
 
         #region Find Circles
-        private void FindCircles(IInputOutputArray input, IInputOutputArray output, System.Drawing.Size size, VisionSettings profile)
+        private void FindCircles(IInputOutputArray input, IInputOutputArray output, System.Drawing.Size size, VisionProfile profile)
         {
             var center = new Point2D<int>()
             {
@@ -271,7 +269,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         #endregion
 
         #region Find Corners
-        private void FindCorners(Image<Gray, byte> blurredGray, IInputOutputArray output, System.Drawing.Size size, VisionSettings profile)
+        private void FindCorners(Image<Gray, byte> blurredGray, IInputOutputArray output, System.Drawing.Size size, VisionProfile profile)
         {
             var center = new Point2D<int>()
             {
@@ -365,7 +363,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         }
 
         #region Find Rotated Rectangles
-        private void FindRectangles(Image<Gray, byte> input, IInputOutputArray output, System.Drawing.Size size, VisionSettings profile)
+        private void FindRectangles(Image<Gray, byte> input, IInputOutputArray output, System.Drawing.Size size, VisionProfile profile)
         {
             UMat edges = new UMat();
 
@@ -519,7 +517,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         #endregion
 
 
-        public UMat PerformShapeDetection(Image<Bgr, byte> img, MachineCamera camera, VisionSettings profile)
+        public UMat PerformShapeDetection(Image<Bgr, byte> img, MachineCamera camera, VisionProfile profile)
         {
             if (img == null)
             {

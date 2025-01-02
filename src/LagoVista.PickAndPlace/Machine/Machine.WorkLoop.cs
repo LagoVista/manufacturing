@@ -252,6 +252,7 @@ namespace LagoVista.PickAndPlace
                 Debug.WriteLine(ex.StackTrace);
                 AddStatusMessage(StatusMessageTypes.FatalError, $"Fatal Error: {ex.Message}");
                 await DisconnectAsync();
+                MachineDisconnected?.Invoke(this, null);
             }
         }
     }

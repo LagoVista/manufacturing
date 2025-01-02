@@ -1,7 +1,10 @@
-﻿using DirectShowLib.Dvd;
+﻿using DirectShowLib;
+using DirectShowLib.Dvd;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using LagoVista.Core.IOC;
+using LagoVista.Core.Models;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.App.Views;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
@@ -9,6 +12,7 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.ViewModels;
 using LagoVista.XPlat;
 using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -27,18 +31,18 @@ namespace LagoVista.PickAndPlace.App.Controls
         private void ImageSensorControl_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             if(ViewModel != null)
-                ViewModel.ActiveCamera = Camera;
+                ViewModel.CameraType = CameraType;
         }
 
-        LocatedByCamera _camera;
-        public LocatedByCamera Camera
+        CameraTypes _cameraType;
+        public CameraTypes CameraType
         {
-            get => _camera;
+            get => _cameraType;
             set
             {
-                _camera = value;
+                _cameraType = value;
                 if(ViewModel != null)
-                    ViewModel.ActiveCamera = value;
+                    ViewModel.CameraType = value;
             }
         }        
 
@@ -55,11 +59,15 @@ namespace LagoVista.PickAndPlace.App.Controls
         private void Settings_Click(object sender, RoutedEventArgs e)
         {
             var vm = SLWIOC.Create<IVisionProfileViewModel>();
-            vm.Profile = ViewModel.Profile;
             vm.Camera = ViewModel.Camera;
+            vm.SelectedCameraDevicePath = ViewModel.Camera.CameraDevice?.Id ?? "-1";
+            var cameras = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
+            var cameraList = cameras.Select(cm => EntityHeader.Create(cm.DevicePath, cm.Name)).ToList();
+            cameraList.Insert(0, EntityHeader.Create("-1","-select camera-"));
+            vm.CameraList =  new System.Collections.ObjectModel.ObservableCollection<EntityHeader>( cameraList);            
 
             var mvDialog = new VisionSettingsView();
-
+            mvDialog.Owner = Window.GetWindow(this); 
             mvDialog.DataContext = vm;
             mvDialog.Show();
         }

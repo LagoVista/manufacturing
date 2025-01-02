@@ -29,8 +29,14 @@ namespace LagoVista.PickAndPlace.App
         {
             InitializeComponent();
             this.Loaded += Splash_Loaded;
+            this.LocationChanged += Splash_LocationChanged;
+            this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
         }
 
+        private void Splash_LocationChanged(object sender, EventArgs e)
+        {
+            
+        }
 
         private async void Splash_Loaded(object sender, RoutedEventArgs e)
         {
@@ -77,12 +83,6 @@ namespace LagoVista.PickAndPlace.App
                 UserName = _emailAddress,
                 GrantType = "password"
             };
-
-            //if (!EntityHeader.IsNullOrEmpty(_appConfig.SystemOwnerOrg))
-            //{
-            //    loginInfo.OrgId = _appConfig.SystemOwnerOrg.Id;
-            //    loginInfo.OrgName = _appConfig.SystemOwnerOrg.Text;
-            //}
 
             var loginResult = await _authClient.LoginAsync(loginInfo);
             if (!loginResult.Successful)

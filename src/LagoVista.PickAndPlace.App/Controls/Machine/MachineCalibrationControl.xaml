@@ -37,6 +37,20 @@
                     <DataGridTextColumn Header="Ref Hole 2 XY" Binding="{Binding ReferenceHoleLocation2}" />
                 </DataGrid.Columns>
             </DataGrid>
+            <StackPanel Grid.Column="1" Visibility="{Binding SelectedStagingPlate, Converter={StaticResource NoTNullToVisibilityConverter}}">
+                <TextBlock Text="{Binding SelectedStagingPlate.Name}"></TextBlock>
+                <TextBlock>Reference Hole 1</TextBlock>
+                <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleLocation1}"></TextBlock>
+                <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleRow1}"></TextBlock>
+                <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleColumn1}"></TextBlock>
+                <Button Style="{StaticResource CommandButton}" Content="Ref Hole 1" Command="{Binding SetStagingPlateReferenceHole1LocationCommand}" ></Button>
+                <TextBlock>Reference Hole 2</TextBlock>
+                <Button Style="{StaticResource CommandButton}" Content="Ref Hole 2" Command="{Binding SetStagingPlateReferenceHole2LocationCommand}" ></Button>
+                <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleRow2}"></TextBlock>
+                <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleColumn2}"></TextBlock>
+                <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleLocation2}"></TextBlock>
+            </StackPanel>
+
         </Grid>
         
         <Grid Grid.Row="1">
