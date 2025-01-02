@@ -39,11 +39,23 @@
                     <TabItem Header="Utilities">
                             <mch:MachineUtilitiesControl></mch:MachineUtilitiesControl>
                     </TabItem>
+                    <TabItem Header="Feeders">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="33*" />
+                                <RowDefinition Height="33*" />
+                                <RowDefinition Height="33*" />
+                            </Grid.RowDefinitions>
+                            <pnpc:StripFeederControl></pnpc:StripFeederControl>
+                            <pnpc:AutoFeederControl Grid.Row="1"></pnpc:AutoFeederControl>
+                            <pnpc:PhotonFeedersControl Grid.Row="2"></pnpc:PhotonFeedersControl>
+                        </Grid>
+                    </TabItem>
 
                     <TabItem Header="Machine">
                         <Grid>
                         <pnpc:PickAndPlaceMachineControl></pnpc:PickAndPlaceMachineControl>
-                        <pnpc:PhotonFeedersControl></pnpc:PhotonFeedersControl>
+                        
                         </Grid>
                     </TabItem>
                     <TabItem Header="Prepare Job">
