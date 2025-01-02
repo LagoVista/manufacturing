@@ -16,7 +16,7 @@ namespace LagoVista.Manufacturing.Models
     public class Component : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IIDEntity, IFormAdditionalActions
     {
 
-        [FormField(LabelResource: ManufacturingResources.Names.Component_ComponentType, FieldType: FieldTypes.Category, CustomCategoryType:"component_type", WaterMark:ManufacturingResources.Names.Component_ComponentType_Select, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Component_ComponentType, FieldType: FieldTypes.Category, WaterMark:ManufacturingResources.Names.Component_ComponentType_Select, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader ComponentType { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Component_Room, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]

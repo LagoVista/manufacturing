@@ -3,6 +3,7 @@ using LagoVista.Core.Commanding;
 using LagoVista.Core.IOC;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
+using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Core.PlatformSupport;
 using LagoVista.Core.Validation;
 using LagoVista.Core.ViewModels;
@@ -14,6 +15,7 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
 using Microsoft.Extensions.Configuration;
+using NLog.Config;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -63,6 +65,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 var autoFeeders = await _restClient.GetListResponseAsync<AutoFeeder>($"/api/mfg/machine/{_machineRepo.CurrentMachine.Settings.Id}/autofeeders?loadcomponents=true");
                 var stripFeeders = await _restClient.GetListResponseAsync<StripFeeder>($"/api/mfg/machine/{_machineRepo.CurrentMachine.Settings.Id}/stripfeeders?loadcomponents=true");
 
+                var componentCategories = await _restClient.GetListResponseAsync<EntityBase>("/api/categories/component");
+                ComponentCategories = new ObservableCollection<EntityHeader>(componentCategories.Model.Select(c => EntityHeader.Create(c.Id, c.Key, c.Name))); 
+
                 _stripFeeders = new ObservableCollection<StripFeeder>(stripFeeders.Model);
                 _autoFeeders = new ObservableCollection<AutoFeeder>(autoFeeders.Model);
 
@@ -83,9 +88,66 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             return InvokeResult.FromError("No current feeder.");
         }
 
+        public async void LoadComponent(string componentId)
+        {
+            var component = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Component>>($"/api/mfg/component/{componentId}");
+            SelectedComponent = component.Result.Model;
+        }
+
+        public async void LoadComponentsByCategory(string categoryKey)
+        {
+            var components = await _restClient.GetListResponseAsync<ComponentSummary>($"/api/mfg/components?componentType={categoryKey}");
+            Components = new ObservableCollection<ComponentSummary>(components.Model);
+        }
+
         public Task<InvokeResult> RefreshAsync()
         {
             return InitAsync();
+        }
+
+        ObservableCollection<ComponentSummary> _components;
+        public ObservableCollection<ComponentSummary> Components
+        {
+            get => _components;
+            set => Set(ref _components, value);
+        }
+
+        ObservableCollection<EntityHeader> _componentCategories;
+        public ObservableCollection<EntityHeader> ComponentCategories
+        {
+            get => _componentCategories;
+            set => Set(ref _componentCategories, value);
+        }
+
+        EntityHeader _selectedCategory;
+        public EntityHeader SelectedCategory
+        {
+            get => _selectedCategory;
+            set
+            {
+                Set(ref _selectedCategory, value);
+                LoadComponentsByCategory(value.Key);
+            }
+        }
+
+        ComponentSummary _selectedComponentSummary;
+        public ComponentSummary SelectedComponentSummary
+        {
+            get => _selectedComponentSummary;
+            set 
+            {
+                if(value != null && value?.Id != _selectedComponent?.Id )
+                    LoadComponent(value.Id);
+
+                Set(ref _selectedComponentSummary, value);
+            }
+        }
+
+        Manufacturing.Models.Component _selectedComponent;
+        public Manufacturing.Models.Component SelectedComponent
+        {
+            get => _selectedComponent;
+            set => Set(ref _selectedComponent, value);
         }
 
         public ObservableCollection<MachineStagingPlate> StagingPlates { get => _machineRepo.CurrentMachine.Settings.StagingPlates; }
@@ -100,10 +162,25 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
 
         StripFeeder _currentStripFeeder;
-        public StripFeeder CurrentStripFeeder { get => _currentStripFeeder; }
+        public StripFeeder CurrentStripFeeder 
+        { 
+            get => _currentStripFeeder;
+            set => Set(ref _currentStripFeeder, value);
+        }
+
+        StripFeederRow _currentStripFeederRow;
+        public StripFeederRow CurrentStripFeederRow
+        {
+            get => _currentStripFeederRow;
+            set => Set(ref _currentStripFeederRow, value);
+        }
 
         AutoFeeder _currentAutoFeeder;
-        public AutoFeeder CurrentAutoFeeder { get => _currentAutoFeeder; }
+        public AutoFeeder CurrentAutoFeeder 
+        { 
+            get => _currentAutoFeeder;
+            set => Set(ref _currentAutoFeeder, value);
+        }
 
         public ObservableCollection<PlaceableParts> ConfigurationParts { get; private set; } = new ObservableCollection<PlaceableParts>();
 
