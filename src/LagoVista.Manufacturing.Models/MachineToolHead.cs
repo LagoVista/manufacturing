@@ -44,8 +44,11 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Common_Color, FieldType: FieldTypes.Color, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Color { get; set; } = "#000000";
 
-        [FormField(LabelResource: ManufacturingResources.Names.MachineToolHead_Type,WaterMark:ManufacturingResources.Names.MachineToolHead_Type_Select, EnumType:typeof(ToolHeadTypes), FieldType: FieldTypes.Picker, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.MachineToolHead_CurrentNozzle,WaterMark:ManufacturingResources.Names.MachineToolHead_CurrentNozzle_Select, FieldType: FieldTypes.EntityHeaderPicker, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<ToolNozzleTip> CurrentNozzle { get; set; }
+
+        [FormField(LabelResource: ManufacturingResources.Names.MachineToolHead_Type, WaterMark: ManufacturingResources.Names.MachineToolHead_Type_Select, EnumType: typeof(ToolHeadTypes), FieldType: FieldTypes.Picker, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader<ToolHeadTypes> ToolHeadType { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Common_Offset, FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public Point2D<double> Offset { get; set; } = new Point2D<double>();
@@ -63,8 +66,9 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Name),
                 nameof(Key),
                 nameof(Icon),
+                nameof(ToolHeadType),
                 nameof(Color),
-                nameof(CurrentNozzle),
+                nameof(CurrentNozzle),                
                 nameof(Offset),
                 nameof(PickHeight),
                 nameof(PlaceHeight),

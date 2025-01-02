@@ -27,9 +27,9 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 
         ObservableCollection<ComponentSummary> Components { get; }
         ObservableCollection<EntityHeader> ComponentCategories { get; }
-        EntityHeader SelectedCategory { get; set; }
+        string SelectedCategoryKey { get; set; }
 
-        ComponentSummary SelectedComponentSummary { get; set; }
+        string SelectedComponentSummaryId { get; set; }
         Manufacturing.Models.Component SelectedComponent { get; }
 
         IMachine Machine { get; }

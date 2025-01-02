@@ -353,7 +353,7 @@ namespace LagoVista.PickAndPlace.Managers.PcbFab
         /* This should be called once the camera is realtively close to centered over the first fiducial */
         public void AlignBoard()
         {
-            //if (_machine.SetMode(OperatingMode.AligningBoard))
+            //if (_machineRepo.SetMode(OperatingMode.AligningBoard))
             {
                 _lastEvent = DateTime.Now;
                 State = BoardAlignmentManagerStates.EvaluatingInitialAlignment;

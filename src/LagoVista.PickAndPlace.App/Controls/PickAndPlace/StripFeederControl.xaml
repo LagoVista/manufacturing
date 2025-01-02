@@ -23,21 +23,34 @@
             </ListView.ItemTemplate>
         </ListView>
         <StackPanel Grid.Column="1">
-            <TextBlock Text="{Binding CurrentStripFeeder.Name}"></TextBlock>
-            <ListView ItemsSource="{Binding CurrentStripFeeder.Rows}">
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="40" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="{Binding RowIndex }"></TextBlock>
-                            <TextBlock Text="{Binding Component.Text}"></TextBlock>
-                        </Grid>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+            <TextBlock FontSize="32" Text="{Binding CurrentStripFeeder.Name}"></TextBlock>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Width="120" FontWeight="Bold" Text="Staging Plate"></TextBlock>
+                <TextBlock Text="{Binding CurrentStripFeeder.StagingPlate.Text}"></TextBlock>
+            </StackPanel>
+
+
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Width="120" FontWeight="Bold" Text="Location"></TextBlock>
+                <TextBlock Text="{Binding CurrentStripFeeder.ReferenceHoleRow}"></TextBlock>
+                <TextBlock Text="{Binding CurrentStripFeeder.ReferenceHoleColumn}"></TextBlock>
+            </StackPanel>
+            
+            <Button Style="{StaticResource CommandButton}">Go</Button>
+
+            <DataGrid ItemsSource="{Binding CurrentStripFeeder.Rows}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Row Index" Binding="{Binding RowIndex}"></DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+            
+            <TextBlock Text="{Binding CurrentStripFeederRow.RowIndex}" />
+            <TextBlock Text="{Binding CurrentStripFeederRow.Component.Text}" />
+            <Label>Component Category</Label>
+            <ComboBox ItemsSource="{Binding ComponentCategories}" DisplayMemberPath="Text" SelectedValuePath="Key" SelectedValue="{Binding SelectedCategoryKey, Mode=TwoWay}"></ComboBox>
+            <Label>Component</Label>
+            <ComboBox ItemsSource="{Binding Components}" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding SelectedComponentSummaryId}"></ComboBox>
+
         </StackPanel>
     </Grid>
 </ucb:VMBoundUserControl>

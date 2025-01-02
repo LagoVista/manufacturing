@@ -119,27 +119,35 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             set => Set(ref _componentCategories, value);
         }
 
-        EntityHeader _selectedCategory;
-        public EntityHeader SelectedCategory
+        string _selectedCategoryKey;
+        public string SelectedCategoryKey
         {
-            get => _selectedCategory;
+            get => _selectedCategoryKey;
             set
             {
-                Set(ref _selectedCategory, value);
-                LoadComponentsByCategory(value.Key);
+                if(value == _selectedCategoryKey) return;
+                {
+                    Set(ref _selectedCategoryKey, value);
+                    if (!string.IsNullOrEmpty(value)) 
+                        LoadComponentsByCategory(value);
+                }
             }
         }
 
-        ComponentSummary _selectedComponentSummary;
-        public ComponentSummary SelectedComponentSummary
+        string _selectedComponentSummaryId;
+        public string SelectedComponentSummaryId
         {
-            get => _selectedComponentSummary;
+            get => _selectedComponentSummaryId;
             set 
             {
-                if(value != null && value?.Id != _selectedComponent?.Id )
-                    LoadComponent(value.Id);
-
-                Set(ref _selectedComponentSummary, value);
+                if (value != _selectedComponentSummaryId)
+                {
+                    Set(ref _selectedComponentSummaryId, value);
+                    if (!string.IsNullOrEmpty(value))
+                        LoadComponent(_selectedComponentSummaryId);
+                    else
+                        SelectedComponent = null;
+                }
             }
         }
 

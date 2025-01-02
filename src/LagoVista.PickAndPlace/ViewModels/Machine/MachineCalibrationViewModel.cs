@@ -1,40 +1,75 @@
 ﻿using LagoVista.Core.Commanding;
-using LagoVista.Core.PlatformSupport;
-using LagoVista.Core.ViewModels;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LagoVista.PickAndPlace.ViewModels.Machine
 {
-    public class MachineCalibrationViewModel : ViewModelBase, IMachineCalibrationViewModel
+    public class MachineCalibrationViewModel : MachineViewModelBase, IMachineCalibrationViewModel
     {
-        private readonly IMachineRepo _machineRepo;
-        private readonly ILogger _logger;
+        
 
-
-        public MachineCalibrationViewModel(IMachineRepo machineRepo, ILogger logger)
+        public MachineCalibrationViewModel(IMachineRepo machineRepo) : base(machineRepo)
         {
-            Machine = machineRepo.CurrentMachine.Settings;
-            machineRepo.MachineChanged += MachineRepo_MachineChanged;
-            _machineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            SetDefaultToolReferencePointCommand = CreatedMachineConnectedCommand(() => MachineConfiguration.DefaultToolReferencePoint = Machine.MachinePosition.ToPoint2D());
+            SetStagingPlateReferenceHole1LocationCommand = CreatedMachineConnectedCommand(() => SelectedStagingPlate.ReferenceHoleLocation1 = Machine.MachinePosition.ToPoint2D(), () => SelectedStagingPlate != null);
+            SetStagingPlateReferenceHole2LocationCommand = CreatedMachineConnectedCommand(() => SelectedStagingPlate.ReferenceHoleLocation2 = Machine.MachinePosition.ToPoint2D(), () => SelectedStagingPlate != null);
+            SetDefaultToolReferencePointCommand = CreatedMachineConnectedCommand(() => MachineConfiguration.DefaultToolReferencePoint = Machine.MachinePosition.ToPoint2D());
+            SetToolOffsetCommand = CreatedMachineConnectedCommand(() => SelectedToolHead.Offset = Machine.MachinePosition.ToPoint2D() - MachineConfiguration.DefaultToolReferencePoint, () => SelectedToolHead != null);
         }
 
-        private void MachineRepo_MachineChanged(object sender, IMachine e)
+        MachineToolHead _selectedToolHead;
+        public MachineToolHead SelectedToolHead
         {
-            Machine = e.Settings;
+            get => _selectedToolHead;
+            set
+            {
+                Set(ref _selectedToolHead, value);
+                RaiseCanExecuteChanged();
+            }
         }
 
-        public RelayCommand SetToolReferencePointCommand { get; }
-
-        Manufacturing.Models.Machine _machine;
-        public Manufacturing.Models.Machine Machine
-        {
-            set => Set(ref _machine, value);
-            get => _machine;
+        MachineStagingPlate _selectedStagingPlate;
+        public MachineStagingPlate SelectedStagingPlate
+        { 
+            get => _selectedStagingPlate;
+            set
+            {
+                Set(ref _selectedStagingPlate, value);
+                RaiseCanExecuteChanged();
+            }
         }
+
+        MachineFeederRail _selectedFeederRail;
+        public MachineFeederRail SelectedFeederRail 
+        {
+            get => _selectedFeederRail;
+            set
+            {
+                Set(ref _selectedFeederRail, value);
+                RaiseCanExecuteChanged();
+            }
+        }        
+
+        MachineCamera _selectedMachineCamera;
+        public MachineCamera SelectedMachineCamera
+        {
+            get => _selectedMachineCamera;
+            set => Set(ref _selectedMachineCamera, value);
+        }
+
+        ToolNozzleTip _selectedNozzleTip;
+        public ToolNozzleTip SelectedNozzleTip
+        {
+            get => _selectedNozzleTip;
+            set => Set(ref _selectedNozzleTip, value);  
+        }
+
+        public RelayCommand SetStagingPlateReferenceHole1LocationCommand { get; }
+        public RelayCommand SetStagingPlateReferenceHole2LocationCommand { get; }
+        public RelayCommand SetFirstFeederOriginCommand { get; }
+        public RelayCommand SetDefaultToolReferencePointCommand { get; }
+        public RelayCommand SetToolOffsetCommand { get; }
+        public RelayCommand SetInspectionCameraLocation { get; }
     }
 }

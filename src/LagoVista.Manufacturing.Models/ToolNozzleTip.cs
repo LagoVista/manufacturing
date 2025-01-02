@@ -33,25 +33,25 @@ namespace LagoVista.Manufacturing.Models
         public string Icon { get; set; } = "icon-ae-control-panel";
 
 
-        private double _safeMoveHeight;
-        [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_SafeMoveHeight, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double SafeMoveHeight 
+        private double? _safeMoveHeight;
+        [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_SafeMoveHeight, FieldType: FieldTypes.Decimal, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public double? SafeMoveHeight 
         {
             get => _safeMoveHeight; 
             set => Set(ref _safeMoveHeight, value);
         }
 
-        private double _placeHeight;
-        [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_PickHeight, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double PickHeight
+        private double? _placeHeight;
+        [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_PickHeight, FieldType: FieldTypes.Decimal, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public double? PickHeight
         {
             get => _placeHeight;
             set => Set(ref _placeHeight, value);
         }
 
-        private double _boardHeight;
-        [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_BoardHeight, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double BoardHeight
+        private double? _boardHeight;
+        [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_BoardHeight, FieldType: FieldTypes.Decimal, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public double? BoardHeight
         {
             get => _boardHeight;
             set => Set(ref _boardHeight, value);
@@ -64,24 +64,24 @@ namespace LagoVista.Manufacturing.Models
         public int OuterDiameter { get; set; }
 
         private Point3D<decimal> _toolRackLocation;
-        [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_ToolRackLocation, FieldType: FieldTypes.Point3D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_ToolRackLocation, FieldType: FieldTypes.Point3D, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public Point3D<decimal> ToolRackLocation
         {
             get => _toolRackLocation;
             set => Set(ref _toolRackLocation, value);
         }
 
-        private decimal _idleVacuum;
-        [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_IdleVacuum, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public decimal IdleVacuum
+        private decimal? _idleVacuum;
+        [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_IdleVacuum, FieldType: FieldTypes.Decimal, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public decimal? IdleVacuum
         {
             get => _idleVacuum;
             set => Set(ref _idleVacuum, value);
         }
 
-        private decimal _partPickedVacuum;
-        [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_PartPickedVacuum, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public decimal PartPickedVacuum
+        private decimal? _partPickedVacuum;
+        [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_PartPickedVacuum, FieldType: FieldTypes.Decimal, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public decimal? PartPickedVacuum
         {
             get => _partPickedVacuum;
             set => Set(ref _partPickedVacuum, value);

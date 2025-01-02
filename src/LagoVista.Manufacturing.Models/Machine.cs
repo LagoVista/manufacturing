@@ -338,7 +338,12 @@ namespace LagoVista.Manufacturing.Models
         public string Icon { get; set; } = "icon-pz-ruler";
 
 
-        public Point2D<double> DefaultToolReferencePoint { get; set; }
+        private Point2D<Double> _defaultToolReferencePoint;
+        public Point2D<double> DefaultToolReferencePoint 
+        {
+            get => _defaultToolReferencePoint;
+            set => Set(ref _defaultToolReferencePoint, value);
+        }
 
         public string DefaultPnPMachineFile { get; set; }
 

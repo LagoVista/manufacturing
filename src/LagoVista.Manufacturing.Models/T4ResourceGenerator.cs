@@ -1,4 +1,4 @@
-﻿/*1/1/2025 10:36:53 AM*/
+﻿/*1/2/2025 12:59:33 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -881,6 +881,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:MachineStagingPlates_Title
 
 		public static string MachineStagingPlates_Title { get { return GetResourceString("MachineStagingPlates_Title"); } }
+//Resources:ManufacturingResources:MachineToolHead_CurrentNozzle
+
+		public static string MachineToolHead_CurrentNozzle { get { return GetResourceString("MachineToolHead_CurrentNozzle"); } }
+//Resources:ManufacturingResources:MachineToolHead_CurrentNozzle_Select
+
+		public static string MachineToolHead_CurrentNozzle_Select { get { return GetResourceString("MachineToolHead_CurrentNozzle_Select"); } }
 //Resources:ManufacturingResources:MachineToolHead_Description
 
 		public static string MachineToolHead_Description { get { return GetResourceString("MachineToolHead_Description"); } }
@@ -1481,6 +1487,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string MachineStagingPlate_ReferenceHoleRow2 = "MachineStagingPlate_ReferenceHoleRow2";
 			public const string MachineStagingPlate_Title = "MachineStagingPlate_Title";
 			public const string MachineStagingPlates_Title = "MachineStagingPlates_Title";
+			public const string MachineToolHead_CurrentNozzle = "MachineToolHead_CurrentNozzle";
+			public const string MachineToolHead_CurrentNozzle_Select = "MachineToolHead_CurrentNozzle_Select";
 			public const string MachineToolHead_Description = "MachineToolHead_Description";
 			public const string MachineToolHead_PickHeight = "MachineToolHead_PickHeight";
 			public const string MachineToolHead_PickHeight_Help = "MachineToolHead_PickHeight_Help";

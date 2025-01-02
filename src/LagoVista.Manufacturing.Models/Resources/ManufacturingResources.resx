@@ -1262,4 +1262,10 @@
   <data name="Feeder_Protocol_Select" xml:space="preserve">
     <value>-select protocol-</value>
   </data>
+  <data name="MachineToolHead_CurrentNozzle_Select" xml:space="preserve">
+    <value>-select nozzle-</value>
+  </data>
+  <data name="MachineToolHead_CurrentNozzle" xml:space="preserve">
+    <value>Current Nozzle</value>
+  </data>
 </root>

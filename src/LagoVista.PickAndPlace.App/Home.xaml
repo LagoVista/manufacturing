@@ -33,6 +33,9 @@
                     <TabItem Header="Home">
                         <ctls:MachineRender ></ctls:MachineRender>
                     </TabItem>
+                    <TabItem Header="Calibration">
+                        <mch:MachineCalibrationControl></mch:MachineCalibrationControl>
+                    </TabItem>
                     <TabItem Header="Alignment">
                         <ctls:ToolAlignment></ctls:ToolAlignment>
                     </TabItem>
@@ -54,8 +57,7 @@
 
                     <TabItem Header="Machine">
                         <Grid>
-                        <pnpc:PickAndPlaceMachineControl></pnpc:PickAndPlaceMachineControl>
-                        
+                            <pnpc:PickAndPlaceMachineControl></pnpc:PickAndPlaceMachineControl>
                         </Grid>
                     </TabItem>
                     <TabItem Header="Prepare Job">

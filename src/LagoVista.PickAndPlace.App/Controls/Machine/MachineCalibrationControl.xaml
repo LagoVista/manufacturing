@@ -5,11 +5,94 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
+             d:DataContext="{d:DesignInstance vm:IMachineCalibrationViewModel }"
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;assembly=LagoVista.PickAndPlace"                                        
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-            
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="800"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <DataGrid ItemsSource="{Binding  MachineConfiguration.StagingPlates}" SelectedItem="{Binding SelectedStagingPlate}" AutoGenerateColumns="false" CanUserAddRows="false">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="120" />
+                    <DataGridTextColumn Header="Hole Spacing" Binding="{Binding HoleSpacing}" />
+                    <DataGridTextColumn Header="Size" Binding="{Binding Size}" />
+                    <DataGridTextColumn Header="Ref Hole 1 Row" Binding="{Binding ReferenceHoleRow1}" />
+                    <DataGridTextColumn Header="Ref Hole 1 Col" Binding="{Binding ReferenceHoleColumn1}" />
+                    <DataGridTextColumn Header="Ref Hole 1 XY" Binding="{Binding ReferenceHoleLocation1}" />
+                    <DataGridTextColumn Header="Ref Hole 2 Row" Binding="{Binding ReferenceHoleRow2}" />
+                    <DataGridTextColumn Header="Ref Hole 2 Col" Binding="{Binding ReferenceHoleColumn2}" />
+                    <DataGridTextColumn Header="Ref Hole 2 XY" Binding="{Binding ReferenceHoleLocation2}" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+        
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="800"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <DataGrid Grid.Row="1" ItemsSource="{Binding  MachineConfiguration.FeederRails}" CanUserAddRows="false" AutoGenerateColumns="false" SelectedItem="{Binding SelectedFeederRail}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
+                    <DataGridTextColumn Header="Slot Count" Binding="{Binding NumberSlots}" />
+                    <DataGridTextColumn Header="First Slot Index" Binding="{Binding SlotStartIndex}" />
+                    <DataGridTextColumn Header="Rotation" Binding="{Binding Rotation}" />
+                    <DataGridTextColumn Header="First Feeder Origin" Binding="{Binding FirstFeederOrigin}" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="800"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <DataGrid Grid.Row="1" ItemsSource="{Binding  MachineConfiguration.ToolHeads}" CanUserAddRows="false">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
+                    <DataGridTextColumn Header="Current Nozzle" Binding="{Binding CurrentNozzle}" />
+                    
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="800"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <DataGrid Grid.Row="1" ItemsSource="{Binding  MachineConfiguration.Cameras}"  AutoGenerateColumns="False" CanUserAddRows="false" SelectedItem="{Binding SelectedCamera}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
+                    <DataGridTextColumn Header="Camera Type" Binding="{Binding CameraType}" />
+                    <DataGridTextColumn Header="Device Id" Binding="{Binding CameraDeviceId}" />
+                    <DataGridTextColumn Header="Pixels per MM" Binding="{Binding PixelsPerMM}" />
+                    <DataGridTextColumn Header="Focus Height" Binding="{Binding FocusHeight}" />
+                </DataGrid.Columns>
+           </DataGrid>
+        </Grid>
+
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="800"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <DataGrid Grid.Row="1" ItemsSource="{Binding MachineConfiguration.Nozzles}" CanUserAddRows="false" SelectedItem="{Binding SelectedNozzle}">
+            </DataGrid>
+        </Grid>
+
     </Grid>
 </ucb:VMBoundUserControl>

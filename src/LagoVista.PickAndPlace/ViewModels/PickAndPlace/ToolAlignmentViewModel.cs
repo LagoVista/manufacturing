@@ -42,26 +42,20 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             SetAbsoluteWorkSpaceHomeCommand = new RelayCommand(_machineRepo.CurrentMachine.SetAbsoluteWorkSpaceHome, () => _machineRepo.CurrentMachine.Connected && _machineRepo.CurrentMachine.ViewType == ViewTypes.Camera);
 
             SaveCalibrationCommand = new RelayCommand(SaveCalibration, () => IsDirty);
+
+            _machineRepo.MachineChanged += _machineRepo_MachineChanged;
         }
 
+        private void _machineRepo_MachineChanged(object sender, IMachine e)
+        {
+            e.MachineConnected += (e, m) => RaiseCanExecuteChanged();
+            e.MachineDisconnected += (e,m) => RaiseCanExecuteChanged();
+        }
 
         public override async Task InitAsync()
         {
             await base.InitAsync();
-
-            if (_machineRepo.CurrentMachine.Settings.PartInspectionCamera != null &&
-                 _machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition != null)
-            {
-                BottomCameraLocation = new Point3D<double>()
-                {
-                    X = _machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.X,
-                    Y = _machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.Y,
-                    Z = _machineRepo.CurrentMachine.Settings.PartInspectionCamera.FocusHeight
-                };
-            }
-            //StartCapture();
         }
-
 
         private bool _isDirty = false;
         public bool IsDirty
