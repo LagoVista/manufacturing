@@ -62,20 +62,22 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         protected override void MachineChanged(IMachine machine)
         {
             Camera = machine.Settings.Cameras.FirstOrDefault(c => c.CameraType.Value == CameraType);
-
-            Camera.CurrentVisionProfile = Camera.VisionProfiles.FirstOrDefault(prf => prf.Key == VisionProfile.VisionProfile_Defauilt);
-            if (Camera.CurrentVisionProfile == null)
+            if (Camera != null)
             {
-                var profile = new VisionProfile()
+                Camera.CurrentVisionProfile = Camera.VisionProfiles.FirstOrDefault(prf => prf.Key == VisionProfile.VisionProfile_Defauilt);
+                if (Camera.CurrentVisionProfile == null)
                 {
-                    Id = Guid.NewGuid().ToId(),
-                    Key = VisionProfile.VisionProfile_Defauilt,
-                    Name = ManufacturingResources.VisionProfile_Defauilt
-                };
+                    var profile = new VisionProfile()
+                    {
+                        Id = Guid.NewGuid().ToId(),
+                        Key = VisionProfile.VisionProfile_Defauilt,
+                        Name = ManufacturingResources.VisionProfile_Defauilt
+                    };
 
-                Camera.VisionProfiles.Add(profile);
+                    Camera.VisionProfiles.Add(profile);
 
-                Camera.CurrentVisionProfile = profile;
+                    Camera.CurrentVisionProfile = profile;
+                }
             }
         }
 
@@ -105,14 +107,13 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 return;
             }
 
-
-         
+            // If we already have a capture instance, don't try to create another one. 
             if (_capture != null)
             {
                 return;
             }
 
-            _shapeDetectorService = new ShapeDetectionService(_machineRepo, _locatorViewModel, _cameraType);
+            _shapeDetectorService = new ShapeDetectionService(_machineRepo, _locatorViewModel);
 
             try
             {
@@ -142,6 +143,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             try
             {
                 var cameras = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
+          
                 //    var camera = cameras.FirstOrDefault(cam => cam.N == devicePath);
                 var camera = cameras.Select((cam, idx) => new { DevicePath = cam.DevicePath, index = idx }).FirstOrDefault(cam => cam.DevicePath == devicePath);
                 if (camera != null)
@@ -184,14 +186,11 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             }
         }
 
- 
-
         public async void Run()
         {
             _running = true;
             while (_running)
             {
-
                 if (_capture != null)
                 {
                     if (_lastBrightness != Profile.Brightness)
@@ -231,7 +230,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                                     {
                                         if (Profile.PerformShapeDetection)
                                         {
-                                            using (var results = _shapeDetectorService.PerformShapeDetection(resized, _machineRepo.CurrentMachine.Settings.PositioningCamera, Profile))
+                                            using (var results = _shapeDetectorService.PerformShapeDetection(resized, Camera))
                                             {
                                                 CaptureImage = Emgu.CV.WPF.BitmapSourceConvert.ToBitmapSource(results);
                                             }

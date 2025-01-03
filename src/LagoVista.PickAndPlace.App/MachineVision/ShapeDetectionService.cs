@@ -4,14 +4,14 @@ using Emgu.CV.Util;
 using Emgu.CV;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Manufacturing.Models;
-using LagoVista.PickAndPlace.Models;
 using LagoVista.PickAndPlace.Util;
 using System;
-using System.Drawing;
 using LagoVista.Core.ViewModels;
 using System.Drawing.Drawing2D;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
+using System.Collections.Generic;
+
 
 namespace LagoVista.PickAndPlace.App.MachineVision
 {
@@ -24,19 +24,16 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         ImageHelper _imageHelper;
 
         ILocatorViewModel _locatorViewModel;
-        CameraTypes _camera;
         IMachineRepo _machineRepo;
 
         const double PIXEL_PER_MM = 20.0;
-        public ShapeDetectionService(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel, CameraTypes camera)
+        public ShapeDetectionService(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel)
         {
             _locatorViewModel = locatorViewModel ?? throw new ArgumentNullException(nameof(locatorViewModel));            
             _machineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
-            _camera = camera;
             _imageHelper = new ImageHelper();  
         }
 
-        public VisionProfile VisionSettings { get; set; }
 
         private Point2D<double> _foundCorner;
         public Point2D<double> FoundCorner
@@ -59,8 +56,10 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         }
 
         #region Show Cross Hairs
-        private void DrawCrossHairs(IInputOutputArray destImage, VisionProfile profile, System.Drawing.Size size)
+        private void DrawCrossHairs(IInputOutputArray destImage,  MachineCamera camera, System.Drawing.Size size)
         {
+            var profile = camera.CurrentVisionProfile;
+
             var center = new Point2D<int>()
             {
                 X = size.Width / 2,
@@ -100,14 +99,13 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             set;
         }
 
-
-
-
         int _stabilizedPointCount = 0;
 
-        #region Find_imageHelper.Circles
-        private void FindCircles(IInputOutputArray input, IInputOutputArray output, System.Drawing.Size size, VisionProfile profile)
+        private List<FoundCircle> FindCircles(IInputOutputArray input, IInputOutputArray output, MachineCamera camera, System.Drawing.Size size)
         {
+            var foundCircles = new List<FoundCircle>();
+
+            var profile = camera.CurrentVisionProfile;
             var center = new Point2D<int>()
             {
                 X = size.Width / 2,
@@ -116,70 +114,45 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
             var circles = CvInvoke.HoughCircles(input, HoughModes.Gradient, profile.HoughCirclesDP, profile.HoughCirclesMinDistance, profile.HoughCirclesParam1, profile.HoughCirclesParam2, profile.HoughCirclesMinRadius, profile.HoughCirclesMaxRadius);
 
-            var foundCircle = false;
-            /* Above will return ALL maching circles, we only want the first one that is in the target image radius in the middle of the screen */
             foreach (var circle in circles)
             {
                 if (circle.Center.X > ((size.Width / 2) - profile.TargetImageRadius) && circle.Center.X < ((size.Width / 2) + profile.TargetImageRadius) &&
                    circle.Center.Y > ((size.Height / 2) - profile.TargetImageRadius) && circle.Center.Y < ((size.Height / 2) + profile.TargetImageRadius))
                 {
-                    _circleMedianFilter.Add(circle.Center.X, circle.Center.Y);
-                    _circleRadiusMedianFilter.Add(circle.Radius, 0);
-                    foundCircle = true;
-                    break;
-                }
-            }
-
-            if (!foundCircle)
-            {
-                _circleMedianFilter.Add(null);
-                _circleRadiusMedianFilter.Add(null);
-            }
-
-            var avg = _circleMedianFilter.Filtered;
-            if (avg != null)
-            {
-                CircleCenter = new Point2D<double>(Math.Round(avg.X, 2), Math.Round(avg.Y, 2));
-                StandardDeviation = _circleMedianFilter.StandardDeviation;
-
-                var offset = new Point2D<double>(center.X - avg.X, center.Y - avg.Y);
-
-                var deltaX = Math.Abs(avg.X - center.X);
-                var deltaY = Math.Abs(avg.Y - center.Y);
-                //Debug.WriteLine($"{deltaX}, {deltaY} - {_stabilizedPointCount} - {_circleRadiusMedianFilter.StandardDeviation.X},{_circleRadiusMedianFilter.StandardDeviation.Y}");
-                /* If within one pixel of center, state we have a match */
-                if (deltaX < 1.5 && deltaY < 1.5)
-                {
-                   _imageHelper.Line(output, 0, (int)avg.Y, size.Width, (int)avg.Y, System.Drawing.Color.Green);
-                   _imageHelper.Line(output, (int)avg.X, 0, (int)avg.X, size.Height, System.Drawing.Color.Green);
-                   _imageHelper.Circle(output, (int)avg.X, (int)avg.Y, (int)_circleRadiusMedianFilter.Filtered.X, System.Drawing.Color.Green);
-                    if (StandardDeviation.X < 0.7 && StandardDeviation.Y < 0.7)
+                    var foundCircle = new FoundCircle()
                     {
-                        _stabilizedPointCount++;
-                        if (_stabilizedPointCount > 5)
+                        CenterPixels = new Point2D<double>(Math.Round(circle.Center.X, 2), Math.Round(circle.Center.Y, 2))
+                        //StandardDeviation = _circleMedianFilter.StandardDeviation;
+                    };
+                    var offsetFromCenter = new Point2D<double>(center.X - circle.Center.X, center.Y - circle.Center.Y);
+
+                    var deltaX = Math.Abs(foundCircle.CenterPixels.X - center.X);
+                    var deltaY = Math.Abs(foundCircle.CenterPixels.Y - center.Y);
+                    /* If within one pixel of center, state we have a match */
+                    if (deltaX < 1.5 && deltaY < 1.5)
+                    {
+                        if (foundCircle.StandardDeviation.X < 0.7 && foundCircle.StandardDeviation.Y < 0.7)
                         {
-                          _locatorViewModel.CircleCentered(offset, _camera, _circleRadiusMedianFilter.Filtered.X);
+                            _stabilizedPointCount++;
+                            if (_stabilizedPointCount > 5)
+                            {
+                                _locatorViewModel.CircleCentered(offsetFromCenter, camera.CameraType.Value, _circleRadiusMedianFilter.Filtered.X);
+                            }
                         }
                     }
-                }
-                else
-                {
-                   _imageHelper.Line(output, 0, (int)avg.Y, size.Width, (int)avg.Y, System.Drawing.Color.Red);
-                   _imageHelper.Line(output, (int)avg.X, 0, (int)avg.X, size.Height, System.Drawing.Color.Red);
-                   _imageHelper.Circle(output, (int)avg.X, (int)avg.Y, (int)_circleRadiusMedianFilter.Filtered.X, System.Drawing.Color.Red);
-                    _locatorViewModel.CircleLocated(offset, _camera, _circleRadiusMedianFilter.Filtered.X, _circleRadiusMedianFilter.StandardDeviation);
+                    else
+                    {
+                        _locatorViewModel.CircleLocated(offsetFromCenter, camera.CameraType.Value, _circleRadiusMedianFilter.Filtered.X, _circleRadiusMedianFilter.StandardDeviation);
+                    }
                 }
             }
-            else
-            {
-               CircleCenter = null;
-            }
-        }
-        #endregion
-
-        #region Find Corners
-        private void FindCorners(Image<Gray, byte> blurredGray, IInputOutputArray output, System.Drawing.Size size, VisionProfile profile)
+            return foundCircles;
+         }
+   
+        private void FindCorners(Image<Gray, byte> blurredGray, IInputOutputArray output, MachineCamera camera, System.Drawing.Size size)
         {
+            var profile = camera.CurrentVisionProfile;
+
             var center = new Point2D<int>()
             {
                 X = size.Width / 2,
@@ -234,48 +207,19 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                    _imageHelper.Line(output, (int)avg.X, 0, (int)avg.X, size.Height, System.Drawing.Color.Blue);
 
                     var offset = new Point2D<double>(center.X - avg.X, center.Y - avg.Y);
-                    _locatorViewModel.CornerLocated(offset, _camera, _cornerMedianFilter.StandardDeviation);
+                    _locatorViewModel.CornerLocated(offset, camera.CameraType.Value, _cornerMedianFilter.StandardDeviation);
                 }
             }
         }
-        #endregion
 
-        FloatMedianFilter _rectP1 = new FloatMedianFilter();
-        FloatMedianFilter _rectP2 = new FloatMedianFilter();
-        FloatMedianFilter _rectP3 = new FloatMedianFilter();
-        FloatMedianFilter _rectP4 = new FloatMedianFilter();
-        FloatMedianFilter _rectTheta = new FloatMedianFilter();
 
         protected RotatedRect? FoundRectangle { get; set; }
 
-        private void FindRect2(Image<Gray, byte> input, IInputOutputArray output, System.Drawing.Size size)
-        {
-            var rect = CvInvoke.BoundingRectangle(input);
-            if (rect.Width > 0 && rect.Height > 0)
-            {
-               _imageHelper.Line(output, (int)rect.Left, (int)rect.Top, (int)rect.Right, (int)rect.Top, System.Drawing.Color.White);
-               _imageHelper.Line(output, (int)rect.Right, (int)rect.Top, (int)rect.Right, (int)rect.Bottom, System.Drawing.Color.White);
-               _imageHelper.Line(output, (int)rect.Right, (int)rect.Bottom, (int)rect.Left, (int)rect.Bottom, System.Drawing.Color.White);
-               _imageHelper.Line(output, (int)rect.Left, (int)rect.Bottom, (int)rect.Left, (int)rect.Top, System.Drawing.Color.White);
-
-                //var msg = $"{rect.Angle:0.0} {(rect.Sz.W / Machine.Settings.InspectionCameraPixelsPerMM):0.0}x{(rect.Sz.H / Machine.Settings.InspectionCameraPixelsPerMM):0.0}";
-
-                //var center = new Point()
-                //{
-                //    X = (int)rect.Center.X,
-                //    Y = (int)rect.Center.Y,
-                //};
-
-                //CvInvoke.PutText(output, msg, center, FontFace.HersheyPlain, 1, new Bgr(System.Drawing.S.White).MCvScalar);
-            }
-
-        }
-
         #region Find Rotated Rectangles
-        private void FindRectangles(Image<Gray, byte> input, IInputOutputArray output, System.Drawing.Size size, VisionProfile profile)
+        private void FindRectangles(Image<Gray, byte> input, IInputOutputArray output, MachineCamera camera, System.Drawing.Size size)
         {
             UMat edges = new UMat();
-
+            var profile = camera.CurrentVisionProfile;
 
             if (profile.FindLines)
             {
@@ -369,14 +313,12 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         
         #endregion
 
-        public UMat PerformShapeDetection(Image<Bgr, byte> img, MachineCamera camera, VisionProfile profile)
+        public UMat PerformShapeDetection(Image<Bgr, byte> img, MachineCamera camera)
         {
             if (img == null)
             {
                 return null;
             }
-
-            VisionSettings = profile;
 
             try
             {
@@ -399,70 +341,67 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     using (var masked = new Image<Bgr, byte>(img.Size))
                     {
 
-                        if (profile.ApplyMask)
+                        if (camera.CurrentVisionProfile.ApplyMask)
                         {
                             using (var mask = new Image<Gray, byte>(img.Size))
 
                             {
-                                CvInvoke.Circle(mask, new System.Drawing.Point() { X = img.Size.Width / 2, Y = img.Size.Height / 2 }, profile.TargetImageRadius, new Bgr(System.Drawing.Color.White).MCvScalar, -1, Emgu.CV.CvEnum.LineType.AntiAlias);
+                                CvInvoke.Circle(mask, new System.Drawing.Point() { X = img.Size.Width / 2, Y = img.Size.Height / 2 }, camera.CurrentVisionProfile.TargetImageRadius, new Bgr(System.Drawing.Color.White).MCvScalar, -1, Emgu.CV.CvEnum.LineType.AntiAlias);
                                 CvInvoke.BitwiseAnd(img, img, masked, mask);
                                 raw = masked;
                             }
                         }
+
 
                         using (Image<Gray, Byte> gray = raw.Convert<Gray, Byte>())
                         {
                             using (var blurredGray = new Image<Gray, byte>(gray.Size))
                             using (var thresholdGray = new Image<Gray, byte>(gray.Size))
                             using (var inverted = new Image<Gray, byte>(gray.Size))
-
                             {
                                 var input = gray;
 
-                                if (profile.Invert)
+                                if (camera.CurrentVisionProfile.Invert)
                                 {
                                     CvInvoke.BitwiseNot(input, inverted);
                                     input = inverted;
                                 }
 
-                                if (profile.ApplyThreshold)
+                                if (camera.CurrentVisionProfile.ApplyThreshold)
                                 {
-                                    CvInvoke.Threshold(input, thresholdGray, (profile.PrimaryThreshold / 100.0) * 255, 255, ThresholdType.Binary);
+                                    CvInvoke.Threshold(input, thresholdGray, (camera.CurrentVisionProfile.PrimaryThreshold / 100.0) * 255, 255, ThresholdType.Binary);
                                     input = thresholdGray;
                                 }
 
 
-                                if (VisionSettings.UseBlurredImage)
+                                if (camera.CurrentVisionProfile.UseBlurredImage)
                                 {
-                                    CvInvoke.GaussianBlur(input, blurredGray, new System.Drawing.Size(5, 5), profile.GaussianSigmaX);
+                                    CvInvoke.GaussianBlur(input, blurredGray, new System.Drawing.Size(5, 5), camera.CurrentVisionProfile.GaussianSigmaX);
                                     input = blurredGray;
                                 }
 
-                                var output = VisionSettings.ShowOriginalImage ? raw : (IInputOutputArray)input;
+                                var output = camera.CurrentVisionProfile.ShowOriginalImage ? raw : (IInputOutputArray)input;
 
                                 if (!_machineRepo.CurrentMachine.Busy)
                                 {
-                                    if (VisionSettings.Show200PixelSquare) ShowCalibrationSquare(output, img.Size);
-                                    if (VisionSettings.ShowCrossHairs) DrawCrossHairs(output, profile, img.Size);
-                                    if (profile.FindCircles) FindCircles(input, output, img.Size, profile);
-                                    if (profile.FindCorners) FindCorners(input, output, img.Size, profile);
-                                    if (profile.FindRectangles)
-                                    {
-                                        FindRectangles(input, output, img.Size, profile);
-                                    }
+                                    if (camera.CurrentVisionProfile.FindCircles) FindCircles(input, output, camera, img.Size);
+                                    if (camera.CurrentVisionProfile.FindCorners) FindCorners(input, output, camera, img.Size);
+                                    if (camera.CurrentVisionProfile.FindRectangles) FindRectangles(input, output, camera, img.Size);
                                 }
                                 else
                                 {
                                     _stabilizedPointCount = 0;
                                 }
 
-                                if (VisionSettings.ShowOriginalImage)
+                                if (camera.CurrentVisionProfile.ShowOriginalImage)
                                     return raw.Clone().ToUMat();
                                 else
                                 {
                                     using (Image<Bgr, Byte> final = input.Convert<Bgr, Byte>())
                                     {
-                                        if (VisionSettings.ShowCrossHairs) DrawCrossHairs(final, profile, img.Size);
+                                        if (camera.CurrentVisionProfile.ShowCrossHairs) DrawCrossHairs(final, camera, img.Size);
+                                        if (camera.CurrentVisionProfile.Show200PixelSquare) ShowCalibrationSquare(final, img.Size);
+
                                         return final.Clone().ToUMat();
                                     }
                                 }
@@ -478,43 +417,24 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             }
         }
 
+     
+    }
 
-        
+    public class FoundCircle
+    {
+        public Point2D<double> CenterPixels { get; set; }
+        public double Radius { get; set; }
+        public bool Centered { get; set; }
+        public Point2D<double> OffsetFromCenter { get; set; }
+        public Point2D<double> Position { get; set; }
+        public Point2D<double> StandardDeviation { get; set; }
+    }
 
-        private Point2D<double> _circleCenter;
-        public Point2D<double> CircleCenter
-        {
-            get { return _circleCenter; }
-            set
-            {
-                if (value == null)
-                {
-                    Set(ref _circleCenter, null);
-                }
-                else if (_circleCenter == null || (_circleCenter.X != value.X ||
-                    _circleCenter.Y != value.Y))
-                {
-                    Set(ref _circleCenter, value);
-                }
-            }
-        }
-
-        private Point2D<double> _standardDeviation;
-        public Point2D<double> StandardDeviation
-        {
-            get { return _standardDeviation; }
-            set
-            {
-                if (value == null)
-                {
-                    Set(ref _standardDeviation, null);
-                }
-                else if (_standardDeviation == null || (_standardDeviation.X != value.X || _standardDeviation.Y != value.Y))
-                {
-                    Set(ref _standardDeviation, value);
-                }
-            }
-        }
-
+    public class FoundRectangle
+    {
+        public Point2D<double> CenterPixels { get; set; }
+        public Point2D<double> Position { get; set; }
+        public double Angle { get; set; }
+        public RotatedRect RotatedRect { get; set; }
     }
 }

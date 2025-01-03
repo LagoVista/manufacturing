@@ -184,17 +184,17 @@ namespace LagoVista.PickAndPlace.App.Controls
                 modelGroup.Children.Add(new GeometryModel3D() { Geometry = holeMeshBuilder.ToMesh(true), Material = whiteMaterial });
                 modelGroup.Children.Add(new GeometryModel3D() { Geometry = maskMeshBuilder.ToMesh(true), Material = copperMaterial });
                 modelGroup.Children.Add(boxModel);
-
             }
 
             StagingPlatesLayer.Content = modelGroup;
             //StagingPlatesLayer.Transform = new TranslateTransform3D(scrapX, scrapY, 0);            
         }
 
-        private void Refresh_Click(object sender, RoutedEventArgs e)
+        private async void Refresh_Click(object sender, RoutedEventArgs e)
         {
             if(Machine != null)
             {
+                await ViewModel.ReloadedAsync();
                 RenderFrame(Machine);
                 RenderStagingPlates(Machine);
             }

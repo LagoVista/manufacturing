@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Drawing;
 using LagoVista.Core.Models.Drawing;
 using Emgu.CV.CvEnum;
+using System.Runtime.Intrinsics.X86;
 
 namespace LagoVista.PickAndPlace.App.MachineVision
 {
@@ -15,10 +16,15 @@ namespace LagoVista.PickAndPlace.App.MachineVision
     {
         public void Circle(IInputOutputArray img, int x, int y, int radius, System.Drawing.Color color, int thickness = 1)
         {
-            if (!ShowOriginalImage)
-            {
-                color = System.Drawing.Color.White;
-            }
+            //if (!ShowOriginalImage)
+            //{
+            //    color = System.Drawing.Color.White;
+            //}
+
+            //_imageHelper.Line(output, 0, (int)avg.Y, size.Width, (int)avg.Y, System.Drawing.Color.Red);
+            //_imageHelper.Line(output, (int)avg.X, 0, (int)avg.X, size.Height, System.Drawing.Color.Red);
+            //_imageHelper.Circle(output, (int)avg.X, (int)avg.Y, (int)_circleRadiusMedianFilter.Filtered.X, System.Drawing.Color.Red);
+
 
             CvInvoke.Circle(img,
             new System.Drawing.Point(x, y), radius,
@@ -28,10 +34,10 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
         public void Line(IInputOutputArray img, int x1, int y1, int x2, int y2, System.Drawing.Color color, int thickness = 1)
         {
-            if (!ShowOriginalImage)
-            {
-                color = System.Drawing.Color.White;
-            }
+            //if (!ShowOriginalImage)
+            //{
+            //    color = System.Drawing.Color.White;
+            //}
 
             CvInvoke.Line(img, new System.Drawing.Point(x1, y1),
                 new System.Drawing.Point(x2, y2),
