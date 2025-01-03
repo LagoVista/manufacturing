@@ -311,6 +311,13 @@ namespace LagoVista.PickAndPlace.Models
             set { _cannyGradiant = value; RaisePropertyChanged(); }
         }
 
+        double _errorToleranceMM = 0.1;
+        public double ErrorToleranceMM
+        {
+            get => _errorToleranceMM;
+            set => Set(ref _errorToleranceMM, value);
+        }
+
 
         private double _houghLinesRHO = 1;
         public double HoughLinesRHO

@@ -1,47 +1,38 @@
 ﻿using LagoVista.Core.Commanding;
-using LagoVista.Core.PlatformSupport;
-using LagoVista.Core.ViewModels;
+using LagoVista.Core.Models;
+using LagoVista.Manufacturing.Models;
+using LagoVista.Manufacturing.Util;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
+using PdfSharpCore.Drawing;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics;
+using System.Linq;
 
 namespace LagoVista.PickAndPlace.ViewModels.Machine
 {
-    public class MachineUtilitiesViewModel : ViewModelBase, IMachineUtilitiesViewModel
+    public class MachineUtilitiesViewModel : MachineViewModelBase, IMachineUtilitiesViewModel
     {
-        private readonly IMachineRepo _machineRepo;
-        private readonly ILogger _logger;
+        StagingPlateUtils _stagingPlateUtils;
 
-        public MachineUtilitiesViewModel(IMachineRepo machineRepo, ILogger logger)
-        {
-            Machine = machineRepo.CurrentMachine;
-            machineRepo.MachineChanged += MachineRepo_MachineChanged;
-            _machineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        public MachineUtilitiesViewModel(IMachineRepo machineRepo) : base(machineRepo)
+        {         
+            ReadLeftVacuumCommand = CreatedMachineConnectedCommand(ReadLeftVacuum);
+            ReadRightVacuumCommand = CreatedMachineConnectedCommand(ReadRightVacuum);
 
-            ReadLeftVacuumCommand = new RelayCommand(ReadLeftVacuum, CanExecute);
-            ReadRightVacuumCommand = new RelayCommand(ReadRightVacuum, CanExecute);
+            LeftVacuumOnCommand = CreatedMachineConnectedCommand(() => _machineRepo.CurrentMachine.LeftVacuumPump = true);
+            LeftVacuumOffCommand = CreatedMachineConnectedCommand(() => _machineRepo.CurrentMachine.LeftVacuumPump = false);
 
-            LeftVacuumOnCommand = new RelayCommand(() => _machineRepo.CurrentMachine.LeftVacuumPump = true, CanExecute);
-            LeftVacuumOffCommand = new RelayCommand(() => _machineRepo.CurrentMachine.LeftVacuumPump = false, CanExecute);
+            RightVacuumOnCommand = CreatedMachineConnectedCommand(() => _machineRepo.CurrentMachine.RightVacuumPump = true);
+            RightVacuumOffCommand = CreatedMachineConnectedCommand(() => _machineRepo.CurrentMachine.RightVacuumPump = false);
 
-            RightVacuumOnCommand = new RelayCommand(() => _machineRepo.CurrentMachine.RightVacuumPump = true, CanExecute);
-            RightVacuumOffCommand = new RelayCommand(() => _machineRepo.CurrentMachine.RightVacuumPump = false, CanExecute);
-
-            TopLightOnCommand = new RelayCommand(() => _machineRepo.CurrentMachine.TopLightOn = true, CanExecute);
-            TopLightOffCommand = new RelayCommand(() => _machineRepo.CurrentMachine.TopLightOn = false, CanExecute);
-            BottomLightOnCommand = new RelayCommand(() => _machineRepo.CurrentMachine.BottomLightOn = true, CanExecute);
-            BottomLightOffCommand = new RelayCommand(() => _machineRepo.CurrentMachine.BottomLightOn = false, CanExecute);
-        }
-
-        public bool CanExecute()
-        {
-            return _machineRepo.CurrentMachine.Connected && !_machineRepo.CurrentMachine.Busy;
-        }
-
-        // https://cfsensor.com/wp-content/uploads/2022/11/XGZP6857D-Pressure-Sensor-V2.7.pdf
+            TopLightOnCommand = CreatedMachineConnectedCommand(() => _machineRepo.CurrentMachine.TopLightOn = true);
+            TopLightOffCommand = CreatedMachineConnectedCommand(() => _machineRepo.CurrentMachine.TopLightOn = false);
+            BottomLightOnCommand = CreatedMachineConnectedCommand(() => _machineRepo.CurrentMachine.BottomLightOn = true);
+            BottomLightOffCommand = CreatedMachineConnectedCommand(() => _machineRepo.CurrentMachine.BottomLightOn = false);
+            GoToStagingPlateHoleCommand = CreatedMachineConnectedCommand(GoToStagingPlateHole, () => SelectedStagingPlateColId != "-1" && SelectedStagingPlateRowId != "-1");
+        }       
 
         public async void ReadLeftVacuum()
         {
@@ -49,6 +40,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if(result.Successful)
             {
                 LeftVacuum = result.Result;
+                RaisePropertyChanged(nameof(LeftVacuum));
             }
         }
 
@@ -58,26 +50,22 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (result.Successful)
             {
                 RightVacuum = result.Result;
+                RaisePropertyChanged(nameof(RightVacuum));
             }
         }
 
-        public ulong _leftVacuum;
-        public ulong LeftVacuum
+        private void GoToStagingPlateHole()
         {
-            get => _leftVacuum;
-            set => Set(ref _leftVacuum, value);
+            var point = _stagingPlateUtils.ResolveStagePlateWorkSpaceLocation(SelectedStagingPlateColId, SelectedStagingPlateRowId);
+            Debug.WriteLine(point);
         }
 
-        public ulong _rightVacuum;
-        public ulong RightVacuum
-        {
-            get => _rightVacuum;
-            set => Set(ref _rightVacuum, value);
-        }
+        public ulong LeftVacuum { get; private set; }
 
-        private void MachineRepo_MachineChanged(object sender, IMachine e)
+        public ulong RightVacuum { get; private set; }
+
+        protected override void MachineChanged(IMachine machine)
         {
-            Machine = e;
             _machineRepo.CurrentMachine.MachineConnected += CurrentMachine_MachineConnected;
             _machineRepo.CurrentMachine.MachineDisconnected += CurrentMachine_MachineDisconnected;
         }
@@ -121,13 +109,82 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public RelayCommand BottomLightOnCommand { get; }
         public RelayCommand BottomLightOffCommand { get; }
 
+        public RelayCommand GoToStagingPlateHoleCommand { get; }
 
-        IMachine _machine;
-        public IMachine Machine
+        public List<EntityHeader> StagingPlateRows { get; private set; }
+        public List<EntityHeader> StagingPlateCols { get; private set; }
+
+        private string _selectedStagingPlateRowId = "-1";
+        public string SelectedStagingPlateRowId
         {
-            get { return _machine; }
-            set { Set(ref _machine, value); }
+            get => _selectedStagingPlateRowId;
+            set
+            {
+                Set(ref _selectedStagingPlateRowId, value);
+                GoToStagingPlateHoleCommand.RaiseCanExecuteChanged();
+            }
         }
 
+        private string _selectedStagingPlateColId = "-1";
+        public string SelectedStagingPlateColId
+        {
+            get => _selectedStagingPlateRowId;
+            set 
+            {
+                Set(ref _selectedStagingPlateColId, value);
+                GoToStagingPlateHoleCommand.RaiseCanExecuteChanged();
+            }
+         }
+
+        public string SelectedStagingPlateId
+        {
+            get => _selectedStagingPlate?.Id;
+            set
+            {
+                if (String.IsNullOrEmpty(value) || value == "-1")
+                {
+                    StagingPlateRows = new List<EntityHeader>();
+                    StagingPlateCols = new List<EntityHeader>();
+
+                    StagingPlateRows.Add(EntityHeader.Create("-1", "-1", "-select a staging plate first-"));
+                    StagingPlateCols.Add(EntityHeader.Create("-1", "-1", "-select a staging plate first-"));
+                }
+                else
+                {
+                    SelectedStagingPlate = MachineConfiguration.StagingPlates.Single(sp => sp.Id == value);
+                    _stagingPlateUtils = new StagingPlateUtils(SelectedStagingPlate);
+
+                    StagingPlateRows = new List<EntityHeader>();
+                    StagingPlateCols = new List<EntityHeader>();
+
+                    StagingPlateRows.Add(EntityHeader.Create("-1", "-1", "-select row-"));
+                    StagingPlateCols.Add(EntityHeader.Create("-1", "-1", "-select row-"));
+
+                    for (var idx = 0; idx < SelectedStagingPlate.Size.X / (SelectedStagingPlate.HoleSpacing / 2); ++idx)
+                    {
+                        StagingPlateCols.Add(EntityHeader.Create($"{idx + 1}", $"{idx + 1}", $"{idx + 1}"));
+                    }
+
+                    for (var idx = 0; idx < SelectedStagingPlate.Size.Y / (SelectedStagingPlate.HoleSpacing / 2); ++idx)
+                    {
+                        StagingPlateRows.Add(EntityHeader.Create($"{idx + 1}", $"{idx + 1}", $"{Char.ConvertFromUtf32(idx + 65)}"));
+                    }
+
+                    RaisePropertyChanged(nameof(StagingPlateRows));
+                    RaisePropertyChanged(nameof(StagingPlateCols));
+                }
+
+                SelectedStagingPlateColId = "-1";
+                SelectedStagingPlateRowId = "-1";
+
+            }
+        }
+
+        MachineStagingPlate _selectedStagingPlate;
+        public MachineStagingPlate SelectedStagingPlate
+        {
+            get => _selectedStagingPlate;
+            set => Set(ref _selectedStagingPlate, value);
+        }
     }
 }

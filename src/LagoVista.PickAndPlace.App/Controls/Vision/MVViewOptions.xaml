@@ -81,12 +81,6 @@
         <Label Content="Perform Imagee Detection"  Grid.Row="5" Grid.Column="2" />
         <CheckBox IsChecked="{Binding Profile.PerformShapeDetection, Mode=TwoWay}" Grid.Row="5" Grid.Column="3" />
 
-        <Label Grid.Row="7" Content="Status:"></Label>
-        <Label Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" Content="{Binding Status}"></Label>
-
-        <Label Grid.Row="8" Content="Vision State:" ></Label>
-        <Label Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2" Content="{Binding LocatorState}"></Label>
-
         <Label Grid.Row="9">Camera</Label>
         <ComboBox Grid.Row="9" Grid.Column="2" ItemsSource="{Binding CameraList}" DisplayMemberPath="Text" SelectedValuePath="Id" SelectedValue="{Binding SelectedCameraDevicePath}"></ComboBox>
     </Grid>

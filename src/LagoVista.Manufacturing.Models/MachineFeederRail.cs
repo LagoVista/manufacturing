@@ -4,6 +4,7 @@ using LagoVista.Core.Interfaces;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Manufacturing.Models.Resources;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -27,15 +28,30 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Icon { get; set; } = "icon-ae-control-panel";
 
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_NumberSlots, FieldType: FieldTypes.Integer, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public int NumberSlots { get; set; } = 25;
+        private int _numberSlots = 25;
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_NumberSlots, FieldType: FieldTypes.Integer, IsRequired: true, ResourceType: typeof(ManufacturingResources))]        
+        public int NumberSlots
+        {
+            get => _numberSlots;
+            set => Set(ref _numberSlots, value);
+        }
 
+        private double _slotWidth = 16;
         [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_SlotWidth, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double SlotWidth { get; set; } = 10;
+        public double SlotWidth
+        {
+            get => _slotWidth;
+            set => Set(ref _slotWidth, value);
+        }
 
+        private int _slotStartIndex;
         [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_StartSlotIndex, HelpResource: ManufacturingResources.Names.Machine_FeederRail_StartSlotIndex_Help, 
             FieldType: FieldTypes.Integer, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public int SlotStartIndex { get; set; } = 1;
+        public int SlotStartIndex
+        {
+            get => _slotStartIndex;
+            set => Set(ref _slotStartIndex, value);
+        }
 
         private EntityHeader<FeederRotations> _rotation = EntityHeader<FeederRotations>.Create(FeederRotations.Zero);
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_Rotation, FieldType: FieldTypes.Picker, EnumType: typeof(FeederRotations), IsRequired: true,
@@ -46,15 +62,31 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _rotation, value);
         }
 
+
+        Point2D<double> _firstFeederOrigin = new Point2D<double>(0,0);
         [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_FirstFeederOrigin, IsRequired: true, HelpResource: ManufacturingResources.Names.Machine_FeederRail_FirstFeederOrigin_Help,
             FieldType: FieldTypes.Point2D, ResourceType: typeof(ManufacturingResources))]
-        public Point2D<double> FirstFeederOrigin { get; set; } = new Point2D<double>(0, 0);
+        public Point2D<double> FirstFeederOrigin 
+        {
+            get => _firstFeederOrigin;
+            set => Set(ref _firstFeederOrigin, value);
+        }
 
+        private double _railWidth = 600;
         [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_Width, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double RailWidth { get; set; } = 600;
+        public double RailWidth
+        {
+            get => _railWidth;
+            set => Set(ref _railWidth, value);
+        }
 
+        private double _railHeight = 20;
         [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_Height, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double RailHeight { get; set; } = 20;
+        public double RailHeight 
+        {
+            get => _railHeight;
+            set => Set(ref _railHeight, value);
+        } 
 
 
         public List<string> GetFormFields()

@@ -55,11 +55,21 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.MachineCamera_Type, WaterMark:ManufacturingResources.Names.MachineCamera_Type_Select, FieldType: FieldTypes.Picker, EnumType:typeof(CameraTypes), IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<CameraTypes> CameraType { get; set; }
 
+        Point2D<double> _absolutePosition;
         [FormField(LabelResource: ManufacturingResources.Names.MachineCamera_AbsolutePosition, FieldType: FieldTypes.Point2D, ResourceType: typeof(ManufacturingResources))]
-        public Point2D<double> AbsolutePosition { get; set; } 
+        public Point2D<double> AbsolutePosition
+        {
+            get => _absolutePosition;
+            set => Set(ref _absolutePosition, value);
+        }
 
+        double _focusHeight;
         [FormField(LabelResource: ManufacturingResources.Names.MachineCamera_FocusHeight, FieldType: FieldTypes.Decimal, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
-        public double FocusHeight { get; set; }
+        public double FocusHeight
+        {
+            get => _focusHeight;
+            set => Set(ref _focusHeight, value);    
+        }
 
         private bool _mirrorXAxis;
         [FormField(LabelResource: ManufacturingResources.Names.MachineCamera_MirrorX, FieldType: FieldTypes.CheckBox, ResourceType: typeof(ManufacturingResources))]

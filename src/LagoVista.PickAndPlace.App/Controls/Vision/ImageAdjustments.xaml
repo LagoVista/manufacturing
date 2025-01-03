@@ -44,7 +44,7 @@
                         <Label Content="Search Radius" Style="{StaticResource Caption}" />
                         <Label Content="{Binding Profile.TargetImageRadius, FallbackValue=3}" Style="{StaticResource Value}" />
                     </StackPanel>
-                    <Slider Value="{Binding Path=Profile.TargetImageRadius, Mode=TwoWay}" Minimum="1" Maximum="5"/>
+                    <Slider Value="{Binding Path=Profile.TargetImageRadius, Mode=TwoWay}" Minimum="1" Maximum="30"/>
 
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Brightness" Style="{StaticResource Caption}" />

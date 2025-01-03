@@ -1,5 +1,7 @@
 ﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.Models;
 using LagoVista.Core.ViewModels;
+using LagoVista.Manufacturing.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -23,7 +25,15 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         RelayCommand TopLightOffCommand { get; }
         RelayCommand BottomLightOnCommand { get; }
         RelayCommand BottomLightOffCommand { get; }
+        RelayCommand GoToStagingPlateHoleCommand { get; }
 
-        IMachine Machine { get; }
+
+        string SelectedStagingPlateId { get; set; }
+        string SelectedStagingPlateColId { get; set; }
+        string SelectedStagingPlateRowId { get; set; }
+
+        List<EntityHeader> StagingPlateCols { get; }
+        List<EntityHeader> StagingPlateRows { get; }
+        MachineStagingPlate SelectedStagingPlate { get; set; }
     }
 }

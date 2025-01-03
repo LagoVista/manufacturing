@@ -382,8 +382,7 @@ namespace LagoVista.PickAndPlace
             }
         }
 
-
-
+        // https://cfsensor.com/wp-content/uploads/2022/11/XGZP6857D-Pressure-Sensor-V2.7.pdf
         public async Task<InvokeResult<ulong>> ReadLeftVacuumAsync()
         {
             // Select multiplexer At addr 112 - Left Pressure Monitor is at port 1

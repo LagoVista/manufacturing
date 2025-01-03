@@ -24,7 +24,7 @@ namespace LagoVista.Manufacturing.Models
     ManufacturingResources.Names.MachineToolHead_Description, EntityDescriptionAttribute.EntityTypes.ChildObject, ResourceType: typeof(ManufacturingResources),
     Icon: "icon-fo-maintenance-3", Cloneable: true,
     FactoryUrl: "/api/mfg/machine/toolhead/factory")]
-    public class MachineToolHead : IIDEntity, INamedEntity, IIconEntity, IValidateable, IFormDescriptor
+    public class MachineToolHead : ModelBase, IIDEntity, INamedEntity, IIconEntity, IValidateable, IFormDescriptor
     {
         public const string MachineToolHead_Type_Laser = "laser";
         public const string MachineToolHead_Type_Spindle = "spindle";
@@ -50,8 +50,13 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.MachineToolHead_Type, WaterMark: ManufacturingResources.Names.MachineToolHead_Type_Select, EnumType: typeof(ToolHeadTypes), FieldType: FieldTypes.Picker, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<ToolHeadTypes> ToolHeadType { get; set; }
 
+        private Point2D<double> _offset = new Point2D<double>();
         [FormField(LabelResource: ManufacturingResources.Names.Common_Offset, FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public Point2D<double> Offset { get; set; } = new Point2D<double>();
+        public Point2D<double> Offset
+        {
+            get => _offset;
+            set => Set(ref _offset, value);
+        }
 
         [FormField(LabelResource: ManufacturingResources.Names.MachineToolHead_PickHeight, HelpResource:ManufacturingResources.Names.MachineToolHead_PickHeight_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double PickHeight { get; set; }

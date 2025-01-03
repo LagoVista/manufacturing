@@ -32,11 +32,11 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         [Test]
         public void ResolveRow()
         {
-            var y = _utils.RowToY(EntityHeader.Create("G", "G", "G"));
+            var y = _utils.RowToY("G");
             Console.WriteLine(y);
             Assert.AreEqual((7 * 30 / 2), y);
 
-            y = _utils.RowToY(EntityHeader.Create("A", "A", "A"));
+            y = _utils.RowToY("A");
             Console.WriteLine(y);
             Assert.AreEqual((1 * 30 / 2), y);
         }
@@ -44,11 +44,11 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         [Test]
         public void ResolveCols()
         {
-            var x = _utils.ColToX(EntityHeader.Create("1", "1", "1"));
+            var x = _utils.ColToX("1");
             Console.WriteLine(x);
             Assert.AreEqual((1 * 30 / 2), x);
 
-            x = _utils.ColToX(EntityHeader.Create("10", "10", "10"));
+            x = _utils.ColToX("10");
             Console.WriteLine(x);
             Assert.AreEqual((10 * 30 / 2), x);
         }

@@ -16,9 +16,9 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             Line(img, circle.CenterPixels.X, 0, circle.CenterPixels.X, size.Height, color);
 
             CvInvoke.Circle(img, new System.Drawing.Point(circle.CenterPixels.X, circle.CenterPixels.Y), circle.RadiusPixels, new Bgr(color).MCvScalar, thickness, Emgu.CV.CvEnum.LineType.AntiAlias);
-            CvInvoke.PutText(img, $"Radius {circle.RadiusMM}mm", new Point(size.Width - 200, size.Height - 100), FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.White).MCvScalar);
-            CvInvoke.PutText(img, $"Found Count {circle.FoundCount}", new Point(size.Width - 200, size.Height - 70), FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.White).MCvScalar);
-            CvInvoke.PutText(img, $"Error {circle.OffsetMM}mm", new Point(size.Width - 200, size.Height - 40), FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.White).MCvScalar);
+            CvInvoke.PutText(img, $"Radius {circle.RadiusMM}mm", new Point(size.Width - 300, size.Height - 100), FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.White).MCvScalar);
+            CvInvoke.PutText(img, $"Found Count: {circle.FoundCount}", new Point(size.Width - 300, size.Height - 70), FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.White).MCvScalar);
+            CvInvoke.PutText(img, $"Error (mm) {circle.OffsetMM}", new Point(size.Width - 300, size.Height - 40), FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.White).MCvScalar);
         }
 
         public void Circle(IInputOutputArray img, int x, int y, int radius, System.Drawing.Color color, int thickness = 1)

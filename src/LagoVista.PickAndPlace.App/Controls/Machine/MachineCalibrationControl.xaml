@@ -9,7 +9,7 @@
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;assembly=LagoVista.PickAndPlace"                                        
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="1200" d:DesignWidth="1600">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
@@ -19,6 +19,10 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1200"/>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="800"/>
@@ -27,25 +31,47 @@
             <DataGrid ItemsSource="{Binding  MachineConfiguration.StagingPlates}" SelectedItem="{Binding SelectedStagingPlate}" AutoGenerateColumns="false" CanUserAddRows="false">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="120" />
-                    <DataGridTextColumn Header="Hole Spacing" Binding="{Binding HoleSpacing}" />
-                    <DataGridTextColumn Header="Size" Binding="{Binding Size}" />
-                    <DataGridTextColumn Header="Ref Hole 1 Row" Binding="{Binding ReferenceHoleRow1}" />
-                    <DataGridTextColumn Header="Ref Hole 1 Col" Binding="{Binding ReferenceHoleColumn1}" />
-                    <DataGridTextColumn Header="Ref Hole 1 XY" Binding="{Binding ReferenceHoleLocation1}" />
-                    <DataGridTextColumn Header="Ref Hole 2 Row" Binding="{Binding ReferenceHoleRow2}" />
-                    <DataGridTextColumn Header="Ref Hole 2 Col" Binding="{Binding ReferenceHoleColumn2}" />
-                    <DataGridTextColumn Header="Ref Hole 2 XY" Binding="{Binding ReferenceHoleLocation2}" />
+                    <DataGridTextColumn IsReadOnly="true" Header="Hole Spacing" Binding="{Binding HoleSpacing}" />
+                    <DataGridTextColumn IsReadOnly="true" Header="Size" Binding="{Binding Size}" />
+                    <DataGridTextColumn IsReadOnly="true" Header="Hole 1 Row" Binding="{Binding ReferenceHoleRow1}" />
+                    <DataGridTextColumn IsReadOnly="true" Header="Hole 1 Col" Binding="{Binding ReferenceHoleColumn1}" />
+                    <DataGridTextColumn IsReadOnly="true" Header="Hole 1 XY" Binding="{Binding ReferenceHoleLocation1}" />
+                    <DataGridTextColumn IsReadOnly="true" Header="Hole 2 Row" Binding="{Binding ReferenceHoleRow2}" />
+                    <DataGridTextColumn IsReadOnly="true" Header="Hole 2 Col" Binding="{Binding ReferenceHoleColumn2}" />
+                    <DataGridTextColumn IsReadOnly="true" Header="Hole 2 XY" Binding="{Binding ReferenceHoleLocation2}" />
                 </DataGrid.Columns>
             </DataGrid>
             <StackPanel Grid.Column="1" Visibility="{Binding SelectedStagingPlate, Converter={StaticResource NoTNullToVisibilityConverter}}">
-                <TextBlock Text="{Binding SelectedStagingPlate.Name}"></TextBlock>
+                <TextBlock FontSize="23" Text="{Binding SelectedStagingPlate.Name}"></TextBlock>
                 <TextBlock>Reference Hole 1</TextBlock>
                 <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleLocation1}"></TextBlock>
                 <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleRow1}"></TextBlock>
                 <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleColumn1}"></TextBlock>
-                <Button Style="{StaticResource CommandButton}" Content="Ref Hole 1" Command="{Binding SetStagingPlateReferenceHole1LocationCommand}" ></Button>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetStagingPlateReferenceHole1LocationCommand}"  ToolTip="Set Reference Hole 1" Width="64" Height="64"  >
+                        <Button.Content>
+                            <Image Source="/imgs/SetTarget.png"/>
+                        </Button.Content>
+                    </Button>
+                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToStagingPlateReferenceHole1LocationCommand}"  ToolTip="Move To Reference Hole 1" Width="64" Height="64"  >
+                        <Button.Content>
+                            <Image Source="/imgs/MoveToTarget.png"/>
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
                 <TextBlock>Reference Hole 2</TextBlock>
-                <Button Style="{StaticResource CommandButton}" Content="Ref Hole 2" Command="{Binding SetStagingPlateReferenceHole2LocationCommand}" ></Button>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetStagingPlateReferenceHole2LocationCommand}"  ToolTip="Set Reference Hole 2" Width="64" Height="64"  >
+                        <Button.Content>
+                            <Image Source="/imgs/SetTarget.png"/>
+                        </Button.Content>
+                    </Button>
+                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToStagingPlateReferenceHole2LocationCommand}"  ToolTip="Move To Reference Hole 2" Width="64" Height="64"  >
+                        <Button.Content>
+                            <Image Source="/imgs/MoveToTarget.png"/>
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
                 <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleRow2}"></TextBlock>
                 <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleColumn2}"></TextBlock>
                 <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleLocation2}"></TextBlock>
@@ -63,10 +89,26 @@
                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
                     <DataGridTextColumn Header="Slot Count" Binding="{Binding NumberSlots}" />
                     <DataGridTextColumn Header="First Slot Index" Binding="{Binding SlotStartIndex}" />
-                    <DataGridTextColumn Header="Rotation" Binding="{Binding Rotation}" />
-                    <DataGridTextColumn Header="First Feeder Origin" Binding="{Binding FirstFeederOrigin}" />
+                    <DataGridTextColumn IsReadOnly="true" Header="Rotation" Binding="{Binding Rotation}" />
+                    <DataGridTextColumn IsReadOnly="true" Header="First Feeder Origin" Binding="{Binding FirstFeederOrigin}" />
                 </DataGrid.Columns>
             </DataGrid>
+            <StackPanel Grid.Column="1" Visibility="{Binding SelectedFeederRail, Converter={StaticResource NoTNullToVisibilityConverter}}">
+                <TextBlock FontSize="23" Text="{Binding SelectedFeederRail.Name}"></TextBlock>
+                <Label>Move the position camera to the left edge of the first feeder on the rail, and have it centered on the rail as closely as possible.</Label>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetFirstFeederOriginCommand}"  ToolTip="Set the origin of the first feeder on the rail." Width="64" Height="64"  >
+                        <Button.Content>
+                            <Image Source="/imgs/SetTarget.png"/>
+                        </Button.Content>
+                    </Button>
+                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToFirstFeederOriginCommand}"  ToolTip="Set the origin of the first feeder on the rail." Width="64" Height="64"  >
+                        <Button.Content>
+                            <Image Source="/imgs/MoveToTarget.png"/>
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
+            </StackPanel>
         </Grid>
 
         <Grid Grid.Row="2">
@@ -74,11 +116,13 @@
                 <ColumnDefinition Width="800"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <DataGrid Grid.Row="1" ItemsSource="{Binding  MachineConfiguration.ToolHeads}" CanUserAddRows="false">
+            <DataGrid Grid.Row="1" ItemsSource="{Binding  MachineConfiguration.ToolHeads}" CanUserAddRows="false" AutoGenerateColumns="false">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
+                    <DataGridTextColumn Header="Type" Binding="{Binding ToolHeadType}" />
+                    <DataGridTextColumn Header="Pick Height" Binding="{Binding PickHeight}" />
+                    <DataGridTextColumn Header="Place Height" Binding="{Binding PlaceHeight}" />
                     <DataGridTextColumn Header="Current Nozzle" Binding="{Binding CurrentNozzle}" />
-                    
                 </DataGrid.Columns>
             </DataGrid>
         </Grid>
@@ -88,15 +132,33 @@
                 <ColumnDefinition Width="800"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <DataGrid Grid.Row="1" ItemsSource="{Binding  MachineConfiguration.Cameras}"  AutoGenerateColumns="False" CanUserAddRows="false" SelectedItem="{Binding SelectedCamera}">
+            <DataGrid Grid.Row="1" ItemsSource="{Binding  MachineConfiguration.Cameras}"  AutoGenerateColumns="False" CanUserAddRows="false" SelectedItem="{Binding SelectedMachineCamera}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
-                    <DataGridTextColumn Header="Camera Type" Binding="{Binding CameraType}" />
-                    <DataGridTextColumn Header="Device Id" Binding="{Binding CameraDeviceId}" />
+                    <DataGridTextColumn IsReadOnly="true" Header="Camera Type" Binding="{Binding CameraType}" />
+                    <DataGridTextColumn IsReadOnly="true" Width="200" Header="Device Id" Binding="{Binding CameraDevice.Text}" />
+                    <DataGridTextColumn IsReadOnly="true" Header="Location" Binding="{Binding AbsolutePosition}" />
                     <DataGridTextColumn Header="Pixels per MM" Binding="{Binding PixelsPerMM}" />
                     <DataGridTextColumn Header="Focus Height" Binding="{Binding FocusHeight}" />
                 </DataGrid.Columns>
            </DataGrid>
+            <StackPanel Grid.Column="1" Visibility="{Binding SelectedMachineCamera, Converter={StaticResource NoTNullToVisibilityConverter}}">
+                <TextBlock FontSize="23" Text="{Binding SelectedMachineCamera.Name}"></TextBlock>
+                <TextBlock>This is only done with the camera that is fixed.  Move the position camera over the bottom camera, center the position camera lens over the bottom camera and capture the point.</TextBlock>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetCameraLocationCommand}"  ToolTip="Set the camera location." Width="64" Height="64"  >
+                        <Button.Content>
+                            <Image Source="/imgs/SetTarget.png"/>
+                        </Button.Content>
+                    </Button>
+                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToCameraLocationCommand}"  ToolTip="Move to the camera location." Width="64" Height="64"  >
+                        <Button.Content>
+                            <Image Source="/imgs/MoveToTarget.png"/>
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
+            </StackPanel>
+
         </Grid>
 
         <Grid Grid.Row="4">
@@ -104,9 +166,15 @@
                 <ColumnDefinition Width="800"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <DataGrid Grid.Row="1" ItemsSource="{Binding MachineConfiguration.Nozzles}" CanUserAddRows="false" SelectedItem="{Binding SelectedNozzle}">
+            <DataGrid Grid.Row="1" ItemsSource="{Binding MachineConfiguration.Nozzles}" CanUserAddRows="false" SelectedItem="{Binding SelectedNozzle}" AutoGenerateColumns="false">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
+                    <DataGridTextColumn Header="Safe Move Height." Binding="{Binding SafeMooveHeight}" />
+                    <DataGridTextColumn Header="Inner Dia." Binding="{Binding InnerDiameter}" />
+                    <DataGridTextColumn Header="Outer Dia." Binding="{Binding OuterDiameter}" />
+                    <DataGridTextColumn Header="Rack Location" Binding="{Binding ToolRackLocation}" />
+                </DataGrid.Columns>
             </DataGrid>
         </Grid>
-
     </Grid>
 </ucb:VMBoundUserControl>
