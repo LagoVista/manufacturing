@@ -27,7 +27,7 @@ namespace LagoVista.PickAndPlace.App.Controls
 
         private void ShowLink_Handler(object sender, MouseButtonEventArgs e)
         {
-
+            var x = e;
         }
     }
 }

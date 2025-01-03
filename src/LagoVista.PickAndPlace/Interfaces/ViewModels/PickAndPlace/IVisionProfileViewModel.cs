@@ -1,4 +1,6 @@
-﻿using LagoVista.Core.Models;
+﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.Models;
+using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Models;
 using System;
@@ -8,11 +10,15 @@ using System.Text;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 {
-    public interface IVisionProfileViewModel
+    public interface IVisionProfileViewModel : IViewModel
     {
         VisionProfile Profile { get; }
         MachineCamera Camera { get; set; }
         string SelectedCameraDevicePath { get; set; }
         ObservableCollection<EntityHeader> CameraList { get; set; }
+
+        public double? MeasuredMM { get; set; }
+
+        public RelayCommand SetPixelsPerMMCommand { get; }
     }
 }

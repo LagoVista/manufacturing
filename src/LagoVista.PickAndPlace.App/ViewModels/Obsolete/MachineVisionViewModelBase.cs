@@ -120,27 +120,27 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 Y = size.Height / 2
             };
 
-            Line(destImage, 0, center.Y, center.X - profile.TargetImageRadius, center.Y, System.Drawing.Color.Yellow);
-            Line(destImage, center.X + profile.TargetImageRadius, center.Y, size.Width, center.Y, System.Drawing.Color.Yellow);
+            //Line(destImage, 0, center.Y, center.X - profile.TargetImageRadius, center.Y, System.Drawing.Color.Yellow);
+            //Line(destImage, center.X + profile.TargetImageRadius, center.Y, size.Width, center.Y, System.Drawing.Color.Yellow);
 
-            Line(destImage, center.X, 0, center.X, center.Y - profile.TargetImageRadius, System.Drawing.Color.Yellow);
-            Line(destImage, center.X, center.Y + profile.TargetImageRadius, center.X, size.Height, System.Drawing.Color.Yellow);
+            //Line(destImage, center.X, 0, center.X, center.Y - profile.TargetImageRadius, System.Drawing.Color.Yellow);
+            //Line(destImage, center.X, center.Y + profile.TargetImageRadius, center.X, size.Height, System.Drawing.Color.Yellow);
 
-            Line(destImage, center.X - profile.TargetImageRadius, center.Y, center.X + profile.TargetImageRadius, center.Y, System.Drawing.Color.FromArgb(0x7f, 0xFF, 0xFF, 0XFF));
-            Line(destImage, center.X, center.Y - profile.TargetImageRadius, center.X, center.Y + profile.TargetImageRadius, System.Drawing.Color.FromArgb(0x7f, 0xFF, 0xFF, 0XFF));
+            //Line(destImage, center.X - profile.TargetImageRadius, center.Y, center.X + profile.TargetImageRadius, center.Y, System.Drawing.Color.FromArgb(0x7f, 0xFF, 0xFF, 0XFF));
+            //Line(destImage, center.X, center.Y - profile.TargetImageRadius, center.X, center.Y + profile.TargetImageRadius, System.Drawing.Color.FromArgb(0x7f, 0xFF, 0xFF, 0XFF));
 
-            //if (_visionProfileManagerViewModel.CurrentMVProfile.Id == "squarepart")
+            ////if (_visionProfileManagerViewModel.CurrentMVProfile.Id == "squarepart")
+            ////{
+            ////    Line(destImage, center.X - PartSizeWidth, center.Y - PartSizeHeight, center.X - PartSizeWidth, center.Y + PartSizeHeight, System.Drawing.Color.Yellow);
+            ////    Line(destImage, center.X + PartSizeWidth, center.Y - PartSizeHeight, center.X + PartSizeWidth, center.Y + PartSizeHeight, System.Drawing.Color.Yellow);
+
+            ////    Line(destImage, center.X - PartSizeWidth, center.Y + PartSizeHeight, center.X + PartSizeWidth, center.Y + PartSizeHeight, System.Drawing.Color.Yellow);
+            ////    Line(destImage, center.X - PartSizeWidth, center.Y - PartSizeHeight, center.X + PartSizeWidth, center.Y - PartSizeHeight, System.Drawing.Color.Yellow);
+            ////}
+            ////else
             //{
-            //    Line(destImage, center.X - PartSizeWidth, center.Y - PartSizeHeight, center.X - PartSizeWidth, center.Y + PartSizeHeight, System.Drawing.Color.Yellow);
-            //    Line(destImage, center.X + PartSizeWidth, center.Y - PartSizeHeight, center.X + PartSizeWidth, center.Y + PartSizeHeight, System.Drawing.Color.Yellow);
-
-            //    Line(destImage, center.X - PartSizeWidth, center.Y + PartSizeHeight, center.X + PartSizeWidth, center.Y + PartSizeHeight, System.Drawing.Color.Yellow);
-            //    Line(destImage, center.X - PartSizeWidth, center.Y - PartSizeHeight, center.X + PartSizeWidth, center.Y - PartSizeHeight, System.Drawing.Color.Yellow);
+            //    Circle(destImage, center.X, center.Y, profile.TargetImageRadius, System.Drawing.Color.Yellow);
             //}
-            //else
-            {
-                Circle(destImage, center.X, center.Y, profile.TargetImageRadius, System.Drawing.Color.Yellow);
-            }
         }
         #endregion
 
@@ -205,129 +205,129 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 Y = size.Height / 2
             };
 
-            var circles = CvInvoke.HoughCircles(input, HoughModes.Gradient, profile.HoughCirclesDP, profile.HoughCirclesMinDistance, profile.HoughCirclesParam1, profile.HoughCirclesParam2, profile.HoughCirclesMinRadius, profile.HoughCirclesMaxRadius);
+            //var circles = CvInvoke.HoughCircles(input, HoughModes.Gradient, profile.HoughCirclesDP, profile.HoughCirclesMinDistance, profile.HoughCirclesParam1, profile.HoughCirclesParam2, profile.HoughCirclesMinRadius, profile.HoughCirclesMaxRadius);
 
-            var foundCircle = false;
-            /* Above will return ALL maching circles, we only want the first one that is in the target image radius in the middle of the screen */
-            foreach (var circle in circles)
-            {
-                if (circle.Center.X > ((size.Width / 2) - profile.TargetImageRadius) && circle.Center.X < ((size.Width / 2) + profile.TargetImageRadius) &&
-                   circle.Center.Y > ((size.Height / 2) - profile.TargetImageRadius) && circle.Center.Y < ((size.Height / 2) + profile.TargetImageRadius))
-                {
-                    _circleMedianFilter.Add(circle.Center.X, circle.Center.Y);
-                    _circleRadiusMedianFilter.Add(circle.Radius, 0);
-                    foundCircle = true;
-                    break;
-                }
-            }
+            //var foundCircle = false;
+            ///* Above will return ALL maching circles, we only want the first one that is in the target image radius in the middle of the screen */
+            //foreach (var circle in circles)
+            //{
+            //    if (circle.Center.X > ((size.Width / 2) - profile.TargetImageRadius) && circle.Center.X < ((size.Width / 2) + profile.TargetImageRadius) &&
+            //       circle.Center.Y > ((size.Height / 2) - profile.TargetImageRadius) && circle.Center.Y < ((size.Height / 2) + profile.TargetImageRadius))
+            //    {
+            //        _circleMedianFilter.Add(circle.Center.X, circle.Center.Y);
+            //        _circleRadiusMedianFilter.Add(circle.Radius, 0);
+            //        foundCircle = true;
+            //        break;
+            //    }
+            //}
 
-            if (!foundCircle)
-            {
-                _circleMedianFilter.Add(null);
-                _circleRadiusMedianFilter.Add(null);
-            }
+            //if (!foundCircle)
+            //{
+            //    _circleMedianFilter.Add(null);
+            //    _circleRadiusMedianFilter.Add(null);
+            //}
 
-            var avg = _circleMedianFilter.Filtered;
-            if (avg != null)
-            {
-                CircleCenter = new Point2D<double>(Math.Round(avg.X, 2), Math.Round(avg.Y, 2));
-                StandardDeviation = _circleMedianFilter.StandardDeviation;
+            //var avg = _circleMedianFilter.Filtered;
+            //if (avg != null)
+            //{
+            //    CircleCenter = new Point2D<double>(Math.Round(avg.X, 2), Math.Round(avg.Y, 2));
+            //    StandardDeviation = _circleMedianFilter.StandardDeviation;
 
-                var offset = new Point2D<double>(center.X - avg.X, center.Y - avg.Y);
+            //    var offset = new Point2D<double>(center.X - avg.X, center.Y - avg.Y);
 
-                var deltaX = Math.Abs(avg.X - center.X);
-                var deltaY = Math.Abs(avg.Y - center.Y);
-                //Debug.WriteLine($"{deltaX}, {deltaY} - {_stabilizedPointCount} - {_circleRadiusMedianFilter.StandardDeviation.X},{_circleRadiusMedianFilter.StandardDeviation.Y}");
-                /* If within one pixel of center, state we have a match */
-                if (deltaX < 1.5 && deltaY < 1.5)
-                {
-                    Line(output, 0, (int)avg.Y, size.Width, (int)avg.Y, System.Drawing.Color.Green);
-                    Line(output, (int)avg.X, 0, (int)avg.X, size.Height, System.Drawing.Color.Green);
-                    Circle(output, (int)avg.X, (int)avg.Y, (int)_circleRadiusMedianFilter.Filtered.X, System.Drawing.Color.Green);
-                    if (StandardDeviation.X < 0.7 && StandardDeviation.Y < 0.7)
-                    {
-                        _stabilizedPointCount++;
-                        if (_stabilizedPointCount > 5)
-                        {
-                            CircleCentered(offset, _circleRadiusMedianFilter.Filtered.X);
-                        }
-                    }
-                }
-                else
-                {
-                    Line(output, 0, (int)avg.Y, size.Width, (int)avg.Y, System.Drawing.Color.Red);
-                    Line(output, (int)avg.X, 0, (int)avg.X, size.Height, System.Drawing.Color.Red);
-                    Circle(output, (int)avg.X, (int)avg.Y, (int)_circleRadiusMedianFilter.Filtered.X, System.Drawing.Color.Red);
-                    CircleLocated(offset, _circleRadiusMedianFilter.Filtered.X, _circleRadiusMedianFilter.StandardDeviation);
-                }
-            }
-            else
-            {
-                CircleCenter = null;
-            }
+            //    var deltaX = Math.Abs(avg.X - center.X);
+            //    var deltaY = Math.Abs(avg.Y - center.Y);
+            //    //Debug.WriteLine($"{deltaX}, {deltaY} - {_stabilizedPointCount} - {_circleRadiusMedianFilter.StandardDeviation.X},{_circleRadiusMedianFilter.StandardDeviation.Y}");
+            //    /* If within one pixel of center, state we have a match */
+            //    if (deltaX < 1.5 && deltaY < 1.5)
+            //    {
+            //        Line(output, 0, (int)avg.Y, size.Width, (int)avg.Y, System.Drawing.Color.Green);
+            //        Line(output, (int)avg.X, 0, (int)avg.X, size.Height, System.Drawing.Color.Green);
+            //        Circle(output, (int)avg.X, (int)avg.Y, (int)_circleRadiusMedianFilter.Filtered.X, System.Drawing.Color.Green);
+            //        if (StandardDeviation.X < 0.7 && StandardDeviation.Y < 0.7)
+            //        {
+            //            _stabilizedPointCount++;
+            //            if (_stabilizedPointCount > 5)
+            //            {
+            //                CircleCentered(offset, _circleRadiusMedianFilter.Filtered.X);
+            //            }
+            //        }
+            //    }
+            //    else
+            //    {
+            //        Line(output, 0, (int)avg.Y, size.Width, (int)avg.Y, System.Drawing.Color.Red);
+            //        Line(output, (int)avg.X, 0, (int)avg.X, size.Height, System.Drawing.Color.Red);
+            //        Circle(output, (int)avg.X, (int)avg.Y, (int)_circleRadiusMedianFilter.Filtered.X, System.Drawing.Color.Red);
+            //        CircleLocated(offset, _circleRadiusMedianFilter.Filtered.X, _circleRadiusMedianFilter.StandardDeviation);
+            //    }
+            //}
+            //else
+            //{
+            //    CircleCenter = null;
+            //}
         }
         #endregion
 
         #region Find Corners
         private void FindCorners(Image<Gray, byte> blurredGray, IInputOutputArray output, System.Drawing.Size size, VisionProfile profile)
         {
-            var center = new Point2D<int>()
-            {
-                X = size.Width / 2,
-                Y = size.Height / 2
-            };
+            //var center = new Point2D<int>()
+            //{
+            //    X = size.Width / 2,
+            //    Y = size.Height / 2
+            //};
 
-            using (var cornerDest = new Image<Gray, float>(blurredGray.Size))
-            using (var matNormalized = new Image<Gray, float>(blurredGray.Size))
-            using (var matScaled = new Image<Gray, float>(blurredGray.Size))
-            {
-                cornerDest.SetZero();
+            //using (var cornerDest = new Image<Gray, float>(blurredGray.Size))
+            //using (var matNormalized = new Image<Gray, float>(blurredGray.Size))
+            //using (var matScaled = new Image<Gray, float>(blurredGray.Size))
+            //{
+            //    cornerDest.SetZero();
 
-                int max = -1;
-                int x = -1, y = -1;
+            //    int max = -1;
+            //    int x = -1, y = -1;
 
-                CvInvoke.CornerHarris(blurredGray, cornerDest, profile.HarrisCornerBlockSize, profile.HarrisCornerAperture, profile.HarrisCornerK, BorderType.Default);
+            //    CvInvoke.CornerHarris(blurredGray, cornerDest, profile.HarrisCornerBlockSize, profile.HarrisCornerAperture, profile.HarrisCornerK, BorderType.Default);
 
-                CvInvoke.Normalize(cornerDest, matNormalized, 0, 255, NormType.MinMax, DepthType.Cv32F);
-                CvInvoke.ConvertScaleAbs(matNormalized, matScaled, 10, 5);
+            //    CvInvoke.Normalize(cornerDest, matNormalized, 0, 255, NormType.MinMax, DepthType.Cv32F);
+            //    CvInvoke.ConvertScaleAbs(matNormalized, matScaled, 10, 5);
 
-                var minX = (size.Width / 2) - profile.TargetImageRadius;
-                var maxX = (size.Width / 2) + profile.TargetImageRadius;
-                var minY = (size.Height / 2) - profile.TargetImageRadius;
-                var maxY = (size.Height / 2) + profile.TargetImageRadius;
+            //    var minX = (size.Width / 2) - profile.TargetImageRadius;
+            //    var maxX = (size.Width / 2) + profile.TargetImageRadius;
+            //    var minY = (size.Height / 2) - profile.TargetImageRadius;
+            //    var maxY = (size.Height / 2) + profile.TargetImageRadius;
 
-                /* Go through all the returned points and find the one with the highest intensity.  This will be our corner */
-                for (int j = minX; j < maxX; j++)
-                {
-                    for (int i = minY; i < maxY; i++)
-                    {
-                        var value = (int)matNormalized.Data[i, j, 0];
-                        if (value > max)
-                        {
-                            x = j;
-                            y = i;
-                            max = value;
-                        }
-                    }
-                }
+            //    /* Go through all the returned points and find the one with the highest intensity.  This will be our corner */
+            //    for (int j = minX; j < maxX; j++)
+            //    {
+            //        for (int i = minY; i < maxY; i++)
+            //        {
+            //            var value = (int)matNormalized.Data[i, j, 0];
+            //            if (value > max)
+            //            {
+            //                x = j;
+            //                y = i;
+            //                max = value;
+            //            }
+            //        }
+            //    }
 
-                if (x > 0 && y > 0)
-                {
-                    _cornerMedianFilter.Add(new Point2D<float>(x, y));
+            //    if (x > 0 && y > 0)
+            //    {
+            //        _cornerMedianFilter.Add(new Point2D<float>(x, y));
 
-                }
+            //    }
 
-                var avg = _cornerMedianFilter.Filtered;
-                if (avg != null)
-                {
-                    Circle(output, (int)avg.X, (int)avg.Y, 5, System.Drawing.Color.Blue);
-                    Line(output, 0, (int)avg.Y, size.Width, (int)avg.Y, System.Drawing.Color.Blue);
-                    Line(output, (int)avg.X, 0, (int)avg.X, size.Height, System.Drawing.Color.Blue);
+            //    var avg = _cornerMedianFilter.Filtered;
+            //    if (avg != null)
+            //    {
+            //        Circle(output, (int)avg.X, (int)avg.Y, 5, System.Drawing.Color.Blue);
+            //        Line(output, 0, (int)avg.Y, size.Width, (int)avg.Y, System.Drawing.Color.Blue);
+            //        Line(output, (int)avg.X, 0, (int)avg.X, size.Height, System.Drawing.Color.Blue);
 
-                    var offset = new Point2D<double>(center.X - avg.X, center.Y - avg.Y);
-                    CornerLocated(offset, _cornerMedianFilter.StandardDeviation);
-                }
-            }
+            //        var offset = new Point2D<double>(center.X - avg.X, center.Y - avg.Y);
+            //        CornerLocated(offset, _cornerMedianFilter.StandardDeviation);
+            //    }
+            //}
         }
         #endregion
 
@@ -552,8 +552,8 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                             using (var mask = new Image<Gray, byte>(img.Size))
 
                             {
-                                CvInvoke.Circle(mask, new System.Drawing.Point() { X = img.Size.Width / 2, Y = img.Size.Height / 2 }, profile.TargetImageRadius, new Bgr(System.Drawing.Color.White).MCvScalar, -1, Emgu.CV.CvEnum.LineType.AntiAlias);
-                                CvInvoke.BitwiseAnd(img, img, masked, mask);
+                                //CvInvoke.Circle(mask, new System.Drawing.Point() { X = img.Size.Width / 2, Y = img.Size.Height / 2 }, profile.TargetImageRadius, new Bgr(System.Drawing.Color.White).MCvScalar, -1, Emgu.CV.CvEnum.LineType.AntiAlias);
+                                //CvInvoke.BitwiseAnd(img, img, masked, mask);
                                 raw = masked;
                             }
                         }

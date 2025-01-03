@@ -91,12 +91,12 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _tool2Offset, value); }
         }
 
-        double _pixelsPerMM;
+        double _pixelsPerMM = 50;
         [FormField(LabelResource: ManufacturingResources.Names.MachineCamera_PixelsPerMM, HelpResource: ManufacturingResources.Names.MachineCamera_PixelsPerMM_Help, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
         public double PixelsPerMM
         {
             get { return _pixelsPerMM; }
-            set { Set(ref _pixelsPerMM, value); }
+            set { Set(ref _pixelsPerMM, Math.Round(value,1)); }
         }
 
         [FormField(LabelResource: ManufacturingResources.Names.MachineCamera_ImageSize, FieldType: FieldTypes.Point2DSize, ResourceType: typeof(ManufacturingResources))]

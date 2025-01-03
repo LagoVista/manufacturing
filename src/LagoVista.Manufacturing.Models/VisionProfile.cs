@@ -96,11 +96,11 @@ namespace LagoVista.PickAndPlace.Models
             set { _contrast = Math.Round(value, 1); RaisePropertyChanged(); }
         }
 
-        private int _targetImageRadius = 50;
-        public int TargetImageRadius
+        private double _targetImageRadius = 2;
+        public double TargetImageRadius
         {
             get { return _targetImageRadius; }
-            set { _targetImageRadius = value; RaisePropertyChanged(); }
+            set { _targetImageRadius = Math.Round(value, 1); RaisePropertyChanged(); }
         }
 
         private double _focus = 50;
@@ -371,17 +371,17 @@ namespace LagoVista.PickAndPlace.Models
             get { return _houghCirclesParam2; }
             set { _houghCirclesParam2 = Math.Round(value, 1); RaisePropertyChanged(); }
         }
-        private int _houghCirclesMinRadius = 5;
-        public int HoughCirclesMinRadius
+        private double _houghCirclesMinRadius = 1;
+        public double HoughCirclesMinRadius
         {
             get { return _houghCirclesMinRadius; }
-            set { _houghCirclesMinRadius = value; RaisePropertyChanged(); }
+            set { _houghCirclesMinRadius = Math.Round(value, 1); RaisePropertyChanged(); }
         }
-        private int _houghCirclesMaxRadius = 150;
-        public int HoughCirclesMaxRadius
+        private double _houghCirclesMaxRadius = 10;
+        public double HoughCirclesMaxRadius
         {
             get { return _houghCirclesMaxRadius; }
-            set { _houghCirclesMaxRadius = value; RaisePropertyChanged(); }
+            set { _houghCirclesMaxRadius = Math.Round(value, 1); RaisePropertyChanged(); }
         }
 
         private bool _applyMask = false;

@@ -74,8 +74,6 @@
         <Label Content="Polygons"  Grid.Row="5" />
         <CheckBox IsChecked="{Binding Profile.FindRectangles, Mode=TwoWay}" Grid.Row="5" Grid.Column="1" />
 
-        <Label Content="200px Square"  Grid.Row="6" />
-        <CheckBox IsChecked="{Binding Profile.Show200PixelSquare, Mode=TwoWay}" Grid.Row="6" Grid.Column="1" />
 
         <Label Content="Cross Hairs"  Grid.Row="6" Grid.Column="2" />
         <CheckBox IsChecked="{Binding Profile.ShowCrossHairs, Mode=TwoWay}" Grid.Row="6" Grid.Column="3" />

@@ -18,8 +18,16 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         public VisionProfileViewModel(IMachineRepo machineRepo) : base (machineRepo) 
         {
             VisionProfiles = new ObservableCollection<EntityHeader>(VisionProfile.DefaultVisionProfiles);
+            SetPixelsPerMMCommand = new RelayCommand(SetPixelsPerMM, () => MeasuredMM.HasValue);
         }
-       
+
+        void SetPixelsPerMM()
+        {
+            if (MeasuredMM.HasValue && MeasuredMM.Value > 0)
+            {
+                Camera.PixelsPerMM = 200 / MeasuredMM.Value;
+            }
+        }
 
         public string PolygonHelp { get { return "http://docs.opencv.org/2.4/doc/tutorials/imgproc/shapedescriptors/bounding_rects_circles/bounding_rects_circles.html?highlight=approxpolydp"; } }
         public string PolygonEpsilonHelp { get { return "Parameter specifying the approximation accuracy. This is the maximum distance between the original curve and its approximation"; } }
@@ -124,5 +132,18 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             get => _camera;
             set => Set(ref _camera, value);    
         }
+
+        private double? _measuedMM;
+        public double? MeasuredMM 
+        {
+            get => _measuedMM;
+            set 
+            {
+                Set(ref _measuedMM, value);
+                SetPixelsPerMMCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public RelayCommand SetPixelsPerMMCommand { get; }
     }
 }

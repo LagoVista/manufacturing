@@ -44,7 +44,7 @@
                         <Label Content="Search Radius" Style="{StaticResource Caption}" />
                         <Label Content="{Binding Profile.TargetImageRadius, FallbackValue=3}" Style="{StaticResource Value}" />
                     </StackPanel>
-                    <Slider Value="{Binding Path=Profile.TargetImageRadius, Mode=TwoWay}" Minimum="1" Maximum="100"/>
+                    <Slider Value="{Binding Path=Profile.TargetImageRadius, Mode=TwoWay}" Minimum="1" Maximum="5"/>
 
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Brightness" Style="{StaticResource Caption}" />
@@ -125,8 +125,6 @@
             </TabItem>
             <TabItem Header="Corner">
                 <StackPanel>
-                    <Label Content="Corner Detection" FontSize="36" />
-
                     <StackPanel Orientation="Horizontal">
                         <Label Content="K: " Style="{StaticResource Caption}"/>
                         <Label Content="{Binding Profile.HarrisCornerK, FallbackValue=3}" Style="{StaticResource Value}" />
@@ -155,7 +153,6 @@
 
             <TabItem Header="Line">
                 <StackPanel>
-                    <Label Content="Line Detection" FontSize="36" />
                     <Label Content="Hough Lines" Style="{StaticResource Link}" MouseDown="ShowLink_Handler" Tag="{Binding  HoughLinesLink}" />
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Minimum Line Length - "/>
@@ -193,21 +190,21 @@
                     </StackPanel>
                     <Slider Value="{Binding Path=Profile.HoughCirclesDP, Mode=TwoWay}" Minimum="0.5" Maximum="5" SmallChange="0.25" LargeChange="0.25" ToolTip="{Binding HoughCirclesDPHelp}" />
                     <StackPanel Orientation="Horizontal">
-                        <Label Content="Min Radius" Style="{StaticResource Caption}"/>
+                        <Label Content="Min Radius (MM)" Style="{StaticResource Caption}"/>
                         <Label Content="{Binding Profile.HoughCirclesMinRadius, FallbackValue=3}" Style="{StaticResource Value}" />
                     </StackPanel>
-                    <Slider Value="{Binding Path=Profile.HoughCirclesMinRadius, Mode=TwoWay}" ToolTip="{Binding HoughCirclesMinRadiusHelp}" Minimum="0" Maximum="100" SmallChange="5" LargeChange="25" />
+                    <Slider Value="{Binding Path=Profile.HoughCirclesMinRadius, Mode=TwoWay}" ToolTip="{Binding HoughCirclesMinRadiusHelp}" Minimum="0" Maximum="5" SmallChange="0.05" LargeChange="0.25"/>
                     <StackPanel Orientation="Horizontal">
-                        <Label Content="Max Radius:" Style="{StaticResource Caption}"/>
+                        <Label Content="Max Radius (MM):" Style="{StaticResource Caption}"/>
                         <Label Content="{Binding Profile.HoughCirclesMaxRadius, FallbackValue=3}" Style="{StaticResource Value}" />
                     </StackPanel>
-                    <Slider Value="{Binding Path=Profile.HoughCirclesMaxRadius, Mode=TwoWay}" ToolTip="{Binding HoughCirclesMaxRadiusHelp}" Minimum="0" Maximum="200" SmallChange="5" LargeChange="25"  />
+                    <Slider Value="{Binding Path=Profile.HoughCirclesMaxRadius, Mode=TwoWay}" ToolTip="{Binding HoughCirclesMaxRadiusHelp}" Maximum="5" SmallChange="0.05" LargeChange="0.25"/>
                     <Label Content="Min Distance Between Centers"/>
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Min Distance:" Style="{StaticResource Caption}"/>
                         <Label Content="{Binding Profile.HoughCirclesMinDistance, FallbackValue=3}" Style="{StaticResource Value}" />
                     </StackPanel>
-                    <Slider Value="{Binding Path=Profile.HoughCirclesMinDistance, Mode=TwoWay}" ToolTip="{Binding HoughCirclesMinDistanceHelp}" Minimum="0" Maximum="200" SmallChange="5" LargeChange="25"/>
+                    <Slider Value="{Binding Path=Profile.HoughCirclesMinDistance, Mode=TwoWay}" ToolTip="{Binding HoughCirclesMinDistanceHelp}" Maximum="5" SmallChange="0.05" LargeChange="0.25"/>
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Gradient Param 1:" Style="{StaticResource Caption}"/>
                         <Label Content="{Binding Profile.HoughCirclesParam1, FallbackValue=3}" Style="{StaticResource Value}" />
@@ -265,21 +262,20 @@
 
             <TabItem Header="Calibration">
                 <StackPanel Margin="4">
-                    <TextBlock Text="Calibrate Camera Offset" FontSize="20" FontWeight="Bold" />
+                    <TextBlock Text="Set Pixels per MM" FontSize="20" FontWeight="Bold" />
 
-                    <TextBlock TextWrapping="Wrap" Text="1) Manually drill a hole somewhere in your stock and press Capture Drill Location" />
-                    <Button Command="{Binding CaptureDrillLocationCommand}" Content="Capture Drill Location" />
-                    <TextBlock TextWrapping="Wrap" Margin="0,20,0,0" Text="2) Jog the camera so that that hole is in the cross chairs and press Capture camera Location" />
-                    <Button Command="{Binding CaptureCameraCommand}" Content="Capture Camera Location" />
+                    <TextBlock Text="{Binding Camera.PixelsPerMM}"/>
 
-                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0" Height="24">
-                        <TextBlock Text="Offset X:" Width="200"/>
-                        <TextBlock Text="{Binding Path=Machine.Settings.PositioningCamera.Tool1Offset.X, StringFormat=\{0:0.0000\} }" TextAlignment="Right" Width="80"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Height="24">
-                        <TextBlock Text="Offset Y:" Width="200"/>
-                        <TextBlock Text="{Binding Path=Machine.Settings.PositioningCamera.Tool1Offset.Y, StringFormat=\{0:0.0000\} }" TextAlignment="Right" Width="80" />
-                    </StackPanel>
+                    <Label Content="1) Show 200px Square"  Grid.Row="6" />
+                    <CheckBox IsChecked="{Binding Profile.Show200PixelSquare, Mode=TwoWay}"/>
+
+                    <Label Content="2) Place a metric ruler at the normal pick height of the machine" />
+
+                    <Label Content="3) Measure and enter the number of millimeters" />
+                    <TextBox Text="{Binding MeasuredMM, Mode=TwoWay}" ></TextBox>
+
+                    <Label Content="4) Press Calculate"></Label>
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding SetPixelsPerMMCommand}" >Calculate</Button>
                 </StackPanel>
 
             </TabItem>
