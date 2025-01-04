@@ -76,7 +76,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
                     /* If within one pixel of center, state we have a match */
                     //TODO Replace this with a profile setting for image accuracy, points per mm and mm
-                    if (foundCircle.OffsetMM.X < 0.1 && foundCircle.OffsetMM.Y < 0.1)
+                    if (Math.Abs(foundCircle.OffsetMM.X) < profile.ErrorToleranceMM && Math.Abs(foundCircle.OffsetMM.Y) < profile.ErrorToleranceMM)
                     {
                         if (true) //foundCircle.StandardDeviation.X < 0.7 && foundCircle.StandardDeviation.Y < 0.7 && _stabilizedPointCount++ > 5)
                         {
