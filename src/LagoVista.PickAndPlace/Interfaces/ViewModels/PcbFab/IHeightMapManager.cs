@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
 
-namespace LagoVista.PickAndPlace.Interfaces
+namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab
 {
     public interface IHeightMapManager : INotifyPropertyChanged
     {
@@ -54,7 +54,7 @@ namespace LagoVista.PickAndPlace.Interfaces
         /// <summary>
         /// Outline of the PCB Blank
         /// </summary>
-        ObservableCollection<LagoVista.Core.Models.Drawing.Line3D> RawBoardOutline { get; }
+        ObservableCollection<Line3D> RawBoardOutline { get; }
 
         /// <summary>
         /// The XY Coordinates of the points that will be probed.

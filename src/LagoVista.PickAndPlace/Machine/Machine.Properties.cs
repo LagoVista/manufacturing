@@ -1,5 +1,6 @@
 ﻿using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
 using System.Collections.ObjectModel;
 
 namespace LagoVista.PickAndPlace
@@ -132,17 +133,6 @@ namespace LagoVista.PickAndPlace
             private set
             {
                 _isInitialized = value;
-                RaisePropertyChanged();
-            }
-        }
-
-        IMachineVisionManager _machineVisionManager;
-        public IMachineVisionManager MachineVisionManager
-        {
-            get { return _machineVisionManager; }
-            private set
-            {
-                _machineVisionManager = value;
                 RaisePropertyChanged();
             }
         }

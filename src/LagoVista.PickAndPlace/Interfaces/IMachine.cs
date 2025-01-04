@@ -3,6 +3,7 @@ using LagoVista.Core.PlatformSupport;
 using LagoVista.Core.Validation;
 using LagoVista.GCode;
 using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;

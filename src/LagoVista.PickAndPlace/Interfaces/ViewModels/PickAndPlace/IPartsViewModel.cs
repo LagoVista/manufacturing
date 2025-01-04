@@ -12,7 +12,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
     public interface IPartsViewModel : IViewModel
     {
         Task<InvokeResult> SaveCurrentFeederAsync();
-        Task<InvokeResult> RefreshAsync();
+        Task RefreshAsync();
 
         StripFeeder CurrentStripFeeder { get; set; }
         StripFeederRow CurrentStripFeederRow { get; set; }

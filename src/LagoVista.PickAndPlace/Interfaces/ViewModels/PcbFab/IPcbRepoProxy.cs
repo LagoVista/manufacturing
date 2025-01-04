@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace LagoVista.PickAndPlace.Interfaces
+namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab
 {
     public interface IPcbRepoProxy
     {

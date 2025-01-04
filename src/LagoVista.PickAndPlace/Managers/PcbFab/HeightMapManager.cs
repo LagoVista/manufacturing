@@ -1,5 +1,6 @@
 ﻿using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.Core.PlatformSupport;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
 
 namespace LagoVista.PickAndPlace.Managers
 {

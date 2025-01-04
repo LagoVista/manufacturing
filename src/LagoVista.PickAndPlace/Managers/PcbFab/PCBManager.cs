@@ -1,5 +1,6 @@
 ﻿using LagoVista.Core.PlatformSupport;
 using LagoVista.PickAndPlace.Interfaces;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
 using System;
 using System.Collections.Generic;
 using System.Linq;

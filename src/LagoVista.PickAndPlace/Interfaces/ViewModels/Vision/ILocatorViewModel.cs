@@ -1,9 +1,4 @@
-﻿using Emgu.CV.Structure;
-using LagoVista.Core.Models.Drawing;
-using LagoVista.Manufacturing.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using LagoVista.PickAndPlace.Models;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
 {
@@ -26,16 +21,21 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
         string Status { get; }
         void SetLocatorState(MVLocatorState state);
 
-        void RectLocated(RotatedRect rect, CameraTypes camera, Point2D<double> stdDeviation) { }
-        void RectCentered(RotatedRect rect, CameraTypes camera, Point2D<double> stdDeviation) { }
+        void CirclesLocated(MVLocatedCircles circles);
+        void RectLocated(MVLocatedRectangle rect);
+        void CornerLocated(MVLocatedCorner corner);
+        void CircleLocated(MVLocatedCircle circle);
 
+        void RegisterCircleLocatedHandler(ICircleLocatedHandler handler);
+        void UnregisterCircleLocatedHandler(ICircleLocatedHandler handler);
 
-        void CornerLocated(Point2D<double> point, CameraTypes camera, Point2D<double> stdDeviation) { }
-        void CornerCentered(Point2D<double> point, CameraTypes camera, Point2D<double> stdDeviation) { }
+        void RegisterCirclesLocatedHandler(ICirclesLocatedHandler handler);
+        void UnregisterCirclesLocatedHandler(ICirclesLocatedHandler handler);
 
-
-        void CircleLocated(Point2D<double> point, CameraTypes camera, double diameter, Point2D<double> stdDeviation) { }
-        void CircleCentered(Point2D<double> point, CameraTypes camera, double diameter) { }
-
+        void RegisterRectangleLocatedHandler(IRectangleLocatedHandler handler);
+        void UnregisterRectangleLocatedHandler(IRectangleLocatedHandler handler);
+        
+        void RegisterCornerLocatedHandler(ICornerLocatedHandler handler);
+        void UnRegisterCornerLocatedHandler(ICornerLocatedHandler handler);
     }
 }

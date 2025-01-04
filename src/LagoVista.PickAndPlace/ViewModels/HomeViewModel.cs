@@ -1,12 +1,8 @@
 ﻿using LagoVista.Client.Core;
 using LagoVista.Core.PlatformSupport;
 using LagoVista.Core.ViewModels;
-using LagoVista.PickAndPlace.Interfaces;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.App.ViewModels
 {

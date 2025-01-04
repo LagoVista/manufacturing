@@ -4,23 +4,22 @@ using Emgu.CV.Structure;
 using LagoVista.Core;
 using LagoVista.Core.Commanding;
 using LagoVista.Core.Models;
-using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
 using LagoVista.Manufacturing.Models.Resources;
 using LagoVista.PickAndPlace.Interfaces;
-using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
+using LagoVista.PickAndPlace.Interfaces.Services;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
 using LagoVista.PickAndPlace.ViewModels;
 using System;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
-namespace LagoVista.PickAndPlace.App.MachineVision
+namespace LagoVista.PickAndPlace.App.Services
 {
     public class ImageCaptureService : MachineViewModelBase, IImageCaptureService, INotifyPropertyChanged
     {
@@ -33,28 +32,10 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
         private object _captureLocker = new object();
 
-        ShapeDetectionService _shapeDetectorService;
-        ILocatorViewModel _locatorViewModel;
+        IShapeDetectorService<Image<Bgr, byte>> _shapeDetectorService;
         CameraTypes _cameraType;
-
-
-        public CameraTypes CameraType
+        public ImageCaptureService(IMachineRepo machineRepo) : base(machineRepo)
         {
-            get => _cameraType;
-            set => Set(ref _cameraType, value);            
-        }
-
-        MachineCamera _camera;
-        public MachineCamera Camera
-        {
-            get => _camera;
-            set => Set(ref _camera, value);
-        }
-
-        public ImageCaptureService(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel) : base(machineRepo)
-        {            
-            _locatorViewModel = locatorViewModel ?? throw new ArgumentNullException(nameof(locatorViewModel));
-
             StartCaptureCommand = new RelayCommand(StartCapture);
             StopCaptureCommand = new RelayCommand(StopCapture);
         }
@@ -81,16 +62,6 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             }
         }
 
-        public override Task InitAsync()
-        {
-            return base.InitAsync();
-        }
-
-        public VisionProfile Profile
-        {
-            get => Camera?.CurrentVisionProfile;
-        }
-
         public void StartCapture()
         {
             if (Camera == null)
@@ -113,8 +84,6 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 return;
             }
 
-            _shapeDetectorService = new ShapeDetectionService(_machineRepo, _locatorViewModel);
-
             try
             {
                 LoadingMask = true;
@@ -123,6 +92,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 if (_capture == null)
                 {
                     MessageBox.Show($"Could not load {Camera.CameraDevice.Text}");
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning, $"Could not load {Camera.CameraDevice.Text}");
                     return;
                 }
 
@@ -130,7 +100,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 _capture.Set(Emgu.CV.CvEnum.CapProp.FrameHeight, Camera.ImageSize.Y);
                 _capture.Set(Emgu.CV.CvEnum.CapProp.AutoExposure, 0);
 
-                Run();                
+                Run();
             }
             catch (Exception ex)
             {
@@ -143,9 +113,9 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             try
             {
                 var cameras = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
-          
+
                 //    var camera = cameras.FirstOrDefault(cam => cam.N == devicePath);
-                var camera = cameras.Select((cam, idx) => new { DevicePath = cam.DevicePath, index = idx }).FirstOrDefault(cam => cam.DevicePath == devicePath);
+                var camera = cameras.Select((cam, idx) => new { cam.DevicePath, index = idx }).FirstOrDefault(cam => cam.DevicePath == devicePath);
                 if (camera != null)
                     return new VideoCapture(camera.index);
                 else
@@ -157,7 +127,6 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 return null;
             }
         }
-
 
         public void StopCapture()
         {
@@ -230,9 +199,9 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                                     {
                                         if (Profile.PerformShapeDetection)
                                         {
-                                            using (var results = _shapeDetectorService.PerformShapeDetection(resized, Camera))
+                                            using (var results = _shapeDetectorService.PerformShapeDetection(new MVImage<Image<Bgr, byte>>(resized), Camera, resized.Size))
                                             {
-                                                CaptureImage = Emgu.CV.WPF.BitmapSourceConvert.ToBitmapSource(results);
+                                                CaptureImage = Emgu.CV.WPF.BitmapSourceConvert.ToBitmapSource(results.ToUMat());
                                             }
                                         }
                                         else
@@ -243,7 +212,6 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                                 }
                             }
                         }
-
                     }
                 }
                 else
@@ -271,6 +239,22 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             set => Set(ref _loadingMasking, value);
         }
 
-        public IMachineRepo MachineRepo => _machineRepo;
+        public CameraTypes CameraType
+        {
+            get => _cameraType;
+            set => Set(ref _cameraType, value);
+        }
+
+        MachineCamera _camera;
+        public MachineCamera Camera
+        {
+            get => _camera;
+            set => Set(ref _camera, value);
+        }
+
+        public VisionProfile Profile
+        {
+            get => Camera?.CurrentVisionProfile;
+        }
     }
 }

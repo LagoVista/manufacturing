@@ -89,14 +89,14 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 var timeout = DateTime.Now.AddMilliseconds(1000);
 
                 //// wait until we identify a rectangle (probably want a time out here)
-                //while (!FoundRectangle.HasValue && DateTime.Now < timeout)
+                //while (!MVLocatedRectangle.HasValue && DateTime.Now < timeout)
                 //{
                 //    await Task.Delay(1);
                 //}
 
-                //if (FoundRectangle.HasValue)
+                //if (MVLocatedRectangle.HasValue)
                 //{
-                //    Debug.WriteLine($"Error: {FoundRectangle.Value.Center.X}x{FoundRectangle.Value.Center.Y} - {FoundRectangle.Value.Angle}");
+                //    Debug.WriteLine($"Error: {MVLocatedRectangle.Value.Center.X}x{MVLocatedRectangle.Value.Center.Y} - {MVLocatedRectangle.Value.Angle}");
                 //}
                 //else
                 //{

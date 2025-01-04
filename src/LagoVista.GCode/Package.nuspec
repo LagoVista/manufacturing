@@ -2,21 +2,21 @@
 <package>
   <metadata>
     <id>LagoVista.GCode</id>
-    <version>3.0.2785.1328</version>
+    <version>3.0.2789.0651</version>
     <authors>Software Logistics, LLC</authors>
     <owners>Software Logistics, LLC</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <projectUrl>https://www.nuviot.com</projectUrl>
     <iconUrl>http://bytemaster.blob.core.windows.net/icons/LagoVistaIcon.png</iconUrl>
     <description>Utilities to work with GCode.</description>
-    <copyright>Copyright Software Logistics - 2024</copyright>
+    <copyright>Copyright Software Logistics - 2025</copyright>
     <tags>HomeAutomation IoT</tags>
     <icon>LagoVistaIcon.png</icon>
-    <releaseNotes>Build Date: 12/31/2024 6:28:31 PM UTC</releaseNotes>
+    <releaseNotes>Build Date: 1/4/2025 11:51:52 AM UTC</releaseNotes>
     <repository url="https://www.github.com/lagovista" type="git" branch="master"></repository>
     <dependencies>
       <group targetFramework="netstandard2.0">
-        <dependency id="LagoVista.Core" version="3.0.2785.1328" />
+        <dependency id="LagoVista.Core" version="3.0.2789.0651" />
       </group>
     </dependencies>
   </metadata>

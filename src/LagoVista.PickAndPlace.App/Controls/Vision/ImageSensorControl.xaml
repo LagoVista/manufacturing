@@ -6,7 +6,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:vms="clr-namespace:LagoVista.PickAndPlace.App.MachineVision"
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
-             xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces;assembly=LagoVista.PickAndPlace"
+             xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;assembly=LagoVista.PickAndPlace"
              d:DataContext="{d:DesignInstance vms:ImageCaptureService }"
              xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
              mc:Ignorable="d" 

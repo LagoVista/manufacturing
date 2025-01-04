@@ -3,7 +3,7 @@ using LagoVista.Core.IOC;
 using LagoVista.Core.Models;
 using LagoVista.Core.PlatformSupport;
 using LagoVista.Manufacturing.Models;
-using LagoVista.PickAndPlace.Interfaces;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

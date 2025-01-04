@@ -1,4 +1,4 @@
-﻿using LagoVista.PickAndPlace.Interfaces;
+﻿using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Repos;
 using LagoVista.XPlat;
 

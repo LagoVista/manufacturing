@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using LagoVista.Core;
 using System.Diagnostics;
 using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
 
 namespace LagoVista.PickAndPlace.Managers.PcbFab
 {

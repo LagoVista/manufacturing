@@ -2,22 +2,22 @@
 <package>
   <metadata>
     <id>LagoVista.MSDMarkwort.Kicad.Parser.Model</id>
-    <version>3.0.2785.1328</version>
+    <version>3.0.2789.0651</version>
     <authors>Software Logistics, LLC</authors>
     <owners>Software Logistics, LLC</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <iconUrl>http://bytemaster.blob.core.windows.net/icons/LagoVistaIcon.png</iconUrl>
     <projectUrl>https://www.nuviot.com</projectUrl>
     <description>Imported from https://github.com/mmarkwort/msdmarkwort.kicad.parser, with MIT License, could not use NUGET Package since it targetted Net 8.0.  This port targets netstandard 2.1.</description>
-    <copyright>Copyright Software Logistics - 2024</copyright>
+    <copyright>Copyright Software Logistics - 2025</copyright>
     <tags>HomeAutomation IoT</tags>
     <icon>LagoVistaIcon.png</icon>
-    <releaseNotes>Build Date: 12/31/2024 6:28:31 PM UTC</releaseNotes>
+    <releaseNotes>Build Date: 1/4/2025 11:51:52 AM UTC</releaseNotes>
     <repository url="https://www.github.com/lagovista" type="git" branch="master"></repository>
     <dependencies>
       <group targetFramework="netstandard2.0">
         <dependency id="Microsoft.SourceLink.GitHub" version="8.0.0" />
-        <dependency id="LagoVista.MSDMarkwort.Kicad.Parser.Base" version="3.0.2785.1328" />
+        <dependency id="LagoVista.MSDMarkwort.Kicad.Parser.Base" version="3.0.2789.0651" />
       </group>
     </dependencies>
   </metadata>

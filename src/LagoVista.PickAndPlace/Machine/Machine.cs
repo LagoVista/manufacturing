@@ -36,8 +36,7 @@ namespace LagoVista.PickAndPlace
             PCBManager = new Managers.PCBManager(this, Core.PlatformSupport.Services.Logger);
             HeightMapManager = new Managers.HeightMapManager(this, Core.PlatformSupport.Services.Logger, PCBManager);
             ProbingManager = new Managers.ProbingManager(this, Core.PlatformSupport.Services.Logger);
-            MachineVisionManager = new Managers.MachineVisionManager(this, Core.PlatformSupport.Services.Logger, PCBManager);
-
+          
             var pointStabilizationFilter = new PointStabilizationFilter(Constants.PixelToleranceEpsilon, Constants.PixelStabilizationToleranceCount);
 
             BoardAlignmentManager = new BoardAlignmentManager(this, Core.PlatformSupport.Services.Logger, PCBManager, pointStabilizationFilter);

@@ -7,14 +7,14 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 
-namespace LagoVista.PickAndPlace.Interfaces
+namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
 {
     public interface IMachineRepo : IViewModel, INotifyPropertyChanged
     {
         event EventHandler<IMachine> MachineChanged;
 
         IMachine CurrentMachine { get; }
-        Task<List<LagoVista.Manufacturing.Models.MachineSummary>> GetMachinesAsync();
+        Task<List<MachineSummary>> GetMachinesAsync();
         Task<InvokeResult> LoadCurrentMachineAsync();
         Task<InvokeResult> LoadMachineAsync(string id);
         Task<InvokeResult> SaveCurrentMachineAsync();

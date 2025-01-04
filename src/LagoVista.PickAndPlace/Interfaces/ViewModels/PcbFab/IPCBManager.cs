@@ -4,7 +4,7 @@ using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 
-namespace LagoVista.PickAndPlace.Interfaces
+namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab
 {
     public interface IPCBManager : INotifyPropertyChanged
     {
@@ -28,7 +28,7 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         PcbProject Project { get; set; }
 
-        String ProjectFilePath { get; set; }
+        string ProjectFilePath { get; set; }
 
         void SetMeasuredOffset(Point2D<double> offset, double angleDegrees);
 
