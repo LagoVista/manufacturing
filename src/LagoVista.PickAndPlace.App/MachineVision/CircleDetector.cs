@@ -40,9 +40,10 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 Y = size.Height / 2
             };
 
-            var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.PixelsPerMM);
+            var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.CurrentVisionProfile.PixelsPerMM);
 
-            var circles = CvInvoke.HoughCircles(input.Image, HoughModes.Gradient, profile.HoughCirclesDP, profile.HoughCirclesMinDistance, profile.HoughCirclesParam1, profile.HoughCirclesParam2, Convert.ToInt32(profile.HoughCirclesMinRadius * camera.PixelsPerMM), Convert.ToInt32(profile.HoughCirclesMaxRadius * camera.PixelsPerMM));
+            var circles = CvInvoke.HoughCircles(input.Image, HoughModes.Gradient, profile.HoughCirclesDP, profile.HoughCirclesMinDistance, profile.HoughCirclesParam1, profile.HoughCirclesParam2, 
+                Convert.ToInt32(profile.HoughCirclesMinRadius * camera.CurrentVisionProfile.PixelsPerMM), Convert.ToInt32(profile.HoughCirclesMaxRadius * camera.CurrentVisionProfile.PixelsPerMM));
 
             var currentFoundCircles = new List<MVLocatedCircle>();
 
@@ -55,28 +56,24 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     {
                         CenterPixels = new Point2D<int>(Convert.ToInt32(circle.Center.X), Convert.ToInt32(circle.Center.Y)),
                         RadiusPixels = Convert.ToInt32(circle.Radius),
-                        RadiusMM = Math.Round(circle.Radius / camera.PixelsPerMM, 2),
+                        RadiusMM = Math.Round(circle.Radius / camera.CurrentVisionProfile.PixelsPerMM, 2),
                         OffsetPixels = new Point2D<int>(Convert.ToInt32(circle.Center.X - center.X), Convert.ToInt32(circle.Center.Y - center.X)),
                         FoundCount = 1
                     };
 
-                    foundCircle.OffsetMM = new Point2D<double>(Math.Round(foundCircle.OffsetPixels.X / camera.PixelsPerMM, 2), Math.Round(foundCircle.OffsetPixels.Y / camera.PixelsPerMM, 2));
+                    foundCircle.OffsetMM = new Point2D<double>(Math.Round(foundCircle.OffsetPixels.X / camera.CurrentVisionProfile.PixelsPerMM, 2), Math.Round(foundCircle.OffsetPixels.Y / camera.CurrentVisionProfile.PixelsPerMM, 2));
 
                     var previous = FindPrevious(foundCircle.CenterPixels, foundCircle.RadiusPixels);
                     if (previous != null)
-                    {
-                        previous.FoundCount++;
-                        currentFoundCircles.Add(previous);
-                        foundCircle = previous;
+                    {                        
+                        foundCircle.FoundCount = previous.FoundCount + 1;
                     }
-                    else
-                    {
-                        currentFoundCircles.Add(foundCircle);
-                    }
+
+                    currentFoundCircles.Add(foundCircle);
 
                     /* If within one pixel of center, state we have a match */
                     //TODO Replace this with a profile setting for image accuracy, points per mm and mm
-                    if (Math.Abs(foundCircle.OffsetMM.X) < profile.ErrorToleranceMM && Math.Abs(foundCircle.OffsetMM.Y) < profile.ErrorToleranceMM)
+                    if (Math.Abs(foundCircle.OffsetMM.X) <= profile.ErrorToleranceMM && Math.Abs(foundCircle.OffsetMM.Y) <= profile.ErrorToleranceMM)
                     {
                         if (true) //foundCircle.StandardDeviation.X < 0.7 && foundCircle.StandardDeviation.Y < 0.7 && _stabilizedPointCount++ > 5)
                         {
@@ -94,10 +91,12 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                         _locatorViewModel.CircleLocated(foundCircle);
                     }
 
-                    _foundCircles.Clear();
-                    _foundCircles.AddRange(currentFoundCircles);
+                    
                 }
             }
+
+            _foundCircles.Clear();
+            _foundCircles.AddRange(currentFoundCircles);
         }
 
         public MVLocatedCircle FoundCircle { get; private set; }

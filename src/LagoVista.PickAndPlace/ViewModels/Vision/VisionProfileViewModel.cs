@@ -19,13 +19,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         {
             VisionProfiles = new ObservableCollection<EntityHeader>(VisionProfile.DefaultVisionProfiles);
             SetPixelsPerMMCommand = new RelayCommand(SetPixelsPerMM, () => MeasuredMM.HasValue);
+            CopyVisionProfileFromDefaultCommand = new RelayCommand(CopyVisionProfile, () => Camera.CurrentVisionProfile.Key != "default");
         }
 
         void SetPixelsPerMM()
         {
             if (MeasuredMM.HasValue && MeasuredMM.Value > 0)
             {
-                Camera.PixelsPerMM = 200 / MeasuredMM.Value;
+                Camera.CurrentVisionProfile.PixelsPerMM = 200 / MeasuredMM.Value;
             }
         }
 
@@ -61,10 +62,19 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         public string HoughCirclesMaxRadiusHelp { get { return "Maximum Radius"; } }
 
         public string GaussianBlurLink { get { return "http://docs.opencv.org/2.4/modules/imgproc/doc/filtering.html?highlight=gaussianblur#cv2.GaussianBlur"; } }
-        public string GaussianKSizeHelp { get { return "Gaussian kernel size. ksize.width and ksize.height can differ but they both must be positive and odd. Or, they can be zero’s and then they are computed from sigma* "; } }
-        public string GaussianSigmaXHelp { get { return "Gaussian kernel standard deviation in X direction."; } }
-        public string GaussianSigmaYHelp { get { return "Gaussian kernel standard deviation in Y direction; if sigmaY is zero, it is set to be equal to sigmaX, if both sigmas are zeros, they are computed from ksize.width and ksize.height , respectively (see getGaussianKernel() for details); to fully control the result regardless of possible future modifications of all this semantics, it is recommended to specify all of ksize, sigmaX, and sigmaY"; } }
+        public string GaussianKSizeHelp { get { return "Gaussian kernel size.this is the supplied value for both X and Y.  This can be zero and it will be compueted from sigma."; } }
+        public string GaussianSigmaHelp { get { return "Gaussian kernel standard deviation this is supplied for both the X and Y.."; } }
+        
 
+        void CopyVisionProfile()
+        {
+            var defaultProfile = Camera.VisionProfiles.FirstOrDefault(vp => vp.Key == VisionProfile.VisionProfile_Defauilt);
+            var originalProfile = Camera.CurrentVisionProfile;
+            Camera.CurrentVisionProfile = defaultProfile;
+            Camera.CurrentVisionProfile.Key = originalProfile.Key;
+            Camera.CurrentVisionProfile.Id = originalProfile.Id;
+            Camera.CurrentVisionProfile.Name = originalProfile.Name;
+        }
 
         ObservableCollection<EntityHeader> _visionProfiles;
         public  ObservableCollection<EntityHeader> VisionProfiles
@@ -107,7 +117,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                     var profile = Camera.VisionProfiles.Where(pf => pf.Key == value).SingleOrDefault();
                     if (profile == null)
                     {
-                        var defaultProfile = VisionProfiles.FirstOrDefault(vp => vp.Key == VisionProfile.VisionProfile_Defauilt);
+                        var defaultProfile = Camera.VisionProfiles.FirstOrDefault(vp => vp.Key == VisionProfile.VisionProfile_Defauilt);
                         var newProfile = JsonConvert.DeserializeObject<VisionProfile>(JsonConvert.SerializeObject(defaultProfile));
                         var ehProfile = VisionProfiles.FirstOrDefault(pf => pf.Key == value);
                         newProfile.Key = ehProfile.Key;
@@ -121,6 +131,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
                     RaisePropertyChanged(nameof(Profile));
                 }
+
+                CopyVisionProfileFromDefaultCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -145,5 +157,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         }
 
         public RelayCommand SetPixelsPerMMCommand { get; }
+
+        public RelayCommand CopyVisionProfileFromDefaultCommand { get; }
     }
 }

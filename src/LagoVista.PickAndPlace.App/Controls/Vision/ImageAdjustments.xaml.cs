@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,7 +28,13 @@ namespace LagoVista.PickAndPlace.App.Controls
 
         private void ShowLink_Handler(object sender, MouseButtonEventArgs e)
         {
-            var x = e;
+            var ctl = sender as System.Windows.Controls.Label;
+            var url = ctl.Tag;
+            System.Diagnostics.Process.Start(new ProcessStartInfo
+            {
+                FileName = url as string,
+                UseShellExecute = true
+            });
         }
     }
 }

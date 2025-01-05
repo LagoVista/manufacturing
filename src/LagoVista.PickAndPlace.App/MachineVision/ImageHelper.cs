@@ -7,10 +7,11 @@ using LagoVista.Core.Models.Drawing;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Models;
+using LagoVista.PickAndPlace.Interfaces.Services;
 
 namespace LagoVista.PickAndPlace.App.MachineVision
 {
-    internal class ImageHelper
+    internal class ImageHelper : IImageHelper<IInputOutputArray>
     {
         public void Circle(IMVImage<IInputOutputArray> img, MVLocatedCircle circle, Size size, int thickness = 1)
         {
@@ -20,7 +21,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             Line(img, circle.CenterPixels.X, 0, circle.CenterPixels.X, size.Height, color);
 
             CvInvoke.Circle(img.Image, new System.Drawing.Point(circle.CenterPixels.X, circle.CenterPixels.Y), circle.RadiusPixels, new Bgr(color).MCvScalar, thickness, Emgu.CV.CvEnum.LineType.AntiAlias);
-            CvInvoke.PutText(img.Image, $"Radius {circle.RadiusMM}mm", new Point(size.Width - 300, size.Height - 100), FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.White).MCvScalar);
+            CvInvoke.PutText(img.Image, $"Diameter {circle.RadiusMM * 2}mm", new Point(size.Width - 300, size.Height - 100), FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.White).MCvScalar);
             CvInvoke.PutText(img.Image, $"Found Count: {circle.FoundCount}", new Point(size.Width - 300, size.Height - 70), FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.White).MCvScalar);
             CvInvoke.PutText(img.Image, $"Error (mm) {circle.OffsetMM}", new Point(size.Width - 300, size.Height - 40), FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.White).MCvScalar);
         }
@@ -75,7 +76,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 Y = size.Height / 2
             };
 
-            var scaledRadius = profile.TargetImageRadius * camera.PixelsPerMM;
+            var scaledRadius = profile.TargetImageRadius * camera.CurrentVisionProfile.PixelsPerMM;
 
             Line(destImage, 0, center.Y, center.X - (int)scaledRadius, center.Y, System.Drawing.Color.Yellow);
             Line(destImage, center.X + (int)scaledRadius, center.Y, size.Width, center.Y, System.Drawing.Color.Yellow);

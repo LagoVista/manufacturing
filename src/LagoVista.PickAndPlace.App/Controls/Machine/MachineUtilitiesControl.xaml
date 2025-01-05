@@ -66,6 +66,19 @@
                 <Button Width="100" Command="{Binding ReadRightVacuumCommand}" Style="{StaticResource CommandButton}" >Read</Button>
                 <TextBlock Text="{Binding RightVacuum}" FontSize="32" />
             </StackPanel>
+            <StackPanel>
+                <TextBlock Text="Staging Plate"/>
+                <ComboBox ItemsSource="{Binding MachineConfiguration.StagingPlates}" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding SelectedStagingPlateId}"></ComboBox>
+                
+                <StackPanel Visibility="{Binding SelectedStagingPlate, Converter={StaticResource NoTNullToVisibilityConverter}}">
+                    <TextBlock Text="Row"/>
+                    <ComboBox ItemsSource="{Binding StagingPlateRows}" SelectedValuePath="Id" SelectedValue="{Binding SelectedStagingPlateRowId}"></ComboBox>
+                    <TextBlock Text="Column"/>
+                    <ComboBox ItemsSource="{Binding StagingPlateCols}" SelectedValuePath="Id" SelectedValue="{Binding SelectedStagingPlateColId}"></ComboBox>
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding GoToStagingPlateHoleCommand}" Content="Go"></Button>
+                </StackPanel>
+            </StackPanel>
+
         </StackPanel>
 
     </Grid>

@@ -28,9 +28,9 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 {
     public abstract partial class MachineVisionViewModelBase : GCodeAppViewModelBase
     {
-        FloatMedianFilter _cornerMedianFilter = new FloatMedianFilter(4, 1);
-        FloatMedianFilter _circleMedianFilter = new FloatMedianFilter(4, 1);
-        FloatMedianFilter _circleRadiusMedianFilter = new FloatMedianFilter(4, 1);
+        DoubleMedianFilter _cornerMedianFilter = new DoubleMedianFilter(4, 1);
+        DoubleMedianFilter _circleMedianFilter = new DoubleMedianFilter(4, 1);
+        DoubleMedianFilter _circleRadiusMedianFilter = new DoubleMedianFilter(4, 1);
 
 
         IMachine _machine;
@@ -163,34 +163,34 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         protected void JogToLocation(Point2D<double> offset)
         {
-            var pixelsPerMM = Machine.Settings.PositionCameraPixelsPerMM > 0 ? Machine.Settings.PositionCameraPixelsPerMM : PIXEL_PER_MM;
-            var deltaX = Machine.MachinePosition.X - (offset.X / pixelsPerMM);
-            var deltaY = Machine.MachinePosition.Y + (offset.Y / pixelsPerMM);
+//            var pixelsPerMM = Machine.Settings.PositionCameraPixelsPerMM > 0 ? Machine.Settings.PositionCameraPixelsPerMM : PIXEL_PER_MM;
+//            var deltaX = Machine.MachinePosition.X - (offset.X / pixelsPerMM);
+//            var deltaY = Machine.MachinePosition.Y + (offset.Y / pixelsPerMM);
 
-//            if (deltaX > 50 || deltaY > 50)
-  //              return;
+////            if (deltaX > 50 || deltaY > 50)
+//  //              return;
 
-            var threshold = Math.Abs(deltaX) > 2 || Math.Abs(deltaY) > 2 ? 1.0f : 1;
-            threshold = 3;
+//            var threshold = Math.Abs(deltaX) > 2 || Math.Abs(deltaY) > 2 ? 1.0f : 1;
+//            threshold = 3;
 
-            if (StandardDeviation.X < threshold && StandardDeviation.Y < threshold)
-            {
-                _stabilizedPointCount++;
-                if (_stabilizedPointCount > 5)
-                {
-                    var offsetX = (offset.X / 20);
-                    var newLocationX = Machine.Settings.PositioningCamera.MirrorXAxis ? Math.Round(Machine.MachinePosition.X + offsetX, 4) : Math.Round(Machine.MachinePosition.X - offsetX, 4);
-                    var newLocationY = Machine.Settings.PositioningCamera.MirrorYAxis ? Math.Round(Machine.MachinePosition.Y + (offset.Y / 20), 4) : Math.Round(Machine.MachinePosition.Y - (offset.Y / 20), 4);
-                    RequestedPosition = new Point2D<double>() { X = newLocationX, Y = newLocationY };
+//            if (StandardDeviation.X < threshold && StandardDeviation.Y < threshold)
+//            {
+//                _stabilizedPointCount++;
+//                if (_stabilizedPointCount > 5)
+//                {
+//                    var offsetX = (offset.X / 20);
+//                    var newLocationX = Machine.Settings.PositioningCamera.MirrorXAxis ? Math.Round(Machine.MachinePosition.X + offsetX, 4) : Math.Round(Machine.MachinePosition.X - offsetX, 4);
+//                    var newLocationY = Machine.Settings.PositioningCamera.MirrorYAxis ? Math.Round(Machine.MachinePosition.Y + (offset.Y / 20), 4) : Math.Round(Machine.MachinePosition.Y - (offset.Y / 20), 4);
+//                    RequestedPosition = new Point2D<double>() { X = newLocationX, Y = newLocationY };
 
-                    Machine.GotoPoint(RequestedPosition, true);
-                    _stabilizedPointCount = 0;
-                }
-            }
-            else
-            {
-                _stabilizedPointCount = 0;
-            }
+//                    Machine.GotoPoint(RequestedPosition, true);
+//                    _stabilizedPointCount = 0;
+//                }
+//            }
+//            else
+//            {
+//                _stabilizedPointCount = 0;
+//            }
         }
 
 
@@ -331,11 +331,11 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         }
         #endregion
 
-        FloatMedianFilter _rectP1 = new FloatMedianFilter();
-        FloatMedianFilter _rectP2 = new FloatMedianFilter();
-        FloatMedianFilter _rectP3 = new FloatMedianFilter();
-        FloatMedianFilter _rectP4 = new FloatMedianFilter();
-        FloatMedianFilter _rectTheta = new FloatMedianFilter();
+        DoubleMedianFilter _rectP1 = new DoubleMedianFilter();
+        DoubleMedianFilter _rectP2 = new DoubleMedianFilter();
+        DoubleMedianFilter _rectP3 = new DoubleMedianFilter();
+        DoubleMedianFilter _rectP4 = new DoubleMedianFilter();
+        DoubleMedianFilter _rectTheta = new DoubleMedianFilter();
 
         protected RotatedRect? FoundRectangle { get; set; }
 
@@ -460,15 +460,15 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                                             Line(output, (int)p[2].X, (int)p[2].Y, (int)p[3].X, (int)p[3].Y, System.Drawing.Color.Red);
                                             Line(output, (int)p[3].X, (int)p[3].Y, (int)p[0].X, (int)p[0].Y, System.Drawing.Color.Red);
 
-                                            var msg = $"{rect.Angle:0.0} {(rect.Size.Width / Machine.Settings.InspectionCameraPixelsPerMM):0.0}x{(rect.Size.Height / Machine.Settings.InspectionCameraPixelsPerMM):0.0}";
+                                            //var msg = $"{rect.Angle:0.0} {(rect.Size.Width / Machine.Settings.InspectionCameraPixelsPerMM):0.0}x{(rect.Size.Height / Machine.Settings.InspectionCameraPixelsPerMM):0.0}";
 
-                                            var center = new Point()
-                                            {
-                                                X = (int)rect.Center.X,
-                                                Y = (int)rect.Center.Y,
-                                            };
+                                            //var center = new Point()
+                                            //{
+                                            //    X = (int)rect.Center.X,
+                                            //    Y = (int)rect.Center.Y,
+                                            //};
 
-                                            CvInvoke.PutText(output, msg, center, FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.Red).MCvScalar);
+                                            //CvInvoke.PutText(output, msg, center, FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.Red).MCvScalar);
 
 
                                             //_rectP1.Add(p1);
@@ -582,7 +582,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
                                 if (UseBlurredImage)
                                 {
-                                    CvInvoke.GaussianBlur(input, blurredGray, new System.Drawing.Size(5, 5), profile.GaussianSigmaX);
+                                    CvInvoke.GaussianBlur(input, blurredGray, new System.Drawing.Size(5, 5), profile.GaussianSigma);
                                     input = blurredGray;
                                 }
 

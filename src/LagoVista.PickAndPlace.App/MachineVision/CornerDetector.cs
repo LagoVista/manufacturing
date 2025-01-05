@@ -26,7 +26,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         {
             var profile = camera.CurrentVisionProfile;
 
-            var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.PixelsPerMM);
+            var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.CurrentVisionProfile.PixelsPerMM);
 
             var center = new Point2D<int>()
             {

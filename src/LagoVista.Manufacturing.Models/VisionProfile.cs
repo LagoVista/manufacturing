@@ -1,4 +1,5 @@
-﻿using LagoVista.Core.Models;
+﻿using LagoVista.Core.Attributes;
+using LagoVista.Core.Models;
 using LagoVista.Manufacturing.Models.Resources;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,7 @@ namespace LagoVista.PickAndPlace.Models
                     EntityHeader.Create(VisionProfile_NozzleCalibration, VisionProfile_NozzleCalibration, ManufacturingResources.VisionProfile_NozzleCalibration),
                     EntityHeader.Create(VisionProfile_PartInspection, VisionProfile_PartInspection, ManufacturingResources.VisionProfile_PartInspection),
                     EntityHeader.Create(VisionProfile_SquarePart,VisionProfile_SquarePart, ManufacturingResources.VisionProfile_SquarePart),
+                    EntityHeader.Create(VisionProfile_StagingPlateHole,VisionProfile_StagingPlateHole, ManufacturingResources.VisionProfile_StagingPlateHole),
                     EntityHeader.Create(VisionProfile_TapeHole,VisionProfile_TapeHole, ManufacturingResources.VisionProfile_TapeHole),
                     EntityHeader.Create(VisionProfile_TapeHoleBlackTape,VisionProfile_TapeHoleBlackTape, ManufacturingResources.VisionProfile_TapeHoleBlackTape),
                     EntityHeader.Create(VisionProfile_TapeHoleClearTape, VisionProfile_TapeHoleClearTape, ManufacturingResources.VisionProfile_TapeHoleClearTape),
@@ -39,6 +41,7 @@ namespace LagoVista.PickAndPlace.Models
         public const string VisionProfile_Nozzle = "nozzle";
         public const string VisionProfile_NozzleCalibration = "nozzlecalibration";
         public const string VisionProfile_PartInspection = "partinspection";
+        public const string VisionProfile_StagingPlateHole = "stagingplatehole";
 
         private string _name;
         public string Name
@@ -198,6 +201,13 @@ namespace LagoVista.PickAndPlace.Models
             set { _contourMinArea = value; RaisePropertyChanged(); }
         }
 
+        double _pixelsPerMM = 50;
+        public double PixelsPerMM
+        {
+            get { return _pixelsPerMM; }
+            set { Set(ref _pixelsPerMM, Math.Round(value, 1)); }
+        }
+
         private double _contourMaxArea = 800;
         public double CountourMaxArea
         {
@@ -233,11 +243,19 @@ namespace LagoVista.PickAndPlace.Models
             set { _harrisCornerThreshold = value; RaisePropertyChanged(); }
         }
 
-        private double _guassianSigmaX = 2;
-        public double GaussianSigmaX
+        private double _guassianSigma = 2;
+        public double GaussianSigma
         {
-            get { return _guassianSigmaX; }
-            set { _guassianSigmaX = Math.Round(value, 2); RaisePropertyChanged(); }
+            get { return _guassianSigma; }
+            set { _guassianSigma = Math.Round(value, 2); RaisePropertyChanged(); }
+        }
+
+
+        private int _guassianKernelSize = 2;
+        public int GausianKernellSize
+        {
+            get { return _guassianKernelSize; }
+            set { _guassianKernelSize = value; RaisePropertyChanged(); }
         }
 
         private double _thresholdEdgeDetection = 5;
@@ -315,9 +333,15 @@ namespace LagoVista.PickAndPlace.Models
         public double ErrorToleranceMM
         {
             get => _errorToleranceMM;
-            set => Set(ref _errorToleranceMM, value);
+            set => Set(ref _errorToleranceMM, Math.Round(value, 2));
         }
 
+        int _stabilizationCount = 5;
+        public int StabilizationCount
+        {
+            get => _stabilizationCount;
+            set => Set(ref _stabilizationCount, value);
+        }
 
         private double _houghLinesRHO = 1;
         public double HoughLinesRHO
@@ -452,6 +476,11 @@ namespace LagoVista.PickAndPlace.Models
         {
             get { return _performShapeDetection; }
             set { Set(ref _performShapeDetection, value); }
+        }
+
+        public override string ToString()
+        {
+            return Name;
         }
     }
 }

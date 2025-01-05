@@ -1,4 +1,4 @@
-﻿/*1/2/2025 3:38:48 PM*/
+﻿/*1/4/2025 4:55:39 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -1235,6 +1235,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:VisionProfile_SquarePart
 
 		public static string VisionProfile_SquarePart { get { return GetResourceString("VisionProfile_SquarePart"); } }
+//Resources:ManufacturingResources:VisionProfile_StagingPlateHole
+
+		public static string VisionProfile_StagingPlateHole { get { return GetResourceString("VisionProfile_StagingPlateHole"); } }
 //Resources:ManufacturingResources:VisionProfile_TapeHole
 
 		public static string VisionProfile_TapeHole { get { return GetResourceString("VisionProfile_TapeHole"); } }
@@ -1641,6 +1644,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string VisionProfile_NozzleCalibration = "VisionProfile_NozzleCalibration";
 			public const string VisionProfile_PartInspection = "VisionProfile_PartInspection";
 			public const string VisionProfile_SquarePart = "VisionProfile_SquarePart";
+			public const string VisionProfile_StagingPlateHole = "VisionProfile_StagingPlateHole";
 			public const string VisionProfile_TapeHole = "VisionProfile_TapeHole";
 			public const string VisionProfile_TapeHoleBlackTape = "VisionProfile_TapeHoleBlackTape";
 			public const string VisionProfile_TapeHoleClearTape = "VisionProfile_TapeHoleClearTape";

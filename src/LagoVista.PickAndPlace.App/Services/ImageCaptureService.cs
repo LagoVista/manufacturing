@@ -34,8 +34,10 @@ namespace LagoVista.PickAndPlace.App.Services
 
         IShapeDetectorService<Image<Bgr, byte>> _shapeDetectorService;
         CameraTypes _cameraType;
-        public ImageCaptureService(IMachineRepo machineRepo) : base(machineRepo)
+        public ImageCaptureService(IMachineRepo machineRepo, IShapeDetectorService<Image<Bgr, byte>> shapeDetectorService) : base(machineRepo)
         {
+            _shapeDetectorService = shapeDetectorService ?? throw new ArgumentNullException(nameof(shapeDetectorService));
+
             StartCaptureCommand = new RelayCommand(StartCapture);
             StopCaptureCommand = new RelayCommand(StopCapture);
         }

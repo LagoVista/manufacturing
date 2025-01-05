@@ -98,7 +98,7 @@ namespace LagoVista.PickAndPlace.App.Services
 
                             {
                                 CvInvoke.Circle(mask, new System.Drawing.Point() { X = size.Width / 2, Y = size.Height / 2 },
-                                Convert.ToInt32(camera.CurrentVisionProfile.TargetImageRadius * camera.PixelsPerMM),
+                                Convert.ToInt32(camera.CurrentVisionProfile.TargetImageRadius * camera.CurrentVisionProfile.PixelsPerMM),
                                  new Bgr(System.Drawing.Color.White).MCvScalar,
                                     -1, LineType.AntiAlias);
                                 CvInvoke.BitwiseAnd(img, img, masked, mask);
@@ -127,7 +127,7 @@ namespace LagoVista.PickAndPlace.App.Services
 
                             if (camera.CurrentVisionProfile.UseBlurredImage)
                             {
-                                CvInvoke.GaussianBlur(input, blurredGray, new System.Drawing.Size(5, 5), camera.CurrentVisionProfile.GaussianSigmaX);
+                                CvInvoke.GaussianBlur(input, blurredGray, new System.Drawing.Size(5, 5), camera.CurrentVisionProfile.GaussianSigma);
                                 input = blurredGray;
                             }
 

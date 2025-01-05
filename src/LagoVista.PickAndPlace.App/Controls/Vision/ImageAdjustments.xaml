@@ -71,19 +71,36 @@
                         <Label Content="{Binding Profile.PrimaryThreshold, FallbackValue=3}" Style="{StaticResource Value}" />
                     </StackPanel>
                     <Slider Value="{Binding Path=Profile.PrimaryThreshold, Mode=TwoWay}" Minimum="0" Maximum="100" SmallChange="0" LargeChange="5" ToolTip="{Binding CannyLowThresholdHelp}" />
-
                 </StackPanel>
             </TabItem>
-
+            <TabItem Header="Detection">
+                <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Label Content="Stabilization Count" Style="{StaticResource Caption}" FontWeight="Bold" />
+                    <Label Content="{Binding Profile.StabilizationCount, FallbackValue=3}" Style="{StaticResource Value}" />
+                </StackPanel>
+                <Slider Value="{Binding Path=Profile.StabilizationCount, Mode=TwoWay}" Minimum="1" Maximum="25" SmallChange="1" LargeChange="1  " ToolTip="{Binding CannyLowThresholdHelp}" />
+                <StackPanel Orientation="Horizontal">
+                    <Label Content="Error Tolerance (MM)" Style="{StaticResource Caption}" FontWeight="Bold" />
+                    <Label Content="{Binding Profile.ErrorToleranceMM, FallbackValue=3}" Style="{StaticResource Value}" />
+                </StackPanel>
+                <Slider Value="{Binding Path=Profile.ErrorToleranceMM, Mode=TwoWay}" Minimum="0" Maximum="2" SmallChange="0.25" LargeChange="1  " ToolTip="{Binding CannyLowThresholdHelp}" />
+                </StackPanel>
+            </TabItem>
             <TabItem Header="Blur">
                 <StackPanel>
                     <Label Content="Blur" FontSize="36" />
                     <Label Content="Gaussian Blur" Style="{StaticResource Link}" MouseDown="ShowLink_Handler" Tag="{Binding GaussianBlurLink}" />
                     <StackPanel Orientation="Horizontal">
-                        <Label Content="SigmaX:" Style="{StaticResource Caption}"/>
-                        <Label Content="{Binding Profile.GaussianSigmaX, FallbackValue=3}" Style="{StaticResource Value}" />
+                        <Label Content="Sigma (XY):" Style="{StaticResource Caption}"/>
+                        <Label Content="{Binding Profile.GaussianSigma, FallbackValue=3}" Style="{StaticResource Value}" />
                     </StackPanel>
-                    <Slider Minimum="0.1" Maximum="10" SmallChange="0.1" LargeChange="0.5" Value="{Binding Path=Profile.GaussianSigmaX, Mode=TwoWay}" ToolTip="{Binding GaussianSigmaXHelp}"  />
+                    <Slider Minimum="0.1" Maximum="10" SmallChange="0.1" LargeChange="0.5" Value="{Binding Path=Profile.GaussianSigma, Mode=TwoWay}" ToolTip="{Binding GaussianSigmaXHelp}"  />
+                    <StackPanel Orientation="Horizontal">
+                        <Label Content="Kernel Size (XY):" Style="{StaticResource Caption}"/>
+                        <Label Content="{Binding Profile.GausianKernellSize, FallbackValue=3}" Style="{StaticResource Value}" />
+                    </StackPanel>
+                    <Slider Minimum="0.1" Maximum="10" SmallChange="0.1" LargeChange="0.5" Value="{Binding Path=Profile.GausianKernellSize, Mode=TwoWay}" ToolTip="{Binding GaussianSigmaXHelp}"  />                    
                 </StackPanel>
             </TabItem>
             

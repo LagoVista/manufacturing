@@ -1304,4 +1304,7 @@
   <data name="MachineCamera_ImageSize" xml:space="preserve">
     <value>Image Size</value>
   </data>
+  <data name="VisionProfile_StagingPlateHole" xml:space="preserve">
+    <value>Staging Plate Hole</value>
+  </data>
 </root>

@@ -8,13 +8,13 @@
         d:DataContext="{d:DesignInstance vm:IVisionProfileViewModel }"
         mc:Ignorable="d"
         xmlns:Controls="clr-namespace:LagoVista.PickAndPlace.App.Controls"
-        Title="Vision Configuration" Height="800" Width="480">
+        Title="Vision Configuration" Height="800" Width="600">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
@@ -22,8 +22,11 @@
         <TextBlock Grid.Row="1" Text="Vision Profile"></TextBlock>
         <ComboBox Margin="100,0,0,0" Grid.Row="1" ItemsSource="{Binding VisionProfiles}" SelectedValuePath="Key" SelectedValue="{Binding SelectedProfile}" ></ComboBox>
         <Controls:MVViewOptions Grid.Row="2" VerticalAlignment="Bottom"  />
-        <Controls:ImageAdjustments  Grid.Row="3"  />
-        <Button Style="{StaticResource CommandButton}" Margin="20" Width="120" Height="32" HorizontalAlignment="Right" Grid.Row="4" Command="{Binding SaveMachineConfigurationCommand}">Save</Button>
+        <Controls:ImageAdjustments  Grid.Row="3"  VerticalAlignment="Top" />
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Style="{StaticResource CommandButton}" Margin="20" Width="120" Height="32" HorizontalAlignment="Right" Grid.Row="4" Command="{Binding SaveMachineConfigurationCommand}">Save</Button>
+            <Button Style="{StaticResource CommandButton}" Command="{Binding CopyVisionProfileFromDefaultCommand}" Content="Copy from Default"></Button>
+        </StackPanel>
 
     </Grid>
 </Window>

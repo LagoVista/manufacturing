@@ -39,7 +39,6 @@ namespace LagoVista.PickAndPlace.App
             DeviceInfo.Register("uwpapp");
 
             SLWIOC.Register<IDispatcherServices>(new NuvIoTDispatcher(Dispatcher));
-            SLWIOC.Register<ISocketClient, SocketClient>();
             SLWIOC.RegisterSingleton<ILogger>(new AdminLogger(new DebugWriter()));
             SLWIOC.RegisterSingleton<IDeviceManager, Core.WPF.PlatformSupport.DeviceManager>();
             SLWIOC.RegisterSingleton<IPopupServices, PopupService>();
@@ -91,6 +90,7 @@ namespace LagoVista.PickAndPlace.App
             SLWIOC.RegisterSingleton<IMachineUtilitiesViewModel, MachineUtilitiesViewModel>();
 
             MachineVision.Startup.Init();
+            Services.Startup.Init();
         }
     }
 

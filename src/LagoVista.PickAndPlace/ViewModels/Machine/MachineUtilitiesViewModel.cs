@@ -57,7 +57,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private void GoToStagingPlateHole()
         {
             var point = _stagingPlateUtils.ResolveStagePlateWorkSpaceLocation(SelectedStagingPlateColId, SelectedStagingPlateRowId);
-            Debug.WriteLine(point);
+            Machine.SendSafeMoveHeight();
+            Machine.GotoPoint(point);
         }
 
         public ulong LeftVacuum { get; private set; }
@@ -128,7 +129,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private string _selectedStagingPlateColId = "-1";
         public string SelectedStagingPlateColId
         {
-            get => _selectedStagingPlateRowId;
+            get => _selectedStagingPlateColId;
             set 
             {
                 Set(ref _selectedStagingPlateColId, value);
@@ -158,7 +159,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     StagingPlateCols = new List<EntityHeader>();
 
                     StagingPlateRows.Add(EntityHeader.Create("-1", "-1", "-select row-"));
-                    StagingPlateCols.Add(EntityHeader.Create("-1", "-1", "-select row-"));
+                    StagingPlateCols.Add(EntityHeader.Create("-1", "-1", "-select column-"));
 
                     for (var idx = 0; idx < SelectedStagingPlate.Size.X / (SelectedStagingPlate.HoleSpacing / 2); ++idx)
                     {
@@ -167,7 +168,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
                     for (var idx = 0; idx < SelectedStagingPlate.Size.Y / (SelectedStagingPlate.HoleSpacing / 2); ++idx)
                     {
-                        StagingPlateRows.Add(EntityHeader.Create($"{idx + 1}", $"{idx + 1}", $"{Char.ConvertFromUtf32(idx + 65)}"));
+                        StagingPlateRows.Add(EntityHeader.Create($"{Char.ConvertFromUtf32(idx + 65)}", $"{Char.ConvertFromUtf32(idx + 65)}", $"{Char.ConvertFromUtf32(idx + 65)}"));
                     }
 
                     RaisePropertyChanged(nameof(StagingPlateRows));

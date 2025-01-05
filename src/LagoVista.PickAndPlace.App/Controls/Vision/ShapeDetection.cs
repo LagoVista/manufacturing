@@ -43,7 +43,7 @@ namespace LagoVista.PickAndPlace.App.Controls
 
     //            //K Must always be odd.
 
-    //            CvInvoke.GaussianBlur(gray, blurredGray, System.Drawing.Size.Empty, profile.GaussianSigmaX);
+    //            CvInvoke.GaussianBlur(gray, blurredGray, System.Drawing.Size.Empty, profile.GaussianSigma);
 
     //            //Convert the image to grayscale and filter out the noise
     //            //UMat uimage = new UMat();
