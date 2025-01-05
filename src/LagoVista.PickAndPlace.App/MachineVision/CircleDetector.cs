@@ -1,16 +1,13 @@
 ﻿using Emgu.CV.CvEnum;
 using Emgu.CV;
-using LagoVista.Core.Models.Drawing;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Interfaces.Services;
 using LagoVista.PickAndPlace.Interfaces;
+using Emgu.CV.Structure;
 
 namespace LagoVista.PickAndPlace.App.MachineVision
 {
@@ -24,74 +21,37 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             _locatorViewModel = locatorViewModel;
         }
 
-        private MVLocatedCircle FindPrevious(Point2D<int> center, int radius)
-        {
-            var deltaPixel = 10;
-            return _foundCircles.FirstOrDefault(cir => Math.Max(Math.Abs(cir.CenterPixels.X - center.X), Math.Abs(cir.CenterPixels.Y - center.Y)) < deltaPixel
-                        && cir.RadiusPixels - deltaPixel < radius && cir.RadiusPixels + deltaPixel > radius);
-        }
-
         public void FindCircles(IMVImage<IInputOutputArray> input, MachineCamera camera, System.Drawing.Size size)
         {
             var profile = camera.CurrentVisionProfile;
-            var center = new Point2D<int>()
-            {
-                X = size.Width / 2,
-                Y = size.Height / 2
-            };
+            var center = size.Center();
 
             var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.CurrentVisionProfile.PixelsPerMM);
+            var search = new CircleF(new System.Drawing.PointF(center.X, center.Y), scaledTarget);
 
-            var circles = CvInvoke.HoughCircles(input.Image, HoughModes.Gradient, profile.HoughCirclesDP, profile.HoughCirclesMinDistance, profile.HoughCirclesParam1, profile.HoughCirclesParam2, 
+            var circles = CvInvoke.HoughCircles(input.Image, HoughModes.Gradient, profile.HoughCirclesDP, profile.HoughCirclesMinDistance, profile.HoughCirclesParam1, profile.HoughCirclesParam2,
                 Convert.ToInt32(profile.HoughCirclesMinRadius * camera.CurrentVisionProfile.PixelsPerMM), Convert.ToInt32(profile.HoughCirclesMaxRadius * camera.CurrentVisionProfile.PixelsPerMM));
 
             var currentFoundCircles = new List<MVLocatedCircle>();
 
             foreach (var circle in circles)
             {
-                if (circle.Center.X > size.Width / 2 - scaledTarget && circle.Center.X < size.Width / 2 + scaledTarget &&
-                   circle.Center.Y > size.Height / 2 - scaledTarget && circle.Center.Y < size.Height / 2 + scaledTarget)
+                if (search.WithinRadius(circle))
                 {
-                    var foundCircle = new MVLocatedCircle()
-                    {
-                        CenterPixels = new Point2D<int>(Convert.ToInt32(circle.Center.X), Convert.ToInt32(circle.Center.Y)),
-                        RadiusPixels = Convert.ToInt32(circle.Radius),
-                        RadiusMM = Math.Round(circle.Radius / camera.CurrentVisionProfile.PixelsPerMM, 2),
-                        OffsetPixels = new Point2D<int>(Convert.ToInt32(circle.Center.X - center.X), Convert.ToInt32(circle.Center.Y - center.X)),
-                        FoundCount = 1
-                    };
-
-                    foundCircle.OffsetMM = new Point2D<double>(Math.Round(foundCircle.OffsetPixels.X / camera.CurrentVisionProfile.PixelsPerMM, 2), Math.Round(foundCircle.OffsetPixels.Y / camera.CurrentVisionProfile.PixelsPerMM, 2));
-
-                    var previous = FindPrevious(foundCircle.CenterPixels, foundCircle.RadiusPixels);
+                    var previous = _foundCircles.FindPrevious(circle, 10);
                     if (previous != null)
-                    {                        
-                        foundCircle.FoundCount = previous.FoundCount + 1;
-                    }
-
-                    currentFoundCircles.Add(foundCircle);
-
-                    /* If within one pixel of center, state we have a match */
-                    //TODO Replace this with a profile setting for image accuracy, points per mm and mm
-                    if (Math.Abs(foundCircle.OffsetMM.X) <= profile.ErrorToleranceMM && Math.Abs(foundCircle.OffsetMM.Y) <= profile.ErrorToleranceMM)
                     {
-                        if (true) //foundCircle.StandardDeviation.X < 0.7 && foundCircle.StandardDeviation.Y < 0.7 && _stabilizedPointCount++ > 5)
-                        {
-                            foundCircle.Centered = true;
-                            _locatorViewModel.CircleLocated(foundCircle);
-
-                        }
-                        else
-                            foundCircle.Centered = false;
-
+                        previous.Add(circle.Center, circle.Radius);
+                        _locatorViewModel.CircleLocated(previous);
+                        currentFoundCircles.Add(previous);
                     }
                     else
                     {
-                        foundCircle.Centered = false;
+                        var foundCircle = new MVLocatedCircle(camera.CameraType.Value, center, profile.PixelsPerMM, profile.ErrorToleranceMM, profile.StabilizationCount);
+                        foundCircle.Add(circle.Center, circle.Radius);
+                        currentFoundCircles.Add(foundCircle);
                         _locatorViewModel.CircleLocated(foundCircle);
                     }
-
-                    
                 }
             }
 
@@ -110,3 +70,4 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         }
     }
 }
+ 

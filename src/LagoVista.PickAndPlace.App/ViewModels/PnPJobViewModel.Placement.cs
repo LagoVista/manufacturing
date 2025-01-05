@@ -187,7 +187,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         {
             //if (SelectedPartToBePlaced != null)
             //{
-            //    await  _machineRepo.CurrentMachine.SetViewTypeAsync(ViewTypes.Camera);
+            //    await  _machineRepo.CurrentMachine.SetViewTypeAsync(ViewTypes.CameraType);
             //     _machineRepo.CurrentMachine.SendCommand(SafeHeightGCodeGCode());
 
             //    var offsetY = (SelectedPartToBePlaced.Y - _job.BoardOffset.Y) +  _machineRepo.CurrentMachine.Settings.PCBOffset.Y;

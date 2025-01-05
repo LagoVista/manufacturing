@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="300">
+             d:DesignHeight="600" d:DesignWidth="600">
     <Grid Grid.Column="1" Background="LightBlue">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -237,8 +237,14 @@
             </TabItem>
             <TabItem Header="Polygon">
                 <StackPanel>
-                    <Label Content="Polygon Detection" FontSize="36" />
+                    <StackPanel>
+                        <TextBlock Text="1) Edge Detection (configured in other tab"></TextBlock>
+                        <TextBlock Text="2) CV Invoke Find Countours"></TextBlock>
+                        <TextBlock Text="3) CV invoke ApproxPolyDP"></TextBlock>
+                    </StackPanel>
                     <Label Content="Polygon Detection" Style="{StaticResource Link}" MouseDown="ShowLink_Handler" Tag="{Binding  HoughLinesLink}" />
+                    <Label Content="Contours" Style="{StaticResource Link}" MouseDown="ShowLink_Handler" Tag="{Binding ContoursLink}" />
+
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Find Irregular Polygons" Width="270"/>
                         <CheckBox IsChecked="{Binding Path=Profile.FindIrregularPolygons, Mode=TwoWay}" VerticalAlignment="Center" />
@@ -268,12 +274,12 @@
                         <Label Content="Min Area:" Width="210"/>
                         <Label Content="{Binding Profile.ContourMinArea, FallbackValue=3}" HorizontalContentAlignment="Right" Width="80"/>
                     </StackPanel>
-                    <Slider Value="{Binding Path=Profile.ContourMinArea, Mode=TwoWay}" ToolTip="{Binding PolygonEpsilonHelp}" Minimum="00" Maximum="1500" SmallChange="1" LargeChange="10" />
+                    <Slider Value="{Binding Path=Profile.ContourMinArea, Mode=TwoWay}" Minimum="00" Maximum="1500" SmallChange="1" LargeChange="10" />
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Max Area:" Width="210"/>
                         <Label Content="{Binding Profile.CountourMaxArea, FallbackValue=3}" HorizontalContentAlignment="Right" Width="80"/>
                     </StackPanel>
-                    <Slider Value="{Binding Path=Profile.CountourMaxArea, Mode=TwoWay}" ToolTip="{Binding PolygonEpsilonHelp}" Minimum="300" Maximum="5000" SmallChange="1" LargeChange="10" />
+                    <Slider Value="{Binding Path=Profile.CountourMaxArea, Mode=TwoWay}"  Minimum="300" Maximum="5000" SmallChange="1" LargeChange="10" />
                 </StackPanel>
             </TabItem>
 

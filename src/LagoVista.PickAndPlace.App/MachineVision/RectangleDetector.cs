@@ -17,52 +17,38 @@ namespace LagoVista.PickAndPlace.App.MachineVision
     internal class RectangleDetector : IRectangleDetector<IInputOutputArray>
     {
         private readonly ILocatorViewModel _locatorViewModel;
+        private UMat _edges;
 
         private List<MVLocatedRectangle> _foundRectangles = new List<MVLocatedRectangle>();
-        private List<MVLocatedLine> _foundLines = new List<MVLocatedLine>();
 
         public RectangleDetector(ILocatorViewModel locatorViewModel)
         {
             _locatorViewModel = locatorViewModel;
+            _edges = new UMat();
         }
 
         public void FindRectangles(IMVImage<IInputOutputArray> input, MachineCamera camera, System.Drawing.Size size)
         {
-            _foundRectangles.Clear();
-            _foundLines.Clear();
-
-            UMat edges = new UMat();
             var profile = camera.CurrentVisionProfile;
-
-            if (profile.FindLines)
-            {
-                var lines = CvInvoke.HoughLinesP(edges, profile.HoughLinesRHO, profile.HoughLinesTheta * (Math.PI / 180), profile.HoughLinesThreshold, profile.HoughLinesMinLineLength, profile.HoughLinesMaxLineGap);
-                foreach (var line in lines)
-                {
-                    _foundLines.Add(new MVLocatedLine()
-                    {
-                        Start = new Point2D<double>(line.P1.X, line.P1.Y),
-                        End = new Point2D<double>(line.P2.X, line.P2.Y),
-                    });
-
-                    //                    _imageHelper.Line(output, line.P1.X, line.P1.Y, line.P2.X, line.P2.Y, System.Drawing.Color.Yellow);
-                }
-            }
 
             if (profile.UseCannyEdgeDetection)
             {
-                CvInvoke.Canny(input.Image, edges, profile.CannyLowThreshold, profile.CannyHighThreshold, profile.CannyApetureSize, profile.CannyGradient);
+                CvInvoke.Canny(input.Image, _edges, profile.CannyLowThreshold, profile.CannyHighThreshold, profile.CannyApetureSize, profile.CannyGradient);
             }
             else
             {
-                CvInvoke.Threshold(input.Image, edges, profile.ThresholdEdgeDetection, 255, ThresholdType.Binary);
+                CvInvoke.Threshold(input.Image, _edges, profile.ThresholdEdgeDetection, 255, ThresholdType.Binary);
             }
+
+            var currentRects = new List<MVLocatedRectangle>();
 
             using (var contours = new VectorOfVectorOfPoint())
             {
-                _foundRectangles.Clear();
+                var center = size.Center();
+                var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.CurrentVisionProfile.PixelsPerMM);
+                var searchBounds = new CircleF(new System.Drawing.PointF(center.X, center.Y), scaledTarget);
 
-                CvInvoke.FindContours(edges, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
+                CvInvoke.FindContours(_edges, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
                 int count = contours.Size;
                 for (int i = 0; i < count; i++)
                 {
@@ -96,27 +82,24 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                                 if (isRectangle)
                                 {
                                     var rect = CvInvoke.MinAreaRect(approxContour);
-
-                                    if (rect.Center.X > size.Width / 2 - profile.TargetImageRadius && rect.Center.X < size.Width / 2 + profile.TargetImageRadius &&
-                                        rect.Center.Y > size.Height / 2 - profile.TargetImageRadius && rect.Center.Y < size.Height / 2 + profile.TargetImageRadius)
+                                    if (searchBounds.WithinRadius(rect))
                                     {
                                         if (rect.Size.Width > rect.Size.Height && profile.FindLandScape || rect.Size.Height > rect.Size.Width && profile.FindPortrait)
                                         {
-                                            var p = rect.ToPointArray();
-
-                                            var matrix = new Matrix();
-                                            matrix.RotateAt(rect.Angle, rect.Center);
-                                            matrix.TransformPoints(p);
-
-                                            var foundRect = new MVLocatedRectangle()
+                                            var previous = _foundRectangles.FindPrevious(rect, 10);
+                                            if (previous != null)
                                             {
-                                                Angle = rect.Angle,
-                                                RotatedRect = rect,
-                                            };
+                                                previous.Add(rect);
+                                                _locatorViewModel.RectLocated(previous);
+                                                currentRects.Add(previous);
+                                            }
+                                            else
+                                            {
+                                                var foundRect = new MVLocatedRectangle(camera.CameraType.Value, center, profile.PixelsPerMM, profile.ErrorToleranceMM, profile.StabilizationCount);
+                                                _locatorViewModel.RectLocated(foundRect);
+                                                currentRects.Add(foundRect);
+                                            }
 
-                                            _locatorViewModel.RectLocated(foundRect);
-
-                                            _foundRectangles.Add(foundRect);
                                         }
                                     }
                                 }
@@ -133,15 +116,18 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                         }
                     }
                 }
+
+                _foundRectangles.Clear();
+                _foundRectangles.AddRange(currentRects);
             }
         }
 
         public List<MVLocatedRectangle> FoundRectangles { get => _foundRectangles; }
-        public List<MVLocatedLine> FoundLines { get => _foundLines; }
+
+        public IInputOutputArray Image => _edges;
 
         public void Reset()
         {
-            FoundLines.Clear();
             FoundRectangles.Clear();
         }
     }

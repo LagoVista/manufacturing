@@ -1,10 +1,6 @@
 ﻿using LagoVista.Core.Models.Drawing;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 
 namespace LagoVista.PickAndPlace.Util
 {
@@ -58,7 +54,7 @@ namespace LagoVista.PickAndPlace.Util
                 {
                     var subsetX = sortedX.Skip(_throwAwaySize).Take(_filterSize - _throwAwaySize * 2);
                     var subsetY = sortedY.Skip(_throwAwaySize).Take(_filterSize - _throwAwaySize * 2);
-                    return new Point2D<double>(subsetX.Average(), subsetY.Average());
+                    return new Point2D<double>(Convert.ToInt32(subsetX.Average()), Convert.ToInt32(subsetY.Average()));
                 }
                 else
                 {

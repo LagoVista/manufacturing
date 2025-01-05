@@ -37,7 +37,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         public string HarrisCornerApertureHelp { get { return "Apertur parameter for Sobel operation"; } }
         public string HarrisCornerBlockSizeString { get { return "Neighborhood Size"; } }
         public string HarrisCornerKHelp { get { return "Harris detector free parameter."; } }
-
+        public string ContoursLink { get { return "https://docs.opencv.org/4.x/dc/dcf/tutorial_js_contour_features.html"; } }
         public string CannyLink { get { return "http://docs.opencv.org/2.4/modules/imgproc/doc/feature_detection.html"; } }
         public string CannyLink2 { get { return "https://en.wikipedia.org/wiki/Canny_edge_detector"; } }
         public string CannyLowThresholdHelp { get { return "Threshold for Line Detection"; } }

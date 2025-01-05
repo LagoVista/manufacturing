@@ -17,10 +17,10 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         {
             var color = circle.Centered ? System.Drawing.Color.Green : System.Drawing.Color.Red;
 
-            Line(img, 0, circle.CenterPixels.Y, size.Width, circle.CenterPixels.Y, color);
-            Line(img, circle.CenterPixels.X, 0, circle.CenterPixels.X, size.Height, color);
+            Line(img, 0, (int)circle.CenterPixels.Y, size.Width, (int)circle.CenterPixels.Y, color);
+            Line(img, (int)circle.CenterPixels.X, 0, (int)circle.CenterPixels.X, size.Height, color);
 
-            CvInvoke.Circle(img.Image, new System.Drawing.Point(circle.CenterPixels.X, circle.CenterPixels.Y), circle.RadiusPixels, new Bgr(color).MCvScalar, thickness, Emgu.CV.CvEnum.LineType.AntiAlias);
+            CvInvoke.Circle(img.Image, new System.Drawing.Point((int)circle.CenterPixels.X, (int)circle.CenterPixels.Y), (int)circle.RadiusPixels, new Bgr(color).MCvScalar, thickness, Emgu.CV.CvEnum.LineType.AntiAlias);
             CvInvoke.PutText(img.Image, $"Diameter {circle.RadiusMM * 2}mm", new Point(size.Width - 300, size.Height - 100), FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.White).MCvScalar);
             CvInvoke.PutText(img.Image, $"Found Count: {circle.FoundCount}", new Point(size.Width - 300, size.Height - 70), FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.White).MCvScalar);
             CvInvoke.PutText(img.Image, $"Error (mm) {circle.OffsetMM}", new Point(size.Width - 300, size.Height - 40), FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.White).MCvScalar);
@@ -50,6 +50,12 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 X = (int)p.Max(p => p.X),
                 Y = (int)p.Min(p => p.Y),
             };
+
+            //var p = rect.ToPointArray();
+            //var matrix = new Matrix();
+            //matrix.RotateAt(rect.Angle, rect.Center);
+            //matrix.TransformPoints(p);
+
 
             CvInvoke.PutText(img.Image, msg, center, FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.Red).MCvScalar);
         }
