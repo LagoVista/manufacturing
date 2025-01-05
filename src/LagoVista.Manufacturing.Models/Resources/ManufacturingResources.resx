@@ -1307,4 +1307,7 @@
   <data name="VisionProfile_StagingPlateHole" xml:space="preserve">
     <value>Staging Plate Hole</value>
   </data>
+  <data name="MachineCamera_SupportZoom" xml:space="preserve">
+    <value>Support Software Zoom</value>
+  </data>
 </root>

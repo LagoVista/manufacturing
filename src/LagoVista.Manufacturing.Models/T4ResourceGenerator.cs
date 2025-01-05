@@ -1,4 +1,4 @@
-﻿/*1/4/2025 4:55:39 PM*/
+﻿/*1/4/2025 7:04:32 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -806,6 +806,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:MachineCamera_PixelsPerMM_Help
 
 		public static string MachineCamera_PixelsPerMM_Help { get { return GetResourceString("MachineCamera_PixelsPerMM_Help"); } }
+//Resources:ManufacturingResources:MachineCamera_SupportZoom
+
+		public static string MachineCamera_SupportZoom { get { return GetResourceString("MachineCamera_SupportZoom"); } }
 //Resources:ManufacturingResources:MachineCamera_Title
 
 		public static string MachineCamera_Title { get { return GetResourceString("MachineCamera_Title"); } }
@@ -1501,6 +1504,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string MachineCamera_MirrorY = "MachineCamera_MirrorY";
 			public const string MachineCamera_PixelsPerMM = "MachineCamera_PixelsPerMM";
 			public const string MachineCamera_PixelsPerMM_Help = "MachineCamera_PixelsPerMM_Help";
+			public const string MachineCamera_SupportZoom = "MachineCamera_SupportZoom";
 			public const string MachineCamera_Title = "MachineCamera_Title";
 			public const string MachineCamera_Type = "MachineCamera_Type";
 			public const string MachineCamera_Type_Observation = "MachineCamera_Type_Observation";

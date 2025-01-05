@@ -101,6 +101,8 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _tool2Offset, value); }
         }
 
+        [FormField(LabelResource: ManufacturingResources.Names.MachineCamera_SupportZoom, FieldType: FieldTypes.CheckBox, ResourceType: typeof(ManufacturingResources))]
+        public bool SupportZoom { get; set; }
      
 
         [FormField(LabelResource: ManufacturingResources.Names.MachineCamera_ImageSize, FieldType: FieldTypes.Point2DSize, ResourceType: typeof(ManufacturingResources))]
@@ -121,6 +123,8 @@ namespace LagoVista.Manufacturing.Models
                 nameof(CameraType),
                 nameof(Icon),
                 nameof(CameraDevice),
+                nameof(ImageSize),
+                nameof(SupportZoom),
                 nameof(MirrorXAxis),
                 nameof(MirrorYAxis),
                 nameof(AbsolutePosition),
