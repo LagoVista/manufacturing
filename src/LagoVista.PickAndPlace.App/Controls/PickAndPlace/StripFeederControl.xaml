@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls.PickAndPlace"
+             xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;assembly=LagoVista.PickAndPlace"                                                                 
              d:DataContext="{d:DesignInstance vm:IPartsViewModel }"
@@ -40,7 +41,6 @@
                 <Button Style="{StaticResource CommandButton}" Command="{Binding GoToFeederOriginCommand}" >Reeder Origin</Button>
                 <Button Style="{StaticResource CommandButton}" Command="{Binding GoToFeederReferenceHoleCommand}" >Feeder Reference Hole</Button>
                 <Button Style="{StaticResource CommandButton}" Command="{Binding GoToFeederRowReferenceHoleCommand}" >Feeder Hole</Button>
-                <Button Style="{StaticResource CommandButton}" Command="{Binding GoToFeederReferenceHoleCommand}" >Reeder Reference Hole</Button>
             </StackPanel>
 
             <DataGrid ItemsSource="{Binding CurrentStripFeeder.Rows}" SelectedItem="{Binding CurrentStripFeederRow}">
@@ -55,6 +55,58 @@
             <ComboBox ItemsSource="{Binding ComponentCategories}" DisplayMemberPath="Text" SelectedValuePath="Key" SelectedValue="{Binding SelectedCategoryKey, Mode=TwoWay}"></ComboBox>
             <Label>Component</Label>
             <ComboBox ItemsSource="{Binding Components}" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding SelectedComponentSummaryId}"></ComboBox>
+
+            <StackPanel Orientation="Horizontal">
+                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetFirstFeederReferenceHoleCommand}"  ToolTip="Set Reference Hole for Feeder Row" Width="64" Height="64"  >
+                    <Button.Content>
+                        <Image Source="/imgs/SetTarget.png"/>
+                    </Button.Content>
+                </Button>
+                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetLastFeederReferenceHoleCommand}"  ToolTip="Set Reference Hole for Feeder Row" Width="64" Height="64"  >
+                    <Button.Content>
+                        <Image Source="/imgs/SetTarget.png"/>
+                    </Button.Content>
+                </Button>
+                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToFirstFeederReferenceHoleCommand}"  ToolTip="Move To Reference Hole for Feeder Row" Width="64" Height="64"  >
+                    <Button.Content>
+                        <Image Source="/imgs/MoveToTarget.png"/>
+                    </Button.Content>
+                </Button>
+                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToLastFeederReferenceHoleCommand}"  ToolTip="Move To Reference Hole for Feeder Row" Width="64" Height="64"  >
+                    <Button.Content>
+                        <Image Source="/imgs/MoveToTarget.png"/>
+                    </Button.Content>
+                </Button>
+
+
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="First Part" Command="{Binding GoToFirstPartCommand}" >
+                    <Button.Content>
+                        <fa:FontAwesome Icon="FastBackward"  />
+                    </Button.Content>
+                 </Button>
+                <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="Previous Part" Command="{Binding GoToPreviousPartCommand}" >
+                    <Button.Content>
+                        <fa:FontAwesome Icon="Backward"  />
+                    </Button.Content>
+                 </Button>
+                <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="Current Part" Command="{Binding GoToNextPartCommand}" >
+                    <Button.Content>
+                        <fa:FontAwesome Icon="CircleOutline"  />
+                    </Button.Content>
+                </Button>
+                <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="Next part" Command="{Binding GoToNextPartCommand}" >
+                    <Button.Content>
+                         <fa:FontAwesome Icon="Forward"  />
+                    </Button.Content>
+                  </Button>
+                <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="Last part" Command="{Binding GoToLastPartCommand}" >
+                    <Button.Content>
+                        <fa:FontAwesome Icon="FastForward"  />
+                    </Button.Content>
+                </Button>
+            </StackPanel>
 
         </StackPanel>
     </Grid>

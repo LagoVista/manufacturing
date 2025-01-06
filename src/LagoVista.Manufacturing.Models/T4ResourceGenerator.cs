@@ -1,4 +1,4 @@
-﻿/*1/5/2025 6:12:33 PM*/
+﻿/*1/6/2025 9:11:52 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -512,9 +512,21 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Feeder_Description
 
 		public static string Feeder_Description { get { return GetResourceString("Feeder_Description"); } }
+//Resources:ManufacturingResources:Feeder_FeederHeight_Help
+
+		public static string Feeder_FeederHeight_Help { get { return GetResourceString("Feeder_FeederHeight_Help"); } }
 //Resources:ManufacturingResources:Feeder_FeederId
 
 		public static string Feeder_FeederId { get { return GetResourceString("Feeder_FeederId"); } }
+//Resources:ManufacturingResources:Feeder_FeederId_Help
+
+		public static string Feeder_FeederId_Help { get { return GetResourceString("Feeder_FeederId_Help"); } }
+//Resources:ManufacturingResources:Feeder_FeederLength_Help
+
+		public static string Feeder_FeederLength_Help { get { return GetResourceString("Feeder_FeederLength_Help"); } }
+//Resources:ManufacturingResources:Feeder_FeederWidth_Help
+
+		public static string Feeder_FeederWidth_Help { get { return GetResourceString("Feeder_FeederWidth_Help"); } }
 //Resources:ManufacturingResources:Feeder_FiducialOffsetFromSlotOriign
 
 		public static string Feeder_FiducialOffsetFromSlotOriign { get { return GetResourceString("Feeder_FiducialOffsetFromSlotOriign"); } }
@@ -527,6 +539,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Feeder_Machine_Select
 
 		public static string Feeder_Machine_Select { get { return GetResourceString("Feeder_Machine_Select"); } }
+//Resources:ManufacturingResources:Feeder_OriginOffset
+
+		public static string Feeder_OriginOffset { get { return GetResourceString("Feeder_OriginOffset"); } }
+//Resources:ManufacturingResources:Feeder_OriginOffset_Help
+
+		public static string Feeder_OriginOffset_Help { get { return GetResourceString("Feeder_OriginOffset_Help"); } }
 //Resources:ManufacturingResources:Feeder_PartCount
 
 		public static string Feeder_PartCount { get { return GetResourceString("Feeder_PartCount"); } }
@@ -1070,15 +1088,15 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:StripFeeder_Direction_Select
 
 		public static string StripFeeder_Direction_Select { get { return GetResourceString("StripFeeder_Direction_Select"); } }
-//Resources:ManufacturingResources:StripFeeder_FeederLength
+//Resources:ManufacturingResources:StripFeeder_FeederHeight_Help
 
-		public static string StripFeeder_FeederLength { get { return GetResourceString("StripFeeder_FeederLength"); } }
-//Resources:ManufacturingResources:StripFeeder_FeederWidth
+		public static string StripFeeder_FeederHeight_Help { get { return GetResourceString("StripFeeder_FeederHeight_Help"); } }
+//Resources:ManufacturingResources:StripFeeder_FeederLength_Help
 
-		public static string StripFeeder_FeederWidth { get { return GetResourceString("StripFeeder_FeederWidth"); } }
-//Resources:ManufacturingResources:StripFeeder_Installed
+		public static string StripFeeder_FeederLength_Help { get { return GetResourceString("StripFeeder_FeederLength_Help"); } }
+//Resources:ManufacturingResources:StripFeeder_FeederWidth_Help
 
-		public static string StripFeeder_Installed { get { return GetResourceString("StripFeeder_Installed"); } }
+		public static string StripFeeder_FeederWidth_Help { get { return GetResourceString("StripFeeder_FeederWidth_Help"); } }
 //Resources:ManufacturingResources:StripFeeder_Orientation
 
 		public static string StripFeeder_Orientation { get { return GetResourceString("StripFeeder_Orientation"); } }
@@ -1088,6 +1106,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:StripFeeder_PickHeight
 
 		public static string StripFeeder_PickHeight { get { return GetResourceString("StripFeeder_PickHeight"); } }
+//Resources:ManufacturingResources:StripFeeder_PickHeight_Help
+
+		public static string StripFeeder_PickHeight_Help { get { return GetResourceString("StripFeeder_PickHeight_Help"); } }
 //Resources:ManufacturingResources:StripFeeder_ReferenceHole_Col
 
 		public static string StripFeeder_ReferenceHole_Col { get { return GetResourceString("StripFeeder_ReferenceHole_Col"); } }
@@ -1121,9 +1142,15 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:StripFeeder_RowWidth
 
 		public static string StripFeeder_RowWidth { get { return GetResourceString("StripFeeder_RowWidth"); } }
+//Resources:ManufacturingResources:StripFeeder_RowWidth_Help
+
+		public static string StripFeeder_RowWidth_Help { get { return GetResourceString("StripFeeder_RowWidth_Help"); } }
 //Resources:ManufacturingResources:StripFeeder_StagingPlate
 
 		public static string StripFeeder_StagingPlate { get { return GetResourceString("StripFeeder_StagingPlate"); } }
+//Resources:ManufacturingResources:StripFeeder_StagingPlate_Select
+
+		public static string StripFeeder_StagingPlate_Select { get { return GetResourceString("StripFeeder_StagingPlate_Select"); } }
 //Resources:ManufacturingResources:StripFeeder_StagingPlateColumn
 
 		public static string StripFeeder_StagingPlateColumn { get { return GetResourceString("StripFeeder_StagingPlateColumn"); } }
@@ -1136,9 +1163,18 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:StripFeederRow_Description
 
 		public static string StripFeederRow_Description { get { return GetResourceString("StripFeederRow_Description"); } }
-//Resources:ManufacturingResources:StripFeederRow_Offset
+//Resources:ManufacturingResources:StripFeederRow_FirstTapeHoleOffset
 
-		public static string StripFeederRow_Offset { get { return GetResourceString("StripFeederRow_Offset"); } }
+		public static string StripFeederRow_FirstTapeHoleOffset { get { return GetResourceString("StripFeederRow_FirstTapeHoleOffset"); } }
+//Resources:ManufacturingResources:StripFeederRow_FirstTapeHoleOffset_Help
+
+		public static string StripFeederRow_FirstTapeHoleOffset_Help { get { return GetResourceString("StripFeederRow_FirstTapeHoleOffset_Help"); } }
+//Resources:ManufacturingResources:StripFeederRow_LastTapeHoleOffset
+
+		public static string StripFeederRow_LastTapeHoleOffset { get { return GetResourceString("StripFeederRow_LastTapeHoleOffset"); } }
+//Resources:ManufacturingResources:StripFeederRow_LastTapeHoleOffset_Help
+
+		public static string StripFeederRow_LastTapeHoleOffset_Help { get { return GetResourceString("StripFeederRow_LastTapeHoleOffset_Help"); } }
 //Resources:ManufacturingResources:StripFeederRow_RowIndex
 
 		public static string StripFeederRow_RowIndex { get { return GetResourceString("StripFeederRow_RowIndex"); } }
@@ -1412,11 +1448,17 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Feeder_AdvanceGCode_Help = "Feeder_AdvanceGCode_Help";
 			public const string Feeder_Component_Select = "Feeder_Component_Select";
 			public const string Feeder_Description = "Feeder_Description";
+			public const string Feeder_FeederHeight_Help = "Feeder_FeederHeight_Help";
 			public const string Feeder_FeederId = "Feeder_FeederId";
+			public const string Feeder_FeederId_Help = "Feeder_FeederId_Help";
+			public const string Feeder_FeederLength_Help = "Feeder_FeederLength_Help";
+			public const string Feeder_FeederWidth_Help = "Feeder_FeederWidth_Help";
 			public const string Feeder_FiducialOffsetFromSlotOriign = "Feeder_FiducialOffsetFromSlotOriign";
 			public const string Feeder_FiducialOffsetFromSlotOriign_Help = "Feeder_FiducialOffsetFromSlotOriign_Help";
 			public const string Feeder_Machine = "Feeder_Machine";
 			public const string Feeder_Machine_Select = "Feeder_Machine_Select";
+			public const string Feeder_OriginOffset = "Feeder_OriginOffset";
+			public const string Feeder_OriginOffset_Help = "Feeder_OriginOffset_Help";
 			public const string Feeder_PartCount = "Feeder_PartCount";
 			public const string Feeder_PickHeight = "Feeder_PickHeight";
 			public const string Feeder_PickLocation = "Feeder_PickLocation";
@@ -1598,12 +1640,13 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string StripFeeder_Description = "StripFeeder_Description";
 			public const string StripFeeder_Direction = "StripFeeder_Direction";
 			public const string StripFeeder_Direction_Select = "StripFeeder_Direction_Select";
-			public const string StripFeeder_FeederLength = "StripFeeder_FeederLength";
-			public const string StripFeeder_FeederWidth = "StripFeeder_FeederWidth";
-			public const string StripFeeder_Installed = "StripFeeder_Installed";
+			public const string StripFeeder_FeederHeight_Help = "StripFeeder_FeederHeight_Help";
+			public const string StripFeeder_FeederLength_Help = "StripFeeder_FeederLength_Help";
+			public const string StripFeeder_FeederWidth_Help = "StripFeeder_FeederWidth_Help";
 			public const string StripFeeder_Orientation = "StripFeeder_Orientation";
 			public const string StripFeeder_Orientation_Select = "StripFeeder_Orientation_Select";
 			public const string StripFeeder_PickHeight = "StripFeeder_PickHeight";
+			public const string StripFeeder_PickHeight_Help = "StripFeeder_PickHeight_Help";
 			public const string StripFeeder_ReferenceHole_Col = "StripFeeder_ReferenceHole_Col";
 			public const string StripFeeder_ReferenceHole_Col_Help = "StripFeeder_ReferenceHole_Col_Help";
 			public const string StripFeeder_ReferenceHole_Row = "StripFeeder_ReferenceHole_Row";
@@ -1615,12 +1658,17 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string StripFeeder_RowOneRefHoleOffset_Help = "StripFeeder_RowOneRefHoleOffset_Help";
 			public const string StripFeeder_Rows = "StripFeeder_Rows";
 			public const string StripFeeder_RowWidth = "StripFeeder_RowWidth";
+			public const string StripFeeder_RowWidth_Help = "StripFeeder_RowWidth_Help";
 			public const string StripFeeder_StagingPlate = "StripFeeder_StagingPlate";
+			public const string StripFeeder_StagingPlate_Select = "StripFeeder_StagingPlate_Select";
 			public const string StripFeeder_StagingPlateColumn = "StripFeeder_StagingPlateColumn";
 			public const string StripFeeder_Title = "StripFeeder_Title";
 			public const string StripFeederRow_CurrentPartIndex = "StripFeederRow_CurrentPartIndex";
 			public const string StripFeederRow_Description = "StripFeederRow_Description";
-			public const string StripFeederRow_Offset = "StripFeederRow_Offset";
+			public const string StripFeederRow_FirstTapeHoleOffset = "StripFeederRow_FirstTapeHoleOffset";
+			public const string StripFeederRow_FirstTapeHoleOffset_Help = "StripFeederRow_FirstTapeHoleOffset_Help";
+			public const string StripFeederRow_LastTapeHoleOffset = "StripFeederRow_LastTapeHoleOffset";
+			public const string StripFeederRow_LastTapeHoleOffset_Help = "StripFeederRow_LastTapeHoleOffset_Help";
 			public const string StripFeederRow_RowIndex = "StripFeederRow_RowIndex";
 			public const string StripFeederRow_Title = "StripFeederRow_Title";
 			public const string StripFeeders_Title = "StripFeeders_Title";

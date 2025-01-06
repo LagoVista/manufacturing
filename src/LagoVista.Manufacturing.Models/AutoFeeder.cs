@@ -54,7 +54,8 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
         public string Icon { get; set; } = "icon-pz-searching-2";
 
-        [FormField(LabelResource: ManufacturingResources.Names.Feeder_FeederId, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_FeederId, HelpResource:ManufacturingResources.Names.Feeder_FeederId_Help, 
+            FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
         public string FeederId { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_Slot, FieldType: FieldTypes.Integer, ResourceType: typeof(ManufacturingResources))]
@@ -136,7 +137,7 @@ namespace LagoVista.Manufacturing.Models
 
 
         private double _feederWidth = 16;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Width, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Width, HelpResource:ManufacturingResources.Names.Feeder_FeederWidth_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double FeederWidth
         {
             get => _feederWidth;
@@ -144,7 +145,7 @@ namespace LagoVista.Manufacturing.Models
         }
 
         private double _feederLength = 120;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Length, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Length, HelpResource: ManufacturingResources.Names.Feeder_FeederLength_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double FeederLength
         {
             get => _feederLength;
@@ -152,11 +153,20 @@ namespace LagoVista.Manufacturing.Models
         }
 
         private double _feederHeight = 80;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Height, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Height, HelpResource: ManufacturingResources.Names.Feeder_FeederHeight_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double FeederHeight
         {
             get => _feederHeight;
             set => Set(ref _feederHeight, value);
+        }
+
+        Point3D<double> _originOffset = new Point3D<double>();
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_OriginOffset, HelpResource: ManufacturingResources.Names.Feeder_OriginOffset_Help, 
+            FieldType: FieldTypes.Point3D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public Point3D<double> OriginOffset
+        {
+            get => _originOffset;
+            set => Set(ref _originOffset, value);
         }
 
         Point2D<double> _pickOffset;
@@ -168,13 +178,13 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _pickOffset, value);
         }
 
-        Point2D<double> _fiducitalOffset;
+        Point2D<double> _fiducialOffset;
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_FiducialOffsetFromSlotOriign, FieldType: FieldTypes.Point2D,
            HelpResource: ManufacturingResources.Names.Feeder_FiducialOffsetFromSlotOriign_Help, ResourceType: typeof(ManufacturingResources))]
         public Point2D<double> FiducialOffset
         {
-            get => _fiducitalOffset;
-            set => Set(ref _fiducitalOffset, value);
+            get => _fiducialOffset;
+            set => Set(ref _fiducialOffset, value);
         }
 
         public List<string> GetFormFields()
@@ -182,18 +192,16 @@ namespace LagoVista.Manufacturing.Models
             return new List<string>()
             {
                 nameof(Name),
+                nameof(Key),
                 nameof(Component),
                 nameof(PartCount),
                 nameof(TapeSize),
                 nameof(Protocol),
-                nameof(Key),
                 nameof(Color),
-                nameof(Slot),
                 nameof(FeederId),
-                nameof(Machine),
+                nameof(Protocol),
                 nameof(AdvanceGCode),
                 nameof(Rotation),
-                nameof(Protocol),
                 nameof(Description)
             };
         }
@@ -215,9 +223,12 @@ namespace LagoVista.Manufacturing.Models
         {
             return new List<string>()
             {
+                nameof(Machine),
+                nameof(Slot),
                 nameof(FeederWidth),
                 nameof(FeederLength),
                 nameof(FeederHeight),
+                nameof(OriginOffset),
                 nameof(PickOffset),
                 nameof(FiducialOffset),
                 nameof(PickLocation),

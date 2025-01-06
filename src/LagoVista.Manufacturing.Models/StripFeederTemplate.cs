@@ -59,9 +59,10 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _tapeSize, value);
         }
 
-
         private double _rowWidth;
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_RowWidth, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_RowWidth,
+            HelpResource: ManufacturingResources.Names.StripFeeder_RowWidth_Help, FieldType:
+            FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double RowWidth
         {
             get => _rowWidth;
@@ -77,7 +78,7 @@ namespace LagoVista.Manufacturing.Models
         }
 
         private double _feederWidth;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Width, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Width, HelpResource: ManufacturingResources.Names.StripFeeder_FeederWidth_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double FeederWidth
         {
             get => _feederWidth;
@@ -85,7 +86,7 @@ namespace LagoVista.Manufacturing.Models
         }
 
         private double _feederLength = 120;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Length, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Length, HelpResource: ManufacturingResources.Names.StripFeeder_FeederLength_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double FeederLength
         {
             get => _feederLength;
@@ -93,7 +94,7 @@ namespace LagoVista.Manufacturing.Models
         }
 
         private double _feederHeight = 12;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Height, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Height, HelpResource: ManufacturingResources.Names.StripFeeder_FeederHeight_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double FeederHeight
         {
             get => _feederHeight;
@@ -101,7 +102,8 @@ namespace LagoVista.Manufacturing.Models
         }
 
         Point2D<double> _referenceHoleLocation = new Point2D<double>();
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_ReferenceHoleOffset, HelpResource: ManufacturingResources.Names.StripFeeder_ReferenceHoleOffset_Help, FieldType: FieldTypes.Point2D, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_ReferenceHoleOffset, 
+            HelpResource: ManufacturingResources.Names.StripFeeder_ReferenceHoleOffset_Help, FieldType: FieldTypes.Point2D, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public Point2D<double> ReferenceHoleLocation
         {
             get => _referenceHoleLocation;

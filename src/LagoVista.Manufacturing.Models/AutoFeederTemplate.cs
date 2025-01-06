@@ -39,6 +39,15 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _pickLocation, value);
         }
 
+        Point3D<double> _originOffset = new Point3D<double>();
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_OriginOffset, HelpResource: ManufacturingResources.Names.Feeder_OriginOffset_Help,
+            FieldType: FieldTypes.Point3D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public Point3D<double> OriginOffset
+        {
+            get => _originOffset;
+            set => Set(ref _originOffset, value);
+        }
+
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_Protocol, FieldType: FieldTypes.Picker, EnumType: typeof(FeederProtocols),
             WaterMark: ManufacturingResources.Names.Feeder_Protocol_Select, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<FeederProtocols> Protocol { get; set; }
@@ -71,7 +80,7 @@ namespace LagoVista.Manufacturing.Models
         public string AdvanceGCode { get; set; }
 
         private double _feederWidth = 16;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Width, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Width, HelpResource: ManufacturingResources.Names.Feeder_FeederWidth_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double FeederWidth
         {
             get => _feederWidth;
@@ -79,7 +88,7 @@ namespace LagoVista.Manufacturing.Models
         }
 
         private double _feederLength = 120;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Length, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Length, HelpResource: ManufacturingResources.Names.Feeder_FeederLength_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double FeederLength
         {
             get => _feederLength;
@@ -87,7 +96,7 @@ namespace LagoVista.Manufacturing.Models
         }
 
         private double _feederHeight = 80;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Height, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Height, HelpResource: ManufacturingResources.Names.Feeder_FeederHeight_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double FeederHeight
         {
             get => _feederHeight;
@@ -131,6 +140,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(FeederHeight),
                 nameof(FiducialOffset),
                 nameof(PickOffset),
+                nameof(OriginOffset),
                 nameof(AdvanceGCode)
             };
         }

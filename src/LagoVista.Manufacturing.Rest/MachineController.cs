@@ -34,6 +34,13 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return DetailResponse<Machine>.Create(await _mgr.GetMachineAsync(id, OrgEntityHeader, UserEntityHeader));
         }
 
+        [HttpGet("/api/mfg/machine/{id}/stagingplates")]
+        public async Task<ListResponse<MachineStagingPlate>> GetStagingPlates(string id)
+        {
+            var machine = await _mgr.GetMachineAsync(id, OrgEntityHeader, UserEntityHeader);
+            return ListResponse<MachineStagingPlate>.Create(machine.StagingPlates);
+        }
+
         [HttpGet("/api/mfg/machine/factory")]
         public DetailResponse<Machine> CreateMachine()
         {

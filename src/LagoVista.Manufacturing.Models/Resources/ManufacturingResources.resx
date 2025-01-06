@@ -680,17 +680,11 @@
   <data name="Component_Polarized" xml:space="preserve">
     <value>Polarized</value>
   </data>
-  <data name="StripFeeder_Installed" xml:space="preserve">
-    <value>Installed</value>
-  </data>
   <data name="StripFeeder_Orientation" xml:space="preserve">
     <value>Orientation</value>
   </data>
   <data name="StripFeeder_Direction" xml:space="preserve">
     <value>Direction</value>
-  </data>
-  <data name="StripFeeder_FeederLength" xml:space="preserve">
-    <value>Feeder Length</value>
   </data>
   <data name="StripFeeder_PickHeight" xml:space="preserve">
     <value>Pick Height</value>
@@ -785,14 +779,11 @@
   <data name="StripFeeder_Rows" xml:space="preserve">
     <value>Rows</value>
   </data>
-  <data name="StripFeeder_FeederWidth" xml:space="preserve">
-    <value>Feeder Width</value>
-  </data>
   <data name="StripFeeder_RowCount" xml:space="preserve">
     <value>Row Count</value>
   </data>
-  <data name="StripFeederRow_Offset" xml:space="preserve">
-    <value>Reference Hole Offset</value>
+  <data name="StripFeederRow_FirstTapeHoleOffset" xml:space="preserve">
+    <value>First Tape Hole Offset</value>
   </data>
   <data name="StripFeederRow_RowIndex" xml:space="preserve">
     <value>Row Index</value>
@@ -1047,7 +1038,7 @@
     <value>Reference Hole Offset</value>
   </data>
   <data name="StripFeeder_ReferenceHoleOffset_Help" xml:space="preserve">
-    <value>Provide the XY offset from the bottom left origin of the strip feeder to the reference hole location.  This is assuming that the feeder is horizontal.</value>
+    <value>Provide the XY offset from the bottom left origin of the strip feeder to the reference hole location.  This is assuming that the feeder is horizontal and is used to determine where the feeder origin is located.</value>
   </data>
   <data name="StripFeeder_ReferenceHole_Row" xml:space="preserve">
     <value>Mounting Reference Hole Row</value>
@@ -1315,5 +1306,50 @@
   </data>
   <data name="Machine_WorkspaceFrameOffset _Help" xml:space="preserve">
     <value>Distance in MM from the front left of the machines frame to the 0,0 coordinate of the workspace.</value>
+  </data>
+  <data name="StripFeederRow_LastTapeHoleOffset" xml:space="preserve">
+    <value>Last Tape Hope Offset</value>
+  </data>
+  <data name="StripFeederRow_LastTapeHoleOffset_Help" xml:space="preserve">
+    <value>Offset from tape hole prior to first part to tape hole prior to last part, used to correct for any angle offsets in feeder installation.</value>
+  </data>
+  <data name="StripFeederRow_FirstTapeHoleOffset_Help" xml:space="preserve">
+    <value>Offset from feeder origina point to first tape hole prior to first part.  This offset assumes that the feeder is install horizintally and will be automatically set and corrected if the feeder is installed vertically</value>
+  </data>
+  <data name="StripFeeder_FeederWidth_Help" xml:space="preserve">
+    <value>The entire width of the stirp feeder that spans across all the strip feeder rows.  This value is mainly used for rendering the feeder. All calculations will be done by row width and row index.</value>
+  </data>
+  <data name="StripFeeder_FeederLength_Help" xml:space="preserve">
+    <value>The length of the strip feeder that spans the length of each row.  This will be used to define the number of parts in each row with respect to the tape pitch and starting reference hole.</value>
+  </data>
+  <data name="StripFeeder_FeederHeight_Help" xml:space="preserve">
+    <value>The height of the strip feeder above the staging plate.  This will likely be larger than the pick height.  This value is used for rending the feeder.  The Pick Height will be used to define how parts will be picked from this feeder.</value>
+  </data>
+  <data name="StripFeeder_PickHeight_Help" xml:space="preserve">
+    <value>The Z location or height at which the nozzle tip should be set to pickup a part from the tape.  This will be the same for each part.</value>
+  </data>
+  <data name="StripFeeder_RowWidth_Help" xml:space="preserve">
+    <value>The actual width of each row to include spacing between rows.  This is used to calculate the tape reference hole locatoin wiht respect to row index and first role offset.</value>
+  </data>
+  <data name="Feeder_FeederId_Help" xml:space="preserve">
+    <value>This is a user generated ID value that can be used to create something like a human readable label, a QR Code or NFC tag to be able to identify the feeder.</value>
+  </data>
+  <data name="Feeder_OriginOffset" xml:space="preserve">
+    <value>Origin Offset</value>
+  </data>
+  <data name="StripFeeder_StagingPlate_Select" xml:space="preserve">
+    <value>-select staging plate-</value>
+  </data>
+  <data name="Feeder_FeederWidth_Help" xml:space="preserve">
+    <value>Width of the feeder, this is only used for rendering the feeder and shold be the widest part of the feeder.</value>
+  </data>
+  <data name="Feeder_FeederHeight_Help" xml:space="preserve">
+    <value>The height or how tall the feeder is, this is only used for rendering the feeder and should be the largest height dimension.</value>
+  </data>
+  <data name="Feeder_FeederLength_Help" xml:space="preserve">
+    <value>The length of the feeder, this is only used for rending the feeder and should be longest dimenions of the feeder.</value>
+  </data>
+  <data name="Feeder_OriginOffset_Help" xml:space="preserve">
+    <value>Offset from the center of the slot where the feeder is installed to the origin or bottom left of the of feender.  This is primarily used to render the feeder. </value>
   </data>
 </root>

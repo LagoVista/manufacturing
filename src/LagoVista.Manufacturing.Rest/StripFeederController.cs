@@ -51,7 +51,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
                 RowIndex = 1,
                 CurrentPartIndex = 1,
                 Notes = "",
-                RefHoleOffset = new Point2D<double>(0, 0),
+                FirstTapeHoleOffset = new Point2D<double>(0, 0),
             });
 
             form.View[nameof(StripFeeder.ReferenceHoleColumn).CamelCase()].Options = MachineManager.GetStagingPlateColumns();

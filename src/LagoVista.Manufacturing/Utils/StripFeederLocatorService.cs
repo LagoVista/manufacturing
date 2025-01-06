@@ -26,13 +26,13 @@ namespace LagoVista.Manufacturing.Util
             var location = spUtils.ResolveStagePlateLocation(stripFeeder.ReferenceHoleColumn, stripFeeder.ReferenceHoleRow);
             if (stripFeeder.Orientation.Value == FeederOrientations.Horizontal)
             {
-                location.X -= stripFeeder.ReferenceHoleLocation.X;
-                location.Y -= stripFeeder.ReferenceHoleLocation.Y;
+                location.X -= stripFeeder.ReferenceHoleOffset.X;
+                location.Y -= stripFeeder.ReferenceHoleOffset.Y;
             }
             else if (stripFeeder.Orientation.Value == FeederOrientations.Vertical)
             {
-                location.X -= stripFeeder.ReferenceHoleLocation.Y;
-                location.Y -= stripFeeder.ReferenceHoleLocation.X;
+                location.X -= stripFeeder.ReferenceHoleOffset.Y;
+                location.Y -= stripFeeder.ReferenceHoleOffset.X;
             }
             else
             {
@@ -65,13 +65,13 @@ namespace LagoVista.Manufacturing.Util
             
             if (stripFeeder.Orientation.Value == FeederOrientations.Horizontal)
             {
-                location.X -= stripFeeder.ReferenceHoleLocation.X + (component.ComponentPackage.Value.SpacingX.Value * row.CurrentPartIndex) + component.ComponentPackage.Value.CenterX.Value;
-                location.Y -= (stripFeeder.ReferenceHoleLocation.Y + component.ComponentPackage.Value.CenterY.Value);
+                location.X -= stripFeeder.ReferenceHoleOffset.X + (component.ComponentPackage.Value.SpacingX.Value * row.CurrentPartIndex) + component.ComponentPackage.Value.CenterX.Value;
+                location.Y -= (stripFeeder.ReferenceHoleOffset.Y + component.ComponentPackage.Value.CenterY.Value);
             }
             else if (stripFeeder.Orientation.Value == FeederOrientations.Vertical)
             {
-                location.X -= stripFeeder.ReferenceHoleLocation.Y - (component.ComponentPackage.Value.SpacingX.Value * row.CurrentPartIndex) + component.ComponentPackage.Value.CenterX.Value;
-                location.Y -= stripFeeder.ReferenceHoleLocation.X + component.ComponentPackage.Value.CenterY.Value;
+                location.X -= stripFeeder.ReferenceHoleOffset.Y - (component.ComponentPackage.Value.SpacingX.Value * row.CurrentPartIndex) + component.ComponentPackage.Value.CenterX.Value;
+                location.Y -= stripFeeder.ReferenceHoleOffset.X + component.ComponentPackage.Value.CenterY.Value;
             }
             else
             {

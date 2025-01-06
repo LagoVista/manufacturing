@@ -316,6 +316,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand GoToFirstPartCommand { get; set; }
         public RelayCommand GoToLastPartCommand { get; set; }
         public RelayCommand GoToCurrentPartCommand { get; set; }
+        public RelayCommand GoToNextPartCommand { get; set; }
+        public RelayCommand GoToPreviousPartCommand { get; set; }
 
     }
 }

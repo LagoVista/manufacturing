@@ -51,7 +51,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             SetStripFeederRowOffsetCommand = new RelayCommand(() =>
             {
-                CurrentStripFeederRow.RefHoleOffset = (_machine.MachinePosition.ToPoint2D() - _stripFeeder.Origin).Round(2);
+                CurrentStripFeederRow.FirstTapeHoleOffset = (_machine.MachinePosition.ToPoint2D() - _stripFeeder.Origin).Round(2);
             }, () => CurrentStripFeederRow != null);
 
             SetCurrentPartIndexCommand = new RelayCommand(SetCurrentPartIndex, () => SelectedStripFeederRow != null);            
@@ -85,7 +85,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             ClearStripXOffsetCommand = new RelayCommand(() =>
             {
-                CurrentStripFeederRow.RefHoleOffset = null;
+                CurrentStripFeederRow.FirstTapeHoleOffset = null;
             }, () => CurrentStripFeederRow != null);
         }
 
@@ -252,7 +252,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
             var xScaler = 1;
 
-            var referenceHole = new Point2D<double>(_stripFeeder.Origin.X + feederRow.RefHoleOffset.X, _stripFeeder.Origin.X + feederRow.RefHoleOffset.X);
+            var referenceHole = new Point2D<double>(_stripFeeder.Origin.X + feederRow.FirstTapeHoleOffset.X, _stripFeeder.Origin.X + feederRow.FirstTapeHoleOffset.X);
 
             switch (positionType)
             {

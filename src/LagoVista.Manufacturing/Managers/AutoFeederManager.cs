@@ -69,6 +69,7 @@ namespace LagoVista.Manufacturing.Managers
                 FeederLength = template.FeederLength,
                 FiducialOffset = template.FiducialOffset,
                 PickOffset = template.PickOffset,
+                OriginOffset = template.OriginOffset,
                 AdvanceGCode = template.AdvanceGCode,
                 Description = template.Description,
             };
