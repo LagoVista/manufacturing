@@ -21,7 +21,7 @@ using System.Windows.Media.Imaging;
 
 namespace LagoVista.PickAndPlace.App.Services
 {
-    public class ImageCaptureService : MachineViewModelBase, IImageCaptureService, INotifyPropertyChanged
+    public class ImageCaptureService : MachineViewModelBase, IImageCaptureService
     {
         private bool _running;
         private double _lastBrightness = -9999;
@@ -40,6 +40,7 @@ namespace LagoVista.PickAndPlace.App.Services
 
             StartCaptureCommand = new RelayCommand(StartCapture);
             StopCaptureCommand = new RelayCommand(StopCapture);
+            CenterFoundItemCommand = CreatedMachineConnectedCommand(CenterFoundItem);
         }
 
         protected override void MachineChanged(IMachine machine)
@@ -64,8 +65,23 @@ namespace LagoVista.PickAndPlace.App.Services
             }
         }
 
-        public void StartCapture()
+        private void CenterFoundItem()
         {
+            var firstCircle = _shapeDetectorService.FoundCircles.FirstOrDefault();
+            if (firstCircle != null)
+            {
+                Machine.SetRelativeMode();
+                Machine.SendCommand($"G0 X{firstCircle.OffsetMM.X} Y{firstCircle.OffsetMM.Y}");
+                Machine.SetAbsoluteMode();
+            }
+        }
+
+        public async void StartCapture()
+        {
+            CaptureImage = new BitmapImage(new Uri("pack://application:,,/Imgs/PleaseWait.jpg"));
+
+            await Task.Delay(100);
+
             if (Camera == null)
             {
                 Machine.AddStatusMessage(StatusMessageTypes.Warning, $"There are not cameras confirgured for {CameraType} for this machine..");
@@ -199,11 +215,15 @@ namespace LagoVista.PickAndPlace.App.Services
                                 {
                                     using (var resized = cropped.Resize(Profile.ZoomLevel, Emgu.CV.CvEnum.Inter.LinearExact))
                                     {
+
                                         if (Profile.PerformShapeDetection)
                                         {
                                             using (var results = _shapeDetectorService.PerformShapeDetection(new MVImage<Image<Bgr, byte>>(resized), Camera, resized.Size))
                                             {
-                                                CaptureImage = Emgu.CV.WPF.BitmapSourceConvert.ToBitmapSource(results.ToUMat());
+                                                if (results == null)
+                                                    CaptureImage = new BitmapImage(new Uri("pack://application:,,/Imgs/ComputerBugFunny.jpg"));
+                                                else
+                                                    CaptureImage = Emgu.CV.WPF.BitmapSourceConvert.ToBitmapSource(results.ToUMat());
                                             }
                                         }
                                         else
@@ -233,6 +253,8 @@ namespace LagoVista.PickAndPlace.App.Services
 
         public RelayCommand StartCaptureCommand { get; }
         public RelayCommand StopCaptureCommand { get; }
+
+        public RelayCommand CenterFoundItemCommand { get; }
 
         private bool _loadingMasking;
         public bool LoadingMask

@@ -114,7 +114,7 @@ namespace LagoVista.PickAndPlace.Interfaces
         /// Mode in which GCode commands should be interpretted.  These are either absolute with repsect to
         /// the origin, or incremenental which should be added to the current position.
         /// </summary>
-        ParseDistanceMode DistanceMode { get;  }
+        ParseDistanceMode DistanceMode { get; set; }
 
         /// <summary>
         /// If the units are to be sent as inches or millimeters
@@ -187,7 +187,10 @@ namespace LagoVista.PickAndPlace.Interfaces
         Task DisconnectAsync();
 
         bool MotorsEnabled { get; set; }
-        
+
+        void SetRelativeMode();
+        void SetAbsoluteMode();            
+
         /// <summary>
         /// Perform a soft reset
         /// </summary>

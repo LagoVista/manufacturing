@@ -110,6 +110,16 @@ namespace LagoVista.PickAndPlace
             }
         }
 
+        public void SetAbsoluteMode()
+        {
+            Enqueue("G90");
+        }
+
+        public void SetRelativeMode()
+        {
+            Enqueue("G90");
+        }
+
         public void SetFile(GCodeFile file)
         {
             GCodeFileManager.SetFile(file);

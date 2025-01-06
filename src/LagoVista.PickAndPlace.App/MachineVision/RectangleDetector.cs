@@ -48,7 +48,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.CurrentVisionProfile.PixelsPerMM);
                 var searchBounds = new CircleF(new System.Drawing.PointF(center.X, center.Y), scaledTarget);
 
-                CvInvoke.FindContours(_edges, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
+                CvInvoke.FindContours(_edges, contours, null, RetrType.List, ChainApproxMethod.ChainApproxTc89L1);
                 int count = contours.Size;
                 for (int i = 0; i < count; i++)
                 {
@@ -79,10 +79,10 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                                     }
                                 }
 
-                                if (isRectangle)
+                                if (isRectangle || true)
                                 {
                                     var rect = CvInvoke.MinAreaRect(approxContour);
-                                    if (searchBounds.WithinRadius(rect))
+                                    if (searchBounds.WithinRadius(rect) || true)
                                     {
                                         if (rect.Size.Width > rect.Size.Height && profile.FindLandScape || rect.Size.Height > rect.Size.Width && profile.FindPortrait)
                                         {
@@ -96,6 +96,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                                             else
                                             {
                                                 var foundRect = new MVLocatedRectangle(camera.CameraType.Value, center, profile.PixelsPerMM, profile.ErrorToleranceMM, profile.StabilizationCount);
+                                                foundRect.Add(rect);
                                                 _locatorViewModel.RectLocated(foundRect);
                                                 currentRects.Add(foundRect);
                                             }

@@ -13,12 +13,13 @@ namespace LagoVista.PickAndPlace
         public ParseDistanceMode DistanceMode
         {
             get { return _distanceMode; }
-            private set
+            set
             {
                 if (_distanceMode == value)
                     return;
-                _distanceMode = value;
 
+                _distanceMode = value;
+        
                 RaisePropertyChanged();
             }
         }

@@ -10,6 +10,7 @@ using LagoVista.PickAndPlace.Interfaces.Services;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Models;
 using System.Drawing;
+using System.Collections.Generic;
 
 namespace LagoVista.PickAndPlace.App.Services
 {
@@ -22,6 +23,7 @@ namespace LagoVista.PickAndPlace.App.Services
         IRectangleDetector<IInputOutputArray> _rectangleDetector;
         ICircleDetector<IInputOutputArray> _circleDetector;
         ICornerDetector<IInputOutputArray> _cornerDetector;
+
 
         public ShapeDetectionService(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel, 
             IImageHelper<IInputOutputArray> imageHelper, IRectangleDetector<IInputOutputArray> rectLocator,
@@ -44,15 +46,21 @@ namespace LagoVista.PickAndPlace.App.Services
             {
                 _imageHelper.Circle(img, foundCircle, size);
             }
+
+            foreach(var rect in _rectangleDetector.FoundRectangles)
+            {
+                _imageHelper.DrawRect(img, rect, Color.Red);
+            }
         }
 
         private void FindShapes(IMVImage<IInputOutputArray> input, IInputOutputArray output, MachineCamera camera, System.Drawing.Size size)
         {
             if (!_machineRepo.CurrentMachine.Busy)
             {
-                if (camera.CurrentVisionProfile.FindCircles) _circleDetector.FindCircles( input, camera, size);
-                if (camera.CurrentVisionProfile.FindCorners) _cornerDetector.FindCorners(input, camera, size);
-                if (camera.CurrentVisionProfile.FindRectangles) _rectangleDetector.FindRectangles(input, camera, size);
+                if (camera.CurrentVisionProfile.FindCircles) _circleDetector.FindCircles(input, camera, size); else _circleDetector.Reset();
+                if (camera.CurrentVisionProfile.FindCorners) _cornerDetector.FindCorners(input, camera, size); else _cornerDetector.Reset();
+                if (camera.CurrentVisionProfile.FindRectangles) _rectangleDetector.FindRectangles(input, camera, size); else _rectangleDetector.Reset();
+                //if(camera.CurrentVisionProfile.FindLines) _line
             }
             else
             {
@@ -136,6 +144,14 @@ namespace LagoVista.PickAndPlace.App.Services
                             if (camera.CurrentVisionProfile.PerformShapeDetection)
                                 FindShapes(new MVImage<IInputOutputArray>( input), output, camera, size);
 
+                            if(camera.CurrentVisionProfile.ShowRectLocatorImage)
+                            {
+                                var mat = _rectangleDetector.Image as Mat;
+                                CvInvoke.CvtColor(_rectangleDetector.Image, raw, ColorConversion.Gray2Bgr);
+                                RenderOutput(new MVImage<IInputOutputArray>(img), camera, size);
+                                return raw.Clone();
+
+                            }
                             if (camera.CurrentVisionProfile.ShowOriginalImage)
                             {
                                 RenderOutput(new MVImage<IInputOutputArray>(img), camera, size);
@@ -159,5 +175,12 @@ namespace LagoVista.PickAndPlace.App.Services
                 return null;
             }
         }
+
+        public IEnumerable<MVLocatedCircle> FoundCircles => _circleDetector.FoundCircles;
+
+        public IEnumerable<MVLocatedRectangle> FoundRectangles => _rectangleDetector.FoundRectangles;
+
+        public IEnumerable<MVLocatedCorner> FoundCorners => _cornerDetector.FoundCorners;
+
     }
 }

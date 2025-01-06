@@ -33,9 +33,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private readonly IRestClient _restClient;
         private readonly ILocatorViewModel _locatorViewModel;
 
+        StagingPlateUtils _stagingPlateUtils = null;
+
         PickAndPlaceJob _job;
 
-        public PartsViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel, IRestClient restClient, ILogger logger) : base(machineRepo)
+        public PartsViewModel(IMachineRepo machineRepo,  ILocatorViewModel locatorViewModel, IRestClient restClient, ILogger logger) : base(machineRepo)
         {
             _restClient = restClient;
             _locatorViewModel = locatorViewModel;
@@ -43,7 +45,47 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
        
             RefreshBoardCommand = new RelayCommand(() => RefreshAsync());
             RefreshConfigurationPartsCommand = new RelayCommand(RefreshConfigurationParts);
+
+            GoToFeederOriginCommand  = CreatedMachineConnectedCommand(GoToFeederOrigin, () => CurrentStripFeeder != null);
+            GoToFeederReferenceHoleCommand = CreatedMachineConnectedCommand(GoToFeederReferenceHole, () => CurrentStripFeeder != null);
+            GoToFeederRowReferenceHoleCommand = CreatedMachineConnectedCommand(GoToFeederRowReferenceHole, () => CurrentStripFeederRow != null);
+            GoToFirstPartCommand = CreatedMachineConnectedCommand(GoToFirstPart, () => CurrentStripFeederRow != null);
+            GoToCurrentPartCommand = CreatedMachineConnectedCommand(GoToCurrentPart, () => CurrentStripFeederRow != null);
+            GoToLastPartCommand = CreatedMachineConnectedCommand(GoToLastPart, () => CurrentStripFeederRow != null);
         }
+
+        private void GoToCurrentPart()
+        {
+
+        }
+
+        private void GoToFeederOrigin()
+        {
+
+        }
+
+        private void GoToFeederReferenceHole()
+        {
+            var coord =     _stagingPlateUtils.ResolveStagePlateWorkSpaceLocation(CurrentStripFeeder.ReferenceHoleColumn.Text, CurrentStripFeeder.ReferenceHoleRow.Text);
+            Machine.GotoPoint(coord);
+        }
+
+        private void GoToFeederRowReferenceHole()
+        {
+
+        }
+
+        private void GoToFirstPart()
+        {
+
+        }
+
+        private void GoToLastPart()
+        {
+
+        }
+
+
 
         protected async override void MachineChanged(IMachine machine)
         {
@@ -164,21 +206,38 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public StripFeeder CurrentStripFeeder 
         { 
             get => _currentStripFeeder;
-            set => Set(ref _currentStripFeeder, value);
+            set
+            {  
+                Set(ref _currentStripFeeder, value);               
+                RaiseCanExecuteChanged();
+                if (value != null)
+                    _stagingPlateUtils = new StagingPlateUtils(StagingPlates.First(sp => sp.Id == value.StagingPlate.Id));
+                else
+                    _stagingPlateUtils = null;
+
+            }
         }
 
         StripFeederRow _currentStripFeederRow;
         public StripFeederRow CurrentStripFeederRow
         {
             get => _currentStripFeederRow;
-            set => Set(ref _currentStripFeederRow, value);
+            set
+            {
+                Set(ref _currentStripFeederRow, value);
+                RaiseCanExecuteChanged();
+            }
         }
 
         AutoFeeder _currentAutoFeeder;
         public AutoFeeder CurrentAutoFeeder 
         { 
             get => _currentAutoFeeder;
-            set => Set(ref _currentAutoFeeder, value);
+            set
+            {
+                Set(ref _currentAutoFeeder, value);
+                RaiseCanExecuteChanged();
+            }
         }
 
         public ObservableCollection<PlaceableParts> ConfigurationParts { get; private set; } = new ObservableCollection<PlaceableParts>();
@@ -250,6 +309,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public RelayCommand RefreshBoardCommand { get; }
         public RelayCommand RefreshConfigurationPartsCommand { get; }
+
+        public RelayCommand GoToFeederOriginCommand { get; set; }
+        public RelayCommand GoToFeederReferenceHoleCommand { get; set; }
+        public RelayCommand GoToFeederRowReferenceHoleCommand { get; set; }
+        public RelayCommand GoToFirstPartCommand { get; set; }
+        public RelayCommand GoToLastPartCommand { get; set; }
+        public RelayCommand GoToCurrentPartCommand { get; set; }
 
     }
 }

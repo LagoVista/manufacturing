@@ -388,6 +388,15 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Machine_FrameHeight, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public int FrameHeight { get; set; } = 600;
 
+
+        Point2D<double> _workspaceFrameOffset;
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_WorkspaceFrameOffset, HelpResource:ManufacturingResources.Names.Machine_WorkspaceFrameOffset_Help, FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> WorkspaceFrameOffset 
+        {
+            get => _workspaceFrameOffset;
+            set => Set(ref _workspaceFrameOffset, value);
+        }
+
         public bool AbortOnProbeFail { get; set; }
 
 
@@ -647,9 +656,10 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Key),
                 nameof(WorkAreaWidth),
                 nameof(WorkAreaHeight),
-                nameof(WorkAreaOrigin),
+                nameof(WorkAreaOrigin),            
                 nameof(FrameWidth),
                 nameof(FrameHeight),
+                nameof(WorkspaceFrameOffset),
             };
         }
 

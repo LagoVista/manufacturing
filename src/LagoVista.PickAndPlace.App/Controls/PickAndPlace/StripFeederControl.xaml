@@ -35,10 +35,15 @@
                 <TextBlock Text="{Binding CurrentStripFeeder.ReferenceHoleRow}"></TextBlock>
                 <TextBlock Text="{Binding CurrentStripFeeder.ReferenceHoleColumn}"></TextBlock>
             </StackPanel>
-            
-            <Button Style="{StaticResource CommandButton}">Go</Button>
 
-            <DataGrid ItemsSource="{Binding CurrentStripFeeder.Rows}">
+            <StackPanel Orientation="Horizontal">
+                <Button Style="{StaticResource CommandButton}" Command="{Binding GoToFeederOriginCommand}" >Reeder Origin</Button>
+                <Button Style="{StaticResource CommandButton}" Command="{Binding GoToFeederReferenceHoleCommand}" >Feeder Reference Hole</Button>
+                <Button Style="{StaticResource CommandButton}" Command="{Binding GoToFeederRowReferenceHoleCommand}" >Feeder Hole</Button>
+                <Button Style="{StaticResource CommandButton}" Command="{Binding GoToFeederReferenceHoleCommand}" >Reeder Reference Hole</Button>
+            </StackPanel>
+
+            <DataGrid ItemsSource="{Binding CurrentStripFeeder.Rows}" SelectedItem="{Binding CurrentStripFeederRow}">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Row Index" Binding="{Binding RowIndex}"></DataGridTextColumn>
                 </DataGrid.Columns>

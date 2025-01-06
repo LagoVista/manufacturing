@@ -246,6 +246,11 @@
                     <Label Content="Contours" Style="{StaticResource Link}" MouseDown="ShowLink_Handler" Tag="{Binding ContoursLink}" />
 
                     <StackPanel Orientation="Horizontal">
+                        <Label Content="Show Debug" Width="270"/>
+                        <CheckBox IsChecked="{Binding Path=Profile.ShowRectLocatorImage, Mode=TwoWay}"  VerticalAlignment="Center"/>
+                    </StackPanel>
+                    
+                    <StackPanel Orientation="Horizontal">
                         <Label Content="Find Irregular Polygons" Width="270"/>
                         <CheckBox IsChecked="{Binding Path=Profile.FindIrregularPolygons, Mode=TwoWay}" VerticalAlignment="Center" />
                     </StackPanel>

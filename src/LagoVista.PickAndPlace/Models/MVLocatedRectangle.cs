@@ -28,7 +28,7 @@ namespace LagoVista.PickAndPlace.Models
 
         public void Add(RotatedRect rect)
         {
-            
+            RotatedRect = rect;   
         }
 
         /// <summary>

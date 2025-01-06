@@ -1,5 +1,6 @@
 ﻿using Emgu.CV.Structure;
 using LagoVista.Core.Models.Drawing;
+using LagoVista.PCB.Eagle.Models;
 using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.Generic;
@@ -38,10 +39,26 @@ namespace LagoVista.PickAndPlace
             };
         }
 
+        public static bool IsSimilar(this MVLocatedCircle original, CircleF candidate, int deltaPixel)
+        {
+            var deltaX = Math.Abs(original.CenterPixels.X - candidate.Center.X);
+            if (deltaX > deltaPixel)
+                return false;
+
+            var deltaY = Math.Abs(original.CenterPixels.Y - candidate.Center.Y);
+            if (deltaY > deltaPixel)
+                return false;
+
+            var deltaRadius = Math.Abs(original.RadiusPixels - candidate.Radius);
+            if (deltaRadius > deltaPixel)
+                return false;
+
+            return true;
+        }
+
         public static MVLocatedCircle FindPrevious(this List<MVLocatedCircle> foundCircles, CircleF circle, int deltaPixel)
         {
-            return foundCircles.FirstOrDefault(cir => Math.Max(Math.Abs(cir.CenterPixels.X - circle.Center.X), Math.Abs(cir.CenterPixels.Y - circle.Center.Y)) < deltaPixel
-                        && cir.RadiusPixels - deltaPixel < circle.Radius && cir.RadiusPixels + deltaPixel > circle.Radius);
+            return foundCircles.FirstOrDefault(cir => cir.IsSimilar(circle, deltaPixel));
         }
 
         public static float GetDeltaAngle(this float a1, float a2)

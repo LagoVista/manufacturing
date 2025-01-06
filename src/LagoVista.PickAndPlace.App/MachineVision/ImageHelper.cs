@@ -8,6 +8,7 @@ using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Models;
 using LagoVista.PickAndPlace.Interfaces.Services;
+using System.Drawing.Drawing2D;
 
 namespace LagoVista.PickAndPlace.App.MachineVision
 {
@@ -38,26 +39,20 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                new Bgr(color).MCvScalar, thickness, Emgu.CV.CvEnum.LineType.AntiAlias);
         }
 
-        public void DrawRect(IMVImage<IInputOutputArray> img, PointF[] p, string msg, System.Drawing.Color color)
+        public void DrawRect(IMVImage<IInputOutputArray> img, MVLocatedRectangle rect, System.Drawing.Color color)
         {
+            var p =  rect.RotatedRect.ToPointArray();
+            var matrix = new Matrix();
+            matrix.RotateAt(rect.RotatedRect.Angle, rect.RotatedRect.Center);
+            matrix.TransformPoints(p);
+
             Line(img, (int)p[0].X, (int)p[0].Y, (int)p[1].X, (int)p[1].Y, color);
             Line(img, (int)p[1].X, (int)p[1].Y, (int)p[2].X, (int)p[2].Y, color);
             Line(img, (int)p[2].X, (int)p[2].Y, (int)p[3].X, (int)p[3].Y, color);
             Line(img, (int)p[3].X, (int)p[3].Y, (int)p[0].X, (int)p[0].Y, color);
 
-            var center = new Point()
-            {
-                X = (int)p.Max(p => p.X),
-                Y = (int)p.Min(p => p.Y),
-            };
 
-            //var p = rect.ToPointArray();
-            //var matrix = new Matrix();
-            //matrix.RotateAt(rect.Angle, rect.Center);
-            //matrix.TransformPoints(p);
-
-
-            CvInvoke.PutText(img.Image, msg, center, FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.Red).MCvScalar);
+//            CvInvoke.PutText(img.Image, msg, center, FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.Red).MCvScalar);
         }
 
         public void ShowCalibrationSquare(IMVImage<IInputOutputArray> destImage, Size size)

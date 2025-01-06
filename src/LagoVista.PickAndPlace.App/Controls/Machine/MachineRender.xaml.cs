@@ -172,12 +172,15 @@ namespace LagoVista.PickAndPlace.App.Controls
                 var maskMeshBuilder = new MeshBuilder(false, false);
 
 
-                for (double x = plate.HoleSpacing; x < plate.Size.X ; x += (plate.HoleSpacing / 2))
+                
+                for (double x = plate.HoleSpacing / 2; x <= plate.Size.X - 16; x += (plate.HoleSpacing))
                 {
-                    for (double y = plate.HoleSpacing; y < plate.Size.Y; y += (plate.HoleSpacing / 2))
+                    var idx = 0;
+                    for (double y = plate.HoleSpacing / 2; y < plate.Size.Y; y += (plate.HoleSpacing / 2))
                     {
-                        maskMeshBuilder.AddCylinder(new Point3D(x, y + plate.Origin.Y, -0.025), new Point3D(x, y + plate.Origin.Y, 3.05), 4);
-                        holeMeshBuilder.AddCylinder(new Point3D(x, y + plate.Origin.Y, -0.05), new Point3D(x, y + plate.Origin.Y, 3.1), 3);
+                        var xOFfset = (idx++ % 2 == 0) ? x : x + 15;
+                        maskMeshBuilder.AddCylinder(new Point3D(xOFfset, y + plate.Origin.Y, -0.025), new Point3D(xOFfset, y + plate.Origin.Y, 3.05), 3.25);
+                        holeMeshBuilder.AddCylinder(new Point3D(xOFfset, y + plate.Origin.Y, -0.05), new Point3D(xOFfset, y + plate.Origin.Y, 3.1), 1.5);
                     }
                 }             
 

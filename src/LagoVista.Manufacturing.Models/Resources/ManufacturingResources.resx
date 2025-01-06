@@ -1310,4 +1310,10 @@
   <data name="MachineCamera_SupportZoom" xml:space="preserve">
     <value>Support Software Zoom</value>
   </data>
+  <data name="Machine_WorkspaceFrameOffset " xml:space="preserve">
+    <value>Workspace Frame Offset</value>
+  </data>
+  <data name="Machine_WorkspaceFrameOffset _Help" xml:space="preserve">
+    <value>Distance in MM from the front left of the machines frame to the 0,0 coordinate of the workspace.</value>
+  </data>
 </root>

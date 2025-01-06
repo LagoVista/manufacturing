@@ -1,4 +1,4 @@
-﻿/*1/4/2025 7:04:32 PM*/
+﻿/*1/5/2025 6:12:33 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -779,6 +779,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Machine_WorkAreaWidth
 
 		public static string Machine_WorkAreaWidth { get { return GetResourceString("Machine_WorkAreaWidth"); } }
+//Resources:ManufacturingResources:Machine_WorkspaceFrameOffset
+
+		public static string Machine_WorkspaceFrameOffset { get { return GetResourceString("Machine_WorkspaceFrameOffset"); } }
+//Resources:ManufacturingResources:Machine_WorkspaceFrameOffset_Help
+
+		public static string Machine_WorkspaceFrameOffset_Help { get { return GetResourceString("Machine_WorkspaceFrameOffset_Help"); } }
 //Resources:ManufacturingResources:MachineCamera_AbsolutePosition
 
 		public static string MachineCamera_AbsolutePosition { get { return GetResourceString("MachineCamera_AbsolutePosition"); } }
@@ -1495,6 +1501,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Machine_WorkAreaOrigin = "Machine_WorkAreaOrigin";
 			public const string Machine_WorkAreaOrigin_Help = "Machine_WorkAreaOrigin_Help";
 			public const string Machine_WorkAreaWidth = "Machine_WorkAreaWidth";
+			public const string Machine_WorkspaceFrameOffset = "Machine_WorkspaceFrameOffset";
+			public const string Machine_WorkspaceFrameOffset_Help = "Machine_WorkspaceFrameOffset_Help";
 			public const string MachineCamera_AbsolutePosition = "MachineCamera_AbsolutePosition";
 			public const string MachineCamera_Description = "MachineCamera_Description";
 			public const string MachineCamera_DeviceId = "MachineCamera_DeviceId";

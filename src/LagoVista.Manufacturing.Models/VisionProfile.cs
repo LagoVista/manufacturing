@@ -478,6 +478,13 @@ namespace LagoVista.PickAndPlace.Models
             set { Set(ref _performShapeDetection, value); }
         }
 
+        private bool _showRectLocatorImage;
+        public bool ShowRectLocatorImage
+        {
+            get => _showRectLocatorImage;
+            set => Set(ref _showRectLocatorImage, value);
+        }
+
         public override string ToString()
         {
             return Name;

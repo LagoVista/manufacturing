@@ -11,5 +11,6 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
         MachineCamera Camera { get; }
         RelayCommand StartCaptureCommand { get; }
         RelayCommand StopCaptureCommand { get; }
+        RelayCommand CenterFoundItemCommand { get; }
     }
 }

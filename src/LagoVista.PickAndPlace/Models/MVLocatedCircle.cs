@@ -55,6 +55,7 @@ namespace LagoVista.PickAndPlace.Models
 
             var sortedX = _centers.Where(pt => pt != null).Select(pt => pt.X).OrderBy(pt => pt);
             var sortedY = _centers.Where(pt => pt != null).Select(pt => pt.Y).OrderBy(pt => pt);
+            var sortedRadiuses = _radiuses.Where(rad => rad > 0).OrderBy(rd => rd);
 
             if (_populated)
             {
@@ -62,26 +63,27 @@ namespace LagoVista.PickAndPlace.Models
                 var subsetY = sortedY.Skip(THROW_AWAY).Take(FILTER_SIZE - (THROW_AWAY * 2));
         
                  _filteredCenter = new Point2D<float>(subsetX.Average(), subsetY.Average());
-                 _filteredRadius = _radiuses.Skip(THROW_AWAY).Take(FILTER_SIZE - (THROW_AWAY * 2)).Average();
+                 _filteredRadius = sortedRadiuses.Skip(THROW_AWAY).Take(FILTER_SIZE - (THROW_AWAY * 2)).Average();
+
             }
             else
             {
                 _filteredCenter = new Point2D<float>(sortedX.Average(), sortedY.Average());
-                _filteredRadius = Convert.ToInt32(_radiuses.Average());
+                _filteredRadius = Math.Round(sortedRadiuses.Average(), 2);
             }
         }
 
         public bool Stabilized => _pointCount >= _stabilizationCount;
 
-        public bool Centered => Math.Abs(OffsetPixels.X) < _errorMargin && Math.Abs(OffsetPixels.Y) < _errorMargin;
+        public bool Centered => Math.Abs(OffsetPixels.X / _pixelsPerMM) < _errorMargin && Math.Abs(OffsetPixels.Y / _pixelsPerMM) < _errorMargin;
 
         public Point2D<float> CenterPixels  { get => _filteredCenter;  }
 
         public Point2D<float> OffsetPixels { get => _filteredCenter - _viewCenter; }
         
-        public Point2D<double> OffsetMM { get => new Point2D<double>(OffsetPixels.X / _pixelsPerMM, OffsetPixels.Y / _pixelsPerMM); }
+        public Point2D<double> OffsetMM { get => new Point2D<double>(Math.Round(OffsetPixels.X / _pixelsPerMM, 1), Math.Round(OffsetPixels.Y / _pixelsPerMM, 1)); }
         public double RadiusPixels { get => _filteredRadius; }
-        public double RadiusMM { get => _filteredRadius / _pixelsPerMM; }
+        public double RadiusMM { get => Math.Round( _filteredRadius / _pixelsPerMM, 2); }
        
         public Point2D<double> StandardDeviation { get; set; }
 

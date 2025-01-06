@@ -13,6 +13,8 @@
     <None Remove="Imgs\Backwards.png" />
     <None Remove="Imgs\BottomLight.png" />
     <None Remove="Imgs\Center.png" />
+    <None Remove="Imgs\ComputerBug.jpg" />
+    <None Remove="Imgs\ComputerBugFunny.jpg" />
     <None Remove="Imgs\Down.png" />
     <None Remove="Imgs\DownLeft.png" />
     <None Remove="Imgs\DownRight.png" />
@@ -35,6 +37,7 @@
     <None Remove="Imgs\MoveToTarget.png" />
     <None Remove="Imgs\Perspective.png" />
     <None Remove="Imgs\Perspective2.png" />
+    <None Remove="Imgs\PleaseWait.jpg" />
     <None Remove="Imgs\Right.png" />
     <None Remove="Imgs\SetFiducialHome.png" />
     <None Remove="Imgs\SetTarget.png" />
@@ -68,7 +71,7 @@
     <PackageReference Include="Meziantou.WpfFontAwesome" Version="5.15.4" />
     <PackageReference Include="SharpDX.XInput" Version="4.2.0" />
     <PackageReference Include="System.IO.Ports" Version="9.0.0" />
-    <PackageReference Include="LagoVista.Core" Version="3.0.2788.1226" />
+    <PackageReference Include="LagoVista.Core" Version="3.0.2790.1813" />
 
   </ItemGroup>
 
@@ -128,6 +131,9 @@
     <Resource Include="Imgs\Vacuum2.png" />
     <Resource Include="Imgs\ZoomIn.png" />
     <Resource Include="Imgs\ZoomOut.png" />
+    <Resource Include="Imgs\ComputerBug.jpg" />
+    <Resource Include="Imgs\ComputerBugFunny.jpg" />
+    <Resource Include="Imgs\PleaseWait.jpg" />
     <Content Include="Resources\DSEG14Classic-Regular.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
