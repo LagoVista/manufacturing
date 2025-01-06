@@ -91,7 +91,7 @@
                         <fa:FontAwesome Icon="Backward"  />
                     </Button.Content>
                  </Button>
-                <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="Current Part" Command="{Binding GoToNextPartCommand}" >
+                <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="Current Part" Command="{Binding GoToCurrentPartCommand}" >
                     <Button.Content>
                         <fa:FontAwesome Icon="CircleOutline"  />
                     </Button.Content>

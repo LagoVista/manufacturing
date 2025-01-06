@@ -26,7 +26,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 {
     public class PartsViewModel : MachineViewModelBase, IPartsViewModel
     {
-        StripFeederLocatorService _sfLocator;
+        
         ObservableCollection<StripFeeder> _stripFeeders;
         ObservableCollection<AutoFeeder> _autoFeeders;
 
@@ -34,58 +34,58 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private readonly ILocatorViewModel _locatorViewModel;
 
         StagingPlateUtils _stagingPlateUtils = null;
+        StripFeederService _sfLocator;
 
         PickAndPlaceJob _job;
+
+
+
 
         public PartsViewModel(IMachineRepo machineRepo,  ILocatorViewModel locatorViewModel, IRestClient restClient, ILogger logger) : base(machineRepo)
         {
             _restClient = restClient;
             _locatorViewModel = locatorViewModel;
-            _sfLocator = new StripFeederLocatorService(machineRepo.CurrentMachine.Settings);
+            _sfLocator = new StripFeederService(machineRepo.CurrentMachine.Settings);
        
             RefreshBoardCommand = new RelayCommand(() => RefreshAsync());
             RefreshConfigurationPartsCommand = new RelayCommand(RefreshConfigurationParts);
 
-            GoToFeederOriginCommand  = CreatedMachineConnectedCommand(GoToFeederOrigin, () => CurrentStripFeeder != null);
-            GoToFeederReferenceHoleCommand = CreatedMachineConnectedCommand(GoToFeederReferenceHole, () => CurrentStripFeeder != null);
-            GoToFeederRowReferenceHoleCommand = CreatedMachineConnectedCommand(GoToFeederRowReferenceHole, () => CurrentStripFeederRow != null);
-            GoToFirstPartCommand = CreatedMachineConnectedCommand(GoToFirstPart, () => CurrentStripFeederRow != null);
-            GoToCurrentPartCommand = CreatedMachineConnectedCommand(GoToCurrentPart, () => CurrentStripFeederRow != null);
-            GoToLastPartCommand = CreatedMachineConnectedCommand(GoToLastPart, () => CurrentStripFeederRow != null);
+            GoToFeederOriginCommand  = CreatedMachineConnectedCommand(() => GoTo(LocationType.FeederOrigin), () => CurrentStripFeeder != null);
+            GoToFeederReferenceHoleCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.FeederReferenceHole), () => CurrentStripFeeder != null);
+
+            SetFeederOriginCommand = CreatedMachineConnectedCommand(() => SetLocation(SetTypes.FeederOrigin), () => CurrentStripFeeder != null || CurrentAutoFeeder != null);
+            SetFeederFiducialLocationCommand = CreatedMachineConnectedCommand(() => SetLocation(SetTypes.FeederFiducial), () => CurrentAutoFeeder != null);
+            SetPartPickLocationCommand = CreatedMachineConnectedCommand(() => SetLocation(SetTypes.FeederPickLocation), () => CurrentAutoFeeder != null);
+            SetFirstFeederReferenceHoleCommand = CreatedMachineConnectedCommand(() => SetLocation(SetTypes.FirstFeederRowReferenceHole), () => CurrentStripFeederRow != null);
+            SetLastFeederReferenceHoleCommand = CreatedMachineConnectedCommand(() => SetLocation(SetTypes.LastFeederRowReferenceHole), () => CurrentStripFeederRow != null);
+
+            GoToFirstFeederReferenceHoleCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.FirstFeederRowReferenceHole), () => CurrentStripFeederRow != null);
+            GoToLastFeederReferenceHoleCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.LastFeederRowReferenceHole), () => CurrentStripFeederRow != null);
+
+            GoToFirstPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.FirstPart), () => CurrentStripFeederRow != null);
+            GoToCurrentPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.CurrentPart), () => CurrentStripFeederRow != null);
+            GoToLastPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.LastPart), () => CurrentStripFeederRow != null);
+            GoToNextPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.NextPart), () => CurrentStripFeederRow != null);
+            GoToPreviousPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.PreviousPart), () => CurrentStripFeederRow != null);
         }
 
-        private void GoToCurrentPart()
+        private void GoTo(LocationType moveTypes)
         {
 
         }
 
-        private void GoToFeederOrigin()
+        private void SetLocation(SetTypes setType)
         {
 
         }
 
+        
         private void GoToFeederReferenceHole()
         {
             var coord =     _stagingPlateUtils.ResolveStagePlateWorkSpaceLocation(CurrentStripFeeder.ReferenceHoleColumn.Text, CurrentStripFeeder.ReferenceHoleRow.Text);
             Machine.GotoPoint(coord);
         }
-
-        private void GoToFeederRowReferenceHole()
-        {
-
-        }
-
-        private void GoToFirstPart()
-        {
-
-        }
-
-        private void GoToLastPart()
-        {
-
-        }
-
-
+        
 
         protected async override void MachineChanged(IMachine machine)
         {
@@ -310,9 +310,19 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand RefreshBoardCommand { get; }
         public RelayCommand RefreshConfigurationPartsCommand { get; }
 
+        public RelayCommand SetFeederOriginCommand { get; set; }
+        public RelayCommand SetPartPickLocationCommand { get; set; }
+        public RelayCommand SetFeederFiducialLocationCommand { get; set; }
         public RelayCommand GoToFeederOriginCommand { get; set; }
         public RelayCommand GoToFeederReferenceHoleCommand { get; set; }
-        public RelayCommand GoToFeederRowReferenceHoleCommand { get; set; }
+
+
+        public RelayCommand SetFirstFeederReferenceHoleCommand { get; }
+        public RelayCommand SetLastFeederReferenceHoleCommand { get; }
+        public RelayCommand GoToFirstFeederReferenceHoleCommand { get; }
+        public RelayCommand GoToLastFeederReferenceHoleCommand { get; }
+
+        
         public RelayCommand GoToFirstPartCommand { get; set; }
         public RelayCommand GoToLastPartCommand { get; set; }
         public RelayCommand GoToCurrentPartCommand { get; set; }

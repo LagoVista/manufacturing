@@ -1,6 +1,8 @@
 ﻿using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.PlatformSupport;
+using LagoVista.Manufacturing.Interfaces;
 using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.Interfaces;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace
@@ -13,7 +15,7 @@ namespace LagoVista.PickAndPlace
         Tool2,
     }
 
-    public partial class Machine
+    public partial class Machine : IMachineCore
     {     
         public async Task SetViewTypeAsync(ViewTypes viewType)
         {

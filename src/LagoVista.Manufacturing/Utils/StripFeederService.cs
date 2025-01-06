@@ -1,21 +1,47 @@
 ﻿using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
+using LagoVista.Manufacturing.Interfaces;
 using LagoVista.Manufacturing.Models;
+using RingCentral;
+using System;
 using System.Linq;
 
 namespace LagoVista.Manufacturing.Util
 {
-    public class StripFeederLocatorService
+    public enum LocationType
     {
-        private readonly LagoVista.Manufacturing.Models.Machine _machine;
-        public StripFeederLocatorService(LagoVista.Manufacturing.Models.Machine machine)
+        FeederOrigin,
+        FeederReferenceHole,
+        FirstFeederRowReferenceHole,
+        LastFeederRowReferenceHole,
+        FirstPart,
+        LastPart,
+        NextPart,
+        PreviousPart,
+        CurrentPart,
+    }
+
+    public enum SetTypes
+    {
+        CalculatedFeederOrigin,
+        FeederOrigin,
+        FirstFeederRowReferenceHole,
+        LastFeederRowReferenceHole,
+        FeederFiducial,
+        FeederPickLocation,
+    }
+
+    public class StripFeederService
+    {
+        private readonly IMachineCore _machine;
+        public StripFeederService(IMachineCore machine)
         {
             _machine = machine;
         }
 
         public InvokeResult<Point2D<double>> GetStripFeederOrigin(StripFeeder stripFeeder)
         {
-            var plate = _machine.StagingPlates.SingleOrDefault(sp => sp.Id == stripFeeder.StagingPlate.Id);
+            var plate = _machine.Settings.StagingPlates.SingleOrDefault(sp => sp.Id == stripFeeder.StagingPlate.Id);
             if (plate == null)
             {
                 return InvokeResult<Point2D<double>>.FromError($"Could not find staging plate for {stripFeeder.Name}");
@@ -41,6 +67,7 @@ namespace LagoVista.Manufacturing.Util
 
             return InvokeResult<Point2D<double>>.Create(location);
         }
+        
 
         public InvokeResult<Point3D<double>> GetPartPickLocation(StripFeeder stripFeeder, Component component)
         {
@@ -80,6 +107,51 @@ namespace LagoVista.Manufacturing.Util
             
 
             return InvokeResult<Point3D<double>>.Create(new Point3D<double>(location.X, location.Y,stripFeeder.PickHeight));
+        }
+
+        public Point2D<double> CalculateFeederOrigin(StripFeeder stripFeeder)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Point2D<double> CalculateFirstTapeReferenceHOle(StripFeeder stripFeeder, StripFeederRow row)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Point2D<double> CalculateLastTapeReferenceHOle(StripFeeder stripFeeder, StripFeederRow row)
+        {
+            throw new NotImplementedException();
+        }
+
+        public InvokeResult SetLocation(StripFeeder feeder, StripFeederRow row, SetTypes setType)
+        {
+            switch (setType)
+            {
+                case SetTypes.FirstFeederRowReferenceHole:
+                    row.FirstTapeHoleOffset = feeder.Origin - _machine.MachinePosition.ToPoint2D();
+                    break;
+                case SetTypes.LastFeederRowReferenceHole:
+                    row.LastTapeHoleOffset = feeder.Origin - _machine.MachinePosition.ToPoint2D();
+                    break;
+            }
+
+            return InvokeResult.Success;
+        }
+
+        public InvokeResult<Point2D<double>> GetLocation(StripFeeder stripFeeder, LocationType locatorType)
+        {
+            switch(locatorType) 
+            {
+
+            }
+
+            return InvokeResult<Point2D<double>>.FromError($"Could not resolve location for: {locatorType}");
+        }
+
+        public InvokeResult<Point2D<double>> GetLocation(StripFeeder stripFeeder, StripFeederRow row, LocationType locatorType)
+        {
+            return InvokeResult<Point2D<double>>.FromError($"Could not resolve location for: {locatorType}");
         }
     }
 }
