@@ -41,6 +41,15 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlate_HolesStaggered, HelpResource: ManufacturingResources.Names.MachineStagingPlate_HolesStaggered_Help, FieldType: FieldTypes.CheckBox, ResourceType: typeof(ManufacturingResources))]
         public bool HolesStaggered { get; set; } = true;
 
+        [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlate_FirstRowOddOnly, HelpResource: ManufacturingResources.Names.MachineStagingPlate_FirstRowOddOnly_Help, FieldType: FieldTypes.CheckBox, ResourceType: typeof(ManufacturingResources))]
+        public bool FirstRowOddColOnly { get; set; }
+
+        [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlate_FirstUsableColumn, HelpResource: ManufacturingResources.Names.MachineStagingPlate_FirstUsableColumn_Help, FieldType: FieldTypes.Integer, ResourceType: typeof(ManufacturingResources))]
+        public int FirstUsableColumn { get; set; }
+
+        [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlate_LastUsableColumn, HelpResource: ManufacturingResources.Names.MachineStagingPlate_LastUsableColumn_Help, FieldType: FieldTypes.Integer, ResourceType: typeof(ManufacturingResources))]
+        public int LastUsableColumn { get; set; }
+
         private Point2D<double> _firstHole = new Point2D<double>(15,30);
         [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlate_FirstHole, HelpResource:ManufacturingResources.Names.MachineStagingPlate_FirstHole_Help, 
             FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
@@ -100,10 +109,13 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Key),
                 nameof(Icon),
                 nameof(Size),
-                nameof(FirstHole),
-                nameof(HolesStaggered),
-                nameof(HoleSpacing),
                 nameof(Color),
+                nameof(FirstHole),
+                nameof(HoleSpacing),
+                nameof(HolesStaggered),
+                nameof(FirstRowOddColOnly),
+                nameof(FirstUsableColumn),
+                nameof(LastUsableColumn),
             };
         }
 

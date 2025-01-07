@@ -1352,4 +1352,22 @@
   <data name="Feeder_OriginOffset_Help" xml:space="preserve">
     <value>Offset from the center of the slot where the feeder is installed to the origin or bottom left of the of feender.  This is primarily used to render the feeder. </value>
   </data>
+  <data name="MachineStagingPlate_FirstRowOddOnly" xml:space="preserve">
+    <value>First Row Odd Columns</value>
+  </data>
+  <data name="MachineStagingPlate_FirstRowOddOnly_Help" xml:space="preserve">
+    <value>If the holes on the staging plate are stagger is the first row odd columns only</value>
+  </data>
+  <data name="MachineStagingPlate_FirstUsableColumn" xml:space="preserve">
+    <value>First Usable Column</value>
+  </data>
+  <data name="MachineStagingPlate_LastUsableColumn" xml:space="preserve">
+    <value>Last Usable Column</value>
+  </data>
+  <data name="MachineStagingPlate_LastUsableColumn_Help" xml:space="preserve">
+    <value>What is the last column on the staging plate where the machine can access.</value>
+  </data>
+  <data name="MachineStagingPlate_FirstUsableColumn_Help" xml:space="preserve">
+    <value>What is the last column on the staging plate where the machine can access.</value>
+  </data>
 </root>
