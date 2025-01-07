@@ -14,8 +14,9 @@
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
         <StackPanel Orientation="Horizontal">
-            <Button Content="Refresh" x:Name="Refresh" Click="Refresh_Click"></Button>
-            <Button Content="Reset Zoom" x:Name="ResetZoom" Click="ResetZoom_Click"></Button>
+            <Button Style="{StaticResource CommandButton}" Content="Re-Render" x:Name="Refresh" Click="Refresh_Click"></Button>
+            <Button Style="{StaticResource CommandButton}" Content="Reload Machine" Command="{Binding ReloadMachineCommand}" ></Button>
+            <Button Style="{StaticResource CommandButton}" Content="Reset Zoom" x:Name="ResetZoom" Click="ResetZoom_Click"></Button>
         </StackPanel>
         <h:HelixViewport3D Name="viewport" ShowViewCube="False" Panel.ZIndex="0" Grid.Row="1"  >
             <h:HelixViewport3D.Camera >

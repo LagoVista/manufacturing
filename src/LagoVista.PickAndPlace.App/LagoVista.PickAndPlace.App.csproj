@@ -71,7 +71,7 @@
     <PackageReference Include="Meziantou.WpfFontAwesome" Version="5.15.4" />
     <PackageReference Include="SharpDX.XInput" Version="4.2.0" />
     <PackageReference Include="System.IO.Ports" Version="9.0.0" />
-    <PackageReference Include="LagoVista.Core" Version="3.0.2790.1813" />
+    <PackageReference Include="LagoVista.Core" Version="3.0.2791.0954" />
 
   </ItemGroup>
 
@@ -166,6 +166,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Controls\NewFolder\" />
+    <Folder Include="ViewModels\Machine\" />
   </ItemGroup>
 
 </Project>

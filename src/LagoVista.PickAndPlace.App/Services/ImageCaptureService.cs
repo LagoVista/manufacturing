@@ -70,9 +70,7 @@ namespace LagoVista.PickAndPlace.App.Services
             var firstCircle = _shapeDetectorService.FoundCircles.FirstOrDefault();
             if (firstCircle != null)
             {
-                Machine.SetRelativeMode();
-                Machine.SendCommand($"G0 X{firstCircle.OffsetMM.X} Y{firstCircle.OffsetMM.Y}");
-                Machine.SetAbsoluteMode();
+                Machine.GotoPoint(firstCircle.OffsetMM, relativeMove:true);
             }
         }
 

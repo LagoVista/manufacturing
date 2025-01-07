@@ -22,6 +22,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         RelayCommand MoveToStagingPlateReferenceHole1LocationCommand { get; }
         RelayCommand MoveToStagingPlateReferenceHole2LocationCommand { get; }
 
+        RelayCommand SetMachineFiducialCommand { get; }
+        RelayCommand MoveToMachineFiducialCommand { get; }
 
         RelayCommand SetFirstFeederOriginCommand { get; }
         RelayCommand MoveToFirstFeederOriginCommand { get; }

@@ -12,7 +12,6 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
 {
     public class StripFeederTests
     {
-        StagingPlateUtils _utils;
         MachineStagingPlate _plate;
 
         [SetUp]
@@ -26,8 +25,7 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                 ReferenceHoleLocation1 = new Core.Models.Drawing.Point2D<double>(100, 100),
             };
 
-            _utils = new StagingPlateUtils(_plate);
-
+            StagingPlateUtils.ResolveStagePlateLocation(_plate, "B", "3");
         }
 
         [Test]

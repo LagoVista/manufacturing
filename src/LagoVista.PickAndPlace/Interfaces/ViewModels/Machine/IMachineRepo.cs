@@ -1,4 +1,5 @@
 ﻿using Emgu.Util;
+using LagoVista.Core.Commanding;
 using LagoVista.Core.Validation;
 using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
@@ -21,5 +22,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         bool HasValidMachine { get; }
 
         MachineSummary SelectedMachine { get; set; }
+        RelayCommand LockSettingsCommand { get;  }
+        RelayCommand UnlockSettingsCommand { get; }
     }
 }

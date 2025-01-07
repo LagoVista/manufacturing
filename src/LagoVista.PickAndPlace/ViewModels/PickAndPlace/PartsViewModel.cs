@@ -33,19 +33,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private readonly IRestClient _restClient;
         private readonly ILocatorViewModel _locatorViewModel;
 
-        StagingPlateUtils _stagingPlateUtils = null;
-        StripFeederService _sfLocator;
 
         PickAndPlaceJob _job;
-
-
-
 
         public PartsViewModel(IMachineRepo machineRepo,  ILocatorViewModel locatorViewModel, IRestClient restClient, ILogger logger) : base(machineRepo)
         {
             _restClient = restClient;
             _locatorViewModel = locatorViewModel;
-            _sfLocator = new StripFeederService(machineRepo.CurrentMachine.Settings);
        
             RefreshBoardCommand = new RelayCommand(() => RefreshAsync());
             RefreshConfigurationPartsCommand = new RelayCommand(RefreshConfigurationParts);
@@ -53,11 +47,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             GoToFeederOriginCommand  = CreatedMachineConnectedCommand(() => GoTo(LocationType.FeederOrigin), () => CurrentStripFeeder != null);
             GoToFeederReferenceHoleCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.FeederReferenceHole), () => CurrentStripFeeder != null);
 
-            SetFeederOriginCommand = CreatedMachineConnectedCommand(() => SetLocation(SetTypes.FeederOrigin), () => CurrentStripFeeder != null || CurrentAutoFeeder != null);
-            SetFeederFiducialLocationCommand = CreatedMachineConnectedCommand(() => SetLocation(SetTypes.FeederFiducial), () => CurrentAutoFeeder != null);
-            SetPartPickLocationCommand = CreatedMachineConnectedCommand(() => SetLocation(SetTypes.FeederPickLocation), () => CurrentAutoFeeder != null);
-            SetFirstFeederReferenceHoleCommand = CreatedMachineConnectedCommand(() => SetLocation(SetTypes.FirstFeederRowReferenceHole), () => CurrentStripFeederRow != null);
-            SetLastFeederReferenceHoleCommand = CreatedMachineConnectedCommand(() => SetLocation(SetTypes.LastFeederRowReferenceHole), () => CurrentStripFeederRow != null);
+            SetFeederOriginCommand = CreatedMachineConnectedSettingsCommand(() => SetLocation(SetTypes.FeederOrigin), () => CurrentStripFeeder != null || CurrentAutoFeeder != null);
+            SetFeederFiducialLocationCommand = CreatedMachineConnectedSettingsCommand(() => SetLocation(SetTypes.FeederFiducial), () => CurrentAutoFeeder != null);
+            SetPartPickLocationCommand = CreatedMachineConnectedSettingsCommand(() => SetLocation(SetTypes.FeederPickLocation), () => CurrentAutoFeeder != null);
+            SetFirstFeederReferenceHoleCommand = CreatedMachineConnectedSettingsCommand(() => SetLocation(SetTypes.FirstFeederRowReferenceHole), () => CurrentStripFeederRow != null);
+            SetLastFeederReferenceHoleCommand = CreatedMachineConnectedSettingsCommand(() => SetLocation(SetTypes.LastFeederRowReferenceHole), () => CurrentStripFeederRow != null);
 
             GoToFirstFeederReferenceHoleCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.FirstFeederRowReferenceHole), () => CurrentStripFeederRow != null);
             GoToLastFeederReferenceHoleCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.LastFeederRowReferenceHole), () => CurrentStripFeederRow != null);
@@ -82,7 +76,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         
         private void GoToFeederReferenceHole()
         {
-            var coord =     _stagingPlateUtils.ResolveStagePlateWorkSpaceLocation(CurrentStripFeeder.ReferenceHoleColumn.Text, CurrentStripFeeder.ReferenceHoleRow.Text);
+            var plate = StagingPlates.Single(sp => sp.Id == CurrentStripFeeder.Id);
+            var coord =     StagingPlateUtils.ResolveStagePlateWorkSpaceLocation(plate, CurrentStripFeeder.ReferenceHoleColumn.Text, CurrentStripFeeder.ReferenceHoleRow.Text);
             Machine.GotoPoint(coord);
         }
         
@@ -209,12 +204,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             set
             {  
                 Set(ref _currentStripFeeder, value);               
-                RaiseCanExecuteChanged();
-                if (value != null)
-                    _stagingPlateUtils = new StagingPlateUtils(StagingPlates.First(sp => sp.Id == value.StagingPlate.Id));
-                else
-                    _stagingPlateUtils = null;
-
+                RaiseCanExecuteChanged();                
             }
         }
 

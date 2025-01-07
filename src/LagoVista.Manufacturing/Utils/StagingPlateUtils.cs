@@ -7,47 +7,43 @@ using System.Text;
 
 namespace LagoVista.Manufacturing.Util
 {
-    public class StagingPlateUtils
+    public static class StagingPlateUtils
     {
-        private readonly MachineStagingPlate _plate;
-        public StagingPlateUtils(MachineStagingPlate plate)
+        public static double RowToY(MachineStagingPlate plate, string rowId)
         {
-            _plate = plate;
+            return (Convert.ToByte(rowId.ToCharArray()[0]) - 64) * plate.HoleSpacing / 2;            
         }
 
-        public double RowToY(string rowId)
-        {
-            return (Convert.ToByte(rowId.ToCharArray()[0]) - 64) * _plate.HoleSpacing / 2;            
-        }
-
-        public double ColToX(string colId)
+        public static double ColToX(MachineStagingPlate plate, string colId)
         {
             var idx = Convert.ToByte(colId);
-            return idx * (_plate.HoleSpacing / 2);
+            return idx * (plate.HoleSpacing / 2);
         }
 
-        public Point2D<double> ResolveStagePlateLocation(EntityHeader col, EntityHeader row)
+        public static Point2D<double> ResolveStagePlateLocation(MachineStagingPlate plate, EntityHeader col, EntityHeader row)
         {
-            return new Point2D<double>(ColToX(col.Id), RowToY(row.Id));
+            return new Point2D<double>(ColToX(plate, col.Id), RowToY(plate, row.Id));
         }
 
-        public Point2D<double> ResolveStagePlateWorkSpakeLocation(EntityHeader col, EntityHeader row)
+        public static Point2D<double> ResolveStagePlateLocation(MachineStagingPlate plate, string colId, string rowId)
         {
-            return ResolveStagePlateWorkSpaceLocation(col.Id, row.Id);
+            return new Point2D<double>(ColToX(plate, colId), RowToY(plate, rowId));
         }
 
-        public Point2D<double> ResolveStagePlateWorkSpaceLocation(string colId, string rowId)
+        public static Point2D<double> ResolveStagePlateWorkSpakeLocation(MachineStagingPlate plate, EntityHeader col, EntityHeader row)
         {
-            if (_plate.ReferenceHoleColumn1 == null)
-                return null;
+            return ResolveStagePlateWorkSpaceLocation(plate, col.Id, row.Id);
+        }
 
-            var holeLocation = new Point2D<double>(ColToX(colId), RowToY(rowId));
-            var referenceOffset = new Point2D<double>(ColToX(_plate.ReferenceHoleColumn1.Id), RowToY(_plate.ReferenceHoleRow1.Id));
+        public static Point2D<double> ResolveStagePlateWorkSpaceLocation(MachineStagingPlate plate, string colId, string rowId)
+        {
+            var holeLocation = new Point2D<double>(ColToX(plate, colId), RowToY(plate, rowId));
+            var referenceOffset = new Point2D<double>(ColToX(plate, plate.ReferenceHoleColumn1.Id), RowToY(plate, plate.ReferenceHoleRow1.Id));
 
             return new Point2D<double>()
             {
-                X = (holeLocation.X - referenceOffset.X) + _plate.ReferenceHoleLocation1.X,
-                Y = (holeLocation.Y - referenceOffset.Y) + _plate.ReferenceHoleLocation1.Y
+                X = (holeLocation.X - referenceOffset.X) + plate.ReferenceHoleLocation1.X,
+                Y = (holeLocation.Y - referenceOffset.Y) + plate.ReferenceHoleLocation1.Y
             };
         }
     }

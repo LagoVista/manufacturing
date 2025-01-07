@@ -1,13 +1,10 @@
 ﻿using LagoVista.Core.Commanding;
-using LagoVista.Core.PlatformSupport;
 using LagoVista.Core.ViewModels;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
-using LagoVista.PickAndPlace.Repos;
 using System;
 using System.Collections.Generic;
-using System.Threading;
 
 namespace LagoVista.PickAndPlace.ViewModels
 {
@@ -21,7 +18,9 @@ namespace LagoVista.PickAndPlace.ViewModels
          
             _machineRepo.MachineChanged += _machineRepo_MachineChanged;
             SaveMachineConfigurationCommand = new RelayCommand(() => _machineRepo.SaveCurrentMachineAsync(), () => _machineRepo.HasValidMachine);
-            ReloadMachineCommand = new RelayCommand(() => _machineRepo.ReloadedAsync(), () => _machineRepo.HasValidMachine);
+            ReloadMachineCommand = new RelayCommand(() => _machineRepo.LoadCurrentMachineAsync(), () => _machineRepo.HasValidMachine);
+            UnlockSettingsCommand = new RelayCommand(() => _machine.AreSettingsLocked = false);
+            LockSettingsCommand = new RelayCommand(() => _machine.AreSettingsLocked = true);
         }
 
         private void _machineRepo_MachineChanged(object sender, IMachine e)
@@ -31,11 +30,12 @@ namespace LagoVista.PickAndPlace.ViewModels
             RaisePropertyChanged(nameof(MachineConfiguration));
             Machine.MachineDisconnected += (e,m) => RaiseCanExecuteChanged();
             Machine.MachineConnected += (e, m) => RaiseCanExecuteChanged();
+            Machine.SettingsLocked += (e, m) => RaiseCanExecuteChanged();
+            Machine.SettingsUnlocked += (e, m) => RaiseCanExecuteChanged();
 
-            MachineChanged(e);
-            
+            MachineChanged(e);            
         }
-
+        
         protected void RaiseCanExecuteChanged()
         {
             foreach(var handler in _registeredCommandHandlers)
@@ -52,6 +52,13 @@ namespace LagoVista.PickAndPlace.ViewModels
         protected RelayCommand CreatedMachineConnectedCommand(Action execute, Func<bool> canExecute = null)
         {
             var cmd = (canExecute == null) ? new RelayCommand(execute, () => Machine != null && Machine.Connected) : new RelayCommand(execute, () => Machine != null && Machine.Connected && canExecute());
+            RegisterCommandHandler(cmd);
+            return cmd;
+        }
+
+        protected RelayCommand CreatedMachineConnectedSettingsCommand(Action execute, Func<bool> canExecute = null)
+        {
+            var cmd = (canExecute == null) ? new RelayCommand(execute, () => Machine != null && Machine.Connected) : new RelayCommand(execute, () => Machine != null && Machine.Connected && !Machine.AreSettingsLocked && canExecute());
             RegisterCommandHandler(cmd);
             return cmd;
         }
@@ -77,12 +84,11 @@ namespace LagoVista.PickAndPlace.ViewModels
             get => _machine?.Settings;
         }
 
-        protected IMachineRepo MachineRepo { get; }
-
-
+        public IMachineRepo MachineRepo { get; }
         public RelayCommand SaveMachineConfigurationCommand { get; }
         public RelayCommand ReloadMachineCommand { get; set; }
-
+        public RelayCommand LockSettingsCommand { get; set; }
+        public RelayCommand UnlockSettingsCommand { get; set; }   
         protected virtual void MachineChanged(IMachine machine) { }
     }
 }

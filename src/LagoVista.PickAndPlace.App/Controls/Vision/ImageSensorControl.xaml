@@ -50,7 +50,6 @@
             </Button.Content>
         </Button>
 
-
         <StackPanel Orientation="Horizontal" Grid.Row="2" >
             <Button  x:Name="Stop" Command="{Binding StopCaptureCommand}" Margin="2" Style="{StaticResource VideoControlButton}" >
                 <Button.Content>

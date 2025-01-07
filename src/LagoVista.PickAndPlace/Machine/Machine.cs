@@ -20,6 +20,8 @@ namespace LagoVista.PickAndPlace
         public event EventHandler<string> LineReceived;
         public event EventHandler MachineConnected;
         public event EventHandler MachineDisconnected;
+        public event EventHandler SettingsLocked;
+        public event EventHandler SettingsUnlocked;
 
         public Machine()
         {
@@ -112,12 +114,12 @@ namespace LagoVista.PickAndPlace
 
         public void SetAbsoluteMode()
         {
-            Enqueue("G90");
+            SendCommand("G90");
         }
 
         public void SetRelativeMode()
         {
-            Enqueue("G90");
+            SendCommand("G91");
         }
 
         public void SetFile(GCodeFile file)
@@ -156,21 +158,27 @@ namespace LagoVista.PickAndPlace
             SendCommand($"G1 X{x.ToDim()} Y{y.ToDim()} F{feedRate}");
         }
 
-        public void GotoPoint(Point2D<double> point, bool rapidMove = true)
+        public void GotoPoint(Point2D<double> point, bool rapidMove = true, bool relativeMove = false)
         {
-            GotoPoint(point.X, point.Y, rapidMove);
+            GotoPoint(point.X, point.Y, rapidMove, relativeMove);
         }
 
-        public void GotoPoint(double x, double y, bool rapidMove = true)
+        public void GotoPoint(double x, double y, bool rapidMove = true, bool relativeMove = false)
         {
             var cmd = rapidMove ? "G0" : "G1";
-            if (Settings.MachineType != FirmwareTypes.Repeteir_PnP)
+            if (Settings.MachineType != FirmwareTypes.Repeteir_PnP && !relativeMove)
             {
                 x = Math.Max(0, Math.Min(x, Settings.WorkAreaWidth));
                 y = Math.Max(0, Math.Min(y, Settings.WorkAreaHeight));
             }
 
+            if (relativeMove)
+                SetRelativeMode();
+
             SendCommand($"{cmd} X{x.ToDim()} Y{y.ToDim()}");
+
+            if (relativeMove)
+                SetAbsoluteMode();
         }
 
         public void GotoPoint(double x, double y, double z, bool rapidMove = true)

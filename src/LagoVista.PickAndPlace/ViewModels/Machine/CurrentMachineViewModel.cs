@@ -5,26 +5,13 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 
 namespace LagoVista.PickAndPlace.ViewModels.Machine
 {
-    public class CurrentMachineViewModel : ViewModelBase, ICurrentMachineViewModel
+    public class CurrentMachineViewModel : MachineViewModelBase, ICurrentMachineViewModel
     {
-        public CurrentMachineViewModel(IMachineRepo machineRepo)
+        public CurrentMachineViewModel(IMachineRepo machineRepo) : base(machineRepo)
         {
-            machineRepo.MachineChanged += MachineRepo_MachineChanged;
-            Machine = machineRepo.CurrentMachine;
             SaveCommand = new RelayCommand(() => machineRepo.SaveCurrentMachineAsync());
         }
 
-        private void MachineRepo_MachineChanged(object sender, IMachine e)
-        {
-            Machine = e;
-        }
-
-        IMachine _machine;
-        public IMachine Machine
-        {
-            get => _machine;
-            set => Set(ref _machine, value);
-        }
 
         public RelayCommand SaveCommand { get; }
     }

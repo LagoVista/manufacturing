@@ -8,11 +8,9 @@ using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
-using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
 using System.IO.Ports;
 using System.Linq;
 using System.Threading.Tasks;
@@ -36,7 +34,8 @@ namespace LagoVista.PickAndPlace.Repos
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             CurrentMachine = new Machine();
             CurrentMachine.Settings = new Manufacturing.Models.Machine();
-
+            UnlockSettingsCommand = new RelayCommand(() => CurrentMachine.AreSettingsLocked = false);
+            LockSettingsCommand = new RelayCommand(() => CurrentMachine.AreSettingsLocked = true);
             ConnectCommand = new RelayCommand(Connect, () => this.HasValidMachine);
         }
 
@@ -173,6 +172,9 @@ namespace LagoVista.PickAndPlace.Repos
                 }
             }
         }
+
+        public RelayCommand LockSettingsCommand { get; set; }
+        public RelayCommand UnlockSettingsCommand { get; set; }
 
     }
 }

@@ -20,6 +20,10 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         event EventHandler MachineConnected;
         event EventHandler MachineDisconnected;
+        event EventHandler SettingsLocked;
+        event EventHandler SettingsUnlocked;
+
+
 
         /// <summary>
         /// As commands are sent to the machine the number of bytes for that command are added to 
@@ -164,6 +168,8 @@ namespace LagoVista.PickAndPlace.Interfaces
         /// </summary>
         bool Connected { get; }
 
+        bool AreSettingsLocked { get; set; }
+
         /// <summary>
         /// Connect to the machine
         /// </summary>
@@ -223,9 +229,9 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         void LaserOff();
 
-        void GotoPoint(Point2D<double> point, bool rapidMove = true);
+        void GotoPoint(Point2D<double> point, bool rapidMove = true, bool relativeMove = false);
 
-        void GotoPoint(double x, double y, bool rapidMove = true);
+        void GotoPoint(double x, double y, bool rapidMove = true, bool relativeMove = false);
 
         void GotoPoint(double x, double y, double feedRate);
 

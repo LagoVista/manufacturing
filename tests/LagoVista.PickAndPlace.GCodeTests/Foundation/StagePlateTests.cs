@@ -12,7 +12,6 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
 {
     public class StagePlateTests
     {
-        StagingPlateUtils _utils;
         MachineStagingPlate _plate;
 
         [SetUp]
@@ -25,18 +24,16 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                 ReferenceHoleRow1 = EntityHeader.Create("B", "B", "B"),
                 ReferenceHoleLocation1 = new Core.Models.Drawing.Point2D<double>(100, 100),
             };
-
-            _utils = new StagingPlateUtils(_plate);
         }
 
         [Test]
         public void ResolveRow()
         {
-            var y = _utils.RowToY("G");
+            var y = StagingPlateUtils.RowToY(_plate, "G");
             Console.WriteLine(y);
             Assert.AreEqual((7 * 30 / 2), y);
 
-            y = _utils.RowToY("A");
+            y = StagingPlateUtils.RowToY(_plate, "A");
             Console.WriteLine(y);
             Assert.AreEqual((1 * 30 / 2), y);
         }
@@ -44,11 +41,11 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         [Test]
         public void ResolveCols()
         {
-            var x = _utils.ColToX("1");
+            var x = StagingPlateUtils.RowToY(_plate, "1");
             Console.WriteLine(x);
             Assert.AreEqual((1 * 30 / 2), x);
 
-            x = _utils.ColToX("10");
+            x = StagingPlateUtils.RowToY(_plate, "10");
             Console.WriteLine(x);
             Assert.AreEqual((10 * 30 / 2), x);
         }
@@ -56,7 +53,7 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
 
         [Test]
         public void ResolveXY() {
-            var location = _utils.ResolveStagePlateLocation(EntityHeader.Create("10", "10", "10"), EntityHeader.Create("B", "B", "B"));
+            var location = StagingPlateUtils.ResolveStagePlateLocation(_plate, EntityHeader.Create("10", "10", "10"), EntityHeader.Create("B", "B", "B"));
             Console.WriteLine(location); 
             Assert.AreEqual(150, location.X);
             Assert.AreEqual(30, location.Y);
@@ -69,10 +66,10 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             var row = EntityHeader.Create("B", "B", "B");
             
             Console.WriteLine("Reference Hole: " +  _plate.ReferenceHoleLocation1);
-            Console.WriteLine("Target Point  : " + _utils.ResolveStagePlateLocation(col, row));            
-            Console.WriteLine("Reference On Plate:  " + _utils.ResolveStagePlateLocation(_plate.ReferenceHoleColumn1, _plate.ReferenceHoleRow1));
+            Console.WriteLine("Target Point  : " + StagingPlateUtils.ResolveStagePlateLocation(_plate, col, row));            
+            Console.WriteLine("Reference On Plate:  " + StagingPlateUtils.ResolveStagePlateLocation(_plate, _plate.ReferenceHoleColumn1, _plate.ReferenceHoleRow1));
 
-            var location = _utils.ResolveStagePlateWorkSpakeLocation(col, row);
+            var location = StagingPlateUtils.ResolveStagePlateWorkSpakeLocation(_plate, col, row);
             Console.WriteLine("Final Location: " + location);
         }
     }

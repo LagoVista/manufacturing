@@ -3,9 +3,8 @@ using LagoVista.Core.ViewModels;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
 {
-    public interface ICurrentMachineViewModel : IViewModel
+    public interface ICurrentMachineViewModel : IMachineViewModelBase
     {
-        IMachine Machine { get; }
         RelayCommand SaveCommand { get; }
     }
 }

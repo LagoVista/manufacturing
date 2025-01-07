@@ -47,9 +47,7 @@ namespace LagoVista.Manufacturing.Util
                 return InvokeResult<Point2D<double>>.FromError($"Could not find staging plate for {stripFeeder.Name}");
             }
 
-            var spUtils = new StagingPlateUtils(plate);
-
-            var location = spUtils.ResolveStagePlateLocation(stripFeeder.ReferenceHoleColumn, stripFeeder.ReferenceHoleRow);
+            var location = StagingPlateUtils.ResolveStagePlateLocation(plate,stripFeeder.ReferenceHoleColumn, stripFeeder.ReferenceHoleRow);
             if (stripFeeder.Orientation.Value == FeederOrientations.Horizontal)
             {
                 location.X -= stripFeeder.ReferenceHoleOffset.X;
@@ -111,6 +109,7 @@ namespace LagoVista.Manufacturing.Util
 
         public Point2D<double> CalculateFeederOrigin(StripFeeder stripFeeder)
         {
+
             throw new NotImplementedException();
         }
 

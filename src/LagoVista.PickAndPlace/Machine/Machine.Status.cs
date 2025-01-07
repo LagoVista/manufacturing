@@ -324,6 +324,22 @@ namespace LagoVista.PickAndPlace
             }
         }
 
+        private bool _settingsLocked = true;
+        public bool AreSettingsLocked
+        {
+            get => _settingsLocked;
+            set 
+            {
+                _settingsLocked = value;
+                if (_settingsLocked)
+                    SettingsLocked?.Invoke(this, null);
+                else
+                    SettingsUnlocked?.Invoke(this, null);
+
+                RaisePropertyChanged();
+            }
+        }
+
         private int _unacknowledgedBytesSent;
         public int UnacknowledgedBytesSent
         {

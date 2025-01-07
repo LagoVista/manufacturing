@@ -3,6 +3,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:mch="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
              d:DataContext="{d:DesignInstance vm:IMachineCalibrationViewModel }"
@@ -17,13 +18,34 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="*" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1200"/>
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Grid Grid.Row="0">
+
+        <Grid>
+            <StackPanel>
+                <TextBlock Text="Machine Fiducial"></TextBlock>
+                <TextBlock Text="{Binding MachineConfiguration.MachineFiducial}" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetMachineFiducialCommand}"  ToolTip="Set the current location as the Machine Fiducial, this will act as a know point to reference all other points on the machine." Width="64" Height="64"  >
+                        <Button.Content>
+                            <Image Source="/imgs/SetTarget.png"/>
+                        </Button.Content>
+                    </Button>
+                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToMachineFiducialCommand}"  ToolTip="Goto the Machine Fiducial" Width="64" Height="64"  >
+                        <Button.Content>
+                            <Image Source="/imgs/MoveToTarget.png"/>
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+        
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="800"/>
                 <ColumnDefinition Width="*"/>
@@ -47,6 +69,9 @@
                 <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleLocation1}"></TextBlock>
                 <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleRow1}"></TextBlock>
                 <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleColumn1}"></TextBlock>
+
+                <mch:StagingPlateSelectorControl></mch:StagingPlateSelectorControl>
+                
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                     <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetStagingPlateReferenceHole1LocationCommand}"  ToolTip="Set Reference Hole 1" Width="64" Height="64"  >
                         <Button.Content>
@@ -79,7 +104,7 @@
 
         </Grid>
         
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="800"/>
                 <ColumnDefinition Width="*"/>
@@ -111,7 +136,7 @@
             </StackPanel>
         </Grid>
 
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="800"/>
                 <ColumnDefinition Width="*"/>
@@ -127,7 +152,7 @@
             </DataGrid>
         </Grid>
 
-        <Grid Grid.Row="3">
+        <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="800"/>
                 <ColumnDefinition Width="*"/>
@@ -161,7 +186,7 @@
 
         </Grid>
 
-        <Grid Grid.Row="4">
+        <Grid Grid.Row="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="800"/>
                 <ColumnDefinition Width="*"/>

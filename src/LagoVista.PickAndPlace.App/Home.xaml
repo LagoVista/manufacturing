@@ -74,8 +74,6 @@
                     </TabItem>
                 </TabControl>
                 <ctls:ManualSend Grid.Row="1" VerticalAlignment="Bottom"/>
-
-                
             </Grid>
 
             <ctls:MachineStatusControl  Width="200" Height="150" HorizontalAlignment="RIght" VerticalAlignment="Bottom" Grid.Column="2" />
@@ -84,13 +82,12 @@
                 <StackPanel>
                     <ctls:MachinesControl Grid.Row="2"/>
                     <ctls:MachineControl  Grid.RowSpan="2"></ctls:MachineControl>
+                    <mch:StagingPlateNavigationControl></mch:StagingPlateNavigationControl>
                 </StackPanel>
             </Grid>
-
-
         </Grid>
+        
         <Grid Grid.RowSpan="3" Background="Black" Opacity="0.4" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Hidden}">
-
         </Grid>
 
         <Grid Grid.RowSpan="3" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Hidden}">

@@ -12,22 +12,24 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         public MachineCalibrationViewModel(IMachineRepo machineRepo) : base(machineRepo)
         {
-            SetDefaultToolReferencePointCommand = CreatedMachineConnectedCommand(() => MachineConfiguration.DefaultToolReferencePoint = Machine.MachinePosition.ToPoint2D());
-            SetStagingPlateReferenceHole1LocationCommand = CreatedMachineConnectedCommand(() => SelectedStagingPlate.ReferenceHoleLocation1 = Machine.MachinePosition.ToPoint2D(), () => SelectedStagingPlate != null);
-            SetStagingPlateReferenceHole2LocationCommand = CreatedMachineConnectedCommand(() => SelectedStagingPlate.ReferenceHoleLocation2 = Machine.MachinePosition.ToPoint2D(), () => SelectedStagingPlate != null);
-            SetFirstFeederOriginCommand = CreatedMachineConnectedCommand(() => SelectedFeederRail.FirstFeederOrigin = Machine.MachinePosition.ToPoint2D(), () => SelectedFeederRail != null);
-            SetToolOffsetCommand = CreatedMachineConnectedCommand(() => SelectedToolHead.Offset = Machine.MachinePosition.ToPoint2D() - MachineConfiguration.DefaultToolReferencePoint, () => SelectedToolHead != null);
-            SetCameraLocationCommand = CreatedMachineConnectedCommand(() => {
+            SetDefaultToolReferencePointCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.DefaultToolReferencePoint = Machine.MachinePosition.ToPoint2D());
+            SetStagingPlateReferenceHole1LocationCommand = CreatedMachineConnectedSettingsCommand(() => SelectedStagingPlate.ReferenceHoleLocation1 = Machine.MachinePosition.ToPoint2D(), () => SelectedStagingPlate != null);
+            SetStagingPlateReferenceHole2LocationCommand = CreatedMachineConnectedSettingsCommand(() => SelectedStagingPlate.ReferenceHoleLocation2 = Machine.MachinePosition.ToPoint2D(), () => SelectedStagingPlate != null);
+            SetFirstFeederOriginCommand = CreatedMachineConnectedSettingsCommand(() => SelectedFeederRail.FirstFeederOrigin = Machine.MachinePosition.ToPoint2D(), () => SelectedFeederRail != null);
+            SetToolOffsetCommand = CreatedMachineConnectedSettingsCommand(() => SelectedToolHead.Offset = Machine.MachinePosition.ToPoint2D() - MachineConfiguration.DefaultToolReferencePoint, () => SelectedToolHead != null);
+            SetMachineFiducialCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.MachineFiducial = Machine.MachinePosition.ToPoint2D());
+            CaptureKnownLocationCommand = CreatedMachineConnectedSettingsCommand(() => KnownLocation = Machine.MachinePosition.ToPoint2D());
+            SetCameraLocationCommand = CreatedMachineConnectedSettingsCommand(() => {
                 SelectedMachineCamera.AbsolutePosition = Machine.MachinePosition.ToPoint2D();
                 SelectedMachineCamera.FocusHeight = Machine.MachinePosition.Z;
                 }, () => SelectedMachineCamera != null);
 
             MoveToDefaultToolReferencePointCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(MachineConfiguration.DefaultToolReferencePoint), () => MachineConfiguration.DefaultToolReferencePoint != null);
-            MoveToStagingPlateReferenceHole1LocationCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(SelectedStagingPlate.ReferenceHoleLocation1), () => SelectedStagingPlate != null && SelectedStagingPlate.ReferenceHoleLocation1 != null);
-            MoveToStagingPlateReferenceHole2LocationCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(SelectedStagingPlate.ReferenceHoleLocation2), () => SelectedStagingPlate != null && SelectedStagingPlate.ReferenceHoleLocation2 != null);
+            MoveToStagingPlateReferenceHole1LocationCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(SelectedStagingPlate.ReferenceHoleLocation1), () => SelectedStagingPlate != null && (UseCalibratedLocation || SelectedStagingPlate.ReferenceHoleLocation1 != null));
+            MoveToStagingPlateReferenceHole2LocationCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(SelectedStagingPlate.ReferenceHoleLocation2), () => SelectedStagingPlate != null && (UseCalibratedLocation || SelectedStagingPlate.ReferenceHoleLocation2 != null));
             MoveToFirstFeederOriginCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(SelectedFeederRail.FirstFeederOrigin), () => SelectedFeederRail != null && SelectedFeederRail.FirstFeederOrigin != null);
             MoveToCameraLocationCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(SelectedMachineCamera.AbsolutePosition.X, SelectedMachineCamera.AbsolutePosition.Y, SelectedMachineCamera.FocusHeight), () => SelectedMachineCamera != null && SelectedMachineCamera.AbsolutePosition != null);
-            CaptureKnownLocationCommand = CreatedMachineConnectedCommand(() => KnownLocation = Machine.MachinePosition.ToPoint2D());
+            MoveToMachineFiducialCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(Machine.Settings.MachineFiducial));
         }
 
         protected override void MachineChanged(IMachine machine)
@@ -96,7 +98,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public RelayCommand SetDefaultToolReferencePointCommand { get; }
         public RelayCommand SetToolOffsetCommand { get; }
         public RelayCommand SetCameraLocationCommand { get; }
-        
+        public RelayCommand SetMachineFiducialCommand { get; }
+        public RelayCommand MoveToMachineFiducialCommand { get; }
 
         public RelayCommand MoveToStagingPlateReferenceHole1LocationCommand { get; }
         public RelayCommand MoveToStagingPlateReferenceHole2LocationCommand { get; }
@@ -117,6 +120,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         {
             get => _delta;
             private set => Set(ref _delta, value);
+        }
+
+        private bool _useCalibratedLocation;
+        public bool UseCalibratedLocation
+        {
+            get => _useCalibratedLocation;
+            set => Set(ref _useCalibratedLocation, value);
         }
     }
 }

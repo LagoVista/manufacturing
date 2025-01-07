@@ -81,7 +81,7 @@ namespace LagoVista.PickAndPlace.Models
 
         public Point2D<float> OffsetPixels { get => _filteredCenter - _viewCenter; }
         
-        public Point2D<double> OffsetMM { get => new Point2D<double>(Math.Round(OffsetPixels.X / _pixelsPerMM, 1), Math.Round(OffsetPixels.Y / _pixelsPerMM, 1)); }
+        public Point2D<double> OffsetMM { get => new Point2D<double>(Math.Round(OffsetPixels.X / _pixelsPerMM, 1), -Math.Round(OffsetPixels.Y / _pixelsPerMM, 1)); }
         public double RadiusPixels { get => _filteredRadius; }
         public double RadiusMM { get => Math.Round( _filteredRadius / _pixelsPerMM, 2); }
        

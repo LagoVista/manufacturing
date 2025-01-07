@@ -13,6 +13,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.Resources>
@@ -42,7 +43,17 @@
                 <Setter Property="TextAlignment" Value="Center" />
             </Style>
         </Grid.Resources>
-        <StackPanel Orientation="Horizontal" Grid.Row="1">
+        
+        <Label FontSize="24" Content="{Binding CurrentMachine.Settings.Name, FallbackValue=No Current Machine}" ></Label>
+        
+        <StackPanel Orientation="Horizontal"  Grid.Row="1">
+            <Button  >
+                <Button.Content>
+                    <StackPanel>
+                        <fa:ImageAwesome Foreground="Blue" Icon="FolderOpen" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
             <Button Command="{Binding ConnectCommand}"   >
                 <Button.Content>
                     <StackPanel>
@@ -52,25 +63,35 @@
                     </StackPanel>
                 </Button.Content>
             </Button>
-            
-            <Label Content="{Binding CurrentMachine.Settings.Name, FallbackValue=No Current Machine}" ></Label>
-
             <Button  x:Name="Settings" Click="Settings_Click" >
                 <Button.Content>
                     <StackPanel>
-                        <fa:ImageAwesome Foreground="White" Icon="Gear" />
+                        <fa:ImageAwesome Foreground="Blue" Icon="Gear" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+            <Button Command="{Binding UnlockSettingsCommand}" Visibility="{Binding CurrentMachine.AreSettingsLocked, Converter={StaticResource BoolToVisibilityConverter}}" >
+                <Button.Content>
+                    <StackPanel>
+                        <fa:ImageAwesome Foreground="Red" Icon="Lock" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+            <Button Command="{Binding LockSettingsCommand}" Visibility="{Binding CurrentMachine.AreSettingsLocked, Converter={StaticResource BoolToInverseVisibilityConverter}}" >
+                <Button.Content>
+                    <StackPanel>
+                        <fa:ImageAwesome Foreground="Green" Icon="Unlock" />
                     </StackPanel>
                 </Button.Content>
             </Button>
         </StackPanel>
         
-        <ListView ItemsSource="{Binding Machines}" SelectedItem="{Binding SelectedMachine}" Grid.Row="0">
+        <ListView ItemsSource="{Binding Machines}" SelectedItem="{Binding SelectedMachine}" Grid.Row="0" Visibility="Collapsed">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid>
-                        <Label Content="{Binding Name}"></Label>   
+                        <Label Content="{Binding Name}"></Label>
                     </Grid>
-                
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>  
