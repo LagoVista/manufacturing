@@ -7,6 +7,7 @@
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls.PickAndPlace"
              xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
+             xmlns:mch="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine"
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;assembly=LagoVista.PickAndPlace"                                                                 
              d:DataContext="{d:DesignInstance vm:IPartsViewModel }"
              mc:Ignorable="d" 
@@ -30,6 +31,10 @@
                 <TextBlock Text="{Binding CurrentStripFeeder.StagingPlate.Text}"></TextBlock>
             </StackPanel>
 
+            <mch:StagingPlateSelectorControl SelectedStagingPlateId   ="{Binding CurrentStripFeeder.StagingPlate.Id, Mode=TwoWay }"
+                                             SelectedStagingPlateColId="{Binding CurrentStripFeeder.ReferenceHoleColumn.Id, Mode=TwoWay}"
+                                             SelectedStagingPlateRowId="{Binding CurrentStripFeeder.ReferenceHoleRow.Id, Mode=TwoWay}">
+            </mch:StagingPlateSelectorControl>
 
             <StackPanel Orientation="Horizontal">
                 <TextBlock Width="120" FontWeight="Bold" Text="Location"></TextBlock>
@@ -77,9 +82,8 @@
                         <Image Source="/imgs/MoveToTarget.png"/>
                     </Button.Content>
                 </Button>
-
-
             </StackPanel>
+
             <StackPanel Orientation="Horizontal">
                 <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="First Part" Command="{Binding GoToFirstPartCommand}" >
                     <Button.Content>

@@ -2,6 +2,7 @@
 using LagoVista.Manufacturing.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Text;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
@@ -13,8 +14,9 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         string SelectedStagingPlateColId { get; set; }
         string SelectedStagingPlateRowId { get; set; }
 
-        List<EntityHeader> StagingPlateCols { get; }
-        List<EntityHeader> StagingPlateRows { get; }
+        ObservableCollection<EntityHeader> StagingPlates { get; }
+        ObservableCollection<EntityHeader> StagingPlateCols { get; }
+        ObservableCollection<EntityHeader> StagingPlateRows { get; }
         MachineStagingPlate SelectedStagingPlate { get; set; }
     }
 }

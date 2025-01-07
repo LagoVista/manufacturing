@@ -4,6 +4,7 @@ using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace LagoVista.PickAndPlace.ViewModels.Machine
@@ -19,7 +20,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         {
             base.MachineChanged(machine);
 
-            StagingPlates = MachineConfiguration.StagingPlates.Select(sp => EntityHeader.Create(sp.Id, sp.Key, sp.Name)).ToList();  
+            StagingPlates = new ObservableCollection<EntityHeader>(MachineConfiguration.StagingPlates.Select(sp => EntityHeader.Create(sp.Id, sp.Key, sp.Name)));  
             StagingPlates.Insert(0, EntityHeader.Create("-1", "-1", "-select staging plate-")); 
             SelectedStagingPlateId = "-1";
             RaisePropertyChanged(nameof(StagingPlates));
@@ -32,25 +33,21 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             {
                 if (String.IsNullOrEmpty(value) || value == "-1")
                 {
-                    StagingPlateRows = new List<EntityHeader>();
-                    StagingPlateCols = new List<EntityHeader>();
-
+                    StagingPlateRows.Clear();
                     StagingPlateRows.Add(EntityHeader.Create("-1", "-1", "-select a staging plate first-"));
+                    StagingPlateCols.Clear();
                     StagingPlateCols.Add(EntityHeader.Create("-1", "-1", "-select a staging plate first-"));
                 }
                 else
                 {
                     SelectedStagingPlate = MachineConfiguration.StagingPlates.Single(sp => sp.Id == value);
-
-                    StagingPlateRows = new List<EntityHeader>();
+                    StagingPlateRows.Clear();
                     StagingPlateRows.Add(EntityHeader.Create("-1", "-1", "-select row-"));
 
                     for (var idx = 0; idx < SelectedStagingPlate.Size.Y / (SelectedStagingPlate.HoleSpacing / 2); ++idx)
                     {
                         StagingPlateRows.Add(EntityHeader.Create($"{Char.ConvertFromUtf32(idx + 65)}", $"{Char.ConvertFromUtf32(idx + 65)}", $"{Char.ConvertFromUtf32(idx + 65)}"));
                     }
-
-                    RaisePropertyChanged(nameof(StagingPlateRows));
                 }
 
                 SelectedStagingPlateRowId = "-1";
@@ -61,13 +58,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private void PopulateStagingPlateColumns()
         {
-            StagingPlateCols = new List<EntityHeader>();
+            StagingPlateCols.Clear();
             StagingPlateCols.Add(EntityHeader.Create("-1", "-1", "-select column-"));
 
             var rowIdx = Convert.ToByte(SelectedStagingPlateRowId.ToCharArray()[0]) - 64;
-
-            SelectedStagingPlate.FirstUsableColumn = 5;
-            SelectedStagingPlate.LastUsableColumn = 35;
 
             for (var idx = SelectedStagingPlate.FirstUsableColumn; idx <= SelectedStagingPlate.LastUsableColumn; idx += 2)
             {
@@ -75,7 +69,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 if(col <=SelectedStagingPlate.LastUsableColumn)
                     StagingPlateCols.Add(EntityHeader.Create($"{col}", $"{col}", $"{col}"));
             }
-            RaisePropertyChanged(nameof(StagingPlateCols));
+
             SelectedStagingPlateColId = "-1";
         }
 
@@ -86,11 +80,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             set
             {
                 Set(ref _selectedStagingPlateRowId, value);
-                if(value != "-1")
+                if(value != null && value != "-1" )
                     PopulateStagingPlateColumns();
                 else
                 {
-                    StagingPlateCols = new List<EntityHeader>();
+                    StagingPlateCols.Clear();
                     StagingPlateCols.Add(EntityHeader.Create("-1", "-1", "-select staging plate row first-"));
                     RaisePropertyChanged(nameof(StagingPlateCols));
 
@@ -126,9 +120,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
         }
 
-        public List<EntityHeader> StagingPlates { get; private set; }
-
-        public List<EntityHeader> StagingPlateRows { get; private set; }
-        public List<EntityHeader> StagingPlateCols { get; private set; }
+        public ObservableCollection<EntityHeader> StagingPlates { get; private set; } = new ObservableCollection<EntityHeader>();
+        public ObservableCollection<EntityHeader> StagingPlateRows { get; private set; } = new ObservableCollection<EntityHeader>();
+        public ObservableCollection<EntityHeader> StagingPlateCols { get; private set; } = new ObservableCollection<EntityHeader>();    
     }
 }
