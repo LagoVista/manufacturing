@@ -1,12 +1,11 @@
 ﻿using LagoVista.Client.Core;
+using LagoVista.Core;
 using LagoVista.Core.Commanding;
-using LagoVista.Core.IOC;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Core.PlatformSupport;
 using LagoVista.Core.Validation;
-using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
 using LagoVista.Manufacturing.Util;
 using LagoVista.PCB.Eagle.Models;
@@ -15,10 +14,8 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
-using Microsoft.Extensions.Configuration;
-using NLog.Config;
+using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -58,30 +55,248 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             GoToFirstPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.FirstPart), () => CurrentStripFeederRow != null);
             GoToCurrentPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.CurrentPart), () => CurrentStripFeederRow != null);
-            GoToLastPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.LastPart), () => CurrentStripFeederRow != null);
+            GoToLastPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.LastPart), () => CurrentStripFeederRow != null && CurrentPartIndex < TotalPartsInFeederRow);
             GoToNextPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.NextPart), () => CurrentStripFeederRow != null);
-            GoToPreviousPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.PreviousPart), () => CurrentStripFeederRow != null);
+            GoToPreviousPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.PreviousPart), () => CurrentStripFeederRow != null && CurrentPartIndex > 1);
+
+            SaveCurrentFeederCommand = new RelayCommand(async () => await SaveCurrentFeederAsync(), () => CurrentAutoFeeder != null || CurrentStripFeeder != null);
+            RegisterCommandHandler(SaveCurrentFeederCommand);
         }
 
-        private void GoTo(LocationType moveTypes)
+        private void GoTo(LocationType moveType)
         {
+            var stagePlate = MachineConfiguration.StagingPlates.Single(sp => sp.Id == CurrentStripFeeder.StagingPlate.Id);
+            if(stagePlate == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not move, staging plate not set on feeder.");
+                return;
+            }
 
+            var stagePlateReferenceLocation = StagingPlateUtils.ResolveStagePlateWorkSpakeLocation(stagePlate, CurrentStripFeeder.ReferenceHoleColumn, CurrentStripFeeder.ReferenceHoleRow);
+            if (stagePlateReferenceLocation == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not move, reference hole or column not set on strip feeder.");
+                return;
+            }
+
+            var component = CurrentStripFeederRow.Component ?? null;
+            var package = component?.Value?.ComponentPackage?.Value;
+
+            var feederIsVertical = CurrentStripFeeder.Orientation.Value == FeederOrientations.Vertical;
+
+            var feederOrigin = stagePlateReferenceLocation.SubtractWithConditionalSwap(feederIsVertical, CurrentStripFeeder.ReferenceHoleOffset);            
+
+            switch (moveType)
+            {
+                case LocationType.FeederReferenceHole: Machine.GotoPoint(stagePlateReferenceLocation); break;
+                case LocationType.FeederOrigin: Machine.GotoPoint(feederOrigin); break;
+                case LocationType.FirstFeederRowReferenceHole:
+                    {
+                        if (CurrentStripFeederRow == null)
+                        {
+                            Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Can not move to row, no row selected.");
+                        }
+                        else
+                        {
+                            if (UseCalculated)
+                            {
+                                var deltaY = ((CurrentStripFeederRow.RowIndex - 1) * CurrentStripFeeder.RowWidth) + (TapeSize.ToDouble() - 2);
+                                var deltaX = 5;
+                                var estimatedTapeHole = feederOrigin + (feederIsVertical ? new Point2D<double>(deltaY, -deltaX) : new Point2D<double>(deltaX, deltaY));
+                                Machine.GotoPoint(estimatedTapeHole);
+                            }
+                            else
+                            {
+                                var tapeHoleOrigin = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentStripFeederRow.FirstTapeHoleOffset);
+                                Machine.GotoPoint(tapeHoleOrigin);
+                            }
+                        }
+                    }
+                        break;
+                case LocationType.LastFeederRowReferenceHole:
+                    {
+                        if (CurrentStripFeederRow == null)
+                        {
+                            Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Can not move to row, no row selected.");
+                        }
+                        else
+                        {
+                            if (UseCalculated || (CurrentStripFeederRow.LastTapeHoleOffset.X == 0 && CurrentStripFeederRow.LastTapeHoleOffset.Y == 0))
+                            {
+                                if (CurrentStripFeederRow.FirstTapeHoleOffset.X == 0 && CurrentStripFeederRow.FirstTapeHoleOffset.Y == 0)
+                                {
+
+                                }
+                                else
+                                {
+                                    var deltaY = ((CurrentStripFeederRow.RowIndex - 1) * CurrentStripFeeder.RowWidth) + (TapeSize.ToDouble() - 2);
+                                    var deltaX = TotalPartsInFeederRow * TapePitch.ToDouble();
+
+                                    var lastTapeHole = feederOrigin + (feederIsVertical ? new Point2D<double>(deltaY, -deltaX) : new Point2D<double>(deltaX, deltaY));
+                                    Machine.GotoPoint(lastTapeHole);
+                                }
+                            }
+                            else
+                            {
+                                var tapeHoleOrigin = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentStripFeederRow.LastTapeHoleOffset);
+                                Machine.GotoPoint(tapeHoleOrigin);
+                            }
+                        }
+                    }
+                    break;
+                case LocationType.FirstPart:
+                    if (CurrentStripFeederRow == null)
+                    {
+                        Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Can not move to row, no row selected.");
+                    }
+                    else
+                    {
+                        CurrentPartIndex = 1;
+                        var partLocation = ResolvePartInTape(feederOrigin);
+                        Machine.GotoPoint(partLocation.Result);
+                    }
+                    break;
+                case LocationType.PreviousPart:
+                    {
+                        CurrentPartIndex--;
+                        var partLocation = ResolvePartInTape(feederOrigin);
+                        Machine.GotoPoint(partLocation.Result);
+                    }
+                    break;
+                case LocationType.CurrentPart:
+                    {
+                        if (CurrentStripFeederRow == null)
+                        {
+                            Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Can not move to row, no row selected.");
+                        }
+                        else
+                        {
+                            CurrentPartIndex = CurrentStripFeederRow.CurrentPartIndex;
+                            var partLocation = ResolvePartInTape(feederOrigin);
+                            Machine.GotoPoint(partLocation.Result);
+                        }
+                    }
+                    break;
+                case LocationType.NextPart:
+                    {
+                        CurrentPartIndex++;
+                        var partLocation = ResolvePartInTape(feederOrigin);
+                        Machine.GotoPoint(partLocation.Result);
+                    }
+                    break;
+                case LocationType.LastPart:
+                    {
+                        if (CurrentStripFeederRow == null)
+                        {
+                            Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Can not move to row, no row selected.");
+                        }
+                        else
+                        {
+                            CurrentPartIndex = TotalPartsInFeederRow;
+                            var partLoction = ResolvePartInTape(feederOrigin);
+                            Machine.GotoPoint(partLoction.Result);
+                        }
+                    }
+                    break;
+
+            }
+
+            RaiseCanExecuteChanged();
+        }
+
+        
+
+        private InvokeResult<Point2D<double>> ResolvePartInTape(Point2D<double> feederOrigin)
+        {
+            if(CurrentStripFeeder == null)
+            {
+                return InvokeResult<Point2D<double>>.FromError("No current strip feeder selected, can not calculate location.");
+            }
+
+            if (CurrentStripFeederRow == null)
+            {
+                return InvokeResult<Point2D<double>>.FromError($"No selected row on strip feeder {CurrentStripFeeder.Name}, can not calculate location.");
+            }
+
+
+            if (CurrentStripFeederRow.FirstTapeHoleOffset == null)
+            {
+                return InvokeResult<Point2D<double>>.FromError($"No first tape hole offset configured for {CurrentStripFeeder.Name}/{CurrentStripFeederRow.RowIndex}, can not calculate location.");
+            }
+
+            if (CurrentStripFeederRow.FirstTapeHoleOffset.X == 0 && CurrentStripFeederRow.FirstTapeHoleOffset.Y == 0)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning, ($"First tape role index is (0,0) on {CurrentStripFeeder.Name}/{CurrentStripFeederRow.RowIndex} this is likely an error but will continue.");
+            }
+
+            var feederIsVertical = CurrentStripFeeder.Orientation.Value == FeederOrientations.Vertical;
+
+            if(TapeSize == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning, $"No tape size configured for {CurrentStripFeeder}/{CurrentStripFeederRow.RowIndex} - assuming 8mm tape.");
+            }    
+
+            if(TapePitch == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning, $"No tape pitch configured for {CurrentStripFeeder}/{CurrentStripFeederRow.RowIndex} - assuming 4 mm tape pitch.");
+            }
+
+            var tapeSize = TapeSize.ToDouble();
+            var tapePitch = TapePitch.ToDouble();
+
+            var tapeHoleOrigin = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentStripFeederRow.FirstTapeHoleOffset);
+            if (feederIsVertical)
+            {
+                tapeHoleOrigin.SubtractFromX(((tapeSize - 1.5) / 2));
+                tapeHoleOrigin.AddToY(tapePitch / 2);
+            }
+            else
+            {
+                tapeHoleOrigin.SubtractFromY(((tapeSize - 1.5) / 2));
+                tapeHoleOrigin.AddToX(tapePitch / 2);
+            }
+            return InvokeResult<Point2D<double>>.Create(tapeHoleOrigin);
         }
 
         private void SetLocation(SetTypes setType)
         {
+            var stagePlate = MachineConfiguration.StagingPlates.Single(sp => sp.Id == CurrentStripFeeder.StagingPlate.Id);
+            if (stagePlate == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not move, staging plate not set on feeder.");
+                return;
+            }
 
+            var stagePlateReferenceLocation = StagingPlateUtils.ResolveStagePlateWorkSpakeLocation(stagePlate, CurrentStripFeeder.ReferenceHoleColumn, CurrentStripFeeder.ReferenceHoleRow);
+            if (stagePlateReferenceLocation == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not move, reference hole or column not set on strip feeder.");
+                return;
+            }
+
+
+            var feederIsVertical = CurrentStripFeeder.Orientation.Value == FeederOrientations.Vertical;
+            var feederOrigin = stagePlateReferenceLocation.SubtractWithConditionalSwap(feederIsVertical, CurrentStripFeeder.ReferenceHoleOffset);
+
+            switch (setType)
+            {
+                case SetTypes.FirstFeederRowReferenceHole:
+                    {
+                        var delta = Machine.MachinePosition.ToPoint2D() - feederOrigin;
+                        delta.Round(3);
+                        CurrentStripFeederRow.FirstTapeHoleOffset = feederIsVertical ? new Point2D<double>(-delta.Y, delta.X) : delta;
+                    }
+                        break;
+                case SetTypes.LastFeederRowReferenceHole:
+                    {
+                        var delta = Machine.MachinePosition.ToPoint2D() - feederOrigin;
+                        delta.Round(3);
+                        CurrentStripFeederRow.LastTapeHoleOffset = feederIsVertical ? new Point2D<double>(-delta.Y, delta.X) : delta;
+                    }
+                        break;
+            }
         }
-
         
-        private void GoToFeederReferenceHole()
-        {
-            var plate = StagingPlates.Single(sp => sp.Id == CurrentStripFeeder.Id);
-            var coord =     StagingPlateUtils.ResolveStagePlateWorkSpaceLocation(plate, CurrentStripFeeder.ReferenceHoleColumn.Text, CurrentStripFeeder.ReferenceHoleRow.Text);
-            Machine.GotoPoint(coord);
-        }
-        
-
         protected async override void MachineChanged(IMachine machine)
         {
             if (_machineRepo.HasValidMachine)
@@ -108,9 +323,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public async Task<InvokeResult> SaveCurrentFeederAsync()
         {
-            if (_currentAutoFeeder != null)
+            if (CurrentStripFeeder != null)
                 return await _restClient.PutAsync("/api/mfg/stripfeeder", CurrentStripFeeder);
-            else if (_currentAutoFeeder != null)
+            else if (CurrentAutoFeeder != null)
                 return await _restClient.PutAsync("/api/mfg/autofeeder", CurrentAutoFeeder);
 
             return InvokeResult.FromError("No current feeder.");
@@ -186,6 +401,19 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             set => Set(ref _selectedComponent, value);
         }
 
+
+        Component _currentComponent;
+        public Component CurrentComponent
+        {
+            get => _currentComponent;
+        }
+
+        ComponentPackage _currentComponentPackage;
+        public ComponentPackage CurrentComponentPackage
+        {
+            get => _currentComponentPackage;
+        }
+
         public ObservableCollection<MachineStagingPlate> StagingPlates { get => _machineRepo.CurrentMachine.Settings.StagingPlates; }
         public ObservableCollection<MachineFeederRail> FeederRails { get => _machineRepo.CurrentMachine.Settings.FeederRails; }
 
@@ -204,8 +432,30 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             set
             {  
                 Set(ref _currentStripFeeder, value);               
+                if(value != null)
+                {
+                    _tapeSize = _currentStripFeeder.TapeSize;                    
+                }
+                else
+                {
+                    _tapeSize = _currentStripFeeder.TapeSize;
+                }
+
+                RaisePropertyChanged(nameof(TapeSize));
                 RaiseCanExecuteChanged();                
             }
+        }
+
+        EntityHeader<TapePitches> _tapePitch;
+        public EntityHeader<TapePitches> TapePitch
+        {
+            get => _tapePitch;
+        }
+
+        EntityHeader<TapeSizes> _tapeSize;
+        public EntityHeader<TapeSizes> TapeSize
+        {
+            get => _tapeSize;
         }
 
         StripFeederRow _currentStripFeederRow;
@@ -215,6 +465,43 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             set
             {
                 Set(ref _currentStripFeederRow, value);
+                if (value == null)
+                {
+                    _currentComponent = null;
+                    _tapePitch = null;
+                    _currentComponentPackage = null;
+                }
+                else
+                {
+                    _currentComponent = value.Component?.Value;
+                    CurrentPartIndex = value.CurrentPartIndex;
+
+                    if (_currentComponent != null)
+                    {
+                        _currentComponentPackage = _currentComponent.ComponentPackage?.Value;
+                        if (_currentComponentPackage != null)
+                        {
+                            _tapePitch = _currentComponentPackage.TapePitch;
+                        }
+                        else
+                        {
+                            _tapePitch = null;
+                        }
+                    }
+                    else
+                    {
+                        _currentComponent = null;
+                    }
+
+                    TotalPartsInFeederRow = Convert.ToInt32(Math.Floor(CurrentStripFeeder.FeederLength /( TapePitch != null ?  TapePitch.ToDouble() : 4)));
+                    AvailablePartsInFeederRow = TotalPartsInFeederRow - CurrentStripFeederRow.CurrentPartIndex;
+                }
+
+                RaisePropertyChanged(nameof(CurrentComponent));
+                RaisePropertyChanged(nameof(TapePitch));
+                RaisePropertyChanged(nameof(CurrentComponentPackage));
+
+                
                 RaiseCanExecuteChanged();
             }
         }
@@ -225,7 +512,17 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             get => _currentAutoFeeder;
             set
             {
-                Set(ref _currentAutoFeeder, value);
+                Set(ref _currentAutoFeeder, value);                
+                if(value != null )
+                {
+                    _tapeSize = value.TapeSize;
+                }
+                else
+                {
+                    _tapeSize = null;
+                }
+
+                RaisePropertyChanged(nameof(TapeSize));
                 RaiseCanExecuteChanged();
             }
         }
@@ -242,29 +539,32 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         Manufacturing.Models.Component _componentToBePlaced;
         public Manufacturing.Models.Component CurrentComponentToBePlaced { get => _componentToBePlaced; }
 
-
-        public bool CanMoveToNextInTape()
+        private bool _useCalculted;
+        public bool UseCalculated
         {
-            return false;
+            get => _useCalculted;
+            set => Set(ref _useCalculted, value);
         }
 
-        public bool CanMoveToPrevInTape()
+        private int _currentPartIndex;
+        public int CurrentPartIndex
         {
-            return false;
-        }
-        public bool CanMoveToReferenceHoleInTape()
-        {
-            return false;
+            get => _currentPartIndex;
+            set => Set(ref _currentPartIndex, value);
         }
 
-        public bool CanMoveToFirstPartInTape()
+        private int _totalPartsInFeederRow;
+        public int TotalPartsInFeederRow
         {
-            return false;
+            get => _totalPartsInFeederRow;
+            set => Set(ref _totalPartsInFeederRow, value);
         }
 
-        public bool CanMoveToCurrentPartInTape()
+        private int _availablePartsInFeederRow;
+        public int AvailablePartsInFeederRow
         {
-            return false;
+            get => _availablePartsInFeederRow;
+            set => Set(ref _availablePartsInFeederRow, value);
         }
 
         public void RefreshConfigurationParts()
@@ -318,6 +618,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand GoToCurrentPartCommand { get; set; }
         public RelayCommand GoToNextPartCommand { get; set; }
         public RelayCommand GoToPreviousPartCommand { get; set; }
+
+        public RelayCommand SaveCurrentFeederCommand { get; set; }
 
     }
 }

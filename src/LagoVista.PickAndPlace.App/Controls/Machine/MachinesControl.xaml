@@ -63,6 +63,13 @@
                     </StackPanel>
                 </Button.Content>
             </Button>
+            <Button Command="{Binding SaveCurrentMachineCommand}"   >
+                <Button.Content>
+                    <StackPanel>
+                        <fa:ImageAwesome Icon="Save" Foreground="Blue" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>            
             <Button  x:Name="Settings" Click="Settings_Click" >
                 <Button.Content>
                     <StackPanel>

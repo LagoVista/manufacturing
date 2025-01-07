@@ -13,6 +13,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         string SelectedStagingPlateId { get; set; }
         string SelectedStagingPlateColId { get; set; }
         string SelectedStagingPlateRowId { get; set; }
+        string Summary { get; set; }
+
 
         ObservableCollection<EntityHeader> StagingPlates { get; }
         ObservableCollection<EntityHeader> StagingPlateCols { get; }

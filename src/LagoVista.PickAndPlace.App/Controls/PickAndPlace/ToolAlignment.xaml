@@ -177,7 +177,7 @@
                             <Button Command="{Binding ToolAlignmentVM.SetToolOnePlacePositionCommand}" Content="Set" Grid.Column="2" />
                         </Grid>
 
-                        <TextBlock Text="Step 8 - Pixels per MM (Top Camera)" FontWeight="Bold" FontSize="16" />
+                        <!--<TextBlock Text="Step 8 - Pixels per MM (Top Camera)" FontWeight="Bold" FontSize="16" />
                         <TextBlock Text="Position Ruler with MM on the work space bed and trun on the 200 px square." TextWrapping="Wrap" Margin="0,0,0,5"  />
                         <Grid Margin="0,0,0,5"  >
                             <Grid.ColumnDefinitions>
@@ -187,7 +187,7 @@
                             </Grid.ColumnDefinitions>
                             <Label Style="{StaticResource ValueLabel}" Content="Pixels per MM" />
                             <TextBox  Text="{Binding Machine.Settings.PositionCameraPixelsPerMM}" Grid.Column="1"  />
-                        </Grid>
+                        </Grid>-->
 
                         <Button Command="{Binding ToolAlignmentVM.SaveCalibrationCommand}" Content="Save" HorizontalAlignment="Right" />
                     </StackPanel>

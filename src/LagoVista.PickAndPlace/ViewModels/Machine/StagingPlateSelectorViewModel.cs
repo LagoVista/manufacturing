@@ -1,7 +1,9 @@
-﻿using LagoVista.Core.Models;
+﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.Models;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
+using RingCentral;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -30,7 +32,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         {
             get => _selectedStagingPlate == null ? "-1" : _selectedStagingPlate.Id;
             set
-            {
+            {                
                 if (String.IsNullOrEmpty(value) || value == "-1")
                 {
                     StagingPlateRows.Clear();
@@ -40,6 +42,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 }
                 else
                 {
+                    _selectedStagingPlate = MachineConfiguration.StagingPlates.FirstOrDefault(sp => sp.Id == value);
+                    RaisePropertyChanged(nameof(SelectedStagingPlate));
                     SelectedStagingPlate = MachineConfiguration.StagingPlates.Single(sp => sp.Id == value);
                     StagingPlateRows.Clear();
                     StagingPlateRows.Add(EntityHeader.Create("-1", "-1", "-select row-"));
@@ -49,9 +53,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         StagingPlateRows.Add(EntityHeader.Create($"{Char.ConvertFromUtf32(idx + 65)}", $"{Char.ConvertFromUtf32(idx + 65)}", $"{Char.ConvertFromUtf32(idx + 65)}"));
                     }
                 }
-
+                
                 SelectedStagingPlateRowId = "-1";
                 SelectedStagingPlateColId = "-1";
+                RaisePropertyChanged(SelectedStagingPlateId);
                 RaisePropertyChanged(nameof(CanSelectStagingPlateRow));
             }
         }
@@ -79,6 +84,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             get => _selectedStagingPlateRowId;
             set
             {
+                Summary = "-not set-";
                 Set(ref _selectedStagingPlateRowId, value);
                 if(value != null && value != "-1" )
                     PopulateStagingPlateColumns();
@@ -102,6 +108,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             set
             {
                 Set(ref _selectedStagingPlateColId, value);
+
+                if (value == null || value == "-1")
+                    Summary = "-not set-";
+                else
+                    Summary = $"{SelectedStagingPlate.Name} - {SelectedStagingPlateRowId}{SelectedStagingPlateColId}";
                 RaiseCanExecuteChanged();
             }
         }
@@ -118,6 +129,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 Set(ref _selectedStagingPlate, value);
                 RaiseCanExecuteChanged();
             }
+        }
+
+        private string _summary = "-not set-";
+        public string Summary
+        {
+            get => _summary;
+            set => Set(ref _summary, value);
         }
 
         public ObservableCollection<EntityHeader> StagingPlates { get; private set; } = new ObservableCollection<EntityHeader>();

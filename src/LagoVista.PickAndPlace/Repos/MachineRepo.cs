@@ -37,6 +37,8 @@ namespace LagoVista.PickAndPlace.Repos
             UnlockSettingsCommand = new RelayCommand(() => CurrentMachine.AreSettingsLocked = false);
             LockSettingsCommand = new RelayCommand(() => CurrentMachine.AreSettingsLocked = true);
             ConnectCommand = new RelayCommand(Connect, () => this.HasValidMachine);
+            SaveCurrentMachineCommand = new RelayCommand(async () => await SaveCurrentMachineAsync(), ()=> HasValidMachine);
+            ReloadCurrentMachineCommand = new RelayCommand(async () => await LoadCurrentMachineAsync(), () => HasValidMachine);
         }
 
         public IMachine CurrentMachine { get; set; }
@@ -91,7 +93,8 @@ namespace LagoVista.PickAndPlace.Repos
                 await _storageService.StoreKVP("current_machine_id", id);
                 HasValidMachine = true;
                 MachineChanged?.Invoke(this, CurrentMachine);
-
+                SaveCurrentMachineCommand.RaiseCanExecuteChanged();
+                ReloadCurrentMachineCommand.RaiseCanExecuteChanged();
 
                 return InvokeResult.Success;
             }
@@ -174,6 +177,8 @@ namespace LagoVista.PickAndPlace.Repos
         }
 
         public RelayCommand LockSettingsCommand { get; set; }
+        public RelayCommand SaveCurrentMachineCommand { get; set; }
+        public RelayCommand ReloadCurrentMachineCommand { get; set; }
         public RelayCommand UnlockSettingsCommand { get; set; }
 
     }

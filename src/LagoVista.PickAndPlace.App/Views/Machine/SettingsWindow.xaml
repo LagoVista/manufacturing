@@ -252,13 +252,13 @@
                     <TextBox Text="{Binding Settings.MachineFiducial.Y}"  Grid.Row="3" />
                     <Label Content="mm" Grid.Row="3" Grid.Column="3" />
 
-                    <Label Grid.Row="4" Content="Top Pixels per MM" />
+                    <!--<Label Grid.Row="4" Content="Top Pixels per MM" />
                     <TextBox  Text="{Binding Settings.PositionCameraPixelsPerMM}" Grid.Row="4" />
                     <Label Content="mm" Grid.Row="2" Grid.Column="4" />
 
                     <Label Grid.Row="5" Content="Bottom Pixels per MM" />
                     <TextBox Text="{Binding Settings.InspectionCameraPixelsPerMM}"  Grid.Row="5" />
-                    <Label Content="mm" Grid.Row="3" Grid.Column="5" />
+                    <Label Content="mm" Grid.Row="3" Grid.Column="5" />-->
                 </Grid>
             </TabItem>
 

@@ -30,12 +30,19 @@ namespace LagoVista.Manufacturing.Models
         Backwards,
     }
 
+    public interface IStagingPlateLocatedObject
+    {
+        public EntityHeader StagingPlate { get; set; }
+        public EntityHeader ReferenceHoleRow{ get; set; }
+        public EntityHeader ReferenceHoleColumn { get; set; }
+    }
+
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.StripFeeder_Title, ManufacturingResources.Names.StripFeeder_Description,
                ManufacturingResources.Names.StripFeeder_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-fo-left", Cloneable: true,
                SaveUrl: "/api/mfg/stripfeeder", GetUrl: "/api/mfg/stripfeeder/{id}", GetListUrl: "/api/mfg/stripfeeders", FactoryUrl: "/api/mfg/stripfeeder/factory",
                DeleteUrl: "/api/mfg/stripfeeder/{id}", ListUIUrl: "/mfg/stripfeeders", EditUIUrl: "/mfg/stripfeeder/{id}", CreateUIUrl: "/mfg/stripfeeder/add")]
     public class StripFeeder : MfgModelBase, IValidateable, IFormDescriptorAdvanced, IFormDescriptorAdvancedCol2, IFormDescriptor, IFormDescriptorCol2, 
-                             IFormConditionalFields, ISummaryFactory, IIDEntity, IFormAdditionalActions, IFormDescriptorBottom
+                             IFormConditionalFields, ISummaryFactory, IIDEntity, IFormAdditionalActions, IFormDescriptorBottom, IStagingPlateLocatedObject
     {
         public const string FeederOrientation_Horizontal = "horizontal";
         public const string FeederOrientation_Vertical = "vertical";

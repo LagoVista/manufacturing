@@ -294,7 +294,6 @@ namespace LagoVista.Manufacturing.Models
             }
         }
 
-
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_SpecificationPage, FieldType: FieldTypes.WebLink, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public string SpecificationPage { get; set; }
 
