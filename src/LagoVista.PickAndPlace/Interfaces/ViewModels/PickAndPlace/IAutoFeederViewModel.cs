@@ -19,7 +19,11 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand SetPartPickLocationCommand { get; }
         RelayCommand SetFeederFiducialLocationCommand { get; }
 
+
+        RelayCommand AddCommand { get; }
         RelayCommand SaveCommand { get; }
+        RelayCommand CancelCommand { get; }
+        RelayCommand RefreshTemplatesCommand { get; }
 
         RelayCommand AdvancePartCommand { get; }
         RelayCommand GoToPickLocationCommand { get; }

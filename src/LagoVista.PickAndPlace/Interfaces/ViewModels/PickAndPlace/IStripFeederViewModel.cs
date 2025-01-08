@@ -11,6 +11,16 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
     {
         InvokeResult<Point2D<double>> FindLocation(StripFeederLocationTypes moveType);
 
+        int CurrentPartIndex { get; }
+        int TotalPartsInFeederRow { get; }
+        int AvailablePartsInFeederRow { get; }
+        string SelectedTemplateId { get; }
+
+        StripFeeder Current { get; set; }
+        StripFeederRow CurrentRow { get; set; }
+        ObservableCollection<MachineStagingPlate> StagingPlates { get; }
+        ObservableCollection<StripFeederTemplate> Templates { get; }
+
         ObservableCollection<StripFeeder> Feeders { get; }
 
         RelayCommand SetFeederOriginCommand { get; }

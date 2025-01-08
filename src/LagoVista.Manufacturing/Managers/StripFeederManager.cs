@@ -62,6 +62,7 @@ namespace LagoVista.Manufacturing.Managers
                 LastUpdatedDate = timeStamp,
                 TapeSize = template.TapeSize,
                 Color = template.Color,
+                OriginalTemplate = template.ToEntityHeader(),
                 OwnerOrganization = org,
                 FeederHeight = template.FeederHeight,
                 FeederWidth = template.FeederWidth,

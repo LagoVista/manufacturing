@@ -1,4 +1,5 @@
 ﻿using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
+using LagoVista.PickAndPlace.ViewModels.PickAndPlace;
 using LagoVista.XPlat;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace LagoVista.PickAndPlace.App.Controls.PickAndPlace
     /// <summary>
     /// Interaction logic for AutoFeederControl.xaml
     /// </summary>
-    public partial class AutoFeederControl : VMBoundUserControl<IPartsViewModel>
+    public partial class AutoFeederControl : VMBoundUserControl<IAutoFeederViewModel>
     {
         public AutoFeederControl()
         {

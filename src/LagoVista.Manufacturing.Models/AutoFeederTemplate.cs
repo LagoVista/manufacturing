@@ -14,7 +14,6 @@ namespace LagoVista.Manufacturing.Models
               DeleteUrl: "/api/mfg/autofeeder/{id}", ListUIUrl: "/mfg/autoFeedertemplatess", EditUIUrl: "/mfg/autofeeder/template/{id}", CreateUIUrl: "/mfg/autofeeder/template/add")]
     public class AutoFeederTemplate : MfgModelBase, ISummaryFactory, IFormDescriptor
     {
-
         public AutoFeederTemplateSummary CreateSummary()
         {
             return new AutoFeederTemplateSummary()
@@ -73,7 +72,7 @@ namespace LagoVista.Manufacturing.Models
         public EntityHeader<TapeSizes> TapeSize
         {
             get => _tapeSize;
-            set => Set(ref _tapeSize, value);
+            set => Set(ref _tapeSize, value);        
         }
 
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_AdvanceGCode, HelpResource: ManufacturingResources.Names.Feeder_AdvanceGCode_Help, FieldType: FieldTypes.Text, IsRequired: false, ResourceType: typeof(ManufacturingResources))]

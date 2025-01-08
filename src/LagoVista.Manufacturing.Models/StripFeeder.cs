@@ -92,6 +92,10 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _feedDirection, value);
         }
 
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_OriginalTemplate, FieldType: FieldTypes.EntityHeaderPicker, IsRequired: false, IsUserEditable: false, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader OriginalTemplate { get; set; }
+
+
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_FeederId, HelpResource:ManufacturingResources.Names.Feeder_FeederId_Help, 
             FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
         public string FeederId { get; set; }

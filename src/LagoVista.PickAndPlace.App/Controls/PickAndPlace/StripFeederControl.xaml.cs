@@ -20,7 +20,7 @@ namespace LagoVista.PickAndPlace.App.Controls.PickAndPlace
     /// <summary>
     /// Interaction logic for StripFeederControl.xaml
     /// </summary>
-    public partial class StripFeederControl : VMBoundUserControl<IPartsViewModel>
+    public partial class StripFeederControl : VMBoundUserControl<IStripFeederViewModel>
     {
         public StripFeederControl()
         {

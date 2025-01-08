@@ -1,5 +1,5 @@
 ﻿<ucb:VMBoundUserControl  x:Class="LagoVista.PickAndPlace.App.Controls.PickAndPlace.StripFeederControl"
-             x:TypeArguments="vm:IPartsViewModel"                        
+             x:TypeArguments="vm:IStripFeederViewModel"                        
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -9,25 +9,25 @@
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
              xmlns:mch="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine"
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;assembly=LagoVista.PickAndPlace"                                                                 
-             d:DataContext="{d:DesignInstance vm:IPartsViewModel }"
+             d:DataContext="{d:DesignInstance vm:IStripFeederViewModel }"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="33*" />
-            <ColumnDefinition Width="64*" />
+            <ColumnDefinition Width="33*" />
+            <ColumnDefinition Width="33*" />
         </Grid.ColumnDefinitions>
-        <ListView ItemsSource="{Binding StripFeeders}" SelectedItem="{Binding CurrentStripFeeder, Mode=TwoWay}">
+        <ListView ItemsSource="{Binding Feeders}" SelectedItem="{Binding Current, Mode=TwoWay}">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding Name}" />
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <StackPanel Grid.Column="1" Visibility="{Binding CurrentStripFeeder, Converter={StaticResource NoTNullToVisibilityConverter}}">
-            <TextBlock FontSize="32" Text="{Binding CurrentStripFeeder.Name}"></TextBlock>
-
-            <mch:StagingPlateSelectorControl StagePlateLocatedObject ="{Binding CurrentStripFeeder }"></mch:StagingPlateSelectorControl>
+        <StackPanel Grid.Column="1" Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}">
+            <TextBox FontSize="24" Text="{Binding Current.Name}"></TextBox>
+            <mch:StagingPlateSelectorControl StagePlateLocatedObject ="{Binding Current }"></mch:StagingPlateSelectorControl>
 
             <StackPanel Orientation="Horizontal">
                 <StackPanel>
@@ -55,15 +55,15 @@
                 </StackPanel>
             </StackPanel>
 
-            <DataGrid ItemsSource="{Binding CurrentStripFeeder.Rows}" SelectedItem="{Binding CurrentStripFeederRow}">
+            <DataGrid ItemsSource="{Binding Current.Rows}" SelectedItem="{Binding CurrentRow}" CanUserAddRows="false">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Row Index" Binding="{Binding RowIndex}"></DataGridTextColumn>
                 </DataGrid.Columns>
             </DataGrid>
 
-            <StackPanel Visibility="{Binding CurrentStripFeederRow , Converter={StaticResource NoTNullToVisibilityConverter}}">
-                <TextBlock Text="{Binding CurrentStripFeederRow.RowIndex}" />
-                <TextBlock Text="{Binding CurrentStripFeederRow.Component.Text}" />
+            <StackPanel Visibility="{Binding CurrentRow , Converter={StaticResource NoTNullToVisibilityConverter}}">
+                <TextBlock Text="{Binding CurrentRow.RowIndex}" />
+                <TextBlock Text="{Binding CurrentRow.Component.Text}" />
                 <Label>Component Category</Label>
                 <ComboBox ItemsSource="{Binding ComponentCategories}" DisplayMemberPath="Text" SelectedValuePath="Key" SelectedValue="{Binding SelectedCategoryKey, Mode=TwoWay}"></ComboBox>
                 <Label>Component</Label>

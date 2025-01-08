@@ -69,7 +69,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             GoToNextPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.NextPart), () => (CurrentRow != null && CurrentPartIndex < TotalPartsInFeederRow));
             GoToPreviousPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.PreviousPart), () => (CurrentRow != null && CurrentPartIndex > 1));
 
-            AddCommand = CreatedCommand(Add, () => MachineRepo.HasValidMachine && !String.IsNullOrEmpty(SelectedTemplateId) && SelectedTemplateId != "-1");
+            AddCommand = CreatedCommand(Add, () => MachineRepo.HasValidMachine && SelectedTemplateId.HasValidId());
             SaveCommand = CreatedCommand(SaveCurrentFeeder, () => Current != null);
             CancelCommand = CreatedCommand(Cancel, () => Current != null);
 
@@ -92,7 +92,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Templates = new ObservableCollection<StripFeederTemplate>(feeders);
             }
         }
-
 
         protected async override void MachineChanged(IMachine machine)
         {
@@ -354,7 +353,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public ObservableCollection<StripFeederTemplate> Templates
         {
             get => _templates;
-            set => Set(ref _templates, value);
+            private set => Set(ref _templates, value);
         }
 
         StripFeeder _current;

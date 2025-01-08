@@ -21,17 +21,14 @@
         </DataGrid>
         <StackPanel Grid.Column="1">
             <TextBlock Text="{Binding Status, FallbackValue=Idle}" FontWeight="Bold" FontSize="16"></TextBlock>
-        
+
             <ProgressBar Maximum="{Binding SlotsToSearch}" Height="20" Value="{Binding SlotSearchIndex}" ></ProgressBar>
             <TextBox Width="120" Height="20" Text="{Binding FeedersToSearch}"></TextBox>
             <Button Style="{StaticResource CommandButton}" Command="{Binding DiscoverFeedersCommand}" Content="Discover" ></Button>
-            <DataGrid ItemsSource="{Binding DiscoveredFeeders}"></DataGrid>
+            <DataGrid ItemsSource="{Binding DiscoveredFeeders}" SelectedItem="{Binding SelectedPhotonFeeder, Mode=TwoWay}">
+
+
+            </DataGrid>
         </StackPanel>
-        <StackPanel>
-            <ComboBox ItemsSource="{Binding AutoFeederTemplates}" SelectedValue="{Binding SelectedAutoFeederTemplateId}" DisplayMemberPath="Name" SelectedValuePath="Id"></ComboBox>
-        </StackPanel>
-        
-            
-        
     </Grid>
 </ucb:VMBoundUserControl>

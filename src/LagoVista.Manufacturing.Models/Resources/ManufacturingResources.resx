@@ -1370,4 +1370,7 @@
   <data name="MachineStagingPlate_FirstUsableColumn_Help" xml:space="preserve">
     <value>What is the last column on the staging plate where the machine can access.</value>
   </data>
+  <data name="Feeder_OriginalTemplate" xml:space="preserve">
+    <value>Original Template</value>
+  </data>
 </root>

@@ -84,6 +84,19 @@ namespace LagoVista.PickAndPlace.ViewModels
             get => _machine?.Settings;
         }
 
+        protected bool SelectedIDHasValue(string id)
+        {
+            if(String.IsNullOrEmpty(id)) 
+                return false;
+
+            if (id == "-1")
+                return false;
+
+            return true;
+        }
+
+
+
         public IMachineRepo MachineRepo { get; }
         public RelayCommand SaveMachineConfigurationCommand { get; }
         public RelayCommand ReloadMachineCommand { get; set; }

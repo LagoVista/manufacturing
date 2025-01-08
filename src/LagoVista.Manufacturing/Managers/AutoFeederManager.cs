@@ -62,6 +62,7 @@ namespace LagoVista.Manufacturing.Managers
                 LastUpdatedDate = timeStamp,
                 TapeSize = template.TapeSize,
                 Color = template.Color,
+                OriginalTemplate = template.ToEntityHeader(),
                 OwnerOrganization = org,
                 FeederHeight = template.FeederHeight,
                 Protocol = template.Protocol,
@@ -72,7 +73,7 @@ namespace LagoVista.Manufacturing.Managers
                 OriginOffset = template.OriginOffset,
                 AdvanceGCode = template.AdvanceGCode,
                 Description = template.Description,
-            };
+            }
             return  feeder;
         }
 

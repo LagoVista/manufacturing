@@ -101,6 +101,9 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _partCount, value);
         }
 
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_OriginalTemplate, FieldType: FieldTypes.EntityHeaderPicker, IsRequired: false, IsUserEditable: false, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader OriginalTemplate { get; set; }
+
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_Machine, WaterMark: ManufacturingResources.Names.Feeder_Machine_Select, EntityHeaderPickerUrl: "/api/mfg/machines", FieldType: FieldTypes.EntityHeaderPicker, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader Machine { get; set; }
 
