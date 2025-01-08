@@ -54,9 +54,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             GoToFirstPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.FirstPart), () => CurrentStripFeederRow != null);
             GoToCurrentPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.CurrentPart), () => CurrentStripFeederRow != null);
-            GoToLastPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.LastPart), () => CurrentStripFeederRow != null && CurrentPartIndex < TotalPartsInFeederRow);
-            GoToNextPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.NextPart), () => CurrentStripFeederRow != null);
-            GoToPreviousPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.PreviousPart), () => CurrentStripFeederRow != null && CurrentPartIndex > 1);
+            GoToLastPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.LastPart), () => CurrentStripFeederRow != null );
+            GoToNextPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.NextPart), () => (CurrentStripFeederRow != null && CurrentPartIndex < TotalPartsInFeederRow) || CurrentAutoFeeder != null);
+            GoToPreviousPartCommand = CreatedMachineConnectedCommand(() => GoTo(LocationType.PreviousPart), () => (CurrentStripFeederRow != null && CurrentPartIndex > 1) || CurrentAutoFeeder != null);
 
             SaveCurrentFeederCommand = new RelayCommand(async () => await SaveCurrentFeederAsync(), () => CurrentAutoFeeder != null || CurrentStripFeeder != null);
             RegisterCommandHandler(SaveCurrentFeederCommand);
@@ -64,7 +64,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         private void GoTo(LocationType locationType)
         {
-            var locationResult = FindLocation(locationType);
+            var locationResult = FindLocationInStripFeeder(locationType);
             if (locationResult.Successful)
             {
                 Machine.GotoPoint(locationResult.Result);
@@ -83,7 +83,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        private InvokeResult<Point2D<double>> FindLocation(LocationType moveType)
+        private InvokeResult<Point2D<double>> FindLocationInStripFeeder(LocationType moveType)
         {
             var stagePlate = MachineConfiguration.StagingPlates.Single(sp => sp.Id == CurrentStripFeeder.StagingPlate.Id);
             if (stagePlate == null)
