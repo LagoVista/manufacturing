@@ -10,12 +10,28 @@
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;assembly=LagoVista.PickAndPlace"                                        
              d:DesignHeight="450" d:DesignWidth="800">
-    <StackPanel>
-        <TextBlock Text="{Binding Status, FallbackValue=Idle}" FontWeight="Bold" FontSize="16"></TextBlock>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="33*" ></ColumnDefinition>
+            <ColumnDefinition Width="33*" ></ColumnDefinition>
+            <ColumnDefinition Width="33*" ></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <DataGrid ItemsSource="{Binding PartsViewModel.AutoFeeders}">
+
+        </DataGrid>
+        <StackPanel Grid.Column="1">
+            <TextBlock Text="{Binding Status, FallbackValue=Idle}" FontWeight="Bold" FontSize="16"></TextBlock>
         
-        <ProgressBar Maximum="{Binding SlotsToSearch}" Height="20" Value="{Binding SlotSearchIndex}" ></ProgressBar>
-        <TextBox Width="120" Height="20" Text="{Binding FeedersToSearch}"></TextBox>
-        <Button Style="{StaticResource CommandButton}" Command="{Binding DiscoverFeedersCommand}" Content="Discover" ></Button>
-        <DataGrid ItemsSource="{Binding DiscoveredFeeders}"></DataGrid>
-    </StackPanel>
+            <ProgressBar Maximum="{Binding SlotsToSearch}" Height="20" Value="{Binding SlotSearchIndex}" ></ProgressBar>
+            <TextBox Width="120" Height="20" Text="{Binding FeedersToSearch}"></TextBox>
+            <Button Style="{StaticResource CommandButton}" Command="{Binding DiscoverFeedersCommand}" Content="Discover" ></Button>
+            <DataGrid ItemsSource="{Binding DiscoveredFeeders}"></DataGrid>
+        </StackPanel>
+        <StackPanel>
+            <ComboBox ItemsSource="{Binding AutoFeederTemplates}" SelectedValue="{Binding SelectedAutoFeederTemplateId}" DisplayMemberPath="Name" SelectedValuePath="Id"></ComboBox>
+        </StackPanel>
+        
+            
+        
+    </Grid>
 </ucb:VMBoundUserControl>

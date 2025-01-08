@@ -1,5 +1,6 @@
 ﻿using LagoVista.Client.Core;
 using LagoVista.Core.Commanding;
+using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Core.PlatformSupport;
 using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
@@ -11,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -18,12 +20,10 @@ using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 {
-    public class PhotonFeederViewModel : ViewModelBase, IPhotonFeederViewModel
+    public class PhotonFeederViewModel : MachineViewModelBase, IPhotonFeederViewModel
     {
-        IMachineRepo _machineRepo;
-        IRestClient _restClient;
-        ILogger _logger;
         IPhotonProtocolHandler _protocolHandler;
+        private Dictionary<byte, FeederSearchResult> _feederDiscoverResults = new Dictionary<byte, FeederSearchResult>();
 
         private class FeederSearchResult
         {
@@ -32,30 +32,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             public string Address { get; set; }
         }
 
-
-        public PhotonFeederViewModel(IMachineRepo machineRepo, IPhotonProtocolHandler protocolHandler, IRestClient restClient, ILogger logger)
+        public PhotonFeederViewModel(IMachineRepo machineRepo, IPhotonProtocolHandler protocolHandler, IRestClient restClient, ILogger logger) : base(machineRepo) 
         {
-            _machineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
-            _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _protocolHandler = protocolHandler ?? throw new ArgumentNullException(nameof(protocolHandler));
-            DiscoverFeedersCommand = new RelayCommand(Discover);
+            DiscoverFeedersCommand = CreatedMachineConnectedCommand(Discover);
         }
 
-
-        public RelayCommand<int> NextPartCommand { get; }
-        public RelayCommand DiscoverFeedersCommand { get; }
-        public RelayCommand AddFeederCommand { get; }
-
-        public override Task InitAsync()
+        public override async Task InitAsync()
         {
-            return base.InitAsync();
+            await base.InitAsync();
         }
-
-        private int _currentPacketId;
-
-        private Dictionary<byte, FeederSearchResult> _feederDiscoverResults = new Dictionary<byte, FeederSearchResult>();
-
 
         private void CurrentMachine_LineReceived(object sender, string e)
         {
@@ -66,8 +52,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 try
                 {
                     var responsePayload = match.Groups[1].Value;
-
-                    Debug.WriteLine(e);
                     var parsed = _protocolHandler.ParseResponse(responsePayload);
                     _completed.Set();
                     _feederDiscoverResults[parsed.PacketId].Found = true;
@@ -105,7 +89,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 {
                     _completed.Reset();
                     var gcode = _protocolHandler.GenerateGCode(LumenSupport.FeederCommands.GetId, idx);
-                    _currentPacketId = gcode.PacketId;
                     _feederDiscoverResults.Add(gcode.PacketId, new FeederSearchResult() { Slot = idx });
                     _machineRepo.CurrentMachine.SendCommand(gcode.GCode);
                     var attepmtCount = 0;
@@ -154,15 +137,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             set => Set(ref _discoveredFeeders, value);
         }
 
-        ObservableCollection<AutoFeederSummary> _existingAutoFeeders = new ObservableCollection<AutoFeederSummary>();
-        public ObservableCollection<AutoFeederSummary> ExistingAutoFeeders
+        PhotonFeeder _selectedPhotonFeeder;
+        public PhotonFeeder SelectedPhotonFeeder
         {
-            get => _existingAutoFeeders;
-            set => Set(ref _existingAutoFeeders, value);
-        }
-
-
-        public AutoFeeder SelectedFeeder { get; private set; }
+            get => _selectedPhotonFeeder;
+            set => Set(ref _selectedPhotonFeeder, value);
+         }
 
         private byte _slotsToSearch = 50;
         public byte SlotsToSearch
@@ -184,5 +164,30 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             get => _status;
             set => Set(ref _status, value);
         }
+
+        private string _selectedAutoFeederTemplateId = "-1";
+        public string SelectedAutoFeederTemplateId
+        {
+            get => _selectedAutoFeederTemplateId;
+            set
+            {
+                Set(ref _selectedAutoFeederTemplateId, value);
+                CreateAutoFeederFromTemplateCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        List<AutoFeederTemplateSummary> _autoFeederTemplates;
+        public List<AutoFeederTemplateSummary> AutoFeederTemplates
+        {
+            get => _autoFeederTemplates;
+            set => Set(ref _autoFeederTemplates, value);
+        }
+
+        public RelayCommand CreateAutoFeederFromTemplateCommand { get; }
+
+
+        public RelayCommand<int> NextPartCommand { get; }
+        public RelayCommand DiscoverFeedersCommand { get; }
+        public RelayCommand AddFeederCommand { get; }
     }
 }

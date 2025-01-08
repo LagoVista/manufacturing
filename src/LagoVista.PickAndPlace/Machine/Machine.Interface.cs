@@ -123,6 +123,7 @@ namespace LagoVista.PickAndPlace
             }
             catch (Exception ex)
             {
+                AddStatusMessage(StatusMessageTypes.Warning, $"Could not connect to socket client: " + ex.Message);
                 MachineDisconnected?.Invoke(this, null);
             }
         }

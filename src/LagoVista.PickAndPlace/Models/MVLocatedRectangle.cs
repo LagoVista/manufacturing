@@ -8,9 +8,10 @@ namespace LagoVista.PickAndPlace.Models
     public class MVLocatedRectangle
     {
         int _head;
-        const int FILTER_SIZE = 9;
+        
         const int THROW_AWAY = 3;
 
+        const int FILTER_SIZE = 9;
         public RotatedRect[] _rects = new RotatedRect[FILTER_SIZE];
         private double _pixelsPerMM;
         private double _errorMargin;

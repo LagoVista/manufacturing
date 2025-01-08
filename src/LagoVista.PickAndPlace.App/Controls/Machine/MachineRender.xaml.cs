@@ -26,17 +26,18 @@ namespace LagoVista.PickAndPlace.App.Controls
         {
             if(e.PropertyName == nameof(IPartsViewModel.Machine))
             {
-                Machine = ViewModel.Machine.Settings;
+                if(ViewModel.Machine != null)
+                    Machine = ViewModel.Machine.Settings;
             }
 
-            if(e.PropertyName == nameof(IPartsViewModel.StripFeeders))
+            if(e.PropertyName == nameof(IStripFeederViewModel.Feeders))
             {
-                StripFeeders = ViewModel.StripFeeders;
+                StripFeeders = ViewModel.StripFeederViewModel.Feeders;
             }
 
-            if(e.PropertyName == nameof(IPartsViewModel.AutoFeeders))
+            if(e.PropertyName == nameof(IAutoFeederViewModel.Feeders))
             {
-                AutoFeeders = ViewModel.AutoFeeders;
+                AutoFeeders = ViewModel.AutoFeederViewModel.Feeders;
             }
         }
 
@@ -54,8 +55,12 @@ namespace LagoVista.PickAndPlace.App.Controls
 
         private void MachineRender_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if(ViewModel != null)
+            if (ViewModel != null)
+            {
                 ViewModel.PropertyChanged += ViewModel_PropertyChanged;
+                ViewModel.AutoFeederViewModel.PropertyChanged += ViewModel_PropertyChanged;
+                ViewModel.StripFeederViewModel.PropertyChanged += ViewModel_PropertyChanged;
+            }
         }
 
         LagoVista.Manufacturing.Models.Machine _machine;

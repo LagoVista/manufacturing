@@ -31,11 +31,11 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         {
             var y = StagingPlateUtils.RowToY(_plate, "G");
             Console.WriteLine(y);
-            Assert.AreEqual((7 * 30 / 2), y);
+            Assert.That(y.Equals(7 * 30 / 2));
 
             y = StagingPlateUtils.RowToY(_plate, "A");
             Console.WriteLine(y);
-            Assert.AreEqual((1 * 30 / 2), y);
+            Assert.That(y.Equals(1 * 30 / 2));
         }
 
         [Test]
@@ -43,11 +43,11 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         {
             var x = StagingPlateUtils.RowToY(_plate, "1");
             Console.WriteLine(x);
-            Assert.AreEqual((1 * 30 / 2), x);
+            Assert.That(x.Equals(1 * 30 / 2));
 
             x = StagingPlateUtils.RowToY(_plate, "10");
             Console.WriteLine(x);
-            Assert.AreEqual((10 * 30 / 2), x);
+            Assert.That(x.Equals(10 * 30 / 2));
         }
 
 
@@ -55,8 +55,8 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         public void ResolveXY() {
             var location = StagingPlateUtils.ResolveStagePlateLocation(_plate, EntityHeader.Create("10", "10", "10"), EntityHeader.Create("B", "B", "B"));
             Console.WriteLine(location); 
-            Assert.AreEqual(150, location.X);
-            Assert.AreEqual(30, location.Y);
+            Assert.That(location.X.Equals(150));
+            Assert.That(location.Y.Equals(30));
         }
 
         [Test]
