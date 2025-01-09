@@ -32,7 +32,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             ReloadJobCommand = new RelayCommand(async () => await RefreshJob(), () => { return Job != null; });
             RefreshConfigurationPartsCommand = new RelayCommand(RefreshConfigurationParts);
             SaveCommand = new RelayCommand(async () => await SaveJobAsync(), () => { return Job != null; });
-            SetBoardOriginCommand = CreatedMachineConnectedCommand(() => Job.BoardOrigin = Machine.MachinePosition.ToPoint2D(), () => Job != null);
+            SetBoardOriginCommand = CreatedMachineConnectedCommand(() => Job.DefaultBoardOrigin = Machine.MachinePosition.ToPoint2D(), () => Job != null);
             CheckBoardFiducialsCommand = CreatedMachineConnectedCommand(() => CheckBoardFiducials(), () => Job != null);
         }
 

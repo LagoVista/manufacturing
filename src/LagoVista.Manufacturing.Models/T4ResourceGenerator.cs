@@ -1,4 +1,4 @@
-﻿/*1/8/2025 6:03:25 PM*/
+﻿/*1/9/2025 5:12:48 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -719,6 +719,33 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:GCodeMappings_Title
 
 		public static string GCodeMappings_Title { get { return GetResourceString("GCodeMappings_Title"); } }
+//Resources:ManufacturingResources:JobPlacementStatus_Failed
+
+		public static string JobPlacementStatus_Failed { get { return GetResourceString("JobPlacementStatus_Failed"); } }
+//Resources:ManufacturingResources:JobPlacementStatus_InProcess
+
+		public static string JobPlacementStatus_InProcess { get { return GetResourceString("JobPlacementStatus_InProcess"); } }
+//Resources:ManufacturingResources:JobPlacementStatus_Pending
+
+		public static string JobPlacementStatus_Pending { get { return GetResourceString("JobPlacementStatus_Pending"); } }
+//Resources:ManufacturingResources:JobPlacementStatus_Placed
+
+		public static string JobPlacementStatus_Placed { get { return GetResourceString("JobPlacementStatus_Placed"); } }
+//Resources:ManufacturingResources:JobState_Aborted
+
+		public static string JobState_Aborted { get { return GetResourceString("JobState_Aborted"); } }
+//Resources:ManufacturingResources:JobState_Completed
+
+		public static string JobState_Completed { get { return GetResourceString("JobState_Completed"); } }
+//Resources:ManufacturingResources:JobState_Creted
+
+		public static string JobState_Creted { get { return GetResourceString("JobState_Creted"); } }
+//Resources:ManufacturingResources:JobState_Failed
+
+		public static string JobState_Failed { get { return GetResourceString("JobState_Failed"); } }
+//Resources:ManufacturingResources:JobState_Running
+
+		public static string JobState_Running { get { return GetResourceString("JobState_Running"); } }
 //Resources:ManufacturingResources:Machine_Cameras
 
 		public static string Machine_Cameras { get { return GetResourceString("Machine_Cameras"); } }
@@ -1082,15 +1109,33 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:PickAndPlaceJob_Board
 
 		public static string PickAndPlaceJob_Board { get { return GetResourceString("PickAndPlaceJob_Board"); } }
+//Resources:ManufacturingResources:PickAndPlaceJob_Cost
+
+		public static string PickAndPlaceJob_Cost { get { return GetResourceString("PickAndPlaceJob_Cost"); } }
 //Resources:ManufacturingResources:PickAndPlaceJob_CurrentSerialNumber
 
 		public static string PickAndPlaceJob_CurrentSerialNumber { get { return GetResourceString("PickAndPlaceJob_CurrentSerialNumber"); } }
 //Resources:ManufacturingResources:PickAndPlaceJob_Description
 
 		public static string PickAndPlaceJob_Description { get { return GetResourceString("PickAndPlaceJob_Description"); } }
+//Resources:ManufacturingResources:PickAndPlaceJob_Extneded
+
+		public static string PickAndPlaceJob_Extneded { get { return GetResourceString("PickAndPlaceJob_Extneded"); } }
 //Resources:ManufacturingResources:PickAndPlaceJob_Title
 
 		public static string PickAndPlaceJob_Title { get { return GetResourceString("PickAndPlaceJob_Title"); } }
+//Resources:ManufacturingResources:PickAndPlaceJobRun_Description
+
+		public static string PickAndPlaceJobRun_Description { get { return GetResourceString("PickAndPlaceJobRun_Description"); } }
+//Resources:ManufacturingResources:PickAndPlaceJobRun_Title
+
+		public static string PickAndPlaceJobRun_Title { get { return GetResourceString("PickAndPlaceJobRun_Title"); } }
+//Resources:ManufacturingResources:PickAndPlaceJobRuns_Title
+
+		public static string PickAndPlaceJobRuns_Title { get { return GetResourceString("PickAndPlaceJobRuns_Title"); } }
+//Resources:ManufacturingResources:PickAndPlaceJobs_Title
+
+		public static string PickAndPlaceJobs_Title { get { return GetResourceString("PickAndPlaceJobs_Title"); } }
 //Resources:ManufacturingResources:StripFeeder_AngleOffset
 
 		public static string StripFeeder_AngleOffset { get { return GetResourceString("StripFeeder_AngleOffset"); } }
@@ -1538,6 +1583,15 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string GCode_TopLightOn = "GCode_TopLightOn";
 			public const string GCodeMapping_Title = "GCodeMapping_Title";
 			public const string GCodeMappings_Title = "GCodeMappings_Title";
+			public const string JobPlacementStatus_Failed = "JobPlacementStatus_Failed";
+			public const string JobPlacementStatus_InProcess = "JobPlacementStatus_InProcess";
+			public const string JobPlacementStatus_Pending = "JobPlacementStatus_Pending";
+			public const string JobPlacementStatus_Placed = "JobPlacementStatus_Placed";
+			public const string JobState_Aborted = "JobState_Aborted";
+			public const string JobState_Completed = "JobState_Completed";
+			public const string JobState_Creted = "JobState_Creted";
+			public const string JobState_Failed = "JobState_Failed";
+			public const string JobState_Running = "JobState_Running";
 			public const string Machine_Cameras = "Machine_Cameras";
 			public const string Machine_Description = "Machine_Description";
 			public const string Machine_FeederRail_Description = "Machine_FeederRail_Description";
@@ -1659,9 +1713,15 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Pcbs_Title = "Pcbs_Title";
 			public const string Pfb_Revision_Revision = "Pfb_Revision_Revision";
 			public const string PickAndPlaceJob_Board = "PickAndPlaceJob_Board";
+			public const string PickAndPlaceJob_Cost = "PickAndPlaceJob_Cost";
 			public const string PickAndPlaceJob_CurrentSerialNumber = "PickAndPlaceJob_CurrentSerialNumber";
 			public const string PickAndPlaceJob_Description = "PickAndPlaceJob_Description";
+			public const string PickAndPlaceJob_Extneded = "PickAndPlaceJob_Extneded";
 			public const string PickAndPlaceJob_Title = "PickAndPlaceJob_Title";
+			public const string PickAndPlaceJobRun_Description = "PickAndPlaceJobRun_Description";
+			public const string PickAndPlaceJobRun_Title = "PickAndPlaceJobRun_Title";
+			public const string PickAndPlaceJobRuns_Title = "PickAndPlaceJobRuns_Title";
+			public const string PickAndPlaceJobs_Title = "PickAndPlaceJobs_Title";
 			public const string StripFeeder_AngleOffset = "StripFeeder_AngleOffset";
 			public const string StripFeeder_AngleOffset_Help = "StripFeeder_AngleOffset_Help";
 			public const string StripFeeder_CurrentPartindex = "StripFeeder_CurrentPartindex";

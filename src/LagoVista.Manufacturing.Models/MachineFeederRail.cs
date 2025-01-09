@@ -36,7 +36,7 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _numberSlots, value);
         }
 
-        private double _slotWidth = 16;
+        private double _slotWidth = 15;
         [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRail_SlotWidth, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double SlotWidth
         {

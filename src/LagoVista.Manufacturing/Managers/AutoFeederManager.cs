@@ -73,7 +73,7 @@ namespace LagoVista.Manufacturing.Managers
                 OriginOffset = template.OriginOffset,
                 AdvanceGCode = template.AdvanceGCode,
                 Description = template.Description,
-            }
+            };
             return  feeder;
         }
 

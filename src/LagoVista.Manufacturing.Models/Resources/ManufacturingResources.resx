@@ -1301,10 +1301,10 @@
   <data name="MachineCamera_SupportZoom" xml:space="preserve">
     <value>Support Software Zoom</value>
   </data>
-  <data name="Machine_WorkspaceFrameOffset " xml:space="preserve">
+  <data name="Machine_WorkspaceFrameOffset" xml:space="preserve">
     <value>Workspace Frame Offset</value>
   </data>
-  <data name="Machine_WorkspaceFrameOffset _Help" xml:space="preserve">
+  <data name="Machine_WorkspaceFrameOffset_Help" xml:space="preserve">
     <value>Distance in MM from the front left of the machines frame to the 0,0 coordinate of the workspace.</value>
   </data>
   <data name="StripFeederRow_LastTapeHoleOffset" xml:space="preserve">
@@ -1372,5 +1372,50 @@
   </data>
   <data name="Feeder_OriginalTemplate" xml:space="preserve">
     <value>Original Template</value>
+  </data>
+  <data name="PickAndPlaceJobs_Title" xml:space="preserve">
+    <value>Pick and Place Jobs</value>
+  </data>
+  <data name="JobState_Creted" xml:space="preserve">
+    <value>Created</value>
+  </data>
+  <data name="JobState_Running" xml:space="preserve">
+    <value>Running</value>
+  </data>
+  <data name="JobState_Completed" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="JobState_Failed" xml:space="preserve">
+    <value>Failed</value>
+  </data>
+  <data name="JobState_Aborted" xml:space="preserve">
+    <value>Aborted</value>
+  </data>
+  <data name="JobPlacementStatus_Pending" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="JobPlacementStatus_InProcess" xml:space="preserve">
+    <value>In Process</value>
+  </data>
+  <data name="JobPlacementStatus_Placed" xml:space="preserve">
+    <value>Placed</value>
+  </data>
+  <data name="JobPlacementStatus_Failed" xml:space="preserve">
+    <value>Failed</value>
+  </data>
+  <data name="PickAndPlaceJob_Cost" xml:space="preserve">
+    <value>Cost</value>
+  </data>
+  <data name="PickAndPlaceJob_Extneded" xml:space="preserve">
+    <value>Extended</value>
+  </data>
+  <data name="PickAndPlaceJobRun_Title" xml:space="preserve">
+    <value>Pick and Place Job Run</value>
+  </data>
+  <data name="PickAndPlaceJobRuns_Title" xml:space="preserve">
+    <value>Pick and Place Job Runs</value>
+  </data>
+  <data name="PickAndPlaceJobRun_Description" xml:space="preserve">
+    <value>A Pick and Place Job Run is an instance of a Pick and Place Job that tracks the creation of the creation of a circuit board</value>
   </data>
 </root>

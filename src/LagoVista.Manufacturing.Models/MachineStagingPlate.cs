@@ -124,11 +124,11 @@ namespace LagoVista.Manufacturing.Models
             return new List<string>()
             {
                 nameof(Origin),
-                nameof(ReferenceHoleColumn1),
                 nameof(ReferenceHoleRow1),
+                nameof(ReferenceHoleColumn1),
                 nameof(ReferenceHoleLocation1),
-                nameof(ReferenceHoleColumn2),
                 nameof(ReferenceHoleRow2),
+                nameof(ReferenceHoleColumn2),
                 nameof(ReferenceHoleLocation2),
             };
         }

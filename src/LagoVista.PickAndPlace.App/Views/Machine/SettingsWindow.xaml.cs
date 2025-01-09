@@ -28,8 +28,7 @@ namespace LagoVista.PickAndPlace.App
             DataContext = new SettingsViewModel(machineRepo, _settings);
 
             var cameras = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
-            var idx = 0;
-
+        
             ViewModel.Cameras.Add(new MachineCamera()
             {
                 Id = "-1",

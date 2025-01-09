@@ -196,6 +196,13 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _machineFiducial, value); }
         }
 
+        private Point2D<double> _defaultWorkOrigin = new Point2D<double>();
+        public Point2D<double> DefaultWorkOrigin
+        {
+            get => _defaultWorkOrigin;
+            set => Set(ref _defaultWorkOrigin, value);
+        }
+
         private int _fastFeedRate = 10000;
         public int FastFeedRate
         {
@@ -378,7 +385,8 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _workAreaHeight, value); }
         }
 
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_WorkAreaOrigin, HelpResource:ManufacturingResources.Names.Machine_WorkAreaOrigin_Help, FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_WorkAreaOrigin, HelpResource:ManufacturingResources.Names.Machine_WorkAreaOrigin_Help,
+            FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public Point2D<double> WorkAreaOrigin { get; set; } = new Point2D<double>(0,0);
        
 
@@ -390,7 +398,8 @@ namespace LagoVista.Manufacturing.Models
 
 
         Point2D<double> _workspaceFrameOffset;
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_WorkspaceFrameOffset, HelpResource:ManufacturingResources.Names.Machine_WorkspaceFrameOffset_Help, FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_WorkspaceFrameOffset, HelpResource:ManufacturingResources.Names.Machine_WorkspaceFrameOffset_Help, 
+            FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public Point2D<double> WorkspaceFrameOffset 
         {
             get => _workspaceFrameOffset;
