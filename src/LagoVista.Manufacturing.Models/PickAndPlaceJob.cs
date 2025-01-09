@@ -64,9 +64,12 @@ namespace LagoVista.Manufacturing.Models
 
         public CircuitBoardRevision BoardRevision { get; set; }
 
-        public List<PickAndPlaceJobPart> Placements { get; set; } = new List<PickAndPlaceJobPart>();
+        public List<PickAndPlaceJobPart> Parts { get; set; } = new List<PickAndPlaceJobPart>();
 
-        public ObservableCollection<ErrorMessage> ErrorMessages { get; set; } = new ObservableCollection<ErrorMessage>();
+        public ObservableCollection<ErrorMessage> ErrorMessages { get; set; } = new ObservableCollection<ErrorMessage>()
+
+        public List<string> Errors { get; set; }
+        public List<string> Warnings { get; set; }
 
         public List<string> GetFormFields()
         {
