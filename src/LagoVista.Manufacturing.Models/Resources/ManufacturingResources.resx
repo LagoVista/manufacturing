@@ -1224,7 +1224,7 @@
     <value>Auto Feeder Template</value>
   </data>
   <data name="AutoFeederTemplate_Description" xml:space="preserve">
-    <value>Default parameters that can be used to create auto feeders.</value>
+    <value>Default parameters that can be used to create auto feeders.  The origin of the Auto Feeder will be calculated from the slot location and is the horizontal center of the feeder on the top of the rail.</value>
   </data>
   <data name="StripFeederTemplate_Title" xml:space="preserve">
     <value>Strip Feeder Template</value>
