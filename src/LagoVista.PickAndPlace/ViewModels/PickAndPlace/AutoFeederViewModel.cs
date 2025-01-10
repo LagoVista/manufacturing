@@ -83,7 +83,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Current.FeederId = feederId;
                 Current.Rotation = rail.Rotation;
                 Current.Slot = slot;
-                Current.Key = result.Result.Model.Id;
+                Current.Key = $"addr{feederId.ToLower()}";
                 Current.Machine = MachineConfiguration.ToEntityHeader();
                 _isEding = false;
             }

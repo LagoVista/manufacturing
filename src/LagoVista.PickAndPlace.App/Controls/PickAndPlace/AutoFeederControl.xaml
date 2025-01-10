@@ -7,43 +7,53 @@
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls.PickAndPlace"
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"             
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;assembly=LagoVista.PickAndPlace"                                        
-             d:DataContext="{d:DesignInstance vm:IPartsViewModel }"
+             d:DataContext="{d:DesignInstance vm:IAutoFeederViewModel }"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="33*"></ColumnDefinition>
-            
+            <ColumnDefinition Width="33*"></ColumnDefinition>
+            <ColumnDefinition Width="33*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
+
+        <DataGrid ItemsSource="{Binding Feeders }" CanUserAddRows="false" AutoGenerateColumns="False" SelectedItem="{Binding Current, Mode=TwoWay}" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" x:Name="Name" ></DataGridTextColumn>
+                <DataGridTextColumn Header="Feeder Id" Binding="{Binding FeederId}" ></DataGridTextColumn>
+                <DataGridTextColumn Header="Tape Size" Binding="{Binding TapeSize}" ></DataGridTextColumn>
+                <DataGridTextColumn Header="Component" Binding="{Binding Component}" ></DataGridTextColumn>
+            </DataGrid.Columns>
+        </DataGrid>
         
-        <ItemsControl Name="images" ItemsSource="{Binding AutoFeeders}" >
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Text="{Binding Name}" />
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <WrapPanel />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-        </ItemsControl>
-        <StackPanel>
-        <StackPanel >
-            <StackPanel>
-                <TextBlock Text="{Binding CurrentPhotonFeeder.Address}"></TextBlock>
-                <TextBlock Text="{Binding CurrentPhotonFeeder.Slot}"></TextBlock>
+        <StackPanel Grid.Column="1">
+            <StackPanel Visibility="{Binding Current, Converter={StaticResource NullVisibilityConverter}}" >
+                <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Add" Command="{Binding AddCommand}"></Button>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Width="120" Style="{StaticResource label}"  Text="Feeder Address:"></TextBlock>
+                        <TextBlock Text="{Binding CurrentPhotonFeeder.Address}"></TextBlock>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Width="120"  Style="{StaticResource label}" Text="Slot:"></TextBlock>
+                        <TextBlock Text="{Binding CurrentPhotonFeeder.Slot}"></TextBlock>
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel>
+                    <ComboBox ItemsSource="{Binding Templates}" SelectedValue="{Binding SelectedTemplateId}" DisplayMemberPath="Name" SelectedValuePath="Id"></ComboBox>
+                </StackPanel>
             </StackPanel>
-            <StackPanel>
-                <ComboBox ItemsSource="{Binding Templates}" SelectedValue="{Binding SelectedTemplateId}" DisplayMemberPath="Name" SelectedValuePath="Id"></ComboBox>
+
+            <StackPanel Grid.Column="1" Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}">
+                <TextBlock Style="{StaticResource label}" Text="Name:"></TextBlock>
+                <TextBox ToolTip="please enter a name for your feeder" Text="{Binding Current.Name, Mode=TwoWay}"></TextBox>
+                <Label>Component Category</Label>
+                <ComboBox ItemsSource="{Binding ComponentCategories}" DisplayMemberPath="Text" SelectedValuePath="Key" SelectedValue="{Binding SelectedCategoryKey, Mode=TwoWay}"></ComboBox>
+                <Label>Component</Label>
+                <ComboBox ItemsSource="{Binding Components}" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding SelectedComponentSummaryId}"></ComboBox>
+                
+                <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Save" Command="{Binding SaveCommand}"></Button>
             </StackPanel>
-            <Button Style="{StaticResource CommandButton}" Content="Add" Command="{Binding AddCommand}"></Button>
-        </StackPanel>
-        
-        <StackPanel Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}">
-             <TextBox Text="{Binding Current.Name, Mode=TwoWay}"></TextBox>
-             <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Save" Command="{Binding SaveCommand}"></Button>
-        </StackPanel>
         </StackPanel>
     </Grid>
 </ucb:VMBoundUserControl>

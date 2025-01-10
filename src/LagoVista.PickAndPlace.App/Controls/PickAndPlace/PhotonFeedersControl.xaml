@@ -19,13 +19,16 @@
         <DataGrid ItemsSource="{Binding PartsViewModel.AutoFeeders}">
 
         </DataGrid>
-        <StackPanel Grid.Column="1">
+        <StackPanel Grid.Column="1" HorizontalAlignment="Left">
             <TextBlock Text="{Binding Status, FallbackValue=Idle}" FontWeight="Bold" FontSize="16"></TextBlock>
 
             <ProgressBar Maximum="{Binding SlotsToSearch}" Height="20" Value="{Binding SlotSearchIndex}" ></ProgressBar>
-            <TextBox Width="120" Height="20" Text="{Binding FeedersToSearch}"></TextBox>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Slots to Search:" VerticalAlignment="Center" Style="{StaticResource label}"></TextBlock>
+            <TextBox Width="120" Height="20" Text="{Binding SlotsToSearch}"  TextAlignment="Right"></TextBox>
             <Button Style="{StaticResource CommandButton}" Command="{Binding DiscoverFeedersCommand}" Content="Discover" ></Button>
-            <DataGrid ItemsSource="{Binding DiscoveredFeeders}" SelectedItem="{Binding SelectedPhotonFeeder, Mode=TwoWay}">
+            </StackPanel>
+                <DataGrid ItemsSource="{Binding DiscoveredFeeders}" SelectedItem="{Binding SelectedPhotonFeeder, Mode=TwoWay}">
 
 
             </DataGrid>
