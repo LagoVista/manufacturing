@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 {
-    public interface IAutoFeederViewModel : IMachineViewModelBase
+    public interface IAutoFeederViewModel : IFeederViewModel
     {
         ObservableCollection<MachineFeederRail> FeederRails { get; }
         ObservableCollection<AutoFeeder> Feeders { get; }

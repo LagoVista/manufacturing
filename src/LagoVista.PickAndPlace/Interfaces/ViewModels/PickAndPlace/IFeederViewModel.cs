@@ -1,4 +1,6 @@
-﻿using LagoVista.Core.Models;
+﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.Models;
+using LagoVista.Core.Models.Drawing;
 using LagoVista.Manufacturing.Models;
 using System.Collections.ObjectModel;
 
@@ -16,5 +18,10 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         EntityHeader<TapeSizes> TapeSize { get; }
         EntityHeader<TapePitches> TapePitch { get; }
         bool UseCalculated { get; set; }
+
+        RelayCommand PickCurrentPartCommand { get; }
+        RelayCommand InspectCurrentPartCommand { get; }
+        RelayCommand RecycleCurrentPartCommand { get; }
+        Point3D<double> CurrentPartLocation { get; }
     }
 }

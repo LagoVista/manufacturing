@@ -27,49 +27,62 @@
         </Grid.ColumnDefinitions>
 
         <Grid>
-            <StackPanel>
-                <TextBlock Text="Machine Fiducial"></TextBlock>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource label}" Text="Machine Fiducial: "></TextBlock>
                 <TextBlock Text="{Binding MachineConfiguration.MachineFiducial}" />
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetMachineFiducialCommand}"  ToolTip="Set the current location as the Machine Fiducial, this will act as a know point to reference all other points on the machine." Width="64" Height="64"  >
-                        <Button.Content>
-                            <Image Source="/imgs/SetTarget.png"/>
-                        </Button.Content>
-                    </Button>
-                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToMachineFiducialCommand}"  ToolTip="Goto the Machine Fiducial" Width="64" Height="64"  >
-                        <Button.Content>
-                            <Image Source="/imgs/MoveToTarget.png"/>
-                        </Button.Content>
-                    </Button>
-                </StackPanel>
-                <TextBlock Text="Known Location"></TextBlock>
+            </StackPanel>
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left">
+                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetMachineFiducialCommand}"  ToolTip="Set the current location as the Machine Fiducial, this will act as a know point to reference all other points on the machine." Width="64" Height="64"  >
+                    <Button.Content>
+                        <Image Source="/imgs/SetTarget.png"/>
+                    </Button.Content>
+                </Button>
+                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToMachineFiducialCommand}"  ToolTip="Goto the Machine Fiducial" Width="64" Height="64"  >
+                    <Button.Content>
+                        <Image Source="/imgs/MoveToTarget.png"/>
+                    </Button.Content>
+                </Button>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Grid.Column="1">
+                <TextBlock Style="{StaticResource label}" Text="Known Location: "></TextBlock>
                 <TextBlock Text="{Binding MachineConfiguration.KnownCalibrationPoint}" />
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding CaptureKnownLocationCommand}"  ToolTip="Set the current location as the Machine Fiducial, this will act as a know point to reference all other points on the machine." Width="64" Height="64"  >
-                        <Button.Content>
-                            <Image Source="/imgs/SetTarget.png"/>
-                        </Button.Content>
-                    </Button>
-                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToKnownLocationCommand}"  ToolTip="Goto the Machine Fiducial" Width="64" Height="64"  >
-                        <Button.Content>
-                            <Image Source="/imgs/MoveToTarget.png"/>
-                        </Button.Content>
-                    </Button>
-                </StackPanel>
-                <TextBlock Text="Default Work Origin"></TextBlock>
+            </StackPanel>
+            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">
+                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding CaptureKnownLocationCommand}"  ToolTip="Set the current location as the Machine Fiducial, this will act as a know point to reference all other points on the machine." Width="64" Height="64"  >
+                    <Button.Content>
+                        <Image Source="/imgs/SetTarget.png"/>
+                    </Button.Content>
+                </Button>
+                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToKnownLocationCommand}"  ToolTip="Goto the Machine Fiducial" Width="64" Height="64"  >
+                    <Button.Content>
+                        <Image Source="/imgs/MoveToTarget.png"/>
+                    </Button.Content>
+                </Button>
+            </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                <TextBlock Style="{StaticResource label}" Text="Default Work Origin: "></TextBlock>
                 <TextBlock Text="{Binding MachineConfiguration.DefaultWorkOrigin}" />
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetDefaultPCBOrigin}"  ToolTip="Set the default work home location, this is typically where the PCB is." Width="64" Height="64"  >
-                        <Button.Content>
-                            <Image Source="/imgs/SetTarget.png"/>
-                        </Button.Content>
-                    </Button>
-                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToDefaultPCBOrigin}"  ToolTip="Goto the Machine Fiducial" Width="64" Height="64"  >
-                        <Button.Content>
-                            <Image Source="/imgs/MoveToTarget.png"/>
-                        </Button.Content>
-                    </Button>
-                </StackPanel>
+            </StackPanel>
+            <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Left">
+                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetDefaultPCBOrigin}"  ToolTip="Set the default work home location, this is typically where the PCB is." Width="64" Height="64"  >
+                    <Button.Content>
+                        <Image Source="/imgs/SetTarget.png"/>
+                    </Button.Content>
+                </Button>
+                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToDefaultPCBOrigin}"  ToolTip="Goto the Machine Fiducial" Width="64" Height="64"  >
+                    <Button.Content>
+                        <Image Source="/imgs/MoveToTarget.png"/>
+                    </Button.Content>
+                </Button>
             </StackPanel>
         </Grid>
         

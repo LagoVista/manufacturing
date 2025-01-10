@@ -51,7 +51,10 @@
                 <ComboBox ItemsSource="{Binding ComponentCategories}" DisplayMemberPath="Text" SelectedValuePath="Key" SelectedValue="{Binding SelectedCategoryKey, Mode=TwoWay}"></ComboBox>
                 <Label>Component</Label>
                 <ComboBox ItemsSource="{Binding Components}" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding SelectedComponentSummaryId}"></ComboBox>
-                
+                <TextBlock Text="{Binding SelectedComponent.Name}"></TextBlock>
+                <TextBlock Text="{Binding SelectedComponent.DataSheet}"></TextBlock>
+                <TextBlock Text="{Binding SelectedComponent.ComponentPackage}"></TextBlock>
+
                 <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Save" Command="{Binding SaveCommand}"></Button>
             </StackPanel>
         </StackPanel>

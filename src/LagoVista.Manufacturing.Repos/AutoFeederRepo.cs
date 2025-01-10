@@ -64,7 +64,7 @@ namespace LagoVista.Manufacturing.Repo.Repos
         public Task UpdateFeederAsync(AutoFeeder Feeder)
         {
             if (Feeder.Component != null)
-                Feeder.Component = null;
+                Feeder.Component.Value = null;
 
             return UpsertDocumentAsync(Feeder);
         }

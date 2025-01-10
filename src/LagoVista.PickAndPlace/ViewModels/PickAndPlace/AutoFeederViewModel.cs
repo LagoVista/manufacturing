@@ -1,6 +1,8 @@
 ﻿using Emgu.CV.XImgproc;
 using LagoVista.Client.Core;
 using LagoVista.Core.Commanding;
+using LagoVista.Core.Models;
+using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
@@ -164,10 +166,21 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return;
             }
 
+            if(SelectedComponent != null)
+            {
+                Current.Component = EntityHeader<Component>.Create(SelectedComponent.Id, SelectedComponent.Key, SelectedComponent.Name);
+            }
+            else
+            {
+                Current.Component = null;
+            }
+
             var result = this._isEding ? await _restClient.PutAsync("/api/mfg/autofeeder", Current) : await _restClient.PostAsync("/api/mfg/autofeeder", Current);
             if(result.Successful)
             {
-                _autoFeeders.Add(Current);
+                if(!_isEding)
+                    _autoFeeders.Add(Current);
+               
                 Current = null;
             }
             else
@@ -175,7 +188,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, result.ErrorMessage);
             }
         }
-
 
         private async Task LoadFeeders()
         {
@@ -224,6 +236,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 RaiseCanExecuteChanged();
             }
         }
+
+        private Point3D<double> _currentPartLocation;
+        public override Point3D<double> CurrentPartLocation { get => _currentPartLocation; }
+
 
         ObservableCollection<AutoFeederTemplate> _templates;
         public ObservableCollection<AutoFeederTemplate> Templates 

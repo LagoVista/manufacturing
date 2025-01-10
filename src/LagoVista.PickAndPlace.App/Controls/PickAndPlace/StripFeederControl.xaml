@@ -25,55 +25,71 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <StackPanel Grid.Column="1">
+        <StackPanel Grid.Column="1" Visibility="{Binding Current, Converter={StaticResource NullVisibilityConverter}}">
+            <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Add" Command="{Binding AddCommand}"></Button>
             <StackPanel>
                 <ComboBox ItemsSource="{Binding Templates}" SelectedValue="{Binding SelectedTemplateId}" DisplayMemberPath="Name" SelectedValuePath="Id"></ComboBox>
             </StackPanel>
 
-            <Button Style="{StaticResource CommandButton}" Content="Add" Command="{Binding AddCommand}"></Button>
         </StackPanel>
         <StackPanel Grid.Column="1" Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}">
-            <TextBox FontSize="24" Text="{Binding Current.Name}"></TextBox>
+            <TextBlock Text="Name:" Style="{StaticResource label}" />
+            <TextBox Text="{Binding Current.Name}"></TextBox>
+
+            <TextBlock Text="Staging Plate Location:" Style="{StaticResource label}" />
             <mch:StagingPlateSelectorControl StagePlateLocatedObject ="{Binding Current }"></mch:StagingPlateSelectorControl>
 
-            <StackPanel Orientation="Horizontal">
-                <StackPanel>
-                    <TextBlock Text="Feeder Origin"></TextBlock>
-                    <StackPanel Orientation="Horizontal">
-                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetFeederOriginCommand}"  ToolTip="Set Offset for Feeder Origin"  Width="64" Height="64"  >
-                            <Button.Content>
-                                <Image Source="/imgs/SetTarget.png"/>
-                            </Button.Content>
-                        </Button>
-                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToFeederOriginCommand}"  ToolTip="Go to feeder origin" Width="64" Height="64"  >
-                            <Button.Content>
-                                <Image Source="/imgs/MoveToTarget.png"/>
-                            </Button.Content>
-                        </Button>
-                    </StackPanel>
-                    <StackPanel>
-                        <TextBlock Text="Feeder Reference Hole"></TextBlock>
-                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToFeederReferenceHoleCommand}"  ToolTip="Go to feeder origin" Width="64" Height="64"  >
-                            <Button.Content>
-                                <Image Source="/imgs/MoveToTarget.png"/>
-                            </Button.Content>
-                        </Button>
-                    </StackPanel>
-                </StackPanel>
-            </StackPanel>
+            <Grid >
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+                <TextBlock  Style="{StaticResource label}" Text="Feeder Origin"></TextBlock>
+                <Button Grid.Row="1" BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetFeederOriginCommand}"  ToolTip="Set Offset for Feeder Origin"  Width="64" Height="64"  >
+                    <Button.Content>
+                        <Image Source="/imgs/SetTarget.png"/>
+                    </Button.Content>
+                </Button>
+                <Button  Grid.Row="1" Grid.Column="1" BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToFeederOriginCommand}"  ToolTip="Go to feeder origin" Width="64" Height="64"  >
+                    <Button.Content>
+                        <Image Source="/imgs/MoveToTarget.png"/>
+                    </Button.Content>
+                </Button>
+                <TextBlock Style="{StaticResource label}" Grid.Column="2" Text="Feeder Reference Hole"></TextBlock>
+                <Button Grid.Column="2" Grid.Row="1" BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToFeederReferenceHoleCommand}"  ToolTip="Go to feeder origin" Width="64" Height="64"  >
+                    <Button.Content>
+                        <Image Source="/imgs/MoveToTarget.png"/>
+                    </Button.Content>
+                </Button>
 
-            <DataGrid ItemsSource="{Binding Current.Rows}" SelectedItem="{Binding CurrentRow}" CanUserAddRows="false">
+            </Grid>
+            <TextBlock Text="Rows" Style="{StaticResource label}"></TextBlock>
+            <DataGrid ItemsSource="{Binding Current.Rows}" AutoGenerateColumns="False"  IsReadOnly="true" SelectedItem="{Binding CurrentRow}" CanUserAddRows="false">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Row Index" Binding="{Binding RowIndex}"></DataGridTextColumn>
+                    <DataGridTextColumn Header="Current Idx" Binding="{Binding CurrentPartIndex}"></DataGridTextColumn>
+                    <DataGridTextColumn Header="Component" Binding="{Binding Component}"></DataGridTextColumn>
                 </DataGrid.Columns>
             </DataGrid>
 
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                <Button Style="{StaticResource CommandButton}" Command="{Binding SaveCommand}" Content="Save"></Button>
+                <Button Style="{StaticResource CommandButton}" Command="{Binding CancelCommand}" Content="Cancel"></Button>
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Column="2">
             <StackPanel Visibility="{Binding CurrentRow , Converter={StaticResource NoTNullToVisibilityConverter}}">
                 <TextBlock Text="{Binding CurrentRow.RowIndex}" />
                 <TextBlock Text="{Binding CurrentRow.Component.Text}" />
-                <Label>Component Category</Label>
+                <TextBlock Text="Component Category" Style="{StaticResource label}"></TextBlock>
                 <ComboBox ItemsSource="{Binding ComponentCategories}" DisplayMemberPath="Text" SelectedValuePath="Key" SelectedValue="{Binding SelectedCategoryKey, Mode=TwoWay}"></ComboBox>
-                <Label>Component</Label>
+                <TextBlock Text="Component" Style="{StaticResource label}"></TextBlock>
                 <ComboBox ItemsSource="{Binding Components}" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding SelectedComponentSummaryId}"></ComboBox>
 
                 <TextBlock FontSize="16" Text="Feeder Row Alignment"></TextBlock>
@@ -82,37 +98,37 @@
                     <CheckBox ToolTip="If this is checked, the move will go to the place where the tape hole is expected to be, otherwise it will be the actual value." IsChecked="{Binding UseCalculated }"></CheckBox>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
-                        <StackPanel>
-                            <TextBlock Text="First Point"></TextBlock>
-                            <StackPanel Orientation="Horizontal">
-                                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetFirstFeederReferenceHoleCommand}"  ToolTip="Set Reference Hole for Feeder Row" Width="64" Height="64"  >
-                                    <Button.Content>
-                                        <Image Source="/imgs/SetTarget.png"/>
-                                    </Button.Content>
-                                </Button>
-                                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToFirstFeederReferenceHoleCommand}"  ToolTip="Move To Reference Hole for Feeder Row" Width="64" Height="64"  >
-                                    <Button.Content>
-                                        <Image Source="/imgs/MoveToTarget.png"/>
-                                    </Button.Content>
-                                </Button>
-                            </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="First Point"></TextBlock>
+                        <StackPanel Orientation="Horizontal">
+                            <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetFirstFeederReferenceHoleCommand}"  ToolTip="Set Reference Hole for Feeder Row" Width="64" Height="64"  >
+                                <Button.Content>
+                                    <Image Source="/imgs/SetTarget.png"/>
+                                </Button.Content>
+                            </Button>
+                            <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToFirstFeederReferenceHoleCommand}"  ToolTip="Move To Reference Hole for Feeder Row" Width="64" Height="64"  >
+                                <Button.Content>
+                                    <Image Source="/imgs/MoveToTarget.png"/>
+                                </Button.Content>
+                            </Button>
                         </StackPanel>
-                        <StackPanel>
-                            <TextBlock Text="Second Reference Hole"></TextBlock>
-                            <StackPanel Orientation="Horizontal">
-                                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetLastFeederReferenceHoleCommand}"  ToolTip="Set Reference Hole for Feeder Row" Width="64" Height="64"  >
-                                    <Button.Content>
-                                        <Image Source="/imgs/SetTarget.png"/>
-                                    </Button.Content>
-                                </Button>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="Second Reference Hole"></TextBlock>
+                        <StackPanel Orientation="Horizontal">
+                            <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetLastFeederReferenceHoleCommand}"  ToolTip="Set Reference Hole for Feeder Row" Width="64" Height="64"  >
+                                <Button.Content>
+                                    <Image Source="/imgs/SetTarget.png"/>
+                                </Button.Content>
+                            </Button>
 
-                                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToLastFeederReferenceHoleCommand}"  ToolTip="Move To Reference Hole for Feeder Row" Width="64" Height="64"  >
-                                    <Button.Content>
-                                        <Image Source="/imgs/MoveToTarget.png"/>
-                                    </Button.Content>
-                                </Button>
-                            </StackPanel>
+                            <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToLastFeederReferenceHoleCommand}"  ToolTip="Move To Reference Hole for Feeder Row" Width="64" Height="64"  >
+                                <Button.Content>
+                                    <Image Source="/imgs/MoveToTarget.png"/>
+                                </Button.Content>
+                            </Button>
                         </StackPanel>
+                    </StackPanel>
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal">
@@ -122,7 +138,7 @@
                     <TextBlock Text="{Binding TotalPartsInFeederRow}"></TextBlock>
                     <TextBlock Text="Part "></TextBlock>
                 </StackPanel>
-                
+
                 <StackPanel Orientation="Horizontal">
                     <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="First Part" Command="{Binding GoToFirstPartCommand}" >
                         <Button.Content>
@@ -151,7 +167,6 @@
                     </Button>
                 </StackPanel>
             </StackPanel>
-            <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Command="{Binding SaveCurrentFeederCommand}" Content="Save Feeder"></Button>
         </StackPanel>
     </Grid>
 </ucb:VMBoundUserControl>

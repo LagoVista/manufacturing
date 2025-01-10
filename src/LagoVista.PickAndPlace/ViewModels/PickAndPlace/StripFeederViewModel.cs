@@ -1,5 +1,6 @@
 ﻿using LagoVista.Client.Core;
 using LagoVista.Core.Commanding;
+using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Core.Validation;
@@ -63,7 +64,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             GoToFirstFeederReferenceHoleCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.FirstFeederRowReferenceHole), () => CurrentRow != null);
             GoToLastFeederReferenceHoleCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.LastFeederRowReferenceHole), () => CurrentRow != null);
 
-            GoToFirstPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.FirstPart), () => CurrentRow != null);
+            GoToFirstPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.FirstPart), () => CurrentRow != null && CurrentPartIndex > 1);
             GoToCurrentPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.CurrentPart), () => CurrentRow != null);
             GoToLastPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.LastPart), () => CurrentRow != null);
             GoToNextPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.NextPart), () => (CurrentRow != null && CurrentPartIndex < TotalPartsInFeederRow));
@@ -72,6 +73,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             AddCommand = CreatedCommand(Add, () => machineRepo.HasValidMachine && SelectedTemplateId.HasValidId());
             SaveCommand = CreatedCommand(SaveCurrentFeeder, () => Current != null);
             CancelCommand = CreatedCommand(Cancel, () => Current != null);
+            DoneRowCommand = CreatedCommand(() => DoneRow(), () => CurrentRow != null);
+            CancelRowCommand = CreatedCommand(() => CurrentRow = null, () => CurrentRow != null);
 
             RefreshTemplatesCommand = CreatedCommand(async () => await LoadTemplates()); 
         }
@@ -108,6 +111,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 _isEditing = false;
                 Current = result.Result.Model;
+                Current.Machine = MachineConfiguration.ToEntityHeader();
+                Current.Key = Current.Id.ToLower();
             }
         }
 
@@ -134,14 +139,29 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RaisePropertyChanged(nameof(Feeders));
         }
 
+        private void DoneRow()
+        {
+            CurrentRow.Component = EntityHeader<Component>.Create(CurrentComponent.Id, CurrentComponent.Key, CurrentComponent.Name);
+            Current = null;
+        }
+
         public async void SaveCurrentFeeder()
         {
             if (Current != null)
             {
-                if(_isEditing) 
-                    await _restClient.PutAsync("/api/mfg/stripfeeder", Current);
+                var result = _isEditing ? await _restClient.PutAsync("/api/mfg/stripfeeder", Current) : 
+                                await _restClient.PostAsync("/api/mfg/stripfeeder", Current);
+                if(result.Successful)
+                {
+                    if(_isEditing)
+                        Feeders.Add(Current);
+
+                    Current = null;
+                }
                 else
-                    await _restClient.PostAsync("/api/mfg/stripfeeder", Current);
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.FatalError, result.ErrorMessage);
+                }
             }
         }       
 
@@ -394,11 +414,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 }
                 else
                 {
-                    CurrentComponent = value.Component?.Value;
                     CurrentPartIndex = value.CurrentPartIndex;
 
-                    if (CurrentComponent != null)
+                    if (value.Component != null)
                     {
+                        CurrentComponent = value.Component?.Value;
                         CurrentComponentPackage = CurrentComponent.ComponentPackage?.Value;
                         if (CurrentComponentPackage != null)
                         {
@@ -411,6 +431,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     }
                     else
                     {
+                        SelectedCategoryKey = StringExtensions.NotSelectedId;
                         CurrentComponent = null;
                     }
 
@@ -424,6 +445,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 RaiseCanExecuteChanged();
             }
         }
+
+        private Point3D<double> _currentPartLocation;
+        public override Point3D<double> CurrentPartLocation { get => _currentPartLocation; }
+
 
         public ObservableCollection<MachineStagingPlate> StagingPlates { get => MachineRepo.CurrentMachine.Settings.StagingPlates; }
 
@@ -452,5 +477,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand AddCommand { get;  }
         public RelayCommand SaveCommand { get; }
         public RelayCommand CancelCommand { get; }
+
+        public RelayCommand DoneRowCommand { get; }
+        public RelayCommand CancelRowCommand { get; }
     }
 }

@@ -7,7 +7,7 @@ using System.Collections.ObjectModel;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 {
-    public interface IStripFeederViewModel : IMachineViewModelBase
+    public interface IStripFeederViewModel : IFeederViewModel
     {
         InvokeResult<Point2D<double>> FindLocation(StripFeederLocationTypes moveType);
 
@@ -42,6 +42,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand AddCommand { get; }
         RelayCommand SaveCommand { get; }
         RelayCommand CancelCommand { get; }
+        RelayCommand DoneRowCommand { get; }
         RelayCommand RefreshTemplatesCommand { get; }
     }
 }

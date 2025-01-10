@@ -1,5 +1,7 @@
 ﻿using LagoVista.Client.Core;
+using LagoVista.Core.Commanding;
 using LagoVista.Core.Models;
+using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
@@ -19,26 +21,59 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         protected FeederViewModel(IMachineRepo machineRepo, IRestClient resteClient) : base(machineRepo)
         {
             _restClient = resteClient ?? throw new ArgumentNullException(nameof(resteClient));
+            PickCurrentPartCommand = new RelayCommand(() => PickCurrentPart(), () => CurrentComponent != null);
+            RecycleCurrentPartCommand = new RelayCommand(() => RecycleCurrentPart(), () => CurrentComponent != null);
+            InspectCurrentPartCommand = new RelayCommand(() => InspectCurrentPart(), () => CurrentComponent != null);
         }
 
         public override async Task InitAsync()
         {
             var componentCategories = await _restClient.GetListResponseAsync<EntityBase>("/api/categories/component");
             ComponentCategories = new ObservableCollection<EntityHeader>(componentCategories.Model.Select(c => EntityHeader.Create(c.Id, c.Key, c.Name)));
+            ComponentCategories.Insert(0, new EntityHeader() { Id = StringExtensions.NotSelectedId, Text = "-select component category-" });
+            Components = new ObservableCollection<ComponentSummary>();
+            Components.Insert(0, new ComponentSummary() { Id = StringExtensions.NotSelectedId, Name = "-select component category first-" });
+            SelectedCategoryKey = StringExtensions.NotSelectedId;
+            SelectedComponentSummaryId = StringExtensions.NotSelectedId;
 
+       
             await base.InitAsync();
+        }
+
+        private void PickCurrentPart()
+        {
+
+        }
+
+        private void InspectCurrentPart()
+        {
+
+        }
+
+        private void RecycleCurrentPart()
+        {
+
         }
 
         public async void LoadComponent(string componentId)
         {
-            var component = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Component>>($"/api/mfg/component/{componentId}");
-            SelectedComponent = component.Result.Model;
+            if (componentId == StringExtensions.NotSelectedId)
+            {
+                SelectedComponent = null;
+            }
+            else
+            {
+                var component = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Component>>($"/api/mfg/component/{componentId}");
+                SelectedComponent = component.Result.Model;
+            }
         }
 
         public async void LoadComponentsByCategory(string categoryKey)
         {
             var components = await _restClient.GetListResponseAsync<ComponentSummary>($"/api/mfg/components?componentType={categoryKey}");
             Components = new ObservableCollection<ComponentSummary>(components.Model);
+            Components.Insert(0, new ComponentSummary() {Id = StringExtensions.NotSelectedId, Name = "-select component-" });
+            SelectedComponentSummaryId = StringExtensions.NotSelectedId;
         }
 
 
@@ -49,7 +84,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             set => Set(ref _componentCategories, value);
         }
 
-        string _selectedCategoryKey;
+        string _selectedCategoryKey = StringExtensions.NotSelectedId;
         public string SelectedCategoryKey
         {
             get => _selectedCategoryKey;
@@ -58,13 +93,19 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (value == _selectedCategoryKey) return;
                 {
                     Set(ref _selectedCategoryKey, value);
-                    if (!string.IsNullOrEmpty(value))
+                    if (SelectedCategoryKey.HasValidId())
                         LoadComponentsByCategory(value);
+                    else
+                    {
+                        Components = new ObservableCollection<ComponentSummary>();
+                        Components.Insert(0, new ComponentSummary() { Id = StringExtensions.NotSelectedId, Name = "-select component category first-" });
+                        SelectedComponentSummaryId = StringExtensions.NotSelectedId;
+                    }
                 }
             }
         }
 
-        string _selectedComponentSummaryId;
+        string _selectedComponentSummaryId = StringExtensions.NotSelectedId;
         public string SelectedComponentSummaryId
         {
             get => _selectedComponentSummaryId;
@@ -73,7 +114,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (value != _selectedComponentSummaryId)
                 {
                     Set(ref _selectedComponentSummaryId, value);
-                    if (!string.IsNullOrEmpty(value))
+                    if (value.HasValidId())
                         LoadComponent(_selectedComponentSummaryId);
                     else
                         SelectedComponent = null;
@@ -87,7 +128,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             get => _selectedComponent;
             set => Set(ref _selectedComponent, value);
         }
-
 
         ObservableCollection<ComponentSummary> _components;
         public ObservableCollection<ComponentSummary> Components
@@ -132,6 +172,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             set => Set(ref _useCalculted, value);
         }
 
+        public RelayCommand PickCurrentPartCommand { get; }
 
+        public RelayCommand InspectCurrentPartCommand { get; }
+
+        public RelayCommand RecycleCurrentPartCommand { get; }
+
+        public abstract Point3D<double> CurrentPartLocation { get;  }
     }
 }
