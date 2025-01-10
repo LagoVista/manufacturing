@@ -16,7 +16,7 @@ namespace LagoVista.Manufacturing.Models
         PartNozzle,
         [EnumLabel(MachineToolHead.MachineToolHead_Type_Spindle, ManufacturingResources.Names.MachineToolHead_Type_Spindle, typeof(ManufacturingResources))]
         Spindle,
-        [EnumLabel(MachineToolHead.MachineToolHead_Type_PartNozzle, ManufacturingResources.Names.MachineToolHead_Type_PartNozzle, typeof(ManufacturingResources))]
+        [EnumLabel(MachineToolHead.MachineToolHead_Type_Laser, ManufacturingResources.Names.MachineToolHead_Type_Laser, typeof(ManufacturingResources))]
         Laser,
     }
 

@@ -10,21 +10,21 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             ReadLeftVacuumCommand = CreatedMachineConnectedCommand(ReadLeftVacuum);
             ReadRightVacuumCommand = CreatedMachineConnectedCommand(ReadRightVacuum);
 
-            LeftVacuumOnCommand = CreatedMachineConnectedCommand(() => _machineRepo.CurrentMachine.LeftVacuumPump = true);
-            LeftVacuumOffCommand = CreatedMachineConnectedCommand(() => _machineRepo.CurrentMachine.LeftVacuumPump = false);
+            LeftVacuumOnCommand = CreatedMachineConnectedCommand(() => MachineRepo.CurrentMachine.LeftVacuumPump = true);
+            LeftVacuumOffCommand = CreatedMachineConnectedCommand(() => MachineRepo.CurrentMachine.LeftVacuumPump = false);
 
-            RightVacuumOnCommand = CreatedMachineConnectedCommand(() => _machineRepo.CurrentMachine.RightVacuumPump = true);
-            RightVacuumOffCommand = CreatedMachineConnectedCommand(() => _machineRepo.CurrentMachine.RightVacuumPump = false);
+            RightVacuumOnCommand = CreatedMachineConnectedCommand(() => MachineRepo.CurrentMachine.RightVacuumPump = true);
+            RightVacuumOffCommand = CreatedMachineConnectedCommand(() => MachineRepo.CurrentMachine.RightVacuumPump = false);
 
-            TopLightOnCommand = CreatedMachineConnectedCommand(() => _machineRepo.CurrentMachine.TopLightOn = true);
-            TopLightOffCommand = CreatedMachineConnectedCommand(() => _machineRepo.CurrentMachine.TopLightOn = false);
-            BottomLightOnCommand = CreatedMachineConnectedCommand(() => _machineRepo.CurrentMachine.BottomLightOn = true);
-            BottomLightOffCommand = CreatedMachineConnectedCommand(() => _machineRepo.CurrentMachine.BottomLightOn = false);
+            TopLightOnCommand = CreatedMachineConnectedCommand(() => MachineRepo.CurrentMachine.TopLightOn = true);
+            TopLightOffCommand = CreatedMachineConnectedCommand(() => MachineRepo.CurrentMachine.TopLightOn = false);
+            BottomLightOnCommand = CreatedMachineConnectedCommand(() => MachineRepo.CurrentMachine.BottomLightOn = true);
+            BottomLightOffCommand = CreatedMachineConnectedCommand(() => MachineRepo.CurrentMachine.BottomLightOn = false);
         }    
 
         public async void ReadLeftVacuum()
         {
-             var result = await _machineRepo.CurrentMachine.ReadLeftVacuumAsync();
+             var result = await MachineRepo.CurrentMachine.ReadLeftVacuumAsync();
             if(result.Successful)
             {
                 LeftVacuum = result.Result;
@@ -34,7 +34,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         public async void ReadRightVacuum()
         {
-            var result = await _machineRepo.CurrentMachine.ReadRightVacuumAsync();
+            var result = await MachineRepo.CurrentMachine.ReadRightVacuumAsync();
             if (result.Successful)
             {
                 RightVacuum = result.Result;

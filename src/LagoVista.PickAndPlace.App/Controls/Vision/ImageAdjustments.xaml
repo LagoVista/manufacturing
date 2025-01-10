@@ -216,12 +216,11 @@
                         <Label Content="{Binding Profile.HoughCirclesMaxRadius, FallbackValue=3}" Style="{StaticResource Value}" />
                     </StackPanel>
                     <Slider Value="{Binding Path=Profile.HoughCirclesMaxRadius, Mode=TwoWay}" ToolTip="{Binding HoughCirclesMaxRadiusHelp}" Maximum="5" SmallChange="0.05" LargeChange="0.25"/>
-                    <Label Content="Min Distance Between Centers"/>
                     <StackPanel Orientation="Horizontal">
-                        <Label Content="Min Distance:" Style="{StaticResource Caption}"/>
+                        <Label Content="Min Distance Between Centers:" Style="{StaticResource Caption}"/>
                         <Label Content="{Binding Profile.HoughCirclesMinDistance, FallbackValue=3}" Style="{StaticResource Value}" />
                     </StackPanel>
-                    <Slider Value="{Binding Path=Profile.HoughCirclesMinDistance, Mode=TwoWay}" ToolTip="{Binding HoughCirclesMinDistanceHelp}" Maximum="5" SmallChange="0.05" LargeChange="0.25"/>
+                    <Slider Value="{Binding Path=Profile.HoughCirclesMinDistance, Mode=TwoWay}" ToolTip="{Binding HoughCirclesMinDistanceHelp}" Maximum="50" SmallChange="1" LargeChange="5"/>
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Gradient Param 1:" Style="{StaticResource Caption}"/>
                         <Label Content="{Binding Profile.HoughCirclesParam1, FallbackValue=3}" Style="{StaticResource Value}" />

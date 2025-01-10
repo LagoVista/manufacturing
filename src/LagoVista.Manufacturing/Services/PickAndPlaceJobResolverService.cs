@@ -1,45 +1,40 @@
-﻿using LagoVista.Core.Models;
-using LagoVista.Core.Models.Drawing;
-using LagoVista.Core.PlatformSupport;
+﻿using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
-using LagoVista.IoT.Logging.Loggers;
-using LagoVista.Manufacturing.Interfaces.Managers;
 using LagoVista.Manufacturing.Models;
-using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 
 namespace LagoVista.Manufacturing.Services
 {
-    public class PickAndPlaceJobResolverService
+    public class PickAndPlaceJobResolverService : IPickAndPlaceJobResolverService
     {
-        IMachineManager _machineManager;
-        IPickAndPlaceJobManager _jobManager;
-        IStripFeederManager _stripFeederManager;
-        IAutoFeederManager _autoFeederManager;
-        ICircuitBoardManager _circuitBoardManager;
-        ILogger _logger;
-
-        public PickAndPlaceJobResolverService(IMachineManager machineManager, IStripFeederManager stripFeederManager, IAutoFeederManager autoFeeder, 
-           ICircuitBoardManager circuitBoardManager, IPickAndPlaceJobManager jobManager, IAdminLogger adminLogger)
+        public InvokeResult ResolveParts(PickAndPlaceJob job)
         {
-            _machineManager = machineManager ?? throw new ArgumentNullException(nameof(machineManager));
-            _jobManager = jobManager ?? throw new ArgumentNullException(nameof(jobManager));
-            _logger = adminLogger ?? throw new ArgumentNullException(nameof(adminLogger));
-            _stripFeederManager = stripFeederManager ?? throw new ArgumentNullException(nameof(stripFeederManager));
-            _autoFeederManager = autoFeeder ?? throw new ArgumentNullException(nameof(autoFeeder));
-            _circuitBoardManager = circuitBoardManager ?? throw new ArgumentNullException(nameof(circuitBoardManager));
+            var commonParts = job.BoardRevision.PcbComponents.Where(prt => prt.Included).GroupBy(prt => prt.PackageAndValue.ToLower());
+            foreach (var entries in commonParts)
+            {
+                var part = new PickAndPlaceJobPart()
+                {
+                    PcbComponent = entries.First().Component,
+                    Value = entries.First().Value,
+                };
+
+                foreach(var entry in entries)
+                {
+                    part.Placements.Add(new PickAndPlaceJobPlacement()
+                    {
+                        Name = entry.Name,
+                        Rotation = entry.Rotation,
+                        PCBLocation = new Point2D<double>(entry.X.Value, entry.Y.Value)
+                    });
+                }                
+            }
+
+            return InvokeResult.Success;
         }
 
-        public async Task<InvokeResult> ResolveJobAsync(string machineId, string jobId, EntityHeader org, EntityHeader user)
+        public InvokeResult ResolveJobAsync(Machine machine, PickAndPlaceJob job, CircuitBoard board, List<StripFeeder> stripFeeders, List<AutoFeeder> autoFeeders)
         {
-            var machine = await _machineManager.GetMachineAsync(machineId, org, user);
-            var job = await _jobManager.GetPickAndPlaceJobAsync(jobId, org, user);
-            var stripFeedres = await _stripFeederManager.GetStripFeedersForMachineAsync(machineId, true, org, user);
-            var autoFeeders = await _autoFeederManager.GetFeedersForMachineAsync(machineId, true, org, user);   
-
-            var board = await _circuitBoardManager.GetCircuitBoardAsync(job.Board.Id, org, user);
             var revision = board.Revisions.Single(rev => rev.Id == job.BoardRevision.Id);
             job.BoardFiducials.AddRange( revision.PcbComponents.Where(pcbc => pcbc.Fiducial).Select(fid=>new BoardFiducial() { 
                 Expected = new Point2D<double>() { X = fid.X.Value, Y = fid.Y.Value } }));
@@ -51,7 +46,31 @@ namespace LagoVista.Manufacturing.Services
 
             foreach (var part in job.Parts)
             {
-
+                if (part.Component == null)
+                {
+                    job.Errors.Add($"Part {part.Errors}");
+                }
+                else
+                {
+                    var autoFeeder = autoFeeders.First(af => af.Component?.Id == part.Component.Id);
+                    if (autoFeeder != null)
+                    {
+                        part.AutoFeeder = autoFeeder.ToEntityHeader();
+                    }
+                    else
+                    {
+                        var stripFeeder = stripFeeders.First(sf => sf.Rows.Where(fd => fd.Component?.Id == part.Component.Id).Any());
+                        if (stripFeeder != null)
+                        {
+                            part.StripFeeder = stripFeeder.ToEntityHeader();
+                            part.StripFeederRow = stripFeeder.Rows.First(sfr => sfr.Component.Id == part.Component.Id).ToEntityHeader();
+                        }
+                        else
+                        {
+                            job.Errors.Add($"Could not find part on machine for {part.Component.Text}");
+                        }
+                    }
+                }
             }
 
             return InvokeResult.Success;

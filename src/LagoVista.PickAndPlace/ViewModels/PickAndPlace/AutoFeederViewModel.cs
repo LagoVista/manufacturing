@@ -1,4 +1,5 @@
-﻿using LagoVista.Client.Core;
+﻿using Emgu.CV.XImgproc;
+using LagoVista.Client.Core;
 using LagoVista.Core.Commanding;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Manufacturing.Models;
@@ -50,13 +51,46 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         private async void Add()
         {
+            if(PhotonFeederViewModel.SelectedPhotonFeeder == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, $"Please select a feeder before attempting to add it.");
+                return;
+            }
+
+            var feederId = PhotonFeederViewModel.SelectedPhotonFeeder.Address;
+            var slot = PhotonFeederViewModel.SelectedPhotonFeeder.Slot;
+
+            var existingFeeder = _autoFeeders.FirstOrDefault(fdr => fdr.FeederId == feederId);
+            if(existingFeeder != null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, $"A feeder with that ID alread exists {existingFeeder.Name}.");
+                return;
+            }
+
+            var rail = MachineConfiguration.FeederRails.FirstOrDefault(fdr => slot >= fdr.SlotStartIndex && slot <= (fdr.SlotStartIndex + fdr.NumberSlots));
+
+            if (rail == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, $"Invalid slot index {slot}");
+                return;
+            }
+
             var result = await _restClient.GetAsync<DetailResponse<AutoFeeder>>($"/api/mfg/autofeeder/template/{SelectedTemplateId}/factory");
-            if(result.Successful)
+           
+            if (result.Successful)
             {
                 Current = result.Result.Model;
+                Current.FeederId = feederId;
+                Current.Rotation = rail.Rotation;
+                Current.Slot = slot;
+                Current.Key = result.Result.Model.Id;
                 Current.Machine = MachineConfiguration.ToEntityHeader();
-                _isEding = false;                
-            }            
+                _isEding = false;
+            }
+            else
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, result.ErrorMessage);
+            }
         }
 
         public override async Task InitAsync()
@@ -74,11 +108,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 feeders.Insert(0, new AutoFeederTemplate() { Id = StringExtensions.NotSelectedId, Name = "-select feeder template-" });
                 Templates = new ObservableCollection<AutoFeederTemplate>(feeders);
             }
+
+            SelectedTemplateId = StringExtensions.NotSelectedId;
         }
 
         protected async override void MachineChanged(IMachine machine)
         {
-            if (_machineRepo.HasValidMachine)
+            if (MachineRepo.HasValidMachine)
             {
                 await LoadFeeders();
             }
@@ -122,17 +158,28 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public async void Save()
         {
+            if (String.IsNullOrEmpty(Current.Name))
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, $"Please ensure you have a name for your auto feeder.");
+                return;
+            }
+
             var result = this._isEding ? await _restClient.PutAsync("/api/mfg/autofeeder", Current) : await _restClient.PostAsync("/api/mfg/autofeeder", Current);
             if(result.Successful)
             {
+                _autoFeeders.Add(Current);
                 Current = null;
+            }
+            else
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, result.ErrorMessage);
             }
         }
 
 
         private async Task LoadFeeders()
         {
-            var autoFeeders = await _restClient.GetListResponseAsync<AutoFeeder>($"/api/mfg/machine/{_machineRepo.CurrentMachine.Settings.Id}/autofeeders?loadcomponents=true");
+            var autoFeeders = await _restClient.GetListResponseAsync<AutoFeeder>($"/api/mfg/machine/{MachineRepo.CurrentMachine.Settings.Id}/autofeeders?loadcomponents=true");
             _autoFeeders = new ObservableCollection<AutoFeeder>(autoFeeders.Model);
 
             RaisePropertyChanged(nameof(Feeders));
@@ -185,7 +232,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             private set => Set(ref _templates, value);
         } 
         
-        public ObservableCollection<MachineFeederRail> FeederRails { get => _machineRepo.CurrentMachine.Settings.FeederRails; }
+        public ObservableCollection<MachineFeederRail> FeederRails { get => MachineRepo.CurrentMachine.Settings.FeederRails; }
         public ObservableCollection<AutoFeeder> Feeders { get => _autoFeeders; }
 
 

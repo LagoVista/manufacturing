@@ -375,10 +375,6 @@ namespace LagoVista.Manufacturing.Models
     {
         public string TapeSize { get; set; }
         public string TapeSizeId { get; set; }
-
-        public string ComponentId { get; set; }
-        public string ComponentKey { get; set; }
-        public string Component { get; set; }
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.StripFeederRow_Title, ManufacturingResources.Names.StripFeederRow_Description,
@@ -433,6 +429,11 @@ namespace LagoVista.Manufacturing.Models
         {
             get => _lastTapeHoleOffset;
             set => Set(ref _lastTapeHoleOffset, value);
+        }
+
+        public EntityHeader ToEntityHeader()
+        {
+            return EntityHeader.Create(Id, $"Row {RowIndex}");
         }
 
         private EntityHeader<Component> _component;

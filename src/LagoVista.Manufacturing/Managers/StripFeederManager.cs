@@ -75,9 +75,11 @@ namespace LagoVista.Manufacturing.Managers
             {
                 feeder.Rows.Add(new StripFeederRow()
                 {
-                     Id = Guid.NewGuid().ToId(),
-                     RowIndex = idx + 1,
-                     CurrentPartIndex = 1,
+                    Id = Guid.NewGuid().ToId(),
+                    RowIndex = idx + 1,
+                    FirstTapeHoleOffset = new Core.Models.Drawing.Point2D<double>(4, (idx * feeder.RowWidth) + (feeder.TapeSize.ToDouble() - 2)),
+                    LastTapeHoleOffset = new Core.Models.Drawing.Point2D<double>(feeder.FeederLength / 4, (idx * feeder.RowWidth) + (feeder.TapeSize.ToDouble() - 2)),
+                    CurrentPartIndex = 1,
                 });
             }
 

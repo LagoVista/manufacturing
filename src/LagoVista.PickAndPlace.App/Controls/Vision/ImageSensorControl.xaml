@@ -51,17 +51,17 @@
         </Button>
 
         <StackPanel Orientation="Horizontal" Grid.Row="2" >
-            <Button  x:Name="Stop" Command="{Binding StopCaptureCommand}" Margin="2" Style="{StaticResource VideoControlButton}" >
+            <Button  x:Name="Stop" Command="{Binding StopCaptureCommand}" Margin="2" Style="{StaticResource VideoControlButton}" ToolTip="Stop Capture" >
                 <Button.Content>
                     <fa:ImageAwesome Foreground="White" Icon="Stop"  />
                 </Button.Content>
             </Button>
-            <Button  Command="{Binding StartCaptureCommand}" x:Name="Play" Margin="2"  Style="{StaticResource VideoControlButton}" >
+            <Button  Command="{Binding StartCaptureCommand}" x:Name="Play" Margin="2"  Style="{StaticResource VideoControlButton}" ToolTip="Start Capture" >
                 <Button.Content>
                     <fa:ImageAwesome Foreground="White" Icon="Play" />
                 </Button.Content>
             </Button>
-            <Button  Command="{Binding CenterFoundItemCommand}" Margin="2"  Style="{StaticResource VideoControlButton}" >
+            <Button  Command="{Binding CenterFoundItemCommand}" Margin="2"  Style="{StaticResource VideoControlButton}" ToolTip="Jog to Centered Item" >
                 <Button.Content>
                     <fa:ImageAwesome Foreground="White" Icon="Play" />
                 </Button.Content>

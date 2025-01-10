@@ -25,8 +25,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         RelayCommand SetMachineFiducialCommand { get; }
         RelayCommand MoveToMachineFiducialCommand { get; }
 
-        RelayCommand SetFirstFeederOriginCommand { get; }
-        RelayCommand MoveToFirstFeederOriginCommand { get; }
+        RelayCommand SetFirstAutoFeederOriginCommand { get; }
+        RelayCommand MoveToFirstAutoFeederOriginCommand { get; }
 
 
         RelayCommand SetDefaultToolReferencePointCommand { get;  }
@@ -41,5 +41,6 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         Point2D<double> Delta { get;  }
 
         RelayCommand CaptureKnownLocationCommand { get; }
+        RelayCommand MoveToKnownLocationCommand { get; }
     }
 }

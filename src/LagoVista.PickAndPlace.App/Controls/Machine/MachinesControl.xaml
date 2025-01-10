@@ -93,7 +93,7 @@
             </Button>
         </StackPanel>
         
-        <ListView ItemsSource="{Binding Machines}" SelectedItem="{Binding SelectedMachine}" Grid.Row="0" Visibility="Collapsed">
+        <ListView ItemsSource="{Binding Machines}" SelectedItem="{Binding SelectedMachine}" Grid.Row="0" Visibility="Visible">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid>

@@ -6,6 +6,7 @@
         xmlns:ctls="clr-namespace:LagoVista.PickAndPlace.App.Controls"
         xmlns:pnpc="clr-namespace:LagoVista.PickAndPlace.App.Controls.PickAndPlace"
         xmlns:mch="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine"
+        xmlns:ui="clr-namespace:LagoVista.PickAndPlace.App.Controls.UI"
         xmlns:local="clr-namespace:LagoVista.PickAndPlace.App"
         mc:Ignorable="d"
         Title="Home" Height="1200" Width="1920">
@@ -71,6 +72,30 @@
                     </TabItem>
                     <TabItem Header="Run Job">
                         <pnpc:PickAndPlaceJobControl></pnpc:PickAndPlaceJobControl>
+                    </TabItem>
+                    <TabItem Header="Log">
+                        <ui:ListBoxScroll HorizontalContentAlignment="Stretch"
+                             Grid.Row="1"
+                 SelectedIndex="{Binding Path=MachineRepo.CurrentMachine.MessageCount, Mode=OneWay}"
+                 ItemsSource="{Binding Path=MachineRepo.CurrentMachine.Messages}"
+                 IsHitTestVisible="False" BorderThickness="0"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" >
+
+                            <ui:ListBoxScroll.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Background="{Binding MessageType, Converter={StaticResource MessageTypeBackgroundColorConverter}}" >
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="120" />
+                                            <ColumnDefinition Width="90" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding DateStamp}" Foreground="{Binding MessageType, Converter={StaticResource MessageTypeForegroundColorConverter}}" />
+                                        <TextBlock Text="{Binding MessageType}" Grid.Column="1" Foreground="{Binding MessageType, Converter={StaticResource MessageTypeForegroundColorConverter}}" />
+                                        <TextBlock Text="{Binding Message}" Grid.Column="2" Foreground="{Binding MessageType, Converter={StaticResource MessageTypeForegroundColorConverter}}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ui:ListBoxScroll.ItemTemplate>
+                        </ui:ListBoxScroll>
                     </TabItem>
                 </TabControl>
                 <ctls:ManualSend Grid.Row="1" VerticalAlignment="Bottom"/>

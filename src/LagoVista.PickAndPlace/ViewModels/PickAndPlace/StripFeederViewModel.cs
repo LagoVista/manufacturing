@@ -69,7 +69,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             GoToNextPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.NextPart), () => (CurrentRow != null && CurrentPartIndex < TotalPartsInFeederRow));
             GoToPreviousPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.PreviousPart), () => (CurrentRow != null && CurrentPartIndex > 1));
 
-            AddCommand = CreatedCommand(Add, () => MachineRepo.HasValidMachine && SelectedTemplateId.HasValidId());
+            AddCommand = CreatedCommand(Add, () => machineRepo.HasValidMachine && SelectedTemplateId.HasValidId());
             SaveCommand = CreatedCommand(SaveCurrentFeeder, () => Current != null);
             CancelCommand = CreatedCommand(Cancel, () => Current != null);
 
@@ -91,6 +91,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 feeders.Insert(0, new StripFeederTemplate() { Id = "-1", Name = "-select feeder template-" });
                 Templates = new ObservableCollection<StripFeederTemplate>(feeders);
             }
+
+            SelectedTemplateId = StringExtensions.NotSelectedId;
         }
 
         protected async override void MachineChanged(IMachine machine)
@@ -125,7 +127,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         private async Task LoadFeeders()
         {
-            var stripFeeders = await _restClient.GetListResponseAsync<StripFeeder>($"/api/mfg/machine/{_machineRepo.CurrentMachine.Settings.Id}/stripfeeders?loadcomponents=true");
+            var stripFeeders = await _restClient.GetListResponseAsync<StripFeeder>($"/api/mfg/machine/{MachineRepo.CurrentMachine.Settings.Id}/stripfeeders?loadcomponents=true");
 
             _stripFeeders = new ObservableCollection<StripFeeder>(stripFeeders.Model);
 
@@ -338,7 +340,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             set => Set(ref _availablePartsInFeederRow, value);
         }
 
-        private string _selectedTemplateId;
+        private string _selectedTemplateId = StringExtensions.NotSelectedId;
         public string SelectedTemplateId
         {
             get => _selectedTemplateId;
@@ -423,7 +425,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        public ObservableCollection<MachineStagingPlate> StagingPlates { get => _machineRepo.CurrentMachine.Settings.StagingPlates; }
+        public ObservableCollection<MachineStagingPlate> StagingPlates { get => MachineRepo.CurrentMachine.Settings.StagingPlates; }
 
         public ObservableCollection<StripFeeder> Feeders { get => _stripFeeders; }
 

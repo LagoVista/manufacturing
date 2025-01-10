@@ -25,6 +25,13 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
+        <StackPanel Grid.Column="1">
+            <StackPanel>
+                <ComboBox ItemsSource="{Binding Templates}" SelectedValue="{Binding SelectedTemplateId}" DisplayMemberPath="Name" SelectedValuePath="Id"></ComboBox>
+            </StackPanel>
+
+            <Button Style="{StaticResource CommandButton}" Content="Add" Command="{Binding AddCommand}"></Button>
+        </StackPanel>
         <StackPanel Grid.Column="1" Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}">
             <TextBox FontSize="24" Text="{Binding Current.Name}"></TextBox>
             <mch:StagingPlateSelectorControl StagePlateLocatedObject ="{Binding Current }"></mch:StagingPlateSelectorControl>
@@ -113,7 +120,6 @@
                     <TextBlock Text="{Binding CurrentPartIndex}"></TextBlock>
                     <TextBlock Text=" out of  "></TextBlock>
                     <TextBlock Text="{Binding TotalPartsInFeederRow}"></TextBlock>
-
                     <TextBlock Text="Part "></TextBlock>
                 </StackPanel>
                 

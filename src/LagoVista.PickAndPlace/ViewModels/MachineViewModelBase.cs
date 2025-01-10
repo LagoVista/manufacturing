@@ -10,15 +10,13 @@ namespace LagoVista.PickAndPlace.ViewModels
 {
     public abstract class MachineViewModelBase:  ViewModelBase, IMachineViewModelBase
     {
-        protected IMachineRepo _machineRepo;
-
         public MachineViewModelBase(IMachineRepo machineRepo) 
         {
-            _machineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
+            MachineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
          
-            _machineRepo.MachineChanged += _machineRepo_MachineChanged;
-            SaveMachineConfigurationCommand = new RelayCommand(() => _machineRepo.SaveCurrentMachineAsync(), () => _machineRepo.HasValidMachine);
-            ReloadMachineCommand = new RelayCommand(() => _machineRepo.LoadCurrentMachineAsync(), () => _machineRepo.HasValidMachine);
+            MachineRepo.MachineChanged += _machineRepo_MachineChanged;
+            SaveMachineConfigurationCommand = new RelayCommand(() => MachineRepo.SaveCurrentMachineAsync(), () => MachineRepo.HasValidMachine);
+            ReloadMachineCommand = new RelayCommand(() => MachineRepo.LoadCurrentMachineAsync(), () => MachineRepo.HasValidMachine);
             UnlockSettingsCommand = new RelayCommand(() => _machine.AreSettingsLocked = false);
             LockSettingsCommand = new RelayCommand(() => _machine.AreSettingsLocked = true);
         }
@@ -57,15 +55,15 @@ namespace LagoVista.PickAndPlace.ViewModels
         }
 
         protected RelayCommand CreatedMachineConnectedSettingsCommand(Action execute, Func<bool> canExecute = null)
-        {
-            var cmd = (canExecute == null) ? new RelayCommand(execute, () => Machine != null && Machine.Connected) : new RelayCommand(execute, () => Machine != null && Machine.Connected && !Machine.AreSettingsLocked && canExecute());
+        { 
+            var cmd = (canExecute == null) ? new RelayCommand(execute, () => Machine != null && Machine.Connected && !Machine.AreSettingsLocked) : new RelayCommand(execute, () => Machine != null && Machine.Connected && !Machine.AreSettingsLocked && canExecute());
             RegisterCommandHandler(cmd);
             return cmd;
         }
 
         protected RelayCommand CreatedCommand(Action execute, Func<bool> canExecute = null)
         {
-            var cmd =  (canExecute == null) ? new RelayCommand(execute) :  new RelayCommand(execute);
+            var cmd =  (canExecute == null) ? new RelayCommand(execute) :  new RelayCommand(execute, canExecute);
             RegisterCommandHandler(cmd);
             return cmd;
         }

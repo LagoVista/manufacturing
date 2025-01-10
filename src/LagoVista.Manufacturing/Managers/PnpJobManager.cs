@@ -18,7 +18,6 @@ namespace LagoVista.Manufacturing.Managers
     public class PickAndPlaceJobManager : ManagerBase, IPickAndPlaceJobManager
     {
         private readonly IPickAndPlaceJobRepo _pickAndPlaceJobRepo;
-        private readonly IComponentRepo _componentRepo;
         private readonly IPickAndPlaceJobRunRepo _jobRunRepo;
 
         public PickAndPlaceJobManager(IPickAndPlaceJobRepo partRepo, IPickAndPlaceJobRunRepo jobRunRepo, IAdminLogger logger, IAppConfig appConfig, IDependencyManager depmanager, ISecurity security) :

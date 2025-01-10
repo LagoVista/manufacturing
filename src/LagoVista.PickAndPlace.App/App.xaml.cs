@@ -73,7 +73,7 @@ namespace LagoVista.PickAndPlace.App
                 Port = 443
             };
 
-            LagoVista.Client.Core.Startup.Init(dev);
+            LagoVista.Client.Core.Startup.Init(live);
 
             SLWIOC.RegisterSingleton<IMachineRepo, MachineRepo>();
             SLWIOC.RegisterSingleton<ILocatorViewModel, LocatorViewModel>();

@@ -29,7 +29,7 @@
             </ItemsControl.ItemsPanel>
         </ItemsControl>
         <StackPanel>
-            <Button Style="{StaticResource CommandButton}" Content="Add" Command="{Binding AddCommand}"></Button>
+        <StackPanel >
             <StackPanel>
                 <TextBlock Text="{Binding CurrentPhotonFeeder.Address}"></TextBlock>
                 <TextBlock Text="{Binding CurrentPhotonFeeder.Slot}"></TextBlock>
@@ -37,13 +37,13 @@
             <StackPanel>
                 <ComboBox ItemsSource="{Binding Templates}" SelectedValue="{Binding SelectedTemplateId}" DisplayMemberPath="Name" SelectedValuePath="Id"></ComboBox>
             </StackPanel>
-
-            <StackPanel Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}">
-                <TextBox Text="{Binding Current, Mode=TwoWay}"></TextBox>
-                <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Save" Command="{Binding SaveCommand}"></Button>
-            </StackPanel>
-            
+            <Button Style="{StaticResource CommandButton}" Content="Add" Command="{Binding AddCommand}"></Button>
         </StackPanel>
-
+        
+        <StackPanel Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}">
+             <TextBox Text="{Binding Current.Name, Mode=TwoWay}"></TextBox>
+             <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Save" Command="{Binding SaveCommand}"></Button>
+        </StackPanel>
+        </StackPanel>
     </Grid>
 </ucb:VMBoundUserControl>

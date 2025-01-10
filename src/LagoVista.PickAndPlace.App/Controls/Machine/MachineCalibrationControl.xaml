@@ -42,6 +42,34 @@
                         </Button.Content>
                     </Button>
                 </StackPanel>
+                <TextBlock Text="Known Location"></TextBlock>
+                <TextBlock Text="{Binding MachineConfiguration.KnownCalibrationPoint}" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding CaptureKnownLocationCommand}"  ToolTip="Set the current location as the Machine Fiducial, this will act as a know point to reference all other points on the machine." Width="64" Height="64"  >
+                        <Button.Content>
+                            <Image Source="/imgs/SetTarget.png"/>
+                        </Button.Content>
+                    </Button>
+                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToKnownLocationCommand}"  ToolTip="Goto the Machine Fiducial" Width="64" Height="64"  >
+                        <Button.Content>
+                            <Image Source="/imgs/MoveToTarget.png"/>
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
+                <TextBlock Text="Default Work Origin"></TextBlock>
+                <TextBlock Text="{Binding MachineConfiguration.DefaultWorkOrigin}" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetDefaultPCBOrigin}"  ToolTip="Set the default work home location, this is typically where the PCB is." Width="64" Height="64"  >
+                        <Button.Content>
+                            <Image Source="/imgs/SetTarget.png"/>
+                        </Button.Content>
+                    </Button>
+                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToDefaultPCBOrigin}"  ToolTip="Goto the Machine Fiducial" Width="64" Height="64"  >
+                        <Button.Content>
+                            <Image Source="/imgs/MoveToTarget.png"/>
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
             </StackPanel>
         </Grid>
         
@@ -69,8 +97,6 @@
                 <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleLocation1}"></TextBlock>
                 <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleRow1}"></TextBlock>
                 <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleColumn1}"></TextBlock>
-
-                <mch:StagingPlateSelectorControl></mch:StagingPlateSelectorControl>
                 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                     <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetStagingPlateReferenceHole1LocationCommand}"  ToolTip="Set Reference Hole 1" Width="64" Height="64"  >
@@ -122,12 +148,12 @@
                 <TextBlock FontSize="23" Text="{Binding SelectedFeederRail.Name}"></TextBlock>
                 <Label>Move the position camera to the left edge of the first feeder on the rail, and have it centered on the rail as closely as possible.</Label>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetFirstFeederOriginCommand}"  ToolTip="Set the origin of the first feeder on the rail." Width="64" Height="64"  >
+                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetFirstAutoFeederOriginCommand}"  ToolTip="Set the origin of the first feeder on the rail." Width="64" Height="64"  >
                         <Button.Content>
                             <Image Source="/imgs/SetTarget.png"/>
                         </Button.Content>
                     </Button>
-                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToFirstFeederOriginCommand}"  ToolTip="Set the origin of the first feeder on the rail." Width="64" Height="64"  >
+                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToFirstAutoFeederOriginCommand}"  ToolTip="Set the origin of the first feeder on the rail." Width="64" Height="64"  >
                         <Button.Content>
                             <Image Source="/imgs/MoveToTarget.png"/>
                         </Button.Content>

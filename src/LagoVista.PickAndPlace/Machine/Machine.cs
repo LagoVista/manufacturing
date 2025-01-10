@@ -175,7 +175,7 @@ namespace LagoVista.PickAndPlace
             if (relativeMove)
                 SetRelativeMode();
 
-            SendCommand($"{cmd} X{x.ToDim()} Y{y.ToDim()}");
+            SendCommand($"{cmd} X{x.ToDim()} Y{y.ToDim()} F{Settings.FastFeedRate} ");
 
             if (relativeMove)
                 SetAbsoluteMode();

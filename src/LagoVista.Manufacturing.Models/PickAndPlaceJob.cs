@@ -66,7 +66,7 @@ namespace LagoVista.Manufacturing.Models
 
         public List<PickAndPlaceJobPart> Parts { get; set; } = new List<PickAndPlaceJobPart>();
 
-        public ObservableCollection<ErrorMessage> ErrorMessages { get; set; } = new ObservableCollection<ErrorMessage>()
+        public ObservableCollection<ErrorMessage> ErrorMessages { get; set; } = new ObservableCollection<ErrorMessage>();
 
         public List<string> Errors { get; set; }
         public List<string> Warnings { get; set; }
@@ -107,12 +107,21 @@ namespace LagoVista.Manufacturing.Models
 
     public class PickAndPlaceJobPart
     {
+        public EntityHeader PcbComponent { get; set; }
+        public string Value { get; set; }
+        public string PackageName { get; set; }    
+
         public EntityHeader AutoFeeder { get; set; }
         public EntityHeader StripFeeder { get; set; }
+        public EntityHeader StripFeederRow { get; set; }
+
         public EntityHeader Component { get; set; }
         public EntityHeader ComponentPackage { get; set; }
-        public string Errors { get; set; }
+
         public List<PickAndPlaceJobPlacement> Placements { get; set; }
+
+        public string Errors { get; set; }
+
     }
 
     public class PickAndPlaceJobPlacement

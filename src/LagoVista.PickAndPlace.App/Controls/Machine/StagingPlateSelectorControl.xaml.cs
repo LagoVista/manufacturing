@@ -48,7 +48,7 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
                 ctl.StagingPlates.SelectedValue = locatedObject.StagingPlate?.Id ?? "-1";
                 ctl._vm.SelectedStagingPlateId = locatedObject.StagingPlate?.Id ?? "-1";
                 ctl._vm.SelectedStagingPlateRowId = locatedObject.ReferenceHoleRow?.Id ?? "-1";
-                ctl._vm.SelectedStagingPlateColId = locatedObject.ReferenceHoleColumn.Id ?? "-1";
+                ctl._vm.SelectedStagingPlateColId = locatedObject.ReferenceHoleColumn?.Id ?? "-1";
             }            
             else
             {

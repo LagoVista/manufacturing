@@ -72,9 +72,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public void Discover()
         {
-            if (!_machineRepo.CurrentMachine.Connected)
+            if (!MachineRepo.CurrentMachine.Connected)
             {
-                _machineRepo.CurrentMachine.AddStatusMessage(StatusMessageTypes.Info, "Machine is not connected, can not discover feeders.");
+                MachineRepo.CurrentMachine.AddStatusMessage(StatusMessageTypes.Info, "Machine is not connected, can not discover feeders.");
                 return;
             }
 
@@ -83,14 +83,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             new Thread(() =>
             {
                 _feederDiscoverResults.Clear();
-                _machineRepo.CurrentMachine.LineReceived += CurrentMachine_LineReceived;
+                MachineRepo.CurrentMachine.LineReceived += CurrentMachine_LineReceived;
                 byte idx = 1;
                 while (idx <= SlotsToSearch)
                 {
                     _completed.Reset();
                     var gcode = _protocolHandler.GenerateGCode(LumenSupport.FeederCommands.GetId, idx);
                     _feederDiscoverResults.Add(gcode.PacketId, new FeederSearchResult() { Slot = idx });
-                    _machineRepo.CurrentMachine.SendCommand(gcode.GCode);
+                    MachineRepo.CurrentMachine.SendCommand(gcode.GCode);
                     var attepmtCount = 0;
                     while (!_completed.IsSet && ++attepmtCount < 200)
                         _completed.Wait(5);
@@ -126,7 +126,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     Status = $"Found {DiscoveredFeeders.Count} feeders.";
                 });
 
-                _machineRepo.CurrentMachine.LineReceived -= CurrentMachine_LineReceived;
+                MachineRepo.CurrentMachine.LineReceived -= CurrentMachine_LineReceived;
             }).Start();
         }
 

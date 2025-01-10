@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace LagoVista.PickAndPlace
+namespace LagoVista
 {
     public static class EnumExtensions
     {
