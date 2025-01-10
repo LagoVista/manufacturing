@@ -70,9 +70,9 @@ namespace LagoVista.PickAndPlace.App.Controls
                 _machine = value;
                 if (_machine != null)
                 {
-                    var maxX = Machine.FrameWidth;
-                    var maxY = Machine.FrameHeight;
-                    var factor = Machine.FrameHeight / 10;
+                    var maxX = Machine.FrameSize.X;
+                    var maxY = Machine.FrameSize.Y;
+                    var factor = Machine.FrameSize.Y / 10;
 
                     var max = Math.Max(maxX, maxY);
                     var x = (max / 2) + 0;
@@ -124,22 +124,21 @@ namespace LagoVista.PickAndPlace.App.Controls
 
         public void RenderFrame(LagoVista.Manufacturing.Models.Machine machine)
         {
-
             var modelGroup = new Model3DGroup();
 
             var topWireMeshBuilder = new MeshBuilder(false, false);
-            topWireMeshBuilder.AddBox(new Rect3D(0, 0, -23, 20, machine.FrameHeight, 20));
-            topWireMeshBuilder.AddBox(new Rect3D(machine.FrameWidth-20, 0, -23, 20, machine.FrameHeight, 20));
+            topWireMeshBuilder.AddBox(new Rect3D(0, 0, -23, 20, machine.FrameSize.Y, 20));
+            topWireMeshBuilder.AddBox(new Rect3D(machine.FrameSize.X - 20, 0, -23, 20, machine.FrameSize.Y, 20));
 
-            topWireMeshBuilder.AddBox(new Rect3D(0, 0, 50, 20, machine.FrameHeight, 20));
-            topWireMeshBuilder.AddBox(new Rect3D(machine.FrameWidth - 20, 0, 50, 20, machine.FrameHeight, 20));
+            topWireMeshBuilder.AddBox(new Rect3D(0, 0, 50, 20, machine.FrameSize.Y, 20));
+            topWireMeshBuilder.AddBox(new Rect3D(machine.FrameSize.X - 20, 0, 50, 20, machine.FrameSize.Y, 20));
 
             var boxModel = new GeometryModel3D() { Geometry = topWireMeshBuilder.ToMesh(true), Material = grayMaterial };
             modelGroup.Children.Add(boxModel);
 
             var railMeshBuilder = new MeshBuilder(false, false);
-            railMeshBuilder.AddBox(new Rect3D(3, 0, 70,14, machine.FrameHeight, 5));
-            railMeshBuilder.AddBox(new Rect3D(machine.FrameWidth - 17, 0, 70, 14, machine.FrameHeight, 5));
+            railMeshBuilder.AddBox(new Rect3D(3, 0, 70,14, machine.FrameSize.Y, 5));
+            railMeshBuilder.AddBox(new Rect3D(machine.FrameSize.X - 17, 0, 70, 14, machine.FrameSize.Y, 5));
             var railModel = new GeometryModel3D() { Geometry = railMeshBuilder.ToMesh(true), Material = whiteMaterial };
             modelGroup.Children.Add(railModel);
             
@@ -147,7 +146,7 @@ namespace LagoVista.PickAndPlace.App.Controls
             foreach (var feederRail in machine.FeederRails)
             {
                 var feederMeshBuilder = new MeshBuilder(false, false);
-                var rect = new Rect3D(0, feederRail.FirstFeederOrigin.Y, -43, machine.FrameWidth, 20, 20);
+                var rect = new Rect3D(0, feederRail.FirstFeederOrigin.Y, -43, machine.FrameSize.X, 20, 20);
                 feederMeshBuilder.AddBox(rect);
                 var feederRailModel = new GeometryModel3D() { Geometry = feederMeshBuilder.ToMesh(true), Material = grayMaterial };
                 modelGroup.Children.Add(feederRailModel);                
@@ -210,9 +209,9 @@ namespace LagoVista.PickAndPlace.App.Controls
 
         private void ResetZoom_Click(object sender, RoutedEventArgs e)
         {
-            var maxX = Machine.FrameWidth;
-            var maxY = Machine.FrameHeight;
-            var factor = Machine.FrameHeight / 10;
+            var maxX = Machine.FrameSize.X;
+            var maxY = Machine.FrameSize.Y;
+            var factor = Machine.FrameSize.Y / 10;
 
             var max = Math.Max(maxX, maxY);
             var x = (max / 2) + 0;

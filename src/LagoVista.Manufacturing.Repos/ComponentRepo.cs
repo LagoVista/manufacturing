@@ -48,6 +48,9 @@ namespace LagoVista.Manufacturing.Repo.Repos
 
         public Task UpdateComponentAsync(Component component)
         {
+            if (component.ComponentPackage != null)
+                component.ComponentPackage.Value = null;
+
             return UpsertDocumentAsync(component);
         }
     }

@@ -38,8 +38,14 @@ namespace LagoVista.Manufacturing.Models
             get; set;
         } = "#000000";
 
+
+        Point2D<double> _rowOneRefHoleOffset = new Point2D<double>(3,3);
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_RowOneRefHoleOffset, HelpResource: ManufacturingResources.Names.StripFeeder_RowOneRefHoleOffset_Help, FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public Point2D<double> RowOneRefHoleOffset { get; set; }
+        public Point2D<double> RowOneRefHoleOffset 
+        {
+            get => _rowOneRefHoleOffset;
+            set => Set(ref _rowOneRefHoleOffset, value);
+        }
 
         private double _pickHeight = 10;
 
@@ -77,34 +83,18 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _rowCount, value);
         }
 
-        private double _feederWidth;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Width, HelpResource: ManufacturingResources.Names.StripFeeder_FeederWidth_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double FeederWidth
+        private Point3D<double> _size = new Point3D<double>(40, 120, 12);
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_Size, HelpResource: ManufacturingResources.Names.StripFeeder_FeederSize_Help, FieldType: FieldTypes.Point3DSize, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public Point3D<double> Size 
         {
-            get => _feederWidth;
-            set => Set(ref _feederWidth, value);
-        }
-
-        private double _feederLength = 120;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Length, HelpResource: ManufacturingResources.Names.StripFeeder_FeederLength_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double FeederLength
-        {
-            get => _feederLength;
-            set => Set(ref _feederLength, value);
-        }
-
-        private double _feederHeight = 12;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Height, HelpResource: ManufacturingResources.Names.StripFeeder_FeederHeight_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double FeederHeight
-        {
-            get => _feederHeight;
-            set => Set(ref _feederHeight, value);
+            get => _size;
+            set => Set(ref _size, value);
         }
 
         Point2D<double> _referenceHoleLocation = new Point2D<double>();
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_ReferenceHoleOffset, 
             HelpResource: ManufacturingResources.Names.StripFeeder_ReferenceHoleOffset_Help, FieldType: FieldTypes.Point2D, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
-        public Point2D<double> ReferenceHoleLocation
+        public Point2D<double> ReferenceHoleOffset
         {
             get => _referenceHoleLocation;
             set => Set(ref _referenceHoleLocation, value);
@@ -124,11 +114,11 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Key),
                 nameof(TapeSize),
                 nameof(Color),
+                nameof(Size),
                 nameof(RowWidth),
-                nameof(RowCount),
-                nameof(FeederWidth),
-                nameof(FeederLength),
-                nameof(FeederHeight),
+                nameof(RowCount),                
+                nameof(ReferenceHoleOffset),
+                nameof(RowOneRefHoleOffset),
                 nameof(PickHeight),
             };
         }

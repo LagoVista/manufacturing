@@ -32,7 +32,7 @@ namespace LagoVista.PickAndPlace.App.Controls
 
             ViewModel.Machine.PCBManager.PropertyChanged += PCBManager_PropertyChanged;
 
-            var x = ViewModel.Machine.Settings.WorkAreaWidth / 2;
+            var x = ViewModel.Machine.Settings.WorkAreaSize.X / 2;
             Camera.Position = new Point3D(x, Camera.Position.Y, Camera.Position.Z);
         }
        
@@ -245,8 +245,8 @@ namespace LagoVista.PickAndPlace.App.Controls
         {
             if (e.PropertyName == nameof(ViewModel.Machine.GCodeFileManager.Min) ||
                 e.PropertyName == nameof(ViewModel.Machine.GCodeFileManager.Max) ||
-                e.PropertyName == nameof(ViewModel.Machine.Settings.WorkAreaWidth) ||
-                e.PropertyName == nameof(ViewModel.Machine.Settings.WorkAreaHeight) ||
+                e.PropertyName == nameof(ViewModel.Machine.Settings.WorkAreaSize.X) ||
+                e.PropertyName == nameof(ViewModel.Machine.Settings.WorkAreaSize.Y) ||
                 e.PropertyName == nameof(ViewModel.Machine.Settings))
             {
                 RefreshExtents();
@@ -290,7 +290,7 @@ namespace LagoVista.PickAndPlace.App.Controls
         private void ShowLeftView()
         {
             double min = ViewModel.Machine.GCodeFileManager.HasValidFile ? ViewModel.Machine.GCodeFileManager.Min.Y : 0;
-            double max = ViewModel.Machine.Settings.WorkAreaHeight;
+            double max = ViewModel.Machine.Settings.WorkAreaSize.Y;
 
             if (ViewModel.Machine.PCBManager.HasBoard)
                 max = ViewModel.Machine.PCBManager.Board.Height;
@@ -315,7 +315,7 @@ namespace LagoVista.PickAndPlace.App.Controls
         private void ShowTopView()
         {
             double minX = ViewModel.Machine.GCodeFileManager.HasValidFile ? ViewModel.Machine.GCodeFileManager.Min.X : 0;
-            double maxX = ViewModel.Machine.Settings.WorkAreaWidth;
+            double maxX = ViewModel.Machine.Settings.WorkAreaSize.X;
 
             if (ViewModel.Machine.PCBManager.HasBoard)
                 maxX = ViewModel.Machine.PCBManager.Board.Width;
@@ -324,7 +324,7 @@ namespace LagoVista.PickAndPlace.App.Controls
                 maxX = ViewModel.Machine.GCodeFileManager.Max.X;
 
             double minY = ViewModel.Machine.GCodeFileManager.HasValidFile ? ViewModel.Machine.GCodeFileManager.Min.Y : 0;
-            double maxY = ViewModel.Machine.Settings.WorkAreaHeight;
+            double maxY = ViewModel.Machine.Settings.WorkAreaSize.Y;
 
             if (ViewModel.Machine.PCBManager.HasBoard)
                 maxY = ViewModel.Machine.PCBManager.Board.Height;
@@ -351,7 +351,7 @@ namespace LagoVista.PickAndPlace.App.Controls
         private void ShowFrontView()
         {
             double min = ViewModel.Machine.GCodeFileManager.HasValidFile ? ViewModel.Machine.GCodeFileManager.Min.X : 0;
-            double max = ViewModel.Machine.Settings.WorkAreaWidth;
+            double max = ViewModel.Machine.Settings.WorkAreaSize.X;
 
             if (ViewModel.Machine.PCBManager.HasBoard)
                 max = ViewModel.Machine.PCBManager.Board.Width;

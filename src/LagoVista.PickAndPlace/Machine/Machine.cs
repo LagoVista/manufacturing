@@ -168,8 +168,8 @@ namespace LagoVista.PickAndPlace
             var cmd = rapidMove ? "G0" : "G1";
             if (Settings.MachineType != FirmwareTypes.Repeteir_PnP && !relativeMove)
             {
-                x = Math.Max(0, Math.Min(x, Settings.WorkAreaWidth));
-                y = Math.Max(0, Math.Min(y, Settings.WorkAreaHeight));
+                x = Math.Max(0, Math.Min(x, Settings.WorkAreaSize.X));
+                y = Math.Max(0, Math.Min(y, Settings.WorkAreaSize.Y));
             }
 
             if (relativeMove)
@@ -186,8 +186,8 @@ namespace LagoVista.PickAndPlace
             var cmd = rapidMove ? "G0" : "G1";
             if (Settings.MachineType != FirmwareTypes.Repeteir_PnP)
             {
-                x = Math.Max(0, Math.Min(x, Settings.WorkAreaWidth));
-                y = Math.Max(0, Math.Min(y, Settings.WorkAreaHeight));
+                x = Math.Max(0, Math.Min(x, Settings.WorkAreaSize.X));
+                y = Math.Max(0, Math.Min(y, Settings.WorkAreaSize.Y));
             }
 
             SendCommand($"{cmd} X{x.ToDim()} Y{y.ToDim()} Z{z.ToDim()}");

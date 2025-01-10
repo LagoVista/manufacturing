@@ -114,6 +114,28 @@ namespace LagoVista.PickAndPlace.App.Controls
                         {
                             _viewModel.Jog(JogDirections.ZPlus);
                         }
+
+                        if(WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.RightThumb))
+                        {
+                            
+                            _viewModel.MachineRepo.CurrentMachine.GotoPoint(_viewModel.MachineRepo.CurrentMachine.Settings.WorkAreaSize);
+                        }
+
+                        if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.LeftThumb))
+                        {
+                            _viewModel.MachineRepo.CurrentMachine.GotoPoint(0, 0);
+                        }
+
+                        if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.Back))
+                        {
+                            _viewModel.MachineRepo.CurrentMachine.GotoPoint(_viewModel.MachineRepo.CurrentMachine.Settings.MachineFiducial);
+                        }
+
+                        if (WasPressed(_lastState.Value, controllerState, GamepadButtonFlags.Start))
+                        {
+                            _viewModel.MachineRepo.CurrentMachine.GotoPoint(_viewModel.MachineRepo.CurrentMachine.Settings.DefaultWorkOrigin);
+                            
+                        }
                     }
 
                     _lastState = controllerState;

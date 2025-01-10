@@ -23,22 +23,22 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             base.MachineChanged(machine);
 
             StagingPlates = new ObservableCollection<EntityHeader>(MachineConfiguration.StagingPlates.Select(sp => EntityHeader.Create(sp.Id, sp.Key, sp.Name)));  
-            StagingPlates.Insert(0, EntityHeader.Create("-1", "-1", "-select staging plate-")); 
-            SelectedStagingPlateId = "-1";
+            StagingPlates.Insert(0, EntityHeader.Create(StringExtensions.NotSelectedId, StringExtensions.NotSelectedId, "-select staging plate-")); 
+            SelectedStagingPlateId = StringExtensions.NotSelectedId;
             RaisePropertyChanged(nameof(StagingPlates));
         }
 
         public string SelectedStagingPlateId
         {
-            get => _selectedStagingPlate == null ? "-1" : _selectedStagingPlate.Id;
+            get => _selectedStagingPlate == null ? StringExtensions.NotSelectedId : _selectedStagingPlate.Id;
             set
-            {                
-                if (String.IsNullOrEmpty(value) || value == "-1")
+            {
+                if (!value.HasValidId())
                 {
                     StagingPlateRows.Clear();
-                    StagingPlateRows.Add(EntityHeader.Create("-1", "-1", "-select a staging plate first-"));
+                    StagingPlateRows.Add(EntityHeader.Create(StringExtensions.NotSelectedId, StringExtensions.NotSelectedId, "-select a staging plate first-"));
                     StagingPlateCols.Clear();
-                    StagingPlateCols.Add(EntityHeader.Create("-1", "-1", "-select a staging plate first-"));
+                    StagingPlateCols.Add(EntityHeader.Create(StringExtensions.NotSelectedId, StringExtensions.NotSelectedId, "-select a staging plate first-"));
                 }
                 else
                 {
@@ -46,7 +46,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     RaisePropertyChanged(nameof(SelectedStagingPlate));
                     SelectedStagingPlate = MachineConfiguration.StagingPlates.Single(sp => sp.Id == value);
                     StagingPlateRows.Clear();
-                    StagingPlateRows.Add(EntityHeader.Create("-1", "-1", "-select row-"));
+                    StagingPlateRows.Add(EntityHeader.Create(StringExtensions.NotSelectedId, StringExtensions.NotSelectedId, "-select row-"));
 
                     for (var idx = 0; idx < SelectedStagingPlate.Size.Y / (SelectedStagingPlate.HoleSpacing / 2); ++idx)
                     {
@@ -54,9 +54,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     }
                 }
                 
-                SelectedStagingPlateRowId = "-1";
-                SelectedStagingPlateColId = "-1";
-                RaisePropertyChanged(SelectedStagingPlateId);
+                SelectedStagingPlateRowId = StringExtensions.NotSelectedId;
+                SelectedStagingPlateColId = StringExtensions.NotSelectedId;
+                RaisePropertyChanged(nameof(SelectedStagingPlateId));
                 RaisePropertyChanged(nameof(CanSelectStagingPlateRow));
             }
         }
@@ -64,7 +64,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private void PopulateStagingPlateColumns()
         {
             StagingPlateCols.Clear();
-            StagingPlateCols.Add(EntityHeader.Create("-1", "-1", "-select column-"));
+            StagingPlateCols.Add(EntityHeader.Create(StringExtensions.NotSelectedId, StringExtensions.NotSelectedId, "-select column-"));
 
             var rowIdx = Convert.ToByte(SelectedStagingPlateRowId.ToCharArray()[0]) - 64;
 
@@ -75,10 +75,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     StagingPlateCols.Add(EntityHeader.Create($"{col}", $"{col}", $"{col}"));
             }
 
-            SelectedStagingPlateColId = "-1";
+            SelectedStagingPlateColId = StringExtensions.NotSelectedId;
         }
 
-        private string _selectedStagingPlateRowId = "-1";
+        private string _selectedStagingPlateRowId = StringExtensions.NotSelectedId;
         public string SelectedStagingPlateRowId
         {
             get => _selectedStagingPlateRowId;
@@ -86,12 +86,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             {
                 Summary = "-not set-";
                 Set(ref _selectedStagingPlateRowId, value);
-                if(value != null && value != "-1" )
+                if(value.HasValidId())
                     PopulateStagingPlateColumns();
                 else
                 {
                     StagingPlateCols.Clear();
-                    StagingPlateCols.Add(EntityHeader.Create("-1", "-1", "-select staging plate row first-"));
+                    StagingPlateCols.Add(EntityHeader.Create(StringExtensions.NotSelectedId, StringExtensions.NotSelectedId, "-select staging plate row first-"));
                     RaisePropertyChanged(nameof(StagingPlateCols));
 
                 }
@@ -101,7 +101,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
         }        
 
-        private string _selectedStagingPlateColId = "-1";
+        private string _selectedStagingPlateColId = StringExtensions.NotSelectedId;
         public string SelectedStagingPlateColId
         {
             get => _selectedStagingPlateColId;
@@ -109,7 +109,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             {
                 Set(ref _selectedStagingPlateColId, value);
 
-                if (value == null || value == "-1")
+                if (!value.HasValidId())
                     Summary = "-not set-";
                 else
                     Summary = $"{SelectedStagingPlate.Name} - {SelectedStagingPlateRowId}{SelectedStagingPlateColId}";
@@ -117,8 +117,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
         }
 
-        public bool CanSelectStagingPlateRow => SelectedStagingPlateId != "-1";
-        public bool CanSelectStagingPlateCol => SelectedStagingPlateRowId != "-1";
+        public bool CanSelectStagingPlateRow => SelectedStagingPlateId.HasValidId();
+        public bool CanSelectStagingPlateCol => SelectedStagingPlateRowId.HasValidId();
 
         MachineStagingPlate _selectedStagingPlate;
         public MachineStagingPlate SelectedStagingPlate

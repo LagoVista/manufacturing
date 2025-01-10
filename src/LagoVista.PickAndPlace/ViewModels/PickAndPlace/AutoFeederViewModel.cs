@@ -216,6 +216,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 }
 
                 RaisePropertyChanged(nameof(TapeSize));
+
+                if(value.Component != null)
+                {
+                    LoadComponent(value.Component.Id);
+                }
+                else
+                {
+                    LoadComponent(null);
+                }
             }
         }
 

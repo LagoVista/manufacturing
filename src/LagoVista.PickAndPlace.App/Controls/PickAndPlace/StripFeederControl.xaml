@@ -49,7 +49,10 @@
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
-                <TextBlock  Style="{StaticResource label}" Text="Feeder Origin"></TextBlock>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock  Style="{StaticResource label}" Text="Feeder Origin: "></TextBlock>
+                    <TextBlock Text="{Binding Current.OriginOffset}" />
+                </StackPanel>
                 <Button Grid.Row="1" BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetFeederOriginCommand}"  ToolTip="Set Offset for Feeder Origin"  Width="64" Height="64"  >
                     <Button.Content>
                         <Image Source="/imgs/SetTarget.png"/>
@@ -99,7 +102,8 @@
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <StackPanel>
-                        <TextBlock Text="First Point"></TextBlock>
+                        <TextBlock Style="{StaticResource label}" Text="First Tape Hole"></TextBlock>
+                        <TextBlock  Text="{Binding CurrentRow.FirstTapeHoleOffset}"></TextBlock>
                         <StackPanel Orientation="Horizontal">
                             <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetFirstFeederReferenceHoleCommand}"  ToolTip="Set Reference Hole for Feeder Row" Width="64" Height="64"  >
                                 <Button.Content>
@@ -114,7 +118,8 @@
                         </StackPanel>
                     </StackPanel>
                     <StackPanel>
-                        <TextBlock Text="Second Reference Hole"></TextBlock>
+                        <TextBlock Style="{StaticResource label}" Text="Last Tape Hole"></TextBlock>
+                        <TextBlock  Text="{Binding CurrentRow.LastTapeHoleOffset}"></TextBlock>
                         <StackPanel Orientation="Horizontal">
                             <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetLastFeederReferenceHoleCommand}"  ToolTip="Set Reference Hole for Feeder Row" Width="64" Height="64"  >
                                 <Button.Content>

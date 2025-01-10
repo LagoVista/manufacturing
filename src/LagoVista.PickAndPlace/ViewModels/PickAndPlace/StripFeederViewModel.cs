@@ -71,7 +71,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             GoToPreviousPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.PreviousPart), () => (CurrentRow != null && CurrentPartIndex > 1));
 
             AddCommand = CreatedCommand(Add, () => machineRepo.HasValidMachine && SelectedTemplateId.HasValidId());
-            SaveCommand = CreatedCommand(SaveCurrentFeeder, () => Current != null);
+            SaveCommand = CreatedCommand(Save, () => Current != null);
             CancelCommand = CreatedCommand(Cancel, () => Current != null);
             DoneRowCommand = CreatedCommand(() => DoneRow(), () => CurrentRow != null);
             CancelRowCommand = CreatedCommand(() => CurrentRow = null, () => CurrentRow != null);
@@ -145,7 +145,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             Current = null;
         }
 
-        public async void SaveCurrentFeeder()
+        public async void Save()
         {
             if (Current != null)
             {
@@ -153,10 +153,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                                 await _restClient.PostAsync("/api/mfg/stripfeeder", Current);
                 if(result.Successful)
                 {
-                    if(_isEditing)
+                    if(!_isEditing)
                         Feeders.Add(Current);
 
                     Current = null;
+                    SelectedTemplateId = StringExtensions.NotSelectedId;
                 }
                 else
                 {
@@ -186,6 +187,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             switch (setType)
             {
+                case StripFeederSetTypes.FeederOrigin:
+                    Current.OriginOffset = (Machine.MachinePosition.ToPoint2D() - feederOrigin).Round(2);
+                    break;
                 case StripFeederSetTypes.FirstFeederRowReferenceHole:
                     {
                         var delta = Machine.MachinePosition.ToPoint2D() - feederOrigin;
@@ -222,21 +226,21 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return InvokeResult<Point2D<double>>.FromError($"Could not move, reference hole or column not set on strip feeder {Current.Name}.");
             }
 
-            var component = CurrentRow.Component ?? null;
-            var package = component?.Value?.ComponentPackage?.Value;
+//            var component = CurrentRow.Component ?? null;
+            //var package = component?.Value?.ComponentPackage?.Value;
 
             var feederIsVertical = Current.Orientation.Value == FeederOrientations.Vertical;
 
-            var feederOrigin = stagePlateReferenceLocation.SubtractWithConditionalSwap(feederIsVertical, Current.ReferenceHoleOffset);
+            var feederOrigin = stagePlateReferenceLocation.SubtractWithConditionalSwap(feederIsVertical, Current.ReferenceHoleOffset) + Current.OriginOffset;
 
             if (moveType == StripFeederLocationTypes.FeederReferenceHole)
             {
-                Machine.GotoPoint(stagePlateReferenceLocation);
+                return InvokeResult<Point2D<double>>.Create(stagePlateReferenceLocation);
             }
 
             if (moveType == StripFeederLocationTypes.FeederOrigin)
             {
-                Machine.GotoPoint(feederOrigin);
+                return InvokeResult<Point2D<double>>.Create(feederOrigin);
             }
 
             // rest of methods are looking at a feeder row or part within a row...make sure we have one.
@@ -435,7 +439,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         CurrentComponent = null;
                     }
 
-                    TotalPartsInFeederRow = Convert.ToInt32(Math.Floor(Current.FeederLength / (TapePitch != null ? TapePitch.ToDouble() : 4)));
+                    TotalPartsInFeederRow = Convert.ToInt32(Math.Floor(Current.Size.X / (TapePitch != null ? TapePitch.ToDouble() : 4)));
                     AvailablePartsInFeederRow = TotalPartsInFeederRow - CurrentRow.CurrentPartIndex;
                 }
 

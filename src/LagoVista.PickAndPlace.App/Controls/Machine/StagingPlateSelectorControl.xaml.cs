@@ -45,16 +45,16 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
             var locatedObject = e.NewValue as IStagingPlateLocatedObject;
             if(locatedObject != null)
             {
-                ctl.StagingPlates.SelectedValue = locatedObject.StagingPlate?.Id ?? "-1";
-                ctl._vm.SelectedStagingPlateId = locatedObject.StagingPlate?.Id ?? "-1";
-                ctl._vm.SelectedStagingPlateRowId = locatedObject.ReferenceHoleRow?.Id ?? "-1";
-                ctl._vm.SelectedStagingPlateColId = locatedObject.ReferenceHoleColumn?.Id ?? "-1";
+                ctl.StagingPlates.SelectedValue = locatedObject.StagingPlate?.Id ?? StringExtensions.NotSelectedId;
+                ctl._vm.SelectedStagingPlateId = locatedObject.StagingPlate?.Id ?? StringExtensions.NotSelectedId;
+                ctl._vm.SelectedStagingPlateRowId = locatedObject.ReferenceHoleRow?.Id ?? StringExtensions.NotSelectedId;
+                ctl._vm.SelectedStagingPlateColId = locatedObject.ReferenceHoleColumn?.Id ?? StringExtensions.NotSelectedId;
             }            
             else
             {
-                ctl._vm.SelectedStagingPlateId = "-1";
-                ctl._vm.SelectedStagingPlateRowId = "-1";
-                ctl._vm.SelectedStagingPlateColId = "-1";
+                ctl._vm.SelectedStagingPlateId = StringExtensions.NotSelectedId;
+                ctl._vm.SelectedStagingPlateRowId = StringExtensions.NotSelectedId;
+                ctl._vm.SelectedStagingPlateColId = StringExtensions.NotSelectedId;
             }
         }
 

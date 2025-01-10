@@ -30,9 +30,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             var componentCategories = await _restClient.GetListResponseAsync<EntityBase>("/api/categories/component");
             ComponentCategories = new ObservableCollection<EntityHeader>(componentCategories.Model.Select(c => EntityHeader.Create(c.Id, c.Key, c.Name)));
-            ComponentCategories.Insert(0, new EntityHeader() { Id = StringExtensions.NotSelectedId, Text = "-select component category-" });
+            ComponentCategories.Insert(0, new EntityHeader() { Id = StringExtensions.NotSelectedId, Key = StringExtensions.NotSelectedId, Text = "-select component category-" });
             Components = new ObservableCollection<ComponentSummary>();
-            Components.Insert(0, new ComponentSummary() { Id = StringExtensions.NotSelectedId, Name = "-select component category first-" });
+            Components.Insert(0, new ComponentSummary() { Id = StringExtensions.NotSelectedId, Key=StringExtensions.NotSelectedId, Name = "-select component category first-" });
             SelectedCategoryKey = StringExtensions.NotSelectedId;
             SelectedComponentSummaryId = StringExtensions.NotSelectedId;
 
@@ -57,14 +57,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public async void LoadComponent(string componentId)
         {
-            if (componentId == StringExtensions.NotSelectedId)
+            if (!componentId.HasValidId())
             {
                 SelectedComponent = null;
+                SelectedCategoryKey = StringExtensions.NotSelectedId;
             }
             else
             {
                 var component = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Component>>($"/api/mfg/component/{componentId}");
                 SelectedComponent = component.Result.Model;
+                SelectedCategoryKey = SelectedComponent.ComponentType.Key;
             }
         }
 
@@ -90,17 +92,17 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             get => _selectedCategoryKey;
             set
             {
-                if (value == _selectedCategoryKey) return;
+                if (value == null)
+                    value = StringExtensions.NotSelectedId;
+                Set(ref _selectedCategoryKey, value);
+
+                if (SelectedCategoryKey.HasValidId())
+                    LoadComponentsByCategory(value);
+                else
                 {
-                    Set(ref _selectedCategoryKey, value);
-                    if (SelectedCategoryKey.HasValidId())
-                        LoadComponentsByCategory(value);
-                    else
-                    {
-                        Components = new ObservableCollection<ComponentSummary>();
-                        Components.Insert(0, new ComponentSummary() { Id = StringExtensions.NotSelectedId, Name = "-select component category first-" });
-                        SelectedComponentSummaryId = StringExtensions.NotSelectedId;
-                    }
+                    Components = new ObservableCollection<ComponentSummary>();
+                    Components.Insert(0, new ComponentSummary() { Id = StringExtensions.NotSelectedId, Name = "-select component category first-" });
+                    SelectedComponentSummaryId = StringExtensions.NotSelectedId;
                 }
             }
         }

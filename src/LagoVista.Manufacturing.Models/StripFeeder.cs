@@ -41,7 +41,7 @@ namespace LagoVista.Manufacturing.Models
                ManufacturingResources.Names.StripFeeder_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-fo-left", Cloneable: true,
                SaveUrl: "/api/mfg/stripfeeder", GetUrl: "/api/mfg/stripfeeder/{id}", GetListUrl: "/api/mfg/stripfeeders", FactoryUrl: "/api/mfg/stripfeeder/factory",
                DeleteUrl: "/api/mfg/stripfeeder/{id}", ListUIUrl: "/mfg/stripfeeders", EditUIUrl: "/mfg/stripfeeder/{id}", CreateUIUrl: "/mfg/stripfeeder/add")]
-    public class StripFeeder : MfgModelBase, IValidateable, IFormDescriptorAdvanced, IFormDescriptorAdvancedCol2, IFormDescriptor, IFormDescriptorCol2, 
+    public class StripFeeder : MfgModelBase, IValidateable, IFormDescriptorAdvanced, IFormDescriptorAdvancedCol2, IFormDescriptor,
                              IFormConditionalFields, ISummaryFactory, IIDEntity, IFormAdditionalActions, IFormDescriptorBottom, IStagingPlateLocatedObject
     {
         public const string FeederOrientation_Horizontal = "horizontal";
@@ -55,8 +55,7 @@ namespace LagoVista.Manufacturing.Models
         {
             TapeSize = EntityHeader<TapeSizes>.Create(TapeSizes.EightMM);
             RowCount = 1;
-            RowWidth = 10;
-            FeederWidth = RowWidth * RowCount;
+            RowWidth = 12;
             Orientation = EntityHeader<FeederOrientations>.Create(FeederOrientations.Horizontal);
             FeedDirection = EntityHeader<FeedDirections>.Create(FeedDirections.Forward);
             RowOneRefHoleOffset = new Point2D<double>() { X = 3, Y = 3 };
@@ -186,28 +185,25 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _rowCount, value);
         }
 
-        private double _feederWidth;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Width, HelpResource: ManufacturingResources.Names.StripFeeder_FeederWidth_Help,  FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double FeederWidth
+        /// <summary>
+        /// Width = Y 
+        /// Length = X
+        /// Height = Z
+        /// 
+        ///  W -------------------------------------------------------
+        ///  I                   ROW 2
+        ///  D -------------------------------------------------------
+        ///  T                   ROW 1
+        ///  H -------------------------------------------------------
+        ///   ORIGIN             Length
+        /// 
+        /// </summary>
+        private Point3D<double> _size = new Point3D<double>(120, 40, 12);
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_Size, HelpResource: ManufacturingResources.Names.StripFeeder_FeederSize_Help, FieldType: FieldTypes.Point3DSize, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public Point3D<double> Size
         {
-            get => _feederWidth;
-            set => Set(ref _feederWidth, value);
-        }
-
-        private double _feederLength = 120;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Length, HelpResource: ManufacturingResources.Names.StripFeeder_FeederLength_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double FeederLength
-        {
-            get => _feederLength;
-            set => Set(ref _feederLength, value);
-        }
-
-        private double _feederHeight = 12;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Height, HelpResource:ManufacturingResources.Names.StripFeeder_FeederHeight_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double FeederHeight
-        {
-            get => _feederHeight;
-            set => Set(ref _feederHeight, value);
+            get => _size;
+            set => Set(ref _size, value);
         }
 
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Rows, OpenByDefault:true, ChildListDisplayMembers:"rowIndex,component.text", FactoryUrl: "/api/mfg/stripfeeder/row/factory", FieldType: FieldTypes.ChildListInline, ResourceType: typeof(ManufacturingResources))]
@@ -265,10 +261,9 @@ namespace LagoVista.Manufacturing.Models
             return new List<string>()
             {
                 nameof(RowCount),
+                nameof(ReferenceHoleOffset),
                 nameof(RowOneRefHoleOffset),
-                nameof(FeederLength),
-                nameof(FeederWidth),
-                nameof(FeederHeight),
+                nameof(Size),
                 nameof(PickHeight),
                 nameof(RowWidth),
             };
@@ -304,8 +299,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(ReferenceHoleRow),
                 nameof(ReferenceHoleOffset),
                 nameof(RowCount),
-                nameof(FeederLength),
-                nameof(FeederWidth),
+                nameof(Size),
                 nameof(RowWidth),
                 nameof(AngleOffset),
 

@@ -249,8 +249,9 @@ namespace LagoVista.Manufacturing.Models
         [JsonIgnore]
         public double? ToolSafeMoveHeight
         {
-            get { 
-                return _currentNozzle?.SafeMoveHeight; 
+            get
+            {
+                return _currentNozzle?.SafeMoveHeight;
             }
             set
             {
@@ -317,7 +318,7 @@ namespace LagoVista.Manufacturing.Models
 
         ObservableCollection<MachineFeederRail> _feederRails = new ObservableCollection<MachineFeederRail>();
         [FormField(LabelResource: ManufacturingResources.Names.Machine_FeederRails, FieldType: FieldTypes.ChildListInline, FactoryUrl: "/api/mfg/machine/feederrail/factory",
-           OpenByDefault:true, ResourceType: typeof(ManufacturingResources))]
+           OpenByDefault: true, ResourceType: typeof(ManufacturingResources))]
         public ObservableCollection<MachineFeederRail> FeederRails
         {
             get { return _feederRails; }
@@ -346,7 +347,7 @@ namespace LagoVista.Manufacturing.Models
 
 
         private Point2D<Double> _defaultToolReferencePoint;
-        public Point2D<double> DefaultToolReferencePoint 
+        public Point2D<double> DefaultToolReferencePoint
         {
             get => _defaultToolReferencePoint;
             set => Set(ref _defaultToolReferencePoint, value);
@@ -365,42 +366,37 @@ namespace LagoVista.Manufacturing.Models
 
         public int ProbeTimeoutSeconds { get; set; }
 
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_GCodeMapping, WaterMark: ManufacturingResources.Names.Machine_GCodeMapping_Select, EntityHeaderPickerUrl: "/api/mfg/gcodemappings", 
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_GCodeMapping, WaterMark: ManufacturingResources.Names.Machine_GCodeMapping_Select, EntityHeaderPickerUrl: "/api/mfg/gcodemappings",
             FieldType: FieldTypes.EntityHeaderPicker, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<GCodeMapping> GcodeMapping { get; set; }
 
-        private int _workAreaWidth;
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_WorkAreaWidth, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public int WorkAreaWidth
+
+
+        Point2D<double> _workAreaSize = new Point2D<double>(400, 400);
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_WorkAreaSize, HelpResource: ManufacturingResources.Names.Machine_WorkAreaSize_Help, FieldType: FieldTypes.Point2DSize, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> WorkAreaSize
         {
-            get { return _workAreaWidth; }
-            set { Set(ref _workAreaWidth, value); }
+            get { return _workAreaSize; }
+            set { Set(ref _workAreaSize, value); }
         }
 
-        private int _workAreaHeight;
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_WorkAreaHeight, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public int WorkAreaHeight
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_WorkAreaOrigin, HelpResource: ManufacturingResources.Names.Machine_WorkAreaOrigin_Help,
+            FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> WorkAreaOrigin { get; set; } = new Point2D<double>(0, 0);
+
+
+        Point3D<double> _frameSize = new Point3D<double>(600, 600, 30);
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_FrameSize, HelpResource: ManufacturingResources.Names.Machine_FrameSize_Help, FieldType: FieldTypes.Point3DSize, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public Point3D<double> FrameSize
         {
-            get { return _workAreaHeight; }
-            set { Set(ref _workAreaHeight, value); }
+            get => _frameSize;
+            set => Set(ref _frameSize, value);
         }
 
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_WorkAreaOrigin, HelpResource:ManufacturingResources.Names.Machine_WorkAreaOrigin_Help,
-            FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public Point2D<double> WorkAreaOrigin { get; set; } = new Point2D<double>(0,0);
-       
-
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_FrameWidth, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public int FrameWidth { get; set; } = 680;
-
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_FrameHeight, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public int FrameHeight { get; set; } = 600;
-
-
-        Point2D<double> _workspaceFrameOffset;
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_WorkspaceFrameOffset, HelpResource:ManufacturingResources.Names.Machine_WorkspaceFrameOffset_Help, 
-            FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public Point2D<double> WorkspaceFrameOffset 
+        Point3D<double> _workspaceFrameOffset = new Point3D<double>(100, 100, 100);
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_WorkspaceFrameOffset, HelpResource: ManufacturingResources.Names.Machine_WorkspaceFrameOffset_Help,
+            FieldType: FieldTypes.Point3D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public Point3D<double> WorkspaceFrameOffset
         {
             get => _workspaceFrameOffset;
             set => Set(ref _workspaceFrameOffset, value);
@@ -540,7 +536,7 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Machine_Cameras, FactoryUrl: "/api/mfg/machine/camera/factory", FieldType: FieldTypes.ChildListInline, OpenByDefault: true, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public ObservableCollection<MachineCamera> Cameras { get; set; } = new ObservableCollection<MachineCamera>();
 
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_ToolHeads, FactoryUrl: "/api/mfg/machine/toolhead/factory", FieldType: FieldTypes.ChildListInline, OpenByDefault:true, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_ToolHeads, FactoryUrl: "/api/mfg/machine/toolhead/factory", FieldType: FieldTypes.ChildListInline, OpenByDefault: true, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public ObservableCollection<MachineToolHead> ToolHeads { get; set; } = new ObservableCollection<MachineToolHead>();
 
         private MachineCamera _positioningCamera;
@@ -559,7 +555,7 @@ namespace LagoVista.Manufacturing.Models
 
 
         public FirmwareTypes MachineType { get; set; }
-    
+
         public List<string> Validate()
         {
             var errs = new List<string>();
@@ -620,42 +616,42 @@ namespace LagoVista.Manufacturing.Models
             SplitSegmentLength = 5;
             XYStepSize = 1;
             ZStepSize = 1;
-            WorkAreaWidth = 300;
-            WorkAreaHeight = 200;
+            WorkAreaSize = new Point2D<double>(400, 400);
+            FrameSize = new Point3D<double>(600, 600, 30);
         }
 
         public static Machine CreateDefault()
         {
 
-                return new Machine()
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = "Machine 1",
-                    ProbeOffset = 0.0,
-                    ControllerBufferSize = 120,
-                    StatusPollIntervalIdle = 1000,
-                    StatusPollIntervalRunning = 100,
-                    JogFeedRate = 2000,
-                    ProbeTimeoutSeconds = 30,
-                    MessageVerbosity = MessageVerbosityLevels.Normal,
-                    MachineOrigin = MachineOrigin.Bottom_Left,
-                    JogGCodeCommand = JogGCodeCommand.G0,
-                    ViewportArcSplit = 1,
-                    EnableCodePreview = true,
-                    ProbeSafeHeight = 5,
-                    ProbeMinimumHeight = 1,
-                    ProbeMaxDepth = 5,
-                    AbortOnProbeFail = false,
-                    ProbeFeed = 20,
-                    ProbeHeightMovementFeed = 1000,
-                    ArcToLineSegmentLength = 1,
-                    SplitSegmentLength = 5,
-                    XYStepSize = 1,
-                    ZStepSize = 1,
-                    WorkAreaWidth = 300,
-                    WorkAreaHeight = 200
-                };
-            }
+            return new Machine()
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = "Machine 1",
+                ProbeOffset = 0.0,
+                ControllerBufferSize = 120,
+                StatusPollIntervalIdle = 1000,
+                StatusPollIntervalRunning = 100,
+                JogFeedRate = 2000,
+                ProbeTimeoutSeconds = 30,
+                MessageVerbosity = MessageVerbosityLevels.Normal,
+                MachineOrigin = MachineOrigin.Bottom_Left,
+                JogGCodeCommand = JogGCodeCommand.G0,
+                ViewportArcSplit = 1,
+                EnableCodePreview = true,
+                ProbeSafeHeight = 5,
+                ProbeMinimumHeight = 1,
+                ProbeMaxDepth = 5,
+                AbortOnProbeFail = false,
+                ProbeFeed = 20,
+                ProbeHeightMovementFeed = 1000,
+                ArcToLineSegmentLength = 1,
+                SplitSegmentLength = 5,
+                XYStepSize = 1,
+                ZStepSize = 1,
+                WorkAreaSize = new Point2D<double>(400, 400),
+                FrameSize = new Point3D<double>(600, 600, 30)
+            };
+        }
 
         public List<string> GetFormFields()
         {
@@ -663,11 +659,8 @@ namespace LagoVista.Manufacturing.Models
             {
                 nameof(Name),
                 nameof(Key),
-                nameof(WorkAreaWidth),
-                nameof(WorkAreaHeight),
-                nameof(WorkAreaOrigin),            
-                nameof(FrameWidth),
-                nameof(FrameHeight),
+                nameof(WorkAreaSize),
+                nameof(FrameSize),
                 nameof(WorkspaceFrameOffset),
             };
         }

@@ -836,11 +836,8 @@
   <data name="MachineStagingPlates_Title" xml:space="preserve">
     <value>Staging Plates</value>
   </data>
-  <data name="Machine_WorkAreaWidth" xml:space="preserve">
-    <value>Work Area Width (mm)</value>
-  </data>
-  <data name="Machine_WorkAreaHeight" xml:space="preserve">
-    <value>Work Area Height (mm)</value>
+  <data name="Machine_WorkAreaSize" xml:space="preserve">
+    <value>Work Area Size</value>
   </data>
   <data name="Machine_MaxFeedRate" xml:space="preserve">
     <value>Maximum Feed Rate</value>
@@ -876,7 +873,7 @@
     <value>Color</value>
   </data>
   <data name="StripFeeder_RowOneRefHoleOffset" xml:space="preserve">
-    <value>Row One - Reference Hole</value>
+    <value>Row One - Tap Hole Offset from Origin</value>
   </data>
   <data name="MachineStagingPlate_HolesStaggered" xml:space="preserve">
     <value>Holes Staggered</value>
@@ -890,11 +887,8 @@
   <data name="StripFeeder_AngleOffset_Help" xml:space="preserve">
     <value>The angle offset for this strip feeder to correct for any installation errors.  This is usually calibrated by the machine and not manually entered.</value>
   </data>
-  <data name="Machine_FrameWidth" xml:space="preserve">
-    <value>Frame Width</value>
-  </data>
-  <data name="Machine_FrameHeight" xml:space="preserve">
-    <value>Frame Height</value>
+  <data name="Machine_FrameSize" xml:space="preserve">
+    <value>Frame Size</value>
   </data>
   <data name="Machine_FeederRail_Title" xml:space="preserve">
     <value>Feeder Rail</value>
@@ -1035,7 +1029,7 @@
     <value>XY Coodinate of the center of the refrence hole to identify staging plate location. This is generally set via machine vision and not through the web interface.  Two points are used to compensate for installation angle errors.</value>
   </data>
   <data name="StripFeeder_ReferenceHoleOffset" xml:space="preserve">
-    <value>Reference Hole Offset</value>
+    <value>Mounting Hole Offset</value>
   </data>
   <data name="StripFeeder_ReferenceHoleOffset_Help" xml:space="preserve">
     <value>Provide the XY offset from the bottom left origin of the strip feeder to the reference hole location.  This is assuming that the feeder is horizontal and is used to determine where the feeder origin is located.</value>
@@ -1233,7 +1227,7 @@
     <value>Strip Feeder Templates</value>
   </data>
   <data name="StripFeederTemplate_Description" xml:space="preserve">
-    <value>Default Parameters used to create Strip Feeders</value>
+    <value>Default Parameters used to create Strip Feeders.  Dimensions as  entered expect that the feeder is oriented horizontally.  A strip feeder is a container for components where a tape is installed, each part is picked in a new location based on how many parts are in the strip.</value>
   </data>
   <data name="AutoFeederTemplates_Title" xml:space="preserve">
     <value>Auto Feeder Templates</value>
@@ -1305,7 +1299,7 @@
     <value>Workspace Frame Offset</value>
   </data>
   <data name="Machine_WorkspaceFrameOffset_Help" xml:space="preserve">
-    <value>Distance in MM from the front left of the machines frame to the 0,0 coordinate of the workspace.</value>
+    <value>Distance in MM from the bottom, front left of the machines frame to the 0,0 coordinate of the workspace.</value>
   </data>
   <data name="StripFeederRow_LastTapeHoleOffset" xml:space="preserve">
     <value>Last Tape Hope Offset</value>
@@ -1316,14 +1310,8 @@
   <data name="StripFeederRow_FirstTapeHoleOffset_Help" xml:space="preserve">
     <value>Offset from feeder origina point to first tape hole prior to first part.  This offset assumes that the feeder is install horizintally and will be automatically set and corrected if the feeder is installed vertically</value>
   </data>
-  <data name="StripFeeder_FeederWidth_Help" xml:space="preserve">
-    <value>The entire width of the stirp feeder that spans across all the strip feeder rows.  This value is mainly used for rendering the feeder. All calculations will be done by row width and row index.</value>
-  </data>
-  <data name="StripFeeder_FeederLength_Help" xml:space="preserve">
-    <value>The length of the strip feeder that spans the length of each row.  This will be used to define the number of parts in each row with respect to the tape pitch and starting reference hole.</value>
-  </data>
-  <data name="StripFeeder_FeederHeight_Help" xml:space="preserve">
-    <value>The height of the strip feeder above the staging plate.  This will likely be larger than the pick height.  This value is used for rending the feeder.  The Pick Height will be used to define how parts will be picked from this feeder.</value>
+  <data name="StripFeeder_FeederSize_Help" xml:space="preserve">
+    <value>The size of the feeder in MM, assume that the width will be horizontal so the tape runs on the X access. The length with be the X axis. The width will be the Y axis and Z will be total dimension in the Z access of the physical feeder.  The location at which parts are picked is specified in the Pick Height field.</value>
   </data>
   <data name="StripFeeder_PickHeight_Help" xml:space="preserve">
     <value>The Z location or height at which the nozzle tip should be set to pickup a part from the tape.  This will be the same for each part.</value>
@@ -1417,5 +1405,17 @@
   </data>
   <data name="PickAndPlaceJobRun_Description" xml:space="preserve">
     <value>A Pick and Place Job Run is an instance of a Pick and Place Job that tracks the creation of the creation of a circuit board</value>
+  </data>
+  <data name="Feeder_Size" xml:space="preserve">
+    <value>Size</value>
+  </data>
+  <data name="AutoFeeder_Size_Help" xml:space="preserve">
+    <value>The size of the AutoFeeder, this is primarily used for rendering a block that represents the feeder.  The X axis will represent the length and is likely the longer distance of the feeder.  Width of the feeder is the usualy the smallest value and height is from the bottom to the top of the feeder.</value>
+  </data>
+  <data name="Machine_WorkAreaSize_Help" xml:space="preserve">
+    <value>The Work Area Size is the XY grid that is accessible via GCode.  It's the location at 0,0 to the upper bounds that your machine supports.  This does not include the frame sizes that extends beyond the work area.</value>
+  </data>
+  <data name="Machine_FrameSize_Help" xml:space="preserve">
+    <value>The total physical size of the frame for your machine.  This is primarily used for rending and should be a rectangle.</value>
   </data>
 </root>

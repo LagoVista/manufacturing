@@ -64,21 +64,25 @@ namespace LagoVista.Manufacturing.Managers
                 Color = template.Color,
                 OriginalTemplate = template.ToEntityHeader(),
                 OwnerOrganization = org,
-                FeederHeight = template.FeederHeight,
-                FeederWidth = template.FeederWidth,
-                FeederLength = template.FeederLength,
+                RowOneRefHoleOffset = template.RowOneRefHoleOffset,
+                Size = template.Size,
+                ReferenceHoleOffset = template.ReferenceHoleOffset,
                 RowCount = template.RowCount,
                 RowWidth = template.RowWidth,
             };
 
             for(var idx = 0; idx < feeder.RowCount; ++idx)
             {
+
+                var holesInTape = (feeder.Size.Y / 4) - 1;
+                var deltaX = holesInTape * 4;
+
                 feeder.Rows.Add(new StripFeederRow()
                 {
                     Id = Guid.NewGuid().ToId(),
                     RowIndex = idx + 1,
-                    FirstTapeHoleOffset = new Core.Models.Drawing.Point2D<double>(4, (idx * feeder.RowWidth) + (feeder.TapeSize.ToDouble() - 2)),
-                    LastTapeHoleOffset = new Core.Models.Drawing.Point2D<double>(feeder.FeederLength / 4, (idx * feeder.RowWidth) + (feeder.TapeSize.ToDouble() - 2)),
+                    FirstTapeHoleOffset = new Core.Models.Drawing.Point2D<double>(template.RowOneRefHoleOffset.Y, (idx * feeder.RowWidth) + (template.RowOneRefHoleOffset.X +(feeder.TapeSize.ToDouble() - 1.5))),
+                    LastTapeHoleOffset = new Core.Models.Drawing.Point2D<double>(template.RowOneRefHoleOffset.Y + deltaX, (idx * feeder.RowWidth) + (template.RowOneRefHoleOffset.X + (feeder.TapeSize.ToDouble() - 1.5))),
                     CurrentPartIndex = 1,
                 });
             }

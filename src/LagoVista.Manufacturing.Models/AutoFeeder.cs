@@ -39,7 +39,7 @@ namespace LagoVista.Manufacturing.Models
             Icon: "icon-pz-searching-2", Cloneable: true,
             SaveUrl: "/api/mfg/autofeeder", GetUrl: "/api/mfg/autoFeeder/{id}", GetListUrl: "/api/mfg/autofeeders", FactoryUrl: "/api/mfg/autofeeder/factory",
             DeleteUrl: "/api/mfg/autofeeder/{id}", ListUIUrl: "/mfg/autoFeeders", EditUIUrl: "/mfg/autofeeder/{id}", CreateUIUrl: "/mfg/autofeeder/add")]
-    public class AutoFeeder : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IIDEntity
+    public class AutoFeeder : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorAdvanced, IFormDescriptorAdvancedCol2, ISummaryFactory, IIDEntity
     {
 
         public const string FeederRotation0 = "zero";
@@ -139,28 +139,12 @@ namespace LagoVista.Manufacturing.Models
         } = "#000000";
 
 
-        private double _feederWidth = 16;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Width, HelpResource:ManufacturingResources.Names.Feeder_FeederWidth_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double FeederWidth
+        Point3D<double> _size;
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_Size, HelpResource:ManufacturingResources.Names.AutoFeeder_Size_Help, FieldType: FieldTypes.Point3DSize, ResourceType: typeof(ManufacturingResources))]
+        public Point3D<double> Size
         {
-            get => _feederWidth;
-            set => Set(ref _feederWidth, value);
-        }
-
-        private double _feederLength = 120;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Length, HelpResource: ManufacturingResources.Names.Feeder_FeederLength_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double FeederLength
-        {
-            get => _feederLength;
-            set => Set(ref _feederLength, value);
-        }
-
-        private double _feederHeight = 80;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Height, HelpResource: ManufacturingResources.Names.Feeder_FeederHeight_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double FeederHeight
-        {
-            get => _feederHeight;
-            set => Set(ref _feederHeight, value);
+            get => _size;
+            set => Set(ref _size, value);
         }
 
         Point3D<double> _originOffset = new Point3D<double>();
@@ -197,15 +181,10 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Name),
                 nameof(Key),
                 nameof(Component),
+                nameof(FeederId),
                 nameof(PartCount),
                 nameof(TapeSize),
-                nameof(Protocol),
-                nameof(Color),
-                nameof(FeederId),
-                nameof(Protocol),
-                nameof(AdvanceGCode),
                 nameof(Rotation),
-                nameof(Description)
             };
         }
 
@@ -222,21 +201,38 @@ namespace LagoVista.Manufacturing.Models
             return CreateSummary();
         }
 
-        public List<string> GetFormFieldsCol2()
+        public List<string> GetAdvancedFieldsCol2()
         {
             return new List<string>()
             {
                 nameof(Machine),
                 nameof(Slot),
-                nameof(FeederWidth),
-                nameof(FeederLength),
-                nameof(FeederHeight),
+                nameof(Size),
                 nameof(OriginOffset),
                 nameof(PickOffset),
                 nameof(FiducialOffset),
                 nameof(PickLocation),
                 nameof(PickHeight),
               };
+        }
+
+        public List<string> GetAdvancedFields()
+        {
+            return new List<string>()
+            {
+                nameof(Name),
+                nameof(Key),
+                nameof(FeederId),
+                nameof(Component),
+                nameof(PartCount),
+                nameof(TapeSize),
+                nameof(Protocol),
+                nameof(Color),
+                nameof(Protocol),
+                nameof(AdvanceGCode),
+                nameof(Rotation),
+                nameof(Description)
+            };
         }
     }
 

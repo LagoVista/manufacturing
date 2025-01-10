@@ -78,29 +78,14 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_AdvanceGCode, HelpResource: ManufacturingResources.Names.Feeder_AdvanceGCode_Help, FieldType: FieldTypes.Text, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public string AdvanceGCode { get; set; }
 
-        private double _feederWidth = 16;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Width, HelpResource: ManufacturingResources.Names.Feeder_FeederWidth_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double FeederWidth
+        Point3D<double> _size;
+        [FormField(LabelResource: ManufacturingResources.Names.Feeder_Size, HelpResource: ManufacturingResources.Names.AutoFeeder_Size_Help, FieldType: FieldTypes.Point3DSize, ResourceType: typeof(ManufacturingResources))]
+        public Point3D<double> Size
         {
-            get => _feederWidth;
-            set => Set(ref _feederWidth, value);
+            get => _size;
+            set => Set(ref _size, value);
         }
 
-        private double _feederLength = 120;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Length, HelpResource: ManufacturingResources.Names.Feeder_FeederLength_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double FeederLength
-        {
-            get => _feederLength;
-            set => Set(ref _feederLength, value);
-        }
-
-        private double _feederHeight = 80;
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Height, HelpResource: ManufacturingResources.Names.Feeder_FeederHeight_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double FeederHeight
-        {
-            get => _feederHeight;
-            set => Set(ref _feederHeight, value);
-        }
 
         Point2D<double> _pickOffset;
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_PickOffsetFromSlotOriign, FieldType: FieldTypes.Point2D,
@@ -134,9 +119,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Color),
                 nameof(TapeSize),
                 nameof(Protocol),
-                nameof(FeederWidth),
-                nameof(FeederLength),
-                nameof(FeederHeight),
+                nameof(Size),
                 nameof(FiducialOffset),
                 nameof(PickOffset),
                 nameof(OriginOffset),

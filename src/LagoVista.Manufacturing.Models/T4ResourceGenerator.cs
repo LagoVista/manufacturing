@@ -1,8 +1,8 @@
-﻿/*1/9/2025 5:12:48 AM*/
+﻿/*1/10/2025 12:25:31 PM*/
 using System.Globalization;
 using System.Reflection;
 
-//Resources:ManufacturingResources:AutoFeederTemplate_Description
+//Resources:ManufacturingResources:AutoFeeder_Size_Help
 namespace LagoVista.Manufacturing.Models.Resources
 {
 	public class ManufacturingResources
@@ -56,6 +56,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 			return new HtmlString(str);
         }*/
 		
+		public static string AutoFeeder_Size_Help { get { return GetResourceString("AutoFeeder_Size_Help"); } }
+//Resources:ManufacturingResources:AutoFeederTemplate_Description
+
 		public static string AutoFeederTemplate_Description { get { return GetResourceString("AutoFeederTemplate_Description"); } }
 //Resources:ManufacturingResources:AutoFeederTemplate_Title
 
@@ -575,6 +578,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Feeder_Rotation_Select
 
 		public static string Feeder_Rotation_Select { get { return GetResourceString("Feeder_Rotation_Select"); } }
+//Resources:ManufacturingResources:Feeder_Size
+
+		public static string Feeder_Size { get { return GetResourceString("Feeder_Size"); } }
 //Resources:ManufacturingResources:Feeder_Slot
 
 		public static string Feeder_Slot { get { return GetResourceString("Feeder_Slot"); } }
@@ -785,12 +791,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Machine_FeederRails
 
 		public static string Machine_FeederRails { get { return GetResourceString("Machine_FeederRails"); } }
-//Resources:ManufacturingResources:Machine_FrameHeight
+//Resources:ManufacturingResources:Machine_FrameSize
 
-		public static string Machine_FrameHeight { get { return GetResourceString("Machine_FrameHeight"); } }
-//Resources:ManufacturingResources:Machine_FrameWidth
+		public static string Machine_FrameSize { get { return GetResourceString("Machine_FrameSize"); } }
+//Resources:ManufacturingResources:Machine_FrameSize_Help
 
-		public static string Machine_FrameWidth { get { return GetResourceString("Machine_FrameWidth"); } }
+		public static string Machine_FrameSize_Help { get { return GetResourceString("Machine_FrameSize_Help"); } }
 //Resources:ManufacturingResources:Machine_GCode
 
 		public static string Machine_GCode { get { return GetResourceString("Machine_GCode"); } }
@@ -815,18 +821,18 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Machine_ToolHeads
 
 		public static string Machine_ToolHeads { get { return GetResourceString("Machine_ToolHeads"); } }
-//Resources:ManufacturingResources:Machine_WorkAreaHeight
-
-		public static string Machine_WorkAreaHeight { get { return GetResourceString("Machine_WorkAreaHeight"); } }
 //Resources:ManufacturingResources:Machine_WorkAreaOrigin
 
 		public static string Machine_WorkAreaOrigin { get { return GetResourceString("Machine_WorkAreaOrigin"); } }
 //Resources:ManufacturingResources:Machine_WorkAreaOrigin_Help
 
 		public static string Machine_WorkAreaOrigin_Help { get { return GetResourceString("Machine_WorkAreaOrigin_Help"); } }
-//Resources:ManufacturingResources:Machine_WorkAreaWidth
+//Resources:ManufacturingResources:Machine_WorkAreaSize
 
-		public static string Machine_WorkAreaWidth { get { return GetResourceString("Machine_WorkAreaWidth"); } }
+		public static string Machine_WorkAreaSize { get { return GetResourceString("Machine_WorkAreaSize"); } }
+//Resources:ManufacturingResources:Machine_WorkAreaSize_Help
+
+		public static string Machine_WorkAreaSize_Help { get { return GetResourceString("Machine_WorkAreaSize_Help"); } }
 //Resources:ManufacturingResources:Machine_WorkspaceFrameOffset
 
 		public static string Machine_WorkspaceFrameOffset { get { return GetResourceString("Machine_WorkspaceFrameOffset"); } }
@@ -1154,15 +1160,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:StripFeeder_Direction_Select
 
 		public static string StripFeeder_Direction_Select { get { return GetResourceString("StripFeeder_Direction_Select"); } }
-//Resources:ManufacturingResources:StripFeeder_FeederHeight_Help
+//Resources:ManufacturingResources:StripFeeder_FeederSize_Help
 
-		public static string StripFeeder_FeederHeight_Help { get { return GetResourceString("StripFeeder_FeederHeight_Help"); } }
-//Resources:ManufacturingResources:StripFeeder_FeederLength_Help
-
-		public static string StripFeeder_FeederLength_Help { get { return GetResourceString("StripFeeder_FeederLength_Help"); } }
-//Resources:ManufacturingResources:StripFeeder_FeederWidth_Help
-
-		public static string StripFeeder_FeederWidth_Help { get { return GetResourceString("StripFeeder_FeederWidth_Help"); } }
+		public static string StripFeeder_FeederSize_Help { get { return GetResourceString("StripFeeder_FeederSize_Help"); } }
 //Resources:ManufacturingResources:StripFeeder_Orientation
 
 		public static string StripFeeder_Orientation { get { return GetResourceString("StripFeeder_Orientation"); } }
@@ -1364,6 +1364,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 
 		public static class Names
 		{
+			public const string AutoFeeder_Size_Help = "AutoFeeder_Size_Help";
 			public const string AutoFeederTemplate_Description = "AutoFeederTemplate_Description";
 			public const string AutoFeederTemplate_Title = "AutoFeederTemplate_Title";
 			public const string AutoFeederTemplates_Title = "AutoFeederTemplates_Title";
@@ -1535,6 +1536,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Feeder_Protocol_Select = "Feeder_Protocol_Select";
 			public const string Feeder_Rotation = "Feeder_Rotation";
 			public const string Feeder_Rotation_Select = "Feeder_Rotation_Select";
+			public const string Feeder_Size = "Feeder_Size";
 			public const string Feeder_Slot = "Feeder_Slot";
 			public const string Feeder_TapeAngle = "Feeder_TapeAngle";
 			public const string Feeder_Title = "Feeder_Title";
@@ -1605,8 +1607,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Machine_FeederRail_Title = "Machine_FeederRail_Title";
 			public const string Machine_FeederRail_Width = "Machine_FeederRail_Width";
 			public const string Machine_FeederRails = "Machine_FeederRails";
-			public const string Machine_FrameHeight = "Machine_FrameHeight";
-			public const string Machine_FrameWidth = "Machine_FrameWidth";
+			public const string Machine_FrameSize = "Machine_FrameSize";
+			public const string Machine_FrameSize_Help = "Machine_FrameSize_Help";
 			public const string Machine_GCode = "Machine_GCode";
 			public const string Machine_GCode_Description = "Machine_GCode_Description";
 			public const string Machine_GCodeMapping = "Machine_GCodeMapping";
@@ -1615,10 +1617,10 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Machine_MaxFeedRate = "Machine_MaxFeedRate";
 			public const string Machine_Title = "Machine_Title";
 			public const string Machine_ToolHeads = "Machine_ToolHeads";
-			public const string Machine_WorkAreaHeight = "Machine_WorkAreaHeight";
 			public const string Machine_WorkAreaOrigin = "Machine_WorkAreaOrigin";
 			public const string Machine_WorkAreaOrigin_Help = "Machine_WorkAreaOrigin_Help";
-			public const string Machine_WorkAreaWidth = "Machine_WorkAreaWidth";
+			public const string Machine_WorkAreaSize = "Machine_WorkAreaSize";
+			public const string Machine_WorkAreaSize_Help = "Machine_WorkAreaSize_Help";
 			public const string Machine_WorkspaceFrameOffset = "Machine_WorkspaceFrameOffset";
 			public const string Machine_WorkspaceFrameOffset_Help = "Machine_WorkspaceFrameOffset_Help";
 			public const string MachineCamera_AbsolutePosition = "MachineCamera_AbsolutePosition";
@@ -1728,9 +1730,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string StripFeeder_Description = "StripFeeder_Description";
 			public const string StripFeeder_Direction = "StripFeeder_Direction";
 			public const string StripFeeder_Direction_Select = "StripFeeder_Direction_Select";
-			public const string StripFeeder_FeederHeight_Help = "StripFeeder_FeederHeight_Help";
-			public const string StripFeeder_FeederLength_Help = "StripFeeder_FeederLength_Help";
-			public const string StripFeeder_FeederWidth_Help = "StripFeeder_FeederWidth_Help";
+			public const string StripFeeder_FeederSize_Help = "StripFeeder_FeederSize_Help";
 			public const string StripFeeder_Orientation = "StripFeeder_Orientation";
 			public const string StripFeeder_Orientation_Select = "StripFeeder_Orientation_Select";
 			public const string StripFeeder_PickHeight = "StripFeeder_PickHeight";
