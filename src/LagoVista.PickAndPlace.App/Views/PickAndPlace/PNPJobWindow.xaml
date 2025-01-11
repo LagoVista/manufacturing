@@ -515,7 +515,7 @@
                                         <ColumnDefinition Width="80" />
                                     </Grid.ColumnDefinitions>
                                     <Label Style="{StaticResource ValueLabel}" Content="Safe Move Height" />
-                                    <Label Style="{StaticResource ValueContent}" Content="{Binding Machine.Settings.ToolSafeMoveHeight}" Grid.Column="1" />
+                                    <Label Style="{StaticResource ValueContent}" Content="{Binding Machine.Settings.SafeMoveHeight}" Grid.Column="1" />
                                     <Button Command="{Binding ToolAlignmentVM.SetToolOneMovePositionCommand}" Content="Set" Grid.Column="3"/>
                                 </Grid>
 

@@ -40,7 +40,7 @@
                     <Button Width="100" Command="{Binding BottomLightOffCommand}" Style="{StaticResource CommandButton}" >Off</Button>
                 </StackPanel>
                 <Label>Red</Label>
-                <Slider Maximum="255" Value="{Binding Machine.Bottomed, Mode=TwoWay}" />
+                <Slider Maximum="255" Value="{Binding Machine.BottomRed, Mode=TwoWay}" />
                 <Label>Green</Label>
                 <Slider Maximum="255" Value="{Binding Machine.BottomGreen, Mode=TwoWay}" />
                 <Label>Blue</Label>
