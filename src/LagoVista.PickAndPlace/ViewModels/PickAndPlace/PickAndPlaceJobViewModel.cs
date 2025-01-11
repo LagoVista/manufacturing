@@ -3,6 +3,7 @@ using LagoVista.Core.Commanding;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Core.PlatformSupport;
+using LagoVista.Manufacturing;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PCB.Eagle.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
@@ -21,19 +22,23 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private readonly ILogger _logger;
         private readonly IStorageService _storageService;
         private readonly IPartsViewModel _partsViewModel;
+        private readonly IPickAndPlaceJobResolverService _resolver;
 
-        public PickAndPlaceJobViewModel(IRestClient restClient, IStorageService storage, IMachineRepo machineRepo, IPartsViewModel partsViewModel) : base(machineRepo)
+        public PickAndPlaceJobViewModel(IRestClient restClient, IPickAndPlaceJobResolverService resolver, IStorageService storage, IMachineRepo machineRepo, IPartsViewModel partsViewModel) : base(machineRepo)
         {
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
             _storageService = storage ?? throw new ArgumentNullException(nameof(storage));
             _partsViewModel = partsViewModel ?? throw new ArgumentNullException(nameof(partsViewModel));
-            _partsViewModel = partsViewModel;
-
+            _resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
+           
             ReloadJobCommand = new RelayCommand(async () => await RefreshJob(), () => { return Job != null; });
             RefreshConfigurationPartsCommand = new RelayCommand(RefreshConfigurationParts);
             SaveCommand = new RelayCommand(async () => await SaveJobAsync(), () => { return Job != null; });
             SetBoardOriginCommand = CreatedMachineConnectedCommand(() => Job.DefaultBoardOrigin = Machine.MachinePosition.ToPoint2D(), () => Job != null);
             CheckBoardFiducialsCommand = CreatedMachineConnectedCommand(() => CheckBoardFiducials(), () => Job != null);
+
+            ResolveJobCommand = CreatedCommand(ResolveJob, () => Job != null);
+            ResolvePartsCommand = CreatedCommand(ResolveParts, () => Job != null);
         }
 
         public override async Task InitAsync()
@@ -50,6 +55,32 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             await base.InitAsync();
+        }
+
+        void ResolveParts()
+        {
+            var result = _resolver.ResolveParts(Job);
+            if (result.Successful)
+            {
+
+            }
+            else
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, result.ErrorMessage);
+            }
+        }
+
+        void ResolveJob()
+        {
+            var result = _resolver.ResolveJobAsync(MachineConfiguration, Job, CircuitBoard, _partsViewModel.StripFeederViewModel.Feeders, _partsViewModel.AutoFeederViewModel.Feeders);
+            if (result.Successful)
+            {
+
+            }
+            else
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, result.ErrorMessage);
+            }
         }
 
         void CheckBoardFiducials()
@@ -159,12 +190,23 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             set => Set(ref _board, value);
         }
 
+
+        PickAndPlaceJobPart _jobPart;
+        public PickAndPlaceJobPart PickAndPlaceJobPart
+        {
+            get => _jobPart;
+            set => Set(ref _jobPart, value);
+        }
+
         public RelayCommand SaveCommand { get; }
 
         public RelayCommand ReloadJobCommand { get; }
         public RelayCommand RefreshConfigurationPartsCommand { get; }
         public RelayCommand SetBoardOriginCommand { get; }
         public RelayCommand CheckBoardFiducialsCommand {get;}
+
+        public RelayCommand ResolvePartsCommand { get; }
+        public RelayCommand ResolveJobCommand { get; }
 
     }
 }

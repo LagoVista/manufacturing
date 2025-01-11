@@ -7,6 +7,8 @@ using LagoVista.Manufacturing.Models.Resources;
 using LagoVista.PCB.Eagle.Models;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading;
 
 namespace LagoVista.Manufacturing.Models
 {
@@ -64,12 +66,23 @@ namespace LagoVista.Manufacturing.Models
 
         public CircuitBoardRevision BoardRevision { get; set; }
 
-        public List<PickAndPlaceJobPart> Parts { get; set; } = new List<PickAndPlaceJobPart>();
+        public ObservableCollection<PickAndPlaceJobPart> Parts { get; set; } = new ObservableCollection<PickAndPlaceJobPart>();
 
         public ObservableCollection<ErrorMessage> ErrorMessages { get; set; } = new ObservableCollection<ErrorMessage>();
 
-        public List<string> Errors { get; set; }
-        public List<string> Warnings { get; set; }
+        private ObservableCollection<string> _errors = new ObservableCollection<string>();
+        public ObservableCollection<string> Errors 
+        {
+            get => _errors;
+            set => Set(ref _errors, value);
+        } 
+
+        private ObservableCollection<string> _warnings = new ObservableCollection<string>();
+        public ObservableCollection<string> Warnings
+        {
+            get => _warnings;
+            set => Set(ref _warnings, value);
+        }
 
         public List<string> GetFormFields()
         {
@@ -99,35 +112,148 @@ namespace LagoVista.Manufacturing.Models
 
     }
 
-    public class BoardFiducial
+    public class BoardFiducial : ModelBase
     {
-        public Point2D<double> Expected { get; set; }
-        public Point2D<double> Actual { get; set; }
+        private Point2D<double> _expected;
+        public Point2D<double> Expected 
+        {
+            get => _expected;
+            set => Set(ref _expected, value);
+        }
+        
+        private Point2D<double> _actual;
+        public Point2D<double> Actual 
+        {
+            get => _actual;
+            set => Set(ref _actual, value);
+        }
     }
 
-    public class PickAndPlaceJobPart
+    public class PickAndPlaceJobPart : ModelBase
     {
-        public EntityHeader PcbComponent { get; set; }
-        public string Value { get; set; }
-        public string PackageName { get; set; }    
+        private string _value;
+        public string Value 
+        {
+            get => _value;
+            set => Set(ref _value, value);
+        }
 
-        public EntityHeader AutoFeeder { get; set; }
-        public EntityHeader StripFeeder { get; set; }
-        public EntityHeader StripFeederRow { get; set; }
+        private string _packageName;
+        public string PackageName
+        {
+            get => _packageName;
+            set => Set(ref _packageName, value);
+        }
 
-        public EntityHeader Component { get; set; }
-        public EntityHeader ComponentPackage { get; set; }
 
-        public List<PickAndPlaceJobPlacement> Placements { get; set; }
+        private EntityHeader _autoFeeder;
+        public EntityHeader AutoFeeder
+        {
+            get => _autoFeeder;
+            set => Set(ref _autoFeeder, value);
+        }
 
-        public string Errors { get; set; }
+        EntityHeader _stripFeeder;
+        public EntityHeader StripFeeder
+        {
+            get => _stripFeeder;
+            set => Set(ref _stripFeeder, value);
+        }
 
+        EntityHeader _stripFeederRow;
+        public EntityHeader StripFeederRow
+        {
+            get => _stripFeeder;
+            set => Set(ref _stripFeeder, value);
+        }
+
+        EntityHeader _component;
+        public EntityHeader Component
+        {
+            get => _component;
+            set => Set(ref _component, value);
+        }
+
+         EntityHeader _componentPackage;
+        public EntityHeader ComponentPackage
+        {
+            get => _componentPackage;
+            set => Set(ref _componentPackage, value);
+        }
+
+        ObservableCollection<PickAndPlaceJobPlacement> _placements = new ObservableCollection<PickAndPlaceJobPlacement>();
+        public ObservableCollection<PickAndPlaceJobPlacement> Placements 
+        {
+            get => _placements;
+            set
+            {
+                Set(ref _placements, value);
+                RaisePropertyChanged(nameof(Count));
+                if(_placements != null)
+                {
+                    _placements.CollectionChanged += (s, a) => RaisePropertyChanged(nameof(Count));
+                }
+            }            
+        }
+
+        ObservableCollection<string> _errors = new ObservableCollection<string>();
+        public ObservableCollection<string> Errors
+        {
+            get => _errors;
+            set => Set(ref _errors, value);
+        }
+
+        public int Count => Placements.Count;
+        
+
+        public override string ToString()
+        {
+            return string.Join(',', Placements.Select(pl => pl.Name));
+        }
     }
 
-    public class PickAndPlaceJobPlacement
+    public class PickAndPlaceJobPlacement : ModelBase
     {
-        public string Name { get; set; }
-        public Point2D<double> PCBLocation { get; set; }
-        public double Rotation { get; set; }
+        private string _name;
+        public string Name 
+        {
+            get => _name;
+            set => Set(ref _name, value);
+        }
+
+        Point2D<double> _pcbLocation;
+        public Point2D<double> PCBLocation
+        {
+            get => _pcbLocation;
+            set => Set(ref _pcbLocation, value);
+        }
+
+        double _rotation;
+        public double Rotation
+        {
+            get => _rotation;
+            set => Set(ref _rotation, value);
+        }
+
+        bool _placed;
+        public bool Placed
+        {
+            get => _placed;
+            set => Set(ref _placed, value);
+        }
+
+        string _placeTimeStamp;
+        public string PlaceTimeStamp
+        {
+            get => _placeTimeStamp;
+            set => Set(ref _placeTimeStamp, value);
+        }
+
+        ObservableCollection<string> _errors = new ObservableCollection<string>();
+        public ObservableCollection<string> Errors
+        {
+            get => _errors;
+            set => Set(ref _errors, value); 
+        }
     }
 }

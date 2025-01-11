@@ -141,8 +141,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         private void DoneRow()
         {
-            CurrentRow.Component = EntityHeader<Component>.Create(CurrentComponent.Id, CurrentComponent.Key, CurrentComponent.Name);
-            Current = null;
+            if(SelectedComponent != null)
+                CurrentRow.Component = EntityHeader<Component>.Create(SelectedComponent.Id, SelectedComponent.Key, SelectedComponent.Name);
+
+            CurrentRow = null;
         }
 
         public async void Save()

@@ -18,8 +18,9 @@
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="50*" />
-            <ColumnDefinition Width="50*" />
+            <ColumnDefinition Width="33*" />
+            <ColumnDefinition Width="33*" />
+            <ColumnDefinition Width="33*" />
         </Grid.ColumnDefinitions>
 
         <Grid Grid.ColumnSpan="2">
@@ -33,6 +34,10 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
+
+                <Button Width="120" Height="32" Style="{StaticResource CommandButton}" Command="{Binding ResolvePartsCommand}">Resolve Parts</Button>
+                <Button Width="120" Height="32" Style="{StaticResource CommandButton}" Command="{Binding ResolveJobCommand }">Resolve Job</Button>
+
 
                 <Button Width="120" Height="32" Style="{StaticResource CommandButton}" Command="{Binding RefreshConfigurationPartsCommand}">Refresh Parts</Button>
                 <Button Style="{StaticResource CommandButton}" Command="{Binding ReloadJobCommand}">Reload Job</Button>
@@ -59,16 +64,43 @@
         </DataGrid>
 
         <Grid Grid.Row="2" Grid.Column="1">
-            <DataGrid ItemsSource="{Binding ConfigurationParts}" Grid.Row="0" SelectionMode="Single" SelectedItem="{Binding PlaceablePart, Mode=TwoWay}" CanUserAddRows="false" AutoGenerateColumns="False">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <DataGrid ItemsSource="{Binding Job.Parts}" Grid.Row="0" SelectionMode="Single" SelectedItem="{Binding PickAndPlaceJobPart, Mode=TwoWay}" CanUserAddRows="false" AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Count" Width="80" Binding="{Binding Count}"  />
+                        <DataGridTextColumn Header="Package" Width="200" Binding="{Binding PackageName, Mode=TwoWay}"  />
+                        <DataGridTextColumn Header="Value" Width="200" Binding="{Binding Value, Mode=TwoWay}"  />
+                        <DataGridTextColumn Header="Names" Width="*" Binding="{Binding .}"  />
+                        <DataGridTextColumn Header="Auto Feeder" Width="*" Binding="{Binding AutoFeeder}"  />
+                        <DataGridTextColumn Header="Strip Feeder" Width="*" Binding="{Binding StripFeeder}"  />
+                        <DataGridTextColumn Header="Strip Feeder Row" Width="*" Binding="{Binding StripFeederRow}"  />
+                </DataGrid.Columns>
+                </DataGrid>
+            <DataGrid ItemsSource="{Binding PickAndPlaceJobPart.Placements}" Grid.Row="1" SelectionMode="Single" SelectedItem="{Binding PickAndPlaceJobPlacement, Mode=TwoWay}" CanUserAddRows="false"  AutoGenerateColumns="False">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Count" Width="80" Binding="{Binding Count}"  />
-                    <DataGridTextColumn Header="Package" Width="200" Binding="{Binding Package, Mode=TwoWay}"  />
-                    <DataGridTextColumn Header="Value" Width="200" Binding="{Binding Value, Mode=TwoWay}"  />
-                    <DataGridTextColumn Header="Names" Width="*" Binding="{Binding PartsNames}"  />
+                    <DataGridTextColumn Header="Name" Width="*" Binding="{Binding Name}"  />
+                    <DataGridTextColumn Header="Location" Width="*" Binding="{Binding PCBLocation}"  />
+                    <DataGridTextColumn Header="Rotation" Width="*" Binding="{Binding Rotation}"  />
                 </DataGrid.Columns>
             </DataGrid>
-
         </Grid>
-        
+
+        <StackPanel Grid.Row="2" Grid.Column="2">
+            <DataGrid ItemsSource="{Binding Job.Errors}" CanUserAddRows="false" AutoGenerateColumns="false">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Errors" Width="*" Binding="{Binding .}"  />
+                </DataGrid.Columns>
+            </DataGrid>
+            <DataGrid ItemsSource="{Binding Job.Warnings}" CanUserAddRows="false" AutoGenerateColumns="false" >
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Warnings" Width="*" Binding="{Binding .}"  />
+                </DataGrid.Columns>            
+            </DataGrid>
+        </StackPanel>
+
+
     </Grid>
 </ucb:VMBoundUserControl>

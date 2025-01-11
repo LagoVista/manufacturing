@@ -9,6 +9,6 @@ namespace LagoVista.Manufacturing
     public interface IPickAndPlaceJobResolverService
     {
         InvokeResult ResolveParts(PickAndPlaceJob job);
-        InvokeResult ResolveJobAsync(Machine machine, PickAndPlaceJob job, CircuitBoard board, List<StripFeeder> stripFeeders, List<AutoFeeder> autoFeeders);
+        InvokeResult ResolveJobAsync(Machine machine, PickAndPlaceJob job, CircuitBoardRevision boardRevision, IEnumerable<StripFeeder> stripFeeders, IEnumerable<AutoFeeder> autoFeeders);
     }
 }

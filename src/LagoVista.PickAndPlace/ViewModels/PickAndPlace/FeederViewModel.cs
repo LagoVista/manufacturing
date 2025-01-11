@@ -66,7 +66,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 var component = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Component>>($"/api/mfg/component/{componentId}");
                 SelectedComponent = component.Result.Model;
-                SelectedCategoryKey = SelectedComponent.ComponentType.Key;
+                _selectedCategoryKey = SelectedComponent.ComponentType.Key;
+                RaisePropertyChanged(nameof(SelectedCategoryKey));
             }
         }
 

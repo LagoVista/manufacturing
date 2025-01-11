@@ -111,6 +111,7 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Component_Attributes, FactoryUrl: "/api/mfg/component/attribute/factory", OpenByDefault:true, ChildListDisplayMembers:"attributeName,attributeValue", FieldType: FieldTypes.ChildListInline, ResourceType: typeof(ManufacturingResources))]
         public List<ComponentAttribute> Attributes { get; set; } = new List<ComponentAttribute>();
 
+
         public ComponentSummary CreateSummary()
         {
             return new ComponentSummary()

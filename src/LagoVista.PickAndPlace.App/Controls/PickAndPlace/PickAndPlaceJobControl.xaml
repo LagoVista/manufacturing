@@ -32,7 +32,7 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
-            
+                
                 <Button Width="120" Height="32" Style="{StaticResource CommandButton}" Command="{Binding RefreshConfigurationPartsCommand}">Refresh Parts</Button>
                 <Button Style="{StaticResource CommandButton}" Command="{Binding ReloadJobCommand}">Reload Job</Button>
                 <Button Style="{StaticResource CommandButton}" Command="{Binding SaveCommand}">Save Job</Button>
@@ -53,6 +53,7 @@
                     <DataGridTextColumn Header="Value" Width="200" Binding="{Binding Value}"  />
                     <DataGridTextColumn Header="Component" Width="200" Binding="{Binding ComponentName}"  />
                     <DataGridTextColumn Header="Names" Width="*" Binding="{Binding PartsNames}"  />
+                    <DataGridTextColumn Header="Strip Feeder" Width="150" Binding="{Binding StripFeeder}"  />
                     <DataGridTextColumn Header="Strip Feeder" Width="150" Binding="{Binding StripFeeder}"  />
                     <DataGridTextColumn Header="Auto Feeder" Width="150" Binding="{Binding Feeder}"  />
 
