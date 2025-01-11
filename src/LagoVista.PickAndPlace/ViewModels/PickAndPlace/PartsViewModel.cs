@@ -1,15 +1,11 @@
-﻿using LagoVista.Client.Core;
-using LagoVista.Core.Commanding;
+﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.Models;
 using LagoVista.Core.PlatformSupport;
-using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
-using LagoVista.PCB.Eagle.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
-using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 {
@@ -21,72 +17,96 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             AutoFeederViewModel = autoFeederViewModel ?? throw new ArgumentNullException(nameof(autoFeederViewModel));
             StripFeederViewModel = stripFeederViewModel ?? throw new ArgumentNullException(nameof(stripFeederViewModel));
-
-            RefreshConfigurationPartsCommand = new RelayCommand(RefreshConfigurationParts);
-        }
-        
-
-        PlaceableParts _currentPlaceableParts;
-        public PlaceableParts CurrentPlaceableParts { get => _currentPlaceableParts; }
-
-        Component _currentComponent;
-        public Component CurrentComponent
-        {
-            get => _currentComponent;
-        }
-
-        ComponentPackage _currentComponentPackage;
-        public ComponentPackage CurrentComponentPackage
-        {
-            get => _currentComponentPackage;
+            RefreshAvailablePartsCommand = CreatedCommand(RefreshAvailableParts);
         }        
 
-        public InvokeResult<PlaceableParts> ResolvePart(Manufacturing.Models.Component part)
+        public void RefreshAvailableParts()
         {
-            return InvokeResult<PlaceableParts>.Create(null);
-        }
+            AvailableParts.Clear();
 
-        public ObservableCollection<PlaceableParts> ConfigurationParts { get; private set; } = new ObservableCollection<PlaceableParts>();
+            foreach(var af in AutoFeederViewModel.Feeders)
+            {
+                if(af.Component != null)
+                {
+                    var ap = new AvailablePart()
+                    {
+                        AutoFeeder = af.ToEntityHeader(),
+                        Component = af.Component,
+                        AvailableCount = af.PartCount,
+                    };
 
+                    AvailableParts.Add(ap);
+                }
+            }
+
+            foreach(var sf in StripFeederViewModel.Feeders)
+            {
+                foreach(var row in sf.Rows)
+                {
+                    if(row.Component != null)
+                    {
+                        var ap = new AvailablePart()
+                        {
+                            StripFeeder = sf.ToEntityHeader(),
+                            StripFeederRow = row.ToEntityHeader(),
+                            Component = row.Component,
+                            AvailableCount = row.CurrentPartIndex,
+                        };
+
+                        AvailableParts.Add(ap);
+                    }
+                }
+            }
+        }       
 
         Manufacturing.Models.Component _componentToBePlaced;
         public Manufacturing.Models.Component CurrentComponentToBePlaced { get => _componentToBePlaced; }
        
-        public void RefreshConfigurationParts()
-        {
-            ConfigurationParts.Clear();
-            var commonParts = _job.BoardRevision.PcbComponents.Where(prt => prt.Included).GroupBy(prt => prt.PackageAndValue.ToLower());
 
-            foreach (var entry in commonParts)
-            {
-                var part = new PlaceableParts()
-                {
-                    Value = entry.First().Value.ToUpper(),
-                    PackageId = entry.First().Package?.Id,
-                    PackageName = entry.First().PackageName.ToUpper(),
-                    ComponentName = entry.First().Component?.Text,
-                };
-
-                part.Parts = new ObservableCollection<PcbComponent>();
-
-                foreach (var specificPart in entry)
-                {
-                    var placedPart = _job.BoardRevision.PcbComponents.Where(cmp => cmp.Name == specificPart.Name && cmp.Key == specificPart.Key).FirstOrDefault();
-                    if (placedPart != null)
-                    {
-                        part.Parts.Add(placedPart);
-                    }
-                }
-
-                ConfigurationParts.Add(part);
-            }
-        }
+        public ObservableCollection<AvailablePart> AvailableParts { get; } = new ObservableCollection<AvailablePart>();
 
         public IStripFeederViewModel StripFeederViewModel { get; }
         public IAutoFeederViewModel AutoFeederViewModel { get; }
 
-        public RelayCommand RefreshBoardCommand { get; }
-        public RelayCommand RefreshConfigurationPartsCommand { get; }
+        public RelayCommand RefreshAvailablePartsCommand { get; }
+    }
 
+    public class AvailablePart : ModelBase
+    {
+        EntityHeader _component;
+        public EntityHeader Component
+        { 
+            get => _component;
+            set => Set(ref _component, value);
+        }
+
+        EntityHeader _autoFeeder;
+        public EntityHeader AutoFeeder 
+        {
+            get => _autoFeeder;
+            set => Set(ref _autoFeeder, value);
+        }
+
+        EntityHeader _stripFeeder;
+        public EntityHeader StripFeeder 
+        {
+            get => _stripFeeder;
+            set => Set(ref _stripFeeder, value);
+        }
+
+
+        EntityHeader _stripFeederRow;
+        public EntityHeader StripFeederRow 
+        {
+            get => _stripFeederRow;
+            set => Set(ref _stripFeederRow, value);
+        }
+
+        int _availableCount;
+        public int AvailableCount
+        { 
+            get => _availableCount;
+            set => Set(ref _availableCount, value);
+        }
     }
 }

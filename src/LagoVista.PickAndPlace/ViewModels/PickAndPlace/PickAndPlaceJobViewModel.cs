@@ -1,16 +1,15 @@
 ﻿using LagoVista.Client.Core;
 using LagoVista.Core.Commanding;
-using LagoVista.Core.Models.Drawing;
+using LagoVista.Core.Models;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Core.PlatformSupport;
 using LagoVista.Manufacturing;
 using LagoVista.Manufacturing.Models;
-using LagoVista.PCB.Eagle.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
-using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -21,22 +20,24 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private readonly IRestClient _restClient;
         private readonly ILogger _logger;
         private readonly IStorageService _storageService;
-        private readonly IPartsViewModel _partsViewModel;
+        
         private readonly IPickAndPlaceJobResolverService _resolver;
 
         public PickAndPlaceJobViewModel(IRestClient restClient, IPickAndPlaceJobResolverService resolver, IStorageService storage, IMachineRepo machineRepo, IPartsViewModel partsViewModel) : base(machineRepo)
         {
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
             _storageService = storage ?? throw new ArgumentNullException(nameof(storage));
-            _partsViewModel = partsViewModel ?? throw new ArgumentNullException(nameof(partsViewModel));
+            PartsViewModel = partsViewModel ?? throw new ArgumentNullException(nameof(partsViewModel));
             _resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
-           
+
             ReloadJobCommand = new RelayCommand(async () => await RefreshJob(), () => { return Job != null; });
-            RefreshConfigurationPartsCommand = new RelayCommand(RefreshConfigurationParts);
             SaveCommand = new RelayCommand(async () => await SaveJobAsync(), () => { return Job != null; });
             SetBoardOriginCommand = CreatedMachineConnectedCommand(() => Job.DefaultBoardOrigin = Machine.MachinePosition.ToPoint2D(), () => Job != null);
             CheckBoardFiducialsCommand = CreatedMachineConnectedCommand(() => CheckBoardFiducials(), () => Job != null);
 
+            ShowSchematicCommand = CreatedCommand(ShowSchematic, () => Job != null && CircuitBoard.SchematicPDFFile != null);
+            ShowComponentDetailCommand = CreatedCommand(ShowComponentDetail, () => PickAndPlaceJobPart != null);
+            ShowDataSheetCommand = CreatedCommand(ShowDataSheeet, () => CurrentComponent != null && !String.IsNullOrEmpty(CurrentComponent.DataSheet));
             ResolveJobCommand = CreatedCommand(ResolveJob, () => Job != null);
             ResolvePartsCommand = CreatedCommand(ResolveParts, () => Job != null);
         }
@@ -72,7 +73,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         void ResolveJob()
         {
-            var result = _resolver.ResolveJobAsync(MachineConfiguration, Job, CircuitBoard, _partsViewModel.StripFeederViewModel.Feeders, _partsViewModel.AutoFeederViewModel.Feeders);
+            var result = _resolver.ResolveJobAsync(MachineConfiguration, Job, CircuitBoard, PartsViewModel.StripFeederViewModel.Feeders, PartsViewModel.AutoFeederViewModel.Feeders);
             if (result.Successful)
             {
 
@@ -88,7 +89,69 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         }
 
-        
+
+        public void ShowDataSheeet()
+        {
+            if (CurrentComponent == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current component.");
+            }
+            
+            if(String.IsNullOrEmpty(CurrentComponent.DataSheet))
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Data sheet not available");
+            }
+                        
+            System.Diagnostics.Process.Start(new ProcessStartInfo
+            {
+                FileName = CurrentComponent.DataSheet,
+                UseShellExecute = true
+            });
+        }
+
+        public void ShowSchematic()
+        {
+            if (CircuitBoard?.SchematicPDFFile != null)
+            {                
+                var url = $"https://www.nuviot.com/api/media/resource/{this.Job.OwnerOrganization.Id}/{this.CircuitBoard.SchematicPDFFile.Id}/download";
+                System.Diagnostics.Process.Start(new ProcessStartInfo
+                {
+                    FileName = url as string,
+                    UseShellExecute = true
+                });
+            }
+            else
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No schematic available.");
+            }
+        }
+
+        public void ShowComponentDetail()
+        {
+            if (PickAndPlaceJobPart != null)
+            {
+                var url = $"https://www.nuviot.com/mfg/component/{PickAndPlaceJobPart.Component.Id}";
+                System.Diagnostics.Process.Start(new ProcessStartInfo
+                {
+                    FileName = url as string,
+                    UseShellExecute = true
+                });
+            }
+        }
+
+        public async void LoadComponent(string componentId)
+        {
+            if (!componentId.HasValidId())
+            {
+                CurrentComponent = null;
+            }
+            else
+            {
+                var component = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Component>>($"/api/mfg/component/{componentId}");
+                CurrentComponent = component.Result.Model;
+            }
+        }
+
         private async Task SaveJobAsync()
         {
             await _restClient.PutAsync("/api/mfg/pnpjob", Job);
@@ -107,51 +170,18 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Job = jobLoadReslut.Result.Model;
                 CircuitBoard = Job.BoardRevision;
                 await _storageService.StoreKVP<string>("last-job-id", jobId);
-                RefreshConfigurationParts();
             }
+            else
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not load job.");
         }
 
-        public void RefreshConfigurationParts()
-        {
-            ConfigurationParts.Clear();
-            var commonParts = _job.BoardRevision.PcbComponents.Where(prt => prt.Included).GroupBy(prt => prt.PackageAndValue.ToLower());
-
-            foreach (var entry in commonParts)
-            {
-                var part = new PlaceableParts()
-                {
-                    Value = entry.First().Value.ToUpper(),
-                    PackageName = entry.First().PackageName.ToUpper(),
-                };
-
-                part.Parts = new ObservableCollection<PcbComponent>();
-
-                foreach (var specificPart in entry)
-                {
-                    var placedPart = _job.BoardRevision.PcbComponents.Where(cmp => cmp.Name == specificPart.Name && cmp.Key == specificPart.Key).FirstOrDefault();
-                    if (placedPart != null)
-                    {
-                        part.Parts.Add(placedPart);
-                    }
-                }
-
-                ConfigurationParts.Add(part);
-            }
-        }
-
-        public ObservableCollection<PlaceableParts> ConfigurationParts { get; private set; } = new ObservableCollection<PlaceableParts>();
-
-        PlaceableParts _placeablePart;
-        public PlaceableParts PlaceablePart
-        {
-            get => _placeablePart;
-            set => Set(ref _placeablePart, value);
-        }
 
         private async void LoadJob(string jobId)
         {
             await LoadJobAsync(jobId);
         }
+
+        public IPartsViewModel PartsViewModel { get; }
 
         ObservableCollection<PickAndPlaceJobSummary> _jobs;
         public ObservableCollection<PickAndPlaceJobSummary> Jobs
@@ -195,7 +225,31 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public PickAndPlaceJobPart PickAndPlaceJobPart
         {
             get => _jobPart;
-            set => Set(ref _jobPart, value);
+            set
+            {
+                Set(ref _jobPart, value);
+                if(EntityHeader.IsNullOrEmpty( _jobPart?.Component))
+                {
+                    CurrentComponent = null;
+                    RaiseCanExecuteChanged();
+                }
+                else
+                {
+                    LoadComponent(_jobPart.Component.Id);
+                }
+            }
+        }
+
+        Component _currentComponent;
+
+        public Component CurrentComponent
+        {
+            get => _currentComponent;
+            set
+            {
+                Set(ref _currentComponent, value);
+                RaiseCanExecuteChanged();
+            }
         }
 
         public RelayCommand SaveCommand { get; }
@@ -203,10 +257,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand ReloadJobCommand { get; }
         public RelayCommand RefreshConfigurationPartsCommand { get; }
         public RelayCommand SetBoardOriginCommand { get; }
-        public RelayCommand CheckBoardFiducialsCommand {get;}
+        public RelayCommand CheckBoardFiducialsCommand { get; }
+
+        public RelayCommand ShowComponentDetailCommand { get; }
 
         public RelayCommand ResolvePartsCommand { get; }
         public RelayCommand ResolveJobCommand { get; }
+        public RelayCommand ShowSchematicCommand { get; }
+        public RelayCommand ShowDataSheetCommand { get; }
 
     }
 }

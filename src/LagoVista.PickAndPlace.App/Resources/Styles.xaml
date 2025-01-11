@@ -147,6 +147,13 @@
         <Setter Property="FontWeight" Value="Bold" />
     </Style>
 
+    <Style TargetType="TextBlock" x:Key="header">
+        <Setter Property="Margin" Value="2" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontSize" Value="16" />
+    </Style>
+
+
 
     <Style TargetType="Button" x:Key="VideoControlButton">
         <Setter Property="Width" Value="24" />
