@@ -95,9 +95,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public void GotoBottomCameraLocation()
         {
-            _machineRepo.CurrentMachine.SendCommand($"G0 Z{_machineRepo.CurrentMachine.Settings.ToolSafeMoveHeight} F5000");
-            _machineRepo.CurrentMachine.GotoPoint(_machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.X, _machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.Y, _machineRepo.CurrentMachine.Settings.PartInspectionCamera.FocusHeight, true);
-            _machineRepo.CurrentMachine.ViewType = ViewTypes.Tool1;
+            //_machineRepo.CurrentMachine.SendCommand($"G0 Z{_machineRepo.CurrentMachine.Settings.SafMoveHeight} F5000");
+            //_machineRepo.CurrentMachine.GotoPoint(_machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.X, _machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.Y, _machineRepo.CurrentMachine.Settings.PartInspectionCamera.FocusHeight, true);
+            //_machineRepo.CurrentMachine.ViewType = ViewTypes.Tool1;
         }
 
         public void SetBottomCameraLocation()
@@ -107,22 +107,20 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _machineRepo.CurrentMachine.SendCommand("M71");
             }
 
-            _machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition = _machineRepo.CurrentMachine.MachinePosition.ToPoint2D();
-            _machineRepo.CurrentMachine.Settings.PartInspectionCamera.FocusHeight = _machineRepo.CurrentMachine.Tool0;
-            BottomCameraLocation = new Point3D<double>()
-            {
-                X = _machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.X,
-                Y = _machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.Y,
-                Z = _machineRepo.CurrentMachine.Settings.PartInspectionCamera.FocusHeight
-            };
+            //_machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition = _machineRepo.CurrentMachine.MachinePosition.ToPoint2D();
+            //_machineRepo.CurrentMachine.Settings.PartInspectionCamera.FocusHeight = _machineRepo.CurrentMachine.Tool0;
+            //BottomCameraLocation = new Point3D<double>()
+            //{
+            //    X = _machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.X,
+            //    Y = _machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.Y,
+            //    Z = _machineRepo.CurrentMachine.Settings.PartInspectionCamera.FocusHeight
+            //};
 
             IsDirty = true;
         }
 
         public void SetTool1MovePosition()
-        {
-            _machineRepo.CurrentMachine.Settings.ToolSafeMoveHeight = _machineRepo.CurrentMachine.Tool0;
-
+        {            
             if (_machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.LagoVista_PnP)
             {
                 _machineRepo.CurrentMachine.SendCommand("M72");
@@ -158,13 +156,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public void GoToMarkTook1Location()
         {
-            _machineRepo.CurrentMachine.SendCommand($"G0 Z{_machineRepo.CurrentMachine.Settings.ToolSafeMoveHeight} F5000");
+            _machineRepo.CurrentMachine.SendCommand($"G0 Z{_machineRepo.CurrentMachine.Settings.SafMoveHeight} F5000");
             _machineRepo.CurrentMachine.GotoPoint(_machineRepo.CurrentMachine.Settings.KnownCalibrationPoint);
         }
 
         public void GoToolOneLocation()
         {
-            _machineRepo.CurrentMachine.SendCommand($"G0 Z{_machineRepo.CurrentMachine.Settings.ToolSafeMoveHeight} F5000");
+            _machineRepo.CurrentMachine.SendCommand($"G0 Z{_machineRepo.CurrentMachine.Settings.SafMoveHeight} F5000");
             _machineRepo.CurrentMachine.GotoPoint(_machineRepo.CurrentMachine.MachinePosition.X - _machineRepo.CurrentMachine.Settings.Tool1Offset.X, _machineRepo.CurrentMachine.MachinePosition.Y - _machineRepo.CurrentMachine.Settings.Tool1Offset.Y);
         }
 

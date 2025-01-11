@@ -44,7 +44,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
             else
             {
-                _machineRepo.CurrentMachine.SendCommand($"G0 Z{_machineRepo.CurrentMachine.Settings.ToolSafeMoveHeight} F5000");
+                _machineRepo.CurrentMachine.SendCommand($"G0 Z{_machineRepo.CurrentMachine.Settings.SafMoveHeight} F5000");
             }
         }
 
@@ -80,10 +80,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
             else
             {
-                if (_machineRepo.CurrentMachine.Settings.PartInspectionCamera?.AbsolutePosition != null)
-                {
-                    _machineRepo.CurrentMachine.SendCommand($"G0 X{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.X} Y{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.Y} Z{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.FocusHeight} F1{_machineRepo.CurrentMachine.Settings.FastFeedRate}");
-                }
+                //if (_machineRepo.CurrentMachine.Settings.PartInspectionCamera?.AbsolutePosition != null)
+                //{
+                //    _machineRepo.CurrentMachine.SendCommand($"G0 X{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.X} Y{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.Y} Z{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.FocusHeight} F1{_machineRepo.CurrentMachine.Settings.FastFeedRate}");
+                //}
             }
         }
 
@@ -149,7 +149,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private string SafeHeightGCodeGCode()
         {
-            return $"G0 Z{_machineRepo.CurrentMachine.Settings.ToolSafeMoveHeight} F{_machineRepo.CurrentMachine.Settings.FastFeedRate}";
+            return $"G0 Z{_machineRepo.CurrentMachine.Settings.SafMoveHeight} F{_machineRepo.CurrentMachine.Settings.FastFeedRate}";
         }
 
 

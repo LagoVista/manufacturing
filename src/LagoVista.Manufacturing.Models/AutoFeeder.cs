@@ -7,6 +7,7 @@ using LagoVista.Manufacturing.Models.Resources;
 using LagoVista.UserAdmin.Models.Orgs;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -34,8 +35,8 @@ namespace LagoVista.Manufacturing.Models
         Other
     }
 
-    [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Feeder_Title, ManufacturingResources.Names.Feeder_Description,
-            ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), 
+    [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.AutoFeeder_Title, ManufacturingResources.Names.AutoFeeder_Description,
+            ManufacturingResources.Names.AutoFeeder_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), 
             Icon: "icon-pz-searching-2", Cloneable: true,
             SaveUrl: "/api/mfg/autofeeder", GetUrl: "/api/mfg/autoFeeder/{id}", GetListUrl: "/api/mfg/autofeeders", FactoryUrl: "/api/mfg/autofeeder/factory",
             DeleteUrl: "/api/mfg/autofeeder/{id}", ListUIUrl: "/mfg/autoFeeders", EditUIUrl: "/mfg/autofeeder/{id}", CreateUIUrl: "/mfg/autofeeder/add")]
@@ -59,23 +60,7 @@ namespace LagoVista.Manufacturing.Models
         public string FeederId { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_Slot, FieldType: FieldTypes.Integer, ResourceType: typeof(ManufacturingResources))]
-        public int Slot { get; set; }
-
-        public AutoFeederSummary CreateSummary()
-        {
-            return new AutoFeederSummary()
-            {
-                Id = Id,
-                Name = Name,
-                Icon = Icon,
-                Description = Description,
-                Key = Key,
-                IsPublic = IsPublic,
-                Component = Component?.Text,
-                ComponentId = Component?.Id,
-                ComponentKey = Component?.Key
-            };
-        }
+        public int Slot { get; set; }       
 
         private Point2D<double> _pickLocation;
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_PickLocation, FieldType: FieldTypes.Point2D, ResourceType: typeof(ManufacturingResources))]
@@ -139,7 +124,7 @@ namespace LagoVista.Manufacturing.Models
         } = "#000000";
 
 
-        Point3D<double> _size;
+        Point3D<double> _size = new Point3D<double>(135, 76, 15);
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_Size, HelpResource:ManufacturingResources.Names.AutoFeeder_Size_Help, FieldType: FieldTypes.Point3DSize, ResourceType: typeof(ManufacturingResources))]
         public Point3D<double> Size
         {
@@ -174,6 +159,14 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _fiducialOffset, value);
         }
 
+        private EntityHeader<Component> _component;
+        [FormField(LabelResource: ManufacturingResources.Names.Component_Title, FieldType: FieldTypes.Custom, CustomFieldType: "componentpicker", ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader<Component> Component
+        {
+            get => _component;
+            set => Set(ref _component, value);
+        }
+
         public List<string> GetFormFields()
         {
             return new List<string>()
@@ -188,12 +181,24 @@ namespace LagoVista.Manufacturing.Models
             };
         }
 
-        private EntityHeader<Component> _component;
-        [FormField(LabelResource: ManufacturingResources.Names.Component_Title, FieldType: FieldTypes.Custom, CustomFieldType: "componentpicker", ResourceType: typeof(ManufacturingResources))]
-        public EntityHeader<Component> Component
+
+        public AutoFeederSummary CreateSummary()
         {
-            get => _component;
-            set => Set(ref _component, value);
+            return new AutoFeederSummary()
+            {
+                Id = Id,
+                Name = Name,
+                Icon = Icon,
+                Description = Description,
+                Key = Key,
+                IsPublic = IsPublic,
+                Component = Component?.Text,
+                ComponentId = Component?.Id,
+                ComponentKey = Component?.Key,
+                FeederId = FeederId,
+                Slot = Slot, 
+                TapeSize = TapeSize.Text,               
+            };
         }
 
         Core.Interfaces.ISummaryData ISummaryFactory.CreateSummary()
@@ -236,8 +241,8 @@ namespace LagoVista.Manufacturing.Models
         }
     }
 
-    [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Feeders_Title, ManufacturingResources.Names.Feeder_Description,
-            ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-stamp-2", Cloneable: true,
+    [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.AutoFeeder_Title, ManufacturingResources.Names.AutoFeeder_Description,
+            ManufacturingResources.Names.AutoFeeder_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-stamp-2", Cloneable: true,
             SaveUrl: "/api/mfg/feeder", GetUrl: "/api/mfg/feeder/{id}", GetListUrl: "/api/mfg/feeders", FactoryUrl: "/api/mfg/feeder/factory",
             DeleteUrl: "/api/mfg/feeder/{id}", ListUIUrl: "/mfg/feeders", EditUIUrl: "/mfg/feeder/{id}", CreateUIUrl: "/mfg/feeder/add")]
     public class AutoFeederSummary : SummaryData
@@ -245,5 +250,8 @@ namespace LagoVista.Manufacturing.Models
         public string ComponentId { get; set; }
         public string ComponentKey { get; set; }
         public string Component { get; set; }
+        public int Slot { get; set; }
+        public string FeederId { get; set; }
+        public string TapeSize { get; set; }
     }
 }

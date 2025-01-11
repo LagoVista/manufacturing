@@ -93,44 +93,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         public List<MachineCamera> Cameras { get; private set; }
 
-        public String PositioningCameraId
-        {
-            get
-            {
-                return Settings.PositioningCamera != null ? Settings.PositioningCamera.Id : "-1";
-            }
-            set
-            {
-                if (value != null && value != "-1")
-                {
-                    Settings.PositioningCamera = Cameras.Where(cmr => cmr.Id == value).FirstOrDefault();
-                }
-                else
-                {
-                    Settings.PositioningCamera = null;
-                }
-            }
-        }
-
-        public String InspectionCameraId
-        {
-            get
-            {
-                return Settings.PartInspectionCamera != null ? Settings.PartInspectionCamera.Id : "-1";
-            }
-            set
-            {
-                if (value != null && value != "-1")
-                {
-                    Settings.PartInspectionCamera = Cameras.Where(cmr => cmr.Id == value).FirstOrDefault();
-                }
-                else
-                {
-                    Settings.PartInspectionCamera = null;
-                }
-            }
-        }
-
         public String MachineType
         {
             get { return Settings.MachineType.ToString().Replace("_", "."); }

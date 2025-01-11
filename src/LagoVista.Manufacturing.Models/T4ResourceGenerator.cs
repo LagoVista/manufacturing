@@ -1,8 +1,8 @@
-﻿/*1/10/2025 12:25:31 PM*/
+﻿/*1/10/2025 4:23:43 PM*/
 using System.Globalization;
 using System.Reflection;
 
-//Resources:ManufacturingResources:AutoFeeder_Size_Help
+//Resources:ManufacturingResources:AutoFeeder_Description
 namespace LagoVista.Manufacturing.Models.Resources
 {
 	public class ManufacturingResources
@@ -56,7 +56,16 @@ namespace LagoVista.Manufacturing.Models.Resources
 			return new HtmlString(str);
         }*/
 		
+		public static string AutoFeeder_Description { get { return GetResourceString("AutoFeeder_Description"); } }
+//Resources:ManufacturingResources:AutoFeeder_Size_Help
+
 		public static string AutoFeeder_Size_Help { get { return GetResourceString("AutoFeeder_Size_Help"); } }
+//Resources:ManufacturingResources:AutoFeeder_Title
+
+		public static string AutoFeeder_Title { get { return GetResourceString("AutoFeeder_Title"); } }
+//Resources:ManufacturingResources:AutoFeeders_Title
+
+		public static string AutoFeeders_Title { get { return GetResourceString("AutoFeeders_Title"); } }
 //Resources:ManufacturingResources:AutoFeederTemplate_Description
 
 		public static string AutoFeederTemplate_Description { get { return GetResourceString("AutoFeederTemplate_Description"); } }
@@ -512,9 +521,6 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Feeder_Component_Select
 
 		public static string Feeder_Component_Select { get { return GetResourceString("Feeder_Component_Select"); } }
-//Resources:ManufacturingResources:Feeder_Description
-
-		public static string Feeder_Description { get { return GetResourceString("Feeder_Description"); } }
 //Resources:ManufacturingResources:Feeder_FeederHeight_Help
 
 		public static string Feeder_FeederHeight_Help { get { return GetResourceString("Feeder_FeederHeight_Help"); } }
@@ -587,9 +593,6 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Feeder_TapeAngle
 
 		public static string Feeder_TapeAngle { get { return GetResourceString("Feeder_TapeAngle"); } }
-//Resources:ManufacturingResources:Feeder_Title
-
-		public static string Feeder_Title { get { return GetResourceString("Feeder_Title"); } }
 //Resources:ManufacturingResources:FeederOrientation_Horizontal
 
 		public static string FeederOrientation_Horizontal { get { return GetResourceString("FeederOrientation_Horizontal"); } }
@@ -1364,7 +1367,10 @@ namespace LagoVista.Manufacturing.Models.Resources
 
 		public static class Names
 		{
+			public const string AutoFeeder_Description = "AutoFeeder_Description";
 			public const string AutoFeeder_Size_Help = "AutoFeeder_Size_Help";
+			public const string AutoFeeder_Title = "AutoFeeder_Title";
+			public const string AutoFeeders_Title = "AutoFeeders_Title";
 			public const string AutoFeederTemplate_Description = "AutoFeederTemplate_Description";
 			public const string AutoFeederTemplate_Title = "AutoFeederTemplate_Title";
 			public const string AutoFeederTemplates_Title = "AutoFeederTemplates_Title";
@@ -1514,7 +1520,6 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Feeder_AdvanceGCode = "Feeder_AdvanceGCode";
 			public const string Feeder_AdvanceGCode_Help = "Feeder_AdvanceGCode_Help";
 			public const string Feeder_Component_Select = "Feeder_Component_Select";
-			public const string Feeder_Description = "Feeder_Description";
 			public const string Feeder_FeederHeight_Help = "Feeder_FeederHeight_Help";
 			public const string Feeder_FeederId = "Feeder_FeederId";
 			public const string Feeder_FeederId_Help = "Feeder_FeederId_Help";
@@ -1539,7 +1544,6 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Feeder_Size = "Feeder_Size";
 			public const string Feeder_Slot = "Feeder_Slot";
 			public const string Feeder_TapeAngle = "Feeder_TapeAngle";
-			public const string Feeder_Title = "Feeder_Title";
 			public const string FeederOrientation_Horizontal = "FeederOrientation_Horizontal";
 			public const string FeederOrientation_Vertical = "FeederOrientation_Vertical";
 			public const string FeederProtocol_Other = "FeederProtocol_Other";

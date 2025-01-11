@@ -171,6 +171,15 @@
                         </Button.Content>
                     </Button>
                 </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding PickCurrentPartCommand}">Pick</Button>
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding InspectCurrentPartCommand}">Inspect</Button>
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding RecycleCurrentPartCommand}">Recycle</Button>
+                </StackPanel>
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding DoneRowCommand}" Content="Done"></Button>
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding CancelRowCommand}" Content="Cancel"></Button>
+                </StackPanel>
             </StackPanel>
         </StackPanel>
     </Grid>

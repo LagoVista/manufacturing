@@ -76,7 +76,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
                 cmds.Add(SafeHeightGCodeGCode()); // Go to move height
 
                 var cRotation = 0;
-                cmds.Add(GetGoToInspectionCameraGCode(cRotation));
+//                cmds.Add(GetGoToInspectionCameraGCode(cRotation));
                 await SendInstructionSequenceAsync(cmds);
 
 
@@ -175,13 +175,13 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         //    return $"G1 X{offsetX}  Y{offsetY} F{ _machineRepo.CurrentMachine.Settings.FastFeedRate}";
         //}
 
-        private String GetGoToInspectionCameraGCode(double rotation)
-        {
-            var offsetX =  _machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.X;
-            var offsetY =  _machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.Y;
+        //private String GetGoToInspectionCameraGCode(double rotation)
+        //{
+        //    //var offsetX =  _machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.X;
+        //    //var offsetY =  _machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.Y;
 
-            return $"G1 X{offsetX}  Y{offsetY} Z{ _machineRepo.CurrentMachine.Settings.PartInspectionCamera.FocusHeight} E{rotation} F{ _machineRepo.CurrentMachine.Settings.FastFeedRate}";
-        }
+        //    //return $"G1 X{offsetX}  Y{offsetY} Z{ _machineRepo.CurrentMachine.Settings.PartInspectionCamera.FocusHeight} E{rotation} F{ _machineRepo.CurrentMachine.Settings.FastFeedRate}";
+        //}
 
         public async Task GoToPartOnBoard()
         {

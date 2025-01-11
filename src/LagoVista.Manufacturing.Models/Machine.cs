@@ -210,6 +210,13 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _fastFeedRate, value); }
         }
 
+        private double _defaultSafeMoveHeight = 0;
+        public double DefaultSafeMoveHeight
+        {
+            get => _defaultSafeMoveHeight; 
+            set => Set(ref _defaultSafeMoveHeight, value);
+        }
+
         private SerialPortInfo _currentSerialPort;
         public SerialPortInfo CurrentSerialPort
         {
@@ -247,16 +254,14 @@ namespace LagoVista.Manufacturing.Models
 
 
         [JsonIgnore]
-        public double? ToolSafeMoveHeight
+        public double SafMoveHeight
         {
             get
             {
-                return _currentNozzle?.SafeMoveHeight;
-            }
-            set
-            {
-                _currentNozzle.SafeMoveHeight = value;
-                RaisePropertyChanged(nameof(ToolSafeMoveHeight));
+                if (_currentNozzle == null || !_currentNozzle.SafeMoveHeight.HasValue)
+                    return DefaultSafeMoveHeight;
+
+                return _currentNozzle.SafeMoveHeight.Value;
             }
         }
 
@@ -292,7 +297,7 @@ namespace LagoVista.Manufacturing.Models
                     RaisePropertyChanged(nameof(CurrentNozzle));
                     RaisePropertyChanged(nameof(ToolPickHeight));
                     RaisePropertyChanged(nameof(ToolBoardHeight));
-                    RaisePropertyChanged(nameof(ToolSafeMoveHeight));
+                    RaisePropertyChanged(nameof(SafMoveHeight));
                 }
             }
         }
@@ -533,25 +538,29 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _minRightVacuum, value);
         }
 
+        private ObservableCollection<MachineCamera> _cameras = new ObservableCollection<MachineCamera>();
         [FormField(LabelResource: ManufacturingResources.Names.Machine_Cameras, FactoryUrl: "/api/mfg/machine/camera/factory", FieldType: FieldTypes.ChildListInline, OpenByDefault: true, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public ObservableCollection<MachineCamera> Cameras { get; set; } = new ObservableCollection<MachineCamera>();
+        public ObservableCollection<MachineCamera> Cameras
+        {
+            get => _cameras;
+            set => Set(ref _cameras, value);
+        }
 
         [FormField(LabelResource: ManufacturingResources.Names.Machine_ToolHeads, FactoryUrl: "/api/mfg/machine/toolhead/factory", FieldType: FieldTypes.ChildListInline, OpenByDefault: true, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public ObservableCollection<MachineToolHead> ToolHeads { get; set; } = new ObservableCollection<MachineToolHead>();
 
-        private MachineCamera _positioningCamera;
-        public MachineCamera PositioningCamera
-        {
-            get { return _positioningCamera; }
-            set { Set(ref _positioningCamera, value); }
-        }
+        //private MachineCamera _positioningCamera;
+        //public MachineCamera PositioningCamera
+        //{
+        //    get { return Cameras.FirstOrDefault(cam => cam.CameraType.Value == CameraTypes.Position); }
+        //}
 
-        private MachineCamera _partInspectionCamera;
-        public MachineCamera PartInspectionCamera
-        {
-            get { return _partInspectionCamera; }
-            set { Set(ref _partInspectionCamera, value); }
-        }
+        //private MachineCamera _partInspectionCamera;
+        //public MachineCamera PartInspectionCamera
+        //{
+        //    get { return _partInspectionCamera; }
+        //    set { Set(ref _partInspectionCamera, value); }
+        //}
 
 
         public FirmwareTypes MachineType { get; set; }

@@ -52,8 +52,13 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.MachineCamera_DeviceId, FieldType: FieldTypes.Text, IsUserEditable: false, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader CameraDevice { get; set; }
 
+        private EntityHeader<CameraTypes> _cameraType;
         [FormField(LabelResource: ManufacturingResources.Names.MachineCamera_Type, WaterMark:ManufacturingResources.Names.MachineCamera_Type_Select, FieldType: FieldTypes.Picker, EnumType:typeof(CameraTypes), IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public EntityHeader<CameraTypes> CameraType { get; set; }
+        public EntityHeader<CameraTypes> CameraType
+        {
+            get => _cameraType;
+            set => Set(ref _cameraType, value);
+        }
 
         Point2D<double> _absolutePosition;
         [FormField(LabelResource: ManufacturingResources.Names.MachineCamera_AbsolutePosition, FieldType: FieldTypes.Point2D, ResourceType: typeof(ManufacturingResources))]

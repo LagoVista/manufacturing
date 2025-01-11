@@ -195,7 +195,7 @@ namespace LagoVista.PickAndPlace
 
         public void SendSafeMoveHeight()
         {
-            SendCommand($"GO Z{Settings.ToolSafeMoveHeight}");
+            SendCommand($"GO Z{Settings.SafMoveHeight}");
         }
     }
 }

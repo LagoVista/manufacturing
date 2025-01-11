@@ -1,4 +1,6 @@
 ﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.Models.Drawing;
+using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using System.Collections;
 using System.Collections.ObjectModel;
@@ -19,13 +21,20 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand SetPartPickLocationCommand { get; }
         RelayCommand SetFeederFiducialLocationCommand { get; }
 
+        InvokeResult<Point2D<double>> FindFeederFiducial();
+        InvokeResult<Point2D<double>> FindPickLocation();
+
+        InvokeResult<Point2D<double>> FindFeederFiducial(string autoFeederId);
+        InvokeResult<Point2D<double>> FindPickLocation(string autoFeederId);
+
 
         RelayCommand AddCommand { get; }
         RelayCommand SaveCommand { get; }
         RelayCommand CancelCommand { get; }
         RelayCommand RefreshTemplatesCommand { get; }
 
-        RelayCommand AdvancePartCommand { get; }
+        RelayCommand AdvanceFeedCommand { get; }
+        RelayCommand RetractFeedCommand { get; }
         RelayCommand GoToPickLocationCommand { get; }
         RelayCommand GoToFiducialCommand { get; }
     }

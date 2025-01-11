@@ -18,6 +18,14 @@ namespace LagoVista.PickAndPlace.GCodeTests
         }
 
         [Test]
+        public void Generate()
+        {
+            _support.packetID = 0x44;
+            var pCmd = _support.GenerateGCode(FeederCommands.MoveFeedForward, 1, new byte[1] { 40 });
+            Console.WriteLine(pCmd.GCode);
+        }
+
+        [Test]
         public async Task Test1()
         {
             var socketClient = new SocketClient();

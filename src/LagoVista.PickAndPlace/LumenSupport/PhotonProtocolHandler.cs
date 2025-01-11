@@ -54,8 +54,8 @@ namespace LagoVista.PickAndPlace.LumenSupport
             {FeederCommands.GetId, new CommandStructure() { PayloadLength = 1,} },
             {FeederCommands.Initialize, new CommandStructure() { PayloadLength = 1,} },
             {FeederCommands.GetVersion, new CommandStructure() { PayloadLength = 1,} },
-            {FeederCommands.MoveFeedForward, new CommandStructure() { PayloadLength = 1,} },
-            {FeederCommands.MoveFeedBackward, new CommandStructure() { PayloadLength = 1,} },
+            {FeederCommands.MoveFeedForward, new CommandStructure() { PayloadLength = 2,} },
+            {FeederCommands.MoveFeedBackward, new CommandStructure() { PayloadLength = 2,} },
             {FeederCommands.MoveFeedStatus, new CommandStructure() { PayloadLength = 1,} },
             {FeederCommands.VendorOptions, new CommandStructure() { PayloadLength = 1,} },
             {FeederCommands.IdentifyFeeder, new CommandStructure() { PayloadLength = 13, IsUnicast = false} },
@@ -153,7 +153,7 @@ namespace LagoVista.PickAndPlace.LumenSupport
                 toAddress,
                 0x00,
                 packetID,
-                cmdStructure.PayloadLength == 0 ? (byte)payload.Count : cmdStructure.PayloadLength
+                cmdStructure.PayloadLength == 0 ? (byte)(payload.Count + 1) : cmdStructure.PayloadLength
             };
             buffer.AddRange(payload);
 

@@ -36,18 +36,18 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _nozzleCalibration = new Dictionary<int, Point2D<double>>();
             _averagePoints = new List<Point2D<double>>();
 
-            if (_machineRepo.CurrentMachine.Settings.PartInspectionCamera?.AbsolutePosition != null)
-            {
-                _nozzleCalibration = new Dictionary<int, Point2D<double>>();
-                _machineRepo.CurrentMachine.SendSafeMoveHeight();
+            //if (_machineRepo.CurrentMachine.Settings.PartInspectionCamera?.AbsolutePosition != null)
+            //{
+            //    _nozzleCalibration = new Dictionary<int, Point2D<double>>();
+            //    _machineRepo.CurrentMachine.SendSafeMoveHeight();
 
-                // move to what we think is the top angle.
-                _machineRepo.CurrentMachine.SendCommand($"G0 E0");
-                await _machineRepo.CurrentMachine.SetViewTypeAsync(ViewTypes.Tool1);
+            //    // move to what we think is the top angle.
+            //    _machineRepo.CurrentMachine.SendCommand($"G0 E0");
+            //    await _machineRepo.CurrentMachine.SetViewTypeAsync(ViewTypes.Tool1);
 
 
-                _machineRepo.CurrentMachine.SendCommand($"G0 X{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.X} Y{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.Y} Z{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.FocusHeight} F1{_machineRepo.CurrentMachine.Settings.FastFeedRate}");
-            }
+            //    _machineRepo.CurrentMachine.SendCommand($"G0 X{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.X} Y{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.Y} Z{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.FocusHeight} F1{_machineRepo.CurrentMachine.Settings.FastFeedRate}");
+            //}
 
             _locatorViewModel.SetLocatorState(MVLocatorState.NozzleCalibration);
         }

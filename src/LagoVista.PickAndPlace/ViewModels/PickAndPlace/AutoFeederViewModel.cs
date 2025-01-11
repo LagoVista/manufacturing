@@ -1,18 +1,22 @@
-﻿using Emgu.CV.XImgproc;
+﻿using Emgu.CV.DepthAI;
+using Emgu.CV.XImgproc;
 using LagoVista.Client.Core;
 using LagoVista.Core.Commanding;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Models.UIMetaData;
+using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Models;
+using SixLabors.ImageSharp.Formats.Bmp;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using static QRCoder.PayloadGenerator;
 
 namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 {
@@ -36,7 +40,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             GoToFiducialCommand = CreatedMachineConnectedCommand(GoToFeederFiducial, () => Current != null);
             GoToPickLocationCommand = CreatedMachineConnectedCommand(GoToPickLocation, () => Current != null);
 
-            AdvancePartCommand = CreatedMachineConnectedCommand(AdvancePart, () => Current != null);
+            AdvanceFeedCommand = CreatedMachineConnectedCommand(async () => await AdvanceFeed(), () => Current != null);
+            RetractFeedCommand = CreatedMachineConnectedCommand(async () => await RetractFeed(), () => Current != null);
 
             AddCommand = CreatedCommand(Add, () => MachineRepo.HasValidMachine && SelectedTemplateId.HasValidId() && CurrentPhotonFeeder != null);
             SaveCommand = CreatedCommand(Save, () => Current != null);
@@ -124,29 +129,136 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
 
 
-        public void GoToFeederFiducial()
+        private MachineFeederRail GetRail()
         {
-            
+            return MachineConfiguration.FeederRails.FirstOrDefault(rl => Current.Slot >= rl.SlotStartIndex && Current.Slot <= (rl.SlotStartIndex + rl.NumberSlots));
         }
 
-        public void AdvancePart()
+        public InvokeResult<Point2D<double>> GetCurrentFeederOrigin()
         {
+            if (Current == null) return InvokeResult<Point2D<double>>.FromError("No current auto feeder");
+
+            var rail = GetRail();
+            if (rail == null) return InvokeResult<Point2D<double>>.FromError($"Could not find feeder rail for slot ${Current.Slot}.");
+
+            var slotOnRail = Current.Slot - rail.SlotStartIndex;
+            var origin = rail.Rotation.Value == FeederRotations.OneEighty ? rail.FirstFeederOrigin.SubtractFromX(slotOnRail * Current.Size.Z) : rail.FirstFeederOrigin.AddToX(slotOnRail * Current.Size.Z);
+            return InvokeResult<Point2D<double>>.Create(origin);
+        }
+
+        public InvokeResult<Point2D<double>> FindFeederFiducial()
+        {
+            var origin = GetCurrentFeederOrigin();
+            if (origin.Successful)
+            {
+                var fiducialLocation = origin.Result + Current.FiducialOffset;
+                return InvokeResult<Point2D<double>>.Create(fiducialLocation);
+            }
+            else
+                return origin;
+        }
+
+        public void GoToFeederFiducial()
+        {
+            var result = FindFeederFiducial();
+            if (result.Successful)
+            {
+                Machine.GotoPoint(result.Result);
+                //MachineConfiguration.PositioningCamera.CurrentVisionProfile = MachineConfiguration.PositioningCamera.VisionProfiles.FirstOrDefault(prf => prf.Key == VisionProfile.VisionProfile_BoardFiducial);
+            }
+            else
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, result.ErrorMessage);
+            }
+        }
+
+        public async Task AdvanceFeed()
+        {
+            await PhotonFeederViewModel.AdvanceFeed((byte)Current.Slot, 4);
+        }
+
+        public async Task RetractFeed()
+        {
+            await PhotonFeederViewModel.RetractFeed((byte)Current.Slot, 4);
+        }
+
+        public InvokeResult<Point2D<double>> FindFeederFiducial(string autoFeederId)
+        {
+            Current = Feeders.SingleOrDefault(fdr => fdr.Id == autoFeederId);
+            if(Current == null)
+            {
+                return InvokeResult<Point2D<double>>.FromError($"Could find find auto feeder with id {autoFeederId}");
+            }
+
+            return FindFeederFiducial();
+        }
+
+        public InvokeResult<Point2D<double>> FindPickLocation(string autoFeederId)
+        {
+            Current = Feeders.SingleOrDefault(fdr => fdr.Id == autoFeederId);
+            if (Current == null)
+            {
+                return InvokeResult<Point2D<double>>.FromError($"Could find find auto feeder with id {autoFeederId}");
+            }
+
+            return FindPickLocation();
+        }
+
+
+        public InvokeResult<Point2D<double>> FindPickLocation()
+        {
+            var origin = GetCurrentFeederOrigin();
+            if (origin.Successful)
+            {
+                var pickLocation = (origin.Result + Current.FiducialOffset + Current.PickOffset).Round(2);
+                return InvokeResult<Point2D<double>>.Create(pickLocation);
+            }
+            else
+                return origin;
 
         }
 
         public void GoToPickLocation()
         {
-
+            var result = FindPickLocation();
+            if(result.Successful)
+            {
+                Machine.GotoPoint(result.Result);
+            //    MachineConfiguration.PositioningCamera.CurrentVisionProfile = MachineConfiguration.PositioningCamera.VisionProfiles.FirstOrDefault(prf => prf.Key == VisionProfile.VisionProfile_SquarePart);
+            }
+            else
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, result.ErrorMessage);
+            }
         }
+
 
         public void SetFeederFiducialLocationAsync()
         {
-
+            var origin = GetCurrentFeederOrigin();
+            if(origin.Successful)
+            {
+                Current.FiducialOffset = (Machine.MachinePosition.ToPoint2D() - origin.Result).Round(2);
+            }
+            else
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, origin.ErrorMessage);
+            }
+            
         }
 
         public void SetPickLocationCommand()
         {
-
+            var origin = GetCurrentFeederOrigin();
+            if(origin.Successful)
+            {
+                Current.PickOffset = (Machine.MachinePosition.ToPoint2D() - (Current.FiducialOffset + origin.Result)).Round(2);
+            }
+            else
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, origin.ErrorMessage);
+            }
+            
         }
 
         public async void CreateAutoFeederFromTemplateAsync()
@@ -217,7 +329,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
                 RaisePropertyChanged(nameof(TapeSize));
 
-                if(value.Component != null)
+                if(value?.Component != null)
                 {
                     LoadComponent(value.Component.Id);
                 }
@@ -270,7 +382,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public RelayCommand SaveCommand { get; }
 
-        public RelayCommand AdvancePartCommand { get; }
+        public RelayCommand AdvanceFeedCommand { get; }
+        public RelayCommand RetractFeedCommand { get; }
+
         public RelayCommand GoToPickLocationCommand { get; }
         public RelayCommand GoToFiducialCommand { get; }
 

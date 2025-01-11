@@ -293,7 +293,7 @@ namespace LagoVista.PickAndPlace
             }
             else if (Settings.MachineType == FirmwareTypes.Repeteir_PnP)
             {
-                Enqueue($"G0 Z{Settings.ToolSafeMoveHeight} F{Settings.FastFeedRate}");
+                Enqueue($"G0 Z{Settings.SafMoveHeight} F{Settings.FastFeedRate}");
                 await SetViewTypeAsync(ViewTypes.Camera);
                 GotoPoint(0, 0);
                 //ifSettings.PartInspectionCamera

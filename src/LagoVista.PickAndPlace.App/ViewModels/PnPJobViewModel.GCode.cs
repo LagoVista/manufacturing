@@ -18,7 +18,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         private string SafeHeightGCodeGCode()
         {
-            return $"G0 Z{ _machineRepo.CurrentMachine.Settings.ToolSafeMoveHeight} F{ _machineRepo.CurrentMachine.Settings.FastFeedRate}";
+            return $"G0 Z{ _machineRepo.CurrentMachine.Settings.SafMoveHeight} F{ _machineRepo.CurrentMachine.Settings.FastFeedRate}";
         }
 
         private string PickHeightGCode()

@@ -10,7 +10,7 @@ using System.Collections.Generic;
 namespace LagoVista.Manufacturing.Models
 {
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.NozzleTip_Title, ManufacturingResources.Names.NozzleTip_Description,
-        ManufacturingResources.Names.Feeder_Description, EntityDescriptionAttribute.EntityTypes.ChildObject, ResourceType: typeof(ManufacturingResources),
+        ManufacturingResources.Names.NozzleTip_Description, EntityDescriptionAttribute.EntityTypes.ChildObject, ResourceType: typeof(ManufacturingResources),
         Icon: "icon-ae-creative", Cloneable: true,
         FactoryUrl: "/api/mfg/machine/nozzletip/factory")]
     public class ToolNozzleTip : ModelBase, IFormDescriptor
@@ -32,7 +32,7 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Icon { get; set; } = "icon-ae-control-panel";
 
-
+       
         private double? _safeMoveHeight;
         [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_SafeMoveHeight, FieldType: FieldTypes.Decimal, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public double? SafeMoveHeight 

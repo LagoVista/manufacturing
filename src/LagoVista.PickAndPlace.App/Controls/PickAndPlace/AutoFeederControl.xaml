@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls.PickAndPlace"
+             xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"             
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;assembly=LagoVista.PickAndPlace"                                        
              d:DataContext="{d:DesignInstance vm:IAutoFeederViewModel }"
@@ -44,9 +45,20 @@
                 </StackPanel>
             </StackPanel>
 
+
             <StackPanel Grid.Column="1" Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}">
                 <TextBlock Style="{StaticResource label}" Text="Name:"></TextBlock>
                 <TextBox ToolTip="please enter a name for your feeder" Text="{Binding Current.Name, Mode=TwoWay}"></TextBox>
+                <StackPanel Orientation="Horizontal">
+                    <TextBox Text="{Binding Current.PickOffset.X, Mode=TwoWay}" Width="80"></TextBox>
+                    <TextBox Text="{Binding Current.PickOffset.Y, Mode=TwoWay}" Width="80"></TextBox>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBox Text="{Binding Current.FiducialOffset.X, Mode=TwoWay}" Width="80"></TextBox>
+                    <TextBox Text="{Binding Current.FiducialOffset.Y, Mode=TwoWay}" Width="80"></TextBox>
+                </StackPanel>
+
+
                 <Label>Component Category</Label>
                 <ComboBox ItemsSource="{Binding ComponentCategories}" DisplayMemberPath="Text" SelectedValuePath="Key" SelectedValue="{Binding SelectedCategoryKey, Mode=TwoWay}"></ComboBox>
                 <Label>Component</Label>
@@ -55,8 +67,65 @@
                 <TextBlock Text="{Binding SelectedComponent.DataSheet}"></TextBlock>
                 <TextBlock Text="{Binding SelectedComponent.ComponentPackage}"></TextBlock>
 
+                
+                
                 <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Save" Command="{Binding SaveCommand}"></Button>
             </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+                <StackPanel Margin="10">
+                    
+                    <TextBlock Style="{StaticResource label}" Text="Feeder Pick Location"></TextBlock>
+                    <TextBlock  Text="{Binding Current.PickOffset}"></TextBlock>
+                    
+                    
+                    <StackPanel Orientation="Horizontal">
+                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetPartPickLocationCommand}"  ToolTip="Set Reference Hole for Feeder Row" Width="64" Height="64"  >
+                            <Button.Content>
+                                <Image Source="/imgs/SetTarget.png"/>
+                            </Button.Content>
+                        </Button>
+                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToPickLocationCommand}"  ToolTip="Move To Reference Hole for Feeder Row" Width="64" Height="64"  >
+                            <Button.Content>
+                                <Image Source="/imgs/MoveToTarget.png"/>
+                            </Button.Content>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Margin="10">
+                    <TextBlock Style="{StaticResource label}" Text="Feeder Fiducial"></TextBlock>
+                    <TextBlock  Text="{Binding Current.FiducialOffset}"></TextBlock>
+                    <StackPanel Orientation="Horizontal">
+                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetFeederFiducialLocationCommand}"  ToolTip="Set Reference Hole for Feeder Row" Width="64" Height="64"  >
+                            <Button.Content>
+                                <Image Source="/imgs/SetTarget.png"/>
+                            </Button.Content>
+                        </Button>
+
+                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToFiducialCommand}"  ToolTip="Move To Reference Hole for Feeder Row" Width="64" Height="64"  >
+                            <Button.Content>
+                                <Image Source="/imgs/MoveToTarget.png"/>
+                            </Button.Content>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="Previous Part" Command="{Binding RetractFeedCommand}" >
+                    <Button.Content>
+                        <fa:FontAwesome Icon="Backward"  />
+                    </Button.Content>
+                </Button>
+
+                <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="Next part" Command="{Binding AdvanceFeedCommand}" >
+                    <Button.Content>
+                        <fa:FontAwesome Icon="Forward"  />
+                    </Button.Content>
+                </Button>
+
+            </StackPanel>
+
+
         </StackPanel>
     </Grid>
 </ucb:VMBoundUserControl>

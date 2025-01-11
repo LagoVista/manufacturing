@@ -2,6 +2,7 @@
 using LagoVista.Core.Commanding;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Core.PlatformSupport;
+using LagoVista.Core.Validation;
 using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
@@ -128,6 +129,26 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
                 MachineRepo.CurrentMachine.LineReceived -= CurrentMachine_LineReceived;
             }).Start();
+        }
+
+        public async Task<InvokeResult> AdvanceFeed(byte slotIndex, double mm)
+        {
+            var gcode = _protocolHandler.GenerateGCode(LumenSupport.FeederCommands.MoveFeedForward, slotIndex, new byte[1] { Convert.ToByte(mm * 10) });
+            MachineRepo.CurrentMachine.SendCommand(gcode.GCode);
+
+            await Task.Delay(5);
+
+            return InvokeResult.Success;
+        }
+
+        public async Task<InvokeResult> RetractFeed(byte slotIndex, double mm)
+        {
+            var gcode = _protocolHandler.GenerateGCode(LumenSupport.FeederCommands.MoveFeedBackward, slotIndex, new byte[1] { Convert.ToByte(mm * 10) });
+            MachineRepo.CurrentMachine.SendCommand(gcode.GCode);
+
+            await Task.Delay(5);
+
+            return InvokeResult.Success;
         }
 
         private ObservableCollection<PhotonFeeder> _discoveredFeeders = new ObservableCollection<PhotonFeeder>();
