@@ -102,7 +102,7 @@ namespace LagoVista.Manufacturing.Models
             ManufacturingResources.Names.ComponentPackage_Description, EntityDescriptionAttribute.EntityTypes.Manufacturing, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-stamp-2", Cloneable: true,
             SaveUrl: "/api/mfg/component/package", GetUrl: "/api/mfg/component/package/{id}", GetListUrl: "/api/mfg/component/packages", FactoryUrl: "/api/mfg/component/package/factory", DeleteUrl: "/api/mfg/component/package/{id}",
             ListUIUrl: "/mfg/component/packages", EditUIUrl: "/mfg/component/package/{id}", CreateUIUrl: "/mfg/component/package/add", CanExport:true, CanImport:true)]
-    public class ComponentPackage : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IIDEntity, IFormConditionalFields
+    public class ComponentPackage : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorCol2, IFormAdditionalActions, ISummaryFactory, IIDEntity, IFormConditionalFields
     {
         public const string PartType_ThroughHole = "throughhole";
         public const string PartType_SurfaceMount = "surfacemount";
@@ -372,6 +372,19 @@ namespace LagoVista.Manufacturing.Models
                         RequiredFields = new List<string>() {nameof(TapeSize), nameof(TapePitch), nameof(TapeRotation), nameof(TapeMaterialType), nameof(TapeColor), nameof(Width), nameof(Height), nameof(Length)},
                         VisibleFields = new List<string>() {nameof(TapeSize), nameof(TapePitch), nameof(TapeRotation), nameof(TapeMaterialType), nameof(TapeColor), nameof(Width), nameof(Height), nameof(Length) }
                     }
+                }
+            };
+        }
+
+        public List<FormAdditionalAction> GetAdditionalActions()
+        {
+            return new List<FormAdditionalAction>()
+            {
+                new FormAdditionalAction()
+                {
+                    Title = "Map",
+                     Key = "map",
+                     Icon = "fa fa-search-plus"
                 }
             };
         }

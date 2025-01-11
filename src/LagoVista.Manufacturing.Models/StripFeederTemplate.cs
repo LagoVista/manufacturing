@@ -83,12 +83,28 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _rowCount, value);
         }
 
-        private Point3D<double> _size = new Point3D<double>(40, 120, 12);
-        [FormField(LabelResource: ManufacturingResources.Names.Feeder_Size, HelpResource: ManufacturingResources.Names.StripFeeder_FeederSize_Help, FieldType: FieldTypes.Point3DSize, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public Point3D<double> Size 
+        private double _height = 12;
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Height, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double Height
         {
-            get => _size;
-            set => Set(ref _size, value);
+            get => _height;
+            set => Set(ref _height, value);
+        }
+
+        private double _width = 40;
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Width, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double Width
+        {
+            get => _width;
+            set => Set(ref _width, value);
+        }
+
+        private double _length = 120;
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Length, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double Length
+        {
+            get => _length;
+            set => Set(ref _length, value);
         }
 
         Point2D<double> _referenceHoleLocation = new Point2D<double>();
@@ -114,7 +130,9 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Key),
                 nameof(TapeSize),
                 nameof(Color),
-                nameof(Size),
+                nameof(Length),
+                nameof(Width),
+                nameof(Height),
                 nameof(RowWidth),
                 nameof(RowCount),                
                 nameof(ReferenceHoleOffset),

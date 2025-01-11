@@ -65,16 +65,19 @@ namespace LagoVista.Manufacturing.Managers
                 OriginalTemplate = template.ToEntityHeader(),
                 OwnerOrganization = org,
                 RowOneRefHoleOffset = template.RowOneRefHoleOffset,
-                Size = template.Size,
+                Width = template.Width,
+                Height = template.Height,
+                Length = template.Length,
                 ReferenceHoleOffset = template.ReferenceHoleOffset,
                 RowCount = template.RowCount,
                 RowWidth = template.RowWidth,
             };
 
+
             for(var idx = 0; idx < feeder.RowCount; ++idx)
             {
 
-                var holesInTape = (feeder.Size.Y / 4) - 1;
+                var holesInTape = (feeder.Length / 4) - 1;
                 var deltaX = holesInTape * 4;
 
                 feeder.Rows.Add(new StripFeederRow()

@@ -78,9 +78,9 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_AdvanceGCode, HelpResource: ManufacturingResources.Names.Feeder_AdvanceGCode_Help, FieldType: FieldTypes.Text, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public string AdvanceGCode { get; set; }
 
-        Point3D<double> _size;
+        Size3D _size = new Size3D(135, 76, 15);
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_Size, HelpResource: ManufacturingResources.Names.AutoFeeder_Size_Help, FieldType: FieldTypes.Point3DSize, ResourceType: typeof(ManufacturingResources))]
-        public Point3D<double> Size
+        public Size3D Size
         {
             get => _size;
             set => Set(ref _size, value);
@@ -88,8 +88,8 @@ namespace LagoVista.Manufacturing.Models
 
 
         Point2D<double> _pickOffset;
-        [FormField(LabelResource: ManufacturingResources.Names.Feeder_PickOffsetFromSlotOriign, FieldType: FieldTypes.Point2D,
-           HelpResource: ManufacturingResources.Names.Feeder_PickOffsetFromSlotOriign_Help, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.AutoFeeder_PickOffsetFromFiducial, FieldType: FieldTypes.Point2D,
+           HelpResource: ManufacturingResources.Names.AutoFeeder_PickOffsetFromFiducial_Help, ResourceType: typeof(ManufacturingResources))]
         public Point2D<double> PickOffset
         {
             get => _pickOffset;

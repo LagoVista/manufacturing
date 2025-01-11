@@ -439,7 +439,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         CurrentComponent = null;
                     }
 
-                    TotalPartsInFeederRow = Convert.ToInt32(Math.Floor(Current.Size.X / (TapePitch != null ? TapePitch.ToDouble() : 4)));
+                    TotalPartsInFeederRow = Convert.ToInt32(Math.Floor(Current.Length / (TapePitch != null ? TapePitch.ToDouble() : 4)));
                     AvailablePartsInFeederRow = TotalPartsInFeederRow - CurrentRow.CurrentPartIndex;
                 }
 

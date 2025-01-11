@@ -37,7 +37,9 @@ namespace Mfg.ServicesTests
                 Key = "key123",
                 RowCount = 3,
                 RowWidth = 15,
-                Size = new LagoVista.Core.Models.Drawing.Point3D<double>(40, 120, 12),
+                Width = 40,
+                Length = 120,
+                Height = 12,
                 RowOneRefHoleOffset = new LagoVista.Core.Models.Drawing.Point2D<double>(2, 1),
                 TapeSize = EntityHeader<LagoVista.Manufacturing.Models.TapeSizes>.Create(LagoVista.Manufacturing.Models.TapeSizes.EightMM)
             });

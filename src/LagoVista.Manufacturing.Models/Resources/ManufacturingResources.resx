@@ -1421,4 +1421,19 @@
   <data name="AutoFeeders_Title" xml:space="preserve">
     <value>Auto Feeders</value>
   </data>
+  <data name="StripFeeder_OriginOffset" xml:space="preserve">
+    <value>Origin Offset</value>
+  </data>
+  <data name="StripFeeder_OriginOffset_Help" xml:space="preserve">
+    <value>The actual offset from the calculated origin.  The origin of this feeder is calculated based on where it is on the staging plate.  There may be a small error with respect to the mounting, this value is usually set via machine vision.</value>
+  </data>
+  <data name="StripFeeder_Origin_Help" xml:space="preserve">
+    <value>In most cases, the origin of the strip feeder will be calculated based on where it is on the staging plate.  This origin is the absolute XY of the strip feeder and if set will override the calculated value</value>
+  </data>
+  <data name="AutoFeeder_PickOffsetFromFiducial" xml:space="preserve">
+    <value>Pick offset from fiducial.</value>
+  </data>
+  <data name="AutoFeeder_PickOffsetFromFiducial_Help" xml:space="preserve">
+    <value>The fiducial on the feeder accurately place it it on the work surface.  This value is the offset from the feeder fiducial to where the part will be picked.</value>
+  </data>
 </root>

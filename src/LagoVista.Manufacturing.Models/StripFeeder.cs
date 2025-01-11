@@ -147,9 +147,9 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _stagingPlate, value);
         }
 
-        private Point2D<double> _origin = new Point2D<double>();
+        private Point2D<double> _origin;
         [FormField(LabelResource: ManufacturingResources.Names.Common_Origin, 
-            HelpResource: ManufacturingResources.Names.Common_Origin_Help, FieldType: FieldTypes.Point2D, ResourceType: typeof(ManufacturingResources))]
+            HelpResource: ManufacturingResources.Names.StripFeeder_Origin_Help, FieldType: FieldTypes.Point2D, ResourceType: typeof(ManufacturingResources))]
         public Point2D<double> Origin
         {
             get => _origin;
@@ -157,8 +157,8 @@ namespace LagoVista.Manufacturing.Models
         }
 
         private Point2D<double> _originOffset = new Point2D<double>();
-        [FormField(LabelResource: ManufacturingResources.Names.Feeder_OriginOffset,
-            HelpResource: ManufacturingResources.Names.Feeder_OriginOffset_Help, FieldType: FieldTypes.Point2D, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_OriginOffset,
+            HelpResource: ManufacturingResources.Names.StripFeeder_OriginOffset_Help, FieldType: FieldTypes.Point2D, ResourceType: typeof(ManufacturingResources))]
         public Point2D<double> OriginOffset
         {
             get => _originOffset;
@@ -184,26 +184,29 @@ namespace LagoVista.Manufacturing.Models
             get => _rowCount;
             set => Set(ref _rowCount, value);
         }
-
-        /// <summary>
-        /// Width = Y 
-        /// Length = X
-        /// Height = Z
-        /// 
-        ///  W -------------------------------------------------------
-        ///  I                   ROW 2
-        ///  D -------------------------------------------------------
-        ///  T                   ROW 1
-        ///  H -------------------------------------------------------
-        ///   ORIGIN             Length
-        /// 
-        /// </summary>
-        private Point3D<double> _size = new Point3D<double>(120, 40, 12);
-        [FormField(LabelResource: ManufacturingResources.Names.Feeder_Size, HelpResource: ManufacturingResources.Names.StripFeeder_FeederSize_Help, FieldType: FieldTypes.Point3DSize, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public Point3D<double> Size
+        
+        private double _height;
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Height, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double Height
         {
-            get => _size;
-            set => Set(ref _size, value);
+            get => _height;
+            set => Set(ref _height, value);
+        }
+
+        private double _width;
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Width, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double Width
+        {
+            get => _width;
+            set => Set(ref _width, value);
+        }
+
+        private double _length;
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Length, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double Length
+        {
+            get => _length;
+            set => Set(ref _length, value);
         }
 
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Rows, OpenByDefault:true, ChildListDisplayMembers:"rowIndex,component.text", FactoryUrl: "/api/mfg/stripfeeder/row/factory", FieldType: FieldTypes.ChildListInline, ResourceType: typeof(ManufacturingResources))]
@@ -256,18 +259,6 @@ namespace LagoVista.Manufacturing.Models
             return CreateSummary();
         }
 
-        public List<string> GetFormFieldsCol2()
-        {
-            return new List<string>()
-            {
-                nameof(RowCount),
-                nameof(ReferenceHoleOffset),
-                nameof(RowOneRefHoleOffset),
-                nameof(Size),
-                nameof(PickHeight),
-                nameof(RowWidth),
-            };
-        }
 
         public List<FormAdditionalAction> GetAdditionalActions()
         {
@@ -291,20 +282,6 @@ namespace LagoVista.Manufacturing.Models
             };
         }
 
-        public List<string> GetAdvancedFieldsCol2()
-        {
-            return new List<string>()
-            {
-                nameof(ReferenceHoleColumn),
-                nameof(ReferenceHoleRow),
-                nameof(ReferenceHoleOffset),
-                nameof(RowCount),
-                nameof(Size),
-                nameof(RowWidth),
-                nameof(AngleOffset),
-
-            };
-        }
 
         public List<string> GetAdvancedFields()
         {
@@ -324,6 +301,24 @@ namespace LagoVista.Manufacturing.Models
                 nameof(OriginOffset),
             };
         }
+
+        public List<string> GetAdvancedFieldsCol2()
+        {
+            return new List<string>()
+            {
+                nameof(ReferenceHoleColumn),
+                nameof(ReferenceHoleRow),
+                nameof(ReferenceHoleOffset),
+                nameof(RowCount),
+                nameof(Width),
+                nameof(Length),
+                nameof(Height),
+                nameof(RowWidth),
+                nameof(AngleOffset),
+
+            };
+        }
+
 
         public FormConditionals GetConditionalFields()
         {

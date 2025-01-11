@@ -142,7 +142,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if (rail == null) return InvokeResult<Point2D<double>>.FromError($"Could not find feeder rail for slot ${Current.Slot}.");
 
             var slotOnRail = Current.Slot - rail.SlotStartIndex;
-            var origin = rail.Rotation.Value == FeederRotations.OneEighty ? rail.FirstFeederOrigin.SubtractFromX(slotOnRail * Current.Size.Z) : rail.FirstFeederOrigin.AddToX(slotOnRail * Current.Size.Z);
+            var origin = rail.Rotation.Value == FeederRotations.OneEighty ? rail.FirstFeederOrigin.SubtractFromX(slotOnRail * Current.Size.Depth) : rail.FirstFeederOrigin.AddToX(slotOnRail * Current.Size.Depth);
             return InvokeResult<Point2D<double>>.Create(origin);
         }
 
