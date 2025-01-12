@@ -142,7 +142,7 @@ namespace LagoVista.PickAndPlace
                 switch (vt.Value)
                 {
                     case "camera": SetViewType(ViewTypes.Camera); break;
-                    case "tool1": SetViewType(ViewTypes.Tool1); break;
+                    case "tool1": SetViewType(ViewTypes.Tool); break;
                     case "tool2": SetViewType(ViewTypes.Tool2); break;
                 }
 
@@ -345,7 +345,7 @@ namespace LagoVista.PickAndPlace
                         RaisePropertyChanged(nameof(TopLightOn));
                         break;
                     case 32:
-                        _viewType = state == 0 ? ViewTypes.Camera : ViewTypes.Tool1;
+                        _viewType = state == 0 ? ViewTypes.Camera : ViewTypes.Tool;
                         RaisePropertyChanged(nameof(ViewType));
                         break;
                     case 33:

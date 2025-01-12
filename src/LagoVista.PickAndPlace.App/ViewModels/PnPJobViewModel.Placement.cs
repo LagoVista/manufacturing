@@ -13,7 +13,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
         {
             _partIndex = 0;
              _machineRepo.CurrentMachine.LocationUpdateEnabled = false;
-            await  _machineRepo.CurrentMachine.SetViewTypeAsync(ViewTypes.Tool1);
+            await  _machineRepo.CurrentMachine.SetViewTypeAsync(ViewTypes.Tool);
             // Make sure any pending location requests have completed.
             await Task.Delay(1000);
             //while (SelectedPart != null && !_isPaused && _partIndex < SelectedPart.Parts.Count)
@@ -41,7 +41,7 @@ namespace LagoVista.PickAndPlace.App.ViewModels
             //}
 
 
-            await  _machineRepo.CurrentMachine.SetViewTypeAsync(ViewTypes.Tool1);
+            await  _machineRepo.CurrentMachine.SetViewTypeAsync(ViewTypes.Tool);
             // Make sure any pending location requests have completed.
             await Task.Delay(1000);
             await PlacePartAsync();

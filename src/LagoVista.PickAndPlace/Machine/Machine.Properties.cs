@@ -1,7 +1,11 @@
-﻿using LagoVista.Manufacturing.Models;
+﻿using LagoVista.Core.PlatformSupport;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace
 {
@@ -326,7 +330,6 @@ namespace LagoVista.PickAndPlace
             }
         }
 
-
         private string ConvertTopLightColors(string gcode)
         {
             return gcode.Replace("{red}", $"{TopRed}").Replace("{green}", $"{TopGreen}").Replace("{blue}", $"{TopBlue}").Replace("{pwr}", TopPower.ToString());
@@ -609,6 +612,173 @@ namespace LagoVista.PickAndPlace
             set
             {
                 _machinePendingQueueLength = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        public async Task MoveToToolHeadAsync(MachineToolHead toolHeadToMoveTo)
+        {
+            if (_viewType == ViewTypes.Moving)
+            {
+                AddStatusMessage(StatusMessageTypes.Info, "Can not move to camera, busy.");
+                return;
+            }
+
+            if (_currentMachineToolHead != null)
+            {
+                await MoveToCameraAsync();
+            }
+
+            await Task.Run(() =>
+            {
+                var currentLocationX = MachinePosition.X;
+                var currentLocationY = MachinePosition.Y;
+
+                Enqueue("G91"); // relative move
+
+                _viewType = ViewTypes.Moving;
+                RaisePropertyChanged();
+
+                Enqueue($"G0 X{toolHeadToMoveTo.Offset.X} Y{toolHeadToMoveTo.Offset.Y} F{Settings.FastFeedRate}");
+
+                Enqueue("M400"); // Wait for previous command to finish before executing next one.
+                                 //            Enqueue("G4 P1"); // just pause for 1ms
+
+                // Wait for the all the messages to get sent out (but won't get an OK for G4 until G0 finishes)
+                System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount > 0, 5000);
+
+                Debug.WriteLine("All Sent");
+                System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
+                Debug.WriteLine("Un Ack Bytes Good.");
+
+                // 4. set the machine back to absolute points
+                Enqueue("G90");
+
+                // 5. Set the machine location to where it was prior to the move.
+                Enqueue($"G92 X{currentLocationX} Y{currentLocationY}");
+
+                _viewType = ViewTypes.Tool;
+                _currentMachineToolHead = toolHeadToMoveTo;
+
+                Services.DispatcherServices.Invoke(() =>
+                {
+                    RaisePropertyChanged(nameof(ViewType));
+                    RaisePropertyChanged(nameof(CurrentMachineToolHead));
+                    AddStatusMessage(StatusMessageTypes.Info, $"Moved to tool head {toolHeadToMoveTo.Name}.");
+                    
+                });
+            });
+            // wait until G4 gets marked at sent
+            //    
+
+            //        Debug.WriteLine("Un Ack Bytes Good.");
+
+        }
+
+        public async Task  MoveToCameraAsync()
+        {
+            if(_viewType == ViewTypes.Moving)
+            {
+                AddStatusMessage(StatusMessageTypes.Info, "Can not move to camera, busy.");
+                return;
+            }
+
+            if(_currentMachineToolHead == null)
+            {
+                AddStatusMessage(StatusMessageTypes.Info, "Already viewing camera.");
+                return;
+            }
+
+            await Task.Run(() =>
+            {
+                var currentLocationX = MachinePosition.X;
+                var currentLocationY = MachinePosition.Y;
+
+                Enqueue("G91"); // relative move
+
+                _viewType = ViewTypes.Moving;
+                RaisePropertyChanged();
+
+                Enqueue($"G0 X{-_currentMachineToolHead.Offset.X} Y{-_currentMachineToolHead.Offset.Y} F{Settings.FastFeedRate}");
+
+                Enqueue("M400"); // Wait for previous command to finish before executing next one.
+                                 //            Enqueue("G4 P1"); // just pause for 1ms
+
+                // Wait for the all the messages to get sent out (but won't get an OK for G4 until G0 finishes)
+                System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount > 0, 5000);
+
+                Debug.WriteLine("All Sent");
+                System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
+                Debug.WriteLine("Un Ack Bytes Good.");
+
+                // 4. set the machine back to absolute points
+                Enqueue("G90");
+
+                // 5. Set the machine location to where it was prior to the move.
+                Enqueue($"G92 X{currentLocationX} Y{currentLocationY}");
+
+                _currentMachineToolHead = null;
+                _viewType = ViewTypes.Camera;
+
+                Services.DispatcherServices.Invoke(() =>
+                {
+                    RaisePropertyChanged(nameof(ViewType));
+                    RaisePropertyChanged(nameof(CurrentMachineToolHead));
+                    AddStatusMessage(StatusMessageTypes.Info, "Reset to camera view.");
+                });
+                
+            });
+        }
+
+        public async void MoveToToolHead(MachineToolHead toolHead)
+        {
+            await MoveToToolHeadAsync(toolHead);
+        }
+
+        public async void MoveToCamera()
+        {
+            await MoveToCameraAsync();
+        }
+
+        MachineToolHead _currentMachineToolHead;
+        public MachineToolHead CurrentMachineToolHead
+        {
+            get => _currentMachineToolHead;
+            set
+            {
+                if (_currentMachineToolHead != null && value == null)
+                {
+                    MoveToCamera();
+                }
+                else if(_currentMachineToolHead == null && value != null)
+                {
+                    MoveToToolHead(value);
+                }
+                else if(_currentMachineToolHead != value)
+                {
+                    MoveToToolHead(value);
+                }
+            }
+        }
+
+        bool _wasMachineHomed = false;
+        public bool WasMachineHomed
+        {
+            get => _wasMachineHomed;
+            private set
+            {
+                _wasMachineHomed = value;
+                RaisePropertyChanged();
+            }
+        }
+        
+        bool _wasMachineOriginCalibrated = false;
+        public bool WasMachinOriginCalibrated
+        {
+            get => _wasMachineOriginCalibrated;
+            set
+            {
+                _wasMachineOriginCalibrated = value;
                 RaisePropertyChanged();
             }
         }

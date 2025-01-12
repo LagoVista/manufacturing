@@ -133,7 +133,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         public bool CanSetCamera(object param)
         {
-            return _machineRepo.CurrentMachine.ViewType == ViewTypes.Tool1;
+            return _machineRepo.CurrentMachine.ViewType == ViewTypes.Tool;
         }
 
         public bool CanSetTool1(object param)
@@ -156,7 +156,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public void SetTool1()
         {
             _machineRepo.CurrentMachine.SendCommand(SafeHeightGCodeGCode());
-            _machineRepo.CurrentMachine.SetViewTypeAsync(ViewTypes.Tool1);
+            _machineRepo.CurrentMachine.SetViewTypeAsync(ViewTypes.Tool);
         }
 
 

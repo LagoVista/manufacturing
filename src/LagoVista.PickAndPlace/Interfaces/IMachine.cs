@@ -168,6 +168,8 @@ namespace LagoVista.PickAndPlace.Interfaces
         /// </summary>
         bool Connected { get; }
 
+        MachineToolHead CurrentMachineToolHead { get; set; }
+
         bool AreSettingsLocked { get; set; }
 
         /// <summary>
@@ -310,5 +312,14 @@ namespace LagoVista.PickAndPlace.Interfaces
         Task<InvokeResult<byte>> I2CReadHexByte(byte address);
 
         void SetVisionProfile(CameraTypes cameraType, string profile);
+
+        Task MoveToToolHeadAsync(MachineToolHead toolHeadToMoveTo);
+        Task MoveToCameraAsync();
+
+        void MoveToToolHead(MachineToolHead toolHeadToMoveTo);
+        void MoveToCamera();
+
+        bool WasMachineHomed { get; }
+        bool WasMachinOriginCalibrated { get; set; }
     }
 }

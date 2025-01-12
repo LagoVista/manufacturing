@@ -39,7 +39,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
             MoveToFirstAutoFeederOriginCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(SelectedFeederRail.FirstFeederOrigin), () => SelectedFeederRail != null && SelectedFeederRail.FirstFeederOrigin != null);
             
-            MoveToCameraLocationCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(SelectedMachineCamera.AbsolutePosition.X, SelectedMachineCamera.AbsolutePosition.Y, SelectedMachineCamera.FocusHeight), () => SelectedMachineCamera != null && SelectedMachineCamera.AbsolutePosition != null);
+            MoveToCameraLocationCommand = CreatedMachineConnectedCommand(MoveToSelectedCamera, () => SelectedMachineCamera != null && SelectedMachineCamera.AbsolutePosition != null);
             MoveToMachineFiducialCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(Machine.Settings.MachineFiducial), () => !Machine.Settings.MachineFiducial.IsOrigin());
 
             MoveToDefaultPCBOrigin = CreatedMachineConnectedCommand(() => Machine.GotoPoint(MachineConfiguration.DefaultWorkOrigin), () => !MachineConfiguration.DefaultWorkOrigin.IsOrigin());
@@ -49,6 +49,20 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         {
             machine.PropertyChanged += Machine_PropertyChanged;            
         }
+
+        protected void MoveToSelectedCamera()
+        {
+            if (SelectedMachineCamera == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Please select a camera first.");
+            }
+            else
+            {
+                Machine.GotoPoint(SelectedMachineCamera.AbsolutePosition);
+                Machine.SendCommand($"G0 Z{SelectedMachineCamera.FocusHeight}");
+            }
+         }
+
 
         private void Machine_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {

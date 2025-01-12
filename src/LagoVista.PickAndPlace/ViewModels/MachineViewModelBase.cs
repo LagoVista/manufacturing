@@ -5,6 +5,7 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using System;
 using System.Collections.Generic;
+using System.Windows.Input;
 
 namespace LagoVista.PickAndPlace.ViewModels
 {
@@ -30,11 +31,21 @@ namespace LagoVista.PickAndPlace.ViewModels
             Machine.MachineConnected += (e, m) => RaiseCanExecuteChanged();
             Machine.SettingsLocked += (e, m) => RaiseCanExecuteChanged();
             Machine.SettingsUnlocked += (e, m) => RaiseCanExecuteChanged();
+            Machine.PropertyChanged += Machine_PropertyChanged;
 
             MachineChanged(e);            
         }
-        
-        protected void RaiseCanExecuteChanged()
+
+        private void Machine_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Machine.WasMachinOriginCalibrated) ||
+                e.PropertyName == nameof(Machine.WasMachineHomed))
+            {
+                RaiseCanExecuteChanged();
+            }
+        }
+
+        protected virtual void RaiseCanExecuteChanged()
         {
             foreach(var handler in _registeredCommandHandlers)
             {
@@ -49,7 +60,7 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         protected RelayCommand CreatedMachineConnectedCommand(Action execute, Func<bool> canExecute = null)
         {
-            var cmd = (canExecute == null) ? new RelayCommand(execute, () => Machine != null && Machine.Connected) : new RelayCommand(execute, () => Machine != null && Machine.Connected && canExecute());
+            var cmd = (canExecute == null) ? new RelayCommand(execute, () => Machine != null && Machine.Connected && Machine.WasMachineHomed && Machine.WasMachinOriginCalibrated) : new RelayCommand(execute, () => Machine != null && Machine.Connected && canExecute());
             RegisterCommandHandler(cmd);
             return cmd;
         }

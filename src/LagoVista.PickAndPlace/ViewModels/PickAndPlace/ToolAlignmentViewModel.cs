@@ -97,7 +97,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             //_machineRepo.CurrentMachine.SendCommand($"G0 Z{_machineRepo.CurrentMachine.Settings.SafMoveHeight} F5000");
             //_machineRepo.CurrentMachine.GotoPoint(_machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.X, _machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.Y, _machineRepo.CurrentMachine.Settings.PartInspectionCamera.FocusHeight, true);
-            //_machineRepo.CurrentMachine.ViewType = ViewTypes.Tool1;
+            //_machineRepo.CurrentMachine.ViewType = ViewTypes.Tool;
         }
 
         public void SetBottomCameraLocation()

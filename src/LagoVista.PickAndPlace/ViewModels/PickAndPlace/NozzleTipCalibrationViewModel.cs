@@ -43,7 +43,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             //    // move to what we think is the top angle.
             //    _machineRepo.CurrentMachine.SendCommand($"G0 E0");
-            //    await _machineRepo.CurrentMachine.SetViewTypeAsync(ViewTypes.Tool1);
+            //    await _machineRepo.CurrentMachine.SetViewTypeAsync(ViewTypes.Tool);
 
 
             //    _machineRepo.CurrentMachine.SendCommand($"G0 X{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.X} Y{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.Y} Z{_machineRepo.CurrentMachine.Settings.PartInspectionCamera.FocusHeight} F1{_machineRepo.CurrentMachine.Settings.FastFeedRate}");

@@ -11,7 +11,7 @@ namespace LagoVista.PickAndPlace
     {
         Moving,
         Camera,
-        Tool1,
+        Tool,
         Tool2,
     }
 
@@ -32,11 +32,12 @@ namespace LagoVista.PickAndPlace
                 switch (viewType)
                 {
                     case ViewTypes.Camera: Enqueue("M50"); break;
-                    case ViewTypes.Tool1: Enqueue("M51"); break;
+                    case ViewTypes.Tool: Enqueue("M51"); break;
                     case ViewTypes.Tool2: Enqueue("M51"); break;
                 }
             }
-            else if (Settings.MachineType == FirmwareTypes.Repeteir_PnP)
+            else if (Settings.MachineType == FirmwareTypes.Repeteir_PnP ||
+                     Settings.MachineType == FirmwareTypes.LumenPnP_V4_Marlin)
             {
                 // 1. capture current position of machine.
                 var currentLocationX = MachinePosition.X;
@@ -47,14 +48,15 @@ namespace LagoVista.PickAndPlace
                     // 2. set relative move
                     Enqueue("G91"); // relative move
 
-
                     // 3. move the machine to the tool that should be used. 
-                    if (_viewType == ViewTypes.Camera && viewType == ViewTypes.Tool1)
+                    if (_viewType == ViewTypes.Camera && viewType == ViewTypes.Tool)
                     {
                         _viewType = ViewTypes.Moving;
                         RaisePropertyChanged();
 
+
                         Enqueue($"G0 X{-Settings.Tool1Offset.X} Y{-Settings.Tool1Offset.Y} F{Settings.FastFeedRate}");
+
                         Enqueue("M400"); // Wait for previous command to finish before executing next one.
                         Enqueue("G4 P1"); // just pause for 1ms
                         Enqueue($"M42 P32 S255");
@@ -65,14 +67,14 @@ namespace LagoVista.PickAndPlace
                         // wait until G4 gets marked at sent
                         System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
 
-                        _viewType = ViewTypes.Tool1;
+                        _viewType = ViewTypes.Tool;
                         RaisePropertyChanged();
                         Services.DispatcherServices.Invoke(() =>
                         {
                             RaisePropertyChanged(nameof(ViewType));
                         });
                     }
-                    else if (_viewType == ViewTypes.Tool1 && viewType == ViewTypes.Camera)
+                    else if (_viewType == ViewTypes.Tool && viewType == ViewTypes.Camera)
                     {
                         _viewType = ViewTypes.Moving;
                         Enqueue($"G0 X{Settings.Tool1Offset.X} Y{Settings.Tool1Offset.Y} F{Settings.FastFeedRate}");

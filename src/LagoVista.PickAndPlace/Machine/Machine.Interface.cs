@@ -382,6 +382,8 @@ namespace LagoVista.PickAndPlace
                     SetWorkspaceHome();
                 }
             }
+
+            WasMachineHomed = true;
         }
 
         // https://cfsensor.com/wp-content/uploads/2022/11/XGZP6857D-Pressure-Sensor-V2.7.pdf
