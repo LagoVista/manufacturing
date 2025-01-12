@@ -71,19 +71,21 @@
 
         </StackPanel>
 
-        <Grid Grid.Row="2" Grid.Column="1">
+
+
+        <Grid Grid.Row="2" Grid.Column="1" >
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="20*" />
                 <ColumnDefinition Width="60*" />
+                <ColumnDefinition Width="40*" />
             </Grid.ColumnDefinitions>
-            <StackPanel Grid.Row="0" Grid.ColumnSpan="2">
-                <TextBlock Style="{StaticResource header}" Text="Parts to place"></TextBlock>
-                <DataGrid ItemsSource="{Binding Job.Parts}"  SelectionMode="Single" SelectedItem="{Binding PickAndPlaceJobPart, Mode=TwoWay}" CanUserAddRows="false" AutoGenerateColumns="False">
+            <StackPanel Grid.Row="0" Grid.ColumnSpan="2" >
+                <TextBlock Style="{StaticResource header}" Text="Parts to Place"></TextBlock>
+                <DataGrid ItemsSource="{Binding Job.Parts}" LoadingRow="DataGrid_LoadingRow"  SelectionMode="Single" SelectedItem="{Binding PickAndPlaceJobPart, Mode=TwoWay}" CanUserAddRows="false" AutoGenerateColumns="False">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Count" Width="80" Binding="{Binding Count}"  />
                         <DataGridTextColumn Header="Package" Width="200" Binding="{Binding PackageName, Mode=TwoWay}"  />
@@ -95,13 +97,11 @@
                     </DataGrid.Columns>
                 </DataGrid>
             </StackPanel>
+            
             <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="2">
-                <TextBlock Text="{Binding CurrentComponent.Name}"></TextBlock>
-                <Button Style="{StaticResource CommandButton}" Command="{Binding ShowComponentDetailCommand}">Component Detail</Button>
-                <Button Style="{StaticResource CommandButton}" Command="{Binding ShowDataSheetCommand}">Show Datashet</Button>
             </StackPanel>
 
-            <StackPanel Grid.Row="2">
+            <StackPanel Grid.Row="2" Visibility="{Binding IsSubstituting, Converter={StaticResource BoolToInverseVisibilityConverter}}">
                 <TextBlock Style="{StaticResource header}" Text="Placements"></TextBlock>
                 <DataGrid ItemsSource="{Binding PickAndPlaceJobPart.Placements}"  SelectionMode="Single" SelectedItem="{Binding PickAndPlaceJobPlacement, Mode=TwoWay}" CanUserAddRows="false"  AutoGenerateColumns="False">
                     <DataGrid.Columns>
@@ -111,11 +111,25 @@
                     </DataGrid.Columns>
                 </DataGrid>
             </StackPanel>
-            <StackPanel Grid.Row="2" Grid.Column="1">
-                <TextBlock Style="{StaticResource header}" Text="Installed Parts"></TextBlock>
-                <DataGrid ItemsSource="{Binding PartsViewModel.AvailableParts}" CanUserAddRows="False">
+            <StackPanel Grid.Row="2" Grid.Column="1" Visibility="{Binding IsSubstituting, Converter={StaticResource BoolToInverseVisibilityConverter}}">
+                <TextBlock Text="{Binding CurrentComponent.Name}"></TextBlock>
+                <Button Style="{StaticResource CommandButton}" Command="{Binding ShowComponentDetailCommand}">Component Detail</Button>
+                <Button Style="{StaticResource CommandButton}" Command="{Binding ShowComponentPackageDetailCommand}">Package Detail</Button>
+                <Button Style="{StaticResource CommandButton}" Command="{Binding ShowDataSheetCommand}">Show Datasheet</Button>
+                <Button Style="{StaticResource CommandButton}" Command="{Binding SubstitutePartCommand}">Substitute</Button>
+            </StackPanel>
 
-                </DataGrid>
+            <Grid Grid.Row="2" Visibility="{Binding IsSubstituting, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Grid.Row="2" Grid.Column="1">
+                    <TextBlock Style="{StaticResource header}" Text="Installed Parts"></TextBlock>
+                    <DataGrid ItemsSource="{Binding PartsViewModel.AvailableParts}" SelectedItem="{Binding SelectedAvailablePart, Mode=TwoWay}" CanUserAddRows="False">
+
+                    </DataGrid>
+                </StackPanel>
+            </Grid>
+            <StackPanel Grid.Row="2" Grid.Column="1" Visibility="{Binding IsSubstituting, Converter={StaticResource BoolToVisibilityConverter}}">
+                <TextBlock Text="{Binding SelectedAvailablePart.Component}" />
+                <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Command="{Binding SaveSubstitutePartCommand}">Save</Button>
             </StackPanel>
         </Grid>
 

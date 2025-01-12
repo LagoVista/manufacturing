@@ -1,4 +1,5 @@
-﻿using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
+﻿using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.XPlat;
 using System;
 using System.Collections.Generic;
@@ -25,6 +26,28 @@ namespace LagoVista.PickAndPlace.App.Controls.PickAndPlace
         public PrepareJob()
         {
             InitializeComponent();
+        }
+
+        private void DataGrid_LoadingRow(object sender, DataGridRowEventArgs e)
+        {
+            var placeablePart = e.Row.DataContext as PickAndPlaceJobPart;
+            if (placeablePart != null && (placeablePart.AutoFeeder != null || placeablePart.StripFeeder != null && placeablePart.StripFeederRow != null))
+            {
+                if (placeablePart.AvailableCount >= placeablePart.Count)
+                {
+                    e.Row.Background = new SolidColorBrush(Colors.Green);
+                    e.Row.Foreground = new SolidColorBrush(Colors.White);
+                }
+                else
+                {
+                    e.Row.Background = new SolidColorBrush(Colors.Yellow);
+                }
+            }
+            else
+            {
+                e.Row.Background = new SolidColorBrush(Colors.White);
+                e.Row.Foreground = new SolidColorBrush(Colors.Black);
+            }
         }
     }
 }

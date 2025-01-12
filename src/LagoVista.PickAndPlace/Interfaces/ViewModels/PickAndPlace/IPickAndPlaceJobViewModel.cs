@@ -1,6 +1,7 @@
 ﻿using LagoVista.Core.Commanding;
 using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.ViewModels.PickAndPlace;
 using System.Collections.ObjectModel;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
@@ -14,9 +15,13 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 
         Component CurrentComponent { get; }
 
+        AvailablePart SelectedAvailablePart { get; set; }
+
         PickAndPlaceJobPart PickAndPlaceJobPart { get; set; }
 
         IPartsViewModel PartsViewModel { get; }
+        bool IsSubstituting { get; }
+
 
 
         RelayCommand SaveCommand { get; }
@@ -32,6 +37,10 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand ResolveJobCommand { get; }
 
         RelayCommand ShowDataSheetCommand { get; }
-        
+
+        RelayCommand SubstitutePartCommand { get; }
+        RelayCommand SaveSubstitutePartCommand { get; }
+        RelayCommand CancelSubstitutePartCommand { get; }
+
     }
 }

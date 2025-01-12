@@ -181,6 +181,13 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _componentPackage, value);
         }
 
+        int _availableCount;
+        public int AvailableCount
+        {
+            get => _availableCount;
+            set => Set(ref _availableCount, value);
+        }
+
         ObservableCollection<PickAndPlaceJobPlacement> _placements = new ObservableCollection<PickAndPlaceJobPlacement>();
         public ObservableCollection<PickAndPlaceJobPlacement> Placements 
         {

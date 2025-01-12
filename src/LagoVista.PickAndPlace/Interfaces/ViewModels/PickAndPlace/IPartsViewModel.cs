@@ -12,5 +12,6 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         ObservableCollection<AvailablePart> AvailableParts { get; }
 
         RelayCommand RefreshAvailablePartsCommand { get; }
+        void RefreshAvailableParts();
     }
 }

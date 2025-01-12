@@ -37,9 +37,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             ShowSchematicCommand = CreatedCommand(ShowSchematic, () => Job != null && CircuitBoard.SchematicPDFFile != null);
             ShowComponentDetailCommand = CreatedCommand(ShowComponentDetail, () => PickAndPlaceJobPart != null);
+            ShowComponentPackageDetailCommand = CreatedCommand(ShowComponentPackageDetail, () => CurrentComponent != null && CurrentComponent?.ComponentPackage != null);
             ShowDataSheetCommand = CreatedCommand(ShowDataSheeet, () => CurrentComponent != null && !String.IsNullOrEmpty(CurrentComponent.DataSheet));
             ResolveJobCommand = CreatedCommand(ResolveJob, () => Job != null);
             ResolvePartsCommand = CreatedCommand(ResolveParts, () => Job != null);
+
+            SubstitutePartCommand = CreatedCommand(SubstitutePart, () => CurrentComponent != null);
+            SaveSubstitutePartCommand = CreatedCommand(SaveSubstitutePart, () => SelectedAvailablePart != null);
+            CancelSubstitutePartCommand = CreatedCommand(CancelSubstitutePart);
         }
 
         public override async Task InitAsync()
@@ -84,9 +89,60 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
+        void CancelSubstitutePart()
+        {
+            IsSubstituting = false;
+        }
+
+        void SubstitutePart()
+        {
+            PartsViewModel.RefreshAvailableParts();
+            IsSubstituting = true;
+        }
+
+        void SaveSubstitutePart()
+        {
+            if(SelectedAvailablePart == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Please select a part.");
+                return;
+            }
+
+            var substitutes = Job.Parts.Where(prt => prt.Component.Id == PickAndPlaceJobPart.Component.Id);
+            foreach(var substitute in substitutes)
+            {
+                substitute.Component = SelectedAvailablePart.Component;
+            }
+
+            SelectedAvailablePart = null;
+            IsSubstituting = false;
+        }
+
         void CheckBoardFiducials()
         {
 
+        }
+
+        public void ShowComponentPackageDetail()
+        {
+            if(CurrentComponent == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current component.");
+                return;
+            }
+
+            if(CurrentComponent.ComponentPackage == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No component does not have package assigned.");
+                return;
+            }
+
+            var url = $"https://www.nuviot.com/mfg/package/{CurrentComponent.ComponentPackage.Id}";
+            System.Diagnostics.Process.Start(new ProcessStartInfo
+            {
+                FileName = url as string,
+                UseShellExecute = true
+            });
         }
 
 
@@ -95,6 +151,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if (CurrentComponent == null)
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current component.");
+                return;
             }
             
             if(String.IsNullOrEmpty(CurrentComponent.DataSheet))
@@ -252,6 +309,24 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
+        private bool _isSubstituting;
+        public bool IsSubstituting
+        {
+            get => _isSubstituting;
+            set => Set(ref _isSubstituting, value);
+        }
+
+        AvailablePart _selectedAvailablePart;
+        public AvailablePart SelectedAvailablePart
+        {
+            get => _selectedAvailablePart;
+            set
+            {
+                Set(ref _selectedAvailablePart, value);
+                RaiseCanExecuteChanged();
+            }
+        }
+
         public RelayCommand SaveCommand { get; }
 
         public RelayCommand ReloadJobCommand { get; }
@@ -260,11 +335,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand CheckBoardFiducialsCommand { get; }
 
         public RelayCommand ShowComponentDetailCommand { get; }
+        public RelayCommand ShowComponentPackageDetailCommand { get; }
 
         public RelayCommand ResolvePartsCommand { get; }
         public RelayCommand ResolveJobCommand { get; }
         public RelayCommand ShowSchematicCommand { get; }
         public RelayCommand ShowDataSheetCommand { get; }
+
+        public RelayCommand SubstitutePartCommand { get; }
+        public RelayCommand SaveSubstitutePartCommand { get; }
+        public   RelayCommand CancelSubstitutePartCommand { get; }
 
     }
 }
