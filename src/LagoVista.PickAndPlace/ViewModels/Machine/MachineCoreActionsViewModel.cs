@@ -15,6 +15,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         {
             HomeCommand = CreatedMachineConnectedCommand(Home);
             MachineVisionOriginCommand = CreatedMachineConnectedCommand(MachineVisionOrigin);
+            GoToSafeMoveHeightCommand = CreatedMachineConnectedCommand(() => Machine.SendSafeMoveHeight());
 
             _locatorViewModel = locatorViewModel;
         }
@@ -58,7 +59,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _locatorViewModel.UnregisterCircleLocatedHandler(this);
         }
 
-        public RelayCommand HomeCommand { get; set; }
-        public RelayCommand MachineVisionOriginCommand { get; set; }
+        public RelayCommand HomeCommand { get;  }
+        public RelayCommand MachineVisionOriginCommand { get; }
+        public RelayCommand GoToSafeMoveHeightCommand { get; }
     }
 }

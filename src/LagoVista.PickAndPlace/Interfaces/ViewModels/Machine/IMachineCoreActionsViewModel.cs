@@ -7,7 +7,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
 {
     public interface IMachineCoreActionsViewModel : IMachineViewModelBase
     {
-        RelayCommand HomeCommand { get; set; }
-        RelayCommand MachineVisionOriginCommand { get; set; }
+        RelayCommand HomeCommand { get; }
+        RelayCommand GoToSafeMoveHeightCommand { get;  }
+        RelayCommand MachineVisionOriginCommand { get; }
     }
 }

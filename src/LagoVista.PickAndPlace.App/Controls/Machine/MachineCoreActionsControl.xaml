@@ -12,6 +12,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel>
         <Button Style="{StaticResource CommandButton}" Command="{Binding HomeCommand}">Home</Button>
+        <Button Style="{StaticResource CommandButton}" Command="{Binding GoToSafeMoveHeightCommand}">Safe Move Height</Button>
         <Button Style="{StaticResource CommandButton}" Command="{Binding MachineVisionOriginCommand}" >Calibrate Origin</Button>
     </StackPanel>
 </ucb:VMBoundUserControl>

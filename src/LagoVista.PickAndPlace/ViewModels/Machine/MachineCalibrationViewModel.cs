@@ -10,11 +10,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
     {
         public MachineCalibrationViewModel(IMachineRepo machineRepo) : base(machineRepo)
         {
-            SetDefaultToolReferencePointCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.DefaultToolReferencePoint = Machine.MachinePosition.ToPoint2D());
+            
             SetStagingPlateReferenceHole1LocationCommand = CreatedMachineConnectedSettingsCommand(() => SelectedStagingPlate.ReferenceHoleLocation1 = Machine.MachinePosition.ToPoint2D(), () => SelectedStagingPlate != null);
             SetStagingPlateReferenceHole2LocationCommand = CreatedMachineConnectedSettingsCommand(() => SelectedStagingPlate.ReferenceHoleLocation2 = Machine.MachinePosition.ToPoint2D(), () => SelectedStagingPlate != null);
             SetFirstAutoFeederOriginCommand = CreatedMachineConnectedSettingsCommand(() => SelectedFeederRail.FirstFeederOrigin = Machine.MachinePosition.ToPoint2D(), () => SelectedFeederRail != null);
-            SetToolOffsetCommand = CreatedMachineConnectedSettingsCommand(() => SelectedToolHead.Offset = Machine.MachinePosition.ToPoint2D() - MachineConfiguration.DefaultToolReferencePoint, () => SelectedToolHead != null);            
+            
             SetMachineFiducialCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.MachineFiducial = Machine.MachinePosition.ToPoint2D());
             SetDefaultPCBOrigin = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.DefaultWorkOrigin = Machine.MachinePosition.ToPoint2D());
 
@@ -23,6 +23,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
             CaptureKnownLocationCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.KnownCalibrationPoint = Machine.MachinePosition.ToPoint2D());
             MoveToKnownLocationCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(MachineConfiguration.KnownCalibrationPoint), () => !MachineConfiguration.KnownCalibrationPoint.IsOrigin());
+
+            SetToolOffsetCommand = CreatedMachineConnectedSettingsCommand(() => SelectedToolHead.Offset = (Machine.MachinePosition.ToPoint2D() - MachineConfiguration.DefaultToolReferencePoint).Round(2), () => SelectedToolHead != null);
+            SetDefaultToolReferencePointCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.DefaultToolReferencePoint = Machine.MachinePosition.ToPoint2D());
 
             SetCameraLocationCommand = CreatedMachineConnectedSettingsCommand(() => {
                 SelectedMachineCamera.AbsolutePosition = Machine.MachinePosition.ToPoint2D();

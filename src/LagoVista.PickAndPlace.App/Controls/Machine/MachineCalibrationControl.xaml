@@ -22,7 +22,7 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="1200"/>
+            <ColumnDefinition Width="1600"/>
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
@@ -105,7 +105,7 @@
             </StackPanel>
             <Button Grid.Column="2" Grid.Row="4" Style="{StaticResource CommandButton}" Command="{Binding SaveMachineConfigurationCommand}" Content="Save"></Button>
         </Grid>
-        
+
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="800"/>
@@ -130,7 +130,7 @@
                 <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleLocation1}"></TextBlock>
                 <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleRow1}"></TextBlock>
                 <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleColumn1}"></TextBlock>
-                
+
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                     <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetStagingPlateReferenceHole1LocationCommand}"  ToolTip="Set Reference Hole 1" Width="64" Height="64"  >
                         <Button.Content>
@@ -162,7 +162,7 @@
             </StackPanel>
 
         </Grid>
-        
+
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="800"/>
@@ -204,6 +204,7 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
                     <DataGridTextColumn Header="Type" Binding="{Binding ToolHeadType}" />
+                    <DataGridTextColumn Header="Offset" Binding="{Binding Offset}" />
                     <DataGridTextColumn Header="Pick Height" Binding="{Binding PickHeight}" />
                     <DataGridTextColumn Header="Place Height" Binding="{Binding PlaceHeight}" />
                     <DataGridTextColumn Header="Current Nozzle" Binding="{Binding CurrentNozzle}" />
@@ -211,27 +212,47 @@
             </DataGrid>
             <StackPanel Grid.Column="1" Visibility="{Binding SelectedToolHead, Converter={StaticResource NoTNullToVisibilityConverter}}">
                 <TextBlock FontSize="23" Text="{Binding SelectedToolHead.Name}"></TextBlock>
-                <Label>Move the position camera to the left edge of the first feeder on the rail, and have it centered on the rail as closely as possible.</Label>
+                <TextBlock TextWrapping="Wrap">Move the camera to a known location on the board where you can position the tool head.</TextBlock>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
 
-                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToKnownLocationCommand}"  ToolTip="Set the origin of the first feeder on the rail." Width="64" Height="64"  >
-                        <Button.Content>
-                            <Image Source="/imgs/MoveToTarget.png"/>
-                        </Button.Content>
-                    </Button>
+                    <StackPanel Margin="10">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Known Location: "></TextBlock>
+                            <TextBlock Text="{Binding MachineConfiguration.KnownCalibrationPoint}"></TextBlock>
+                        </StackPanel>
+                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToKnownLocationCommand}"  ToolTip="Move to known location." Width="64" Height="64"  >
+                            <Button.Content>
+                                <Image Source="/imgs/MoveToTarget.png"/>
+                            </Button.Content>
+                        </Button>
+                    </StackPanel>
 
-                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetToolOffsetCommand }"  ToolTip="Set the origin of the first feeder on the rail." Width="64" Height="64"  >
-                        <Button.Content>
-                            <Image Source="/imgs/SetTarget.png"/>
-                        </Button.Content>
-                    </Button>
-                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetToolOffsetCommand }"  ToolTip="Set the origin of the first feeder on the rail." Width="64" Height="64"  >
-                        <Button.Content>
-                            <Image Source="/imgs/SetTarget.png"/>
-                        </Button.Content>
-                    </Button>
+                    <StackPanel Margin="10">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Known Location: "></TextBlock>
+                            <TextBlock Text="{Binding MachineConfiguration.DefaultToolReferencePoint}"></TextBlock>
+                        </StackPanel>
+                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetDefaultToolReferencePointCommand }"  ToolTip="Capture the known location." Width="64" Height="64"  >
+                            <Button.Content>
+                                <Image Source="/imgs/SetTarget.png"/>
+                            </Button.Content>
+                        </Button>
+                    </StackPanel>
+                    
+                    <StackPanel Margin="10">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Tool Offset: "></TextBlock>
+                            <TextBlock Text="{Binding SelectedToolHead.Offset}"></TextBlock>
+                        </StackPanel>
+                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetToolOffsetCommand }"  ToolTip="Set the origin of the first feeder on the rail." Width="64" Height="64"  >
+                            <Button.Content>
+                                <Image Source="/imgs/SetTarget.png"/>
+                            </Button.Content>
+                        </Button>
+                    </StackPanel>
+                    
                 </StackPanel>
-            </StackPanel>       
+            </StackPanel>
         </Grid>
 
         <Grid Grid.Row="4">
@@ -248,7 +269,7 @@
                     <DataGridTextColumn Header="Pixels per MM" Binding="{Binding PixelsPerMM}" />
                     <DataGridTextColumn Header="Focus Height" Binding="{Binding FocusHeight}" />
                 </DataGrid.Columns>
-           </DataGrid>
+            </DataGrid>
             <StackPanel Grid.Column="1" Visibility="{Binding SelectedMachineCamera, Converter={StaticResource NoTNullToVisibilityConverter}}">
                 <TextBlock FontSize="23" Text="{Binding SelectedMachineCamera.Name}"></TextBlock>
                 <TextBlock>This is only done with the camera that is fixed.  Move the position camera over the bottom camera, center the position camera lens over the bottom camera and capture the point.</TextBlock>
