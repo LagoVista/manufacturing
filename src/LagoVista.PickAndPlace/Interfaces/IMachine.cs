@@ -308,5 +308,7 @@ namespace LagoVista.PickAndPlace.Interfaces
         void I2CSend(byte address, byte register);
         void I2CSend(byte address, byte[] buffer);
         Task<InvokeResult<byte>> I2CReadHexByte(byte address);
+
+        void SetVisionProfile(CameraTypes cameraType, string profile);
     }
 }

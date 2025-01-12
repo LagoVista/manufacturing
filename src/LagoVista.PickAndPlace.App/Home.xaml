@@ -108,6 +108,7 @@
                     <ctls:MachinesControl Grid.Row="2"/>
                     <ctls:MachineControl  Grid.RowSpan="2"></ctls:MachineControl>
                     <mch:StagingPlateNavigationControl></mch:StagingPlateNavigationControl>
+                    <mch:MachineCoreActionsControl></mch:MachineCoreActionsControl>
                 </StackPanel>
             </Grid>
         </Grid>

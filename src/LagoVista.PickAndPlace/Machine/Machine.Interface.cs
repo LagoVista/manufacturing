@@ -170,6 +170,7 @@ namespace LagoVista.PickAndPlace
             if (_socketClient != null)
             {
                 await _socketClient.CloseAsync();
+                AddStatusMessage(StatusMessageTypes.Info, "Closed Socket Connection");
                 _socketClient.Dispose();
                 _socketClient = null;
             }
@@ -179,7 +180,7 @@ namespace LagoVista.PickAndPlace
                 _cancelSource.Cancel();
                 _cancelSource = null;
             }
-
+            
             MachineDisconnected?.Invoke(this, null);
 
             AddStatusMessage(StatusMessageTypes.Info, "Disconnected");
@@ -372,10 +373,10 @@ namespace LagoVista.PickAndPlace
                 VacuumPump = false;
                 PuffPump = false;
                 VacuumSolendoid = false;
+                SendSafeMoveHeight();
                 Enqueue("G28");
                 if (Settings.MachineType == FirmwareTypes.Repeteir_PnP)
                 {
-
                     Enqueue($"G0 X{Settings.DefaultWorkspaceHome.X} Y{Settings.DefaultWorkspaceHome.Y} F{Settings.FastFeedRate}");
                     GotoPoint(Settings.DefaultWorkspaceHome.X, Settings.DefaultWorkspaceHome.Y);
                     SetWorkspaceHome();

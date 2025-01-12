@@ -11,6 +11,10 @@ using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.GCode;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Managers.PcbFab;
+using System.Linq;
+using Emgu.CV.DepthAI;
+using LagoVista.PickAndPlace.Models;
+using Newtonsoft.Json;
 
 namespace LagoVista.PickAndPlace
 {
@@ -195,7 +199,40 @@ namespace LagoVista.PickAndPlace
 
         public void SendSafeMoveHeight()
         {
-            SendCommand($"GO Z{Settings.SafMoveHeight}");
+            SendCommand($"G0 Z{Settings.SafMoveHeight}");
+        }
+
+        public void SetVisionProfile(CameraTypes cameraType, string profileName)
+        {
+            var camera = Settings.Cameras.FirstOrDefault(cam => cam.CameraType.Value == cameraType);
+            if (camera == null)
+            {
+                AddStatusMessage(StatusMessageTypes.FatalError, $"Could not set vision profile, could not find camera of type: {cameraType}");
+            }
+            else
+            { 
+                var profile = camera.VisionProfiles.Where(pf => pf.Key == profileName).SingleOrDefault();
+                if (profile == null)
+                {
+                    var ehProfile = VisionProfile.DefaultVisionProfiles.FirstOrDefault(pf => pf.Key == profileName);
+                    if (ehProfile == null)
+                    {
+                        AddStatusMessage(StatusMessageTypes.FatalError, $"Could not set vision profile, could not find camera of type: {cameraType}");
+                    }
+                    else
+                    {
+                        var defaultProfile = camera.VisionProfiles.FirstOrDefault(vp => vp.Key == VisionProfile.VisionProfile_Defauilt);
+                        var newProfile = JsonConvert.DeserializeObject<VisionProfile>(JsonConvert.SerializeObject(defaultProfile));
+                        newProfile.Key = ehProfile.Key;
+                        newProfile.Id = ehProfile.Id;
+                        newProfile.Name = ehProfile.Text;
+                        camera.VisionProfiles.Add(newProfile);
+                        camera.CurrentVisionProfile = newProfile;
+                    }
+                }
+                else
+                    camera.CurrentVisionProfile = profile;
+            }
         }
     }
 }

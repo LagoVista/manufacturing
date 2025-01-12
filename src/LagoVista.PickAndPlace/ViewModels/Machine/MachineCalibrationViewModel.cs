@@ -8,8 +8,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 {
     public class MachineCalibrationViewModel : MachineViewModelBase, IMachineCalibrationViewModel
     {
-        
-
         public MachineCalibrationViewModel(IMachineRepo machineRepo) : base(machineRepo)
         {
             SetDefaultToolReferencePointCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.DefaultToolReferencePoint = Machine.MachinePosition.ToPoint2D());
@@ -19,7 +17,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             SetToolOffsetCommand = CreatedMachineConnectedSettingsCommand(() => SelectedToolHead.Offset = Machine.MachinePosition.ToPoint2D() - MachineConfiguration.DefaultToolReferencePoint, () => SelectedToolHead != null);            
             SetMachineFiducialCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.MachineFiducial = Machine.MachinePosition.ToPoint2D());
             SetDefaultPCBOrigin = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.DefaultWorkOrigin = Machine.MachinePosition.ToPoint2D());
-            
+
+            SetDefaultSafeMoveHeightCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.DefaultSafeMoveHeight = Machine.MachinePosition.Z);
+            MoveToDefaultSafeMoveHeightCommand = CreatedMachineConnectedCommand(() => Machine.SendSafeMoveHeight());
+
             CaptureKnownLocationCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.KnownCalibrationPoint = Machine.MachinePosition.ToPoint2D());
             MoveToKnownLocationCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(MachineConfiguration.KnownCalibrationPoint), () => !MachineConfiguration.KnownCalibrationPoint.IsOrigin());
 
@@ -122,6 +123,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public RelayCommand CaptureKnownLocationCommand { get; }
         public RelayCommand MoveToKnownLocationCommand { get; }
 
+        public RelayCommand SetDefaultSafeMoveHeightCommand { get; }
+        public RelayCommand MoveToDefaultSafeMoveHeightCommand { get; }
         public RelayCommand SetDefaultPCBOrigin {get;}
         public RelayCommand MoveToDefaultPCBOrigin { get; }
 

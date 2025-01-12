@@ -95,6 +95,7 @@ namespace LagoVista.PickAndPlace.App
             SLWIOC.RegisterSingleton<IMachineCalibrationViewModel, MachineCalibrationViewModel>();
             SLWIOC.RegisterSingleton<IMachineUtilitiesViewModel, MachineUtilitiesViewModel>();
             SLWIOC.RegisterSingleton<IStagingPlateSelectorViewModel, StagingPlateSelectorViewModel>();
+            SLWIOC.Register<IMachineCoreActionsViewModel, MachineCoreActionsViewModel>();
 
             MachineVision.Startup.Init();
             Services.Startup.Init();

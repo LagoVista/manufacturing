@@ -258,10 +258,12 @@ namespace LagoVista.Manufacturing.Models
         {
             get
             {
-                if (_currentNozzle == null || !_currentNozzle.SafeMoveHeight.HasValue)
-                    return DefaultSafeMoveHeight;
 
-                return _currentNozzle.SafeMoveHeight.Value;
+                return DefaultSafeMoveHeight;
+                //if (_currentNozzle == null || !_currentNozzle.SafeMoveHeight.HasValue)
+                    
+
+                //return _currentNozzle.SafeMoveHeight.Value;
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using LagoVista.PickAndPlace.Models;
+﻿using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.Models;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
 {

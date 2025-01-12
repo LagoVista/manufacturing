@@ -1,10 +1,6 @@
 ﻿using LagoVista.Core.Commanding;
 using LagoVista.Core.Models.Drawing;
-using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
 {
@@ -42,5 +38,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
 
         RelayCommand CaptureKnownLocationCommand { get; }
         RelayCommand MoveToKnownLocationCommand { get; }
+
+        RelayCommand SetDefaultSafeMoveHeightCommand { get; }
     }
 }
