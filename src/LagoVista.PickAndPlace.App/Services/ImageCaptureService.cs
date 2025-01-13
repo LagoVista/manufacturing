@@ -237,7 +237,7 @@ namespace LagoVista.PickAndPlace.App.Services
                 else
                     CaptureImage = new BitmapImage(new Uri("/Imgs/TestPattern.jpg", UriKind.Relative));
 
-                await Task.Delay(50);
+                await Task.Delay(50 );
             }
         }
 

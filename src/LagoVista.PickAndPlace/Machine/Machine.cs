@@ -232,6 +232,15 @@ namespace LagoVista.PickAndPlace
                 }
                 else
                     camera.CurrentVisionProfile = profile;
+
+                if(camera.CameraType.Value == CameraTypes.Position)
+                {
+                    ConfigureTopLight(camera.CurrentVisionProfile.LightOn, camera.CurrentVisionProfile.LightPower, camera.CurrentVisionProfile.LightRed, camera.CurrentVisionProfile.LightBlue, camera.CurrentVisionProfile.LightGreen);
+                }
+                else if(camera.CameraType.Value == CameraTypes.PartInspection)
+                {
+                    ConfigureBottomLight(camera.CurrentVisionProfile.LightOn, camera.CurrentVisionProfile.LightPower, camera.CurrentVisionProfile.LightRed, camera.CurrentVisionProfile.LightBlue, camera.CurrentVisionProfile.LightGreen);
+                }
             }
         }
     }

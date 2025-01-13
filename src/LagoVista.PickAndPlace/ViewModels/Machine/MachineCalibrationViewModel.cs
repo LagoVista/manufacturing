@@ -27,6 +27,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             SetToolOffsetCommand = CreatedMachineConnectedSettingsCommand(() => SelectedToolHead.Offset = (Machine.MachinePosition.ToPoint2D() - MachineConfiguration.DefaultToolReferencePoint).Round(2), () => SelectedToolHead != null);
             SetDefaultToolReferencePointCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.DefaultToolReferencePoint = Machine.MachinePosition.ToPoint2D());
 
+            MoveToCameraLocationCommand = CreatedMachineConnectedCommand(MoveToSelectedCamera, () => SelectedMachineCamera != null && SelectedMachineCamera.AbsolutePosition != null);
             SetCameraLocationCommand = CreatedMachineConnectedSettingsCommand(() => {
                 SelectedMachineCamera.AbsolutePosition = Machine.MachinePosition.ToPoint2D();
                 SelectedMachineCamera.FocusHeight = Machine.MachinePosition.Z;
@@ -39,7 +40,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
             MoveToFirstAutoFeederOriginCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(SelectedFeederRail.FirstFeederOrigin), () => SelectedFeederRail != null && SelectedFeederRail.FirstFeederOrigin != null);
             
-            MoveToCameraLocationCommand = CreatedMachineConnectedCommand(MoveToSelectedCamera, () => SelectedMachineCamera != null && SelectedMachineCamera.AbsolutePosition != null);
+            
             MoveToMachineFiducialCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(Machine.Settings.MachineFiducial), () => !Machine.Settings.MachineFiducial.IsOrigin());
 
             MoveToDefaultPCBOrigin = CreatedMachineConnectedCommand(() => Machine.GotoPoint(MachineConfiguration.DefaultWorkOrigin), () => !MachineConfiguration.DefaultWorkOrigin.IsOrigin());

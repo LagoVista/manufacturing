@@ -12,16 +12,18 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel x:Name="Host">
         <Button Style="{StaticResource CommandButton}" Command="{Binding HomeCommand}">Home</Button>
-        <Button Style="{StaticResource CommandButton}" Command="{Binding GoToSafeMoveHeightCommand}">Safe Move Height</Button>
         <Button Style="{StaticResource CommandButton}" Command="{Binding MachineVisionOriginCommand}" >Calibrate Origin</Button>
+        <Button Style="{StaticResource CommandButton}" Command="{Binding GoToSafeMoveHeightCommand}">Safe Move Height</Button>
         <Button Style="{StaticResource CommandButton}" Command="{Binding SetCameraNavigationCommand}">Camera Navigation</Button>
         
-        <ListBox ItemsSource="{Binding MachineConfiguration.ToolHeads}">
+        <ListBox ItemsSource="{Binding MachineConfiguration.ToolHeads}" HorizontalContentAlignment="Stretch" BorderBrush="Transparent">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Button Style="{StaticResource CommandButton}"  Command="{Binding DataContext.SetToolHeadNavigationCommand, RelativeSource = {RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}" CommandParameter="{Binding .}" Content="{Binding Name}" ></Button>
+                    <Button HorizontalAlignment="Center" Style="{StaticResource CommandButton}"  Command="{Binding DataContext.SetToolHeadNavigationCommand, RelativeSource = {RelativeSource FindAncestor, AncestorType={x:Type ListBox}}}" CommandParameter="{Binding .}" Content="{Binding Name}" ></Button>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
+
+        <Button Style="{StaticResource CommandButton}" Command="{Binding GoToPartInspectionCameraCommand}">Part Inspection</Button>
     </StackPanel>
 </ucb:VMBoundUserControl>

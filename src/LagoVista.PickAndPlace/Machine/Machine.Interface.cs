@@ -364,6 +364,13 @@ namespace LagoVista.PickAndPlace
             _viewType = ViewTypes.Camera;
             RaisePropertyChanged(nameof(ViewType));
 
+            ConfigureTopLight(false, 0xff, 0xff, 0xff, 0xFF);
+            ConfigureBottomLight(false, 0xff, 0xff, 0xff, 0xFF);
+            LeftVacuumPump = false;
+            RightVacuumPump = false;
+            _currentMachineToolHead = null;
+            RaisePropertyChanged(nameof(CurrentMachineToolHead));
+
             if (Settings.MachineType == FirmwareTypes.GRBL1_1)
             {
                 Enqueue("$H\n", true);

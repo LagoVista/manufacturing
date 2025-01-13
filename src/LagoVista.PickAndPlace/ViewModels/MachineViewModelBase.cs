@@ -14,7 +14,7 @@ namespace LagoVista.PickAndPlace.ViewModels
         public MachineViewModelBase(IMachineRepo machineRepo) 
         {
             MachineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
-         
+            Machine = MachineRepo.CurrentMachine;
             MachineRepo.MachineChanged += _machineRepo_MachineChanged;
             SaveMachineConfigurationCommand = new RelayCommand(() => MachineRepo.SaveCurrentMachineAsync(), () => MachineRepo.HasValidMachine);
             ReloadMachineCommand = new RelayCommand(() => MachineRepo.LoadCurrentMachineAsync(), () => MachineRepo.HasValidMachine);

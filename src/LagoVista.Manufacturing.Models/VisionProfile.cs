@@ -26,6 +26,7 @@ namespace LagoVista.PickAndPlace.Models
                     EntityHeader.Create(VisionProfile_TapeHoleBlackTape,VisionProfile_TapeHoleBlackTape, ManufacturingResources.VisionProfile_TapeHoleBlackTape),
                     EntityHeader.Create(VisionProfile_TapeHoleClearTape, VisionProfile_TapeHoleClearTape, ManufacturingResources.VisionProfile_TapeHoleClearTape),
                     EntityHeader.Create(VisionProfile_TapeHoleWhiteTape,VisionProfile_TapeHoleWhiteTape, ManufacturingResources.VisionProfile_TapeHoleWhiteTape),
+                    EntityHeader.Create(VisionProfile_TapeHoleWhiteTape,VisionProfile_FeederOrigin, ManufacturingResources.VisionProfile_FeederOrigin),
                 };
             }
         }
@@ -42,6 +43,8 @@ namespace LagoVista.PickAndPlace.Models
         public const string VisionProfile_NozzleCalibration = "nozzlecalibration";
         public const string VisionProfile_PartInspection = "partinspection";
         public const string VisionProfile_StagingPlateHole = "stagingplatehole";
+        public const string VisionProfile_FeederOrigin = "feederorigin";
+
 
         private string _name;
         public string Name

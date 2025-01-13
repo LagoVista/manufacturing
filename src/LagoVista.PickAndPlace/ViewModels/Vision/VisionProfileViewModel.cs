@@ -13,7 +13,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
     public class VisionProfileViewModel : MachineViewModelBase, IVisionProfileViewModel
     {
 
-        public VisionProfileViewModel(IMachineRepo machineRepo) : base (machineRepo) 
+        public VisionProfileViewModel(IMachineRepo machineRepo) : base(machineRepo)
         {
             VisionProfiles = new ObservableCollection<EntityHeader>(VisionProfile.DefaultVisionProfiles);
             SetPixelsPerMMCommand = new RelayCommand(SetPixelsPerMM, () => MeasuredMM.HasValue);
@@ -62,7 +62,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         public string GaussianBlurLink { get { return "http://docs.opencv.org/2.4/modules/imgproc/doc/filtering.html?highlight=gaussianblur#cv2.GaussianBlur"; } }
         public string GaussianKSizeHelp { get { return "Gaussian kernel size.this is the supplied value for both X and Y.  This can be zero and it will be compueted from sigma."; } }
         public string GaussianSigmaHelp { get { return "Gaussian kernel standard deviation this is supplied for both the X and Y.."; } }
-        
+
 
         void CopyVisionProfile()
         {
@@ -75,7 +75,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         }
 
         ObservableCollection<EntityHeader> _visionProfiles;
-        public  ObservableCollection<EntityHeader> VisionProfiles
+        public ObservableCollection<EntityHeader> VisionProfiles
         {
             get => _visionProfiles;
             set => Set(ref _visionProfiles, value);
@@ -87,14 +87,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         public string SelectedCameraDevicePath
         {
             get { return _selectedCameraDevicePath; }
-            set 
-            { 
-                if(value != "-1"  && value != Camera.CameraDevice?.Id)
+            set
+            {
+                if (value != "-1" && value != Camera.CameraDevice?.Id)
                 {
                     Camera.CameraDevice = CameraList.FirstOrDefault(x => x.Id == value);
                 }
 
-                Set(ref _selectedCameraDevicePath, value); 
+                Set(ref _selectedCameraDevicePath, value);
             }
         }
 
@@ -110,7 +110,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             get => Camera.CurrentVisionProfile.Key;
             set
             {
-                if(Camera.CurrentVisionProfile.Key != value)
+                if (Camera.CurrentVisionProfile != null)
+                {
+                    Camera.CurrentVisionProfile.PropertyChanged -= CurrentVisionProfile_PropertyChanged;
+                }
+
+                if (Camera.CurrentVisionProfile.Key != value)
                 {
                     var profile = Camera.VisionProfiles.Where(pf => pf.Key == value).SingleOrDefault();
                     if (profile == null)
@@ -127,27 +132,82 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                     else
                         Camera.CurrentVisionProfile = profile;
 
-                    RaisePropertyChanged(nameof(Profile));
+                    if (Camera.CameraType.Value == CameraTypes.Position)
+                    {
+                        Machine.ConfigureTopLight(Camera.CurrentVisionProfile.LightOn, Camera.CurrentVisionProfile.LightPower, 
+                            Camera.CurrentVisionProfile.LightRed, Camera.CurrentVisionProfile.LightGreen, Camera.CurrentVisionProfile.LightBlue);
+                    }
+                    else if (Camera.CameraType.Value == CameraTypes.PartInspection)
+                    {
+                        Machine.ConfigureBottomLight(Camera.CurrentVisionProfile.LightOn, Camera.CurrentVisionProfile.LightPower,
+                            Camera.CurrentVisionProfile.LightRed, Camera.CurrentVisionProfile.LightGreen, Camera.CurrentVisionProfile.LightBlue);
+                    }
+
+                    Camera.CurrentVisionProfile.PropertyChanged += CurrentVisionProfile_PropertyChanged;
                 }
 
                 CopyVisionProfileFromDefaultCommand.RaiseCanExecuteChanged();
             }
         }
 
-        public VisionProfile Profile {  get => Camera.CurrentVisionProfile; }
+        private void CurrentVisionProfile_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (Camera.CameraType.Value == CameraTypes.Position)
+            {
+                if (e.PropertyName == nameof(VisionProfile.LightOn)) Machine.TopLightOn = Camera.CurrentVisionProfile.LightOn;
+                if (e.PropertyName == nameof(VisionProfile.LightRed)) Machine.TopRed = Camera.CurrentVisionProfile.LightRed;
+                if (e.PropertyName == nameof(VisionProfile.LightBlue)) Machine.TopBlue = Camera.CurrentVisionProfile.LightBlue;
+                if (e.PropertyName == nameof(VisionProfile.LightGreen)) Machine.TopGreen = Camera.CurrentVisionProfile.LightGreen;
+                if (e.PropertyName == nameof(VisionProfile.LightPower)) Machine.TopPower = Camera.CurrentVisionProfile.LightPower;
+            }
+            else if (Camera.CameraType.Value == CameraTypes.PartInspection)
+            {
+                if (e.PropertyName == nameof(VisionProfile.LightOn)) Machine.BottomLightOn = Camera.CurrentVisionProfile.LightOn;
+                if (e.PropertyName == nameof(VisionProfile.LightRed)) Machine.BottomRed = Camera.CurrentVisionProfile.LightRed;
+                if (e.PropertyName == nameof(VisionProfile.LightBlue)) Machine.BottomBlue = Camera.CurrentVisionProfile.LightBlue;
+                if (e.PropertyName == nameof(VisionProfile.LightGreen)) Machine.BottomGreen = Camera.CurrentVisionProfile.LightGreen;
+                if (e.PropertyName == nameof(VisionProfile.LightPower)) Machine.BottomPower = Camera.CurrentVisionProfile.LightPower;
+            }
+        }
+
+        public VisionProfile Profile { get => Camera.CurrentVisionProfile; }
 
         MachineCamera _camera;
         public MachineCamera Camera
         {
             get => _camera;
-            set => Set(ref _camera, value);    
+            set
+            {
+                if (_camera != null)
+                    _camera.PropertyChanged -= _camera_PropertyChanged;
+
+                Set(ref _camera, value);
+
+                _camera.PropertyChanged += _camera_PropertyChanged;
+                if(_camera.CurrentVisionProfile != null) 
+                    Camera.CurrentVisionProfile.PropertyChanged += CurrentVisionProfile_PropertyChanged;
+            }
         }
 
+        private void _camera_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Camera.CurrentVisionProfile))
+            {
+                RaisePropertyChanged(nameof(Profile));
+
+                if (SelectedProfile != null)
+                {
+                    Camera.CurrentVisionProfile.PropertyChanged += CurrentVisionProfile_PropertyChanged;
+                }
+            }
+        }
+
+
         private double? _measuedMM;
-        public double? MeasuredMM 
+        public double? MeasuredMM
         {
             get => _measuedMM;
-            set 
+            set
             {
                 Set(ref _measuedMM, value);
                 SetPixelsPerMMCommand.RaiseCanExecuteChanged();

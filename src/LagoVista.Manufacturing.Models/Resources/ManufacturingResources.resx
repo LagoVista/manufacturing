@@ -1436,4 +1436,7 @@
   <data name="AutoFeeder_PickOffsetFromFiducial_Help" xml:space="preserve">
     <value>The fiducial on the feeder accurately place it it on the work surface.  This value is the offset from the feeder fiducial to where the part will be picked.</value>
   </data>
+  <data name="VisionProfile_FeederOrigin" xml:space="preserve">
+    <value>Feeder Origin</value>
+  </data>
 </root>

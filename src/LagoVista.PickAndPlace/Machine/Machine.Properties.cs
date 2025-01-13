@@ -314,6 +314,50 @@ namespace LagoVista.PickAndPlace
             }
         }
 
+        public void ConfigureTopLight(bool on, byte power, byte red, byte green, byte blue)
+        {
+            _topLightOn = on;
+            _topPower = power;
+            _topRed = red;
+            _topGreen = green;
+            _topBlue = blue;
+
+            if (_topLightOn)
+                Enqueue(ConvertTopLightColors(Settings.GcodeMapping.Value.TopLightOn));
+            else
+                Enqueue(Settings.GcodeMapping.Value.TopLightOff);
+
+            UpdateTopLight();
+
+            RaisePropertyChanged(nameof(TopLightOn));
+            RaisePropertyChanged(nameof(TopPower));
+            RaisePropertyChanged(nameof(TopRed));
+            RaisePropertyChanged(nameof(TopBlue));
+            RaisePropertyChanged(nameof(TopGreen));
+            
+        }
+        public void ConfigureBottomLight(bool on, byte power, byte red, byte green, byte blue)
+        {
+            _bottomLightOn = on;
+            _bottomPower = power;
+            _bottomRed = red;
+            _bottomGreen = green;
+            _bottomBlue = blue;
+
+            if (_bottomLightOn)
+                Enqueue(ConvertTopLightColors(Settings.GcodeMapping.Value.BottmLightOn));
+            else
+                Enqueue(Settings.GcodeMapping.Value.BottmLightOff);
+
+            UpdateBottomLight();
+
+            RaisePropertyChanged(nameof(BottomLightOn));
+            RaisePropertyChanged(nameof(BottomPower));
+            RaisePropertyChanged(nameof(BottomRed));
+            RaisePropertyChanged(nameof(BottomBlue));
+            RaisePropertyChanged(nameof(BottomGreen));
+        }
+
         private void UpdateTopLight()
         {
             if (TopLightOn && Connected)
@@ -324,9 +368,9 @@ namespace LagoVista.PickAndPlace
         
         private void UpdateBottomLight()
         { 
-            if (TopLightOn && Connected)
+            if (BottomLightOn && Connected)
             {
-                Enqueue(ConvertTopLightColors(Settings.GcodeMapping.Value.TopLightOn));
+                Enqueue(ConvertBottomLightColors(Settings.GcodeMapping.Value.BottmLightOn));
             }
         }
 
@@ -345,27 +389,23 @@ namespace LagoVista.PickAndPlace
         {
             get { return _topLightOn; }
             set
-            {
-                if (_topLightOn != value)
+            {                
+                switch (Settings.MachineType)
                 {
-                    switch (Settings.MachineType)
-                    {
-                        case FirmwareTypes.Repeteir_PnP: Enqueue($"M42 P31 S{(value ? 0 : 255)}"); break;
-                        case FirmwareTypes.LagoVista_PnP: Enqueue($"M60 S{(value ? 255 : 0)}"); break;
-                        default:
-                            if (Settings.GcodeMapping.Value != null)
-                            {
-                                if (value)
-                                    Enqueue(ConvertTopLightColors(Settings.GcodeMapping.Value.TopLightOn));
-                                else
-                                    Enqueue(Settings.GcodeMapping.Value.TopLightOff);
-                            }
-                            break;
-                    }
-
-                    _topLightOn = value;
-                    RaisePropertyChanged();
+                    case FirmwareTypes.Repeteir_PnP: Enqueue($"M42 P31 S{(value ? 0 : 255)}"); break;
+                    case FirmwareTypes.LagoVista_PnP: Enqueue($"M60 S{(value ? 255 : 0)}"); break;
+                    default:
+                        if (Settings.GcodeMapping.Value != null)
+                        {
+                            if (value)
+                                Enqueue(ConvertTopLightColors(Settings.GcodeMapping.Value.TopLightOn));
+                            else
+                                Enqueue(Settings.GcodeMapping.Value.TopLightOff);
+                        }
+                        break;
                 }
+
+                RaisePropertyChanged();
             }
         }
 
@@ -375,26 +415,23 @@ namespace LagoVista.PickAndPlace
             get { return _bottomLightOn; }
             set
             {
-                if (_bottomLightOn != value)
+                switch (Settings.MachineType)
                 {
-                    switch (Settings.MachineType)
-                    {
-                        case FirmwareTypes.Repeteir_PnP: Enqueue($"M42 P33 S{(value ? 0 : 255)}"); break;
-                        case FirmwareTypes.LagoVista_PnP: Enqueue($"M61 S{(value ? 255 : 0)}"); break;
-                        default:
-                            if (Settings.GcodeMapping.Value != null)
-                            {
-                                if (value)
-                                    Enqueue(ConvertBottomLightColors(Settings.GcodeMapping.Value.BottmLightOn));
-                                else
-                                    Enqueue(Settings.GcodeMapping.Value.BottmLightOff);
-                            }
-                            break;
-                    }
-
-                    _bottomLightOn = value;
-                    RaisePropertyChanged();
+                    case FirmwareTypes.Repeteir_PnP: Enqueue($"M42 P33 S{(value ? 0 : 255)}"); break;
+                    case FirmwareTypes.LagoVista_PnP: Enqueue($"M61 S{(value ? 255 : 0)}"); break;
+                    default:
+                        if (Settings.GcodeMapping.Value != null)
+                        {
+                            if (value)
+                                Enqueue(ConvertBottomLightColors(Settings.GcodeMapping.Value.BottmLightOn));
+                            else
+                                Enqueue(Settings.GcodeMapping.Value.BottmLightOff);
+                        }
+                        break;
                 }
+
+                _bottomLightOn = value;
+                RaisePropertyChanged();
             }
         }
 
@@ -768,6 +805,8 @@ namespace LagoVista.PickAndPlace
             private set
             {
                 _wasMachineHomed = value;
+                _currentMachineToolHead = null;
+                RaisePropertyChanged(nameof(CurrentMachineToolHead));
                 RaisePropertyChanged();
             }
         }

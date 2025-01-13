@@ -78,7 +78,7 @@
         <Label Content="Cross Hairs"  Grid.Row="6" Grid.Column="2" />
         <CheckBox IsChecked="{Binding Profile.ShowCrossHairs, Mode=TwoWay}" Grid.Row="6" Grid.Column="3" />
 
-        <Label Content="Perform Imagee Detection"  Grid.Row="5" Grid.Column="2" />
+        <Label Content="Perform Image Detection"  Grid.Row="5" Grid.Column="2" />
         <CheckBox IsChecked="{Binding Profile.PerformShapeDetection, Mode=TwoWay}" Grid.Row="5" Grid.Column="3" />
 
         <Label Grid.Row="9">Camera</Label>

@@ -6,6 +6,7 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -23,11 +24,25 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             RegisterCommandHandler(MachineVisionOriginCommand);
 
             GoToSafeMoveHeightCommand = CreatedMachineConnectedCommand(() => Machine.SendSafeMoveHeight());
-
-            SetCameraNavigationCommand = CreatedMachineConnectedCommand(() => Machine.CurrentMachineToolHead = null, () => Machine.CurrentMachineToolHead != null);
-            SetToolHeadNavigationCommand = RelayCommand<MachineToolHead>.Create((mh) => Machine.CurrentMachineToolHead = mh,  (mch) => { return Machine.Connected && Machine.CurrentMachineToolHead != mch; } );
+            GoToPartInspectionCameraCommand = CreatedMachineConnectedCommand(GoToPartInspectionCamera);
+            SetCameraNavigationCommand = CreatedMachineConnectedCommand(() => Machine.CurrentMachineToolHead = null, () => Machine.CurrentMachineToolHead != null );
+            SetToolHeadNavigationCommand = RelayCommand<MachineToolHead>.Create((mh) => Machine.CurrentMachineToolHead = mh,  (mch) => { return Machine != null &&  Machine.WasMachinOriginCalibrated && Machine.Connected && Machine.CurrentMachineToolHead != mch; } );
 
             _locatorViewModel = locatorViewModel;
+        }
+
+        public void GoToPartInspectionCamera()
+        {
+            var partInspectionCamera = MachineConfiguration.Cameras.FirstOrDefault(cam => cam.CameraType.Value == CameraTypes.PartInspection);
+            if (partInspectionCamera != null)
+            {
+                Machine.GotoPoint(partInspectionCamera.AbsolutePosition);
+                Machine.SendCommand($"G0 Z{partInspectionCamera.FocusHeight}");
+            }
+            else 
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not find part inspection camera.");
+            }
         }
 
         protected override void MachineChanged(IMachine machine)
@@ -103,9 +118,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public RelayCommand HomeCommand { get;  }
         public RelayCommand MachineVisionOriginCommand { get; }
         public RelayCommand GoToSafeMoveHeightCommand { get; }
+        public RelayCommand GoToPartInspectionCameraCommand { get; }
 
         public RelayCommand SetCameraNavigationCommand { get; }
-
         public RelayCommand<MachineToolHead> SetToolHeadNavigationCommand { get; }
     }
 }

@@ -1,4 +1,4 @@
-﻿/*1/11/2025 5:48:30 AM*/
+﻿/*1/12/2025 6:43:43 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -1349,6 +1349,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:VisionProfile_Defauilt
 
 		public static string VisionProfile_Defauilt { get { return GetResourceString("VisionProfile_Defauilt"); } }
+//Resources:ManufacturingResources:VisionProfile_FeederOrigin
+
+		public static string VisionProfile_FeederOrigin { get { return GetResourceString("VisionProfile_FeederOrigin"); } }
 //Resources:ManufacturingResources:VisionProfile_MachineFiducual
 
 		public static string VisionProfile_MachineFiducual { get { return GetResourceString("VisionProfile_MachineFiducual"); } }
@@ -1811,6 +1814,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ToolNozzleTip_Title = "ToolNozzleTip_Title";
 			public const string VisionProfile_BoardFiducial = "VisionProfile_BoardFiducial";
 			public const string VisionProfile_Defauilt = "VisionProfile_Defauilt";
+			public const string VisionProfile_FeederOrigin = "VisionProfile_FeederOrigin";
 			public const string VisionProfile_MachineFiducual = "VisionProfile_MachineFiducual";
 			public const string VisionProfile_Nozzle = "VisionProfile_Nozzle";
 			public const string VisionProfile_NozzleCalibration = "VisionProfile_NozzleCalibration";

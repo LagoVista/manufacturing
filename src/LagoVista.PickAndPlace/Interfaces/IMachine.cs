@@ -298,6 +298,9 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         ObservableCollection<string> PendingQueue { get; }
 
+        void ConfigureTopLight(bool on, byte power, byte red, byte green, byte blue);
+        void ConfigureBottomLight(bool on, byte power, byte red, byte green, byte blue);
+
         byte TopRed { get; set; }
         byte BottomRed { get; set; }
         byte TopGreen { get; set; }
