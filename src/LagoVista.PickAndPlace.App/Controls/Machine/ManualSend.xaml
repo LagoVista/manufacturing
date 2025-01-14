@@ -9,7 +9,7 @@
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;assembly=LagoVista.PickAndPlace"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="60" d:DesignWidth="600">
     <Grid  >
         <TextBox  PreviewKeyDown="TextBoxManual_PreviewKeyDown" TextChanged="TextBoxManual_TextChanged" x:Name="TextBoxManual" FontSize="18" Text="{Binding ManualCommandText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=G1 X100}" AcceptsReturn="True" Margin="0,0,24,0" Height="28" />
         <Button Grid.Row="3" Grid.Column="1" Height="28" Width="24" HorizontalAlignment="Right" Command="{Binding ManualSendCommand}">

@@ -2,6 +2,7 @@
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Manufacturing.Models;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
