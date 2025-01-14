@@ -2,6 +2,8 @@
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
+using RingCentral;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -250,7 +252,7 @@ namespace LagoVista.PickAndPlace
             {
                 _topGreen = value;
                 RaisePropertyChanged();
-                UpdateBottomLight();
+                UpdateTopLight();
             }
         }
 
@@ -274,7 +276,7 @@ namespace LagoVista.PickAndPlace
             {
                 _topBlue = value;
                 RaisePropertyChanged();
-                UpdateBottomLight();
+                UpdateTopLight();
             }
         }
 
@@ -818,6 +820,17 @@ namespace LagoVista.PickAndPlace
             set
             {
                 _wasMachineOriginCalibrated = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        IImageCaptureService _positionImageCaptureService;
+        public IImageCaptureService PositionImageCaptureService
+        {
+            get => _positionImageCaptureService;
+            set
+            {
+                _positionImageCaptureService = value;
                 RaisePropertyChanged();
             }
         }

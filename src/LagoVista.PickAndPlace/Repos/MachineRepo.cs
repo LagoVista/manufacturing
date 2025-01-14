@@ -147,6 +147,11 @@ namespace LagoVista.PickAndPlace.Repos
             if (CurrentMachine.Connected)
             {
                 await CurrentMachine.DisconnectAsync();
+
+                if (CurrentMachine.PositionImageCaptureService != null)
+                {
+                    CurrentMachine.PositionImageCaptureService.StopCapture();
+                }
             }
             else
             {
@@ -172,6 +177,11 @@ namespace LagoVista.PickAndPlace.Repos
                     {
 
                     }
+                }
+
+                if(CurrentMachine.PositionImageCaptureService != null)
+                {
+                    CurrentMachine.PositionImageCaptureService.StartCapture();
                 }
             }
         }

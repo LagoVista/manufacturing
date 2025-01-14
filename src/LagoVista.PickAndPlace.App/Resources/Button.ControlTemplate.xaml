@@ -1,0 +1,181 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style TargetType="Button" x:Key="JogArrow">
+        <Setter Property="Width" Value="48" />
+        <Setter Property="Height" Value="48" />
+        <Setter Property="Padding" Value="3" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid x:Name="BtnContainer">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup Name="CommonStates">
+                                <VisualState Name="Normal" />
+                                <VisualState Name="MouseOver" >
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="EllipseFill" 
+                                                          Storyboard.TargetProperty="Color"
+                                                          Duration="0:0:0.25"
+                                                          To="White"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState Name="Pressed" >
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="EllipseFill" 
+                                                          Storyboard.TargetProperty="Color"
+                                                          Duration="0:0:0.25"
+                                                          To="DarkGray"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState Name="Disabled">
+                                    <Storyboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="EllipseFill" 
+                                                          Storyboard.TargetProperty="Color"
+                                                          Duration="0:0:0.25"
+                                                          To="LightGray"/>
+                                            <DoubleAnimation Storyboard.TargetName="BtnContainer" 
+                                                                       Storyboard.TargetProperty="Opacity"
+                                                                       Duration="0:0:0.25"
+                                                                       To="0.25" />
+                                        </Storyboard>
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+
+                        <Ellipse Stroke="{TemplateBinding BorderBrush}">
+                            <Ellipse.Fill>
+                                <SolidColorBrush x:Name="EllipseFill" Color="{StaticResource Accent1}" />
+                            </Ellipse.Fill>
+                        </Ellipse>
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="Button" x:Key="CommandButton">
+        <Setter Property="Width" Value="150" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Margin" Value="6" />
+        <Setter Property="BorderBrush" Value="White" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid x:Name="BtnContainer">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup Name="CommonStates">
+                                <VisualState Name="Normal" />
+                                <VisualState Name="MouseOver" >
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="ButtonFill" 
+                                                            Storyboard.TargetProperty="Color"
+                                                            Duration="0:0:0.25"
+                                                            To="#9F6A11"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState Name="Pressed" >
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="ButtonFill" 
+                                                            Storyboard.TargetProperty="Color"
+                                                            Duration="0:0:0.25"
+                                                            To="#6A460B"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState Name="Disabled">
+                                    <Storyboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="ButtonFill" 
+                                                            Storyboard.TargetProperty="Color"
+                                                            Duration="0:0:0.25"
+                                                            To="#EED1A2"/>
+                                            <DoubleAnimation Storyboard.TargetName="BtnContainer" 
+                                                                         Storyboard.TargetProperty="Opacity"
+                                                                         Duration="0:0:0.25"
+                                                                         To="0.25" />
+                                        </Storyboard>
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+
+                        <Rectangle Stroke="DarkCyan" StrokeThickness="1" RadiusX="2" RadiusY="2">
+                            <Rectangle.Fill>
+                                <SolidColorBrush x:Name="ButtonFill" Color="{StaticResource Accent1}" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+
+    <Style TargetType="Button" x:Key="VideoControlButton">
+        <Setter Property="Width" Value="24" />
+        <Setter Property="Height" Value="24" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Foreground" Value="Red" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid x:Name="BtnContainer">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup Name="CommonStates">
+                                <VisualState Name="Normal" />
+                                <VisualState Name="MouseOver" >
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="EllipseFill" 
+                                                            Storyboard.TargetProperty="Color"
+                                                            Duration="0:0:0.25"
+                                                            To="Silver"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState Name="Pressed" >
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="EllipseFill" 
+                                                            Storyboard.TargetProperty="Color"
+                                                            Duration="0:0:0.25"
+                                                            To="DarkGray"/>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState Name="Disabled">
+                                    <Storyboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="EllipseFill" 
+                                                            Storyboard.TargetProperty="Color"
+                                                            Duration="0:0:0.25"
+                                                            To="Gray"/>
+                                            <DoubleAnimation Storyboard.TargetName="BtnContainer" 
+                                                                         Storyboard.TargetProperty="Opacity"
+                                                                         Duration="0:0:0.25"
+                                                                         To="0.25" />
+                                        </Storyboard>
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+
+                        <Rectangle Stroke="{TemplateBinding BorderBrush}">
+                            <Rectangle.Fill>
+                                <SolidColorBrush x:Name="EllipseFill" Color="Gray" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+
+</ResourceDictionary>

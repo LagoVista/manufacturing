@@ -1451,4 +1451,13 @@
   <data name="ComponentPackage_NozzleTip_Help" xml:space="preserve">
     <value>Nozzle tip to place parts with this package.  If one is not provided, the machine will use the default nozzle tip.</value>
   </data>
+  <data name="VisionProfile_PartInClearTape" xml:space="preserve">
+    <value>Part in Clear Tape</value>
+  </data>
+  <data name="VisionProfile_PartInBlackTape" xml:space="preserve">
+    <value>Part in Black Tape</value>
+  </data>
+  <data name="VisionProfile_PartInWhiteTape" xml:space="preserve">
+    <value>Part in White Tape</value>
+  </data>
 </root>

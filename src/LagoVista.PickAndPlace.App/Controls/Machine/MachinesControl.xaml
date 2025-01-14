@@ -33,9 +33,10 @@
             </Style>
 
             <Style TargetType="Button">
-                <Setter Property="Height"  Value="80"/>
+                <Setter Property="Height"  Value="50"/>
                 <Setter Property="Width"  Value="50"/>
                 <Setter Property="Margin"  Value="2"/>
+                <Setter Property="Background" Value="#D48D17"></Setter>
             </Style>
             <Style TargetType="TextBlock">
                 <Setter Property="Height"  Value="34"/>
@@ -44,13 +45,11 @@
             </Style>
         </Grid.Resources>
         
-        <Label FontSize="24" Content="{Binding CurrentMachine.Settings.Name, FallbackValue=No Current Machine}" ></Label>
-        
         <StackPanel Orientation="Horizontal"  Grid.Row="1">
             <Button  >
                 <Button.Content>
-                    <StackPanel>
-                        <fa:ImageAwesome Foreground="Blue" Icon="FolderOpen" />
+                    <StackPanel >
+                        <fa:ImageAwesome Foreground="#681DD6" Icon="FolderOpen" />
                     </StackPanel>
                 </Button.Content>
             </Button>
@@ -59,21 +58,20 @@
                     <StackPanel>
                         <fa:ImageAwesome Icon="PowerOff" Foreground="{Binding CurrentMachine.Connected, Converter={StaticResource ColorEnabledConverter}, ConverterParameter=Green, 
                             FallbackValue=LightGray}" />
-                        <TextBlock Text="{Binding CurrentMachine.ConnectText, FallbackValue=On}" />
                     </StackPanel>
                 </Button.Content>
             </Button>
             <Button Command="{Binding SaveCurrentMachineCommand}"   >
                 <Button.Content>
                     <StackPanel>
-                        <fa:ImageAwesome Icon="Save" Foreground="Blue" />
+                        <fa:ImageAwesome Icon="Save" Foreground="#681DD6" />
                     </StackPanel>
                 </Button.Content>
             </Button>            
             <Button  x:Name="Settings" Click="Settings_Click" >
                 <Button.Content>
                     <StackPanel>
-                        <fa:ImageAwesome Foreground="Blue" Icon="Gear" />
+                        <fa:ImageAwesome Foreground="#681DD6" Icon="Gear" />
                     </StackPanel>
                 </Button.Content>
             </Button>
@@ -93,7 +91,7 @@
             </Button>
         </StackPanel>
         
-        <ListView ItemsSource="{Binding Machines}" SelectedItem="{Binding SelectedMachine}" Grid.Row="0" Visibility="Visible">
+        <ListView ItemsSource="{Binding Machines}" SelectedItem="{Binding SelectedMachine}" Grid.Row="1" Visibility="Collapsed">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid>

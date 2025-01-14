@@ -4,6 +4,7 @@ using LagoVista.Core.Validation;
 using LagoVista.GCode;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -321,6 +322,7 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         void MoveToToolHead(MachineToolHead toolHeadToMoveTo);
         void MoveToCamera();
+        IImageCaptureService PositionImageCaptureService { get; set; }
 
         bool WasMachineHomed { get; }
         bool WasMachinOriginCalibrated { get; set; }

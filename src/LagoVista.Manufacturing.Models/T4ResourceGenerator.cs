@@ -1,4 +1,4 @@
-﻿/*1/13/2025 12:27:58 PM*/
+﻿/*1/14/2025 4:57:14 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -1373,9 +1373,18 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:VisionProfile_NozzleCalibration
 
 		public static string VisionProfile_NozzleCalibration { get { return GetResourceString("VisionProfile_NozzleCalibration"); } }
+//Resources:ManufacturingResources:VisionProfile_PartInBlackTape
+
+		public static string VisionProfile_PartInBlackTape { get { return GetResourceString("VisionProfile_PartInBlackTape"); } }
+//Resources:ManufacturingResources:VisionProfile_PartInClearTape
+
+		public static string VisionProfile_PartInClearTape { get { return GetResourceString("VisionProfile_PartInClearTape"); } }
 //Resources:ManufacturingResources:VisionProfile_PartInspection
 
 		public static string VisionProfile_PartInspection { get { return GetResourceString("VisionProfile_PartInspection"); } }
+//Resources:ManufacturingResources:VisionProfile_PartInWhiteTape
+
+		public static string VisionProfile_PartInWhiteTape { get { return GetResourceString("VisionProfile_PartInWhiteTape"); } }
 //Resources:ManufacturingResources:VisionProfile_SquarePart
 
 		public static string VisionProfile_SquarePart { get { return GetResourceString("VisionProfile_SquarePart"); } }
@@ -1834,7 +1843,10 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string VisionProfile_MachineFiducual = "VisionProfile_MachineFiducual";
 			public const string VisionProfile_Nozzle = "VisionProfile_Nozzle";
 			public const string VisionProfile_NozzleCalibration = "VisionProfile_NozzleCalibration";
+			public const string VisionProfile_PartInBlackTape = "VisionProfile_PartInBlackTape";
+			public const string VisionProfile_PartInClearTape = "VisionProfile_PartInClearTape";
 			public const string VisionProfile_PartInspection = "VisionProfile_PartInspection";
+			public const string VisionProfile_PartInWhiteTape = "VisionProfile_PartInWhiteTape";
 			public const string VisionProfile_SquarePart = "VisionProfile_SquarePart";
 			public const string VisionProfile_StagingPlateHole = "VisionProfile_StagingPlateHole";
 			public const string VisionProfile_TapeHole = "VisionProfile_TapeHole";

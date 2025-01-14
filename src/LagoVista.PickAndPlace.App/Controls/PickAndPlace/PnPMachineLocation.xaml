@@ -3,8 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls"
-             xmlns:sndr="clr-namespace:LagoVista.GCode.Sender;assembly=LagoVista.GCode.Sender"
+             xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls"             
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid >
@@ -13,11 +12,11 @@
                 <Style TargetType="TextBlock" >
                     <Setter Property="FontSize" Value="22" />
                     <Setter Property="Margin" Value="10,4,10,4" />
-                    <Setter Property="Foreground" Value="#323C1E" />
+                    <Setter Property="Foreground" Value="#08ff08" />
                 </Style>
                 <Style TargetType="TextBlock" x:Key="Position" >
                     <Setter Property="Margin" Value="0,4,10,4" />
-                    <Setter Property="Foreground" Value="#323C1E" />
+                    <Setter Property="Foreground" Value="#08ff08" />
                     <Setter Property="FontSize" Value="24" />
                     <Setter Property="TextAlignment" Value="Right" />
                     <Setter Property="FontFamily" Value="DSEG14 Classic" />
@@ -41,15 +40,6 @@
                 <ColumnDefinition Width="3*" />
                 <ColumnDefinition Width="2*" />
             </Grid.ColumnDefinitions>
-
-            <Grid Grid.Row="0" Background="White" Grid.ColumnSpan="2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="50*" />
-                    <ColumnDefinition Width="50*" />
-                </Grid.ColumnDefinitions>
-                <Label Content="{Binding MachineRepo.CurrentMachine.BusyStatus}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="32" />
-                <Ellipse Grid.Column="1" Width="48" Height="48" Fill="{Binding MachineRepo.CurrentMachine.Busy, Converter={StaticResource BoolColorConverter}, FallbackValue=Green}" Margin="4"/>
-            </Grid>
 
             <TextBlock Text="X" Grid.Row="1" />
             <TextBlock Text="Y" Grid.Row="2" />

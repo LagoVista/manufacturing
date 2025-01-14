@@ -7,7 +7,7 @@ using System.Text;
 
 namespace LagoVista.PickAndPlace.ViewModels.Machine
 {
-    public class ToolHeadViewModel : MachineViewModelBase, IToolHeadViewmodel
+    public class ToolHeadViewModel : MachineViewModelBase, IToolHeadViewModel   
     {
         public ToolHeadViewModel(IMachineRepo machineRepo) : base(machineRepo)
         {

@@ -7,6 +7,7 @@
         xmlns:pnpc="clr-namespace:LagoVista.PickAndPlace.App.Controls.PickAndPlace"
         xmlns:mch="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine"
         xmlns:ui="clr-namespace:LagoVista.PickAndPlace.App.Controls.UI"
+        xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
         xmlns:local="clr-namespace:LagoVista.PickAndPlace.App"
         WindowStyle="None"
         mc:Ignorable="d"
@@ -16,15 +17,39 @@
             <RowDefinition Height="32"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
-        <Grid Background="Black">
+        <Grid Background="{StaticResource TitleBarBackground}" x:Name="TitleBar" MouseDown="TitleBar_MouseDown" MouseMove="TitleBar_MouseMove" MouseUp="TitleBar_MouseUp">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="auto"/>
             </Grid.ColumnDefinitions>
-            <StackPanel Orientation="Horizontal" Grid.Column="1">
-                <Button Background="Transparent" x:Name="Minimize" Click="Minimize_Click" BorderBrush="Transparent" Foreground="White" Content="_" FontSize="16"></Button>
-                <Button Background="Transparent" x:Name="Windowed" Click="Windowed_Click" BorderBrush="Transparent" Foreground="White" Content="O" FontSize="16"></Button>
-                <Button Background="Transparent" x:Name="Maximize" Click="Maximize_Click" BorderBrush="Transparent" Foreground="White" Content="X" FontSize="16"></Button>
+            <StackPanel Orientation="Horizontal">
+                <Button Margin="3" Background="Transparent" x:Name="ShowMenu" Click="ShowMenu_Click" BorderBrush="Transparent" >
+                    <Button.Content>
+                        <fa:ImageAwesome Foreground="White" Icon="Navicon"/>
+                    </Button.Content>
+                </Button>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Grid.Column="1" >
+                <Button Margin="3"  Background="Transparent" x:Name="Minimize" Click="Minimize_Click" BorderBrush="Transparent">
+                    <Button.Content>
+                        <fa:ImageAwesome Foreground="White" Icon="ArrowCircleDown"/>
+                    </Button.Content>                    
+                </Button>
+                <Button Margin="3" Background="Transparent" x:Name="Windowed" Click="Windowed_Click" BorderBrush="Transparent" >
+                    <Button.Content>
+                        <fa:ImageAwesome Foreground="White" Icon="ArrowsAlt" />
+                    </Button.Content>
+                </Button>
+                <Button Margin="3" Background="Transparent" x:Name="Maximize" Click="Maximize_Click" BorderBrush="Transparent" >
+                    <Button.Content>
+                        <fa:ImageAwesome Foreground="White" Icon="ArrowCircleUp" />
+                    </Button.Content>
+                </Button>
+                <Button Margin="3" Background="Transparent" x:Name="Close" Click="Close_Click" BorderBrush="Transparent">
+                    <Button.Content>
+                        <fa:ImageAwesome Foreground="White" Icon="Close" />
+                    </Button.Content>
+                </Button>
             </StackPanel>
         </Grid>
         <Grid Style="{StaticResource MainBackground}" Grid.Row="1">
@@ -42,10 +67,10 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <ctls:ImageSensorControl CameraType="Position" Grid.Row="0" />
-                <ctls:ImageSensorControl CameraType="PartInspection" Grid.Row="1" />
-                <ctls:CurrentFileControl x:Name="CurrentFile" Grid.Row="2" />
-                <ctls:MachineResponseControl x:Name="MachineResponse" Grid.Row="3"/>
+                <ctls:ImageSensorControl CameraType="Position" Grid.Row="1" />
+                <ctls:ImageSensorControl CameraType="PartInspection" Grid.Row="2" />
+                <ctls:CurrentFileControl x:Name="CurrentFile" Grid.Row="3" />
+                <ctls:MachineResponseControl x:Name="MachineResponse" Grid.Row="4"/>
             </Grid>
 
             <Grid Grid.Column="1" >
@@ -53,9 +78,9 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
-                <TabControl>
+                <TabControl Background="{StaticResource ContentBackgroundBrush}" BorderThickness="0" >
                     <TabItem Header="Home">
-                        <ctls:MachineRender ></ctls:MachineRender>
+                        <ctls:MachineRender  ></ctls:MachineRender>
                     </TabItem>
                     <TabItem Header="Calibration">
                         <mch:MachineCalibrationControl></mch:MachineCalibrationControl>
@@ -64,10 +89,11 @@
                         <ctls:ToolAlignment></ctls:ToolAlignment>
                     </TabItem>
                     <TabItem Header="Utilities">
-                            <mch:MachineUtilitiesControl></mch:MachineUtilitiesControl>
+                        <mch:MachineUtilitiesControl></mch:MachineUtilitiesControl>
                     </TabItem>
+
                     <TabItem Header="Feeders" >
-                        <Grid Background="Blue">
+                        <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="33*" />
                                 <RowDefinition Height="33*" />
@@ -86,6 +112,17 @@
                     </TabItem>
                     <TabItem Header="Prepare Job">
                         <pnpc:PrepareJob></pnpc:PrepareJob>
+                    </TabItem>
+                    <TabItem Header="Dry Run">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <mch:ToolHeadControl Grid.Row="0"></mch:ToolHeadControl>
+                            <mch:VacuumControl Grid.Row="1"></mch:VacuumControl>
+                            <pnpc:CircuitBoardControl Grid.Row="1"></pnpc:CircuitBoardControl>
+                        </Grid>
                     </TabItem>
                     <TabItem Header="Run Job">
                         <pnpc:PickAndPlaceJobControl></pnpc:PickAndPlaceJobControl>
@@ -118,7 +155,7 @@
                 <ctls:ManualSend Grid.Row="1" VerticalAlignment="Bottom"/>
             </Grid>
 
-            <ctls:MachineStatusControl  Width="200" Height="150" HorizontalAlignment="RIght" VerticalAlignment="Bottom" Grid.Column="2"  Grid.Row="1"/>
+            <ctls:MachineStatusControl  Height="250"  VerticalAlignment="Bottom" Grid.Column="2"  Grid.Row="1"/>
 
             <Grid Grid.Column="2" Grid.RowSpan="2" >
                 <StackPanel>

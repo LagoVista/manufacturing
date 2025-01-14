@@ -1,0 +1,46 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="PageBackbround">#202020</Color>
+    <Color x:Key="ContentBackground">#606060</Color>
+    <Color x:Key="PageForgroundLabel">#c0c0c0</Color>
+    <Color x:Key="PageForgroundHeader">#e0e0e0</Color>
+
+    <Color x:Key="Primary_60">#75ADE4</Color>
+    <Color x:Key="Primary_80">#4791DB</Color>
+    <Color x:Key="Primary">#1976D2</Color>
+    <Color x:Key="Primary_125">#13589D</Color>
+    <Color x:Key="Primary_150">#0C3B69</Color>
+
+    <Color x:Key="Accent1_60">#E5BB74</Color>
+    <Color x:Key="Accent1_80">#DDA445</Color>
+    <Color x:Key="Accent1">#D48D17</Color>
+    <Color x:Key="Accent1_125">#D48D17</Color>
+    <Color x:Key="Accent1_150">#D48D17</Color>
+
+    <Color x:Key="Accent2_60">#A477E6</Color>
+    <Color x:Key="Accent2_80">#864ADE</Color>
+    <Color x:Key="Accent2">#681DD6</Color>
+    <Color x:Key="Accent2_125">#4E16A0</Color>
+    <Color x:Key="Accent2_150">#4E16A0</Color>
+
+    <SolidColorBrush x:Key="ContentBackgroundBrush" Color="{StaticResource ContentBackground}" ></SolidColorBrush>
+    
+    <SolidColorBrush x:Key="Content" Color="{StaticResource PageForgroundLabel}" ></SolidColorBrush>
+
+    <SolidColorBrush x:Key="ContentHeader" Color="{StaticResource PageForgroundHeader}" ></SolidColorBrush>
+
+
+    <SolidColorBrush x:Key="TitleBarBackground" Color="{StaticResource Primary}" ></SolidColorBrush>
+    
+    <SolidColorBrush x:Key="Primary_60_Brush" Color="{StaticResource Primary_60}" ></SolidColorBrush>
+    <SolidColorBrush x:Key="Primary_80_Brush" Color="{StaticResource Primary_80}" ></SolidColorBrush>
+    <SolidColorBrush x:Key="Primary_Brush" Color="{StaticResource Primary}" ></SolidColorBrush>
+    <SolidColorBrush x:Key="Primary_125_Brush" Color="{StaticResource Primary_125}" ></SolidColorBrush>
+    <SolidColorBrush x:Key="Primary_150_Brush" Color="{StaticResource Primary_150}" ></SolidColorBrush>
+
+    <SolidColorBrush x:Key="Accent1_60_Brush" Color="{StaticResource Accent1_60}" ></SolidColorBrush>
+    <SolidColorBrush x:Key="Accent1_80_Brush" Color="{StaticResource Accent1_80}" ></SolidColorBrush>
+    <SolidColorBrush x:Key="Accent1_Brush" Color="{StaticResource Accent1}" ></SolidColorBrush>
+    <SolidColorBrush x:Key="Accent1_125_Brush" Color="{StaticResource Accent1_125}" ></SolidColorBrush>
+    <SolidColorBrush x:Key="Accent1_150_Brush" Color="{StaticResource Accent1_150}" ></SolidColorBrush>
+</ResourceDictionary>

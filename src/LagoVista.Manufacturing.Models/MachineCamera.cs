@@ -115,7 +115,12 @@ namespace LagoVista.Manufacturing.Models
 
         public ObservableCollection<VisionProfile> VisionProfiles { get; set; } = new ObservableCollection<VisionProfile>();
 
-        public VisionProfile CurrentVisionProfile { get; set; }
+        VisionProfile _currentVisionProfile;
+        public VisionProfile CurrentVisionProfile 
+        {
+            get => _currentVisionProfile;
+            set => Set(ref _currentVisionProfile, value);
+        }
 
         public Point2D<double> Tool3Offset { get; set; }
 

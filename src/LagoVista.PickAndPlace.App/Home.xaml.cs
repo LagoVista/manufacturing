@@ -33,11 +33,15 @@ namespace LagoVista.PickAndPlace.App
             if (Settings.Default.WasMaximized)
             {
                 WindowState = WindowState.Maximized;
+                Windowed.Visibility = Visibility.Visible;
+                Maximize.Visibility = Visibility.Collapsed;
             }
             else
             {
                 Width = Settings.Default.Width;
                 Height = Settings.Default.Height;
+                Windowed.Visibility = Visibility.Collapsed;
+                Maximize.Visibility = Visibility.Visible;
             }
 
             Left = Settings.Default.CurrentX;
@@ -48,7 +52,19 @@ namespace LagoVista.PickAndPlace.App
         {
             Settings.Default.WasMaximized = WindowState == WindowState.Maximized;
             Settings.Default.Save();
+
+            if (WindowState == WindowState.Maximized)
+            {
+                Windowed.Visibility = Visibility.Visible;
+                Maximize.Visibility = Visibility.Collapsed;
+            }
+            else if (WindowState == WindowState.Normal)
+            {
+                Windowed.Visibility = Visibility.Collapsed;
+                Maximize.Visibility = Visibility.Visible;
+            }
         }
+
 
         private void Home_SizeChanged(object sender, SizeChangedEventArgs e)
         {
@@ -77,6 +93,31 @@ namespace LagoVista.PickAndPlace.App
         private void Maximize_Click(object sender, RoutedEventArgs e)
         {
             WindowState = WindowState.Maximized;
+        }
+
+        private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+
+        }
+
+        private void TitleBar_MouseMove(object sender, MouseEventArgs e)
+        {
+
+        }
+
+        private void TitleBar_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+        private void ShowMenu_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

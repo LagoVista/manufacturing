@@ -211,6 +211,11 @@ namespace LagoVista.PickAndPlace
             }
             else
             { 
+                if(profileName == camera.CurrentVisionProfile.Key)
+                {
+                    return;
+                }
+
                 var profile = camera.VisionProfiles.Where(pf => pf.Key == profileName).SingleOrDefault();
                 if (profile == null)
                 {

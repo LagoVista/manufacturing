@@ -48,7 +48,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.CurrentVisionProfile.PixelsPerMM);
                 var searchBounds = new CircleF(new System.Drawing.PointF(center.X, center.Y), scaledTarget);
 
-                CvInvoke.FindContours(_edges, contours, null, RetrType.List, ChainApproxMethod.ChainApproxTc89L1);
+                CvInvoke.FindContours(_edges, contours, null, RetrType.List, ChainApproxMethod.ChainApproxNone);
                 int count = contours.Size;
                 for (int i = 0; i < count; i++)
                 {
@@ -82,7 +82,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                                 if (isRectangle || true)
                                 {
                                     var rect = CvInvoke.MinAreaRect(approxContour);
-                                    if (searchBounds.WithinRadius(rect) || true)
+                                    if (searchBounds.WithinRadius(rect) )
                                     {
                                         if (rect.Size.Width > rect.Size.Height && profile.FindLandScape || rect.Size.Height > rect.Size.Width && profile.FindPortrait)
                                         {

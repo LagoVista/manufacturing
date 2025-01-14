@@ -9,6 +9,7 @@ using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Models;
 using LagoVista.PickAndPlace.Interfaces.Services;
 using System.Drawing.Drawing2D;
+using System;
 
 namespace LagoVista.PickAndPlace.App.MachineVision
 {
@@ -51,8 +52,11 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             Line(img, (int)p[2].X, (int)p[2].Y, (int)p[3].X, (int)p[3].Y, color);
             Line(img, (int)p[3].X, (int)p[3].Y, (int)p[0].X, (int)p[0].Y, color);
 
+            var msg = $"Width: {Math.Round(rect.RotatedRect.Size.Width, 2)} x {Math.Round(rect.RotatedRect.Size.Height, 2)}";
 
-//            CvInvoke.PutText(img.Image, msg, center, FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.Red).MCvScalar);
+            var size = new Size(480, 480);
+
+            CvInvoke.PutText(img.Image, msg, new Point(size.Width - 200, size.Height - 100), FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.Red).MCvScalar);
         }
 
         public void ShowCalibrationSquare(IMVImage<IInputOutputArray> destImage, Size size)

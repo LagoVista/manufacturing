@@ -283,7 +283,7 @@
                         <Label Content="Max Area:" Width="210"/>
                         <Label Content="{Binding Profile.CountourMaxArea, FallbackValue=3}" HorizontalContentAlignment="Right" Width="80"/>
                     </StackPanel>
-                    <Slider Value="{Binding Path=Profile.CountourMaxArea, Mode=TwoWay}"  Minimum="300" Maximum="5000" SmallChange="1" LargeChange="10" />
+                    <Slider Value="{Binding Path=Profile.CountourMaxArea, Mode=TwoWay}"  Minimum="300" Maximum="10000" SmallChange="1" LargeChange="50" />
                 </StackPanel>
             </TabItem>
 

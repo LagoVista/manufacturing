@@ -82,14 +82,13 @@ namespace LagoVista.PickAndPlace.App
             SLWIOC.Register<IVisionProfileViewModel, VisionProfileViewModel>();
             SLWIOC.Register<IImageCaptureService, ImageCaptureService>();
             SLWIOC.Register<IMachineControlViewModel, MachineControlViewModel>();
-            SLWIOC.Register<ICircuitBoardViewModel, CircuitBoardViewModel>();
-            SLWIOC.Register<IToolHeadViewModel, ToolHeadViewModel>();
-            SLWIOC.Register<IVacuumViewModel, VacuumViewModel>();
-            SLWIOC.Register<IMachineControlViewModel, MachineControlViewModel>();
             SLWIOC.Register<IManualSendViewModel, ManualSendViewModel>();
             SLWIOC.Register<ICurrentMachineViewModel, CurrentMachineViewModel>();
             SLWIOC.Register<INozzleChangeViewModel, NozzleChangeViewModel>();
             SLWIOC.Register<IPickAndPlaceJobResolverService, PickAndPlaceJobResolverService>();
+            SLWIOC.RegisterSingleton<ICircuitBoardViewModel, CircuitBoardViewModel>();
+            SLWIOC.RegisterSingleton<IToolHeadViewModel, ToolHeadViewModel>();
+            SLWIOC.RegisterSingleton<IVacuumViewModel, VacuumViewModel>();
             SLWIOC.RegisterSingleton<IPhotonFeederViewModel, PhotonFeederViewModel>();
             SLWIOC.RegisterSingleton<IStripFeederViewModel, StripFeederViewModel>();
             SLWIOC.RegisterSingleton<IAutoFeederViewModel, AutoFeederViewModel>();

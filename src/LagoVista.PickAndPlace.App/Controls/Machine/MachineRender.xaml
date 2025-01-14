@@ -8,7 +8,7 @@
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;assembly=LagoVista.PickAndPlace"
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls"
              xmlns:h="http://helix-toolkit.org/wpf" mc:Ignorable="d" d:DesignHeight="500" d:DesignWidth="1000">
-    <Grid Style="{StaticResource MainBackground}">
+    <Grid >
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>

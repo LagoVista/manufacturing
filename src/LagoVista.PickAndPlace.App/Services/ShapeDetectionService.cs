@@ -103,7 +103,6 @@ namespace LagoVista.PickAndPlace.App.Services
                         if (camera.CurrentVisionProfile.ApplyMask)
                         {
                             using (var mask = new Image<Gray, byte>(size))
-
                             {
                                 CvInvoke.Circle(mask, new System.Drawing.Point() { X = size.Width / 2, Y = size.Height / 2 },
                                 Convert.ToInt32(camera.CurrentVisionProfile.TargetImageRadius * camera.CurrentVisionProfile.PixelsPerMM),

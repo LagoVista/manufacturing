@@ -12,5 +12,9 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
         RelayCommand StartCaptureCommand { get; }
         RelayCommand StopCaptureCommand { get; }
         RelayCommand CenterFoundItemCommand { get; }
+
+        void StartCapture();
+
+        void StopCapture();
     }
 }

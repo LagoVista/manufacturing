@@ -10,6 +10,7 @@ using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
+using LagoVista.PickAndPlace.Models;
 using Newtonsoft.Json.Bson;
 using System;
 using System.Collections.ObjectModel;
@@ -281,17 +282,36 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             switch (moveType)
             {
                 case StripFeederLocationTypes.FirstFeederRowReferenceHole:
-                    if (UseCalculated)
-                        return InvokeResult<Point2D<double>>.Create(feederOrigin + calculateFirstReferneceHole);
-                    else
-                        return InvokeResult<Point2D<double>>.Create(feederOrigin.AddWithConditionalSwap(feederIsVertical, firstReferenceHole));
+                    {
+                        switch (CurrentComponent.ComponentPackage.Value.TapeColor.Value)
+                        {
+                            case TapeColors.Black: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleBlackTape); break;
+                            case TapeColors.Clear: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleClearTape); break;
+                            case TapeColors.White: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleWhiteTape); break;
+                        }
+
+                        if (UseCalculated)
+                            return InvokeResult<Point2D<double>>.Create(feederOrigin + calculateFirstReferneceHole);
+                        else
+                            return InvokeResult<Point2D<double>>.Create(feederOrigin.AddWithConditionalSwap(feederIsVertical, firstReferenceHole));
+                    }
 
                 case StripFeederLocationTypes.LastFeederRowReferenceHole:
-                    if (!UseCalculated && !CurrentRow.LastTapeHoleOffset.IsOrigin())
-                        return InvokeResult<Point2D<double>>.Create(feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.LastTapeHoleOffset));
+                    {
+                        switch (CurrentComponent.ComponentPackage.Value.TapeColor.Value)
+                        {
+                            case TapeColors.Black: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleBlackTape); break;
+                            case TapeColors.Clear: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleClearTape); break;
+                            case TapeColors.White: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleWhiteTape); break;
+                        }
 
-                    var deltaEndX = (TotalPartsInFeederRow - 1) * TapePitch.ToDouble();
-                    return InvokeResult<Point2D<double>>.Create(feederOrigin + (feederIsVertical ? firstReferenceHole.SubtractFromY(deltaX) : firstReferenceHole.AddToX(deltaX)));
+                        if (!UseCalculated && !CurrentRow.LastTapeHoleOffset.IsOrigin())
+                            return InvokeResult<Point2D<double>>.Create(feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.LastTapeHoleOffset));
+
+                        var deltaEndX = (TotalPartsInFeederRow - 1) * TapePitch.ToDouble();
+                        return InvokeResult<Point2D<double>>.Create(feederOrigin + (feederIsVertical ? firstReferenceHole.SubtractFromY(deltaX) : firstReferenceHole.AddToX(deltaX)));
+                    }
+                    
                 case StripFeederLocationTypes.FirstPart:
                     CurrentPartIndex = 1;
                     break;
@@ -307,6 +327,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 case StripFeederLocationTypes.LastPart:
                     CurrentPartIndex = TotalPartsInFeederRow;
                     break;
+            }
+
+            switch (CurrentComponent.ComponentPackage.Value.TapeColor.Value)
+            {
+                case TapeColors.Black: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInBlackTape); break;
+                case TapeColors.Clear: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInClearTape); break;
+                case TapeColors.White: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInWhiteTape); break;
             }
 
             RaiseCanExecuteChanged();
@@ -352,18 +379,49 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var tapePitch = TapePitch.ToDouble();
             var feederIsVertical = Current.Orientation.Value == FeederOrientations.Vertical;
 
-            var tapeHoleOrigin = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.FirstTapeHoleOffset);
-            if (feederIsVertical)
+            if (Current.FeedDirection.Value == FeedDirections.Forward)
             {
-                tapeHoleOrigin.SubtractFromX(((tapeSize - 1.5) / 2));
-                tapeHoleOrigin.AddToY(tapePitch / 2);
+                var partOrigin = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.FirstTapeHoleOffset);
+                if (feederIsVertical)
+                {
+                    if (Current.TapeHolesOnTop)
+                        partOrigin.SubtractFromX(((tapeSize - 2) / 2));
+                    else
+                        partOrigin.AddToX(((tapeSize - 1.75) / 2));
+
+                    partOrigin.SubtractFromY(tapePitch / 2 + ((CurrentPartIndex - 1) * tapePitch));
+                }
+                else
+                {
+                    partOrigin.SubtractFromY(((tapeSize - 1.5) / 2));
+                    partOrigin.AddToX(tapePitch / 2 + ((CurrentPartIndex - 1) * tapePitch));
+                }
+
+                return InvokeResult<Point2D<double>>.Create(partOrigin);
             }
             else
             {
-                tapeHoleOrigin.SubtractFromY(((tapeSize - 1.5) / 2));
-                tapeHoleOrigin.AddToX(tapePitch / 2);
+                var partOrigin = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.LastTapeHoleOffset);
+                var offsetFromHole = (tapeSize - 1) / 2;
+
+                if (feederIsVertical)
+                {
+                    if (Current.TapeHolesOnTop)
+                        partOrigin.SubtractFromX(offsetFromHole);
+                    else
+                        partOrigin.AddToX(offsetFromHole);
+
+                    partOrigin.AddToY(((CurrentPartIndex -1) * tapePitch) + tapePitch / 2);
+                }
+                else
+                {
+                    partOrigin.SubtractFromY(((tapeSize - 2) / 2));
+                    partOrigin.SubtractFromX(((CurrentPartIndex - 1) * tapePitch) + tapePitch / 2);
+                }
+
+                return InvokeResult<Point2D<double>>.Create(partOrigin);
             }
-            return InvokeResult<Point2D<double>>.Create(tapeHoleOrigin);
+            
         }
 
         private int _currentPartIndex;

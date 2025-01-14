@@ -184,6 +184,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                 Set(ref _camera, value);
 
                 _camera.PropertyChanged += _camera_PropertyChanged;
+
                 if(_camera.CurrentVisionProfile != null) 
                     Camera.CurrentVisionProfile.PropertyChanged += CurrentVisionProfile_PropertyChanged;
             }
@@ -194,6 +195,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             if (e.PropertyName == nameof(Camera.CurrentVisionProfile))
             {
                 RaisePropertyChanged(nameof(Profile));
+                RaisePropertyChanged(nameof(SelectedProfile));
 
                 if (SelectedProfile != null)
                 {

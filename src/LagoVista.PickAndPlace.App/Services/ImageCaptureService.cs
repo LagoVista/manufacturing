@@ -59,7 +59,6 @@ namespace LagoVista.PickAndPlace.App.Services
                     };
 
                     Camera.VisionProfiles.Add(profile);
-
                     Camera.CurrentVisionProfile = profile;
                 }
             }
@@ -271,7 +270,13 @@ namespace LagoVista.PickAndPlace.App.Services
         public MachineCamera Camera
         {
             get => _camera;
-            set => Set(ref _camera, value);
+            set
+            {
+                Set(ref _camera, value);
+
+                if(value != null && value.CameraType.Value == CameraTypes.Position)
+                    Machine.PositionImageCaptureService = this;
+            }
         }
 
         public VisionProfile Profile
