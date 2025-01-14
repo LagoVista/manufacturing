@@ -45,6 +45,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             AddCommand = CreatedCommand(Add, () => MachineRepo.HasValidMachine && SelectedTemplateId.HasValidId() && CurrentPhotonFeeder != null);
             SaveCommand = CreatedCommand(Save, () => Current != null);
+
+            ReloadFeederCommand = CreatedCommand(ReloadFeeder, () => Current != null);
         }
 
         private void PhotonFeederViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -97,6 +99,22 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             else
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, result.ErrorMessage);
+            }
+        }
+
+        private async void ReloadFeeder()
+        {
+            if (Current == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Can not reload feeder, no feeder selected.");
+            }
+            else
+            {
+                var result = await _restClient.GetAsync<DetailResponse<AutoFeeder>>($"/api/mfg/autofeeder/{Current.Id}");
+                if (result.Successful)
+                {
+                    Current = result.Result.Model;
+                }
             }
         }
 
@@ -393,5 +411,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand CancelCommand { get; }
 
         public RelayCommand RefreshTemplatesCommand { get; }
+
+        public RelayCommand ReloadFeederCommand { get; }
     }
 }

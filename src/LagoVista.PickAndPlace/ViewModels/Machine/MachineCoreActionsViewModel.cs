@@ -57,6 +57,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             {
                 RaiseCanExecuteChanged();
             }
+
+            if (e.PropertyName == nameof(Machine.Busy))
+            {
+                RaiseCanExecuteChanged();
+            }
         }
 
         protected override void RaiseCanExecuteChanged()
@@ -97,11 +102,21 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         public void CircleLocated(MVLocatedCircle circle)
         {
-            if (circle.Centered)
+            if (circle.Stabilized && !Machine.Busy)
             {
-                _locatorViewModel.UnregisterCircleLocatedHandler(this);
-                Machine.AddStatusMessage(Manufacturing.Models.StatusMessageTypes.Info, "Found origin");
-                Machine.WasMachinOriginCalibrated = true;
+                if (circle.Centered)
+                {
+                    _locatorViewModel.UnregisterCircleLocatedHandler(this);
+                    Machine.AddStatusMessage(Manufacturing.Models.StatusMessageTypes.Info, "Found origin");
+                    Machine.WasMachinOriginCalibrated = true;
+                    Machine.SendCommand(MachineConfiguration.MachineFiducial.ToGCode("G92"));
+                }
+                else
+                {
+                    Machine.GotoPoint(circle.OffsetMM, relativeMove: true);
+                }
+
+                circle.ResetFoundCount();
             }
         }
 

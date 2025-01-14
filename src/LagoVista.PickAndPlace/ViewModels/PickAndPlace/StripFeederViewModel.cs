@@ -76,7 +76,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             DoneRowCommand = CreatedCommand(() => DoneRow(), () => CurrentRow != null);
             CancelRowCommand = CreatedCommand(() => CurrentRow = null, () => CurrentRow != null);
 
-            RefreshTemplatesCommand = CreatedCommand(async () => await LoadTemplates()); 
+            RefreshTemplatesCommand = CreatedCommand(async () => await LoadTemplates());
+
+            ReloadFeederCommand = CreatedCommand(ReloadFeeder, () => Current != null);
         }
 
         public async override Task InitAsync()
@@ -113,6 +115,25 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Current = result.Result.Model;
                 Current.Machine = MachineConfiguration.ToEntityHeader();
                 Current.Key = Current.Id.ToLower();
+            }
+        }
+
+        private async void ReloadFeeder()
+        {
+            if (Current == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Can not reload feeder, no feeder selected.");
+            }
+            else
+            {
+                var result = await _restClient.GetAsync<DetailResponse<StripFeeder>>($"/api/mfg/stripfeeder/{Current.Id}");
+                if (result.Successful)
+                {
+                    var existing = Feeders.Remove(Current);
+                    Current = result.Result.Model;
+                    Feeders.Add(Current);
+                    
+                }
             }
         }
 
@@ -400,6 +421,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     _tapeSize = null;
                 }
 
+                _isEditing = true;                
+
                 RaisePropertyChanged(nameof(TapeSize));
                 RaiseCanExecuteChanged();
             }
@@ -486,5 +509,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public RelayCommand DoneRowCommand { get; }
         public RelayCommand CancelRowCommand { get; }
+
+        public RelayCommand ReloadFeederCommand { get; }        
     }
 }

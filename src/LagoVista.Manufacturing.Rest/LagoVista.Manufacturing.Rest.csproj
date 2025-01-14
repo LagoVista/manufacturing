@@ -12,7 +12,7 @@
     <DocumentationFile>bin\Release\net5.0\LagoVista.Manufacturing.Rest.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="LagoVista.IoT.Web.Common" Version="3.0.2793.1112" />
+    <PackageReference Include="LagoVista.IoT.Web.Common" Version="3.0.2798.1812" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

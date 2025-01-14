@@ -1,4 +1,4 @@
-﻿/*1/12/2025 6:43:43 PM*/
+﻿/*1/13/2025 12:27:58 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -403,6 +403,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ComponentPackage_MaterialType_Plastic
 
 		public static string ComponentPackage_MaterialType_Plastic { get { return GetResourceString("ComponentPackage_MaterialType_Plastic"); } }
+//Resources:ManufacturingResources:ComponentPackage_NozzleTip
+
+		public static string ComponentPackage_NozzleTip { get { return GetResourceString("ComponentPackage_NozzleTip"); } }
+//Resources:ManufacturingResources:ComponentPackage_NozzleTip_Help
+
+		public static string ComponentPackage_NozzleTip_Help { get { return GetResourceString("ComponentPackage_NozzleTip_Help"); } }
 //Resources:ManufacturingResources:ComponentPackage_PackageId
 
 		public static string ComponentPackage_PackageId { get { return GetResourceString("ComponentPackage_PackageId"); } }
@@ -1238,6 +1244,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:StripFeeder_StagingPlateColumn
 
 		public static string StripFeeder_StagingPlateColumn { get { return GetResourceString("StripFeeder_StagingPlateColumn"); } }
+//Resources:ManufacturingResources:StripFeeder_TapeHolesOnTop
+
+		public static string StripFeeder_TapeHolesOnTop { get { return GetResourceString("StripFeeder_TapeHolesOnTop"); } }
+//Resources:ManufacturingResources:StripFeeder_TapeHolesOnTop_Help
+
+		public static string StripFeeder_TapeHolesOnTop_Help { get { return GetResourceString("StripFeeder_TapeHolesOnTop_Help"); } }
 //Resources:ManufacturingResources:StripFeeder_Title
 
 		public static string StripFeeder_Title { get { return GetResourceString("StripFeeder_Title"); } }
@@ -1500,6 +1512,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentPackage_HoleSpacing = "ComponentPackage_HoleSpacing";
 			public const string ComponentPackage_MaterialType_Paper = "ComponentPackage_MaterialType_Paper";
 			public const string ComponentPackage_MaterialType_Plastic = "ComponentPackage_MaterialType_Plastic";
+			public const string ComponentPackage_NozzleTip = "ComponentPackage_NozzleTip";
+			public const string ComponentPackage_NozzleTip_Help = "ComponentPackage_NozzleTip_Help";
 			public const string ComponentPackage_PackageId = "ComponentPackage_PackageId";
 			public const string ComponentPackage_PartHeight = "ComponentPackage_PartHeight";
 			public const string ComponentPackage_PartLength = "ComponentPackage_PartLength";
@@ -1777,6 +1791,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string StripFeeder_StagingPlate = "StripFeeder_StagingPlate";
 			public const string StripFeeder_StagingPlate_Select = "StripFeeder_StagingPlate_Select";
 			public const string StripFeeder_StagingPlateColumn = "StripFeeder_StagingPlateColumn";
+			public const string StripFeeder_TapeHolesOnTop = "StripFeeder_TapeHolesOnTop";
+			public const string StripFeeder_TapeHolesOnTop_Help = "StripFeeder_TapeHolesOnTop_Help";
 			public const string StripFeeder_Title = "StripFeeder_Title";
 			public const string StripFeederRow_CurrentPartIndex = "StripFeederRow_CurrentPartIndex";
 			public const string StripFeederRow_Description = "StripFeederRow_Description";

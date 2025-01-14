@@ -72,6 +72,16 @@ namespace LagoVista.Manufacturing.Models
             get; set;
         } = "#000000";
 
+        private bool _tapeHolesOnTop;
+
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_TapeHolesOnTop, HelpResource: ManufacturingResources.Names.StripFeeder_TapeHolesOnTop_Help,
+            FieldType: FieldTypes.CheckBox, ResourceType: typeof(ManufacturingResources))]
+        public bool TapeHolesOnTop
+        {
+            get => _tapeHolesOnTop;
+            set => Set(ref _tapeHolesOnTop, value);
+        }
+
 
         private EntityHeader<FeederOrientations> _orientation;
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Orientation, FieldType: FieldTypes.Picker, EnumType: typeof(FeederOrientations), WaterMark: ManufacturingResources.Names.StripFeeder_Orientation_Select, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
@@ -209,14 +219,24 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _length, value);
         }
 
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Rows, OpenByDefault:true, ChildListDisplayMembers:"rowIndex,component.text", FactoryUrl: "/api/mfg/stripfeeder/row/factory", FieldType: FieldTypes.ChildListInline, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Rows, OpenByDefault:true, ChildListDisplayMembers:"rowIndex,component.text", CanAddRows: false, FactoryUrl: "/api/mfg/stripfeeder/row/factory", FieldType: FieldTypes.ChildListInline, ResourceType: typeof(ManufacturingResources))]
         public List<StripFeederRow> Rows { get; set; } = new List<StripFeederRow>();
 
+        public EntityHeader _referenceHoleColumn;
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_ReferenceHole_Col, HelpResource: ManufacturingResources.Names.StripFeeder_ReferenceHole_Col_Help, IsUserEditable: true, FieldType: FieldTypes.Picker, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
-        public EntityHeader ReferenceHoleColumn { get; set; }
+        public EntityHeader ReferenceHoleColumn 
+        {
+            get => _referenceHoleColumn;
+            set => Set(ref _referenceHoleColumn, value);
+        }
 
+        public EntityHeader _referenceHoleRow;
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_ReferenceHole_Row, HelpResource: ManufacturingResources.Names.StripFeeder_ReferenceHole_Row_Help, IsUserEditable: true, FieldType: FieldTypes.Picker, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
-        public EntityHeader ReferenceHoleRow { get; set; }
+        public EntityHeader ReferenceHoleRow
+        {
+            get => _referenceHoleRow;
+            set => Set(ref _referenceHoleRow, value);
+        }
 
         Point2D<double> _referenceHoleOffset = new Point2D<double>();
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_ReferenceHoleOffset, HelpResource: ManufacturingResources.Names.StripFeeder_ReferenceHoleOffset_Help, FieldType: FieldTypes.Point2D, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
@@ -291,6 +311,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Key),
                 nameof(Machine),
                 nameof(TapeSize),
+                nameof(TapeHolesOnTop),
                 nameof(Orientation),
                 nameof(FeedDirection),
                 nameof(Color),
@@ -313,7 +334,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Width),
                 nameof(Length),
                 nameof(Height),
-                nameof(RowWidth),
+                nameof(RowWidth),                
                 nameof(AngleOffset),
 
             };

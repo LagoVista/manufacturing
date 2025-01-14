@@ -35,6 +35,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             {
                 if (!value.HasValidId())
                 {
+                    _selectedStagingPlate = null;
                     StagingPlateRows.Clear();
                     StagingPlateRows.Add(EntityHeader.Create(StringExtensions.NotSelectedId, StringExtensions.NotSelectedId, "-select a staging plate first-"));
                     StagingPlateCols.Clear();
@@ -68,9 +69,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
             var rowIdx = Convert.ToByte(SelectedStagingPlateRowId.ToCharArray()[0]) - 64;
 
-            for (var idx = SelectedStagingPlate.FirstUsableColumn; idx <= SelectedStagingPlate.LastUsableColumn; idx += 2)
+            for (var col = SelectedStagingPlate.FirstUsableColumn; col <= SelectedStagingPlate.LastUsableColumn; col++)
             {
-                var col = idx + (rowIdx % 2 == 1 ? 1 : 0);
                 if(col <=SelectedStagingPlate.LastUsableColumn)
                     StagingPlateCols.Add(EntityHeader.Create($"{col}", $"{col}", $"{col}"));
             }

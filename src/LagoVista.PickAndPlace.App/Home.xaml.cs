@@ -63,5 +63,20 @@ namespace LagoVista.PickAndPlace.App
             Settings.Default.CurrentY = this.Top;
             Settings.Default.Save();
         }
+
+        private void Windowed_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Normal;
+        }
+
+        private void Minimize_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void Maximize_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Maximized;
+        }
     }
 }

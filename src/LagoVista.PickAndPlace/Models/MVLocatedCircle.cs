@@ -23,7 +23,7 @@ namespace LagoVista.PickAndPlace.Models
         private int _stabilizationCount;
         private Point2D<float> _viewCenter;
 
-        private int _pointCount;
+        private int _foundCount;
 
         private Point2D<float> _filteredCenter;
 
@@ -51,7 +51,7 @@ namespace LagoVista.PickAndPlace.Models
                 _head = 0;
             }
 
-            _pointCount++;
+            _foundCount++;
 
             var sortedX = _centers.Where(pt => pt != null).Select(pt => pt.X).OrderBy(pt => pt);
             var sortedY = _centers.Where(pt => pt != null).Select(pt => pt.Y).OrderBy(pt => pt);
@@ -73,7 +73,7 @@ namespace LagoVista.PickAndPlace.Models
             }
         }
 
-        public bool Stabilized => _pointCount >= _stabilizationCount;
+        public bool Stabilized => _foundCount >= _stabilizationCount;
 
         public bool Centered => Math.Abs(OffsetPixels.X / _pixelsPerMM) < _errorMargin && Math.Abs(OffsetPixels.Y / _pixelsPerMM) < _errorMargin;
 
@@ -87,7 +87,12 @@ namespace LagoVista.PickAndPlace.Models
        
         public Point2D<double> StandardDeviation { get; set; }
 
-        public int FoundCount { get => _pointCount; }
+        public int FoundCount { get => _foundCount; }
+
+        public void ResetFoundCount()
+        {
+            _foundCount = 0;
+        }
 
         public CameraTypes CameraType { get; }
     }

@@ -20,10 +20,12 @@
 
         <DataGrid ItemsSource="{Binding Feeders }" CanUserAddRows="false" AutoGenerateColumns="False" SelectedItem="{Binding Current, Mode=TwoWay}" IsReadOnly="True">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}" x:Name="Name" ></DataGridTextColumn>
-                <DataGridTextColumn Header="Feeder Id" Binding="{Binding FeederId}" ></DataGridTextColumn>
-                <DataGridTextColumn Header="Tape Size" Binding="{Binding TapeSize}" ></DataGridTextColumn>
-                <DataGridTextColumn Header="Component" Binding="{Binding Component}" ></DataGridTextColumn>
+                <DataGridTextColumn Width="*" Header="Name" Binding="{Binding Name}" x:Name="Name" ></DataGridTextColumn>
+                <DataGridTextColumn Width="80" Header="Slot" Binding="{Binding Slot}" ></DataGridTextColumn>
+                <DataGridTextColumn Width="200" Header="Component" Binding="{Binding Component}" ></DataGridTextColumn>
+                <DataGridTextColumn Width="200" Header="Feeder Id" Binding="{Binding FeederId}" ></DataGridTextColumn>
+                <DataGridTextColumn Width="80" Header="Tape Size" Binding="{Binding TapeSize}" ></DataGridTextColumn>
+                
             </DataGrid.Columns>
         </DataGrid>
         

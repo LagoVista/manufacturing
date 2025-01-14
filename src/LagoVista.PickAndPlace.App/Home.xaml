@@ -8,10 +8,26 @@
         xmlns:mch="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine"
         xmlns:ui="clr-namespace:LagoVista.PickAndPlace.App.Controls.UI"
         xmlns:local="clr-namespace:LagoVista.PickAndPlace.App"
+        WindowStyle="None"
         mc:Ignorable="d"
         Title="Home" Height="1200" Width="1920">
-    <Grid>
-        <Grid>
+    <Grid >
+        <Grid.RowDefinitions>
+            <RowDefinition Height="32"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid Background="Black">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" Grid.Column="1">
+                <Button Background="Transparent" x:Name="Minimize" Click="Minimize_Click" BorderBrush="Transparent" Foreground="White" Content="_" FontSize="16"></Button>
+                <Button Background="Transparent" x:Name="Windowed" Click="Windowed_Click" BorderBrush="Transparent" Foreground="White" Content="O" FontSize="16"></Button>
+                <Button Background="Transparent" x:Name="Maximize" Click="Maximize_Click" BorderBrush="Transparent" Foreground="White" Content="X" FontSize="16"></Button>
+            </StackPanel>
+        </Grid>
+        <Grid Style="{StaticResource MainBackground}" Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="480" />
                 <ColumnDefinition Width="*" />
@@ -20,6 +36,7 @@
 
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="32" />
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="*" />
@@ -31,7 +48,7 @@
                 <ctls:MachineResponseControl x:Name="MachineResponse" Grid.Row="3"/>
             </Grid>
 
-            <Grid Grid.Column="1">
+            <Grid Grid.Column="1" >
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="auto" />
@@ -49,8 +66,8 @@
                     <TabItem Header="Utilities">
                             <mch:MachineUtilitiesControl></mch:MachineUtilitiesControl>
                     </TabItem>
-                    <TabItem Header="Feeders">
-                        <Grid>
+                    <TabItem Header="Feeders" >
+                        <Grid Background="Blue">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="33*" />
                                 <RowDefinition Height="33*" />
@@ -101,9 +118,9 @@
                 <ctls:ManualSend Grid.Row="1" VerticalAlignment="Bottom"/>
             </Grid>
 
-            <ctls:MachineStatusControl  Width="200" Height="150" HorizontalAlignment="RIght" VerticalAlignment="Bottom" Grid.Column="2" />
+            <ctls:MachineStatusControl  Width="200" Height="150" HorizontalAlignment="RIght" VerticalAlignment="Bottom" Grid.Column="2"  Grid.Row="1"/>
 
-            <Grid Grid.Column="2" Grid.RowSpan="2">
+            <Grid Grid.Column="2" Grid.RowSpan="2" >
                 <StackPanel>
                     <ctls:MachinesControl Grid.Row="2"/>
                     <ctls:MachineControl  Grid.RowSpan="2"></ctls:MachineControl>
@@ -114,10 +131,10 @@
             </Grid>
         </Grid>
         
-        <Grid Grid.RowSpan="3" Background="Black" Opacity="0.4" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Hidden}">
+        <Grid Grid.RowSpan="4" Background="Black" Opacity="0.4" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Hidden}">
         </Grid>
 
-        <Grid Grid.RowSpan="3" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Hidden}">
+        <Grid Grid.RowSpan="4" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Hidden}">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Foreground="White" Text="Please Wait" FontSize="32"></TextBlock>
             </StackPanel>

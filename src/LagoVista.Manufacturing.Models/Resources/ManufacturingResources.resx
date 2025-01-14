@@ -1439,4 +1439,16 @@
   <data name="VisionProfile_FeederOrigin" xml:space="preserve">
     <value>Feeder Origin</value>
   </data>
+  <data name="StripFeeder_TapeHolesOnTop" xml:space="preserve">
+    <value>Tape Holes on Top</value>
+  </data>
+  <data name="StripFeeder_TapeHolesOnTop_Help" xml:space="preserve">
+    <value>If the feeder is horizontal, is the tape installed so the reference holes are on the top or bottom of the tap.</value>
+  </data>
+  <data name="ComponentPackage_NozzleTip" xml:space="preserve">
+    <value>Nozzle Tip</value>
+  </data>
+  <data name="ComponentPackage_NozzleTip_Help" xml:space="preserve">
+    <value>Nozzle tip to place parts with this package.  If one is not provided, the machine will use the default nozzle tip.</value>
+  </data>
 </root>

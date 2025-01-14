@@ -7,7 +7,7 @@
              xmlns:sndr="clr-namespace:LagoVista.Manufacturing.Models;assembly=LagoVista.Manufacturing.Models"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
-    <Grid  Background="Black">
+    <Grid >
         <Grid Margin="4">
             <Grid.Resources>
                 <Style TargetType="TextBlock" >

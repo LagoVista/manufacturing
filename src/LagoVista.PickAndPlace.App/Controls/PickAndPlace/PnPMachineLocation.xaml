@@ -7,7 +7,7 @@
              xmlns:sndr="clr-namespace:LagoVista.GCode.Sender;assembly=LagoVista.GCode.Sender"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
-    <Grid  Background="#9AB75D">
+    <Grid >
         <Grid >
             <Grid.Resources>
                 <Style TargetType="TextBlock" >

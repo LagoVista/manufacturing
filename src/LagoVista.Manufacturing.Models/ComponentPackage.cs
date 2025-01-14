@@ -97,7 +97,7 @@ namespace LagoVista.Manufacturing.Models
         [EnumLabel(ComponentPackage.TapeRotation180, ManufacturingResources.Names.TapeRotation_180, typeof(ManufacturingResources))]
         OneEighty
     }
-
+    
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.ComponentPackage_TItle, ManufacturingResources.Names.ComponentPackage_Description,
             ManufacturingResources.Names.ComponentPackage_Description, EntityDescriptionAttribute.EntityTypes.Manufacturing, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-stamp-2", Cloneable: true,
             SaveUrl: "/api/mfg/component/package", GetUrl: "/api/mfg/component/package/{id}", GetListUrl: "/api/mfg/component/packages", FactoryUrl: "/api/mfg/component/package/factory", DeleteUrl: "/api/mfg/component/package/{id}",
@@ -294,6 +294,16 @@ namespace LagoVista.Manufacturing.Models
             }
         }
 
+
+        EntityHeader _nozzleTip;
+        [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_NozzleTip, HelpResource:ManufacturingResources.Names.ComponentPackage_NozzleTip_Help, FieldType: FieldTypes.EntityHeaderPicker, 
+            EntityHeaderPickerUrl: "/api/mfg/pnp/nozzletips", IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader NozzleTip
+        {
+            get => _nozzleTip;
+            set => Set(ref _nozzleTip, value);
+        }
+
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_SpecificationPage, FieldType: FieldTypes.WebLink, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public string SpecificationPage { get; set; }
 
@@ -355,6 +365,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(TapeRotation),
                 nameof(TapeColor),
                 nameof(TapeMaterialType),
+                nameof(NozzleTip),
             };
         }
 
