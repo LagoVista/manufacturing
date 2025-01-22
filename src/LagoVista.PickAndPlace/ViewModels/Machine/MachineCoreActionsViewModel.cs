@@ -4,11 +4,6 @@ using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace LagoVista.PickAndPlace.ViewModels.Machine
 {
@@ -31,18 +26,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _locatorViewModel = locatorViewModel;
         }
 
-        public void GoToPartInspectionCamera()
+        public async void GoToPartInspectionCamera()
         {
-            var partInspectionCamera = MachineConfiguration.Cameras.FirstOrDefault(cam => cam.CameraType.Value == CameraTypes.PartInspection);
-            if (partInspectionCamera != null)
-            {
-                Machine.GotoPoint(partInspectionCamera.AbsolutePosition);
-                Machine.SendCommand($"G0 Z{partInspectionCamera.FocusHeight}");
-            }
-            else 
-            {
-                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not find part inspection camera.");
-            }
+            await Machine.GoToPartInspectionCameraAsync();
         }
 
         protected override void MachineChanged(IMachine machine)
@@ -70,15 +56,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             base.RaiseCanExecuteChanged();
         }
 
-        public void SetCameraNavigation()
-        {
-
-        }
-
-        public void SetToolHeadNavigation(MachineToolHead toolHead )
-        {
-
-        }
 
         public void Home()
         {

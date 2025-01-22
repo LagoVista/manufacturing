@@ -87,45 +87,50 @@ namespace LagoVista.PickAndPlace
             get { return MachinePosition - WorkPositionOffset; }
         }
 
+        // TODO: 31.5 should NOT be a constant, but need to get some boards built.
+        public double LeftToolHeadZ { get => (ToolCommonZ - 31.5) + 31.5; }
+        
+        public double RightToolHeadZ { get => (31.5 - ToolCommonZ) + 31.5; }
 
-        private double _tool0;
-        public double Tool0
+        private double _toolHeadCommonZ;
+        public double ToolCommonZ
         {
-            get { return _tool0; }
+            get { return _toolHeadCommonZ; }
             set
             {
-                if (_tool0 != value)
+                if (_toolHeadCommonZ != value)
                 {
-                    _tool0 = value;
+                    _toolHeadCommonZ = value;
+                    RaisePropertyChanged();
+                    RaisePropertyChanged(nameof(LeftToolHeadZ));
+                    RaisePropertyChanged(nameof(RightToolHeadZ));
+                }
+            }
+        }
+
+        private double _leftToolHeadRotate;
+        public double LeftToolHeadRotate
+        {
+            get { return _leftToolHeadRotate; }
+            set
+            {
+                if (_leftToolHeadRotate != value)
+                {
+                    _leftToolHeadRotate = value;
                     RaisePropertyChanged();
                 }
             }
         }
 
-
-        private double _tool1;
-        public double Tool1
+        private double _rightToolHeadRotate;
+        public double RightToolHeadRotate
         {
-            get { return _tool1; }
+            get { return _rightToolHeadRotate; }
             set
             {
-                if (_tool1 != value)
+                if (_rightToolHeadRotate != value)
                 {
-                    _tool1 = value;
-                    RaisePropertyChanged();
-                }
-            }
-        }
-
-        private double _tool2;
-        public double Tool2
-        {
-            get { return _tool2; }
-            set
-            {
-                if (_tool2 != value)
-                {
-                    _tool2 = value;
+                    _rightToolHeadRotate = value;
                     RaisePropertyChanged();
                 }
             }
@@ -663,7 +668,12 @@ namespace LagoVista.PickAndPlace
                 return;
             }
 
-            if (_currentMachineToolHead != null)
+            if(_currentMachineToolHead == toolHeadToMoveTo)
+            {
+                return;
+            }
+
+            if (_currentMachineToolHead != null )
             {
                 await MoveToCameraAsync();
             }

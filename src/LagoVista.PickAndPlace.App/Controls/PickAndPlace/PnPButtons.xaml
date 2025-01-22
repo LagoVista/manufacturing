@@ -69,23 +69,23 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <Button Style="{StaticResource JogArrow}" Grid.Row="0" Grid.Column="0" Command="{Binding JogCommand}" CommandParameter="{x:Static sndr:JogDirections.CMinus}">
+            <Button Style="{StaticResource JogArrow}" Grid.Row="0" Grid.Column="0" Command="{Binding JogCommand}" CommandParameter="{x:Static sndr:JogDirections.LeftToolHeadRotateMinus}">
                 <Button.Content>
                     <fa:ImageAwesome Margin="5"  Icon="Undo" />
                 </Button.Content>
             </Button>
-            <Button Style="{StaticResource JogArrow}"  Grid.Row="0" Grid.Column="1" Command="{Binding JogCommand}" CommandParameter="{x:Static sndr:JogDirections.CPlus}">
+            <Button Style="{StaticResource JogArrow}"  Grid.Row="0" Grid.Column="1" Command="{Binding JogCommand}" CommandParameter="{x:Static sndr:JogDirections.LeftToolHeadRotatePlus}">
                 <Button.Content>
                     <fa:ImageAwesome Margin="5" Icon="Repeat" />
                 </Button.Content>
             </Button>
 
-            <Button Style="{StaticResource JogArrow}" Grid.Row="0" Grid.Column="5" Command="{Binding JogCommand}" CommandParameter="{x:Static sndr:JogDirections.CMinus}">
+            <Button Style="{StaticResource JogArrow}" Grid.Row="0" Grid.Column="5" Command="{Binding JogCommand}" CommandParameter="{x:Static sndr:JogDirections.RightToolHeadRotateMinus}">
                 <Button.Content>
                     <fa:ImageAwesome Margin="5"  Icon="Undo" />
                 </Button.Content>
             </Button>
-            <Button Style="{StaticResource JogArrow}"  Grid.Row="0" Grid.Column="7" Command="{Binding JogCommand}" CommandParameter="{x:Static sndr:JogDirections.CPlus}">
+            <Button Style="{StaticResource JogArrow}"  Grid.Row="0" Grid.Column="7" Command="{Binding JogCommand}" CommandParameter="{x:Static sndr:JogDirections.RightToolHeadRotatePlus}">
                 <Button.Content>
                     <fa:ImageAwesome Margin="5" Icon="Repeat" />
                 </Button.Content>

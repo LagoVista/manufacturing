@@ -82,6 +82,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RefreshTemplatesCommand = CreatedCommand(async () => await LoadTemplates());
 
             ReloadFeederCommand = CreatedCommand(ReloadFeeder, () => Current != null);
+
+            SetCurrentPartIndexOnRowCommand = CreatedCommand(() => CurrentRow.CurrentPartIndex = CurrentPartIndex, () => CurrentRow != null);
         }
 
         public async override Task InitAsync()
@@ -556,8 +558,18 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        private Point3D<double> _currentPartLocation;
-        public override Point3D<double> CurrentPartLocation { get => _currentPartLocation; }
+        private Point2D<double> _currentPartLocation;
+        public override Point2D<double> CurrentPartLocation 
+        {
+            get
+            {
+                var result = FindLocation(StripFeederLocationTypes.CurrentPart);
+                if (result.Successful)
+                    _currentPartLocation = new Point2D<double>(result.Result.X, result.Result.Y);
+
+                return _currentPartLocation;
+            }
+        }
 
 
         public ObservableCollection<MachineStagingPlate> StagingPlates { get => MachineRepo.CurrentMachine.Settings.StagingPlates; }
@@ -592,5 +604,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand CancelRowCommand { get; }
 
         public RelayCommand ReloadFeederCommand { get; }        
+
+        public RelayCommand SetCurrentPartIndexOnRowCommand { get; }
     }
 }

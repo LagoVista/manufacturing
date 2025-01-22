@@ -34,7 +34,6 @@
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="auto" />
-                <RowDefinition Height="auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="3*" />
@@ -43,15 +42,17 @@
 
             <TextBlock Text="X" Grid.Row="1" />
             <TextBlock Text="Y" Grid.Row="2" />
-            <TextBlock Text="Place" Grid.Row="3" />
-            <TextBlock Text="Solder" Grid.Row="4" />
-            <TextBlock Text="C" Grid.Row="5" />
+            <TextBlock Text="Left (Pick)" Grid.Row="3" />
+            <TextBlock Text="Right (Pick)" Grid.Row="4" />
+            <TextBlock Text="Left (Rotate)" Grid.Row="5" />
+            <TextBlock Text="Right (Rotate)" Grid.Row="6" />
 
             <TextBlock Text="{Binding MachineRepo.CurrentMachine.MachinePosition.X, StringFormat=0.000, FallbackValue=33.2}" Style="{StaticResource Position}" Grid.Row="1" Grid.Column="1"  />
             <TextBlock Text="{Binding MachineRepo.CurrentMachine.MachinePosition.Y, StringFormat=0.000, FallbackValue=12.7}" Style="{StaticResource Position}" Grid.Row="2" Grid.Column="1" />
-            <TextBlock Text="{Binding MachineRepo.CurrentMachine.Tool0, StringFormat=0.000, FallbackValue=8.4}" Style="{StaticResource Position}" Grid.Row="3" Grid.Column="1" />
-            <TextBlock Text="{Binding MachineRepo.CurrentMachine.Tool1, StringFormat=0.000, FallbackValue=8.4}" Style="{StaticResource Position}" Grid.Row="4" Grid.Column="1" />
-            <TextBlock Text="{Binding MachineRepo.CurrentMachine.Tool2, StringFormat=0, FallbackValue=90}" Style="{StaticResource Position}" Grid.Row="5" Grid.Column="1" />
+            <TextBlock Text="{Binding MachineRepo.CurrentMachine.LeftToolHeadZ, StringFormat=0.000, FallbackValue=8.4}" Style="{StaticResource Position}" Grid.Row="3" Grid.Column="1" />
+            <TextBlock Text="{Binding MachineRepo.CurrentMachine.RightToolHeadZ, StringFormat=0.000, FallbackValue=8.4}" Style="{StaticResource Position}" Grid.Row="4" Grid.Column="1" />
+            <TextBlock Text="{Binding MachineRepo.CurrentMachine.LeftToolHeadRotate, StringFormat=0, FallbackValue=90}" Style="{StaticResource Position}" Grid.Row="5" Grid.Column="1" />
+            <TextBlock Text="{Binding MachineRepo.CurrentMachine.RightToolHeadRotate, StringFormat=0, FallbackValue=90}" Style="{StaticResource Position}" Grid.Row="6" Grid.Column="1" />
 
         </Grid>
     </Grid>

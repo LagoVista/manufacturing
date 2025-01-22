@@ -69,9 +69,10 @@ namespace LagoVista.PickAndPlace.Interfaces
         /// </summary>
         Vector3 WorkspacePosition {get;}
 
-        double Tool0 { get;  }
-        double Tool1 { get; }
-        double Tool2 { get; }
+        double ToolCommonZ { get;  }
+        
+        double LeftToolHeadRotate { get; }
+        double RightToolHeadRotate { get; }
 
 
         bool TopLightOn { get; set; }
@@ -92,6 +93,8 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         Task<InvokeResult<ulong>> ReadLeftVacuumAsync();
         Task<InvokeResult<ulong>> ReadRightVacuumAsync();
+
+        void Dwell(int ms);
 
         /// <summary>
         /// Current mode of the machine, such as Connected, Running a Job, etc....
@@ -326,5 +329,8 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         bool WasMachineHomed { get; }
         bool WasMachinOriginCalibrated { get; set; }
+
+        Task GoToPartInspectionCameraAsync();
+
     }
 }

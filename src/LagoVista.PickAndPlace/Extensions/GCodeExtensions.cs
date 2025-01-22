@@ -11,5 +11,10 @@ namespace LagoVista.PickAndPlace
         {
             return $"{command} X{point.X} Y{point.Y}";
         }
+
+        public static string ToGCode(this Point3D<double> point, string command = "G0")
+        {
+            return $"{command} X{point.X} Y{point.Y}";
+        }
     }
 }

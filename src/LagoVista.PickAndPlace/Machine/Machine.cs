@@ -248,5 +248,26 @@ namespace LagoVista.PickAndPlace
                 }
             }
         }
+
+        public void Dwell(int ms)
+        {
+            this.SendCommand($"G4 P{ms}");
+        }
+
+        public Task GoToPartInspectionCameraAsync()
+        {
+            var partInspectionCamera = Settings.Cameras.FirstOrDefault(cam => cam.CameraType.Value == CameraTypes.PartInspection);
+            if (partInspectionCamera != null)
+            {
+                this.GotoPoint(partInspectionCamera.AbsolutePosition);
+                this.SendCommand($"G0 Z{partInspectionCamera.FocusHeight}");
+            }
+            else
+            {
+                this.AddStatusMessage(StatusMessageTypes.FatalError, "Could not find part inspection camera.");
+            }
+
+            return Task.CompletedTask;
+        }
     }
 }

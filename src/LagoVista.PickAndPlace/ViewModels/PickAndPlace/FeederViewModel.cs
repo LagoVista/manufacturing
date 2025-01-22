@@ -16,14 +16,24 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
     public abstract class FeederViewModel : MachineViewModelBase, IFeederViewModel
     {
 
+        private enum PickStates
+        {
+            Idle,
+            Picked,
+            Inspecting,
+            TrialPlaced,
+        }
+
+        private PickStates _pickStates = PickStates.Idle;
+
         private readonly IRestClient _restClient;
 
         protected FeederViewModel(IMachineRepo machineRepo, IRestClient resteClient) : base(machineRepo)
         {
             _restClient = resteClient ?? throw new ArgumentNullException(nameof(resteClient));
-            PickCurrentPartCommand = new RelayCommand(() => PickCurrentPart(), () => CurrentComponent != null);
-            RecycleCurrentPartCommand = new RelayCommand(() => RecycleCurrentPart(), () => CurrentComponent != null);
-            InspectCurrentPartCommand = new RelayCommand(() => InspectCurrentPart(), () => CurrentComponent != null);
+            PickCurrentPartCommand = new RelayCommand(async () => await PickCurrentPartAsync(), () => CurrentComponent != null);
+            RecycleCurrentPartCommand = new RelayCommand(async () => await RecycleCurrentPartAsync(), () => CurrentComponent != null);
+            InspectCurrentPartCommand = new RelayCommand(async () => await InspectCurrentPartAsync(), () => CurrentComponent != null);
         }
 
         public override async Task InitAsync()
@@ -40,20 +50,72 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             await base.InitAsync();
         }
 
-        private void PickCurrentPart()
+        private async Task PickCurrentPartAsync()
         {
+            if(CurrentComponent == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current part selected, can not pick.");
+                return;
+            }
 
+            var currentLocation = CurrentPartLocation;
+            if (currentLocation == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not identify location of current part.");
+                _pickStates = PickStates.Idle;
+                return;
+            }
+
+            Machine.SendSafeMoveHeight();
+            await Machine.MoveToToolHeadAsync( MachineConfiguration.ToolHeads.First());
+            Machine.SendCommand(CurrentPartLocation.ToGCode());
+            Machine.SendCommand($"G0 ZL{Machine.CurrentMachineToolHead.PickHeight}");
+            Machine.LeftVacuumPump = true;
+            Machine.Dwell(50);
+            Machine.SendSafeMoveHeight();
+
+            _pickStates = PickStates.Picked;
         }
 
-        private void InspectCurrentPart()
+        private async Task InspectCurrentPartAsync()
         {
+            if (CurrentComponent == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current part selected, can not inspect.");
+                return;
+            }
 
+            if (_pickStates == PickStates.Idle)
+                await PickCurrentPartAsync();
+
+            if (_pickStates == PickStates.Picked)
+            {
+                Machine.SendSafeMoveHeight();
+                await Machine.GoToPartInspectionCameraAsync();
+                _pickStates = PickStates.Inspecting;
+            }
         }
 
-        private void RecycleCurrentPart()
+        private Task RecycleCurrentPartAsync()
         {
+            if (CurrentComponent == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current part selected, can not recycle");
+                return Task.CompletedTask;
+            }
 
+            Machine.SendSafeMoveHeight();
+            Machine.SendCommand(CurrentPartLocation.ToGCode());
+            Machine.SendCommand($"G0 ZL{Machine.CurrentMachineToolHead.PickHeight}");            
+            Machine.LeftVacuumPump = false;
+            Machine.Dwell(50);
+            Machine.SendSafeMoveHeight();
+
+            _pickStates = PickStates.Idle;
+
+            return Task.CompletedTask;
         }
+
 
         public async void LoadComponent(string componentId)
         {
@@ -144,7 +206,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public Component CurrentComponent
         {
             get => _currentComponent;
-            set => Set(ref _currentComponent, value);
+            set
+            {
+                Set(ref _currentComponent, value);
+                PickCurrentPartCommand.RaiseCanExecuteChanged();
+                RecycleCurrentPartCommand.RaiseCanExecuteChanged();
+                InspectCurrentPartCommand.RaiseCanExecuteChanged();
+            }
         }
 
         ComponentPackage _currentComponentPackage;       
@@ -181,6 +249,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public RelayCommand RecycleCurrentPartCommand { get; }
 
-        public abstract Point3D<double> CurrentPartLocation { get;  }
+        public abstract Point2D<double> CurrentPartLocation { get;  }
     }
 }

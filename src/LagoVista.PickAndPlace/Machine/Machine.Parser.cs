@@ -146,9 +146,7 @@ namespace LagoVista.PickAndPlace
                     case "tool2": SetViewType(ViewTypes.Tool2); break;
                 }
 
-                Tool0 = double.Parse(mt0.Value, Constants.DecimalParseFormat);
-                Tool1 = double.Parse(mt1.Value, Constants.DecimalParseFormat);
-                Tool2 = double.Parse(mt2.Value, Constants.DecimalParseFormat);
+                ToolCommonZ = double.Parse(mt0.Value, Constants.DecimalParseFormat);
                 MachinePendingQueueLength = int.Parse(queue.Value);
 
                 return true;
@@ -282,8 +280,8 @@ namespace LagoVista.PickAndPlace
                     MachinePosition = newMachinePosition;
                 }
 
-                Tool0 = double.Parse(zpos.Value, Constants.DecimalParseFormat);
-                Tool2 = double.Parse(epos.Value, Constants.DecimalParseFormat);
+                ToolCommonZ = double.Parse(zpos.Value, Constants.DecimalParseFormat);
+                //Tool2 = double.Parse(epos.Value, Constants.DecimalParseFormat);
 
                 return true;
             }
@@ -297,9 +295,11 @@ namespace LagoVista.PickAndPlace
                     MachinePosition = newMachinePosition;
                 }
 
-                Tool0 = double.Parse(zpos.Value, Constants.DecimalParseFormat);
-                Tool1 = double.Parse(apos.Value, Constants.DecimalParseFormat);
-                Tool2 = double.Parse(bpos.Value, Constants.DecimalParseFormat);
+                ToolCommonZ = double.Parse(zpos.Value, Constants.DecimalParseFormat);
+                
+
+                LeftToolHeadRotate = double.Parse(apos.Value, Constants.DecimalParseFormat);
+                RightToolHeadRotate = double.Parse(bpos.Value, Constants.DecimalParseFormat);
 
                 return true;
             }

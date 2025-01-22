@@ -56,37 +56,37 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             Debug.WriteLine($"Found Circle: {_machineRepo.CurrentMachine.MachinePosition.X},{_machineRepo.CurrentMachine.MachinePosition.Y} - {stdDeviation.X},{stdDeviation.Y}");
 
-            if (_targetAngle == Convert.ToInt32(_machineRepo.CurrentMachine.Tool2))
-            {
-                _samplesAtPoint++;
+            //if (_targetAngle == Convert.ToInt32(_machineRepo.CurrentMachine.Tool2))
+            //{
+            //    _samplesAtPoint++;
 
-                if (_samplesAtPoint > 1)
-                {
-                    Status = $"Calibrate Nozzle {_targetAngle}";
+            //    if (_samplesAtPoint > 1)
+            //    {
+            //        Status = $"Calibrate Nozzle {_targetAngle}";
 
-                    var avgX = _averagePoints.Average(pt => pt.X);
-                    var avgY = _averagePoints.Average(pt => pt.Y);
-                    _nozzleCalibration.Add(Convert.ToInt32(_machineRepo.CurrentMachine.Tool2), new Point2D<double>(avgX, avgY));
+            //        var avgX = _averagePoints.Average(pt => pt.X);
+            //        var avgY = _averagePoints.Average(pt => pt.Y);
+            //        _nozzleCalibration.Add(Convert.ToInt32(_machineRepo.CurrentMachine.Tool2), new Point2D<double>(avgX, avgY));
 
-                    CalibrationUpdates.Insert(0, $"Angle: {_targetAngle} - {avgX}x{avgY}");
+            //        CalibrationUpdates.Insert(0, $"Angle: {_targetAngle} - {avgX}x{avgY}");
 
-                    _targetAngle = Convert.ToInt32(_machineRepo.CurrentMachine.Tool2 + 30.0);
-                    _machineRepo.CurrentMachine.SendCommand($"G0 E{_targetAngle} F5000");
-                    _averagePoints.Clear();
-                    _samplesAtPoint = 0;
-                    RaisePropertyChanged(nameof(TargetAngle));
+            //        _targetAngle = Convert.ToInt32(_machineRepo.CurrentMachine.Tool2 + 30.0);
+            //        _machineRepo.CurrentMachine.SendCommand($"G0 E{_targetAngle} F5000");
+            //        _averagePoints.Clear();
+            //        _samplesAtPoint = 0;
+            //        RaisePropertyChanged(nameof(TargetAngle));
 
-                }
-                else
-                {
-                    _averagePoints.Add(new Point2D<double>(center.X, center.Y));
-                }
+            //    }
+            //    else
+            //    {
+            //        _averagePoints.Add(new Point2D<double>(center.X, center.Y));
+            //    }
 
-                if (_machineRepo.CurrentMachine.Tool2 >= 360)
-                {
-                    FinalizeCameraCalibration();
-                }
-            }
+            //    if (_machineRepo.CurrentMachine.Tool2 >= 360)
+            //    {
+            //        FinalizeCameraCalibration();
+            //    }
+            //}
         }
 
         private void FinalizeCameraCalibration()

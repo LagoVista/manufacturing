@@ -1,9 +1,11 @@
-﻿using LagoVista.GCode.Commands;
+﻿using LagoVista.Core.Models.Drawing;
+using LagoVista.GCode.Commands;
 using LagoVista.Manufacturing.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace
@@ -27,6 +29,7 @@ namespace LagoVista.PickAndPlace
             while (_toSendPriority.Count > 0)
             {
                 var line = _toSendPriority.Dequeue();
+
                 _writer.Write(line);
                 if (line != "?" && line != "M114")
                 {
@@ -39,6 +42,22 @@ namespace LagoVista.PickAndPlace
         private void SendNormalPriorityItems()
         {
             var send_line = _toSend.Peek();
+            var zAxisMoveRegEx = new Regex("G([01])\\s+Z([RL])([\\d.]+)");
+            var match = zAxisMoveRegEx.Match(send_line);
+            if (match.Success)
+            {
+                var moveType = match.Groups[1].Value;
+                var zaxis = match.Groups[2];
+                var distance = Convert.ToDouble(match.Groups[3].Value);
+                if (zaxis.Value == "R")
+                {
+                    distance = (31.5 - distance) + 31.5;
+                }
+
+                send_line = $"G{moveType} Z{distance}";
+            }
+
+
             UnacknowledgedBytesSent += send_line.Length + 1;
 
             if (Settings.MachineType == FirmwareTypes.Repeteir_PnP &&

@@ -28,8 +28,10 @@ namespace LagoVista.Manufacturing.Models
         T0Minus,
         T1Plus,
         T1Minus,
-        CPlus,
-        CMinus,
+        LeftToolHeadRotateMinus,
+        LeftToolHeadRotatePlus,
+        RightToolHeadRotateMinus,
+        RightToolHeadRotatePlus,
     }
 
     public enum MachineOrigin

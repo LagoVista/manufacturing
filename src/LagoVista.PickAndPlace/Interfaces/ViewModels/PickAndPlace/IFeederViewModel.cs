@@ -23,6 +23,6 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand PickCurrentPartCommand { get; }
         RelayCommand InspectCurrentPartCommand { get; }
         RelayCommand RecycleCurrentPartCommand { get; }
-        Point3D<double> CurrentPartLocation { get; }
+        Point2D<double> CurrentPartLocation { get; }
     }
 }

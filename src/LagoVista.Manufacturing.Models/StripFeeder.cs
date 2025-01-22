@@ -413,8 +413,13 @@ namespace LagoVista.Manufacturing.Models
             };
         }
 
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeederRow_CurrentPartIndex, FieldType: FieldTypes.Integer, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public int CurrentPartIndex { get; set; }
+        private int _currentPartIndex;
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeederRow_CurrentPartIndex, FieldType: FieldTypes.Integer, IsRequired: true, ResourceType: typeof(ManufacturingResources))]        
+        public int CurrentPartIndex
+        {
+            get => _currentPartIndex;
+            set => Set(ref _currentPartIndex, value);
+        }
 
         private int _rowIndex = 1;
         [FormField(LabelResource: ManufacturingResources.Names.StripFeederRow_RowIndex, FieldType: FieldTypes.Integer, IsRequired: true, ResourceType: typeof(ManufacturingResources))]

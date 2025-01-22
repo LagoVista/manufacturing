@@ -8,6 +8,7 @@
              xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
              xmlns:mch="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine"
+             xmlns:ui="clr-namespace:LagoVista.PickAndPlace.App.Controls.UI"
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;assembly=LagoVista.PickAndPlace"                                                                 
              d:DataContext="{d:DesignInstance vm:IStripFeederViewModel }"
              mc:Ignorable="d" 
@@ -155,6 +156,12 @@
                     <TextBlock Text=" out of  "></TextBlock>
                     <TextBlock Text="{Binding TotalPartsInFeederRow}"></TextBlock>
                     <TextBlock Text="Part "></TextBlock>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Current Part Index"></TextBlock>
+                    <ui:MaskingTextBox Text="{Binding CurrentRow.CurrentPartIndex, Mode=TwoWay}"  Width="60" Height="32" TextAlignment="Right" UnitType="Count"/>
+                    <Button Content="Set" Style="{StaticResource CommandButton}" Width="60" Command="{Binding SetCurrentPartIndexOnRowCommand}"></Button>
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal">

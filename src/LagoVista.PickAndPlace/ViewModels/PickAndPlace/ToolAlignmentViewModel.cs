@@ -108,7 +108,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             //_machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition = _machineRepo.CurrentMachine.MachinePosition.ToPoint2D();
-            //_machineRepo.CurrentMachine.Settings.PartInspectionCamera.FocusHeight = _machineRepo.CurrentMachine.Tool0;
+            //_machineRepo.CurrentMachine.Settings.PartInspectionCamera.FocusHeight = _machineRepo.CurrentMachine.ToolCommonZ;
             //BottomCameraLocation = new Point3D<double>()
             //{
             //    X = _machineRepo.CurrentMachine.Settings.PartInspectionCamera.AbsolutePosition.X,
@@ -132,7 +132,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public void SetTool1PickPosition()
         {
-            _machineRepo.CurrentMachine.Settings.ToolPickHeight = _machineRepo.CurrentMachine.Tool0;
+            _machineRepo.CurrentMachine.Settings.ToolPickHeight = _machineRepo.CurrentMachine.ToolCommonZ;
 
             if (_machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.LagoVista_PnP)
             {
@@ -144,7 +144,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public void SetTool1PlacePosition()
         {
-            _machineRepo.CurrentMachine.Settings.ToolBoardHeight = _machineRepo.CurrentMachine.Tool0;
+            _machineRepo.CurrentMachine.Settings.ToolBoardHeight = _machineRepo.CurrentMachine.ToolCommonZ;
 
             if (_machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.LagoVista_PnP)
             {
