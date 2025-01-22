@@ -1,6 +1,7 @@
 ﻿using LagoVista.Core.Models.Drawing;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace LagoVista.Manufacturing.Utils
@@ -32,8 +33,20 @@ namespace LagoVista.Manufacturing.Utils
         /// <returns>Adjusted point based on rotation around the angle</returns>
         public static Point2D<double> CorrectForError(Point2D<double> origin, Point2D<double> knownPoint2, Point2D<double> point)
         {
-            var theta = CalculateAngle(origin, knownPoint2);
-            return CorrectForError(knownPoint2, theta, point);
+            var delta = knownPoint2 - origin;
+
+
+            var theta = 90 + CalculateAngle(origin, knownPoint2);
+            Debug.WriteLine($"Delta: {delta}");
+            Debug.WriteLine($"Point 1: {origin}");
+            Debug.WriteLine($"Point 2: {knownPoint2}");
+            Debug.WriteLine($"Target : {point}");
+            Debug.WriteLine($"Angle  : {theta}");
+
+            var result = CorrectForError(knownPoint2, theta, point);
+
+            Debug.WriteLine($"compensated : {result}");
+            return result;
         }
 
         /// <summary>
@@ -56,5 +69,7 @@ namespace LagoVista.Manufacturing.Utils
             
             return new Point2D<double>(Math.Round(origin.X + newX, 3), Math.Round(origin.Y + newY, 3));
         }
+
+
     }
 }

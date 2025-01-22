@@ -6,6 +6,7 @@ using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using LagoVista.Manufacturing.Util;
+using LagoVista.Manufacturing.Utils;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
@@ -14,6 +15,7 @@ using LagoVista.PickAndPlace.Models;
 using Newtonsoft.Json.Bson;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -379,6 +381,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var tapePitch = TapePitch.ToDouble();
             var feederIsVertical = Current.Orientation.Value == FeederOrientations.Vertical;
 
+            var tapeLength = (CurrentRow.LastTapeHoleOffset.X - CurrentRow.FirstTapeHoleOffset.X) + 2;
+            var expectedDetlaX = Convert.ToInt16(Math.Floor(tapeLength / 4)) * 4;
+            var expectedDeltaY = 0;
+            var expectedDelta = new Point2D<double>(expectedDetlaX, expectedDeltaY);
+
+            var partOffsetInTape = ((CurrentPartIndex - 1) * tapePitch) + tapePitch / 2;
+            var ratio = partOffsetInTape / expectedDetlaX;
+
             if (Current.FeedDirection.Value == FeedDirections.Forward)
             {
                 var partOrigin = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.FirstTapeHoleOffset);
@@ -389,12 +399,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     else
                         partOrigin.AddToX(((tapeSize - 1.75) / 2));
 
-                    partOrigin.SubtractFromY(tapePitch / 2 + ((CurrentPartIndex - 1) * tapePitch));
+                    partOrigin.SubtractFromY(partOffsetInTape);
                 }
                 else
                 {
                     partOrigin.SubtractFromY(((tapeSize - 1.5) / 2));
-                    partOrigin.AddToX(tapePitch / 2 + ((CurrentPartIndex - 1) * tapePitch));
+                    partOrigin.AddToX(partOffsetInTape);
                 }
 
                 return InvokeResult<Point2D<double>>.Create(partOrigin);
@@ -402,8 +412,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             else
             {
                 var partOrigin = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.LastTapeHoleOffset);
+                var firstHole = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.LastTapeHoleOffset);
+                var lastHole = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.FirstTapeHoleOffset);
                 var offsetFromHole = (tapeSize - 1) / 2;
-
+                
+                                       
                 if (feederIsVertical)
                 {
                     if (Current.TapeHolesOnTop)
@@ -411,17 +424,27 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     else
                         partOrigin.AddToX(offsetFromHole);
 
-                    partOrigin.AddToY(((CurrentPartIndex -1) * tapePitch) + tapePitch / 2);
+                    partOrigin.AddToY(partOffsetInTape);
                 }
                 else
                 {
                     partOrigin.SubtractFromY(((tapeSize - 2) / 2));
-                    partOrigin.SubtractFromX(((CurrentPartIndex - 1) * tapePitch) + tapePitch / 2);
+                    partOrigin.SubtractFromX(partOffsetInTape);
                 }
 
+                var actualDelta = new Point2D<double>(lastHole.Y - firstHole.Y, lastHole.X - firstHole.X);                
+                partOrigin = Extrapolate(actualDelta, expectedDelta, ratio, partOrigin);
+
                 return InvokeResult<Point2D<double>>.Create(partOrigin);
-            }
-            
+            }            
+        }
+
+        private Point2D<double> Extrapolate(Point2D<double> actual, Point2D<double> expected, double ratio, Point2D<double> point)
+        {
+            var errorX = expected.X - actual.X;
+            var errorY = expected.Y - actual.Y;
+            var result = point - new Point2D<double>(errorX * ratio, errorY * ratio);
+            return result;
         }
 
         private int _currentPartIndex;
