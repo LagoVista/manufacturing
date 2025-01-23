@@ -1460,4 +1460,34 @@
   <data name="VisionProfile_PartInWhiteTape" xml:space="preserve">
     <value>Part in White Tape</value>
   </data>
+  <data name="MachineToolHead_DefaultOriginPosition" xml:space="preserve">
+    <value>Default Origin Position</value>
+  </data>
+  <data name="MachineToolHead_DefaultOriginPosition_Help" xml:space="preserve">
+    <value>The Z Axis value that represents when the tool head is at the origin.  This is typically used on machines where there are two heads and one stepper motor that controls both heads (i.e. moves one had up while moving the other one down)</value>
+  </data>
+  <data name="MachineToolHead_IdleVacuum" xml:space="preserve">
+    <value>Idle Vacuum</value>
+  </data>
+  <data name="MachineToolHead_IdleVacuum_Help" xml:space="preserve">
+    <value>On pick and place machines, this is the pressure when the vacuum pump is not on.</value>
+  </data>
+  <data name="MachineToolHead_NoPartVacuum" xml:space="preserve">
+    <value>No Part Vacuum</value>
+  </data>
+  <data name="MachineToolHead_NoPartVacuum_Help" xml:space="preserve">
+    <value>On pick and place machines, vacuum sensors are used to detect if a part is picked up.  This is the value when the vacuum pump is turned but no part is present.</value>
+  </data>
+  <data name="MachineToolHead_PartPresentVacuum" xml:space="preserve">
+    <value>Part Present Vacuum</value>
+  </data>
+  <data name="MachineToolHead_PartPresentVacuum_Help" xml:space="preserve">
+    <value>On pick and place machines, a vacuum sensor is used to detect if a part has been picked.  This value is the value that will indicate if a part has been picked.</value>
+  </data>
+  <data name="MachineToolHead_HeadIndex" xml:space="preserve">
+    <value>Head Index</value>
+  </data>
+  <data name="MachineToolHead_HeadIndex_Help" xml:space="preserve">
+    <value>The Head Index is the 1 based index starting on the left for this machine tool head.  In most cases this will not be greater than zero</value>
+  </data>
 </root>

@@ -24,7 +24,7 @@ namespace LagoVista.Manufacturing.Models
     ManufacturingResources.Names.MachineToolHead_Description, EntityDescriptionAttribute.EntityTypes.ChildObject, ResourceType: typeof(ManufacturingResources),
     Icon: "icon-fo-maintenance-3", Cloneable: true,
     FactoryUrl: "/api/mfg/machine/toolhead/factory")]
-    public class MachineToolHead : ModelBase, IIDEntity, INamedEntity, IIconEntity, IValidateable, IFormDescriptor
+    public class MachineToolHead : ModelBase, IIDEntity, INamedEntity, IIconEntity, IValidateable, IFormDescriptor, IFormDescriptorCol2
     {
         public const string MachineToolHead_Type_Laser = "laser";
         public const string MachineToolHead_Type_Spindle = "spindle";
@@ -59,11 +59,64 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _offset, value);
         }
 
+        private double _pickHeight;
         [FormField(LabelResource: ManufacturingResources.Names.MachineToolHead_PickHeight, HelpResource: ManufacturingResources.Names.MachineToolHead_PickHeight_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double PickHeight { get; set; }
+        public double PickHeight 
+        { 
+            get => _pickHeight;
+            set => Set(ref _pickHeight, value);
+        }
 
+        private double _placeHeight;
         [FormField(LabelResource: ManufacturingResources.Names.MachineToolHead_PlaceHeight, HelpResource: ManufacturingResources.Names.MachineToolHead_PlaceHeight, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public double PlaceHeight { get; set; }
+        public double PlaceHeight
+        {
+            get => _placeHeight;
+            set => Set(ref _placeHeight, value);
+        }
+
+
+        double _idleVacuum;
+        [FormField(LabelResource: ManufacturingResources.Names.MachineToolHead_IdleVacuum, HelpResource: ManufacturingResources.Names.MachineToolHead_IdleVacuum_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double IdleVacuum
+        {
+            get => _idleVacuum;
+            set => Set(ref _idleVacuum, value);
+        }
+
+        double _noPartPickedPressure;
+        [FormField(LabelResource: ManufacturingResources.Names.MachineToolHead_NoPartVacuum, HelpResource: ManufacturingResources.Names.MachineToolHead_NoPartVacuum_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double NoPartPickedVacuum
+        {
+            get => _noPartPickedPressure;
+            set => Set(ref _noPartPickedPressure, value);
+        }
+
+
+        double _partPickedVacuum;
+        [FormField(LabelResource: ManufacturingResources.Names.MachineToolHead_PartPresentVacuum, HelpResource: ManufacturingResources.Names.MachineToolHead_PartPresentVacuum_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double PartPickedVacuum
+        {
+            get => _partPickedVacuum;
+            set => Set(ref _partPickedVacuum, value);
+        }
+
+        private int _headIndex = 1;
+        [FormField(LabelResource: ManufacturingResources.Names.MachineToolHead_HeadIndex, HelpResource: ManufacturingResources.Names.MachineToolHead_HeadIndex_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public int HeadIndex
+        {
+            get => _headIndex;
+            set => Set(ref _headIndex, value);
+        }
+
+        private double? _defaultOriginPosition;
+        [FormField(LabelResource: ManufacturingResources.Names.MachineToolHead_DefaultOriginPosition, HelpResource: ManufacturingResources.Names.MachineToolHead_DefaultOriginPosition_Help, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
+        public double? DefaultOriginPosition
+        {
+            get => _defaultOriginPosition;
+            set => Set(ref _defaultOriginPosition, value);
+        }
+
 
         /// <summary>
         /// As the nozzle rotates through 0-360 degrees the point of the nozzle tip will not be exaclty centered.  Sinze we are attempting to acheive 0.1mm 
@@ -78,6 +131,8 @@ namespace LagoVista.Manufacturing.Models
             {
                 nameof(Name),
                 nameof(Key),
+                nameof(HeadIndex),
+                nameof(DefaultOriginPosition),
                 nameof(Icon),
                 nameof(ToolHeadType),
                 nameof(Color),
@@ -85,6 +140,18 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Offset),
                 nameof(PickHeight),
                 nameof(PlaceHeight),
+            };
+        }
+
+        public List<string> GetFormFieldsCol2()
+        {
+            return new List<string>()
+            {              
+                nameof(PickHeight),
+                nameof(PlaceHeight),
+                nameof(IdleVacuum),
+                nameof(NoPartPickedVacuum),
+                nameof(PartPickedVacuum),
             };
         }
     }

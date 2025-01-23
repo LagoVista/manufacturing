@@ -16,6 +16,15 @@ namespace LagoVista.PickAndPlace
             SendCommand(cmd);
         }
 
+        public void I2CSend(byte address, byte register, byte value)
+        {
+            var cmd = $"M260 A{address} B{register} B{value} S1";
+            SendCommand($"M260 A{address}");
+            SendCommand($"M260 B{register}");
+            SendCommand($"M260 B{value}");
+            SendCommand($"M260 S1");
+        }
+
         public void I2CSend(byte address, byte[] buffer)
         {
             throw new NotImplementedException("Has not been tested.");

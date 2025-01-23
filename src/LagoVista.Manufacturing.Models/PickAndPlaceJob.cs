@@ -163,8 +163,8 @@ namespace LagoVista.Manufacturing.Models
         EntityHeader _stripFeederRow;
         public EntityHeader StripFeederRow
         {
-            get => _stripFeeder;
-            set => Set(ref _stripFeeder, value);
+            get => _stripFeederRow;
+            set => Set(ref _stripFeederRow, value);
         }
 
         EntityHeader _component;

@@ -399,12 +399,16 @@ namespace LagoVista.PickAndPlace
             // Select multiplexer At addr 112 - Left Pressure Monitor is at port 1
             I2CSend(112, 1);
 
+            I2CSend(109, 0x30, 0x0A);
+
+            await Task.Delay(20);
+
             // Requst MSB 23:16 Register: 0x06
             I2CSend(109, 6);
             var result = await I2CReadHexByte(109);
             if (!result.Successful) return InvokeResult<ulong>.FromInvokeResult(result.ToInvokeResult());
             var msb = result.Result;
-            msb = 0;
+            //msb = 0;
             // Request CSB 15-8 Register: 0x07
             I2CSend(109, 7);
             result = await I2CReadHexByte(109);
@@ -417,8 +421,10 @@ namespace LagoVista.PickAndPlace
             if (!result.Successful) return InvokeResult<ulong>.FromInvokeResult(result.ToInvokeResult());
             var lsb = result.Result;
 
+            return InvokeResult<ulong>.Create((ulong)(msb << 4 | csb >> 4));
+
             //return InvokeResult<ulong>.Create((ulong)(msb << 16 | csb << 8 | lsb));
-            return InvokeResult<ulong>.Create((ulong)(msb << 8 | csb));
+            //return InvokeResult<ulong>.Create((ulong)(msb << 8 | csb));
         }
 
         public async Task<InvokeResult<ulong>> ReadRightVacuumAsync()
@@ -431,7 +437,8 @@ namespace LagoVista.PickAndPlace
             var result = await I2CReadHexByte(109);
             if (!result.Successful) return InvokeResult<ulong>.FromInvokeResult(result.ToInvokeResult());
             var msb = result.Result;
-            msb = 0;
+           
+            //msb = 0;
             // Request CSB 15-8 Register: 0x07
             I2CSend(109, 7);
             result = await I2CReadHexByte(109);
@@ -444,8 +451,9 @@ namespace LagoVista.PickAndPlace
             if (!result.Successful) return InvokeResult<ulong>.FromInvokeResult(result.ToInvokeResult());
             var lsb = result.Result;
 
+            //return InvokeResult<ulong>.Create((ulong)(msb));
             //return InvokeResult<ulong>.Create((ulong)(msb << 16 | csb << 8 | lsb));
-            return InvokeResult<ulong>.Create((ulong)(msb << 8 | csb));
+            return InvokeResult<ulong>.Create((ulong)(msb << 4 | csb >> 4));
         }
 
         public void HomeViaOrigin()
