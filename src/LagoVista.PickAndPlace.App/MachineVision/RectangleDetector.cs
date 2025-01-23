@@ -11,6 +11,9 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using System.Drawing.Drawing2D;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.Services;
+using System.Collections.ObjectModel;
+using System.Windows.Controls;
+using System.Linq;
 
 namespace LagoVista.PickAndPlace.App.MachineVision
 {
@@ -19,7 +22,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         private readonly ILocatorViewModel _locatorViewModel;
         private UMat _edges;
 
-        private List<MVLocatedRectangle> _foundRectangles = new List<MVLocatedRectangle>();
+        private int _iteration = 0;
+        private ObservableCollection<MVLocatedRectangle> _foundRectangles = new ObservableCollection<MVLocatedRectangle>();
 
         public RectangleDetector(ILocatorViewModel locatorViewModel)
         {
@@ -29,6 +33,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
         public void FindRectangles(IMVImage<IInputOutputArray> input, MachineCamera camera, System.Drawing.Size size)
         {
+            _iteration++;
+
             var profile = camera.CurrentVisionProfile;
 
             if (profile.UseCannyEdgeDetection)
@@ -40,15 +46,14 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 CvInvoke.Threshold(input.Image, _edges, profile.ThresholdEdgeDetection, 255, ThresholdType.Binary);
             }
 
-            var currentRects = new List<MVLocatedRectangle>();
-
+           
             using (var contours = new VectorOfVectorOfPoint())
             {
                 var center = size.Center();
                 var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.CurrentVisionProfile.PixelsPerMM);
                 var searchBounds = new CircleF(new System.Drawing.PointF(center.X, center.Y), scaledTarget);
 
-                CvInvoke.FindContours(_edges, contours, null, RetrType.List, ChainApproxMethod.ChainApproxNone);
+                CvInvoke.FindContours(_edges, contours, null, RetrType.External, ChainApproxMethod.ChainApproxNone);
                 int count = contours.Size;
                 for (int i = 0; i < count; i++)
                 {
@@ -82,23 +87,24 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                                 if (isRectangle || true)
                                 {
                                     var rect = CvInvoke.MinAreaRect(approxContour);
-                                    if (searchBounds.WithinRadius(rect) )
+                                    if (searchBounds.WithinRadius(rect))
                                     {
                                         if (rect.Size.Width > rect.Size.Height && profile.FindLandScape || rect.Size.Height > rect.Size.Width && profile.FindPortrait)
                                         {
                                             var previous = _foundRectangles.FindPrevious(rect, 10);
                                             if (previous != null)
                                             {
+                                                previous.Iteration = _iteration;
                                                 previous.Add(rect);
                                                 _locatorViewModel.RectLocated(previous);
-                                                currentRects.Add(previous);
                                             }
                                             else
                                             {
                                                 var foundRect = new MVLocatedRectangle(camera.CameraType.Value, center, profile.PixelsPerMM, profile.ErrorToleranceMM, profile.StabilizationCount);
+                                                foundRect.Iteration = _iteration;
                                                 foundRect.Add(rect);
                                                 _locatorViewModel.RectLocated(foundRect);
-                                                currentRects.Add(foundRect);
+                                                FoundRectangles.Add(foundRect);
                                             }
 
                                         }
@@ -117,13 +123,17 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                         }
                     }
                 }
+            }
 
-                _foundRectangles.Clear();
-                _foundRectangles.AddRange(currentRects);
+            // Get a list of stale ones, run the query so they can be removed..w/o ToList it will run the query when trying to delete.
+            var staleRects = FoundRectangles.Where(itr => itr.Iteration != _iteration).ToList();
+            foreach (var rect in staleRects)
+            {
+                _foundRectangles.Remove(rect);
             }
         }
 
-        public List<MVLocatedRectangle> FoundRectangles { get => _foundRectangles; }
+        public ObservableCollection<MVLocatedRectangle> FoundRectangles { get => _foundRectangles; }
 
         public IInputOutputArray Image => _edges;
 

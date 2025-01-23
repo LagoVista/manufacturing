@@ -4,6 +4,7 @@ using LagoVista.PCB.Eagle.Models;
 using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -61,6 +62,11 @@ namespace LagoVista.PickAndPlace
             return foundCircles.FirstOrDefault(cir => cir.IsSimilar(circle, deltaPixel));
         }
 
+        public static MVLocatedCircle FindPrevious(this ObservableCollection<MVLocatedCircle> foundCircles, CircleF circle, int deltaPixel)
+        {
+            return foundCircles.FirstOrDefault(cir => cir.IsSimilar(circle, deltaPixel));
+        }
+
         public static float GetDeltaAngle(this float a1, float a2)
         {
             var delta = Math.Abs(a1 - a2);
@@ -95,6 +101,11 @@ namespace LagoVista.PickAndPlace
         }
 
         public static MVLocatedRectangle FindPrevious(this List<MVLocatedRectangle> foundRects, RotatedRect rect, int deltaPixel)
+        {
+            return foundRects.FirstOrDefault(cir => cir.RotatedRect.IsSimilar(rect, deltaPixel));
+        }
+
+        public static MVLocatedRectangle FindPrevious(this ObservableCollection<MVLocatedRectangle> foundRects, RotatedRect rect, int deltaPixel)
         {
             return foundRects.FirstOrDefault(cir => cir.RotatedRect.IsSimilar(rect, deltaPixel));
         }

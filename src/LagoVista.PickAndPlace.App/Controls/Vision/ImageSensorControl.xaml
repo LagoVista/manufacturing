@@ -16,7 +16,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="35"></RowDefinition>
             <RowDefinition Height="480"/>
-            <RowDefinition Height="35"/>
+            <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
 
         <Grid Background="LightGray">
@@ -26,6 +26,7 @@
             </Grid.ColumnDefinitions>
             <TextBlock Text="Vision" Margin="4" FontWeight="Bold" VerticalAlignment="Center" />
             <TextBlock Text="{Binding Profile.Name}"></TextBlock>
+            <TextBlock Text="{Binding Profile.ZoomLevel}"></TextBlock>
             
         </Grid>
 
@@ -40,8 +41,13 @@
             </Image>
         </Grid>
 
+     
+
+
         <Rectangle Grid.Row="2" Fill="Black" Opacity="0.5">
+
             
+
         </Rectangle>
 
         <Button  Grid.Row="2" x:Name="Settings" Margin="2" HorizontalAlignment="Right" Click="Settings_Click" Style="{StaticResource VideoControlButton}" >
@@ -72,5 +78,22 @@
             <Rectangle Fill="Black" Opacity="0.5"/>
             <TextBlock Text="Please wait..."  FontSize="42" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
+
+        <StackPanel Grid.Row="1">
+            <ListView ItemsSource="{Binding ShapeDetector.FoundRectangles}" Background="Transparent" BorderBrush="Red" Foreground="White">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            
+                            <TextBlock Foreground="White" Text="{Binding FoundCount}"></TextBlock>
+                            <TextBlock Foreground="White" Text="{Binding Summary}"></TextBlock>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <TextBlock Text="{Binding Profile.ZoomLevel}" />
+        </StackPanel>
+
+
     </Grid>
 </ucb:VMBoundUserControl>

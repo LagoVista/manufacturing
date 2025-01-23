@@ -6,6 +6,7 @@ using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
+using LagoVista.PickAndPlace.ViewModels.Machine;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -27,10 +28,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private PickStates _pickStates = PickStates.Idle;
 
         private readonly IRestClient _restClient;
+        private readonly IMachineUtilitiesViewModel _machineUtilitiesViewModel;
 
-        protected FeederViewModel(IMachineRepo machineRepo, IRestClient resteClient) : base(machineRepo)
+        protected FeederViewModel(IMachineRepo machineRepo, IRestClient resteClient, IMachineUtilitiesViewModel machineUtilitiesViewModel) : base(machineRepo)
         {
             _restClient = resteClient ?? throw new ArgumentNullException(nameof(resteClient));
+            _machineUtilitiesViewModel = machineUtilitiesViewModel ?? throw new ArgumentNullException(nameof(machineUtilitiesViewModel));
             PickCurrentPartCommand = new RelayCommand(async () => await PickCurrentPartAsync(), () => CurrentComponent != null);
             RecycleCurrentPartCommand = new RelayCommand(async () => await RecycleCurrentPartAsync(), () => CurrentComponent != null);
             InspectCurrentPartCommand = new RelayCommand(async () => await InspectCurrentPartAsync(), () => CurrentComponent != null);
@@ -45,8 +48,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             Components.Insert(0, new ComponentSummary() { Id = StringExtensions.NotSelectedId, Key=StringExtensions.NotSelectedId, Name = "-select component category first-" });
             SelectedCategoryKey = StringExtensions.NotSelectedId;
             SelectedComponentSummaryId = StringExtensions.NotSelectedId;
-
-       
+      
             await base.InitAsync();
         }
 
@@ -64,15 +66,20 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not identify location of current part.");
                 _pickStates = PickStates.Idle;
                 return;
-            }
+            }            
 
             Machine.SendSafeMoveHeight();
             await Machine.MoveToToolHeadAsync( MachineConfiguration.ToolHeads.First());
             Machine.SendCommand(CurrentPartLocation.ToGCode());
             Machine.SendCommand($"G0 ZL{Machine.CurrentMachineToolHead.PickHeight}");
             Machine.LeftVacuumPump = true;
-            Machine.Dwell(50);
+            Machine.Dwell(100);
+            var beforePick = await _machineUtilitiesViewModel.ReadLeftVacuumAsync();           
             Machine.SendSafeMoveHeight();
+            Machine.Dwell(100);
+            var afterPick = await _machineUtilitiesViewModel.ReadLeftVacuumAsync();
+
+            StatusMessage = $"Part Picked - Vacuum {beforePick} - {afterPick}";
 
             _pickStates = PickStates.Picked;
         }
@@ -96,24 +103,26 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        private Task RecycleCurrentPartAsync()
+        private async Task RecycleCurrentPartAsync()
         {
             if (CurrentComponent == null)
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current part selected, can not recycle");
-                return Task.CompletedTask;
+                return;
             }
 
+            var beforePick = await _machineUtilitiesViewModel.ReadLeftVacuumAsync();
             Machine.SendSafeMoveHeight();
             Machine.SendCommand(CurrentPartLocation.ToGCode());
             Machine.SendCommand($"G0 ZL{Machine.CurrentMachineToolHead.PickHeight}");            
             Machine.LeftVacuumPump = false;
-            Machine.Dwell(50);
+            Machine.Dwell(100);
             Machine.SendSafeMoveHeight();
+            var afterPick = await _machineUtilitiesViewModel.ReadLeftVacuumAsync();
 
             _pickStates = PickStates.Idle;
 
-            return Task.CompletedTask;
+            StatusMessage = $"Part Picked - Vacuum {beforePick} - {afterPick}";
         }
 
 
@@ -250,5 +259,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand RecycleCurrentPartCommand { get; }
 
         public abstract Point2D<double> CurrentPartLocation { get;  }
+
+        string _statusMessage;
+        public string StatusMessage
+        {
+            get => _statusMessage;
+            set => Set(ref _statusMessage, value);
+        }
     }
 }

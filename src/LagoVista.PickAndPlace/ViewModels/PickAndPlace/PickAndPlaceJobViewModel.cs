@@ -45,6 +45,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             SubstitutePartCommand = CreatedCommand(SubstitutePart, () => CurrentComponent != null);
             SaveSubstitutePartCommand = CreatedCommand(SaveSubstitutePart, () => SelectedAvailablePart != null);
             CancelSubstitutePartCommand = CreatedCommand(CancelSubstitutePart);
+
+            GoToPartOnBoardCommand = CreatedMachineConnectedCommand(GoToPartOnBoard, () => Placement != null);
         }
 
         public override async Task InitAsync()
@@ -61,6 +63,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             await base.InitAsync();
+        }
+
+        public void GoToPartOnBoard()
+        {
+            var boardLocation = MachineConfiguration.DefaultWorkOrigin + Placement.PCBLocation;
+            Machine.GotoPoint(boardLocation);
         }
 
         void ResolveParts()
@@ -297,6 +305,18 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
+        PickAndPlaceJobPlacement _placement;
+        public PickAndPlaceJobPlacement Placement
+        {
+            get => _placement;
+            set
+            {
+                Set(ref _placement, value);
+                RaiseCanExecuteChanged();
+            }
+        }
+
+
         Component _currentComponent;
 
         public Component CurrentComponent
@@ -346,5 +366,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand SaveSubstitutePartCommand { get; }
         public   RelayCommand CancelSubstitutePartCommand { get; }
 
+        public RelayCommand GoToPartOnBoardCommand { get; }
     }
 }

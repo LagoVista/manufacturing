@@ -69,7 +69,15 @@ namespace LagoVista.PickAndPlace.App.Services
             var firstCircle = _shapeDetectorService.FoundCircles.FirstOrDefault();
             if (firstCircle != null)
             {
-                Machine.GotoPoint(firstCircle.OffsetMM, relativeMove:true);
+                Machine.GotoPoint(firstCircle.OffsetMM, relativeMove: true);
+            }
+            else
+            {
+                var firstRect = _shapeDetectorService.FoundRectangles.FirstOrDefault();
+                if (firstRect != null)
+                {
+                    Machine.GotoPoint(firstRect.OffsetMM, relativeMove: true);
+                }
             }
         }
 
@@ -210,9 +218,9 @@ namespace LagoVista.PickAndPlace.App.Services
                                 img.ROI = new System.Drawing.Rectangle() { X = (img.Size.Width - img.Size.Height) / 2, Width = img.Size.Height, Y = 0, Height = img.Size.Height };
                                 using (var cropped = img.Copy())
                                 {
-                                    using (var resized = cropped.Resize(Profile.ZoomLevel, Emgu.CV.CvEnum.Inter.LinearExact))
-                                    {
-
+                                    //using (var resized = cropped.Resize(Profile.ZoomLevel, Emgu.CV.CvEnum.Inter.LinearExact))
+                                    using (var resized = cropped.Resize(1, Emgu.CV.CvEnum.Inter.LinearExact))
+                                    {                                        
                                         if (Profile.PerformShapeDetection)
                                         {
                                             using (var results = _shapeDetectorService.PerformShapeDetection(new MVImage<Image<Bgr, byte>>(resized), Camera, resized.Size))
@@ -225,7 +233,7 @@ namespace LagoVista.PickAndPlace.App.Services
                                         }
                                         else
                                         {
-                                            CaptureImage = Emgu.CV.WPF.BitmapSourceConvert.ToBitmapSource(img.ToUMat());
+                                            CaptureImage = Emgu.CV.WPF.BitmapSourceConvert.ToBitmapSource(resized.ToUMat());
                                         }
                                     }
                                 }
@@ -278,6 +286,8 @@ namespace LagoVista.PickAndPlace.App.Services
                     Machine.PositionImageCaptureService = this;
             }
         }
+
+        public IShapeDetectorService<Image<Bgr, byte>> ShapeDetector => _shapeDetectorService;
 
         public VisionProfile Profile
         {

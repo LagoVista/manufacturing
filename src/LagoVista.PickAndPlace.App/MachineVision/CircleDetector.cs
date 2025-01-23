@@ -8,13 +8,17 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Interfaces.Services;
 using LagoVista.PickAndPlace.Interfaces;
 using Emgu.CV.Structure;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace LagoVista.PickAndPlace.App.MachineVision
 {
     public class CircleDetector : ICircleDetector<IInputOutputArray>
     {
-        private List<MVLocatedCircle> _foundCircles = new List<MVLocatedCircle>();
+        private ObservableCollection<MVLocatedCircle> _foundCircles = new ObservableCollection<MVLocatedCircle>();
         private readonly ILocatorViewModel _locatorViewModel;
+
+        int _iteration = 0;
 
         public CircleDetector(ILocatorViewModel locatorViewModel)
         {
@@ -23,6 +27,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
         public void FindCircles(IMVImage<IInputOutputArray> input, MachineCamera camera, System.Drawing.Size size)
         {
+            _iteration++;
+
             var profile = camera.CurrentVisionProfile;
             var center = size.Center();
 
@@ -32,8 +38,6 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             var circles = CvInvoke.HoughCircles(input.Image, HoughModes.Gradient, profile.HoughCirclesDP, profile.HoughCirclesMinDistance, profile.HoughCirclesParam1, profile.HoughCirclesParam2,
                 Convert.ToInt32(profile.HoughCirclesMinRadius * camera.CurrentVisionProfile.PixelsPerMM), Convert.ToInt32(profile.HoughCirclesMaxRadius * camera.CurrentVisionProfile.PixelsPerMM));
 
-            var currentFoundCircles = new List<MVLocatedCircle>();
-
             foreach (var circle in circles)
             {
                 if (search.WithinRadius(circle))
@@ -41,27 +45,31 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     var previous = _foundCircles.FindPrevious(circle, 10);
                     if (previous != null)
                     {
+                        previous.Iteration = _iteration;
                         previous.Add(circle.Center, circle.Radius);
-                        _locatorViewModel.CircleLocated(previous);
-                        currentFoundCircles.Add(previous);
+                        _locatorViewModel.CircleLocated(previous);                        
                     }
                     else
                     {
                         var foundCircle = new MVLocatedCircle(camera.CameraType.Value, center, profile.PixelsPerMM, profile.ErrorToleranceMM, profile.StabilizationCount);
                         foundCircle.Add(circle.Center, circle.Radius);
-                        currentFoundCircles.Add(foundCircle);
+                        foundCircle.Iteration = _iteration;
+                        _foundCircles.Add(foundCircle);
                         _locatorViewModel.CircleLocated(foundCircle);
                     }
                 }
             }
 
-            _foundCircles.Clear();
-            _foundCircles.AddRange(currentFoundCircles);
+            var staleRects = FoundCircles.Where(itr => itr.Iteration != _iteration).ToList();
+            foreach (var rect in staleRects)
+            {
+                FoundCircles.Remove(rect);
+            }
         }
 
         public MVLocatedCircle FoundCircle { get; private set; }
 
-        public List<MVLocatedCircle> FoundCircles => _foundCircles;
+        public ObservableCollection<MVLocatedCircle> FoundCircles => _foundCircles;
 
         public void Reset()
         {

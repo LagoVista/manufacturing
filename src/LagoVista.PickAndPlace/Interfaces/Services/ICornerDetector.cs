@@ -2,6 +2,7 @@
 using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Text;
 
 namespace LagoVista.PickAndPlace.Interfaces.Services
@@ -10,6 +11,6 @@ namespace LagoVista.PickAndPlace.Interfaces.Services
     {
         void FindCorners(IMVImage<T> input, MachineCamera camera, System.Drawing.Size size);
         void Reset();
-        List<MVLocatedCorner> FoundCorners { get; }
+        ObservableCollection<MVLocatedCorner> FoundCorners { get; }
     }
 }

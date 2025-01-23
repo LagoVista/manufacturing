@@ -15,7 +15,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 {
     internal class ImageHelper : IImageHelper<IInputOutputArray>
     {
-        public void Circle(IMVImage<IInputOutputArray> img, MVLocatedCircle circle, Size size, int thickness = 1)
+        public void Circle(IMVImage<IInputOutputArray> img, double zoomLevel, MVLocatedCircle circle, Size size, int thickness = 1)
         {
             var color = circle.Centered ? System.Drawing.Color.Green : System.Drawing.Color.Red;
 
@@ -40,7 +40,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                new Bgr(color).MCvScalar, thickness, Emgu.CV.CvEnum.LineType.AntiAlias);
         }
 
-        public void DrawRect(IMVImage<IInputOutputArray> img, MVLocatedRectangle rect, System.Drawing.Color color)
+        public void DrawRect(IMVImage<IInputOutputArray> img, double zoomLevel, MVLocatedRectangle rect, System.Drawing.Color color)
         {
             var p =  rect.RotatedRect.ToPointArray();
             var matrix = new Matrix();
@@ -52,11 +52,11 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             Line(img, (int)p[2].X, (int)p[2].Y, (int)p[3].X, (int)p[3].Y, color);
             Line(img, (int)p[3].X, (int)p[3].Y, (int)p[0].X, (int)p[0].Y, color);
 
-            var msg = $"Width: {Math.Round(rect.RotatedRect.Size.Width, 2)} x {Math.Round(rect.RotatedRect.Size.Height, 2)}";
+            var msg = $"Width: {Math.Round(rect.SizeMM.X, 2):0.0} x {Math.Round(rect.SizeMM.Y, 2):0.0}";
 
             var size = new Size(480, 480);
 
-            CvInvoke.PutText(img.Image, msg, new Point(size.Width - 200, size.Height - 100), FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.Red).MCvScalar);
+            CvInvoke.PutText(img.Image, msg, new Point(size.Width - 200, size.Height - 100), FontFace.HersheyPlain, 1, new Bgr(rect.Centered ? System.Drawing.Color.Green : System.Drawing.Color.Red).MCvScalar);
         }
 
         public void ShowCalibrationSquare(IMVImage<IInputOutputArray> destImage, Size size)

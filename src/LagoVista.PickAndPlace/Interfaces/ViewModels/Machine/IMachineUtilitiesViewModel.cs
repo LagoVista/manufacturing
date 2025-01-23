@@ -5,6 +5,7 @@ using LagoVista.Manufacturing.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
 {
@@ -25,5 +26,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         RelayCommand TopLightOffCommand { get; }
         RelayCommand BottomLightOnCommand { get; }
         RelayCommand BottomLightOffCommand { get; }
+
+        Task<ulong> ReadLeftVacuumAsync();
+        Task<ulong> ReadRightVacuumAsync();
     }
 }

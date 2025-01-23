@@ -27,9 +27,11 @@ namespace LagoVista.PickAndPlace.Models
 
         private Point2D<float> _filteredCenter;
 
-       double _filteredRadius;
+        double _filteredRadius;
 
         private bool _populated;
+
+        public Guid Id { get; }
 
 
         public MVLocatedCircle(CameraTypes cameraType, Point2D<int> viewCenter, double pixelsPerMM, double erorMargin, int stabilizationCount)
@@ -39,6 +41,7 @@ namespace LagoVista.PickAndPlace.Models
             _errorMargin = erorMargin;
             CameraType = cameraType;
             _stabilizationCount = stabilizationCount;
+            Id = Guid.NewGuid();
         }
 
         public void Add(System.Drawing.PointF point, float radius)
@@ -95,5 +98,7 @@ namespace LagoVista.PickAndPlace.Models
         }
 
         public CameraTypes CameraType { get; }
+
+        public int Iteration { get; set; }
     }
 }

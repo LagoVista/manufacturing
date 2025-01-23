@@ -114,15 +114,7 @@
                         <pnpc:PrepareJob></pnpc:PrepareJob>
                     </TabItem>
                     <TabItem Header="Dry Run">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-                            <mch:ToolHeadControl Grid.Row="0"></mch:ToolHeadControl>
-                            <mch:VacuumControl Grid.Row="1"></mch:VacuumControl>
-                            <pnpc:CircuitBoardControl Grid.Row="1"></pnpc:CircuitBoardControl>
-                        </Grid>
+                        <pnpc:DryRunControl></pnpc:DryRunControl>
                     </TabItem>
                     <TabItem Header="Run Job">
                         <pnpc:PickAndPlaceJobControl></pnpc:PickAndPlaceJobControl>
@@ -130,10 +122,10 @@
                     <TabItem Header="Log">
                         <ui:ListBoxScroll HorizontalContentAlignment="Stretch"
                              Grid.Row="1"
-                 SelectedIndex="{Binding Path=MachineRepo.CurrentMachine.MessageCount, Mode=OneWay}"
-                 ItemsSource="{Binding Path=MachineRepo.CurrentMachine.Messages}"
-                 IsHitTestVisible="False" BorderThickness="0"
-                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" >
+                             SelectedIndex="{Binding Path=MachineRepo.CurrentMachine.MessageCount, Mode=OneWay}"
+                             ItemsSource="{Binding Path=MachineRepo.CurrentMachine.Messages}"
+                             IsHitTestVisible="False" BorderThickness="0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" >
 
                             <ui:ListBoxScroll.ItemTemplate>
                                 <DataTemplate>

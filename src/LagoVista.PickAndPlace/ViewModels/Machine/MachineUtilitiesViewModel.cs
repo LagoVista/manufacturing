@@ -1,5 +1,6 @@
 ﻿using LagoVista.Core.Commanding;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
+using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels.Machine
 {
@@ -9,9 +10,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         public MachineUtilitiesViewModel(IMachineRepo machineRepo) : base(machineRepo)
         {        
-
-            ReadLeftVacuumCommand = CreatedMachineConnectedCommand(ReadLeftVacuum);
-            ReadRightVacuumCommand = CreatedMachineConnectedCommand(ReadRightVacuum);
+            ReadLeftVacuumCommand = CreatedMachineConnectedCommand(async () => await ReadLeftVacuumAsync());
+            ReadRightVacuumCommand = CreatedMachineConnectedCommand(async () => await ReadRightVacuumAsync());
 
             LeftVacuumOnCommand = CreatedMachineConnectedCommand(() => MachineRepo.CurrentMachine.LeftVacuumPump = true);
             LeftVacuumOffCommand = CreatedMachineConnectedCommand(() => MachineRepo.CurrentMachine.LeftVacuumPump = false);
@@ -25,24 +25,31 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             BottomLightOffCommand = CreatedMachineConnectedCommand(() => MachineRepo.CurrentMachine.BottomLightOn = false);
         }    
 
-        public async void ReadLeftVacuum()
+        public async Task<ulong> ReadLeftVacuumAsync()
         {
              var result = await MachineRepo.CurrentMachine.ReadLeftVacuumAsync();
             if(result.Successful)
             {
                 LeftVacuum = result.Result;
                 RaisePropertyChanged(nameof(LeftVacuum));
+                return LeftVacuum;
             }
+
+            return 0;            
         }
 
-        public async void ReadRightVacuum()
+        public async Task<ulong> ReadRightVacuumAsync()
         {
             var result = await MachineRepo.CurrentMachine.ReadRightVacuumAsync();
             if (result.Successful)
             {
                 RightVacuum = result.Result;
                 RaisePropertyChanged(nameof(RightVacuum));
+
+                return RightVacuum;
             }
+
+            return 0;
         }
       
         public ulong LeftVacuum { get; private set; }

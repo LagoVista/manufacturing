@@ -56,7 +56,6 @@
                     <DataGridTextColumn Header="Strip Feeder" Width="150" Binding="{Binding StripFeeder}"  />
                     <DataGridTextColumn Header="Strip Feeder" Width="150" Binding="{Binding StripFeeder}"  />
                     <DataGridTextColumn Header="Auto Feeder" Width="150" Binding="{Binding Feeder}"  />
-
                 </DataGrid.Columns>
             </DataGrid>
 
@@ -86,7 +85,7 @@
                         <DataGridTextColumn Header="Y" Width="50" Binding="{Binding Y}"  />
                         <DataGridTextColumn Header="Angle"  Width="50" Binding="{Binding Rotation}"  />
                     </DataGrid.Columns>
-                </DataGrid>
+             </DataGrid>
         </Grid>
 
         <pcb:PCBRenderer Grid.Column="1" TopWiresVisible="true" BottomWiresVisible="true" PCBVisible="true" CenterBoard="true" Grid.Row="2" CircuitBoard="{Binding CircuitBoard}" ></pcb:PCBRenderer>

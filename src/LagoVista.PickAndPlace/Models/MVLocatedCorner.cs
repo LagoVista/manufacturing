@@ -12,5 +12,7 @@ namespace LagoVista.PickAndPlace.Models
         public Point2D<double> Position { get; set; }
         public int FoundCount { get; set; }
         bool Centered { get; set; }       
+
+        public int Iteration { get; set;}
     }
 }

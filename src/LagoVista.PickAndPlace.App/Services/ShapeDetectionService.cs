@@ -11,6 +11,8 @@ using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Models;
 using System.Drawing;
 using System.Collections.Generic;
+using System.Windows.Media;
+using System.Linq;
 
 namespace LagoVista.PickAndPlace.App.Services
 {
@@ -44,12 +46,12 @@ namespace LagoVista.PickAndPlace.App.Services
 
             foreach (var foundCircle in _circleDetector.FoundCircles)
             {
-                _imageHelper.Circle(img, foundCircle, size);
+                _imageHelper.Circle(img, camera.CurrentVisionProfile.ZoomLevel, foundCircle, size);
             }
 
             foreach(var rect in _rectangleDetector.FoundRectangles)
             {
-                _imageHelper.DrawRect(img, rect, Color.Red);
+                _imageHelper.DrawRect(img, camera.CurrentVisionProfile.ZoomLevel, rect, rect.Centered ? System.Drawing.Color.Green : System.Drawing.Color.Red);
             }
         }
 
@@ -168,7 +170,7 @@ namespace LagoVista.PickAndPlace.App.Services
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 /*NOP, sometimes OpenCV acts a little funny. */
                 return null;

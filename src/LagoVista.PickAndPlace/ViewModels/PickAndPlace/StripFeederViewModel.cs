@@ -52,7 +52,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private readonly ILocatorViewModel _locatorVM;
         private bool _isEditing;
 
-        public StripFeederViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorVM, IRestClient restClient) : base(machineRepo, restClient)
+        public StripFeederViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorVM, IRestClient restClient, IMachineUtilitiesViewModel machineUtilitiesViewModel) : base(machineRepo, restClient, machineUtilitiesViewModel)
         {
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
             _locatorVM = locatorVM ?? throw new ArgumentNullException(nameof(locatorVM));

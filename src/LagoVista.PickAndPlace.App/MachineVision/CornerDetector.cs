@@ -9,13 +9,16 @@ using System.Collections.Generic;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Interfaces.Services;
 using LagoVista.PickAndPlace.Interfaces;
+using System.Collections.ObjectModel;
 
 namespace LagoVista.PickAndPlace.App.MachineVision
 {
     public class CornerDetector : ICornerDetector<IInputOutputArray>
     {
-        public List<MVLocatedCorner> _locatedCorners = new List<MVLocatedCorner>();
+        public ObservableCollection<MVLocatedCorner> _locatedCorners = new ObservableCollection<MVLocatedCorner>();
         private readonly ILocatorViewModel _locatorViewModel;
+
+        private int _iteration;
 
         public CornerDetector(ILocatorViewModel locatorViewModel)
         {
@@ -24,6 +27,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
         public void FindCorners(IMVImage<IInputOutputArray> blurredGray, MachineCamera camera, System.Drawing.Size size)
         {
+            _iteration++;
+
             var profile = camera.CurrentVisionProfile;
 
             var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.CurrentVisionProfile.PixelsPerMM);
@@ -72,15 +77,14 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 var locatedCorner = new MVLocatedCorner()
                 {
                     Camera = camera.CameraType.Value,
-                    FoundCount = 1
-
+                    FoundCount = 1                    
                 };
 
                 _locatorViewModel.CornerLocated(locatedCorner);
             }
         }
 
-        public List<MVLocatedCorner> FoundCorners { get => _locatedCorners; }
+        public ObservableCollection<MVLocatedCorner> FoundCorners { get => _locatedCorners; }
     
         public void Reset()
         {

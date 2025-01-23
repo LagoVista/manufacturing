@@ -158,6 +158,8 @@
                     <TextBlock Text="Part "></TextBlock>
                 </StackPanel>
 
+                <TextBlock Text="{Binding StatusMessage}"></TextBlock>
+
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="Current Part Index"></TextBlock>
                     <ui:MaskingTextBox Text="{Binding CurrentRow.CurrentPartIndex, Mode=TwoWay}"  Width="60" Height="32" TextAlignment="Right" UnitType="Count"/>
