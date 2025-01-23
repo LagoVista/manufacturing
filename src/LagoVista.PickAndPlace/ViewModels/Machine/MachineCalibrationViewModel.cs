@@ -1,7 +1,5 @@
 ﻿using LagoVista.Core.Commanding;
-using LagoVista.Core.Models.Drawing;
 using LagoVista.Manufacturing.Models;
-using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 
 namespace LagoVista.PickAndPlace.ViewModels.Machine
@@ -21,11 +19,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             SetDefaultSafeMoveHeightCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.DefaultSafeMoveHeight = Machine.MachinePosition.Z);
             MoveToDefaultSafeMoveHeightCommand = CreatedMachineConnectedCommand(() => Machine.SendSafeMoveHeight());
 
-            CaptureKnownLocationCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.KnownCalibrationPoint = Machine.MachinePosition.ToPoint2D());
-            MoveToKnownLocationCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(MachineConfiguration.KnownCalibrationPoint), () => !MachineConfiguration.KnownCalibrationPoint.IsOrigin());
 
-            SetToolOffsetCommand = CreatedMachineConnectedSettingsCommand(() => SelectedToolHead.Offset = (Machine.MachinePosition.ToPoint2D() - MachineConfiguration.DefaultToolReferencePoint).Round(2), () => SelectedToolHead != null);
-            SetDefaultToolReferencePointCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.DefaultToolReferencePoint = Machine.MachinePosition.ToPoint2D());
+        
 
             MoveToCameraLocationCommand = CreatedMachineConnectedCommand(MoveToSelectedCamera, () => SelectedMachineCamera != null && SelectedMachineCamera.AbsolutePosition != null);
             SetCameraLocationCommand = CreatedMachineConnectedSettingsCommand(() => {
@@ -33,7 +28,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 SelectedMachineCamera.FocusHeight = Machine.MachinePosition.Z;
                 }, () => SelectedMachineCamera != null);
 
-            MoveToDefaultToolReferencePointCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(MachineConfiguration.DefaultToolReferencePoint), () => MachineConfiguration.DefaultToolReferencePoint != null);
             
             MoveToStagingPlateReferenceHole1LocationCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(SelectedStagingPlate.ReferenceHoleLocation1), () => SelectedStagingPlate != null && (UseCalibratedLocation || SelectedStagingPlate.ReferenceHoleLocation1 != null));
             MoveToStagingPlateReferenceHole2LocationCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(SelectedStagingPlate.ReferenceHoleLocation2), () => SelectedStagingPlate != null && (UseCalibratedLocation || SelectedStagingPlate.ReferenceHoleLocation2 != null));
@@ -46,10 +40,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             MoveToDefaultPCBOrigin = CreatedMachineConnectedCommand(() => Machine.GotoPoint(MachineConfiguration.DefaultWorkOrigin), () => !MachineConfiguration.DefaultWorkOrigin.IsOrigin());
         }
 
-        protected override void MachineChanged(IMachine machine)
-        {
-            machine.PropertyChanged += Machine_PropertyChanged;            
-        }
 
         protected void MoveToSelectedCamera()
         {
@@ -64,25 +54,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
          }
 
-
-        private void Machine_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(IMachine.MachinePosition))
-            {
-                Delta = KnownLocation - Machine.MachinePosition.ToPoint2D();
-            }
-        }
-
-            MachineToolHead _selectedToolHead;
-        public MachineToolHead SelectedToolHead
-        {
-            get => _selectedToolHead;
-            set
-            {
-                Set(ref _selectedToolHead, value);
-                RaiseCanExecuteChanged();
-            }
-        }
 
         MachineStagingPlate _selectedStagingPlate;
         public MachineStagingPlate SelectedStagingPlate
@@ -127,38 +98,24 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public RelayCommand SetStagingPlateReferenceHole1LocationCommand { get; }
         public RelayCommand SetStagingPlateReferenceHole2LocationCommand { get; }
         public RelayCommand SetFirstAutoFeederOriginCommand { get; }
-        public RelayCommand SetDefaultToolReferencePointCommand { get; }
-        public RelayCommand SetToolOffsetCommand { get; }
+        
+        
         public RelayCommand SetCameraLocationCommand { get; }
         public RelayCommand SetMachineFiducialCommand { get; }
         public RelayCommand MoveToMachineFiducialCommand { get; }
 
         public RelayCommand MoveToStagingPlateReferenceHole1LocationCommand { get; }
         public RelayCommand MoveToStagingPlateReferenceHole2LocationCommand { get; }
-        public RelayCommand MoveToFirstAutoFeederOriginCommand { get; }
-        public RelayCommand MoveToDefaultToolReferencePointCommand { get; }
-        public RelayCommand MoveToCameraLocationCommand { get; }
-        public RelayCommand CaptureKnownLocationCommand { get; }
-        public RelayCommand MoveToKnownLocationCommand { get; }
 
+        public RelayCommand MoveToFirstAutoFeederOriginCommand { get; }
+
+        public RelayCommand MoveToCameraLocationCommand { get; }
+        
         public RelayCommand SetDefaultSafeMoveHeightCommand { get; }
         public RelayCommand MoveToDefaultSafeMoveHeightCommand { get; }
         public RelayCommand SetDefaultPCBOrigin {get;}
         public RelayCommand MoveToDefaultPCBOrigin { get; }
 
-        private Point2D<double> _knownLocation = new Point2D<double>();
-        public Point2D<double> KnownLocation
-        {
-            get => _knownLocation;
-            private set => Set(ref _knownLocation, value);
-        }
-
-        private Point2D<double> _delta = new Point2D<double>();
-        public Point2D<double> Delta
-        {
-            get => _delta;
-            private set => Set(ref _delta, value);
-        }
 
         private bool _useCalibratedLocation;
         public bool UseCalibratedLocation

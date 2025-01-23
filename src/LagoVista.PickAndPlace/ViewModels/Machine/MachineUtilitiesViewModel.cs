@@ -5,8 +5,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 {
     public class MachineUtilitiesViewModel : StagingPlateNavigationViewModel, IMachineUtilitiesViewModel
     {
+        
+
         public MachineUtilitiesViewModel(IMachineRepo machineRepo) : base(machineRepo)
-        {
+        {        
+
             ReadLeftVacuumCommand = CreatedMachineConnectedCommand(ReadLeftVacuum);
             ReadRightVacuumCommand = CreatedMachineConnectedCommand(ReadRightVacuum);
 
@@ -41,7 +44,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 RaisePropertyChanged(nameof(RightVacuum));
             }
         }
-
+      
         public ulong LeftVacuum { get; private set; }
         public ulong RightVacuum { get; private set; }
 

@@ -9,7 +9,85 @@
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
+    <Grid Grid.Row="3">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="800"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <DataGrid Grid.Row="1" ItemsSource="{Binding  MachineConfiguration.ToolHeads}"  SelectedItem="{Binding Current}" CanUserAddRows="false" AutoGenerateColumns="false">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Index" Binding="{Binding HeadIndex}" />
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
+                <DataGridTextColumn Header="Type" Binding="{Binding ToolHeadType}" />
+                <DataGridTextColumn Header="Z Origin" Binding="{Binding DefaultOriginPosition}" />
+                <DataGridTextColumn Header="Pick Height" Binding="{Binding PickHeight}" />
+                <DataGridTextColumn Header="Place Height" Binding="{Binding PlaceHeight}" />
+                <DataGridTextColumn Header="Idle Vac." Binding="{Binding IdleVacuum}" />
+                <DataGridTextColumn Header="No Part Vac." Binding="{Binding NoPartPickedVacuum}" />
+                <DataGridTextColumn Header="Picked Vac." Binding="{Binding PartPickedVacuum}" />
+            </DataGrid.Columns>
+        </DataGrid>
+        <StackPanel Grid.Column="1" Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}">
+            <TextBlock FontSize="24" Text="{Binding Current.Name}"></TextBlock>
+            <TextBlock TextWrapping="Wrap">Move the camera to a known location on the board where you can position the tool head.</TextBlock>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <StackPanel Margin="10">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Known Location: "></TextBlock>
+                        <TextBlock Text="{Binding MachineConfiguration.KnownCalibrationPoint}"></TextBlock>
+                    </StackPanel>
+                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToKnownLocationCommand}"  ToolTip="Move to known location." Width="64" Height="64"  >
+                        <Button.Content>
+                            <Image Source="/imgs/MoveToTarget.png"/>
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Margin="10">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Known Location: "></TextBlock>
+                        <TextBlock Text="{Binding MachineConfiguration.DefaultToolReferencePoint}"></TextBlock>
+                    </StackPanel>
+                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetDefaultToolReferencePointCommand }"  ToolTip="Capture the known location." Width="64" Height="64"  >
+                        <Button.Content>
+                            <Image Source="/imgs/SetTarget.png"/>
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Margin="10">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Tool Offset: "></TextBlock>
+                        <TextBlock Text="{Binding Current.Offset}"></TextBlock>
+                    </StackPanel>
+                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetToolOffsetCommand }"  ToolTip="Set the origin of the first feeder on the rail." Width="64" Height="64"  >
+                        <Button.Content>
+                            <Image Source="/imgs/SetTarget.png"/>
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Button Command="{Binding SetDefaultOriginCommand}" Style="{StaticResource CommandButton}" Content="Default Origin" />
+                <Button Command="{Binding SetIdleVacuumCommand}" Style="{StaticResource CommandButton}" Content="Idle Vacuum" />
+                <Button Command="{Binding SetNoPartPickedVacuumCommand}" Style="{StaticResource CommandButton}" Content="set No Part Vacuum" />
+                <Button Command="{Binding SetPartPickedVacuumCommand}" Style="{StaticResource CommandButton}" Content="set Part Picked Vacuum" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Left Vacuum" FontSize="24" Width="250"></TextBlock>
+                <Button Width="100" Command="{Binding Vacuum.LeftVacuumOnCommand}" Style="{StaticResource CommandButton}" >On</Button>
+                <Button Width="100" Command="{Binding Vacuum.LeftVacuumOffCommand}" Style="{StaticResource CommandButton}" >Off</Button>
+                <Button Width="100" Command="{Binding Vacuum.ReadLeftVacuumCommand}" Style="{StaticResource CommandButton}" >Read</Button>
+                <TextBlock Text="{Binding Vacuum.LeftVacuum}" FontSize="32" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Right Vacuum" FontSize="24" Width="250"></TextBlock>
+                <Button Width="100" Command="{Binding Vacuum.RightVacuumOnCommand}" Style="{StaticResource CommandButton}" >On</Button>
+                <Button Width="100" Command="{Binding Vacuum.RightVacuumOffCommand}" Style="{StaticResource CommandButton}" >Off</Button>
+                <Button Width="100" Command="{Binding Vacuum.ReadRightVacuumCommand}" Style="{StaticResource CommandButton}" >Read</Button>
+                <TextBlock Text="{Binding Vacuum.RightVacuum}" FontSize="32" />
+            </StackPanel>
+        </StackPanel>
     </Grid>
 </ucb:VMBoundUserControl>

@@ -86,8 +86,7 @@ namespace LagoVista.PickAndPlace.App
             SLWIOC.Register<ICurrentMachineViewModel, CurrentMachineViewModel>();
             SLWIOC.Register<INozzleChangeViewModel, NozzleChangeViewModel>();
             SLWIOC.Register<IPickAndPlaceJobResolverService, PickAndPlaceJobResolverService>();
-            SLWIOC.RegisterSingleton<ICircuitBoardViewModel, CircuitBoardViewModel>();
-            SLWIOC.RegisterSingleton<IToolHeadViewModel, ToolHeadViewModel>();
+            SLWIOC.RegisterSingleton<ICircuitBoardViewModel, CircuitBoardViewModel>();            
             SLWIOC.RegisterSingleton<IVacuumViewModel, VacuumViewModel>();
             SLWIOC.RegisterSingleton<IPhotonFeederViewModel, PhotonFeederViewModel>();
             SLWIOC.RegisterSingleton<IStripFeederViewModel, StripFeederViewModel>();
@@ -98,6 +97,7 @@ namespace LagoVista.PickAndPlace.App
             SLWIOC.RegisterSingleton<IMachineCalibrationViewModel, MachineCalibrationViewModel>();
             SLWIOC.RegisterSingleton<IMachineUtilitiesViewModel, MachineUtilitiesViewModel>();
             SLWIOC.RegisterSingleton<IStagingPlateSelectorViewModel, StagingPlateSelectorViewModel>();
+            SLWIOC.RegisterSingleton<IToolHeadViewModel, ToolHeadViewModel>();
             SLWIOC.Register<IMachineCoreActionsViewModel, MachineCoreActionsViewModel>();
 
             MachineVision.Startup.Init();
