@@ -21,7 +21,7 @@ namespace LagoVista.PickAndPlace.App.Controls.PickAndPlace
     /// <summary>
     /// Interaction logic for PickAndPlaceJobControl.xaml
     /// </summary>
-    public partial class PickAndPlaceJobControl : VMBoundUserControl<IPickAndPlaceJobViewModel>
+    public partial class PickAndPlaceJobControl : VMBoundUserControl<IJobManagementViewModel>
     {
         public PickAndPlaceJobControl()
         {

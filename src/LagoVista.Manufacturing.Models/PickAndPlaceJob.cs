@@ -212,6 +212,16 @@ namespace LagoVista.Manufacturing.Models
 
         public int Count => Placements.Count;
         
+        public InvokeResult Validate()
+        {
+            if(AvailableCount < Count)
+            {
+                return InvokeResult.FromError("not enough parts to place.");
+            }
+
+            return InvokeResult.Success;
+        }
+
 
         public override string ToString()
         {

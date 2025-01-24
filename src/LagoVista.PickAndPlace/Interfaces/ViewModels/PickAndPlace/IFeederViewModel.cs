@@ -1,9 +1,11 @@
 ﻿using LagoVista.Core.Commanding;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
+using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 {
@@ -11,18 +13,27 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
     {
         string SelectedCategoryKey { get; set; }
         string SelectedComponentSummaryId { get; set; }
-        ObservableCollection<EntityHeader> ComponentCategories { get; }
-        ObservableCollection<ComponentSummary> Components { get; }
+        Point2D<double> CurrentPartLocation { get; }
         Component SelectedComponent { get; set; }
         Component CurrentComponent { get; set; }
+        bool UseCalculated { get; set; }
+
+        int AvailableParts { get; }
+
+        Task<InvokeResult> PickCurrentPartAsync();
+        Task<InvokeResult> RecycleCurrentPartAsync();
+        Task<InvokeResult> InspectCurrentPartAsync();
+
+
+        ObservableCollection<EntityHeader> ComponentCategories { get; }
+        ObservableCollection<ComponentSummary> Components { get; }
         ComponentPackage CurrentComponentPackage { get; set; }
+
         EntityHeader<TapeSizes> TapeSize { get; }
         EntityHeader<TapePitches> TapePitch { get; }
-        bool UseCalculated { get; set; }
 
         RelayCommand PickCurrentPartCommand { get; }
         RelayCommand InspectCurrentPartCommand { get; }
         RelayCommand RecycleCurrentPartCommand { get; }
-        Point2D<double> CurrentPartLocation { get; }
     }
 }

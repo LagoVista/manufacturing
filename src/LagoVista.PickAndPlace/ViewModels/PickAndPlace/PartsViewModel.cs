@@ -11,8 +11,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 {
     public class PartsViewModel : MachineViewModelBase, IPartsViewModel
     {
-        PickAndPlaceJob _job;
-
         public PartsViewModel(IMachineRepo machineRepo, IStripFeederViewModel stripFeederViewModel, IAutoFeederViewModel autoFeederViewModel, ILogger logger) : base(machineRepo)
         {
             AutoFeederViewModel = autoFeederViewModel ?? throw new ArgumentNullException(nameof(autoFeederViewModel));

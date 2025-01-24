@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 {
-    public interface IPartInspectionViewModel
+    public interface IJobRunViewModel
     {
-        Task<InvokeResult> InspectAsync();
-        Task<InvokeResult> InspectAsync(Component component);
-
-        Component CurrentComponent { get; set; }
+        Task<InvokeResult> CreateJobRunAsync();
+        PickAndPlaceJobRun Current { get; }
+        Task LoadJobRunAsync(string jobRunid);
+        Task SaveJobRunAsync();
     }
 }

@@ -376,6 +376,21 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
+        public override int AvailableParts
+        {
+            get
+            {
+                if(Current == null)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return Current.PartCount;
+                }
+            }
+        }
+
         private Point2D<double> _currentPartLocation;
         public override Point2D<double> CurrentPartLocation { get => _currentPartLocation; }
 

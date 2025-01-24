@@ -15,15 +15,15 @@ using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 {
-    public class PickAndPlaceJobViewModel : MachineViewModelBase, IPickAndPlaceJobViewModel
+    public class JobManagementViewModel : MachineViewModelBase, IJobManagementViewModel
     {
         private readonly IRestClient _restClient;
-        private readonly ILogger _logger;
+        private readonly ILogger _logger;   
         private readonly IStorageService _storageService;
         
         private readonly IPickAndPlaceJobResolverService _resolver;
 
-        public PickAndPlaceJobViewModel(IRestClient restClient, IPickAndPlaceJobResolverService resolver, IStorageService storage, IMachineRepo machineRepo, IPartsViewModel partsViewModel) : base(machineRepo)
+        public JobManagementViewModel(IRestClient restClient, IPickAndPlaceJobResolverService resolver, IStorageService storage, IMachineRepo machineRepo, IPartsViewModel partsViewModel) : base(machineRepo)
         {
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
             _storageService = storage ?? throw new ArgumentNullException(nameof(storage));
@@ -31,7 +31,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
 
             ReloadJobCommand = new RelayCommand(async () => await RefreshJob(), () => { return Job != null; });
-            SaveCommand = new RelayCommand(async () => await SaveJobAsync(), () => { return Job != null; });
             SetBoardOriginCommand = CreatedMachineConnectedCommand(() => Job.DefaultBoardOrigin = Machine.MachinePosition.ToPoint2D(), () => Job != null);
             CheckBoardFiducialsCommand = CreatedMachineConnectedCommand(() => CheckBoardFiducials(), () => Job != null);
 
@@ -47,6 +46,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             CancelSubstitutePartCommand = CreatedCommand(CancelSubstitutePart);
 
             GoToPartOnBoardCommand = CreatedMachineConnectedCommand(GoToPartOnBoard, () => Placement != null);
+
+            SaveCommand = new RelayCommand(async () => await SaveJobAsync(), () => { return Job != null; });
         }
 
         public override async Task InitAsync()
@@ -271,7 +272,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 RaisePropertyChanged(nameof(SelectedJob));
                 if (value != null && _selectedJob?.Id != value?.Id)
                 {
-                    LoadJob(value?.Id);
+                    LoadJob(value.Id);
                 }
 
                 Set(ref _selectedJob, value);

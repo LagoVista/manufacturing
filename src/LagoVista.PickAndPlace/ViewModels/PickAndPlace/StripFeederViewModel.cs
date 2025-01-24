@@ -571,6 +571,17 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
+        public override int AvailableParts
+        {
+            get
+            {
+                if (CurrentRow == null)
+                    return 0;
+
+                return TotalPartsInFeederRow - CurrentRow.CurrentPartIndex;
+            }
+        }
+
 
         public ObservableCollection<MachineStagingPlate> StagingPlates { get => MachineRepo.CurrentMachine.Settings.StagingPlates; }
 

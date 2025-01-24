@@ -3,6 +3,7 @@ using LagoVista.Core.Commanding;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Models.UIMetaData;
+using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
@@ -52,12 +53,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             await base.InitAsync();
         }
 
-        private async Task PickCurrentPartAsync()
+        public async Task<InvokeResult> PickCurrentPartAsync()
         {
             if(CurrentComponent == null)
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current part selected, can not pick.");
-                return;
+                return InvokeResult.FromError("No current part selected, can not pick.");
             }
 
             var currentLocation = CurrentPartLocation;
@@ -65,7 +66,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not identify location of current part.");
                 _pickStates = PickStates.Idle;
-                return;
+                return InvokeResult.FromError("Could not identify location of current part.");
             }            
 
             Machine.SendSafeMoveHeight();
@@ -82,14 +83,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             StatusMessage = $"Part Picked - Vacuum {beforePick} - {afterPick}";
 
             _pickStates = PickStates.Picked;
+
+            return InvokeResult.Success;
         }
 
-        private async Task InspectCurrentPartAsync()
+        public async Task<InvokeResult> InspectCurrentPartAsync()
         {
             if (CurrentComponent == null)
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current part selected, can not inspect.");
-                return;
+                return InvokeResult.FromError("No current part selected, can not inspect.");
             }
 
             if (_pickStates == PickStates.Idle)
@@ -101,14 +104,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 await Machine.GoToPartInspectionCameraAsync();
                 _pickStates = PickStates.Inspecting;
             }
+
+            return InvokeResult.Success;
         }
 
-        private async Task RecycleCurrentPartAsync()
+        public async Task<InvokeResult> RecycleCurrentPartAsync()
         {
             if (CurrentComponent == null)
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current part selected, can not recycle");
-                return;
+                return InvokeResult.FromError("No current part selected, can not recycle");
             }
 
             var beforePick = await _machineUtilitiesViewModel.ReadLeftVacuumAsync();
@@ -123,6 +128,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _pickStates = PickStates.Idle;
 
             StatusMessage = $"Part Picked - Vacuum {beforePick} - {afterPick}";
+
+            return InvokeResult.Success;
         }
 
 
@@ -251,6 +258,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             get => _useCalculted;
             set => Set(ref _useCalculted, value);
         }
+
+        public abstract int AvailableParts { get; }
 
         public RelayCommand PickCurrentPartCommand { get; }
 

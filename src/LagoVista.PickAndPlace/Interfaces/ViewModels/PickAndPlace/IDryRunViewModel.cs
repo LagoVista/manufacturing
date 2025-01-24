@@ -9,7 +9,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
     public interface IDryRunViewModel : IMachineViewModelBase
     {
 
-        public IPickAndPlaceJobViewModel JobVM { get; }
+        public IJobManagementViewModel JobVM { get; }
         RelayCommand GoToPartOnBoard { get; }
     }
 }

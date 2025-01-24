@@ -80,33 +80,39 @@ namespace LagoVista.PickAndPlace.App.Controls
 
             foreach (var element in board.PcbComponents)
             {
-                foreach (var pad in element.SMDPads)
+                if (element.SMDPads != null)
                 {
-                    var padMeshBuilder = new MeshBuilder(false, false);
+                    foreach (var pad in element.SMDPads)
+                    {
+                        var padMeshBuilder = new MeshBuilder(false, false);
 
-                    padMeshBuilder.AddBox(new Rect3D(pad.OrgX - (pad.DX / 2), pad.OrgY - (pad.DY / 2), -0.1, (pad.DX), (pad.DY), 0.2));
-                    var box = new GeometryModel3D() { Geometry = padMeshBuilder.ToMesh(true), Material = element.Layer == PCBLayers.TopCopper ? copperMaterial : grayMaterial };
+                        padMeshBuilder.AddBox(new Rect3D(pad.OrgX - (pad.DX / 2), pad.OrgY - (pad.DY / 2), -0.1, (pad.DX), (pad.DY), 0.2));
+                        var box = new GeometryModel3D() { Geometry = padMeshBuilder.ToMesh(true), Material = element.Layer == PCBLayers.TopCopper ? copperMaterial : grayMaterial };
 
-                    var transformGroup = new Transform3DGroup();
-                    transformGroup.Children.Add(new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 0, 1), element.Rotation)));
-                    transformGroup.Children.Add(new TranslateTransform3D(new Vector3D(element.X.Value, element.Y.Value, element.Layer == PCBLayers.TopCopper ? 0 : 0.05)));
+                        var transformGroup = new Transform3DGroup();
+                        transformGroup.Children.Add(new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 0, 1), element.Rotation)));
+                        transformGroup.Children.Add(new TranslateTransform3D(new Vector3D(element.X.Value, element.Y.Value, element.Layer == PCBLayers.TopCopper ? 0 : 0.05)));
 
-                    box.Transform = transformGroup;
+                        box.Transform = transformGroup;
 
-                    modelGroup.Children.Add(box);
+                        modelGroup.Children.Add(box);
+                    }
                 }
 
-                foreach (var pad in element.Pads)
+                if (element.Pads != null)
                 {
-                    var padCopperMeshBuilder = new MeshBuilder(false, false);
-                    padCopperMeshBuilder.AddCylinder(new Point3D(pad.X, pad.Y, 0), new Point3D(pad.X, pad.Y, 0.1), pad.D * 0.75);
-                    var padCopper = new GeometryModel3D() { Geometry = padCopperMeshBuilder.ToMesh(true), Material = copperMaterial };
-                    modelGroup.Children.Add(padCopper);
+                    foreach (var pad in element.Pads)
+                    {
+                        var padCopperMeshBuilder = new MeshBuilder(false, false);
+                        padCopperMeshBuilder.AddCylinder(new Point3D(pad.X, pad.Y, 0), new Point3D(pad.X, pad.Y, 0.1), pad.D * 0.75);
+                        var padCopper = new GeometryModel3D() { Geometry = padCopperMeshBuilder.ToMesh(true), Material = copperMaterial };
+                        modelGroup.Children.Add(padCopper);
 
-                    var padDrillMeshBuilder = new MeshBuilder(false, false);
-                    padDrillMeshBuilder.AddCylinder(new Point3D(pad.X, pad.Y, 0), new Point3D(pad.X, pad.Y, 0.101), pad.D / 2);
-                    var padDrill = new GeometryModel3D() { Geometry = padDrillMeshBuilder.ToMesh(true), Material = blackMaterial };
-                    modelGroup.Children.Add(padDrill);
+                        var padDrillMeshBuilder = new MeshBuilder(false, false);
+                        padDrillMeshBuilder.AddCylinder(new Point3D(pad.X, pad.Y, 0), new Point3D(pad.X, pad.Y, 0.101), pad.D / 2);
+                        var padDrill = new GeometryModel3D() { Geometry = padDrillMeshBuilder.ToMesh(true), Material = blackMaterial };
+                        modelGroup.Children.Add(padDrill);
+                    }
                 }
 
                 //if (PCBVisible)

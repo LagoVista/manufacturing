@@ -1,4 +1,5 @@
-﻿using LagoVista.Core.Validation;
+﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
@@ -16,14 +17,33 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         }
 
-        public List<string> GetPlacementGCode(PickAndPlaceJobPart part, PickAndPlaceJobPart placement)
+        public async Task<InvokeResult> AlignBoardAsync()
+        {
+            return InvokeResult.Success;
+        }
+
+        public Task<InvokeResult> InspectPartOnboardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement)
         {
             throw new NotImplementedException();
         }
 
-        public Task<InvokeResult> PlacePart(PickAndPlaceJobPart part, PickAndPlaceJobPart placement)
+        public Task<InvokeResult> PlacePartOnboardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement)
         {
             throw new NotImplementedException();
         }
+
+        public Task<InvokeResult> PickPartFromBoardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement)
+        {
+            throw new NotImplementedException();
+        }
+
+        CircuitBoardRevision _board;
+        public CircuitBoardRevision Board
+        {
+            get => _board;
+            set => Set(ref _board, value);
+        }
+
+        public RelayCommand AlignCommand { get; }
     }
 }

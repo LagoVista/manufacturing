@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 {
-    public interface IPickAndPlaceJobViewModel : IViewModel
+    public interface IJobManagementViewModel : IViewModel
     {
         ObservableCollection<PickAndPlaceJobSummary> Jobs { get; }
         PickAndPlaceJob Job { get; }
@@ -18,6 +18,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         AvailablePart SelectedAvailablePart { get; set; }
 
         PickAndPlaceJobPart PickAndPlaceJobPart { get; set; }
+
+        PickAndPlaceJobPlacement Placement { get; set; }
 
         IPartsViewModel PartsViewModel { get; }
         bool IsSubstituting { get; }

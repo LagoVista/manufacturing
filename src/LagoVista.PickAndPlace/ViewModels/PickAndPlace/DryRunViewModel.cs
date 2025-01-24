@@ -10,12 +10,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 {
     public class DryRunViewModel : MachineViewModelBase, IDryRunViewModel
     {       
-        public DryRunViewModel(IRestClient restClient, IPartsViewModel partsViewModel, IPickAndPlaceJobViewModel jobVM, IStorageService storage, IMachineRepo machineRepo) : base(machineRepo)
+        public DryRunViewModel(IRestClient restClient, IPartsViewModel partsViewModel, IJobManagementViewModel jobVM, IStorageService storage, IMachineRepo machineRepo) : base(machineRepo)
         {
             JobVM = jobVM ?? throw new ArgumentNullException(nameof (jobVM));
         }
 
-        public IPickAndPlaceJobViewModel JobVM { get; }
+        public IJobManagementViewModel JobVM { get; }
 
 
         public RelayCommand GoToPartOnBoard { get; }
