@@ -1,10 +1,13 @@
 ﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
+using LagoVista.Manufacturing.Utils;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
+using MSDMarkwort.Kicad.Parser.PcbNew.Models.PartZone;
 using RingCentral;
 using System;
 using System.Diagnostics;
@@ -133,18 +136,64 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 var actualTheta = Math.Atan(actualDelta.Y / actualDelta.X);
                 var actualDegrees = (180 / Math.PI) * actualTheta;
 
-                var scaleError = actualDelta - expectedDelta;
+                this.AngleOffset = expectedDegrees - actualDegrees;
+                this.ScalingError = actualDelta - expectedDelta;
 
 
-                Debug.WriteLine($"Expected: {expectedDegrees}; Actual: {actualDegrees}, Scale Error: {scaleError}");
+                Debug.WriteLine($"Expected: {expectedDegrees}; Actual: {actualDegrees}, Scale Error: {this.ScalingError}");
             }
 
                 return InvokeResult.Success;
         }
 
-        public Task<InvokeResult> InspectPartOnboardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement)
+        double _angleOffset;
+        public double AngleOffset
         {
-            throw new NotImplementedException();
+            get => _angleOffset;
+            private set => Set(ref _angleOffset, value);
+        }
+
+        Point2D<double> _scalingError;
+        public Point2D<double> ScalingError
+        {
+            get => _scalingError;
+            private set => Set(ref _scalingError, value);
+        }
+
+        public Point2D<double> Adjust(Point2D<double> point)
+        {
+            var delta = Job.BoardFiducials[1].Expected - Job.BoardFiducials[0].Expected;
+            var xRatio = point.X / delta.X;
+            var yRatio = point.Y / delta.Y;
+            var correctedY = point.Y + (yRatio * ScalingError.Y);
+            var correctedX = point.X + (xRatio * ScalingError.X);
+
+            return new Point2D<double>(correctedX, correctedY);
+        }
+
+        public Point2D<double> GetWorkSpaceLocation(PickAndPlaceJobPlacement placement)
+        {
+            var positionOnBoard = placement.PCBLocation;
+            var adjustedPosition = Adjust(positionOnBoard);
+            var boardLocation = MachineConfiguration.DefaultWorkOrigin + adjustedPosition;
+            return boardLocation;
+        }
+
+        public Task<InvokeResult> GoToPartOnBoardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement)
+        {
+            var boardLocation = GetWorkSpaceLocation(placement);            
+            Machine.GotoPoint(boardLocation);
+
+            return Task.FromResult(InvokeResult.Success);
+        }
+
+        public async Task<InvokeResult> InspectPartOnboardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement)
+        {
+            var boardLocation = GetWorkSpaceLocation(placement);
+            Machine.GotoPoint(boardLocation);
+            await Machine.GoToPartInspectionCameraAsync();
+            Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartOnBoard);
+            return InvokeResult.Success;
         }
 
         public Task<InvokeResult> PlacePartOnboardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement)

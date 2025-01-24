@@ -20,11 +20,12 @@
 
         <DataGrid ItemsSource="{Binding Feeders }" CanUserAddRows="false" AutoGenerateColumns="False" SelectedItem="{Binding Current, Mode=TwoWay}" IsReadOnly="True">
             <DataGrid.Columns>
-                <DataGridTextColumn Width="*" Header="Name" Binding="{Binding Name}" x:Name="Name" ></DataGridTextColumn>
                 <DataGridTextColumn Width="80" Header="Slot" Binding="{Binding Slot}" ></DataGridTextColumn>
+                <DataGridTextColumn Width="*" Header="Name" Binding="{Binding Name}" x:Name="Name" ></DataGridTextColumn>
+                <DataGridTextColumn Width="120" Header="Slot" Binding="{Binding PartCount}" ></DataGridTextColumn>
                 <DataGridTextColumn Width="200" Header="Component" Binding="{Binding Component}" ></DataGridTextColumn>
                 <DataGridTextColumn Width="200" Header="Feeder Id" Binding="{Binding FeederId}" ></DataGridTextColumn>
-                <DataGridTextColumn Width="80" Header="Tape Size" Binding="{Binding TapeSize}" ></DataGridTextColumn>
+                <DataGridTextColumn Width="120" Header="Tape Size" Binding="{Binding TapeSize}" ></DataGridTextColumn>
                 
             </DataGrid.Columns>
         </DataGrid>
@@ -51,14 +52,8 @@
             <StackPanel Grid.Column="1" Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}">
                 <TextBlock Style="{StaticResource label}" Text="Name:"></TextBlock>
                 <TextBox ToolTip="please enter a name for your feeder" Text="{Binding Current.Name, Mode=TwoWay}"></TextBox>
-                <StackPanel Orientation="Horizontal">
-                    <TextBox Text="{Binding Current.PickOffset.X, Mode=TwoWay}" Width="80"></TextBox>
-                    <TextBox Text="{Binding Current.PickOffset.Y, Mode=TwoWay}" Width="80"></TextBox>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <TextBox Text="{Binding Current.FiducialOffset.X, Mode=TwoWay}" Width="80"></TextBox>
-                    <TextBox Text="{Binding Current.FiducialOffset.Y, Mode=TwoWay}" Width="80"></TextBox>
-                </StackPanel>
+                <TextBlock Style="{StaticResource label}" Text="Part Count:"></TextBlock>
+                <TextBox ToolTip="please enter a name for your feeder" Text="{Binding Current.PartCount, Mode=TwoWay}"></TextBox>
 
 
                 <Label>Component Category</Label>
@@ -113,6 +108,12 @@
                 </StackPanel>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
+                <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="Previous Part" Command="{Binding InitializeFeederCommand}" >
+                    <Button.Content>
+                        <fa:FontAwesome Icon="PlayCircleOutline"  />
+                    </Button.Content>
+                </Button>
+
                 <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="Previous Part" Command="{Binding RetractFeedCommand}" >
                     <Button.Content>
                         <fa:FontAwesome Icon="Backward"  />

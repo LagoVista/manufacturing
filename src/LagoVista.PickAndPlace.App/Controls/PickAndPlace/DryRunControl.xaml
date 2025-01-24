@@ -1,10 +1,11 @@
 ﻿<ucb:VMBoundUserControl x:Class="LagoVista.PickAndPlace.App.Controls.PickAndPlace.DryRunControl"
-            x:TypeArguments="vm:IDryRunViewModel"                        
+             x:TypeArguments="vm:IDryRunViewModel"                        
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:pcb="clr-namespace:LagoVista.PickAndPlace.App.Controls"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             d:DataContext="{d:DesignInstance vm:IDryRunViewModel }"
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls.PickAndPlace"
              mc:Ignorable="d" 
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
@@ -45,11 +46,15 @@
                     <Button Style="{StaticResource CommandButton}" Command="{Binding JobVM.ShowDataSheetCommand}">Show Datasheet</Button>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <Button Style="{StaticResource CommandButton}" Content="Part In Feeder"></Button>
-                    <Button Style="{StaticResource CommandButton}" Content="Place Selected Part"></Button>
-                    <Button Style="{StaticResource CommandButton}" Command="{Binding JobVM.GoToPartOnBoardCommand}" Content="Part In Board"></Button>
-                    <Button Style="{StaticResource CommandButton}" Content="Inspect"></Button>
-                    <Button Style="{StaticResource CommandButton}" Content="Place All Parts"></Button>
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding MoveToPartInFeederCommand}" Content="Move To Part in Feeder"></Button>
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding PickPartCommand}" Content="Pick Part"></Button>
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding InspectPartCommand}" Content="Inspect Part"></Button>
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding RecyclePartCommand}" Content="Recycle Part"></Button>
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding GoToPartOnBoardCommand}" Content="Go To Part In Board"></Button>
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding PlacePartCommand}" Content="Place Part Board"></Button>
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding InspectPartOnBoardCommand}" Content="Inspect Part on Board"></Button>
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding PickPartFromBoardCommand}" Content="Pick Part From Board"></Button>
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding RecyclePartCommand}" Content="Recycle Part"></Button>
                 </StackPanel>
                 <local:CircuitBoardControl />
             </StackPanel>

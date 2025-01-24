@@ -52,7 +52,7 @@ namespace LagoVista.PickAndPlace.LumenSupport
         private Dictionary<FeederCommands, CommandStructure> _feederCommands = new Dictionary<FeederCommands, CommandStructure>()
         {
             {FeederCommands.GetId, new CommandStructure() { PayloadLength = 1,} },
-            {FeederCommands.Initialize, new CommandStructure() { PayloadLength = 1,} },
+            {FeederCommands.Initialize, new CommandStructure() { PayloadLength = 13,} },
             {FeederCommands.GetVersion, new CommandStructure() { PayloadLength = 1,} },
             {FeederCommands.MoveFeedForward, new CommandStructure() { PayloadLength = 2,} },
             {FeederCommands.MoveFeedBackward, new CommandStructure() { PayloadLength = 2,} },
@@ -125,6 +125,12 @@ namespace LagoVista.PickAndPlace.LumenSupport
             }
 
             return response;
+        }
+
+        public PhotonCommand GenerateGCode(FeederCommands command, byte toAddress, string byteArray)
+        {
+            var buffer = GetByteArray(byteArray);
+            return GenerateGCode(command, toAddress, buffer.ToArray());
         }
 
         public PhotonCommand GenerateGCode(FeederCommands command, byte toAddress = 0, byte[] p = null)

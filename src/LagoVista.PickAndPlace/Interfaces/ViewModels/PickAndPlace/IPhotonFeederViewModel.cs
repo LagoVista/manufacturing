@@ -3,6 +3,7 @@ using LagoVista.Core.Validation;
 using LagoVista.Core.ViewModels;
 using LagoVista.PickAndPlace.Models;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
@@ -19,6 +20,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand DiscoverFeedersCommand { get; }
         RelayCommand AddFeederCommand { get; }
 
+        Task<InvokeResult> InitializeFeederAsync(byte slotIndex, string feederId);
         Task<InvokeResult> AdvanceFeed(byte slotIndex, double mm);
         Task<InvokeResult> RetractFeed(byte slotIndex, double mm);
 

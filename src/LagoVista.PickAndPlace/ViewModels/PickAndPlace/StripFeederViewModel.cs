@@ -333,11 +333,18 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     break;
             }
 
-            switch (CurrentComponent.ComponentPackage.Value.TapeColor.Value)
+            if (CurrentComponent != null)
             {
-                case TapeColors.Black: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInBlackTape); break;
-                case TapeColors.Clear: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInClearTape); break;
-                case TapeColors.White: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInWhiteTape); break;
+                switch (CurrentComponent.ComponentPackage.Value.TapeColor.Value)
+                {
+                    case TapeColors.Black: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInBlackTape); break;
+                    case TapeColors.Clear: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInClearTape); break;
+                    case TapeColors.White: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInWhiteTape); break;
+                }
+            }
+            else
+            {
+                Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInWhiteTape);
             }
 
             RaiseCanExecuteChanged();

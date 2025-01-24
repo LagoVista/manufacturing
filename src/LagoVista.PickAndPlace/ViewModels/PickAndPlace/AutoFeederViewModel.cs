@@ -40,6 +40,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             GoToFiducialCommand = CreatedMachineConnectedCommand(GoToFeederFiducial, () => Current != null);
             GoToPickLocationCommand = CreatedMachineConnectedCommand(GoToPickLocation, () => Current != null);
 
+            InitializeFeederCommand = CreatedMachineConnectedCommand(async () => await InitializeFeederAsync(), () => Current != null);
             AdvanceFeedCommand = CreatedMachineConnectedCommand(async () => await AdvanceFeed(), () => Current != null);
             RetractFeedCommand = CreatedMachineConnectedCommand(async () => await RetractFeed(), () => Current != null);
 
@@ -160,7 +161,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if (rail == null) return InvokeResult<Point2D<double>>.FromError($"Could not find feeder rail for slot ${Current.Slot}.");
 
             var slotOnRail = Current.Slot - rail.SlotStartIndex;
-            var origin = rail.Rotation.Value == FeederRotations.OneEighty ? rail.FirstFeederOrigin.SubtractFromX(slotOnRail * Current.Size.Depth) : rail.FirstFeederOrigin.AddToX(slotOnRail * Current.Size.Depth);
+            var deltaX = slotOnRail * Current.Size.Height;
+
+            var origin = new Point2D<double>( rail.Rotation.Value == FeederRotations.OneEighty ? rail.FirstFeederOrigin.X - deltaX : rail.FirstFeederOrigin.X + deltaX, rail.FirstFeederOrigin.Y);
             return InvokeResult<Point2D<double>>.Create(origin);
         }
 
@@ -181,6 +184,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var result = FindFeederFiducial();
             if (result.Successful)
             {
+                Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_FeederFiducial);
                 Machine.GotoPoint(result.Result);
                 //MachineConfiguration.PositioningCamera.CurrentVisionProfile = MachineConfiguration.PositioningCamera.VisionProfiles.FirstOrDefault(prf => prf.Key == VisionProfile.VisionProfile_BoardFiducial);
             }
@@ -188,6 +192,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, result.ErrorMessage);
             }
+        }
+
+        public async Task InitializeFeederAsync()
+        {
+            await PhotonFeederViewModel.InitializeFeederAsync((byte)Current.Slot, Current.FeederId);
         }
 
         public async Task AdvanceFeed()
@@ -392,7 +401,22 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
 
         private Point2D<double> _currentPartLocation;
-        public override Point2D<double> CurrentPartLocation { get => _currentPartLocation; }
+        public override Point2D<double> CurrentPartLocation 
+        { 
+            get
+            {
+                var result = FindPickLocation();
+                if (!result.Successful)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.FatalError, $"Could not find current feeder location {result.ErrorMessage}, moving to origin.");
+
+                    return new Point2D<double>(0, 0);
+                }
+
+                return result.Result;
+            }
+            
+        }
 
 
         ObservableCollection<AutoFeederTemplate> _templates;
@@ -428,5 +452,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand RefreshTemplatesCommand { get; }
 
         public RelayCommand ReloadFeederCommand { get; }
+        public RelayCommand InitializeFeederCommand { get; }
     }
 }

@@ -1,4 +1,4 @@
-﻿/*1/23/2025 11:42:39 AM*/
+﻿/*1/24/2025 2:48:50 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -1391,6 +1391,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:VisionProfile_Defauilt
 
 		public static string VisionProfile_Defauilt { get { return GetResourceString("VisionProfile_Defauilt"); } }
+//Resources:ManufacturingResources:VisionProfile_FeederFiducial
+
+		public static string VisionProfile_FeederFiducial { get { return GetResourceString("VisionProfile_FeederFiducial"); } }
 //Resources:ManufacturingResources:VisionProfile_FeederOrigin
 
 		public static string VisionProfile_FeederOrigin { get { return GetResourceString("VisionProfile_FeederOrigin"); } }
@@ -1415,6 +1418,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:VisionProfile_PartInWhiteTape
 
 		public static string VisionProfile_PartInWhiteTape { get { return GetResourceString("VisionProfile_PartInWhiteTape"); } }
+//Resources:ManufacturingResources:VisionProfile_PartOnBoard
+
+		public static string VisionProfile_PartOnBoard { get { return GetResourceString("VisionProfile_PartOnBoard"); } }
 //Resources:ManufacturingResources:VisionProfile_SquarePart
 
 		public static string VisionProfile_SquarePart { get { return GetResourceString("VisionProfile_SquarePart"); } }
@@ -1879,6 +1885,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ToolNozzleTip_Title = "ToolNozzleTip_Title";
 			public const string VisionProfile_BoardFiducial = "VisionProfile_BoardFiducial";
 			public const string VisionProfile_Defauilt = "VisionProfile_Defauilt";
+			public const string VisionProfile_FeederFiducial = "VisionProfile_FeederFiducial";
 			public const string VisionProfile_FeederOrigin = "VisionProfile_FeederOrigin";
 			public const string VisionProfile_MachineFiducual = "VisionProfile_MachineFiducual";
 			public const string VisionProfile_Nozzle = "VisionProfile_Nozzle";
@@ -1887,6 +1894,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string VisionProfile_PartInClearTape = "VisionProfile_PartInClearTape";
 			public const string VisionProfile_PartInspection = "VisionProfile_PartInspection";
 			public const string VisionProfile_PartInWhiteTape = "VisionProfile_PartInWhiteTape";
+			public const string VisionProfile_PartOnBoard = "VisionProfile_PartOnBoard";
 			public const string VisionProfile_SquarePart = "VisionProfile_SquarePart";
 			public const string VisionProfile_StagingPlateHole = "VisionProfile_StagingPlateHole";
 			public const string VisionProfile_TapeHole = "VisionProfile_TapeHole";

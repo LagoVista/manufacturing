@@ -20,9 +20,15 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 
         int AvailableParts { get; }
 
+        Task<InvokeResult> MoveToCurrentPartInFeederAsync();
         Task<InvokeResult> PickCurrentPartAsync();
         Task<InvokeResult> RecycleCurrentPartAsync();
         Task<InvokeResult> InspectCurrentPartAsync();
+
+        Task<InvokeResult> MoveToPartInFeederAsync(Component component);
+        Task<InvokeResult> PickPartAsync(Component component);
+        Task<InvokeResult> InspectPartAsync(Component component);        
+        Task<InvokeResult> RecyclePartAsync(Component component);
 
 
         ObservableCollection<EntityHeader> ComponentCategories { get; }

@@ -87,6 +87,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             return InvokeResult.Success;
         }
 
+ 
+
         public async Task<InvokeResult> InspectCurrentPartAsync()
         {
             if (CurrentComponent == null)
@@ -106,6 +108,24 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             return InvokeResult.Success;
+        }
+
+        public async Task<InvokeResult> InspectPartAsync(Component component)
+        {
+            CurrentComponent = component;
+            return await InspectCurrentPartAsync();
+        }
+
+        public async Task<InvokeResult> PickPartAsync(Component component)
+        {
+            CurrentComponent = component;
+            return await PickCurrentPartAsync();
+        }
+
+        public async Task<InvokeResult> RecyclePartAsync(Component component)
+        {
+            CurrentComponent = component;
+            return await RecycleCurrentPartAsync();
         }
 
         public async Task<InvokeResult> RecycleCurrentPartAsync()
@@ -157,6 +177,26 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             SelectedComponentSummaryId = StringExtensions.NotSelectedId;
         }
 
+        public Task<InvokeResult> MoveToCurrentPartInFeederAsync()
+        {
+            if (CurrentComponent == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current part selected, can not inspect.");
+                return Task.FromResult( InvokeResult.FromError("No current part selected, can not inspect."));
+            }
+
+            Machine.SendSafeMoveHeight();
+            Machine.SendSafeMoveHeight();
+            Machine.SendCommand(CurrentPartLocation.ToGCode());
+
+            return Task.FromResult(InvokeResult.Success);
+        }
+
+        public Task<InvokeResult> MoveToPartInFeederAsync(Component component)
+        {
+            CurrentComponent = component;
+            return MoveToCurrentPartInFeederAsync();
+        }
 
         ObservableCollection<EntityHeader> _componentCategories;
         public ObservableCollection<EntityHeader> ComponentCategories

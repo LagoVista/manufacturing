@@ -1,4 +1,5 @@
 ﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using System.Threading.Tasks;
@@ -11,6 +12,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         Task<InvokeResult> InspectPartOnboardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement);
         Task<InvokeResult> PlacePartOnboardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement);
         Task<InvokeResult> PickPartFromBoardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement);
+        Task<InvokeResult> GoToPartOnBoardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement);
+
         PickAndPlaceJob Job { get; set; }
 
         BoardFiducial SelectedFiducial { get; set; }
@@ -19,5 +22,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand GoToActualFiducialCommand { get; }
         RelayCommand AlignFiducialCommand { get; }
         RelayCommand AlignCommand { get; }
+
+        double AngleOffset { get; }
+        Point2D<double> ScalingError { get; }
     }
 }

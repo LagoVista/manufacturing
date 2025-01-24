@@ -1490,4 +1490,10 @@
   <data name="MachineToolHead_HeadIndex_Help" xml:space="preserve">
     <value>The Head Index is the 1 based index starting on the left for this machine tool head.  In most cases this will not be greater than zero</value>
   </data>
+  <data name="VisionProfile_PartOnBoard" xml:space="preserve">
+    <value>Part on Board</value>
+  </data>
+  <data name="VisionProfile_FeederFiducial" xml:space="preserve">
+    <value>Feeder Fiducial</value>
+  </data>
 </root>

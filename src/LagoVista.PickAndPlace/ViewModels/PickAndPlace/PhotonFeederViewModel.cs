@@ -69,6 +69,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
+      
+
         ManualResetEventSlim _completed = new ManualResetEventSlim();
 
         public void Discover()
@@ -92,11 +94,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     var gcode = _protocolHandler.GenerateGCode(LumenSupport.FeederCommands.GetId, idx);
                     _feederDiscoverResults.Add(gcode.PacketId, new FeederSearchResult() { Slot = idx });
                     MachineRepo.CurrentMachine.SendCommand(gcode.GCode);
-                    var attepmtCount = 0;
-                    while (!_completed.IsSet && ++attepmtCount < 200)
+                    var attemptCount = 0;
+                    while (!_completed.IsSet && ++attemptCount < 200)
                         _completed.Wait(5);
 
-                    Debug.WriteLine("Attempt Count: " + attepmtCount);
+                    Debug.WriteLine("Attempt Count: " + attemptCount);
 
                     if (_feederDiscoverResults[gcode.PacketId].Found)
                     {
@@ -131,21 +133,88 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }).Start();
         }
 
+        public async Task<InvokeResult> InitializeFeederAsync(byte slotIndex, string feederId)
+        {            
+            var gcode = _protocolHandler.GenerateGCode(LumenSupport.FeederCommands.Initialize, slotIndex, feederId);
+
+            MachineRepo.CurrentMachine.SendCommand(gcode.GCode);
+
+            MachineRepo.CurrentMachine.LineReceived += CurrentMachine_LineReceived_Advance;
+            _completed.Reset();
+            int attemptCount = 0;
+            while (!_completed.IsSet && ++attemptCount < 200)
+            {
+                _completed.Wait(1);
+                await Task.Delay(5);
+            }
+
+            MachineRepo.CurrentMachine.LineReceived -= CurrentMachine_LineReceived_Advance;
+
+            if (!_completed.IsSet)
+            {
+                Debug.WriteLine($"Does not appear to be completed {attemptCount}");
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not initailzed feeder.");
+                return InvokeResult.FromError("Could not inialize feeder.");
+            }
+            
+            else            
+                return InvokeResult.Success;
+            
+        }
+
         public async Task<InvokeResult> AdvanceFeed(byte slotIndex, double mm)
         {
             var gcode = _protocolHandler.GenerateGCode(LumenSupport.FeederCommands.MoveFeedForward, slotIndex, new byte[1] { Convert.ToByte(mm * 10) });
             MachineRepo.CurrentMachine.SendCommand(gcode.GCode);
 
-            await Task.Delay(5);
+            MachineRepo.CurrentMachine.LineReceived += CurrentMachine_LineReceived_Advance;
+            _completed.Reset();
+            int attemptCount = 0;
+            while (!_completed.IsSet && ++attemptCount < 200)
+            {
+                _completed.Wait(1);
+                await Task.Delay(5);
+            }
+
+             MachineRepo.CurrentMachine.LineReceived -= CurrentMachine_LineReceived_Advance;
 
             return InvokeResult.Success;
         }
+
+
+        private void CurrentMachine_LineReceived_Advance(object sender, string e)
+        {
+            var regExp = new Regex("^rs485-reply: (?'payload'[0-9A-F]+)$");
+            var match = regExp.Match(e);
+            if (match.Success)
+            {
+                try
+                {
+                    var responsePayload = match.Groups[1].Value;
+                    var parsed = _protocolHandler.ParseResponse(responsePayload);
+                    Debug.WriteLine($"From: {parsed.FromAddress} -> {parsed.ToAddress} - Status:  {parsed.Status}");
+                    _completed.Set();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.ToString());
+                }
+            }
+            else if (e.ToLower() == "rs485-reply: timeout")
+            {
+                _completed.Set();
+            }
+        }
+
 
         public async Task<InvokeResult> RetractFeed(byte slotIndex, double mm)
         {
             var gcode = _protocolHandler.GenerateGCode(LumenSupport.FeederCommands.MoveFeedBackward, slotIndex, new byte[1] { Convert.ToByte(mm * 10) });
             MachineRepo.CurrentMachine.SendCommand(gcode.GCode);
 
+            int attemptCount = 0;
+            while (!_completed.IsSet && ++attemptCount < 200)
+                _completed.Wait(1);
             await Task.Delay(5);
 
             return InvokeResult.Success;

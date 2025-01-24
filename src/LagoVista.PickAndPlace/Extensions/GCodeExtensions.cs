@@ -9,6 +9,9 @@ namespace LagoVista.PickAndPlace
     {
         public static string ToGCode(this Point2D<double> point, string command = "G0")
         {
+            if (point == null)
+                return String.Empty;
+
             return $"{command} X{point.X} Y{point.Y}";
         }
 
