@@ -35,8 +35,6 @@ namespace LagoVista.Manufacturing.Services
                 job.Parts.Add(part);
             }
 
-            
-
             return InvokeResult.Success;
         }
 
@@ -76,7 +74,7 @@ namespace LagoVista.Manufacturing.Services
                         if (stripFeeder != null)
                         {
                             part.StripFeeder = stripFeeder.ToEntityHeader();
-                            var row = stripFeeder.Rows.First(sfr => sfr.Component.Id == part.Component.Id);
+                            var row = stripFeeder.Rows.First(sfr => sfr.Component?.Id == part.Component.Id);
                             part.StripFeederRow = row.ToEntityHeader();
                             part.AvailableCount = row.CurrentPartIndex;
                         }
