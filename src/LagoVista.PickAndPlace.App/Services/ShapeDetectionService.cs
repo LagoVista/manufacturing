@@ -11,14 +11,11 @@ using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Models;
 using System.Drawing;
 using System.Collections.Generic;
-using System.Windows.Media;
-using System.Linq;
 
 namespace LagoVista.PickAndPlace.App.Services
 {
     internal class ShapeDetectionService : ViewModelBase, IShapeDetectorService<Image<Bgr, byte>>
     {
-        ILocatorViewModel _locatorViewModel;
         IMachineRepo _machineRepo;
     
         IImageHelper<IInputOutputArray> _imageHelper;
@@ -27,11 +24,10 @@ namespace LagoVista.PickAndPlace.App.Services
         ICornerDetector<IInputOutputArray> _cornerDetector;
 
 
-        public ShapeDetectionService(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel, 
+        public ShapeDetectionService(IMachineRepo machineRepo,
             IImageHelper<IInputOutputArray> imageHelper, IRectangleDetector<IInputOutputArray> rectLocator,
             ICircleDetector<IInputOutputArray> circleLocator, ICornerDetector<IInputOutputArray> cornerDetector)
         {
-            _locatorViewModel = locatorViewModel ?? throw new ArgumentNullException(nameof(locatorViewModel));
             _machineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
             _imageHelper = imageHelper ?? throw new ArgumentNullException(nameof(imageHelper));
             _rectangleDetector = rectLocator ?? throw new ArgumentNullException(nameof(rectLocator));
@@ -170,7 +166,7 @@ namespace LagoVista.PickAndPlace.App.Services
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 /*NOP, sometimes OpenCV acts a little funny. */
                 return null;
@@ -183,5 +179,11 @@ namespace LagoVista.PickAndPlace.App.Services
 
         public IEnumerable<MVLocatedCorner> FoundCorners => _cornerDetector.FoundCorners;
 
+        public void Reset()
+        {
+            _circleDetector.FoundCircles.Clear();
+            _rectangleDetector.FoundRectangles.Clear();
+            _cornerDetector.FoundCorners.Clear();
+        }
     }
 }

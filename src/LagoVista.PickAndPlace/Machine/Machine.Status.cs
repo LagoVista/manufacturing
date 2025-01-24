@@ -3,6 +3,7 @@ using LagoVista.Core.PlatformSupport;
 using LagoVista.Manufacturing.Interfaces;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace
@@ -16,10 +17,10 @@ namespace LagoVista.PickAndPlace
     }
 
     public partial class Machine : IMachineCore
-    {     
+    {
         public async Task SetViewTypeAsync(ViewTypes viewType)
         {
-            if(ViewType == viewType)
+            if (ViewType == viewType)
             {
                 return;
             }
@@ -96,7 +97,7 @@ namespace LagoVista.PickAndPlace
                     }
 
                     // 4. set the machine back to absolute points
-                    Enqueue("G90");                    
+                    Enqueue("G90");
 
                     // 5. Set the machine location to where it was prior to the move.
                     Enqueue($"G92 X{currentLocationX} Y{currentLocationY}");
@@ -143,6 +144,11 @@ namespace LagoVista.PickAndPlace
                 RaisePropertyChanged();
                 RaisePropertyChanged(nameof(WorkspacePosition));
                 RaisePropertyChanged(nameof(NormalizedPosition));
+                
+                if (_waitForPositionResetEvent != null)
+                {
+                    _waitForPositionResetEvent.Set();
+                }
             }
         }
 
@@ -330,7 +336,7 @@ namespace LagoVista.PickAndPlace
         public bool AreSettingsLocked
         {
             get => _settingsLocked;
-            set 
+            set
             {
                 _settingsLocked = value;
                 if (_settingsLocked)

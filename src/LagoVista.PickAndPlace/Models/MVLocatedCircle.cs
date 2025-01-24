@@ -14,7 +14,7 @@ namespace LagoVista.PickAndPlace.Models
         const int THROW_AWAY = 3;
         
         public Point2D<float>[] _centers = new Point2D<float>[FILTER_SIZE];
-        public float[] _radiuses = new float[FILTER_SIZE];
+        public float?[] _radiuses = new float?[FILTER_SIZE];
         
         int _head;
 
@@ -58,7 +58,7 @@ namespace LagoVista.PickAndPlace.Models
 
             var sortedX = _centers.Where(pt => pt != null).Select(pt => pt.X).OrderBy(pt => pt);
             var sortedY = _centers.Where(pt => pt != null).Select(pt => pt.Y).OrderBy(pt => pt);
-            var sortedRadiuses = _radiuses.Where(rad => rad > 0).OrderBy(rd => rd);
+            var sortedRadiuses = _radiuses.Where(rad => rad.HasValue).Select(rad=>rad.Value).OrderBy(rd => rd);
 
             if (_populated)
             {
@@ -92,9 +92,16 @@ namespace LagoVista.PickAndPlace.Models
 
         public int FoundCount { get => _foundCount; }
 
-        public void ResetFoundCount()
+        public void Reset()
         {
             _foundCount = 0;
+            _populated = false;
+            _head = 0;
+            for(int idx = 0; idx < FILTER_SIZE; ++idx)
+            {
+                _radiuses[idx] = null;
+                _centers[idx] = null;
+            }
         }
 
         public CameraTypes CameraType { get; }

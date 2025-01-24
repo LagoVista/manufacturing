@@ -49,7 +49,13 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _actualWorkOrigin, value); }
         }
 
-        public List<BoardFiducial> BoardFiducials { get; set; } = new List<BoardFiducial>();
+
+        ObservableCollection<BoardFiducial> _boardFiducials;
+        public ObservableCollection<BoardFiducial> BoardFiducials
+        {
+            get => _boardFiducials;
+            set => Set(ref _boardFiducials, value);
+        }
 
         public double BoardAngle { get; set; }
 
@@ -114,6 +120,13 @@ namespace LagoVista.Manufacturing.Models
 
     public class BoardFiducial : ModelBase
     {
+        private string _name;
+        public string Name 
+        {
+            get => _name;
+            set => Set(ref _name, value);
+        }
+
         private Point2D<double> _expected;
         public Point2D<double> Expected 
         {

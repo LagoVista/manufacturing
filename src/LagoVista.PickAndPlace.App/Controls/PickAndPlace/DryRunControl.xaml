@@ -51,7 +51,7 @@
                     <Button Style="{StaticResource CommandButton}" Content="Inspect"></Button>
                     <Button Style="{StaticResource CommandButton}" Content="Place All Parts"></Button>
                 </StackPanel>
-
+                <local:CircuitBoardControl />
             </StackPanel>
             
             <pcb:PCBRenderer Grid.Column="1" TopWiresVisible="true" BottomWiresVisible="true" PCBVisible="true" CenterBoard="true" Grid.Row="2" CircuitBoard="{Binding JobVM.CircuitBoard}" ></pcb:PCBRenderer>

@@ -260,7 +260,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public PickAndPlaceJob Job
         {
             get => _job;
-            set => Set(ref _job, value);
+            private set => Set(ref _job, value);
         }
 
         PickAndPlaceJobSummary _selectedJob;

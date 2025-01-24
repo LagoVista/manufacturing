@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 {
-    public class JobExecutionViewModel : MachineViewModelBase
+    public class JobExecutionViewModel : MachineViewModelBase, IJobExecutionViewModel
     {
 
         IStripFeederViewModel _stripFeederViewModel;

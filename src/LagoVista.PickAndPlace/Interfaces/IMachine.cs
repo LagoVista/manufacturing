@@ -332,5 +332,7 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         Task GoToPartInspectionCameraAsync();
 
+        Task<Point2D<double>> GetCurrentLocationAsync();
+
     }
 }

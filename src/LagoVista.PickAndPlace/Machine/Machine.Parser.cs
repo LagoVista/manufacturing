@@ -294,6 +294,11 @@ namespace LagoVista.PickAndPlace
                 {
                     MachinePosition = newMachinePosition;
                 }
+                else if(_waitForPositionResetEvent != null)
+                {
+                    _waitForPositionResetEvent.Set();
+                    Debug.WriteLine("WAITER SHOULD BE RELEASED");
+                }
 
                 ToolCommonZ = double.Parse(zpos.Value, Constants.DecimalParseFormat);
                 
@@ -311,6 +316,11 @@ namespace LagoVista.PickAndPlace
                 if (MachinePosition != newMachinePosition)
                 {
                     MachinePosition = newMachinePosition;
+                }
+                else
+                {
+                    _waitForPositionResetEvent.Set();
+                    
                 }
 
                 return true;

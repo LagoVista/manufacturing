@@ -78,16 +78,17 @@ namespace LagoVista.PickAndPlace.App
             LagoVista.Client.Core.Startup.Init(live);
 
             SLWIOC.RegisterSingleton<IMachineRepo, MachineRepo>();
-            SLWIOC.RegisterSingleton<ILocatorViewModel, LocatorViewModel>();
+            
             SLWIOC.RegisterSingleton<IMachineUtilitiesViewModel, MachineUtilitiesViewModel>();
             SLWIOC.Register<IVisionProfileViewModel, VisionProfileViewModel>();
             SLWIOC.Register<IImageCaptureService, ImageCaptureService>();
+            SLWIOC.RegisterSingleton<ILocatorViewModel, LocatorViewModel>();
             SLWIOC.Register<IMachineControlViewModel, MachineControlViewModel>();
             SLWIOC.Register<IManualSendViewModel, ManualSendViewModel>();
             SLWIOC.Register<ICurrentMachineViewModel, CurrentMachineViewModel>();
             SLWIOC.Register<INozzleChangeViewModel, NozzleChangeViewModel>();
             SLWIOC.Register<IPickAndPlaceJobResolverService, PickAndPlaceJobResolverService>();
-            SLWIOC.RegisterSingleton<ICircuitBoardViewModel, CircuitBoardViewModel>();            
+            
             SLWIOC.RegisterSingleton<IVacuumViewModel, VacuumViewModel>();
             SLWIOC.RegisterSingleton<IPhotonFeederViewModel, PhotonFeederViewModel>();
             SLWIOC.RegisterSingleton<IStripFeederViewModel, StripFeederViewModel>();
@@ -99,8 +100,10 @@ namespace LagoVista.PickAndPlace.App
             
             SLWIOC.RegisterSingleton<IStagingPlateSelectorViewModel, StagingPlateSelectorViewModel>();
             SLWIOC.RegisterSingleton<IToolHeadViewModel, ToolHeadViewModel>();
+            SLWIOC.RegisterSingleton<ICircuitBoardViewModel, CircuitBoardViewModel>();
             SLWIOC.Register<IMachineCoreActionsViewModel, MachineCoreActionsViewModel>();
             SLWIOC.Register<IDryRunViewModel, DryRunViewModel>();
+            SLWIOC.Register<IJobExecutionViewModel, JobExecutionViewModel>();
 
             MachineVision.Startup.Init();
             Services.Startup.Init();

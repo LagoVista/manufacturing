@@ -3,7 +3,6 @@ using Emgu.CV;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Models;
 using System;
-using System.Collections.Generic;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Interfaces.Services;
 using LagoVista.PickAndPlace.Interfaces;

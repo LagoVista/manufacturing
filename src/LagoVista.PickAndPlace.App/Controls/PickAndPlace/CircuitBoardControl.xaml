@@ -1,15 +1,28 @@
 ﻿<ucb:VMBoundUserControl x:Class="LagoVista.PickAndPlace.App.Controls.PickAndPlace.CircuitBoardControl"
-             x:TypeArguments="vm:ICircuitBoardViewModel"                        
+             x:TypeArguments="vm:ICircuitBoardViewModel"                                                
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             d:DataContext="{d:DesignInstance vm:ICircuitBoardViewModel }"
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;assembly=LagoVista.PickAndPlace"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls.PickAndPlace"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <DataGrid ItemsSource="{Binding Job.BoardFiducials}" SelectedItem="{Binding SelectedFiducial}">
             
+        </DataGrid>
+        <StackPanel Orientation="Horizontal" Grid.Row="1">
+            <Button Command="{Binding GoToExpectedFiducialCommand}" Style="{StaticResource CommandButton}">GoTo Expected Fiducial</Button>
+            <Button Command="{Binding GoToActualFiducialCommand}" Style="{StaticResource CommandButton}">GoTo Actual Fiducial</Button>
+            <Button Command="{Binding AlignFiducialCommand}" Style="{StaticResource CommandButton}">Align Fiducial</Button>
+            <Button Command="{Binding AlignCommand}" Style="{StaticResource CommandButton}">Align Board</Button>
+        </StackPanel>
     </Grid>
 </ucb:VMBoundUserControl>

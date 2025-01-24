@@ -15,5 +15,7 @@ namespace LagoVista.PickAndPlace.Interfaces.Services
         IEnumerable<MVLocatedCircle> FoundCircles { get; }
         IEnumerable<MVLocatedRectangle> FoundRectangles { get; }
         IEnumerable<MVLocatedCorner> FoundCorners { get; }
+
+        void Reset();
     }
 }

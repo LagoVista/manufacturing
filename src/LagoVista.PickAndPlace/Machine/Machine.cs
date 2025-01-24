@@ -15,6 +15,9 @@ using System.Linq;
 using Emgu.CV.DepthAI;
 using LagoVista.PickAndPlace.Models;
 using Newtonsoft.Json;
+using System.Threading;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace LagoVista.PickAndPlace
 {
@@ -247,6 +250,46 @@ namespace LagoVista.PickAndPlace
                     ConfigureBottomLight(camera.CurrentVisionProfile.LightOn, camera.CurrentVisionProfile.LightPower, camera.CurrentVisionProfile.LightRed, camera.CurrentVisionProfile.LightBlue, camera.CurrentVisionProfile.LightGreen);
                 }
             }
+        }
+
+        SemaphoreSlim _waitCurrent = new SemaphoreSlim(1);
+
+        ManualResetEventSlim _waitForPositionResetEvent;
+
+        public async Task<Point2D<double>> GetCurrentLocationAsync()
+        {
+            await _waitCurrent.WaitAsync();
+            
+            if(_waitForPositionResetEvent != null)
+            {
+                throw new InvalidOperationException(@"Already requested current location.");
+            }
+
+            _waitForPositionResetEvent = new ManualResetEventSlim(false);
+            _waitForPositionResetEvent.Reset();
+
+            var waitForLocation = new SemaphoreSlim(0);
+            Debug.WriteLine("Start wait for location");
+            //var entered = await waitForLocation.WaitAsync(3000);
+            
+            waitForLocation.Dispose();
+            waitForLocation = null;
+
+            await Task.Run(() =>
+            {
+                var attemptCount = 0;
+                while (!_waitForPositionResetEvent.IsSet && ++attemptCount < 200)
+                    _waitForPositionResetEvent.Wait(25);
+
+                Debug.WriteLine($"Did we get location? {_waitForPositionResetEvent.IsSet}");
+
+                _waitForPositionResetEvent.Dispose();
+                _waitForPositionResetEvent = null;
+            });
+
+            _waitCurrent.Release();
+
+            return MachinePosition.ToPoint2D();
         }
 
         public void Dwell(int ms)

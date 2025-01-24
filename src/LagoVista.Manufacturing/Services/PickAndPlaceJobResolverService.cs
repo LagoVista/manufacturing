@@ -1,6 +1,7 @@
 ﻿using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
+using PdfSharpCore.Pdf.Filters;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -39,9 +40,16 @@ namespace LagoVista.Manufacturing.Services
         }
 
         public InvokeResult ResolveJobAsync(Machine machine, PickAndPlaceJob job, CircuitBoardRevision boardRevision, IEnumerable<StripFeeder> stripFeeders, IEnumerable<AutoFeeder> autoFeeders)
-        {            
-            job.BoardFiducials.AddRange(boardRevision.PcbComponents.Where(pcbc => pcbc.Fiducial).Select(fid=>new BoardFiducial() { 
-                Expected = new Point2D<double>() { X = fid.X.Value, Y = fid.Y.Value } }));
+        {
+            job.BoardFiducials.Clear();
+            var fiducials = boardRevision.PcbComponents.Where(pcbc => pcbc.Fiducial).Select(fid => new BoardFiducial()
+            {
+                Name = fid.Name,
+                Expected = new Point2D<double>() { X = fid.X.Value, Y = fid.Y.Value },                
+            });
+
+            foreach(var fiducial in fiducials)
+                job.BoardFiducials.Add(fiducial);
 
             job.Warnings = new System.Collections.ObjectModel.ObservableCollection<string>();
             job.Errors = new System.Collections.ObjectModel.ObservableCollection<string>();

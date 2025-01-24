@@ -3,9 +3,6 @@ using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Manufacturing.Models;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 
 namespace LagoVista.PickAndPlace.Models
@@ -126,5 +123,18 @@ namespace LagoVista.PickAndPlace.Models
         }
 
         public int Iteration { get; set; }
+
+        public void Reset()
+        {
+            FoundCount = 0;
+            _populated = false;
+            _head = 0;
+
+            for(var idx = 0; idx < FILTER_SIZE; ++idx)
+            {
+                _angles[idx] = null;
+                _centers[idx] = null;
+            }
+        }
     }
 }

@@ -93,7 +93,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     Machine.GotoPoint(circle.OffsetMM, relativeMove: true);
                 }
 
-                circle.ResetFoundCount();
+                circle.Reset();
             }
         }
 
