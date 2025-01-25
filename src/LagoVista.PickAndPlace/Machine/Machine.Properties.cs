@@ -136,7 +136,6 @@ namespace LagoVista.PickAndPlace
             }
         }
 
-
         bool _isInitialized = false;
         public bool IsInitialized
         {
@@ -478,37 +477,88 @@ namespace LagoVista.PickAndPlace
             }
         }
 
+        private bool _leftToolHead
+        {
+            get
+            {
+                if (CurrentMachineToolHead == null)
+                {
+                    AddStatusMessage(StatusMessageTypes.Warning, "Attempt to call _leftTooLHead, should never do so with camera view, very likely a bug");
+                    return true;
+                }
+
+                return CurrentMachineToolHead.HeadIndex == 0;
+            }
+        }
+
+
+
         private bool _vacuumPump = false;
         public bool VacuumPump
         {
-            get { return _vacuumPump; }
+            get 
+            {
+                if (CurrentMachineToolHead == null)
+                {
+                    return false;
+                }
+                else 
+                {
+                    return _leftToolHead ? LeftVacuumPump : RightVacuumPump;                    
+                }                 
+            }
             set
             {
-                if (_vacuumPump != value)
+                if (CurrentMachineToolHead == null)
                 {
-                    switch (Settings.MachineType)
+                    LeftVacuumPump = false;
+                    RightVacuumPump = false;
+                }
+                else
+                {
+                    if (_leftToolHead)
                     {
-                        case FirmwareTypes.Repeteir_PnP:
-                            Enqueue($"M42 P10 S{(value ? 255 : 0)}");
-                            break;
-                        case FirmwareTypes.LagoVista_PnP:
-                            Enqueue($"M64 S{(value ? 255 : 0)}");
-                            break;
-                        default:
-                            if (Settings.GcodeMapping.Value != null)
-                            {
-                                if (value)
-                                    Enqueue(Settings.GcodeMapping.Value.LeftVacuumOn);
-                                else
-                                    Enqueue(Settings.GcodeMapping.Value.LeftVacuumOff);
-                            }
-                            break;
+                        LeftVacuumPump = value;
                     }
+                    else
+                    {
+                        RightVacuumPump = value;
+                    }
+                }
 
-                    _vacuumPump = value;
-                    RaisePropertyChanged();
+                RaisePropertyChanged();
+            }
+        }
+
+        public ulong Vacuum
+        {
+            get
+            {
+                if (CurrentMachineToolHead == null)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return _leftToolHead ? _leftVacuum : _rightVacuum;
                 }
             }
+            set
+            {
+                if(CurrentMachineToolHead != null)
+                {
+                    if (_leftToolHead)
+                        LeftVacuum = value;
+                    else
+                        RightVacuum = value;
+                }
+                else
+                {
+                    LeftVacuum = 0;
+                    RightVacuum = 0;
+                }
+            }
+
         }
 
         ulong _leftVacuum;

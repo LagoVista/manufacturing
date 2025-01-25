@@ -27,6 +27,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         RelayCommand BottomLightOnCommand { get; }
         RelayCommand BottomLightOffCommand { get; }
 
+        Task<ulong> ReadVacuumAsync();
         Task<ulong> ReadLeftVacuumAsync();
         Task<ulong> ReadRightVacuumAsync();
     }

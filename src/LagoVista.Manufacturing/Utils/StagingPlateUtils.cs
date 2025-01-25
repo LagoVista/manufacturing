@@ -38,12 +38,26 @@ namespace LagoVista.Manufacturing.Util
         public static Point2D<double> ResolveStagePlateWorkSpaceLocation(MachineStagingPlate plate, string colId, string rowId)
         {
             var holeLocation = new Point2D<double>(ColToX(plate, colId), RowToY(plate, rowId));
+            
             var referenceOffset = new Point2D<double>(ColToX(plate, plate.ReferenceHoleColumn1.Id), RowToY(plate, plate.ReferenceHoleRow1.Id));
+            var secondPointOffset = new Point2D<double>(ColToX(plate, plate.ReferenceHoleColumn2.Id), RowToY(plate, plate.ReferenceHoleRow2.Id));
+
+            var expected = secondPointOffset - referenceOffset;
+            var actual = plate.ReferenceHoleLocation2 - plate.ReferenceHoleLocation1;
+            var delta = expected - actual;
+            var x = (holeLocation.X - referenceOffset.X);
+            var y = (holeLocation.Y - referenceOffset.Y);
+
+            var ratioX = x / actual.X;
+            var ratioY = y / actual.Y;
+
+            x -= ratioX * delta.X;
+            y -= ratioY * delta.Y;
 
             return new Point2D<double>()
             {
-                X = (holeLocation.X - referenceOffset.X) + plate.ReferenceHoleLocation1.X,
-                Y = (holeLocation.Y - referenceOffset.Y) + plate.ReferenceHoleLocation1.Y
+                X = x + plate.ReferenceHoleLocation1.X,
+                Y = y + plate.ReferenceHoleLocation1.Y
             };
         }
     }

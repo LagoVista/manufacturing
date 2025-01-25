@@ -1,6 +1,7 @@
 ﻿using LagoVista.Core.Commanding;
 using LagoVista.Manufacturing.Util;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
+using LagoVista.PickAndPlace.Models;
 
 namespace LagoVista.PickAndPlace.ViewModels.Machine
 {
@@ -16,6 +17,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             var point = StagingPlateUtils.ResolveStagePlateWorkSpaceLocation(SelectedStagingPlate, SelectedStagingPlateColId, SelectedStagingPlateRowId);
             Machine.SendSafeMoveHeight();
             Machine.GotoPoint(point);
+            Machine.SetVisionProfile(Manufacturing.Models.CameraTypes.Position, VisionProfile.VisionProfile_StagingPlateHole);
         }
 
         public RelayCommand GoToStagingPlateHoleCommand { get; }

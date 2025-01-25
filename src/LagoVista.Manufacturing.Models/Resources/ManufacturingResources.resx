@@ -1290,7 +1290,7 @@
     <value>Distance in MM from the bottom, front left of the machines frame to the 0,0 coordinate of the workspace.</value>
   </data>
   <data name="StripFeederRow_LastTapeHoleOffset" xml:space="preserve">
-    <value>Last Tape Hope Offset</value>
+    <value>Last Tape Hole Offset</value>
   </data>
   <data name="StripFeederRow_LastTapeHoleOffset_Help" xml:space="preserve">
     <value>Offset from tape hole prior to first part to tape hole prior to last part, used to correct for any angle offsets in feeder installation.</value>
@@ -1437,7 +1437,7 @@
     <value>Tape Holes on Top</value>
   </data>
   <data name="StripFeeder_TapeHolesOnTop_Help" xml:space="preserve">
-    <value>If the feeder is horizontal, is the tape installed so the reference holes are on the top or bottom of the tap.</value>
+    <value>When the feeder is horizontal, if the holes are on the top of the tape, then this should be set.</value>
   </data>
   <data name="ComponentPackage_NozzleTip" xml:space="preserve">
     <value>Nozzle Tip</value>
@@ -1489,5 +1489,38 @@
   </data>
   <data name="VisionProfile_FeederFiducial" xml:space="preserve">
     <value>Feeder Fiducial</value>
+  </data>
+  <data name="AssemblyInstruction_Title" xml:space="preserve">
+    <value>Assembly Intruction</value>
+  </data>
+  <data name="AssemblyInstructions_Title" xml:space="preserve">
+    <value>Assembly Instructions</value>
+  </data>
+  <data name="AssemblyInstruction_Description" xml:space="preserve">
+    <value>Assembly Instructions are  a set of steps that need to be completed manufacture a part, assembly or product.</value>
+  </data>
+  <data name="AssemblyInstructionStep_Title" xml:space="preserve">
+    <value>Assembly Instruction Step</value>
+  </data>
+  <data name="AssemblyInstruction_Steps" xml:space="preserve">
+    <value>Steps</value>
+  </data>
+  <data name="AssemblyInstructionStep_Description" xml:space="preserve">
+    <value>A single step that needs to take place to assemble a part, assembly or product.</value>
+  </data>
+  <data name="Common_TItle" xml:space="preserve">
+    <value>Title</value>
+  </data>
+  <data name="AssembyInstructionsStep_Instructions" xml:space="preserve">
+    <value>Instructions</value>
+  </data>
+  <data name="AssemblyInstructionStep_Images" xml:space="preserve">
+    <value>Images</value>
+  </data>
+  <data name="ComponentPackage_YOffsetReferenceHole" xml:space="preserve">
+    <value>Center Y Offset from Refrence Hole</value>
+  </data>
+  <data name="ComponentPackage_XOffsetReferenceHole" xml:space="preserve">
+    <value>Center X Offset for Reference Hole</value>
   </data>
 </root>

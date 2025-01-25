@@ -78,19 +78,25 @@ namespace LagoVista.PickAndPlace.Interfaces
         bool TopLightOn { get; set; }
         bool BottomLightOn { get; set; }
         
-        bool VacuumPump { get; set; }
+        
         bool PuffPump { get; set; }
         bool VacuumSolendoid { get; set; }
         bool PuffSolenoid { get; set; }
 
+
+        bool VacuumPump { get; set; }
         bool LeftVacuumPump { get; set; }
         bool RightVacuumPump { get; set; }
 
+        ulong Vacuum { get; set; }
         ulong RightVacuum { get; set; }
         ulong LeftVacuum { get; set; }
 
         bool IsPnPMachine { get; }
 
+        void SetToolHeadHeight(double height);
+
+        Task<InvokeResult<ulong>> ReadVacuumAsync();
         Task<InvokeResult<ulong>> ReadLeftVacuumAsync();
         Task<InvokeResult<ulong>> ReadRightVacuumAsync();
 

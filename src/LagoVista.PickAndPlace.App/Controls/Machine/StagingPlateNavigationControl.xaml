@@ -11,7 +11,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel>
         <TextBlock Text="Staging Plate"/>
-        <ComboBox ItemsSource="{Binding StagingPlates}" Template="{StaticResource DefaultComboBoxStyle}" DisplayMemberPath="Text" SelectedValuePath="Id" SelectedValue="{Binding SelectedStagingPlateId}"></ComboBox>
+        <ComboBox ItemsSource="{Binding StagingPlates}" DisplayMemberPath="Text" SelectedValuePath="Id" SelectedValue="{Binding SelectedStagingPlateId}"></ComboBox>
 
         <TextBlock Text="Row"/>
         <ComboBox IsEnabled="{Binding CanSelectStagingPlateRow}" ItemsSource="{Binding StagingPlateRows}" SelectedValuePath="Id" SelectedValue="{Binding SelectedStagingPlateRowId}"></ComboBox>

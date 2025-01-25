@@ -418,6 +418,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             
         }
 
+        public override double? PickHeight => _current?.PickHeight;
 
         ObservableCollection<AutoFeederTemplate> _templates;
         public ObservableCollection<AutoFeederTemplate> Templates 

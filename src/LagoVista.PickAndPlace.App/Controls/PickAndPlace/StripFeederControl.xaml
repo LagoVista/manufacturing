@@ -102,8 +102,8 @@
 
             <StackPanel Grid.Column="2">
                 <StackPanel Visibility="{Binding CurrentRow , Converter={StaticResource NoTNullToVisibilityConverter}}">
-                    <TextBlock Text="{Binding CurrentRow.RowIndex}" />
-                    <TextBlock Text="{Binding CurrentRow.Component.Text}" />
+                    <TextBlock Style="{StaticResource content}" Text="{Binding CurrentRow.RowIndex}" />
+                    <TextBlock Style="{StaticResource content}" Text="{Binding CurrentRow.Component.Text}" />
                     <TextBlock Text="Component Category" Style="{StaticResource label}"></TextBlock>
                     <ComboBox ItemsSource="{Binding ComponentCategories}" DisplayMemberPath="Text" SelectedValuePath="Key" SelectedValue="{Binding SelectedCategoryKey, Mode=TwoWay}"></ComboBox>
                     <TextBlock Text="Component" Style="{StaticResource label}"></TextBlock>

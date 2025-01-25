@@ -8,6 +8,7 @@ using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.ViewModels.Machine;
+using RingCentral;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -70,16 +71,37 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }            
 
             Machine.SendSafeMoveHeight();
-            await Machine.MoveToToolHeadAsync( MachineConfiguration.ToolHeads.First());
+            if(CurrentComponent.ComponentPackage.HasValue)
+            {
+                if(!EntityHeader.IsNullOrEmpty(CurrentComponent.ComponentPackage.Value.NozzleTip))
+                {
+                    var toolHead = MachineConfiguration.ToolHeads.FirstOrDefault(th => th.CurrentNozzle?.Id == CurrentComponent.ComponentPackage.Value.NozzleTip.Id);
+                    if(toolHead != null)
+                        await Machine.MoveToToolHeadAsync(toolHead);
+                    else
+                        await Machine.MoveToToolHeadAsync(MachineConfiguration.ToolHeads.First());
+                }
+                else
+                    await Machine.MoveToToolHeadAsync(MachineConfiguration.ToolHeads.First());
+            }
+            else
+                await Machine.MoveToToolHeadAsync( MachineConfiguration.ToolHeads.First());
+
+            var leftHead = Machine.CurrentMachineToolHead.HeadIndex == 0;
+
             Machine.SendCommand(CurrentPartLocation.ToGCode());
-            Machine.SendCommand($"G0 ZL{Machine.CurrentMachineToolHead.PickHeight}");
-            Machine.LeftVacuumPump = true;
+
+            if(PickHeight.HasValue)
+                Machine.SetToolHeadHeight(PickHeight.Value);
+
+            Machine.VacuumPump = true;
+
             Machine.Dwell(100);
-            var beforePick = await _machineUtilitiesViewModel.ReadLeftVacuumAsync();           
+
+            var beforePick = await _machineUtilitiesViewModel.ReadVacuumAsync();
             Machine.SendSafeMoveHeight();
             Machine.Dwell(100);
-            var afterPick = await _machineUtilitiesViewModel.ReadLeftVacuumAsync();
-
+            var afterPick = await _machineUtilitiesViewModel.ReadVacuumAsync();
             StatusMessage = $"Part Picked - Vacuum {beforePick} - {afterPick}";
 
             _pickStates = PickStates.Picked;
@@ -136,18 +158,20 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return InvokeResult.FromError("No current part selected, can not recycle");
             }
 
-            var beforePick = await _machineUtilitiesViewModel.ReadLeftVacuumAsync();
+            var beforePick = await _machineUtilitiesViewModel.ReadVacuumAsync();
             Machine.SendSafeMoveHeight();
             Machine.SendCommand(CurrentPartLocation.ToGCode());
-            Machine.SendCommand($"G0 ZL{Machine.CurrentMachineToolHead.PickHeight}");            
-            Machine.LeftVacuumPump = false;
+            Machine.SetToolHeadHeight(PickHeight.Value);
+            Machine.VacuumPump = false;
             Machine.Dwell(100);
             Machine.SendSafeMoveHeight();
-            var afterPick = await _machineUtilitiesViewModel.ReadLeftVacuumAsync();
+            var afterPick = await _machineUtilitiesViewModel.ReadVacuumAsync();
 
             _pickStates = PickStates.Idle;
 
             StatusMessage = $"Part Picked - Vacuum {beforePick} - {afterPick}";
+
+            await Machine.MoveToCameraAsync();
 
             return InvokeResult.Success;
         }
@@ -162,14 +186,22 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
             else
             {
+                
                 var component = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Component>>($"/api/mfg/component/{componentId}");
                 SelectedComponent = component.Result.Model;
-                _selectedCategoryKey = SelectedComponent.ComponentType.Key;
-                RaisePropertyChanged(nameof(SelectedCategoryKey));
+                
+                if (SelectedComponent.ComponentType.Key != _selectedCategoryKey)
+                {
+                    _selectedCategoryKey = SelectedComponent.ComponentType.Key;
+                    await LoadComponentsByCategory(_selectedCategoryKey);
+                    RaisePropertyChanged(nameof(SelectedCategoryKey));
+                }
+
+                SelectedComponentSummaryId = componentId;
             }
         }
 
-        public async void LoadComponentsByCategory(string categoryKey)
+        public async Task LoadComponentsByCategory(string categoryKey)
         {
             var components = await _restClient.GetListResponseAsync<ComponentSummary>($"/api/mfg/components?componentType={categoryKey}");
             Components = new ObservableCollection<ComponentSummary>(components.Model);
@@ -265,6 +297,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             set
             {
                 Set(ref _currentComponent, value);
+                if(value != null)
+                {
+                    SelectedComponentSummaryId = value.Id;
+                }
                 PickCurrentPartCommand.RaiseCanExecuteChanged();
                 RecycleCurrentPartCommand.RaiseCanExecuteChanged();
                 InspectCurrentPartCommand.RaiseCanExecuteChanged();
@@ -308,6 +344,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand RecycleCurrentPartCommand { get; }
 
         public abstract Point2D<double> CurrentPartLocation { get;  }
+
+        public abstract double? PickHeight { get;  }
 
         string _statusMessage;
         public string StatusMessage

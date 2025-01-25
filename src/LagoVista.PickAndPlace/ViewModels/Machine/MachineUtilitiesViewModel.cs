@@ -23,7 +23,20 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             TopLightOffCommand = CreatedMachineConnectedCommand(() => MachineRepo.CurrentMachine.TopLightOn = false);
             BottomLightOnCommand = CreatedMachineConnectedCommand(() => MachineRepo.CurrentMachine.BottomLightOn = true);
             BottomLightOffCommand = CreatedMachineConnectedCommand(() => MachineRepo.CurrentMachine.BottomLightOn = false);
-        }    
+        }
+
+        public async Task<ulong> ReadVacuumAsync()
+        {
+            var result = await MachineRepo.CurrentMachine.ReadVacuumAsync();
+            if (result.Successful)
+            {
+                LeftVacuum = result.Result;
+                RaisePropertyChanged(nameof(LeftVacuum));
+                return LeftVacuum;
+            }
+
+            return 0;
+        }
 
         public async Task<ulong> ReadLeftVacuumAsync()
         {

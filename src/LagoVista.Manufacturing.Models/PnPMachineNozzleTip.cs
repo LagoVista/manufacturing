@@ -20,19 +20,9 @@ namespace LagoVista.Manufacturing.Models
         {
             Id = Guid.NewGuid().ToId();
         }
-
-        public string Id { get; set; }
-
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Name, FieldType: FieldTypes.Text, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-
-        public string Name { get; set; }
-
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Key, FieldType: FieldTypes.Key, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public string Key { get; set; }
-
+        
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Icon { get; set; } = "icon-ae-control-panel";
-
 
         private double? _height;
         [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_Height, FieldType: FieldTypes.Decimal, IsRequired: false, ResourceType: typeof(ManufacturingResources))]

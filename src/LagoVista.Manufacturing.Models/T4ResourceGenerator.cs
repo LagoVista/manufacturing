@@ -1,8 +1,8 @@
-﻿/*1/25/2025 10:10:31 AM*/
+﻿/*1/25/2025 5:40:27 PM*/
 using System.Globalization;
 using System.Reflection;
 
-//Resources:ManufacturingResources:AutoFeeder_Description
+//Resources:ManufacturingResources:AssemblyInstruction_Description
 namespace LagoVista.Manufacturing.Models.Resources
 {
 	public class ManufacturingResources
@@ -56,6 +56,30 @@ namespace LagoVista.Manufacturing.Models.Resources
 			return new HtmlString(str);
         }*/
 		
+		public static string AssemblyInstruction_Description { get { return GetResourceString("AssemblyInstruction_Description"); } }
+//Resources:ManufacturingResources:AssemblyInstruction_Steps
+
+		public static string AssemblyInstruction_Steps { get { return GetResourceString("AssemblyInstruction_Steps"); } }
+//Resources:ManufacturingResources:AssemblyInstruction_Title
+
+		public static string AssemblyInstruction_Title { get { return GetResourceString("AssemblyInstruction_Title"); } }
+//Resources:ManufacturingResources:AssemblyInstructions_Title
+
+		public static string AssemblyInstructions_Title { get { return GetResourceString("AssemblyInstructions_Title"); } }
+//Resources:ManufacturingResources:AssemblyInstructionStep_Description
+
+		public static string AssemblyInstructionStep_Description { get { return GetResourceString("AssemblyInstructionStep_Description"); } }
+//Resources:ManufacturingResources:AssemblyInstructionStep_Images
+
+		public static string AssemblyInstructionStep_Images { get { return GetResourceString("AssemblyInstructionStep_Images"); } }
+//Resources:ManufacturingResources:AssemblyInstructionStep_Title
+
+		public static string AssemblyInstructionStep_Title { get { return GetResourceString("AssemblyInstructionStep_Title"); } }
+//Resources:ManufacturingResources:AssembyInstructionsStep_Instructions
+
+		public static string AssembyInstructionsStep_Instructions { get { return GetResourceString("AssembyInstructionsStep_Instructions"); } }
+//Resources:ManufacturingResources:AutoFeeder_Description
+
 		public static string AutoFeeder_Description { get { return GetResourceString("AutoFeeder_Description"); } }
 //Resources:ManufacturingResources:AutoFeeder_PickOffsetFromFiducial
 
@@ -177,6 +201,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Common_Status_Select
 
 		public static string Common_Status_Select { get { return GetResourceString("Common_Status_Select"); } }
+//Resources:ManufacturingResources:Common_TItle
+
+		public static string Common_TItle { get { return GetResourceString("Common_TItle"); } }
 //Resources:ManufacturingResources:Common_UniqueId
 
 		public static string Common_UniqueId { get { return GetResourceString("Common_UniqueId"); } }
@@ -496,6 +523,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ComponentPackage_Verified_Help
 
 		public static string ComponentPackage_Verified_Help { get { return GetResourceString("ComponentPackage_Verified_Help"); } }
+//Resources:ManufacturingResources:ComponentPackage_XOffsetReferenceHole
+
+		public static string ComponentPackage_XOffsetReferenceHole { get { return GetResourceString("ComponentPackage_XOffsetReferenceHole"); } }
+//Resources:ManufacturingResources:ComponentPackage_YOffsetReferenceHole
+
+		public static string ComponentPackage_YOffsetReferenceHole { get { return GetResourceString("ComponentPackage_YOffsetReferenceHole"); } }
 //Resources:ManufacturingResources:ComponentPurchase_Description
 
 
@@ -1436,6 +1469,14 @@ namespace LagoVista.Manufacturing.Models.Resources
 
 		public static class Names
 		{
+			public const string AssemblyInstruction_Description = "AssemblyInstruction_Description";
+			public const string AssemblyInstruction_Steps = "AssemblyInstruction_Steps";
+			public const string AssemblyInstruction_Title = "AssemblyInstruction_Title";
+			public const string AssemblyInstructions_Title = "AssemblyInstructions_Title";
+			public const string AssemblyInstructionStep_Description = "AssemblyInstructionStep_Description";
+			public const string AssemblyInstructionStep_Images = "AssemblyInstructionStep_Images";
+			public const string AssemblyInstructionStep_Title = "AssemblyInstructionStep_Title";
+			public const string AssembyInstructionsStep_Instructions = "AssembyInstructionsStep_Instructions";
 			public const string AutoFeeder_Description = "AutoFeeder_Description";
 			public const string AutoFeeder_PickOffsetFromFiducial = "AutoFeeder_PickOffsetFromFiducial";
 			public const string AutoFeeder_PickOffsetFromFiducial_Help = "AutoFeeder_PickOffsetFromFiducial_Help";
@@ -1477,6 +1518,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Common_Size = "Common_Size";
 			public const string Common_Status = "Common_Status";
 			public const string Common_Status_Select = "Common_Status_Select";
+			public const string Common_TItle = "Common_TItle";
 			public const string Common_UniqueId = "Common_UniqueId";
 			public const string Common_ValidationErrors = "Common_ValidationErrors";
 			public const string Common_Value = "Common_Value";
@@ -1582,6 +1624,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentPackage_TItle = "ComponentPackage_TItle";
 			public const string ComponentPackage_Verified = "ComponentPackage_Verified";
 			public const string ComponentPackage_Verified_Help = "ComponentPackage_Verified_Help";
+			public const string ComponentPackage_XOffsetReferenceHole = "ComponentPackage_XOffsetReferenceHole";
+			public const string ComponentPackage_YOffsetReferenceHole = "ComponentPackage_YOffsetReferenceHole";
 			public const string ComponentPurchase_Description = "ComponentPurchase_Description";
 			public const string ComponentPurchase_OrderDate = "ComponentPurchase_OrderDate";
 			public const string ComponentPurchase_OrderNumber = "ComponentPurchase_OrderNumber";

@@ -393,6 +393,54 @@ namespace LagoVista.PickAndPlace
             WasMachineHomed = true;
         }
 
+        public void SetToolHeadHeight(double height)
+        {
+            if (CurrentMachineToolHead == null)
+            {
+                AddStatusMessage(StatusMessageTypes.FatalError, "to call GoToPlaceHeight, need to have a current tool head selected.");
+                return;
+            }
+
+            if (_leftToolHead)
+                Enqueue($"G0 ZL{height}");
+            else
+                Enqueue($"G0 ZR{height}");
+        }        
+
+        public void RotateToolHead(double angle)
+        {
+            if (CurrentMachineToolHead == null)
+            {
+                AddStatusMessage(StatusMessageTypes.FatalError, "to call RotateToolHead, need to have a current tool head selected.");
+                return;
+            }
+
+            SetRelativeMode();
+            if (_leftToolHead)
+            {
+                Enqueue($"G0 A{angle}");
+            }
+            else
+            {
+                Enqueue($"G0 B{angle}");
+            }
+            SetAbsoluteMode();
+         }
+
+        public async Task<InvokeResult<ulong>> ReadVacuumAsync()
+        {
+            if (CurrentMachineToolHead == null)
+            {
+                AddStatusMessage(StatusMessageTypes.FatalError, "to call ReadVacuumAsync, need to have a current tool head selected.");
+                return InvokeResult<ulong>.FromError("No current head.");
+            }
+
+            if (_leftToolHead)
+                return await ReadLeftVacuumAsync();
+            
+            return await ReadRightVacuumAsync();
+        }
+
         // https://cfsensor.com/wp-content/uploads/2022/11/XGZP6857D-Pressure-Sensor-V2.7.pdf
         public async Task<InvokeResult<ulong>> ReadLeftVacuumAsync()
         {

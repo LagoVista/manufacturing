@@ -163,6 +163,12 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_PartHeight, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double Height { get; set; }
 
+        [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_XOffsetReferenceHole, FieldType: FieldTypes.Decimal, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public double? XOffsetFromReferenceHole { get; set; }
+
+        [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_YOffsetReferenceHole, FieldType: FieldTypes.Decimal, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public double? YOffsetFromReferenceHole { get; set; }
+
         public PcbPackage Layout { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeSize, FieldType: FieldTypes.Picker, EnumType:typeof(TapeSizes), 
@@ -365,6 +371,8 @@ namespace LagoVista.Manufacturing.Models
                 nameof(TapeRotation),
                 nameof(TapeColor),
                 nameof(TapeMaterialType),
+                nameof(XOffsetFromReferenceHole),
+                nameof(YOffsetFromReferenceHole),
                 nameof(NozzleTip),
             };
         }
