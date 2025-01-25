@@ -11,13 +11,13 @@ namespace LagoVista.PickAndPlace.App.ThreeD
 {
     public class DrawingBase
     {
-        readonly Material CopperMaterial = MaterialHelper.CreateMaterial(Color.FromRgb(0xb8, 0x73, 0x33));
-        protected readonly Material RedMaterial = MaterialHelper.CreateMaterial(Colors.Red);
-        protected readonly Material GreenMaterial = MaterialHelper.CreateMaterial(Colors.Green);
-        protected readonly Material BlackMaterial = MaterialHelper.CreateMaterial(Colors.Black);
-        protected readonly Material WhiteMaterial = MaterialHelper.CreateMaterial(Colors.White);
-        protected readonly Material BlueMaterial = MaterialHelper.CreateMaterial(Colors.Blue);
-        protected readonly Material GrayMaterial = MaterialHelper.CreateMaterial(Colors.Gray);
+        protected readonly static Material CopperMaterial = MaterialHelper.CreateMaterial(Color.FromRgb(0xb8, 0x73, 0x33));
+        protected readonly static Material RedMaterial = MaterialHelper.CreateMaterial(Colors.Red);
+        protected readonly static Material GreenMaterial = MaterialHelper.CreateMaterial(Colors.Green);
+        protected readonly static Material BlackMaterial = MaterialHelper.CreateMaterial(Colors.Black);
+        protected readonly static Material WhiteMaterial = MaterialHelper.CreateMaterial(Colors.White);
+        protected readonly static Material BlueMaterial = MaterialHelper.CreateMaterial(Colors.Blue);
+        protected readonly static Material GrayMaterial = MaterialHelper.CreateMaterial(Colors.Gray);
 
         public DrawingBase() {
         }

@@ -10,18 +10,18 @@
         <Setter Property="Background" Value="{StaticResource Primary}"/>
     </Style>
 
-    <SolidColorBrush x:Key="TextBox.Static.Background" Color="Yellow"/>
+    <SolidColorBrush x:Key="TextBox.Static.Background" Color="White"/>
 
 
     <Style TargetType="ui:MaskingTextBox">
         <Setter Property="Margin" Value="2" />
     </Style>
 
-    <Style TargetType="TextBlock" >
+<!--    <Style TargetType="TextBlock" >
         <Setter Property="Margin" Value="2" />
         <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="Foreground" Value="#c0c0c0" />
-    </Style>
+        <Setter Property="Foreground" Value="White" />
+    </Style>-->
 
     <Style TargetType="TextBlock" x:Key="label" >
         <Setter Property="Margin" Value="2" />

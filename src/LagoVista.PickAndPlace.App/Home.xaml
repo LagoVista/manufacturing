@@ -93,18 +93,15 @@
                     </TabItem>
 
                     <TabItem Header="Feeders" >
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="33*" />
-                                <RowDefinition Height="33*" />
-                                <RowDefinition Height="33*" />
-                            </Grid.RowDefinitions>
-                            <pnpc:StripFeederControl></pnpc:StripFeederControl>
+                        <pnpc:StripFeederControl></pnpc:StripFeederControl>
+                    </TabItem>
+                    <TabItem Header="Auto Feeders">
+                        <StackPanel>
                             <pnpc:AutoFeederControl Grid.Row="1"></pnpc:AutoFeederControl>
                             <pnpc:PhotonFeedersControl Grid.Row="2"></pnpc:PhotonFeedersControl>
-                        </Grid>
+                        </StackPanel>
                     </TabItem>
-
+                    
                     <TabItem Header="Machine">
                         <Grid>
                             <pnpc:PickAndPlaceMachineControl></pnpc:PickAndPlaceMachineControl>

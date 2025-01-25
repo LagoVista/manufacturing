@@ -9,6 +9,7 @@
                 <ResourceDictionary Source="/Resources/Converters.xaml"/>
                 <ResourceDictionary Source="/Resources/DefaultTheme.xaml"/>
                 <ResourceDictionary Source="/Resources/Colors.Default.xaml"/>
+                <ResourceDictionary Source="/Resources/DataGrid.xaml"/>
                 <ResourceDictionary Source="/Resources/Styles.xaml"/>
                 <ResourceDictionary Source="/Resources/TabView.ControlTemplate.xaml"/>
                 <ResourceDictionary Source="/Resources/ComboBox.ControlTemplate.xaml"/>

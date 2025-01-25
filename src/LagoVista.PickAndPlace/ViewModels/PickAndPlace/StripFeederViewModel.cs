@@ -165,10 +165,18 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RaisePropertyChanged(nameof(Feeders));
         }
 
-        private void DoneRow()
+        private async void DoneRow()
         {
-            if(SelectedComponent != null)
+            if (SelectedComponent != null)
+            {
                 CurrentRow.Component = EntityHeader<Component>.Create(SelectedComponent.Id, SelectedComponent.Key, SelectedComponent.Name);
+                CurrentRow.Component.Value = SelectedComponent;
+                if(CurrentRow.Component.Value.ComponentPackage != null)
+                {
+                    var result = await _restClient.GetAsync<DetailResponse<ComponentPackage>>($"/api/mfg/component/package/{CurrentRow.Component.Value.ComponentPackage.Id}");
+                    CurrentRow.Component.Value.ComponentPackage.Value = result.Result.Model;
+                }
+            }
 
             CurrentRow = null;
         }

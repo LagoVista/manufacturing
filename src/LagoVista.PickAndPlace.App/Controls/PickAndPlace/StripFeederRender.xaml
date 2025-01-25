@@ -11,7 +11,7 @@
     <Grid>
         <h:HelixViewport3D Name="viewport" ShowViewCube="true" Panel.ZIndex="0" ShowCameraInfo="true"  >
             <h:HelixViewport3D.Camera >
-                <PerspectiveCamera x:Name="Camera" Position="-50,-100,100" LookDirection="1.5,3,-3" UpDirection="0,0,1"/>
+                <PerspectiveCamera x:Name="Camera" Position="0,-150,150" LookDirection="0,1,-1" UpDirection="0,0,1"/>
             </h:HelixViewport3D.Camera>
 
             <h:DefaultLights />
@@ -19,8 +19,8 @@
             <ModelVisual3D x:Name="PCBLayer" />
 
             <h:GridLinesVisual3D x:Name="ModelGrid" MinorDistance="10"  MajorDistance="100" 
-           	    Width="{Binding Machine.Settings.WorkAreaHeight, FallbackValue=80}"
-                Length ="{Binding Machine.Settings.WorkAreaWidth, FallbackValue=100}"  />
+           	    Width="{Binding Machine.Settings.WorkAreaHeight, FallbackValue=300}"
+                Length ="{Binding Machine.Settings.WorkAreaWidth, FallbackValue=300}"  />
 
         </h:HelixViewport3D>
         <Button Style="{StaticResource CommandButton}" Content="Refresh" x:Name="Refresh" Click="Refresh_Click" HorizontalAlignment="Left" VerticalAlignment="Top" />

@@ -20,7 +20,22 @@ namespace LagoVista.PickAndPlace.App.Controls.PickAndPlace
         {
             var modelGroup = new Model3DGroup();
             _sf.Render3DModel(modelGroup, feeder);
+
+            Vector3D axis = new Vector3D(0, 0, 1); //In case you want to rotate it about the x-axis
+            Matrix3D transformationMatrix = modelGroup.Transform.Value; //Gets the matrix indicating the current transformation value
+            var rotate = new Matrix3D();
+            rotate.Rotate(new Quaternion(axis, -90));
+            
+            var translate = new Matrix3D();
+            translate.Translate(new Vector3D(-feeder.Length / 2, -feeder.Width / 2, 0));
+            translate.Rotate(new Quaternion(axis, -90));
+            //   var moveToCenter = Matrix3D. TranslateTransform3D(-feeder.Length / 2, -feeder.Width / 2, 0);
+       //     var combinedTransForm = translate + rotate;
+
+            modelGroup.Transform = new MatrixTransform3D(translate);
+
             PCBLayer.Content = modelGroup;
+//            PCBLayer.Transform = new TranslateTransform3D(-feeder.Length / 2, -feeder.Width / 2, 0);
         }
 
         private static void OnStripFeederChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)

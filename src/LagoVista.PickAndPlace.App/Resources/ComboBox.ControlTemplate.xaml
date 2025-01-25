@@ -6,7 +6,11 @@
     </Style>
 
     <Style TargetType="TextBox" x:Key="ComboBoxEditableTextBox">
+        <Setter Property="Foreground" Value="Black"></Setter>
+    </Style>
 
+    <Style TargetType="ComboBox">
+        <Setter Property="Foreground" Value="Black"></Setter>
     </Style>
 
     <ControlTemplate TargetType="{x:Type ComboBox}" x:Key="DefaultComboBoxStyle">
@@ -35,6 +39,7 @@
                           Style="{StaticResource ComboBoxToggleButton}"/>
             <Border x:Name="border" Background="{StaticResource TextBox.Static.Background}" Margin="{TemplateBinding BorderThickness}">
                 <TextBox x:Name="PART_EditableTextBox" Background="{StaticResource TextBox.Static.Background}" HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" 
+                         Foreground="Red"
                          IsReadOnly="{Binding IsReadOnly, RelativeSource={RelativeSource TemplatedParent}}" Margin="{TemplateBinding Padding}" 
                          Style="{StaticResource ComboBoxEditableTextBox}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
             </Border>
