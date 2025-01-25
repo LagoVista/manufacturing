@@ -132,7 +132,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public void SetTool1PickPosition()
         {
-            _machineRepo.CurrentMachine.Settings.ToolPickHeight = _machineRepo.CurrentMachine.ToolCommonZ;
+//            _machineRepo.CurrentMachine.Settings.ToolPickHeight = _machineRepo.CurrentMachine.ToolCommonZ;
 
             if (_machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.LagoVista_PnP)
             {
@@ -144,7 +144,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public void SetTool1PlacePosition()
         {
-            _machineRepo.CurrentMachine.Settings.ToolBoardHeight = _machineRepo.CurrentMachine.ToolCommonZ;
+  //          _machineRepo.CurrentMachine.Settings.ToolBoardHeight = _machineRepo.CurrentMachine.ToolCommonZ;
 
             if (_machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.LagoVista_PnP)
             {

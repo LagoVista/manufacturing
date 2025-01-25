@@ -818,14 +818,8 @@
   <data name="NozzleTip_PartPickedVacuum" xml:space="preserve">
     <value>Part Picked Vacuum</value>
   </data>
-  <data name="NozzleTip_SafeMoveHeight" xml:space="preserve">
-    <value>Safe Move Height</value>
-  </data>
-  <data name="NozzleTip_PickHeight" xml:space="preserve">
-    <value>Pick Height</value>
-  </data>
-  <data name="NozzleTip_BoardHeight" xml:space="preserve">
-    <value>Board Height</value>
+  <data name="NozzleTip_Height" xml:space="preserve">
+    <value>Nozzle Tip Height</value>
   </data>
   <data name="MachineStagingPlates_Title" xml:space="preserve">
     <value>Staging Plates</value>

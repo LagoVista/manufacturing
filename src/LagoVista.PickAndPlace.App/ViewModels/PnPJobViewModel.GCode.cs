@@ -23,12 +23,14 @@ namespace LagoVista.PickAndPlace.App.ViewModels
 
         private string PickHeightGCode()
         {
-            return $"G0 Z{ _machineRepo.CurrentMachine.Settings.ToolPickHeight} F{ _machineRepo.CurrentMachine.Settings.FastFeedRate}";
+            return "";
+         //   return $"G0 Z{ _machineRepo.CurrentMachine.Settings.ToolPickHeight} F{ _machineRepo.CurrentMachine.Settings.FastFeedRate}";
         }
 
         private string PlaceHeightGCode(ComponentPackage package)
         {
-            return $"G0 Z{ _machineRepo.CurrentMachine.Settings.ToolBoardHeight - package.Height} F{ _machineRepo.CurrentMachine.Settings.FastFeedRate}";
+            return "";
+           // return $"G0 Z{ _machineRepo.CurrentMachine.Settings.ToolBoardHeight - package.Height} F{ _machineRepo.CurrentMachine.Settings.FastFeedRate}";
         }
 
         private string DwellGCode(int pauseMS)

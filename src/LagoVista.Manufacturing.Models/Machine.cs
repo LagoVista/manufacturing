@@ -269,16 +269,16 @@ namespace LagoVista.Manufacturing.Models
             }
         }
 
-        [JsonIgnore]
-        public double? ToolPickHeight
-        {
-            get { return _currentNozzle?.PickHeight; }
-            set
-            {
-                _currentNozzle.PickHeight = value;
-                RaisePropertyChanged(nameof(ToolPickHeight));
-            }
-        }
+        //[JsonIgnore]
+        //public double? ToolPickHeight
+        //{
+        //    get { return _currentNozzle?.PickHeight; }
+        //    set
+        //    {
+        //        _currentNozzle.PickHeight = value;
+        //        RaisePropertyChanged(nameof(ToolPickHeight));
+        //    }
+        //}
 
         ToolNozzleTip _currentNozzle = new ToolNozzleTip();
         public ToolNozzleTip CurrentNozzle
@@ -288,26 +288,26 @@ namespace LagoVista.Manufacturing.Models
             {
                 if (_currentNozzle != null)
                 {
-                    var currentNozzle = Nozzles.Where(noz => noz.Id == _currentNozzle.Id).FirstOrDefault();
-                    if (currentNozzle != null)
-                    {
-                        currentNozzle.Name = _currentNozzle.Name;
-                        currentNozzle.BoardHeight = _currentNozzle.BoardHeight;
-                        currentNozzle.PickHeight = _currentNozzle.PickHeight;
-                        currentNozzle.SafeMoveHeight = _currentNozzle.SafeMoveHeight;
-                    }
+                    //var currentNozzle = Nozzles.Where(noz => noz.Id == _currentNozzle.Id).FirstOrDefault();
+                    //if (currentNozzle != null)
+                    //{
+                    //    currentNozzle.Name = _currentNozzle.Name;
+                    //    currentNozzle.BoardHeight = _currentNozzle.BoardHeight;
+                    //    currentNozzle.PickHeight = _currentNozzle.PickHeight;
+                    //    currentNozzle.SafeMoveHeight = _currentNozzle.SafeMoveHeight;
+                    //}
 
                     _currentNozzle = value;
                     RaisePropertyChanged(nameof(CurrentNozzle));
-                    RaisePropertyChanged(nameof(ToolPickHeight));
-                    RaisePropertyChanged(nameof(ToolBoardHeight));
+           //         RaisePropertyChanged(nameof(ToolPickHeight));
+                   // RaisePropertyChanged(nameof(ToolBoardHeight));
                     RaisePropertyChanged(nameof(SafMoveHeight));
                 }
             }
         }
 
         ObservableCollection<ToolNozzleTip> _nozzles = new ObservableCollection<ToolNozzleTip>();
-        [FormField(LabelResource: ManufacturingResources.Names.NozzleTips_Title, FieldType: FieldTypes.ChildListInline, FactoryUrl: "/api/mfg/machine/nozzletip/factory",
+        [FormField(LabelResource: ManufacturingResources.Names.NozzleTips_Title, ChildListDisplayMember:"nozzleTip.text", FieldType: FieldTypes.ChildListInline, FactoryUrl: "/api/mfg/machine/nozzletip/factory",
             OpenByDefault: true, ResourceType: typeof(ManufacturingResources))]
         public ObservableCollection<ToolNozzleTip> Nozzles
         {
@@ -338,17 +338,17 @@ namespace LagoVista.Manufacturing.Models
         /// Absolute position of the board in the Z axis, the actual place location will be 
         /// the this location plus the height of the part, we also will likely have different
         /// heights for the different nozzles.
-        /// </summary>
-        [JsonIgnore]
-        public double? ToolBoardHeight
-        {
-            get { return CurrentNozzle?.BoardHeight; }
-            set
-            {
-                CurrentNozzle.BoardHeight = value;
-                RaisePropertyChanged(nameof(ToolBoardHeight));
-            }
-        }
+        ///// </summary>
+        //[JsonIgnore]
+        //public double? ToolBoardHeight
+        //{
+        //    get { return CurrentNozzle?.BoardHeight; }
+        //    set
+        //    {
+        //        CurrentNozzle.BoardHeight = value;
+        //        RaisePropertyChanged(nameof(ToolBoardHeight));
+        //    }
+        //}
 
 
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]

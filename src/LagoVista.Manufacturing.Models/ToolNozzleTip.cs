@@ -22,46 +22,14 @@ namespace LagoVista.Manufacturing.Models
 
         public string Id { get; set; }
 
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Name, FieldType: FieldTypes.Text, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-
-        public string Name { get; set; }
-
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Key, FieldType: FieldTypes.Key, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public string Key { get; set; }
-
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public string Icon { get; set; } = "icon-ae-control-panel";
-
        
-        private double? _safeMoveHeight;
-        [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_SafeMoveHeight, FieldType: FieldTypes.Decimal, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
-        public double? SafeMoveHeight 
+        EntityHeader<PnPMachineNozzleTip> _nozzleTip;
+        [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_Title, FieldType: FieldTypes.EntityHeaderPicker, EntityHeaderPickerUrl: "/api/mfg/pnp/nozzletips", IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader<PnPMachineNozzleTip> NozzleTip
         {
-            get => _safeMoveHeight; 
-            set => Set(ref _safeMoveHeight, value);
+            get => _nozzleTip;
+            set => Set(ref _nozzleTip, value);
         }
-
-        private double? _placeHeight;
-        [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_PickHeight, FieldType: FieldTypes.Decimal, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
-        public double? PickHeight
-        {
-            get => _placeHeight;
-            set => Set(ref _placeHeight, value);
-        }
-
-        private double? _boardHeight;
-        [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_BoardHeight, FieldType: FieldTypes.Decimal, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
-        public double? BoardHeight
-        {
-            get => _boardHeight;
-            set => Set(ref _boardHeight, value);
-        }
-
-        [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_InnerDiameter, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public int InnerDiameter { get; set; }
-
-        [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_OuterDiameter, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public int OuterDiameter { get; set; }
 
         private Point3D<decimal> _toolRackLocation;
         [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_ToolRackLocation, FieldType: FieldTypes.Point3D, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
@@ -91,14 +59,7 @@ namespace LagoVista.Manufacturing.Models
         {
             return new List<string>()
             {
-                nameof(Name),
-                nameof(Key),
-                nameof(Icon),
-                nameof(SafeMoveHeight),
-                nameof(PickHeight),
-                nameof(BoardHeight),
-                nameof(InnerDiameter),
-                nameof(OuterDiameter),
+                nameof(NozzleTip),
                 nameof(ToolRackLocation),
                 nameof(IdleVacuum),
                 nameof(PartPickedVacuum),

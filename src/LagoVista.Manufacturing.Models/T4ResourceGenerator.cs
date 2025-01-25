@@ -1,4 +1,4 @@
-﻿/*1/24/2025 2:48:50 PM*/
+﻿/*1/25/2025 10:10:31 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -1049,12 +1049,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:MachineToolHead_Type_Spindle
 
 		public static string MachineToolHead_Type_Spindle { get { return GetResourceString("MachineToolHead_Type_Spindle"); } }
-//Resources:ManufacturingResources:NozzleTip_BoardHeight
-
-		public static string NozzleTip_BoardHeight { get { return GetResourceString("NozzleTip_BoardHeight"); } }
 //Resources:ManufacturingResources:NozzleTip_Description
 
 		public static string NozzleTip_Description { get { return GetResourceString("NozzleTip_Description"); } }
+//Resources:ManufacturingResources:NozzleTip_Height
+
+		public static string NozzleTip_Height { get { return GetResourceString("NozzleTip_Height"); } }
 //Resources:ManufacturingResources:NozzleTip_IdleVacuum
 
 		public static string NozzleTip_IdleVacuum { get { return GetResourceString("NozzleTip_IdleVacuum"); } }
@@ -1067,12 +1067,6 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:NozzleTip_PartPickedVacuum
 
 		public static string NozzleTip_PartPickedVacuum { get { return GetResourceString("NozzleTip_PartPickedVacuum"); } }
-//Resources:ManufacturingResources:NozzleTip_PickHeight
-
-		public static string NozzleTip_PickHeight { get { return GetResourceString("NozzleTip_PickHeight"); } }
-//Resources:ManufacturingResources:NozzleTip_SafeMoveHeight
-
-		public static string NozzleTip_SafeMoveHeight { get { return GetResourceString("NozzleTip_SafeMoveHeight"); } }
 //Resources:ManufacturingResources:NozzleTip_Title
 
 		public static string NozzleTip_Title { get { return GetResourceString("NozzleTip_Title"); } }
@@ -1771,14 +1765,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string MachineToolHead_Type_PartNozzle = "MachineToolHead_Type_PartNozzle";
 			public const string MachineToolHead_Type_Select = "MachineToolHead_Type_Select";
 			public const string MachineToolHead_Type_Spindle = "MachineToolHead_Type_Spindle";
-			public const string NozzleTip_BoardHeight = "NozzleTip_BoardHeight";
 			public const string NozzleTip_Description = "NozzleTip_Description";
+			public const string NozzleTip_Height = "NozzleTip_Height";
 			public const string NozzleTip_IdleVacuum = "NozzleTip_IdleVacuum";
 			public const string NozzleTip_InnerDiameter = "NozzleTip_InnerDiameter";
 			public const string NozzleTip_OuterDiameter = "NozzleTip_OuterDiameter";
 			public const string NozzleTip_PartPickedVacuum = "NozzleTip_PartPickedVacuum";
-			public const string NozzleTip_PickHeight = "NozzleTip_PickHeight";
-			public const string NozzleTip_SafeMoveHeight = "NozzleTip_SafeMoveHeight";
 			public const string NozzleTip_Title = "NozzleTip_Title";
 			public const string NozzleTip_ToolRackLocation = "NozzleTip_ToolRackLocation";
 			public const string NozzleTips_Title = "NozzleTips_Title";
