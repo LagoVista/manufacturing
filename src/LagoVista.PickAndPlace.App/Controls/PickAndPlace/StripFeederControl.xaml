@@ -151,9 +151,9 @@
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Part "></TextBlock>
+                    <TextBlock Text="Part"></TextBlock>
                     <TextBlock Text="{Binding CurrentPartIndex}"></TextBlock>
-                    <TextBlock Text=" out of  "></TextBlock>
+                    <TextBlock Text="out of"></TextBlock>
                     <TextBlock Text="{Binding TotalPartsInFeederRow}"></TextBlock>
                     <TextBlock Text="Part "></TextBlock>
                 </StackPanel>
@@ -204,5 +204,6 @@
                 </StackPanel>
             </StackPanel>
         </StackPanel>
+        <local:StripFeederRender Grid.Column="2"  StripFeeder="{Binding Current}" ></local:StripFeederRender>
     </Grid>
 </ucb:VMBoundUserControl>
