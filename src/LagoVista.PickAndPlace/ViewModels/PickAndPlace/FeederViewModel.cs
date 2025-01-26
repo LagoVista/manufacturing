@@ -7,6 +7,7 @@ using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
+using LagoVista.PickAndPlace.Models;
 using LagoVista.PickAndPlace.ViewModels.Machine;
 using RingCentral;
 using System;
@@ -136,6 +137,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 await Machine.GoToPartInspectionCameraAsync();
                 _pickStates = PickStates.Inspecting;
             }
+
+            Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
 
             return InvokeResult.Success;
         }

@@ -11,7 +11,7 @@
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;assembly=LagoVista.PickAndPlace"                                                                 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+    <Grid Margin="10">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="50*" />
@@ -31,34 +31,56 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <DataGrid ItemsSource="{Binding JobVM.PickAndPlaceJobPart.Placements}"  SelectionMode="Single" SelectedItem="{Binding JobVM.Placement, Mode=TwoWay}" CanUserAddRows="false"  AutoGenerateColumns="False">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Name" Width="*" Binding="{Binding Name}"  />
-                        <DataGridTextColumn Header="Location" Width="*" Binding="{Binding PCBLocation}"  />
-                        <DataGridTextColumn Header="Rotation" Width="*" Binding="{Binding Rotation}"  />
-                    </DataGrid.Columns>
-                </DataGrid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="60*" />
+                        <ColumnDefinition Width="40*" />
+                    </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Row="2" Grid.Column="1"  Orientation="Horizontal">
-                    <TextBlock Text="{Binding CurrentComponent.Name}"></TextBlock>
-                    <Button Style="{StaticResource CommandButton}" Command="{Binding JobVM.ShowComponentDetailCommand}">Component Detail</Button>
-                    <Button Style="{StaticResource CommandButton}" Command="{Binding JobVM.ShowComponentPackageDetailCommand}">Package Detail</Button>
-                    <Button Style="{StaticResource CommandButton}" Command="{Binding JobVM.ShowDataSheetCommand}">Show Datasheet</Button>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <Button Style="{StaticResource CommandButton}" Command="{Binding MoveToPartInFeederCommand}" Content="Move To Part in Feeder"></Button>
-                    <Button Style="{StaticResource CommandButton}" Command="{Binding PickPartCommand}" Content="Pick Part"></Button>
-                    <Button Style="{StaticResource CommandButton}" Command="{Binding InspectPartCommand}" Content="Inspect Part"></Button>
-                    <Button Style="{StaticResource CommandButton}" Command="{Binding RecyclePartCommand}" Content="Recycle Part"></Button>
-                    <Button Style="{StaticResource CommandButton}" Command="{Binding GoToPartOnBoardCommand}" Content="Go To Part In Board"></Button>
-                    <Button Style="{StaticResource CommandButton}" Command="{Binding PlacePartCommand}" Content="Place Part Board"></Button>
-                    <Button Style="{StaticResource CommandButton}" Command="{Binding InspectPartOnBoardCommand}" Content="Inspect Part on Board"></Button>
-                    <Button Style="{StaticResource CommandButton}" Command="{Binding PickPartFromBoardCommand}" Content="Pick Part From Board"></Button>
-                    <Button Style="{StaticResource CommandButton}" Command="{Binding RecyclePartCommand}" Content="Recycle Part"></Button>
-                </StackPanel>
-                <local:CircuitBoardControl />
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Style="{StaticResource header}" Text="{Binding JobVM.CurrentComponent.Name}"></TextBlock>
+                        <StackPanel Grid.Row="2" Grid.Column="1"  Orientation="Horizontal">
+                            <Button Style="{StaticResource CommandButton}" Command="{Binding JobVM.ShowComponentDetailCommand}">Component Detail</Button>
+                            <Button Style="{StaticResource CommandButton}" Command="{Binding JobVM.ShowComponentPackageDetailCommand}">Package Detail</Button>
+                            <Button Style="{StaticResource CommandButton}" Command="{Binding JobVM.ShowDataSheetCommand}">Show Datasheet</Button>
+                        </StackPanel>
+
+                        <TextBlock Style="{StaticResource header}" Text="Placements"></TextBlock>
+                        <DataGrid ItemsSource="{Binding JobVM.PickAndPlaceJobPart.Placements}"  SelectionMode="Single" SelectedItem="{Binding JobVM.Placement, Mode=TwoWay}" CanUserAddRows="false"  AutoGenerateColumns="False">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Name" Width="*" Binding="{Binding Name}"  />
+                                <DataGridTextColumn Header="Location" Width="*" Binding="{Binding PCBLocation}"  />
+                                <DataGridTextColumn Header="Rotation" Width="*" Binding="{Binding Rotation}"  />
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <TextBlock Style="{StaticResource header}" Text="Component" />
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource CommandButton}" Command="{Binding MoveToPartInFeederCommand}" Content="Move To Part in Feeder"></Button>
+                            <Button Style="{StaticResource CommandButton}" Command="{Binding PickPartCommand}" Content="Pick Part"></Button>
+                            <Button Style="{StaticResource CommandButton}" Command="{Binding InspectPartCommand}" Content="Inspect Part"></Button>
+                            <Button Style="{StaticResource CommandButton}" Command="{Binding RecyclePartCommand}" Content="Recycle Part"></Button>
+                        </StackPanel>
+
+                        <TextBlock Style="{StaticResource header}" Text="Placeable Part" />
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource CommandButton}" Command="{Binding RotatePartCommand}" Content="Rotate To Place"></Button>
+                            <Button Style="{StaticResource CommandButton}" Command="{Binding GoToPartOnBoardCommand}" Content="Go To Part In Board"></Button>
+                            <Button Style="{StaticResource CommandButton}" Command="{Binding PlacePartCommand}" Content="Place Part Board"></Button>
+                            <Button Style="{StaticResource CommandButton}" Command="{Binding InspectPartOnBoardCommand}" Content="Inspect Part on Board"></Button>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource CommandButton}" Command="{Binding PickPartFromBoardCommand}" Content="Pick Part From Board"></Button>
+                            <Button Style="{StaticResource CommandButton}" Command="{Binding RotateBackPartCommand}" Content="Rotate Back"></Button>
+                            <Button Style="{StaticResource CommandButton}" Command="{Binding RecyclePartCommand}" Content="Recycle Part"></Button>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <local:CircuitBoardControl Grid.Column="1" />
+                </Grid>
+
             </StackPanel>
-            
+
             <pcb:PCBRenderer Grid.Column="1" TopWiresVisible="true" BottomWiresVisible="true" PCBVisible="true" CenterBoard="true" Grid.Row="2" CircuitBoard="{Binding JobVM.CircuitBoard}" ></pcb:PCBRenderer>
         </Grid>
 

@@ -96,6 +96,8 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         void SetToolHeadHeight(double height);
 
+        void RotateToolHead(double angle);
+
         Task<InvokeResult<ulong>> ReadVacuumAsync();
         Task<InvokeResult<ulong>> ReadLeftVacuumAsync();
         Task<InvokeResult<ulong>> ReadRightVacuumAsync();

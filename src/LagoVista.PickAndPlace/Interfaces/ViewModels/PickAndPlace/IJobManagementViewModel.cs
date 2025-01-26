@@ -1,8 +1,10 @@
 ﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.Validation;
 using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.ViewModels.PickAndPlace;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 {
@@ -25,6 +27,15 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         IPartsViewModel PartsViewModel { get; }
         bool IsSubstituting { get; }
 
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="part"></param>
+        /// <param name="placement"></param>
+        /// <param name="rotated90">If the feeder is rotated/vertical, we need to correct for that.</param>
+        /// <returns></returns>
+        Task<InvokeResult> RotateCurrentPartAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement, bool rotated90, bool reverse);
 
 
         RelayCommand SaveCommand { get; }

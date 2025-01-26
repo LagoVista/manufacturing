@@ -184,6 +184,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var boardLocation = GetWorkSpaceLocation(placement);            
             Machine.GotoPoint(boardLocation);
 
+
+            Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartOnBoard);
+
             return Task.FromResult(InvokeResult.Success);
         }
 

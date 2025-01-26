@@ -3,6 +3,7 @@ using LagoVista.Core.Commanding;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Core.PlatformSupport;
+using LagoVista.Core.Validation;
 using LagoVista.Manufacturing;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
@@ -65,6 +66,39 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             await base.InitAsync();
+        }
+
+        public Task<InvokeResult> RotateCurrentPartAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement, bool rotated90, bool reverse)
+        {
+            var inTapeAngle = 0.0;
+
+            switch (CurrentComponent.ComponentPackage.Value.TapeRotation.Value)
+            {
+                case TapeRotations.MinusNinety:
+                    inTapeAngle = -90;
+                    break;
+                case TapeRotations.Ninety:
+                    inTapeAngle = 90;
+                    break;
+                case TapeRotations.OneEighty:
+                    inTapeAngle = 180;
+                    break;
+            }
+
+            if(rotated90)
+            {
+                inTapeAngle -= 90;
+            }
+
+
+            var rotatePart = inTapeAngle - placement.Rotation;
+            if(reverse)
+            {
+                rotatePart *= -1;
+            }
+
+            Machine.RotateToolHead(-rotatePart);
+            return Task<InvokeResult>.FromResult(InvokeResult.Success);
         }
 
         public void GoToPartOnBoard()
@@ -224,6 +258,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         var packageResult = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.ComponentPackage>>($"/api/mfg/component/package/{CurrentComponent.ComponentPackage.Id}");
                         if(packageResult.Successful)
                         {
+                            CurrentComponent.ComponentPackage.Value = packageResult.Result.Model;
                             CurrentComponentPackage = packageResult.Result.Model;
                         }                        
                     }

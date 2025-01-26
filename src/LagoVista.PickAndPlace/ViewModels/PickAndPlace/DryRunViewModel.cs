@@ -16,6 +16,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         IAutoFeederViewModel _autoFeederViewModel;
         IFeederViewModel _feederViewModel;
 
+        private bool _feederIsVertical;
+
         public DryRunViewModel(IRestClient restClient, ICircuitBoardViewModel pcbVM, IPartInspectionViewModel partInspectionVM, IJobManagementViewModel jobVM, IStripFeederViewModel stripFeederViewModel, IAutoFeederViewModel autoFeederViewModel, IMachineRepo machineRepo) : base(machineRepo)
         {
             _autoFeederViewModel = autoFeederViewModel;
@@ -38,7 +40,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             InspectPartOnBoardCommand = CreatedMachineConnectedCommand(() => PcbVM.GoToPartOnBoardAsync(JobVM.PickAndPlaceJobPart, JobVM.Placement), () => JobVM.Placement != null);
             
             PickPartFromBoardCommand = CreatedMachineConnectedCommand(() => PcbVM.GoToPartOnBoardAsync(JobVM.PickAndPlaceJobPart, JobVM.Placement), () => JobVM.Placement != null);
-            
+
+            RotatePartCommand = CreatedMachineConnectedCommand(() => JobVM.RotateCurrentPartAsync(JobVM.PickAndPlaceJobPart, JobVM.Placement, _feederIsVertical, false), () => JobVM.Placement != null);
+            RotateBackPartCommand = CreatedMachineConnectedCommand(() => JobVM.RotateCurrentPartAsync(JobVM.PickAndPlaceJobPart, JobVM.Placement, _feederIsVertical, true), () => JobVM.Placement != null);
         }
 
         private InvokeResult ResolveFeeder()
@@ -74,6 +78,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 }
 
                 _feederViewModel = _stripFeederViewModel;
+                _autoFeederViewModel = null;
+                _feederIsVertical = _stripFeederViewModel.Current.Orientation.Value == Manufacturing.Models.FeederOrientations.Vertical;
 
             }
             else if (!EntityHeader.IsNullOrEmpty(JobVM.PickAndPlaceJobPart.AutoFeeder))
@@ -83,6 +89,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 {
                     return InvokeResult.FromError($"Could not find auto feeder {JobVM.PickAndPlaceJobPart.AutoFeeder}");
                 }
+
+                _stripFeederViewModel = null;
+                _feederIsVertical = false;
 
                 _feederViewModel = _autoFeederViewModel;
             }
@@ -149,5 +158,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand InspectPartOnBoardCommand { get; }
         public RelayCommand PickPartFromBoardCommand { get; }
         public RelayCommand PlacePartCommand { get; }
+        public RelayCommand RotatePartCommand { get; }
+        public RelayCommand RotateBackPartCommand { get; }
     }
 }
