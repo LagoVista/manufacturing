@@ -487,7 +487,7 @@ namespace LagoVista.PickAndPlace
                     return true;
                 }
 
-                return CurrentMachineToolHead.HeadIndex == 0;
+                return CurrentMachineToolHead.HeadIndex == 1;
             }
         }
 

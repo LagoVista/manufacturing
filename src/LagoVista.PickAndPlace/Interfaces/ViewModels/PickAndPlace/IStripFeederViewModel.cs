@@ -41,6 +41,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 
         RelayCommand AddCommand { get; }
         RelayCommand SaveCommand { get; }
+        RelayCommand SaveAndCloseCommand { get; }
         RelayCommand CancelCommand { get; }
         RelayCommand DoneRowCommand { get; }
         RelayCommand RefreshTemplatesCommand { get; }

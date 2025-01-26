@@ -52,7 +52,7 @@ namespace LagoVista.Manufacturing.Util
             var ratioY = y / actual.Y;
 
             x -= ratioX * delta.X;
-            y -= ratioY * delta.Y;
+            y -= ratioX * delta.Y;
 
             return new Point2D<double>()
             {

@@ -64,7 +64,7 @@
         <Setter Property="Height" Value="32" />
         <Setter Property="Margin" Value="6" />
         <Setter Property="BorderBrush" Value="Red" />
-        <Setter Property="Foreground" Value="Blue" />
+        <Setter Property="Foreground" Value="White" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Template">
             <Setter.Value>
@@ -108,7 +108,7 @@
 
                         <Rectangle Stroke="DarkCyan" StrokeThickness="1" RadiusX="2" RadiusY="2">
                             <Rectangle.Fill>
-                                <SolidColorBrush x:Name="ButtonFill" Color="{StaticResource Accent1}" />
+                                <SolidColorBrush x:Name="ButtonFill" Color="{StaticResource Primary}" />
                             </Rectangle.Fill>
                         </Rectangle>
 

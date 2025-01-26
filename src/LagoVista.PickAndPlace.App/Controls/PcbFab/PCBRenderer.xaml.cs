@@ -184,11 +184,11 @@ namespace LagoVista.PickAndPlace.App.Controls
             if (CenterBoard)
             {
                 PCBLayer.Transform = new TranslateTransform3D(-board.Width.Value / 2, - board.Height.Value / 2, 0);
-                Camera.LookAt(new Point3D(0, 0, 0), 2);
+             //   Camera.LookAt(new Point3D(0, 0, 0), 2);
             }
             else
             {
-                Camera.LookAt(new Point3D(RenderOriginX + board.Width.Value / 2, RenderOriginY - board.Width.Value, 0), 0);
+           //     Camera.LookAt(new Point3D(RenderOriginX + board.Width.Value / 2, RenderOriginY - board.Width.Value, 0), 0);
                 PCBLayer.Transform = new TranslateTransform3D(RenderOriginX, RenderOriginY, 2);
             }
         }

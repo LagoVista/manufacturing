@@ -126,11 +126,12 @@
             </DataGrid>
             <StackPanel Grid.Column="1" Visibility="{Binding SelectedStagingPlate, Converter={StaticResource NoTNullToVisibilityConverter}}">
                 <TextBlock FontSize="23" Text="{Binding SelectedStagingPlate.Name}"></TextBlock>
-                <TextBlock>Reference Hole 1</TextBlock>
-                <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleLocation1}"></TextBlock>
-                <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleRow1}"></TextBlock>
-                <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleColumn1}"></TextBlock>
-
+                <TextBlock Style="{StaticResource header}">Reference Hole 1</TextBlock>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleLocation1}" Style="{StaticResource content}"></TextBlock>
+                    <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleRow1}"  Style="{StaticResource content}"></TextBlock>
+                    <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleColumn1}"  Style="{StaticResource content}"></TextBlock>
+                </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                     <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetStagingPlateReferenceHole1LocationCommand}"  ToolTip="Set Reference Hole 1" Width="64" Height="64"  >
                         <Button.Content>
@@ -143,7 +144,7 @@
                         </Button.Content>
                     </Button>
                 </StackPanel>
-                <TextBlock>Reference Hole 2</TextBlock>
+                <TextBlock Style="{StaticResource header}">Reference Hole 2</TextBlock>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                     <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetStagingPlateReferenceHole2LocationCommand}"  ToolTip="Set Reference Hole 2" Width="64" Height="64"  >
                         <Button.Content>
@@ -156,9 +157,11 @@
                         </Button.Content>
                     </Button>
                 </StackPanel>
-                <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleRow2}"></TextBlock>
-                <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleColumn2}"></TextBlock>
-                <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleLocation2}"></TextBlock>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleRow2}" Style="{StaticResource content}" ></TextBlock>
+                    <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleColumn2}" Style="{StaticResource content}"></TextBlock>
+                    <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleLocation2}" Style="{StaticResource content}"></TextBlock>
+                </StackPanel>
             </StackPanel>
 
         </Grid>

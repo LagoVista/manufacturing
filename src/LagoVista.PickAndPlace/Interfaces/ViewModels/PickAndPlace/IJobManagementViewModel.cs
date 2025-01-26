@@ -14,6 +14,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         CircuitBoardRevision CircuitBoard { get; }
 
         Component CurrentComponent { get; }
+        ComponentPackage CurrentComponentPackage { get; }
 
         AvailablePart SelectedAvailablePart { get; set; }
 
@@ -42,6 +43,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 
         RelayCommand SubstitutePartCommand { get; }
         RelayCommand SaveSubstitutePartCommand { get; }
+        RelayCommand SaveComponentPackageCommand { get; }
         RelayCommand CancelSubstitutePartCommand { get; }
 
     }

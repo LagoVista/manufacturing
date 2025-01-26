@@ -12,6 +12,6 @@
             <RowDefinition Height="30" />
         </Grid.RowDefinitions>
         <TextBlock Grid.Row="0" x:Name="Label" Style="{StaticResource label}"></TextBlock>
-        <ComboBox Grid.Row="1" x:Name="Value"></ComboBox>
+        <ComboBox SelectionChanged="Value_SelectionChanged" Grid.Row="1" x:Name="Value"></ComboBox>
     </Grid>
 </UserControl>

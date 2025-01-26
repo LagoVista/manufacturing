@@ -1,0 +1,43 @@
+﻿<UserControl x:Class="LagoVista.PickAndPlace.App.Controls.PickAndPlace.ComponentPackageEditor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:ui="clr-namespace:LagoVista.PickAndPlace.App.Controls.UI"
+             xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;assembly=LagoVista.PickAndPlace"                           
+             d:DataContext="{d:DesignInstance vm:IJobManagementViewModel }"
+             xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls.PickAndPlace"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <StackPanel Margin="10">
+        <TextBlock Style="{StaticResource header}" Text="{Binding CurrentComponentPackage.Name, StringFormat={} Package: {0}  }" />
+        <StackPanel Orientation="Horizontal">
+            <ui:Picker Width="200" Model="{Binding CurrentComponentPackage}" FieldName="TapeSize" />
+            <ui:Picker Width="200" Model="{Binding CurrentComponentPackage}" FieldName="TapePitch" />
+            <ui:Picker Width="200" Model="{Binding CurrentComponentPackage}" FieldName="TapeColor" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <ui:Picker Width="200" Model="{Binding CurrentComponentPackage}" FieldName="TapeMaterialType" />
+            <ui:Picker Width="200" Model="{Binding CurrentComponentPackage}" FieldName="TapeRotation" />
+        </StackPanel>
+
+
+        <TextBlock Style="{StaticResource label}" Text="Size"></TextBlock>
+        <StackPanel Orientation="Horizontal">
+            <TextBlock Text="X=" Style="{StaticResource label}" />
+            <ui:MaskingTextBox UnitType="Size" Text="{Binding CurrentComponentPackage.Width}" Width="120" ></ui:MaskingTextBox>
+            <TextBlock Text="Y=" Style="{StaticResource label}" Margin="10,0,0,0" />
+            <ui:MaskingTextBox UnitType="Size" Text="{Binding CurrentComponentPackage.Length}" Width="120" ></ui:MaskingTextBox>
+            <TextBlock Text="Z=" Style="{StaticResource label}" Margin="10,0,0,0" />
+            <ui:MaskingTextBox UnitType="Size" Text="{Binding CurrentComponentPackage.Height}" Width="120" ></ui:MaskingTextBox>
+        </StackPanel>
+
+        <TextBlock Style="{StaticResource label}" Text="Offset from Reference Hole"></TextBlock>
+        <StackPanel Orientation="Horizontal">
+            <TextBlock Text="X=" Style="{StaticResource label}" />
+            <ui:MaskingTextBox UnitType="Size" Text="{Binding CurrentComponentPackage.XOffsetFromReferenceHole}" Width="120" ></ui:MaskingTextBox>
+            <TextBlock Text="Y=" Style="{StaticResource label}"  Margin="10,0,0,0" />
+            <ui:MaskingTextBox UnitType="Size" Text="{Binding CurrentComponentPackage.YOffsetFromReferenceHole}" Width="120" ></ui:MaskingTextBox>
+        </StackPanel>
+    </StackPanel>
+</UserControl>

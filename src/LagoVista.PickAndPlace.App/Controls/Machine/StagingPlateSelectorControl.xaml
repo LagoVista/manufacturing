@@ -10,7 +10,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <StackPanel x:Name="SummaryView" Orientation="Horizontal" HorizontalAlignment="Left">
-            <TextBlock x:Name="LocationSummary" Text="-not set-"></TextBlock>
+            <TextBlock Style="{StaticResource  content}" x:Name="LocationSummary" Text="-not set-"></TextBlock>
             <Button x:Name="Editbutton" Click="Editbutton_Click" Width="24" >
                 <Button.Content>
                     <StackPanel>
@@ -20,11 +20,11 @@
             </Button>
         </StackPanel>
         <StackPanel x:Name="EditView" Visibility="Collapsed">
-            <TextBlock Text="Staging Plate"/>
+            <TextBlock Style="{StaticResource  label}" Text="Staging Plate"/>
             <ComboBox x:Name="StagingPlates" DisplayMemberPath="Text" SelectedValuePath="Id" ></ComboBox>
-            <TextBlock Text="Row"/>
+            <TextBlock Style="{StaticResource  label}" Text="Row"/>
             <ComboBox  x:Name="StagingPlateRows" DisplayMemberPath="Text" SelectedValuePath="Id" ></ComboBox>
-            <TextBlock Text="Column"/>
+            <TextBlock Style="{StaticResource  label}" Text="Column"/>
             <ComboBox  x:Name="StagingPlateCols" DisplayMemberPath="Text" SelectedValuePath="Id" ></ComboBox>
             
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">

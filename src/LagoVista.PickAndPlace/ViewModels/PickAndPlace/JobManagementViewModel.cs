@@ -41,6 +41,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             ResolveJobCommand = CreatedCommand(ResolveJob, () => Job != null);
             ResolvePartsCommand = CreatedCommand(ResolveParts, () => Job != null);
 
+            SaveComponentPackageCommand = CreatedCommand(SaveComponentPackage, () => CurrentComponentPackage != null);
             SubstitutePartCommand = CreatedCommand(SubstitutePart, () => CurrentComponent != null);
             SaveSubstitutePartCommand = CreatedCommand(SaveSubstitutePart, () => SelectedAvailablePart != null);
             CancelSubstitutePartCommand = CreatedCommand(CancelSubstitutePart);
@@ -109,6 +110,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             IsSubstituting = true;
         }
 
+
+
         void SaveSubstitutePart()
         {
             if(SelectedAvailablePart == null)
@@ -153,7 +156,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 UseShellExecute = true
             });
         }
-
 
         public void ShowDataSheeet()
         {
@@ -213,14 +215,35 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
             else
             {
-                var component = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Component>>($"/api/mfg/component/{componentId}");
-                CurrentComponent = component.Result.Model;
+                var result = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Component>>($"/api/mfg/component/{componentId}");
+                if (result.Successful)
+                {
+                    CurrentComponent = result.Result.Model;
+                    if (CurrentComponent.ComponentPackage != null && CurrentComponent.ComponentPackage.Value == null)
+                    {
+                        var packageResult = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.ComponentPackage>>($"/api/mfg/component/package/{CurrentComponent.ComponentPackage.Id}");
+                        if(packageResult.Successful)
+                        {
+                            CurrentComponentPackage = packageResult.Result.Model;
+                        }                        
+                    }
+                }
+                
             }
         }
 
         private async Task SaveJobAsync()
         {
             await _restClient.PutAsync("/api/mfg/pnpjob", Job);
+        }
+
+        async void SaveComponentPackage()
+        {
+            var result = await _restClient.PutAsync("/api/mfg/component/package", CurrentComponentPackage);
+            if(!result.Successful)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, $"Could not save component package: {result.ErrorMessage}");
+            }
         }
 
         private async Task RefreshJob()
@@ -327,6 +350,23 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 Set(ref _currentComponent, value);
                 RaiseCanExecuteChanged();
+                if (value != null && value.ComponentPackage?.Value != null)
+                    CurrentComponentPackage = value.ComponentPackage.Value;
+                else
+                    CurrentComponentPackage = null;
+
+            }
+        }
+
+        public ComponentPackage _currentComponentPackage;
+
+        public ComponentPackage CurrentComponentPackage
+        {
+            get => _currentComponentPackage;
+            set
+            {
+                Set(ref _currentComponentPackage, value);
+                RaiseCanExecuteChanged();
             }
         }
 
@@ -365,8 +405,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public RelayCommand SubstitutePartCommand { get; }
         public RelayCommand SaveSubstitutePartCommand { get; }
-        public   RelayCommand CancelSubstitutePartCommand { get; }
+        public RelayCommand CancelSubstitutePartCommand { get; }
 
         public RelayCommand GoToPartOnBoardCommand { get; }
+
+        public RelayCommand SaveComponentPackageCommand { get; }
     }
 }

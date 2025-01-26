@@ -39,6 +39,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             PickCurrentPartCommand = new RelayCommand(async () => await PickCurrentPartAsync(), () => CurrentComponent != null);
             RecycleCurrentPartCommand = new RelayCommand(async () => await RecycleCurrentPartAsync(), () => CurrentComponent != null);
             InspectCurrentPartCommand = new RelayCommand(async () => await InspectCurrentPartAsync(), () => CurrentComponent != null);
+            SaveComponentPackageCommand = CreatedCommand(SaveComponentPackage, () => CurrentComponentPackage != null);
         }
 
         public override async Task InitAsync()
@@ -52,6 +53,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             SelectedComponentSummaryId = StringExtensions.NotSelectedId;
       
             await base.InitAsync();
+        }
+
+        async void SaveComponentPackage()
+        {
+            var result = await _restClient.PutAsync("/api/mfg/component/package", CurrentComponentPackage);
+            if (!result.Successful)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, $"Could not save component package: {result.ErrorMessage}");
+            }
         }
 
         public async Task<InvokeResult> PickCurrentPartAsync()
@@ -86,9 +96,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
             else
                 await Machine.MoveToToolHeadAsync( MachineConfiguration.ToolHeads.First());
-
-            var leftHead = Machine.CurrentMachineToolHead.HeadIndex == 0;
-
+            
             Machine.SendCommand(CurrentPartLocation.ToGCode());
 
             if(PickHeight.HasValue)
@@ -318,13 +326,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         protected EntityHeader<TapeSizes> _tapeSize;
         public EntityHeader<TapeSizes> TapeSize
         {
-            get => _tapeSize;
+            get => (CurrentComponentPackage != null) ? CurrentComponentPackage.TapeSize : EntityHeader<TapeSizes>.Create(TapeSizes.EightMM);
         }
 
         protected EntityHeader<TapePitches> _tapePitch;
         public EntityHeader<TapePitches> TapePitch
         {
-            get => _tapePitch;
+            get
+            {
+                return (CurrentComponentPackage != null) ? CurrentComponentPackage.TapePitch : EntityHeader<TapePitches>.Create(TapePitches.EightMM);
+            }
         }
 
 
@@ -342,6 +353,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand InspectCurrentPartCommand { get; }
 
         public RelayCommand RecycleCurrentPartCommand { get; }
+        public RelayCommand SaveComponentPackageCommand { get; }
+
 
         public abstract Point2D<double> CurrentPartLocation { get;  }
 

@@ -37,23 +37,23 @@
             <Rectangle Fill="Gray" Opacity="0.15" Grid.RowSpan="8" Grid.ColumnSpan="2" />
             <TextBlock Grid.Row="0" Grid.ColumnSpan="2" FontSize="24" Grid.Column="0"  Text="{Binding MachineRepo.CurrentMachine.Settings.Name, FallbackValue=-no machine-}" Style="{StaticResource header}" />
             <Ellipse Grid.Column="1" Width="24" Height="24" HorizontalAlignment="Right" Fill="{Binding MachineRepo.CurrentMachine.Busy, Converter={StaticResource BoolColorConverter}, FallbackValue=Green}" Margin="4"/>
-            <TextBlock Text="Buffer:" Margin="0,0,5,0" Grid.Row="1" />
+            <TextBlock Text="Buffer:" Margin="0,0,5,0" Grid.Row="1" Style="{StaticResource label}"  />
             <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="1">
-                <TextBlock Text="{Binding MachineRepo.CurrentMachine.UnacknowledgedBytesSent, Mode=OneWay, FallbackValue=20}"/>
+                <TextBlock Text="{Binding MachineRepo.CurrentMachine.UnacknowledgedBytesSent, Mode=OneWay, FallbackValue=20}" Style="{StaticResource content}"/>
                 <TextBlock Text="/"/>
-                <TextBlock Text="{Binding MachineRepo.CurrentMachine.Settings.ControllerBufferSize, FallbackValue=128}"/>
+                <TextBlock Text="{Binding MachineRepo.CurrentMachine.Settings.ControllerBufferSize, FallbackValue=128}" Style="{StaticResource content}"/>
             </StackPanel>
             <ProgressBar Margin="0,0,0,10" Grid.Row="2" Grid.ColumnSpan="2" Maximum="{Binding MachineRepo.CurrentMachine.Settings.ControllerBufferSize, FallbackValue=128}" Value="{Binding MachineRepo.CurrentMachine.UnacknowledgedBytesSent, Mode=OneWay, FallbackValue=20}" Height="20" />
-            <TextBlock Grid.Row="3" Text="Connected"  />
-            <TextBlock Grid.Row="3" Grid.Column="1"  Text="{Binding MachineRepo.CurrentMachine.Connected, FallbackValue=True}"  />
-            <TextBlock Grid.Row="4" Text="Operating Mode" />
-            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding MachineRepo.CurrentMachine.Mode, FallbackValue=Idle}" />
-            <TextBlock Grid.Row="5" Text="Status"  />
-            <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding MachineRepo.CurrentMachine.Status, FallbackValue=Ok}" />
-            <TextBlock Grid.Row="6" Text="Units"  />
-            <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding MachineRepo.CurrentMachine.Unit, FallbackValue=MM}" />
-            <TextBlock Grid.Row="7" Text="Distance Mode"  />
-            <TextBlock  Grid.Row="7" Grid.Column="1" Text="{Binding Machine.DistanceMode, FallbackValue=Absolute}"  />
+            <TextBlock Grid.Row="3" Text="Connected" Style="{StaticResource label}" />
+            <TextBlock Grid.Row="3" Grid.Column="1"  Text="{Binding MachineRepo.CurrentMachine.Connected, FallbackValue=True}"   Style="{StaticResource content}"/>
+            <TextBlock Grid.Row="4" Text="Operating Mode" Style="{StaticResource label}" />
+            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding MachineRepo.CurrentMachine.Mode, FallbackValue=Idle}"  Style="{StaticResource content}"/>
+            <TextBlock Grid.Row="5" Text="Status" Style="{StaticResource label}"  />
+            <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding MachineRepo.CurrentMachine.Status, FallbackValue=Ok}"  Style="{StaticResource content}"/>
+            <TextBlock Grid.Row="6" Text="Units" Style="{StaticResource label}"  />
+            <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding MachineRepo.CurrentMachine.Unit, FallbackValue=MM}"  Style="{StaticResource content}"/>
+            <TextBlock Grid.Row="7" Text="Distance Mode" Style="{StaticResource label}"  />
+            <TextBlock  Grid.Row="7" Grid.Column="1" Text="{Binding Machine.DistanceMode, FallbackValue=Absolute}"   Style="{StaticResource content}"/>
         </Grid>
     </Border>
 </UserControl>

@@ -72,7 +72,7 @@ namespace LagoVista.Manufacturing.Models
             get; set;
         } = "#000000";
 
-        private bool _tapeHolesOnTop;
+        private bool _tapeHolesOnTop = true;
 
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_TapeHolesOnTop, HelpResource: ManufacturingResources.Names.StripFeeder_TapeHolesOnTop_Help,
             FieldType: FieldTypes.CheckBox, ResourceType: typeof(ManufacturingResources))]

@@ -73,8 +73,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             GoToNextPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.NextPart), () => (CurrentRow != null && CurrentPartIndex < TotalPartsInFeederRow));
             GoToPreviousPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.PreviousPart), () => (CurrentRow != null && CurrentPartIndex > 1));
 
+            ShowComponentPackageDetailCommand = CreatedCommand(ShowComponentPackageDetail, () => CurrentComponent != null && CurrentComponent?.ComponentPackage != null);
+
             AddCommand = CreatedCommand(Add, () => machineRepo.HasValidMachine && SelectedTemplateId.HasValidId());
-            SaveCommand = CreatedCommand(Save, () => Current != null);
+            SaveCommand = CreatedCommand(() => Save(false), () => Current != null);
+            SaveAndCloseCommand = CreatedCommand(() => Save(true), () => Current != null);
             CancelCommand = CreatedCommand(Cancel, () => Current != null);
             DoneRowCommand = CreatedCommand(() => DoneRow(), () => CurrentRow != null);
             CancelRowCommand = CreatedCommand(() => CurrentRow = null, () => CurrentRow != null);
@@ -115,11 +118,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             var result = await _restClient.GetAsync<DetailResponse<StripFeeder>>($"/api/mfg/stripfeeder/template/{SelectedTemplateId}/factory");
             if (result.Successful)
-            {
-                _isEditing = false;
+            {                
                 Current = result.Result.Model;
                 Current.Machine = MachineConfiguration.ToEntityHeader();
                 Current.Key = Current.Id.ToLower();
+                _isEditing = false;
             }
         }
 
@@ -181,7 +184,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             CurrentRow = null;
         }
 
-        public async void Save()
+        public async void Save(bool close)
         {
             if (Current != null)
             {
@@ -192,15 +195,43 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     if(!_isEditing)
                         Feeders.Add(Current);
 
-                    Current = null;
-                    SelectedTemplateId = StringExtensions.NotSelectedId;
+                    _isEditing = true;
+
+                    if (close)
+                    {
+                        Current = null;
+                        SelectedTemplateId = StringExtensions.NotSelectedId;
+                    }
                 }
                 else
                 {
                     Machine.AddStatusMessage(StatusMessageTypes.FatalError, result.ErrorMessage);
                 }
             }
-        }       
+        }
+
+        public void ShowComponentPackageDetail()
+        {
+            if (CurrentComponent == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current component.");
+                return;
+            }
+
+            if (CurrentComponent.ComponentPackage == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No component does not have package assigned.");
+                return;
+            }
+
+            var url = $"https://www.nuviot.com/mfg/package/{CurrentComponent.ComponentPackage.Id}";
+            System.Diagnostics.Process.Start(new ProcessStartInfo
+            {
+                FileName = url as string,
+                UseShellExecute = true
+            });
+        }
+
 
         private void SetLocation(StripFeederSetTypes setType)
         {
@@ -219,7 +250,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             var feederIsVertical = Current.Orientation.Value == FeederOrientations.Vertical;
-            var feederOrigin = stagePlateReferenceLocation.SubtractWithConditionalSwap(feederIsVertical, Current.ReferenceHoleOffset);
+            var feederOrigin = stagePlateReferenceLocation.SubtractWithConditionalSwap(feederIsVertical, Current.ReferenceHoleOffset) + Current.OriginOffset;
 
             switch (setType)
             {
@@ -290,12 +321,18 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 case StripFeederLocationTypes.FirstFeederRowReferenceHole:
                     {
-                        switch (CurrentComponent.ComponentPackage.Value.TapeColor.Value)
+                        if (CurrentComponent?.ComponentPackage != null)
                         {
-                            case TapeColors.Black: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleBlackTape); break;
-                            case TapeColors.Clear: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleClearTape); break;
-                            case TapeColors.White: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleWhiteTape); break;
+                            switch (CurrentComponent.ComponentPackage.Value.TapeColor.Value)
+                            {
+                                case TapeColors.Black: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleBlackTape); break;
+                                case TapeColors.Clear: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleClearTape); break;
+                                case TapeColors.White: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleWhiteTape); break;
+                            }
                         }
+                        else
+                            Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleWhiteTape); 
+
 
                         if (UseCalculated)
                             return InvokeResult<Point2D<double>>.Create(feederOrigin + calculateFirstReferneceHole);
@@ -305,12 +342,17 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
                 case StripFeederLocationTypes.LastFeederRowReferenceHole:
                     {
-                        switch (CurrentComponent.ComponentPackage.Value.TapeColor.Value)
+                        if (CurrentComponent?.ComponentPackage != null)
                         {
-                            case TapeColors.Black: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleBlackTape); break;
-                            case TapeColors.Clear: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleClearTape); break;
-                            case TapeColors.White: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleWhiteTape); break;
+                            switch (CurrentComponent.ComponentPackage.Value.TapeColor.Value)
+                            {
+                                case TapeColors.Black: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleBlackTape); break;
+                                case TapeColors.Clear: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleClearTape); break;
+                                case TapeColors.White: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleWhiteTape); break;
+                            }
                         }
+                        else
+                            Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleWhiteTape);
 
                         if (!UseCalculated && !CurrentRow.LastTapeHoleOffset.IsOrigin())
                             return InvokeResult<Point2D<double>>.Create(feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.LastTapeHoleOffset));
@@ -398,9 +440,24 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var expectedDeltaY = 0;
             var expectedDelta = new Point2D<double>(expectedDetlaX, expectedDeltaY);
 
-            var partOffsetInTape = (CurrentComponentPackage.XOffsetFromReferenceHole.HasValue) ?
-                CurrentComponentPackage.XOffsetFromReferenceHole.Value : 
-                ((CurrentPartIndex - 1) * tapePitch) + tapePitch / 2; 
+            var partOffsetInTape = (CurrentPartIndex - 1) * tapePitch;
+            if (CurrentComponentPackage.XOffsetFromReferenceHole.HasValue)
+            {
+                partOffsetInTape += CurrentComponentPackage.XOffsetFromReferenceHole.Value;
+            }
+            else if (TapePitch.Value == TapePitches.FourMM ||
+                     TapePitch.Value == TapePitches.TwelveMM ||
+                     TapePitch.Value == TapePitches.SixteenMM)
+            {
+                partOffsetInTape += TapePitch.ToDouble() / 2;
+            }
+            else
+            {
+                partOffsetInTape += CurrentComponentPackage.TapeRotation.Value == TapeRotations.OneEighty ||
+                                    CurrentComponentPackage.TapeRotation.Value == TapeRotations.Zero ? CurrentComponentPackage.Width / 2 :
+                                    CurrentComponentPackage.Height;
+            }
+      
 
             var ratio = partOffsetInTape / expectedDetlaX;
 
@@ -418,10 +475,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     }
                     else
                     {
+                        var xOffset = (tapeSize / 2) - 0.5;
                         if (Current.TapeHolesOnTop)
-                            partOrigin.SubtractFromX(((tapeSize - 1.75) / 2));
+                            partOrigin.SubtractFromX(xOffset);
                         else
-                            partOrigin.AddToX(((tapeSize - 1.75) / 2));                    
+                            partOrigin.AddToX(xOffset);                    
                     }
 
                     partOrigin.SubtractFromY(partOffsetInTape);
@@ -519,6 +577,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             get => _current;
             set
             {
+                _isEditing = true;
                 Set(ref _current, value);
                 if (value != null)
                 {
@@ -633,7 +692,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand RefreshTemplatesCommand { get; }
 
         public RelayCommand AddCommand { get;  }
+        public RelayCommand ShowComponentPackageDetailCommand { get; }
         public RelayCommand SaveCommand { get; }
+        public RelayCommand SaveAndCloseCommand { get; }
         public RelayCommand CancelCommand { get; }
 
         public RelayCommand DoneRowCommand { get; }
