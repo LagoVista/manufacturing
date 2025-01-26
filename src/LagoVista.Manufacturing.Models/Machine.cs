@@ -379,10 +379,8 @@ namespace LagoVista.Manufacturing.Models
             FieldType: FieldTypes.EntityHeaderPicker, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<GCodeMapping> GcodeMapping { get; set; }
 
-
-
         Point2D<double> _workAreaSize = new Point2D<double>(400, 400);
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_WorkAreaSize, HelpResource: ManufacturingResources.Names.Machine_WorkAreaSize_Help, FieldType: FieldTypes.Point2DSize, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_WorkAreaSize, HelpResource: ManufacturingResources.Names.Machine_WorkAreaSize_Help, FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public Point2D<double> WorkAreaSize
         {
             get { return _workAreaSize; }
@@ -395,7 +393,7 @@ namespace LagoVista.Manufacturing.Models
 
 
         Point3D<double> _frameSize = new Point3D<double>(600, 600, 30);
-        [FormField(LabelResource: ManufacturingResources.Names.Machine_FrameSize, HelpResource: ManufacturingResources.Names.Machine_FrameSize_Help, FieldType: FieldTypes.Point3DSize, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_FrameSize, HelpResource: ManufacturingResources.Names.Machine_FrameSize_Help, FieldType: FieldTypes.Point3D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public Point3D<double> FrameSize
         {
             get => _frameSize;

@@ -13,7 +13,7 @@
              d:DataContext="{d:DesignInstance vm:IStripFeederViewModel }"
              mc:Ignorable="d" 
              Background="Transparent"
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="800" d:DesignWidth="800">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="50*" />
@@ -47,6 +47,10 @@
 
                 <TextBlock Text="Staging Plate Location:" Style="{StaticResource label}" />
                 <mch:StagingPlateSelectorControl StagePlateLocatedObject ="{Binding Current }"></mch:StagingPlateSelectorControl>
+
+                <ui:Picker Model="{Binding Current}" FieldName="TapeSize" />
+                <ui:Picker Model="{Binding Current}" FieldName="Orientation" />
+                <ui:Point2D Model="{Binding Current}" FieldName="ReferenceHoleOffset" />
 
                 <Grid >
                     <Grid.ColumnDefinitions>
