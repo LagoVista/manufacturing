@@ -219,7 +219,7 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _length, value);
         }
 
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Rows, OpenByDefault:true, ChildListDisplayMembers:"rowIndex,component.text", CanAddRows: false, FactoryUrl: "/api/mfg/stripfeeder/row/factory", FieldType: FieldTypes.ChildListInline, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Rows, OpenByDefault:true, ChildListDisplayMembers:"rowIndex,component.text,status.text", CanAddRows: false, FactoryUrl: "/api/mfg/stripfeeder/row/factory", FieldType: FieldTypes.ChildListInline, ResourceType: typeof(ManufacturingResources))]
         public List<StripFeederRow> Rows { get; set; } = new List<StripFeederRow>();
 
         public EntityHeader _referenceHoleColumn;
@@ -270,6 +270,8 @@ namespace LagoVista.Manufacturing.Models
                 Key = Key,
                 IsPublic = IsPublic,
                 TapeSize = TapeSize.Text,
+                Machine = Machine?.Text,
+                MachineId = Machine?.Id,
                 TapeSizeId = TapeSize.Id,
             };
         }
@@ -385,6 +387,21 @@ namespace LagoVista.Manufacturing.Models
     {
         public string TapeSize { get; set; }
         public string TapeSizeId { get; set; }
+    
+        public string MachineId { get; set; }
+        public string Machine { get; set; }
+    }
+
+    public enum StripFeederRowStatuses
+    {
+        [EnumLabel(StripFeederRow.StripFeederRowStatus_None, ManufacturingResources.Names.StripFeederRowStatus_None, typeof(ManufacturingResources))]
+        None,
+        [EnumLabel(StripFeederRow.StripFeederRowStatus_Planned, ManufacturingResources.Names.StripFeederRowStatus_Planned, typeof(ManufacturingResources))]
+        Planned,
+        [EnumLabel(StripFeederRow.StripFeederRowStatus_Ready, ManufacturingResources.Names.StripFeederRowStatus_Ready, typeof(ManufacturingResources))]
+        Ready,
+        [EnumLabel(StripFeederRow.StripFeederRowStatus_Empty, ManufacturingResources.Names.StripFeederRowStatus_Empty, typeof(ManufacturingResources))]
+        Empty
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.StripFeederRow_Title, ManufacturingResources.Names.StripFeederRow_Description,
@@ -392,9 +409,15 @@ namespace LagoVista.Manufacturing.Models
                 Icon: "icon-fo-left", Cloneable: true, FactoryUrl: "/api/mfg/stripfeeder/row/factory")]
     public class StripFeederRow : ModelBase, IFormDescriptor, IFormAdditionalActions
     {
+        public const string StripFeederRowStatus_None = "none";
+        public const string StripFeederRowStatus_Planned = "planned";
+        public const string StripFeederRowStatus_Ready = "ready";
+        public const string StripFeederRowStatus_Empty = "empty";
+
         public StripFeederRow()
         {
-            Id = Guid.NewGuid().ToId();            
+            Id = Guid.NewGuid().ToId();
+            Status = EntityHeader<StripFeederRowStatuses>.Create(StripFeederRowStatuses.None);
         }
 
         public string Id { get; set; }
@@ -419,6 +442,14 @@ namespace LagoVista.Manufacturing.Models
         {
             get => _currentPartIndex;
             set => Set(ref _currentPartIndex, value);
+        }
+
+        private EntityHeader<StripFeederRowStatuses> _status;
+        [FormField(LabelResource: ManufacturingResources.Names.Common_Status, WaterMark:ManufacturingResources.Names.Common_Status_Select, EnumType: typeof(StripFeederRowStatuses), FieldType: FieldTypes.Picker, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader<StripFeederRowStatuses> Status 
+        {
+            get => _status;
+            set => Set(ref _status, value);
         }
 
         private int _rowIndex = 1;
@@ -473,6 +504,7 @@ namespace LagoVista.Manufacturing.Models
             return new List<string>()
             {
                 nameof(Component),
+                nameof(Status),
                 nameof(RowIndex),
                 nameof(CurrentPartIndex),
                 nameof(FirstTapeHoleOffset),

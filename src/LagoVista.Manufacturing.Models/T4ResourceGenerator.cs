@@ -1,4 +1,4 @@
-﻿/*1/25/2025 5:40:27 PM*/
+﻿/*1/26/2025 4:30:27 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -1334,6 +1334,18 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:StripFeederRow_Title
 
 		public static string StripFeederRow_Title { get { return GetResourceString("StripFeederRow_Title"); } }
+//Resources:ManufacturingResources:StripFeederRowStatus_Empty
+
+		public static string StripFeederRowStatus_Empty { get { return GetResourceString("StripFeederRowStatus_Empty"); } }
+//Resources:ManufacturingResources:StripFeederRowStatus_None
+
+		public static string StripFeederRowStatus_None { get { return GetResourceString("StripFeederRowStatus_None"); } }
+//Resources:ManufacturingResources:StripFeederRowStatus_Planned
+
+		public static string StripFeederRowStatus_Planned { get { return GetResourceString("StripFeederRowStatus_Planned"); } }
+//Resources:ManufacturingResources:StripFeederRowStatus_Ready
+
+		public static string StripFeederRowStatus_Ready { get { return GetResourceString("StripFeederRowStatus_Ready"); } }
 //Resources:ManufacturingResources:StripFeeders_Title
 
 		public static string StripFeeders_Title { get { return GetResourceString("StripFeeders_Title"); } }
@@ -1893,6 +1905,10 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string StripFeederRow_LastTapeHoleOffset_Help = "StripFeederRow_LastTapeHoleOffset_Help";
 			public const string StripFeederRow_RowIndex = "StripFeederRow_RowIndex";
 			public const string StripFeederRow_Title = "StripFeederRow_Title";
+			public const string StripFeederRowStatus_Empty = "StripFeederRowStatus_Empty";
+			public const string StripFeederRowStatus_None = "StripFeederRowStatus_None";
+			public const string StripFeederRowStatus_Planned = "StripFeederRowStatus_Planned";
+			public const string StripFeederRowStatus_Ready = "StripFeederRowStatus_Ready";
 			public const string StripFeeders_Title = "StripFeeders_Title";
 			public const string StripFeederTemplate_Description = "StripFeederTemplate_Description";
 			public const string StripFeederTemplate_Title = "StripFeederTemplate_Title";

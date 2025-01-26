@@ -1290,7 +1290,7 @@
     <value>Distance in MM from the bottom, front left of the machines frame to the 0,0 coordinate of the workspace.</value>
   </data>
   <data name="StripFeederRow_LastTapeHoleOffset" xml:space="preserve">
-    <value>Last Tape Hole Offset</value>
+    <value>Last Tape Hope Offset</value>
   </data>
   <data name="StripFeederRow_LastTapeHoleOffset_Help" xml:space="preserve">
     <value>Offset from tape hole prior to first part to tape hole prior to last part, used to correct for any angle offsets in feeder installation.</value>
@@ -1437,8 +1437,8 @@
     <value>Tape Holes on Top</value>
   </data>
   <data name="StripFeeder_TapeHolesOnTop_Help" xml:space="preserve">
-    <value>When the feeder is horizontal, if the holes are on the top of the tape, then this should be set.</value>
-  </data>
+      <value>When the feeder is horizontal, if the holes are on the top of the tape, then this should be set.</value>
+</data>
   <data name="ComponentPackage_NozzleTip" xml:space="preserve">
     <value>Nozzle Tip</value>
   </data>
@@ -1489,6 +1489,18 @@
   </data>
   <data name="VisionProfile_FeederFiducial" xml:space="preserve">
     <value>Feeder Fiducial</value>
+  </data>
+  <data name="StripFeederRowStatus_None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="StripFeederRowStatus_Planned" xml:space="preserve">
+    <value>Planned</value>
+  </data>
+  <data name="StripFeederRowStatus_Ready" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="StripFeederRowStatus_Empty" xml:space="preserve">
+    <value>Empty</value>
   </data>
   <data name="AssemblyInstruction_Title" xml:space="preserve">
     <value>Assembly Intruction</value>
