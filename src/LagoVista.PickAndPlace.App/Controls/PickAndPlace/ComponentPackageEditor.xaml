@@ -11,18 +11,18 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel Margin="10">
         <TextBlock Style="{StaticResource header}" Text="{Binding CurrentComponentPackage.Name, StringFormat={} Package: {0}  }" />
-        <StackPanel Orientation="Horizontal">
+        <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
             <ui:Picker Width="200" Model="{Binding CurrentComponentPackage}" FieldName="TapeSize" />
-            <ui:Picker Width="200" Model="{Binding CurrentComponentPackage}" FieldName="TapePitch" />
-            <ui:Picker Width="200" Model="{Binding CurrentComponentPackage}" FieldName="TapeColor" />
+            <ui:Picker Margin="10,0,0,0" Width="200" Model="{Binding CurrentComponentPackage}" FieldName="TapePitch" />
+            <ui:Picker Margin="10,0,0,0" Width="200" Model="{Binding CurrentComponentPackage}" FieldName="TapeColor" />
         </StackPanel>
-        <StackPanel Orientation="Horizontal">
+        <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
             <ui:Picker Width="200" Model="{Binding CurrentComponentPackage}" FieldName="TapeMaterialType" />
-            <ui:Picker Width="200" Model="{Binding CurrentComponentPackage}" FieldName="TapeRotation" />
+            <ui:Picker Margin="10,0,0,0" Width="200" Model="{Binding CurrentComponentPackage}" FieldName="TapeRotation" />
         </StackPanel>
 
 
-        <TextBlock Style="{StaticResource label}" Text="Size"></TextBlock>
+        <TextBlock Margin="0,10,0,4" Style="{StaticResource label}" Text="Size"></TextBlock>
         <StackPanel Orientation="Horizontal">
             <TextBlock Text="X=" Style="{StaticResource label}" />
             <ui:MaskingTextBox UnitType="Size" Text="{Binding CurrentComponentPackage.Width}" Width="120" ></ui:MaskingTextBox>
@@ -32,7 +32,7 @@
             <ui:MaskingTextBox UnitType="Size" Text="{Binding CurrentComponentPackage.Height}" Width="120" ></ui:MaskingTextBox>
         </StackPanel>
 
-        <TextBlock Style="{StaticResource label}" Text="Offset from Reference Hole"></TextBlock>
+        <TextBlock Margin="0,10,0,4" Style="{StaticResource label}" Text="Offset from Reference Hole"></TextBlock>
         <StackPanel Orientation="Horizontal">
             <TextBlock Text="X=" Style="{StaticResource label}" />
             <ui:MaskingTextBox UnitType="Size" Text="{Binding CurrentComponentPackage.XOffsetFromReferenceHole}" Width="120" ></ui:MaskingTextBox>

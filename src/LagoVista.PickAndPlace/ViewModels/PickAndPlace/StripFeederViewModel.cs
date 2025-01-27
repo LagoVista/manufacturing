@@ -6,13 +6,11 @@ using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using LagoVista.Manufacturing.Util;
-using LagoVista.Manufacturing.Utils;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
-using Newtonsoft.Json.Bson;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -500,7 +498,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 var firstHole = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.LastTapeHoleOffset);
                 var lastHole = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.FirstTapeHoleOffset);
                 var offsetFromHole = (tapeSize - 1) / 2;
-                
                                        
                 if (feederIsVertical)
                 {

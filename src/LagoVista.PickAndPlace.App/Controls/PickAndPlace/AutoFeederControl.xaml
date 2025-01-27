@@ -11,71 +11,73 @@
              d:DataContext="{d:DesignInstance vm:IAutoFeederViewModel }"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="33*"></ColumnDefinition>
             <ColumnDefinition Width="33*"></ColumnDefinition>
             <ColumnDefinition Width="33*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
 
-        <DataGrid ItemsSource="{Binding Feeders }" CanUserAddRows="false" AutoGenerateColumns="False" SelectedItem="{Binding Current, Mode=TwoWay}" IsReadOnly="True">
+        <DataGrid ItemsSource="{Binding Feeders}" Grid.RowSpan="2" CanUserAddRows="false" AutoGenerateColumns="False" SelectedItem="{Binding Current, Mode=TwoWay}" IsReadOnly="True">
             <DataGrid.Columns>
-                <DataGridTextColumn Width="80" Header="Slot" Binding="{Binding Slot}" ></DataGridTextColumn>
+                <DataGridTextColumn Width="40" Header="Slot" Binding="{Binding Slot}" ></DataGridTextColumn>
                 <DataGridTextColumn Width="*" Header="Name" Binding="{Binding Name}" x:Name="Name" ></DataGridTextColumn>
-                <DataGridTextColumn Width="120" Header="Slot" Binding="{Binding PartCount}" ></DataGridTextColumn>
+                <DataGridTextColumn Width="60" Header="Part Count" Binding="{Binding PartCount}" ></DataGridTextColumn>
                 <DataGridTextColumn Width="200" Header="Component" Binding="{Binding Component}" ></DataGridTextColumn>
                 <DataGridTextColumn Width="200" Header="Feeder Id" Binding="{Binding FeederId}" ></DataGridTextColumn>
-                <DataGridTextColumn Width="120" Header="Tape Size" Binding="{Binding TapeSize}" ></DataGridTextColumn>
-                
+                <DataGridTextColumn Width="100" Header="Tape Size" Binding="{Binding TapeSize}" ></DataGridTextColumn>
+
             </DataGrid.Columns>
         </DataGrid>
-        
-        <StackPanel Grid.Column="1">
-            <StackPanel Visibility="{Binding Current, Converter={StaticResource NullVisibilityConverter}}" >
-                <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Add" Command="{Binding AddCommand}"></Button>
-                <StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Width="120" Style="{StaticResource label}"  Text="Feeder Address:"></TextBlock>
-                        <TextBlock Text="{Binding CurrentPhotonFeeder.Address}"></TextBlock>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Width="120"  Style="{StaticResource label}" Text="Slot:"></TextBlock>
-                        <TextBlock Text="{Binding CurrentPhotonFeeder.Slot}"></TextBlock>
-                    </StackPanel>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="1" Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}" >
+            <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Save" Command="{Binding SaveCommand}"></Button>
+            <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Cancel" Command="{Binding CancelCommand}"></Button>
+        </StackPanel>
+
+        <StackPanel Visibility="{Binding Current, Converter={StaticResource NullVisibilityConverter}}" Grid.Column="1" >
+            <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Add" Command="{Binding AddCommand}"></Button>
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Width="120" Style="{StaticResource label}"  Text="Feeder Address:"></TextBlock>
+                    <TextBlock Text="{Binding CurrentPhotonFeeder.Address}"></TextBlock>
                 </StackPanel>
-                <StackPanel>
-                    <ComboBox ItemsSource="{Binding Templates}" SelectedValue="{Binding SelectedTemplateId}" DisplayMemberPath="Name" SelectedValuePath="Id"></ComboBox>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Width="120"  Style="{StaticResource label}" Text="Slot:"></TextBlock>
+                    <TextBlock Text="{Binding CurrentPhotonFeeder.Slot}"></TextBlock>
                 </StackPanel>
             </StackPanel>
+            <StackPanel>
+                <ComboBox ItemsSource="{Binding Templates}" SelectedValue="{Binding SelectedTemplateId}" DisplayMemberPath="Name" SelectedValuePath="Id"></ComboBox>
+            </StackPanel>
+        </StackPanel>
 
 
-            <StackPanel Grid.Column="1" Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}">
+        <StackPanel Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}" Grid.Row="1" Grid.Column="1">
+       
+            <StackPanel Margin="10,0,0,0" Grid.Column="1" Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}">
                 <TextBlock Style="{StaticResource label}" Text="Name:"></TextBlock>
                 <TextBox ToolTip="please enter a name for your feeder" Text="{Binding Current.Name, Mode=TwoWay}"></TextBox>
                 <TextBlock Style="{StaticResource label}" Text="Part Count:"></TextBlock>
                 <TextBox ToolTip="please enter a name for your feeder" Text="{Binding Current.PartCount, Mode=TwoWay}"></TextBox>
 
-
-                <Label>Component Category</Label>
+                <TextBlock Style="{StaticResource label}" Text="Component Category"></TextBlock>
                 <ComboBox ItemsSource="{Binding ComponentCategories}" DisplayMemberPath="Text" SelectedValuePath="Key" SelectedValue="{Binding SelectedCategoryKey, Mode=TwoWay}"></ComboBox>
-                <Label>Component</Label>
+                <TextBlock Style="{StaticResource label}" Text="Component"></TextBlock>
                 <ComboBox ItemsSource="{Binding Components}" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding SelectedComponentSummaryId}"></ComboBox>
-                <TextBlock Text="{Binding SelectedComponent.Name}"></TextBlock>
                 <TextBlock Text="{Binding SelectedComponent.DataSheet}"></TextBlock>
                 <TextBlock Text="{Binding SelectedComponent.ComponentPackage}"></TextBlock>
-
-                
-                
-                <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Save" Command="{Binding SaveCommand}"></Button>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">
                 <StackPanel Margin="10">
-                    
                     <TextBlock Style="{StaticResource label}" Text="Feeder Pick Location"></TextBlock>
-                    <TextBlock  Text="{Binding Current.PickOffset}"></TextBlock>
-                    
-                    
+                    <TextBlock Style="{StaticResource content}" Text="{Binding Current.PickOffset}"></TextBlock>
+
                     <StackPanel Orientation="Horizontal">
                         <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetPartPickLocationCommand}"  ToolTip="Set Reference Hole for Feeder Row" Width="64" Height="64"  >
                             <Button.Content>
@@ -89,9 +91,10 @@
                         </Button>
                     </StackPanel>
                 </StackPanel>
+
                 <StackPanel Margin="10">
                     <TextBlock Style="{StaticResource label}" Text="Feeder Fiducial"></TextBlock>
-                    <TextBlock  Text="{Binding Current.FiducialOffset}"></TextBlock>
+                    <TextBlock Style="{StaticResource content}" Text="{Binding Current.FiducialOffset}"></TextBlock>
                     <StackPanel Orientation="Horizontal">
                         <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetFeederFiducialLocationCommand}"  ToolTip="Set Reference Hole for Feeder Row" Width="64" Height="64"  >
                             <Button.Content>
@@ -107,6 +110,7 @@
                     </StackPanel>
                 </StackPanel>
             </StackPanel>
+
             <StackPanel Orientation="Horizontal">
                 <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="Previous Part" Command="{Binding InitializeFeederCommand}" >
                     <Button.Content>
@@ -127,8 +131,6 @@
                 </Button>
 
             </StackPanel>
-
-
         </StackPanel>
     </Grid>
 </ucb:VMBoundUserControl>

@@ -12,6 +12,7 @@ using LagoVista.PickAndPlace.ViewModels.Machine;
 using RingCentral;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -37,10 +38,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             _restClient = resteClient ?? throw new ArgumentNullException(nameof(resteClient));
             _machineUtilitiesViewModel = machineUtilitiesViewModel ?? throw new ArgumentNullException(nameof(machineUtilitiesViewModel));
-            PickCurrentPartCommand = new RelayCommand(async () => await PickCurrentPartAsync(), () => CurrentComponent != null);
-            RecycleCurrentPartCommand = new RelayCommand(async () => await RecycleCurrentPartAsync(), () => CurrentComponent != null);
-            InspectCurrentPartCommand = new RelayCommand(async () => await InspectCurrentPartAsync(), () => CurrentComponent != null);
+            PickCurrentPartCommand = CreatedMachineConnectedCommand(async () => await PickCurrentPartAsync(), () => CurrentComponent != null);
+            RecycleCurrentPartCommand = CreatedMachineConnectedCommand(async () => await RecycleCurrentPartAsync(), () => CurrentComponent != null);
+            InspectCurrentPartCommand = CreatedMachineConnectedCommand(async () => await InspectCurrentPartAsync(), () => CurrentComponent != null);
             SaveComponentPackageCommand = CreatedCommand(SaveComponentPackage, () => CurrentComponentPackage != null);
+            ShowComponentDetailCommand = CreatedCommand(ShowComponentDetail, () => CurrentComponent != null);
+            ShowComponentPackageDetailCommand = CreatedCommand(ShowComponentPackageDetail, () => CurrentComponent != null && CurrentComponent?.ComponentPackage != null);
+            ShowDataSheetCommand = CreatedCommand(ShowDataSheeet, () => CurrentComponent != null && !String.IsNullOrEmpty(CurrentComponent.DataSheet));
+
         }
 
         public override async Task InitAsync()
@@ -54,6 +59,62 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             SelectedComponentSummaryId = StringExtensions.NotSelectedId;
       
             await base.InitAsync();
+        }
+
+
+        public void ShowComponentPackageDetail()
+        {
+            if (CurrentComponent == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current component.");
+                return;
+            }
+
+            if (CurrentComponent.ComponentPackage == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No component does not have package assigned.");
+                return;
+            }
+
+            var url = $"https://www.nuviot.com/mfg/package/{CurrentComponent.ComponentPackage.Id}";
+            System.Diagnostics.Process.Start(new ProcessStartInfo
+            {
+                FileName = url as string,
+                UseShellExecute = true
+            });
+        }
+
+        public void ShowDataSheeet()
+        {
+            if (CurrentComponent == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current component.");
+                return;
+            }
+
+            if (String.IsNullOrEmpty(CurrentComponent.DataSheet))
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Data sheet not available");
+            }
+
+            System.Diagnostics.Process.Start(new ProcessStartInfo
+            {
+                FileName = CurrentComponent.DataSheet,
+                UseShellExecute = true
+            });
+        }
+
+        public void ShowComponentDetail()
+        {
+            if (CurrentComponent != null)
+            {
+                var url = $"https://www.nuviot.com/mfg/component/{CurrentComponent.Id}";
+                System.Diagnostics.Process.Start(new ProcessStartInfo
+                {
+                    FileName = url as string,
+                    UseShellExecute = true
+                });
+            }
         }
 
         async void SaveComponentPackage()
@@ -357,6 +418,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public RelayCommand RecycleCurrentPartCommand { get; }
         public RelayCommand SaveComponentPackageCommand { get; }
+
+        public RelayCommand ShowDataSheetCommand { get; }
+        public RelayCommand ShowComponentDetailCommand { get; }
+        public RelayCommand ShowComponentPackageDetailCommand { get; }
+
 
 
         public abstract Point2D<double> CurrentPartLocation { get;  }

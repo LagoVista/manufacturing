@@ -1437,8 +1437,8 @@
     <value>Tape Holes on Top</value>
   </data>
   <data name="StripFeeder_TapeHolesOnTop_Help" xml:space="preserve">
-      <value>When the feeder is horizontal, if the holes are on the top of the tape, then this should be set.</value>
-</data>
+    <value>When the feeder is horizontal (even if it is installed vertically),  if the holes that are used to identify the parts pick location are on the top of the tape, this should be true.</value>
+  </data>
   <data name="ComponentPackage_NozzleTip" xml:space="preserve">
     <value>Nozzle Tip</value>
   </data>
@@ -1501,6 +1501,12 @@
   </data>
   <data name="StripFeederRowStatus_Empty" xml:space="preserve">
     <value>Empty</value>
+  </data>
+  <data name="StripFeeder_DualHoles" xml:space="preserve">
+    <value>Dial Holes</value>
+  </data>
+  <data name="StripFeeder_DualHoles_Help" xml:space="preserve">
+    <value>Tapee has holes on both sides (top/bottom) this is typically true with 32mm and larger tapes.</value>
   </data>
   <data name="AssemblyInstruction_Title" xml:space="preserve">
     <value>Assembly Intruction</value>

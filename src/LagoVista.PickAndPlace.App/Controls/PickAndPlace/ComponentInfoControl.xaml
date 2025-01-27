@@ -1,0 +1,14 @@
+﻿<UserControl x:Class="LagoVista.PickAndPlace.App.Controls.PickAndPlace.ComponentInfoControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls.PickAndPlace"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <StackPanel Orientation="Horizontal">
+        <Button Style="{StaticResource CommandButton}" Command="{Binding ShowComponentDetailCommand}">Component Detail</Button>
+        <Button Style="{StaticResource CommandButton}" Command="{Binding ShowComponentPackageDetailCommand}">Package Detail</Button>
+        <Button Style="{StaticResource CommandButton}" Command="{Binding ShowDataSheetCommand}">Show Datasheet</Button>
+    </StackPanel>
+</UserControl>

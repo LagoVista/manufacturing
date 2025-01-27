@@ -83,6 +83,15 @@ namespace LagoVista.Manufacturing.Models
         }
 
 
+        private bool _dualHoles = false;
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_DualHoles, HelpResource: ManufacturingResources.Names.StripFeeder_DualHoles_Help,
+            FieldType: FieldTypes.CheckBox, ResourceType: typeof(ManufacturingResources))]
+        public bool DualHoles   
+        {
+            get => _dualHoles;
+            set => Set(ref _dualHoles, value);
+        }
+
         private EntityHeader<FeederOrientations> _orientation;
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_Orientation, FieldType: FieldTypes.Picker, EnumType: typeof(FeederOrientations), WaterMark: ManufacturingResources.Names.StripFeeder_Orientation_Select, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<FeederOrientations> Orientation

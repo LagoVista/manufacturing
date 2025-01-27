@@ -5,33 +5,29 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls.PickAndPlace"
+             xmlns:ui="clr-namespace:LagoVista.PickAndPlace.App.Controls.UI"
+          
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance vm:IPhotonFeederViewModel }"
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;assembly=LagoVista.PickAndPlace"                                        
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="33*" ></ColumnDefinition>
-            <ColumnDefinition Width="33*" ></ColumnDefinition>
-            <ColumnDefinition Width="33*" ></ColumnDefinition>
-        </Grid.ColumnDefinitions>
-        <DataGrid ItemsSource="{Binding PartsViewModel.AutoFeeders}">
-
-        </DataGrid>
-        <StackPanel Grid.Column="1" HorizontalAlignment="Left">
-            <TextBlock Text="{Binding Status, FallbackValue=Idle}" FontWeight="Bold" FontSize="16"></TextBlock>
-
-            <ProgressBar Maximum="{Binding SlotsToSearch}" Height="20" Value="{Binding SlotSearchIndex}" ></ProgressBar>
+    <Grid Margin="10" Width="600" HorizontalAlignment="Left">
+        <StackPanel >
+            <TextBlock Text="Discover Photon Auto Feeders" Style="{StaticResource header}"></TextBlock>
+            <TextBlock Text="Slots to Search:" VerticalAlignment="Center" Style="{StaticResource label}"></TextBlock>
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Slots to Search:" VerticalAlignment="Center" Style="{StaticResource label}"></TextBlock>
-            <TextBox Width="120" Height="20" Text="{Binding SlotsToSearch}"  TextAlignment="Right"></TextBox>
-            <Button Style="{StaticResource CommandButton}" Command="{Binding DiscoverFeedersCommand}" Content="Discover" ></Button>
+                <ui:MaskingTextBox Width="120"  Text="{Binding SlotsToSearch}"  TextAlignment="Right"></ui:MaskingTextBox>
+                <Button Style="{StaticResource CommandButton}" Command="{Binding DiscoverFeedersCommand}" Content="Discover" ></Button>
             </StackPanel>
+
+            <StackPanel Visibility="{Binding Status, Converter={StaticResource NoTNullToVisibilityConverter}}">
+                <TextBlock Text="{Binding Status, FallbackValue=Idle}" FontWeight="Bold" FontSize="16"></TextBlock>
+                <ProgressBar Margin="0,10,0,10" Maximum="{Binding SlotsToSearch}" Height="20" Value="{Binding SlotSearchIndex}" ></ProgressBar>
                 <DataGrid ItemsSource="{Binding DiscoveredFeeders}" SelectedItem="{Binding SelectedPhotonFeeder, Mode=TwoWay}">
+                </DataGrid>
+            </StackPanel>
 
-
-            </DataGrid>
         </StackPanel>
     </Grid>
 </ucb:VMBoundUserControl>

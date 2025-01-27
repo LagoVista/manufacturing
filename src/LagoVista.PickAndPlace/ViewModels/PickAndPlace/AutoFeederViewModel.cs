@@ -46,7 +46,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             AddCommand = CreatedCommand(Add, () => MachineRepo.HasValidMachine && SelectedTemplateId.HasValidId() && CurrentPhotonFeeder != null);
             SaveCommand = CreatedCommand(Save, () => Current != null);
-
+            CancelCommand = CreatedCommand(Cancel, () => Current != null);
             ReloadFeederCommand = CreatedCommand(ReloadFeeder, () => Current != null);
         }
 
@@ -326,6 +326,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, result.ErrorMessage);
             }
+        }
+
+        public void Cancel()
+        {
+            Current = null;
         }
 
         private async Task LoadFeeders()

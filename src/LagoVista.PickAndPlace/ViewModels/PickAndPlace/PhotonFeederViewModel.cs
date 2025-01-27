@@ -1,9 +1,7 @@
 ﻿using LagoVista.Client.Core;
 using LagoVista.Core.Commanding;
-using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Core.PlatformSupport;
 using LagoVista.Core.Validation;
-using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
@@ -13,8 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -262,7 +258,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             set
             {
                 Set(ref _selectedAutoFeederTemplateId, value);
-                CreateAutoFeederFromTemplateCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -272,9 +267,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             get => _autoFeederTemplates;
             set => Set(ref _autoFeederTemplates, value);
         }
-
-        public RelayCommand CreateAutoFeederFromTemplateCommand { get; }
-
 
         public RelayCommand<int> NextPartCommand { get; }
         public RelayCommand DiscoverFeedersCommand { get; }

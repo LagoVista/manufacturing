@@ -14,14 +14,14 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="20" />
-            <ColumnDefinition Width="120" />
+            <ColumnDefinition Width="80" />
             <ColumnDefinition Width="40" />
-            <ColumnDefinition Width="120" />
+            <ColumnDefinition Width="80" />
         </Grid.ColumnDefinitions>
         <TextBlock x:Name="Label" Style="{StaticResource label}" Grid.ColumnSpan="4" />
         <TextBlock HorizontalAlignment="Right" Grid.Row="1" Text="X=" Style="{StaticResource label}"></TextBlock>
-        <ui:MaskingTextBox Text="{Binding X, Mode=TwoWay}" Grid.Row="1" Grid.Column="1" />
+        <ui:MaskingTextBox UnitType="Size"  Text="{Binding X, Mode=TwoWay}" Grid.Row="1" Grid.Column="1" />
         <TextBlock HorizontalAlignment="Right" Grid.Row="1" Grid.Column="2" Text="Y=" Style="{StaticResource label}"></TextBlock>
-        <ui:MaskingTextBox Text="{Binding Y, Mode=TwoWay}" Grid.Row="1" Grid.Column="3" />
+        <ui:MaskingTextBox UnitType="Size" Text="{Binding Y, Mode=TwoWay}" Grid.Row="1" Grid.Column="3" />
     </Grid>
 </UserControl>

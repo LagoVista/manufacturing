@@ -1,4 +1,4 @@
-﻿/*1/26/2025 4:30:27 AM*/
+﻿/*1/27/2025 5:47:51 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -1232,6 +1232,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:StripFeeder_Direction_Select
 
 		public static string StripFeeder_Direction_Select { get { return GetResourceString("StripFeeder_Direction_Select"); } }
+//Resources:ManufacturingResources:StripFeeder_DualHoles
+
+		public static string StripFeeder_DualHoles { get { return GetResourceString("StripFeeder_DualHoles"); } }
+//Resources:ManufacturingResources:StripFeeder_DualHoles_Help
+
+		public static string StripFeeder_DualHoles_Help { get { return GetResourceString("StripFeeder_DualHoles_Help"); } }
 //Resources:ManufacturingResources:StripFeeder_FeederSize_Help
 
 		public static string StripFeeder_FeederSize_Help { get { return GetResourceString("StripFeeder_FeederSize_Help"); } }
@@ -1871,6 +1877,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string StripFeeder_Description = "StripFeeder_Description";
 			public const string StripFeeder_Direction = "StripFeeder_Direction";
 			public const string StripFeeder_Direction_Select = "StripFeeder_Direction_Select";
+			public const string StripFeeder_DualHoles = "StripFeeder_DualHoles";
+			public const string StripFeeder_DualHoles_Help = "StripFeeder_DualHoles_Help";
 			public const string StripFeeder_FeederSize_Help = "StripFeeder_FeederSize_Help";
 			public const string StripFeeder_Orientation = "StripFeeder_Orientation";
 			public const string StripFeeder_Orientation_Select = "StripFeeder_Orientation_Select";
