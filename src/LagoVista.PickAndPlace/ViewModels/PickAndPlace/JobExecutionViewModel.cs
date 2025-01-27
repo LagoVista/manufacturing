@@ -94,10 +94,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             result = await _partInspectionVM.InspectAsync();
             if (!result.Successful) return result;
 
-            result = await PcbVM.PlacePartOnboardAsync(JobVM.PickAndPlaceJobPart, JobVM.Placement);
+            result = await PcbVM.PlacePartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement);
             if (!result.Successful) return result;
 
-            result = await PcbVM.InspectPartOnboardAsync(JobVM.PickAndPlaceJobPart, JobVM.Placement);
+            result = await PcbVM.InspectPartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement);
             if (!result.Successful) return result;
 
             //  _jobRunVM.Current.Placements.Add(JobVM.Placement);

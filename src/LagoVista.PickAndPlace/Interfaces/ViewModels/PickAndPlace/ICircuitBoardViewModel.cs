@@ -9,9 +9,9 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
     public interface ICircuitBoardViewModel : IMachineViewModelBase
     {
         Task<InvokeResult> AlignBoardAsync();
-        Task<InvokeResult> InspectPartOnboardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement);
-        Task<InvokeResult> PlacePartOnboardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement);
-        Task<InvokeResult> PickPartFromBoardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement);
+        Task<InvokeResult> InspectPartOnboardAsync(Component component, PickAndPlaceJobPlacement placement);
+        Task<InvokeResult> PlacePartOnboardAsync(Component component, PickAndPlaceJobPlacement placement);
+        Task<InvokeResult> PickPartFromBoardAsync(Component component, PickAndPlaceJobPlacement placement);
         Task<InvokeResult> GoToPartOnBoardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement);
 
         PickAndPlaceJob Job { get; set; }

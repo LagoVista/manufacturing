@@ -143,7 +143,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Debug.WriteLine($"Expected: {expectedDegrees}; Actual: {actualDegrees}, Scale Error: {this.ScalingError}");
             }
 
-                return InvokeResult.Success;
+            IsBoardAligned = true;
+
+            return InvokeResult.Success;
         }
 
         double _angleOffset;
@@ -179,19 +181,29 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             return boardLocation;
         }
 
-        public Task<InvokeResult> GoToPartOnBoardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement)
+        public async Task<InvokeResult> GoToPartOnBoardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement)
         {
+            if (!IsBoardAligned)
+            {
+                return InvokeResult.FromError("Please calibrate board first");
+            }
+
+            Machine.SendSafeMoveHeight();
             var boardLocation = GetWorkSpaceLocation(placement);            
             Machine.GotoPoint(boardLocation);
 
-
             Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartOnBoard);
 
-            return Task.FromResult(InvokeResult.Success);
+            return InvokeResult.Success;
         }
 
-        public async Task<InvokeResult> InspectPartOnboardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement)
+        public async Task<InvokeResult> InspectPartOnboardAsync(Component component, PickAndPlaceJobPlacement placement)
         {
+            if (!IsBoardAligned)
+            {
+                return InvokeResult.FromError("Please calibrate board first");
+            }
+
             var boardLocation = GetWorkSpaceLocation(placement);
             Machine.GotoPoint(boardLocation);
             await Machine.GoToPartInspectionCameraAsync();
@@ -199,13 +211,25 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             return InvokeResult.Success;
         }
 
-        public Task<InvokeResult> PlacePartOnboardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement)
+        public async Task<InvokeResult> PlacePartOnboardAsync(Component component, PickAndPlaceJobPlacement placement)
         {
-            throw new NotImplementedException();
+            if (!IsBoardAligned)
+            {
+                return InvokeResult.FromError("Please calibrate board first");
+            }
+
+            Machine.SetToolHeadHeight(MachineConfiguration.WorkOriginZ + component.ComponentPackage.Value.Height);
+
+            return InvokeResult.Success;
         }
 
-        public Task<InvokeResult> PickPartFromBoardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement)
+        public async Task<InvokeResult> PickPartFromBoardAsync(Component component, PickAndPlaceJobPlacement placement)
         {
+            if (ScalingError == null)
+            {
+                return InvokeResult.FromError("Please calibrate board first");
+            }
+
             throw new NotImplementedException();
         }
 
@@ -270,6 +294,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Set(ref _selectedFiducial, value);
                 RaiseCanExecuteChanged();
             }
+        }
+
+        bool _isBoardAligned;
+        public bool IsBoardAligned
+        {
+            get => _isBoardAligned;
+            set => Set(ref _isBoardAligned, value);
         }
 
         public RelayCommand AlignCommand { get; }

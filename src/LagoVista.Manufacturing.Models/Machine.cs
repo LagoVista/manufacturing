@@ -205,6 +205,13 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _defaultWorkOrigin, value);
         }
 
+        double _workOriginZ = 5.5;
+        public double WorkOriginZ
+        {
+            get => _workOriginZ;
+            set => Set(ref _workOriginZ, value);
+        }
+
         private int _fastFeedRate = 10000;
         public int FastFeedRate
         {

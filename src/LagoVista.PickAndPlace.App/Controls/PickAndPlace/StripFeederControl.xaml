@@ -202,6 +202,8 @@
                                             <Image Source="/imgs/MoveToTarget.png"/>
                                         </Button.Content>
                                     </Button>
+
+                                    <Button Style="{StaticResource CommandButton}"  Command="{Binding FindLastFeederReferenceHoleCommand}">Find Last</Button>
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>
