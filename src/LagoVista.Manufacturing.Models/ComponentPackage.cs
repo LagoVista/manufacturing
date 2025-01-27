@@ -183,6 +183,16 @@ namespace LagoVista.Manufacturing.Models
             WaterMark: ManufacturingResources.Names.ComponentPackage_TapePitch_Select, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<TapePitches> TapePitch { get; set; }
 
+        private bool _dualHoles = false;
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_DualHoles, HelpResource: ManufacturingResources.Names.StripFeeder_DualHoles_Help,
+            FieldType: FieldTypes.CheckBox, ResourceType: typeof(ManufacturingResources))]
+        public bool DualHoles
+        {
+            get => _dualHoles;
+            set => Set(ref _dualHoles, value);
+        }
+
+
 
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeAndReelSpecImage, FieldType: FieldTypes.FileUpload, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader TapeAndReelSpecImage { get; set; }
@@ -371,6 +381,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(TapeRotation),
                 nameof(TapeColor),
                 nameof(TapeMaterialType),
+                nameof(DualHoles),
                 nameof(XOffsetFromReferenceHole),
                 nameof(YOffsetFromReferenceHole),
                 nameof(NozzleTip),

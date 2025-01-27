@@ -1,4 +1,4 @@
-﻿/*1/27/2025 5:47:51 AM*/
+﻿/*1/27/2025 7:14:00 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -1256,6 +1256,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:StripFeeder_OriginOffset_Help
 
 		public static string StripFeeder_OriginOffset_Help { get { return GetResourceString("StripFeeder_OriginOffset_Help"); } }
+//Resources:ManufacturingResources:StripFeeder_PartCapacity
+
+		public static string StripFeeder_PartCapacity { get { return GetResourceString("StripFeeder_PartCapacity"); } }
+//Resources:ManufacturingResources:StripFeeder_PartCapacity_Help
+
+		public static string StripFeeder_PartCapacity_Help { get { return GetResourceString("StripFeeder_PartCapacity_Help"); } }
 //Resources:ManufacturingResources:StripFeeder_PickHeight
 
 		public static string StripFeeder_PickHeight { get { return GetResourceString("StripFeeder_PickHeight"); } }
@@ -1885,6 +1891,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string StripFeeder_Origin_Help = "StripFeeder_Origin_Help";
 			public const string StripFeeder_OriginOffset = "StripFeeder_OriginOffset";
 			public const string StripFeeder_OriginOffset_Help = "StripFeeder_OriginOffset_Help";
+			public const string StripFeeder_PartCapacity = "StripFeeder_PartCapacity";
+			public const string StripFeeder_PartCapacity_Help = "StripFeeder_PartCapacity_Help";
 			public const string StripFeeder_PickHeight = "StripFeeder_PickHeight";
 			public const string StripFeeder_PickHeight_Help = "StripFeeder_PickHeight_Help";
 			public const string StripFeeder_ReferenceHole_Col = "StripFeeder_ReferenceHole_Col";

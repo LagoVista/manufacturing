@@ -1314,7 +1314,7 @@
     <value>Render Offset from Slot Origin</value>
   </data>
   <data name="StripFeeder_StagingPlate_Select" xml:space="preserve">
-    <value>-select staging plate-</value>
+    <value>-select stating plate-</value>
   </data>
   <data name="Feeder_FeederWidth_Help" xml:space="preserve">
     <value>Width of the feeder, this is only used for rendering the feeder and shold be the widest part of the feeder.</value>
@@ -1540,5 +1540,11 @@
   </data>
   <data name="ComponentPackage_XOffsetReferenceHole" xml:space="preserve">
     <value>Center X Offset for Reference Hole</value>
+  </data>
+  <data name="StripFeeder_PartCapacity" xml:space="preserve">
+    <value>Part Capacity</value>
+  </data>
+  <data name="StripFeeder_PartCapacity_Help" xml:space="preserve">
+    <value>Total number of parts that this strip feeder could hold, this is usually calculated as part of setup (feeder length / tape pitch)</value>
   </data>
 </root>
