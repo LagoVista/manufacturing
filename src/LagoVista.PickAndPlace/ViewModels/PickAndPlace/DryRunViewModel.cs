@@ -91,7 +91,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 }
 
                 _stripFeederViewModel = null;
-                _feederIsVertical = false;
+                _feederIsVertical = true;
 
                 _feederViewModel = _autoFeederViewModel;
             }

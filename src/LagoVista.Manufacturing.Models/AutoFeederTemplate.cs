@@ -117,6 +117,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Name),
                 nameof(Key),
                 nameof(Color),
+                nameof(PickHeight),
                 nameof(TapeSize),
                 nameof(Protocol),
                 nameof(Size),
