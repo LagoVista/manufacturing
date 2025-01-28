@@ -15,6 +15,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="33*"></ColumnDefinition>
@@ -39,26 +40,9 @@
             <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Cancel" Command="{Binding CancelCommand}"></Button>
         </StackPanel>
 
-        <StackPanel Visibility="{Binding Current, Converter={StaticResource NullVisibilityConverter}}" Grid.Column="1" >
-            <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Add" Command="{Binding AddCommand}"></Button>
-            <StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Width="120" Style="{StaticResource label}"  Text="Feeder Address:"></TextBlock>
-                    <TextBlock Text="{Binding CurrentPhotonFeeder.Address}"></TextBlock>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Width="120"  Style="{StaticResource label}" Text="Slot:"></TextBlock>
-                    <TextBlock Text="{Binding CurrentPhotonFeeder.Slot}"></TextBlock>
-                </StackPanel>
-            </StackPanel>
-            <StackPanel>
-                <ComboBox ItemsSource="{Binding Templates}" SelectedValue="{Binding SelectedTemplateId}" DisplayMemberPath="Name" SelectedValuePath="Id"></ComboBox>
-            </StackPanel>
-        </StackPanel>
 
 
         <StackPanel Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}" Grid.Row="1" Grid.Column="1">
-       
             <StackPanel Margin="10,0,0,0" Grid.Column="1" Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}">
                 <TextBlock Style="{StaticResource label}" Text="Name:"></TextBlock>
                 <TextBox ToolTip="please enter a name for your feeder" Text="{Binding Current.Name, Mode=TwoWay}"></TextBox>
@@ -132,5 +116,19 @@
 
             </StackPanel>
         </StackPanel>
+
+        <StackPanel Grid.Row="2" Visibility="{Binding CurrentPhotonFeeder, Converter={StaticResource NoTNullToVisibilityConverter}}" Grid.Column="1" >
+            <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Add" Command="{Binding AddCommand}"></Button>
+            <StackPanel>
+                    <TextBlock Style="{StaticResource label}"  Text="Feeder Address:"></TextBlock>
+                    <TextBlock Style="{StaticResource content}" Text="{Binding CurrentPhotonFeeder.Address}"></TextBlock>
+                    <TextBlock Margin="0,10,0,0" Style="{StaticResource label}" Text="Slot:"></TextBlock>
+                    <TextBlock Style="{StaticResource content}" Text="{Binding CurrentPhotonFeeder.Slot}"></TextBlock>
+            </StackPanel>
+            <StackPanel>
+                <ComboBox ItemsSource="{Binding Templates}" SelectedValue="{Binding SelectedTemplateId}" DisplayMemberPath="Name" SelectedValuePath="Id"></ComboBox>
+            </StackPanel>
+        </StackPanel>
+
     </Grid>
 </ucb:VMBoundUserControl>

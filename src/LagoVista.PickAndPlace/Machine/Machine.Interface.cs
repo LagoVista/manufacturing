@@ -4,6 +4,7 @@ using LagoVista.Core.Validation;
 using LagoVista.GCode;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
+using LagoVista.PickAndPlace.Models;
 using System;
 using System.Diagnostics;
 using System.IO.Ports;
@@ -361,6 +362,9 @@ namespace LagoVista.PickAndPlace
 
         public void HomingCycle()
         {
+            SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_Defauilt);
+            SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_Defauilt);
+
             _viewType = ViewTypes.Camera;
             RaisePropertyChanged(nameof(ViewType));
 

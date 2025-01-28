@@ -19,8 +19,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             SetDefaultSafeMoveHeightCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.DefaultSafeMoveHeight = Machine.MachinePosition.Z);
             MoveToDefaultSafeMoveHeightCommand = CreatedMachineConnectedCommand(() => Machine.SendSafeMoveHeight());
 
-
-        
+            CaptureKnownLocationCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.KnownCalibrationPoint = Machine.MachinePosition.ToPoint2D());
+            MoveToKnownLocationCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(MachineConfiguration.KnownCalibrationPoint), () => !MachineConfiguration.KnownCalibrationPoint.IsOrigin());
 
             MoveToCameraLocationCommand = CreatedMachineConnectedCommand(MoveToSelectedCamera, () => SelectedMachineCamera != null && SelectedMachineCamera.AbsolutePosition != null);
             SetCameraLocationCommand = CreatedMachineConnectedSettingsCommand(() => {
@@ -115,6 +115,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public RelayCommand MoveToDefaultSafeMoveHeightCommand { get; }
         public RelayCommand SetDefaultPCBOrigin {get;}
         public RelayCommand MoveToDefaultPCBOrigin { get; }
+
+        public RelayCommand CaptureKnownLocationCommand { get; }
+        public RelayCommand MoveToKnownLocationCommand { get; }
 
 
         private bool _useCalibratedLocation;

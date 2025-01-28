@@ -35,13 +35,13 @@
                 <RowDefinition Height="auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <StackPanel Orientation="Horizontal">
+            <StackPanel>
                 <TextBlock Style="{StaticResource label}" Text="Machine Fiducial: "></TextBlock>
-                <TextBlock Text="{Binding MachineConfiguration.MachineFiducial}" />
+                <TextBlock Style="{StaticResource content}" Text="{Binding MachineConfiguration.MachineFiducial}" />
             </StackPanel>
             <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left">
                 <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetMachineFiducialCommand}"  ToolTip="Set the current location as the Machine Fiducial, this will act as a know point to reference all other points on the machine." Width="64" Height="64"  >
@@ -55,9 +55,9 @@
                     </Button.Content>
                 </Button>
             </StackPanel>
-            <StackPanel Orientation="Horizontal" Grid.Column="1">
+            <StackPanel Grid.Column="1">
                 <TextBlock Style="{StaticResource label}" Text="Known Location: "></TextBlock>
-                <TextBlock Text="{Binding MachineConfiguration.KnownCalibrationPoint}" />
+                <TextBlock Style="{StaticResource content}" Text="{Binding MachineConfiguration.KnownCalibrationPoint}" />
             </StackPanel>
             <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">
                 <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding CaptureKnownLocationCommand}"  ToolTip="Set the current location as the Machine Fiducial, this will act as a know point to reference all other points on the machine." Width="64" Height="64"  >
@@ -71,9 +71,9 @@
                     </Button.Content>
                 </Button>
             </StackPanel>
-            <StackPanel Grid.Column="2" Orientation="Horizontal">
+            <StackPanel Grid.Column="2">
                 <TextBlock Style="{StaticResource label}" Text="Default Work Origin: "></TextBlock>
-                <TextBlock Text="{Binding MachineConfiguration.DefaultWorkOrigin}" />
+                <TextBlock Style="{StaticResource content}" Text="{Binding MachineConfiguration.DefaultWorkOrigin}" />
             </StackPanel>
             <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Left">
                 <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetDefaultPCBOrigin}"  ToolTip="Set the default work home location, this is typically where the PCB is." Width="64" Height="64"  >
@@ -87,9 +87,9 @@
                     </Button.Content>
                 </Button>
             </StackPanel>
-            <StackPanel Orientation="Horizontal" Grid.Row="2">
+            <StackPanel Grid.Row="2">
                 <TextBlock Style="{StaticResource label}" Text="Default Safe Move Height: "></TextBlock>
-                <TextBlock Text="{Binding MachineConfiguration.DefaultSafeMoveHeight}" />
+                <TextBlock Style="{StaticResource content}" Text="{Binding MachineConfiguration.DefaultSafeMoveHeight}" />
             </StackPanel>
             <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Left">
                 <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetDefaultSafeMoveHeightCommand}"  ToolTip="Capture the current value of the Z axis as the safe move height.." Width="64" Height="64"  >

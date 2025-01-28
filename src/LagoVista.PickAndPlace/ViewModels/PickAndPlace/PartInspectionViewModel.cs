@@ -33,7 +33,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             _locatorViewModel.RegisterRectangleLocatedHandler(this);
-
+            Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
             await Machine.GoToPartInspectionCameraAsync();
 
             return InvokeResult.Success;

@@ -61,7 +61,6 @@
                         <Button Style="{StaticResource CommandButton}" Command="{Binding CancelCommand}" Content="Cancel"></Button>
                     </StackPanel>
 
-
                     <StackPanel Grid.Row="1" Margin="10">
                         <TextBlock Text="Name:" Style="{StaticResource label}" />
                         <TextBox Text="{Binding Current.Name, Mode=TwoWay}"></TextBox>
@@ -114,7 +113,7 @@
                         </Grid>
 
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Tape Holes on Tope (when feeder is horizontal)" Style="{StaticResource label}"></TextBlock>
+                            <TextBlock Text="Tape Holes on Top (when feeder is horizontal)" Style="{StaticResource label}"></TextBlock>
                             <CheckBox IsChecked="{Binding Current.TapeHolesOnTop}" />
                         </StackPanel>
 
@@ -126,9 +125,10 @@
                 <TextBlock Text="Rows" Style="{StaticResource header}"></TextBlock>
                 <DataGrid ItemsSource="{Binding Current.Rows}" AutoGenerateColumns="False"  IsReadOnly="true" SelectedItem="{Binding CurrentRow}" CanUserAddRows="false">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Row Index" Binding="{Binding RowIndex}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Current Idx" Binding="{Binding CurrentPartIndex}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Component" Binding="{Binding Component}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Idx" Width="80" Binding="{Binding RowIndex}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Current Idx" Width="120" Binding="{Binding CurrentPartIndex}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Part Capacity" Width="120" Binding="{Binding PartCapacity}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Component" Width="200" Binding="{Binding Component}"></DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
 
@@ -152,6 +152,7 @@
                     </StackPanel>
 
                     <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Grid.Column="1">
+                        <Button Style="{StaticResource CommandButton}" Command="{Binding ClearPartCommand}" Content="Clear Part"></Button>
                         <Button Style="{StaticResource CommandButton}" Command="{Binding DoneRowCommand}" Content="Done"></Button>
                         <Button Style="{StaticResource CommandButton}" Command="{Binding CancelRowCommand}" Content="Cancel"></Button>
                     </StackPanel>

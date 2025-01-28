@@ -48,7 +48,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                             StripFeeder = sf.ToEntityHeader(),
                             StripFeederRow = row.ToEntityHeader(),
                             Component = row.Component,
-                            AvailableCount = row.CurrentPartIndex,
+                            AvailableCount = row.PartCapacity,
                         };
 
                         AvailableParts.Add(ap);

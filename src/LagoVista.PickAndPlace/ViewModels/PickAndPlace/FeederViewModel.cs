@@ -44,21 +44,27 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             SaveComponentPackageCommand = CreatedCommand(SaveComponentPackage, () => CurrentComponentPackage != null);
             ShowComponentDetailCommand = CreatedCommand(ShowComponentDetail, () => CurrentComponent != null);
             ShowComponentPackageDetailCommand = CreatedCommand(ShowComponentPackageDetail, () => CurrentComponent != null && CurrentComponent?.ComponentPackage != null);
-            ShowDataSheetCommand = CreatedCommand(ShowDataSheeet, () => CurrentComponent != null && !String.IsNullOrEmpty(CurrentComponent.DataSheet));
-
+            ShowDataSheetCommand = CreatedCommand(ShowDataSheeet, () => CurrentComponent != null && !String.IsNullOrEmpty(CurrentComponent.DataSheet));            
         }
 
         public override async Task InitAsync()
         {
             var componentCategories = await _restClient.GetListResponseAsync<EntityBase>("/api/categories/component");
-            ComponentCategories = new ObservableCollection<EntityHeader>(componentCategories.Model.Select(c => EntityHeader.Create(c.Id, c.Key, c.Name)));
-            ComponentCategories.Insert(0, new EntityHeader() { Id = StringExtensions.NotSelectedId, Key = StringExtensions.NotSelectedId, Text = "-select component category-" });
-            Components = new ObservableCollection<ComponentSummary>();
-            Components.Insert(0, new ComponentSummary() { Id = StringExtensions.NotSelectedId, Key=StringExtensions.NotSelectedId, Name = "-select component category first-" });
-            SelectedCategoryKey = StringExtensions.NotSelectedId;
-            SelectedComponentSummaryId = StringExtensions.NotSelectedId;
-      
-            await base.InitAsync();
+            if (componentCategories.Successful)
+            {
+                ComponentCategories = new ObservableCollection<EntityHeader>(componentCategories.Model.Select(c => EntityHeader.Create(c.Id, c.Key, c.Name)));
+                ComponentCategories.Insert(0, new EntityHeader() { Id = StringExtensions.NotSelectedId, Key = StringExtensions.NotSelectedId, Text = "-select component category-" });
+                Components = new ObservableCollection<ComponentSummary>();
+                Components.Insert(0, new ComponentSummary() { Id = StringExtensions.NotSelectedId, Key = StringExtensions.NotSelectedId, Name = "-select component category first-" });
+                SelectedCategoryKey = StringExtensions.NotSelectedId;
+                SelectedComponentSummaryId = StringExtensions.NotSelectedId;
+            }
+            else
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, componentCategories.ErrorMessage);
+            }
+
+                await base.InitAsync();
         }
 
 
@@ -248,7 +254,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             return InvokeResult.Success;
         }
 
-
         public async void LoadComponent(string componentId)
         {
             if (!componentId.HasValidId())
@@ -422,8 +427,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand ShowDataSheetCommand { get; }
         public RelayCommand ShowComponentDetailCommand { get; }
         public RelayCommand ShowComponentPackageDetailCommand { get; }
-
-
 
         public abstract Point2D<double> CurrentPartLocation { get;  }
 

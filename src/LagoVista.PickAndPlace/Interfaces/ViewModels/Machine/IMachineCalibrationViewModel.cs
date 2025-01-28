@@ -11,7 +11,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         MachineCamera SelectedMachineCamera { get; set; }
         ToolNozzleTip SelectedNozzleTip { get; set; }
 
-        RelayCommand SetStagingPlateReferenceHole1LocationCommand { get;  }
+        RelayCommand SetStagingPlateReferenceHole1LocationCommand { get; }
         RelayCommand SetStagingPlateReferenceHole2LocationCommand { get; }
 
         RelayCommand MoveToStagingPlateReferenceHole1LocationCommand { get; }
@@ -24,10 +24,13 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         RelayCommand MoveToFirstAutoFeederOriginCommand { get; }
 
 
-        RelayCommand SetCameraLocationCommand { get;  }
+        RelayCommand SetCameraLocationCommand { get; }
         RelayCommand MoveToCameraLocationCommand { get; }
 
 
         RelayCommand SetDefaultSafeMoveHeightCommand { get; }
+
+        RelayCommand CaptureKnownLocationCommand { get; }
+        RelayCommand MoveToKnownLocationCommand { get; }
     }
 }

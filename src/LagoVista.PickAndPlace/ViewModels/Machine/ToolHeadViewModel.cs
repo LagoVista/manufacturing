@@ -30,11 +30,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _utilties = utilties ?? throw new ArgumentNullException(nameof(utilties));
 
             SetToolOffsetCommand = CreatedMachineConnectedSettingsCommand(() => Current.Offset = (Machine.MachinePosition.ToPoint2D() - MachineConfiguration.DefaultToolReferencePoint).Round(2), () => Current != null);
-            SetDefaultToolReferencePointCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.DefaultToolReferencePoint = Machine.MachinePosition.ToPoint2D());
+            
             CaptureKnownLocationCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.KnownCalibrationPoint = Machine.MachinePosition.ToPoint2D());
             MoveToKnownLocationCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(MachineConfiguration.KnownCalibrationPoint), () => !MachineConfiguration.KnownCalibrationPoint.IsOrigin());
-            MoveToDefaultToolReferencePointCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(MachineConfiguration.DefaultToolReferencePoint), () => MachineConfiguration.DefaultToolReferencePoint != null);
-
+           
             SetDefaultOriginCommand = CreatedMachineConnectedSettingsCommand(() => Current.DefaultOriginPosition = Machine.MachinePosition.Z, () => Current != null);
             SetIdleVacuumCommand = CreatedMachineConnectedSettingsCommand(() => SetVacuum(VacuumState.Idle), () => Current != null);
             SetNoPartPickedVacuumCommand = CreatedMachineConnectedSettingsCommand(() => SetVacuum(VacuumState.NoPartPicked), () => Current != null);
@@ -118,10 +117,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         }
 
         public RelayCommand SetToolOffsetCommand { get; }
-        public RelayCommand SetDefaultToolReferencePointCommand { get; }
+
         public RelayCommand CaptureKnownLocationCommand { get; }
         public RelayCommand MoveToKnownLocationCommand { get; }
-        public RelayCommand MoveToDefaultToolReferencePointCommand { get; }
 
         public RelayCommand SetDefaultOriginCommand { get;  }
         public RelayCommand SetIdleVacuumCommand { get; }

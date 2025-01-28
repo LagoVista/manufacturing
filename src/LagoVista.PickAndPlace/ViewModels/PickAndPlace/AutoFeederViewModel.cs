@@ -11,6 +11,7 @@ using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Models;
+using RingCentral;
 using SixLabors.ImageSharp.Formats.Bmp;
 using System;
 using System.Collections.ObjectModel;
@@ -250,6 +251,25 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var result = FindPickLocation();
             if(result.Successful)
             {
+                if (CurrentComponentPackage != null)
+                {
+                    switch(CurrentComponentPackage.TapeColor.Value)
+                    {
+                        case TapeColors.Clear:
+                            Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInClearTape);
+                            break;
+                        case TapeColors.Black:
+                            Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInBlackTape);
+                            break;
+                        case TapeColors.White:
+                            Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInWhiteTape);
+                            break;
+
+                    }
+                }
+                else
+                    Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInWhiteTape);
+
                 Machine.GotoPoint(result.Result);
             //    MachineConfiguration.PositioningCamera.CurrentVisionProfile = MachineConfiguration.PositioningCamera.VisionProfiles.FirstOrDefault(prf => prf.Key == VisionProfile.VisionProfile_SquarePart);
             }

@@ -733,6 +733,8 @@ namespace LagoVista.PickAndPlace
                 var currentLocationX = MachinePosition.X;
                 var currentLocationY = MachinePosition.Y;
 
+                SendSafeMoveHeight();
+
                 Enqueue("G91"); // relative move
 
                 _viewType = ViewTypes.Moving;
@@ -793,22 +795,20 @@ namespace LagoVista.PickAndPlace
                 var currentLocationX = MachinePosition.X;
                 var currentLocationY = MachinePosition.Y;
 
+                SendSafeMoveHeight();
+
                 Enqueue("G91"); // relative move
 
                 _viewType = ViewTypes.Moving;
                 RaisePropertyChanged();
 
                 Enqueue($"G0 X{-_currentMachineToolHead.Offset.X} Y{-_currentMachineToolHead.Offset.Y} F{Settings.FastFeedRate}");
-
                 Enqueue("M400"); // Wait for previous command to finish before executing next one.
                                  //            Enqueue("G4 P1"); // just pause for 1ms
 
                 // Wait for the all the messages to get sent out (but won't get an OK for G4 until G0 finishes)
                 System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount > 0, 5000);
-
-                Debug.WriteLine("All Sent");
                 System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
-                Debug.WriteLine("Un Ack Bytes Good.");
 
                 // 4. set the machine back to absolute points
                 Enqueue("G90");

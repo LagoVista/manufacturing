@@ -63,6 +63,12 @@ namespace LagoVista.Manufacturing.Services
 
             foreach (var part in job.Parts)
             {
+                part.AutoFeeder = null;
+                part.StripFeeder = null;
+            }
+
+            foreach (var part in job.Parts)
+            {
                 if (part.Component == null)
                 {
                     job.Errors.Add($"Part {part.PackageName}/{part.Value} does not have a component");
@@ -84,7 +90,7 @@ namespace LagoVista.Manufacturing.Services
                             part.StripFeeder = stripFeeder.ToEntityHeader();
                             var row = stripFeeder.Rows.First(sfr => sfr.Component?.Id == part.Component.Id);
                             part.StripFeederRow = row.ToEntityHeader();
-                            part.AvailableCount = row.CurrentPartIndex;
+                            part.AvailableCount = row.PartCapacity;
                         }
                         else
                         {

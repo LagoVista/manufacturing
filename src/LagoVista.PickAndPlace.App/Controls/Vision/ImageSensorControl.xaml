@@ -40,9 +40,7 @@
                 </Image.RenderTransform>
             </Image>
         </Grid>
-
-     
-
+    
 
         <Rectangle Grid.Row="2" Fill="Black" Opacity="0.5">
 
@@ -80,7 +78,12 @@
         </Grid>
 
         <StackPanel Grid.Row="1">
-            <ListView ItemsSource="{Binding ShapeDetector.FoundRectangles}" Background="Transparent" BorderBrush="Red" Foreground="White">
+            <Grid Margin="0,20,30,0">
+                
+                <TextBlock Foreground="Black"  Margin="1,1,1,1" Style="{StaticResource header}" Text="{Binding Profile.Name, StringFormat={}Profile: {0}}" />
+                <TextBlock Foreground="White" Style="{StaticResource header}" Text="{Binding Profile.Name, StringFormat={}Profile: {0}}" />
+            </Grid>
+            <ListView ItemsSource="{Binding ShapeDetector.FoundRectangles}" Background="Transparent" Foreground="White">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -91,6 +94,17 @@
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
+            <ListView ItemsSource="{Binding ShapeDetector.FoundCircles}" Background="Gray"  Foreground="White">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Foreground="White" Text="{Binding FoundCount}"></TextBlock>
+                            <TextBlock Foreground="White" Text="{Binding Summary}"></TextBlock>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
             <TextBlock Text="{Binding Profile.ZoomLevel}" />
         </StackPanel>
 
