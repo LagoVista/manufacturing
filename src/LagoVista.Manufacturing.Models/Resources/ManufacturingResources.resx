@@ -1547,4 +1547,13 @@
   <data name="StripFeeder_PartCapacity_Help" xml:space="preserve">
     <value>Total number of parts that this strip feeder could hold, this is usually calculated as part of setup (feeder length / tape pitch)</value>
   </data>
+  <data name="MachineToolHead_VacuumTolerancePercent" xml:space="preserve">
+    <value>Vacuum Tolerance</value>
+  </data>
+  <data name="MachineToolHead_VacuumTolerancePercent_Help" xml:space="preserve">
+    <value>The vacuum read by the sensor can vary, the tolerance percentage accounts for this.</value>
+  </data>
+  <data name="ComponentPackage_PickVacuumLevel" xml:space="preserve">
+    <value>Pick Vacuum Level</value>
+  </data>
 </root>

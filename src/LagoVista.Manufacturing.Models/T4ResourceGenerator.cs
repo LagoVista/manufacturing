@@ -1,4 +1,4 @@
-﻿/*1/27/2025 7:14:00 AM*/
+﻿/*1/28/2025 6:59:51 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -454,6 +454,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ComponentPackage_PartWidth
 
 		public static string ComponentPackage_PartWidth { get { return GetResourceString("ComponentPackage_PartWidth"); } }
+//Resources:ManufacturingResources:ComponentPackage_PickVacuumLevel
+
+		public static string ComponentPackage_PickVacuumLevel { get { return GetResourceString("ComponentPackage_PickVacuumLevel"); } }
 //Resources:ManufacturingResources:ComponentPackage_Rotation
 
 		public static string ComponentPackage_Rotation { get { return GetResourceString("ComponentPackage_Rotation"); } }
@@ -1082,6 +1085,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:MachineToolHead_Type_Spindle
 
 		public static string MachineToolHead_Type_Spindle { get { return GetResourceString("MachineToolHead_Type_Spindle"); } }
+//Resources:ManufacturingResources:MachineToolHead_VacuumTolerancePercent
+
+		public static string MachineToolHead_VacuumTolerancePercent { get { return GetResourceString("MachineToolHead_VacuumTolerancePercent"); } }
+//Resources:ManufacturingResources:MachineToolHead_VacuumTolerancePercent_Help
+
+		public static string MachineToolHead_VacuumTolerancePercent_Help { get { return GetResourceString("MachineToolHead_VacuumTolerancePercent_Help"); } }
 //Resources:ManufacturingResources:NozzleTip_Description
 
 		public static string NozzleTip_Description { get { return GetResourceString("NozzleTip_Description"); } }
@@ -1625,6 +1634,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentPackage_PartType = "ComponentPackage_PartType";
 			public const string ComponentPackage_PartType_Select = "ComponentPackage_PartType_Select";
 			public const string ComponentPackage_PartWidth = "ComponentPackage_PartWidth";
+			public const string ComponentPackage_PickVacuumLevel = "ComponentPackage_PickVacuumLevel";
 			public const string ComponentPackage_Rotation = "ComponentPackage_Rotation";
 			public const string ComponentPackage_SpacingX = "ComponentPackage_SpacingX";
 			public const string ComponentPackage_SpecificationPage = "ComponentPackage_SpecificationPage";
@@ -1833,6 +1843,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string MachineToolHead_Type_PartNozzle = "MachineToolHead_Type_PartNozzle";
 			public const string MachineToolHead_Type_Select = "MachineToolHead_Type_Select";
 			public const string MachineToolHead_Type_Spindle = "MachineToolHead_Type_Spindle";
+			public const string MachineToolHead_VacuumTolerancePercent = "MachineToolHead_VacuumTolerancePercent";
+			public const string MachineToolHead_VacuumTolerancePercent_Help = "MachineToolHead_VacuumTolerancePercent_Help";
 			public const string NozzleTip_Description = "NozzleTip_Description";
 			public const string NozzleTip_Height = "NozzleTip_Height";
 			public const string NozzleTip_IdleVacuum = "NozzleTip_IdleVacuum";
