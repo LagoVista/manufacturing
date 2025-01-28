@@ -17,14 +17,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         IFeederViewModel _feederViewModel;
         IPartInspectionViewModel _partInspectionVM;
         IJobRunViewModel _jobRunVM;
+        IVacuumViewModel _vacuumViewModel;
 
-        public JobExecutionViewModel(IMachineRepo machineRepo, ICircuitBoardViewModel pcbVM, IJobManagementViewModel pnpJobVM, IPartInspectionViewModel partInspectionVM, IStripFeederViewModel stripFeederViewModel, IAutoFeederViewModel autoFeederViewModel) : base(machineRepo)
+        public JobExecutionViewModel(IMachineRepo machineRepo, ICircuitBoardViewModel pcbVM, IJobManagementViewModel pnpJobVM, IVacuumViewModel vacuumViewModel, IPartInspectionViewModel partInspectionVM, IStripFeederViewModel stripFeederViewModel, IAutoFeederViewModel autoFeederViewModel) : base(machineRepo)
         {
             JobVM = pnpJobVM ?? throw new ArgumentNullException(nameof(pnpJobVM));
             PcbVM = pcbVM ?? throw new ArgumentNullException(nameof(pcbVM));
             _stripFeederViewModel = stripFeederViewModel ?? throw new ArgumentNullException(nameof(stripFeederViewModel));
             _autoFeederViewModel = autoFeederViewModel ?? throw new ArgumentNullException(nameof(autoFeederViewModel));
             _partInspectionVM = partInspectionVM ?? throw new ArgumentNullException(nameof(partInspectionVM));
+            _vacuumViewModel = vacuumViewModel ?? throw new ArgumentNullException(nameof(vacuumViewModel));
         }
 
         private InvokeResult ResolveFeeder()

@@ -28,8 +28,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
             _storageService = storage ?? throw new ArgumentNullException(nameof(storage));
-            PartsViewModel = partsViewModel ?? throw new ArgumentNullException(nameof(partsViewModel));
             _resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
+
+            PartsViewModel = partsViewModel ?? throw new ArgumentNullException(nameof(partsViewModel));
 
             ReloadJobCommand = new RelayCommand(async () => await RefreshJob(), () => { return Job != null; });
             SetBoardOriginCommand = CreatedMachineConnectedCommand(() => Job.DefaultBoardOrigin = Machine.MachinePosition.ToPoint2D(), () => Job != null);
@@ -48,6 +49,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             CancelSubstitutePartCommand = CreatedCommand(CancelSubstitutePart);
 
             GoToPartOnBoardCommand = CreatedMachineConnectedCommand(GoToPartOnBoard, () => Placement != null);
+
+            VacuumOnCommand = CreatedMachineConnectedCommand(() => Machine.VacuumPump = true);
+            VacuumOffCommand = CreatedMachineConnectedCommand(() => Machine.VacuumPump = false);
+            ReadVacuumCommand = CreatedMachineConnectedCommand(ReadVacuum);
 
             SaveCommand = new RelayCommand(async () => await SaveJobAsync(), () => { return Job != null; });
         }
@@ -99,6 +104,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             Machine.RotateToolHead(-rotatePart);
             return Task<InvokeResult>.FromResult(InvokeResult.Success);
+        }
+
+        public async void ReadVacuum()
+        {
+            var result = await Machine.ReadVacuumAsync();
+            if (result.Successful)
+                Vacuum = result.Result;
+            else
+                Vacuum = 0; 
         }
 
         public void GoToPartOnBoard()
@@ -423,6 +437,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
+        private ulong _vacuum;
+        public ulong Vacuum
+        {
+            get => _vacuum;
+            set => Set(ref _vacuum, value);
+        }
+
         public RelayCommand SaveCommand { get; }
 
         public RelayCommand ReloadJobCommand { get; }
@@ -445,5 +466,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand GoToPartOnBoardCommand { get; }
 
         public RelayCommand SaveComponentPackageCommand { get; }
+
+        public RelayCommand VacuumOnCommand { get;  }
+        public RelayCommand ReadVacuumCommand { get; }
+        public RelayCommand VacuumOffCommand { get; }
     }
 }

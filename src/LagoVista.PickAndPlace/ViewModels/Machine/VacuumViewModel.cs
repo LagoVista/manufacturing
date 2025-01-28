@@ -36,7 +36,17 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         public Task<InvokeResult> VacuumOnAsync(MachineToolHead toolHead)
         {
+       
             throw new NotImplementedException();
+        }
+
+
+
+        private ulong _vacuum;
+        public ulong Vacuum
+        {
+            get => _vacuum;
+            set => Set(ref _vacuum, value);
         }
     }
 }

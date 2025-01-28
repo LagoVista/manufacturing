@@ -44,9 +44,15 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Common_Color, FieldType: FieldTypes.Color, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Color { get; set; } = "#000000";
 
+
+        EntityHeader<ToolNozzleTip> _currentNozzle;
         [FormField(LabelResource: ManufacturingResources.Names.MachineToolHead_CurrentNozzle, WaterMark: ManufacturingResources.Names.MachineToolHead_CurrentNozzle_Select,
             FieldType: FieldTypes.EntityHeaderPicker, IsRequired: false, EntityHeaderPickerUrl: "/api/mfg/pnp/nozzletips    ", ResourceType: typeof(ManufacturingResources))]
-        public EntityHeader<ToolNozzleTip> CurrentNozzle { get; set; }
+        public EntityHeader<ToolNozzleTip> CurrentNozzle 
+        {
+            get => _currentNozzle;
+            set => Set(ref _currentNozzle, value);
+        }
 
         [FormField(LabelResource: ManufacturingResources.Names.MachineToolHead_Type, WaterMark: ManufacturingResources.Names.MachineToolHead_Type_Select, EnumType: typeof(ToolHeadTypes), FieldType: FieldTypes.Picker, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<ToolHeadTypes> ToolHeadType { get; set; }
@@ -92,13 +98,20 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _noPartPickedPressure, value);
         }
 
-
         double _partPickedVacuum;
         [FormField(LabelResource: ManufacturingResources.Names.MachineToolHead_PartPresentVacuum, HelpResource: ManufacturingResources.Names.MachineToolHead_PartPresentVacuum_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double PartPickedVacuum
         {
             get => _partPickedVacuum;
             set => Set(ref _partPickedVacuum, value);
+        }
+
+        double _vacuumTolerancePercent = 5;
+        [FormField(LabelResource: ManufacturingResources.Names.MachineToolHead_VacuumTolerancePercent, HelpResource: ManufacturingResources.Names.MachineToolHead_VacuumTolerancePercent_Help, FieldType: FieldTypes.Percent, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double VacuumTolerancePercent
+        {
+            get => _vacuumTolerancePercent;
+            set => Set(ref _vacuumTolerancePercent, value);
         }
 
         private int _headIndex = 1;
@@ -152,6 +165,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(IdleVacuum),
                 nameof(NoPartPickedVacuum),
                 nameof(PartPickedVacuum),
+                nameof(VacuumTolerancePercent),
             };
         }
     }

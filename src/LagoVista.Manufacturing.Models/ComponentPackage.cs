@@ -327,8 +327,21 @@ namespace LagoVista.Manufacturing.Models
         public string TapeSpecificationPage { get; set; }
 
 
+        private EntityHeader<PackageTypes> _packageType;
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_PartType, EnumType:typeof(PackageTypes), WaterMark: ManufacturingResources.Names.ComponentPackage_PartType_Select, FieldType: FieldTypes.Picker, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public EntityHeader<PackageTypes> PackageType { get; set; }
+        public EntityHeader<PackageTypes> PackageType 
+        {
+            get => _packageType;
+            set => Set(ref _packageType, value);
+        }
+
+        private double? _pickVacuumLevel;
+        [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_PickVacuumLevel, FieldType: FieldTypes.Decimal, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public double? PickVacuumLevel
+        {
+            get => _pickVacuumLevel;
+            set => Set(ref _pickVacuumLevel, value);
+        }
 
         public ComponentPackageSummary CreateSummary()
         {
@@ -382,6 +395,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(TapeColor),
                 nameof(TapeMaterialType),
                 nameof(DualHoles),
+                nameof(PickVacuumLevel),
                 nameof(XOffsetFromReferenceHole),
                 nameof(YOffsetFromReferenceHole),
                 nameof(NozzleTip),
