@@ -6,10 +6,36 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;assembly=LagoVista.PickAndPlace"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             d:DataContext="{d:DesignInstance vm:IVacuumViewModel}"
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
-    </Grid>
+    <StackPanel>
+        <TextBlock Style="{StaticResource label}" Text="{Binding ToolHead.Name}" />
+        <TextBlock Style="{StaticResource label}" Text="{Binding Component.Name}" />
+        <StackPanel Orientation="Horizontal">
+            <TextBlock Style="{StaticResource label}" Text="Idle:" Width="150" />
+            <TextBlock Style="{StaticResource content}" Text="{Binding ToolHead.IdleVacuum}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <TextBlock Style="{StaticResource label}" Text="Part Picked:"  Width="150"/>
+            <TextBlock Style="{StaticResource content}" Text="{Binding ToolHead.PartPickedVacuum}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <TextBlock Style="{StaticResource label}" Text="No Part Picked:"  Width="150"/>
+            <TextBlock Style="{StaticResource content}" Text="{Binding ToolHead.NoPartPickedVacuum}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <TextBlock Style="{StaticResource label}" Text="Current:"  Width="150"/>
+            <TextBlock Style="{StaticResource content}" Text="{Binding Vacuum}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <TextBlock Style="{StaticResource label}" Text="Error Value: " Width="150" />
+            <TextBlock Style="{StaticResource content}" Text="{Binding ErrorValue}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <TextBlock Style="{StaticResource label}" Text="Error (%)"  Width="150"/>
+            <TextBlock Style="{StaticResource content}" Text="{Binding PercentError}" />
+        </StackPanel>
+    </StackPanel>
 </ucb:VMBoundUserControl>

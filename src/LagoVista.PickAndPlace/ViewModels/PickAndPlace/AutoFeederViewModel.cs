@@ -361,6 +361,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RaisePropertyChanged(nameof(Feeders));
         }
 
+        public async override void NextPart()
+        {
+            if (Current != null)
+            {
+                await AdvanceFeed();
+                Current.PartCount--;
+            }
+            
+        }
+
         AutoFeeder _current;
         public AutoFeeder Current
         {

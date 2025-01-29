@@ -69,7 +69,7 @@
                 </Grid.RowDefinitions>
                 <ctls:ImageSensorControl CameraType="Position" Grid.Row="1" />
                 <ctls:ImageSensorControl CameraType="PartInspection" Grid.Row="2" />
-                <ctls:CurrentFileControl x:Name="CurrentFile" Grid.Row="3" />
+                <mch:VacuumControl Grid.Row="3" />
                 <ctls:MachineResponseControl x:Name="MachineResponse" Grid.Row="4"/>
             </Grid>
 

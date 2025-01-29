@@ -12,6 +12,9 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         ICircuitBoardViewModel PcbVM { get; }
         IPartInspectionViewModel PartInspectionVM { get; }
 
+        string LastStatus { get; }
+        bool LastActionSuccess { get; }
+
         RelayCommand GoToPartOnBoardCommand { get; }
 
         RelayCommand MoveToPartInFeederCommand { get; }
@@ -21,5 +24,16 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand InspectPartOnBoardCommand { get; }
         RelayCommand PickPartFromBoardCommand { get; }
         RelayCommand PlacePartCommand { get; }
+
+        RelayCommand RotatePartCommand { get; }
+        RelayCommand RotateBackPartCommand { get; }
+
+
+        RelayCommand CheckPartPresentCommand { get; }
+        RelayCommand CheckNoPartPresentCommand { get; }
+
+        RelayCommand ClonePartInTapeVisionProfileCommand { get; }
+        RelayCommand ClonePartOnBoardVisionProfileCommand { get; }
+        RelayCommand ClonePartInspectionVisionProfileCommand { get; }
     }
 }

@@ -205,6 +205,28 @@ namespace LagoVista.PickAndPlace
             SendCommand($"G0 Z{Settings.SafMoveHeight}");
         }
 
+        public void SetVisionProfile(CameraTypes cameraType, VisionProfile profile)
+        {
+            var camera = Settings.Cameras.FirstOrDefault(cam => cam.CameraType.Value == cameraType);
+            if (camera == null)
+            {
+                AddStatusMessage(StatusMessageTypes.FatalError, $"Could not set vision profile, could not find camera of type: {cameraType}");
+            }
+            else
+            {
+                camera.CurrentVisionProfile = profile;
+
+                if (camera.CameraType.Value == CameraTypes.Position)
+                {
+                    ConfigureTopLight(camera.CurrentVisionProfile.LightOn, camera.CurrentVisionProfile.LightPower, camera.CurrentVisionProfile.LightRed, camera.CurrentVisionProfile.LightBlue, camera.CurrentVisionProfile.LightGreen);
+                }
+                else if (camera.CameraType.Value == CameraTypes.PartInspection)
+                {
+                    ConfigureBottomLight(camera.CurrentVisionProfile.LightOn, camera.CurrentVisionProfile.LightPower, camera.CurrentVisionProfile.LightRed, camera.CurrentVisionProfile.LightBlue, camera.CurrentVisionProfile.LightGreen);
+                }
+            }
+        }
+
         public void SetVisionProfile(CameraTypes cameraType, string profileName)
         {
             var camera = Settings.Cameras.FirstOrDefault(cam => cam.CameraType.Value == cameraType);

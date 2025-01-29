@@ -89,6 +89,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public async Task<InvokeResult> AlignBoardAsync()
         {
+            Machine.SendSafeMoveHeight();
             Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_BoardFiducial);
 
             foreach (var fiducial in Job.BoardFiducials)
@@ -204,6 +205,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return InvokeResult.FromError("Please calibrate board first");
             }
 
+            await Machine.MoveToCameraAsync();
             var boardLocation = GetWorkSpaceLocation(placement);
             Machine.GotoPoint(boardLocation);
             await Machine.GoToPartInspectionCameraAsync();
@@ -218,7 +220,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return InvokeResult.FromError("Please calibrate board first");
             }
 
+            await GoToPartOnBoardAsync(null, placement);
+            
             Machine.SetToolHeadHeight(MachineConfiguration.WorkOriginZ + component.ComponentPackage.Value.Height);
+            Machine.Dwell(100);
+            Machine.VacuumPump = false;
+            Machine.SendSafeMoveHeight();
 
             return InvokeResult.Success;
         }

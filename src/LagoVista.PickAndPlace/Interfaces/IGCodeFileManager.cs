@@ -104,7 +104,7 @@ namespace LagoVista.PickAndPlace.Interfaces
 
 
         /// <summary>
-        /// Save the current GCode to a file
+        /// SaveAsync the current GCode to a file
         /// </summary>
         /// <param name="file"></param>
         Task SaveGCodeAsync(string file);

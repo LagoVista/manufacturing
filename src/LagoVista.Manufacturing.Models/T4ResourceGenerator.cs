@@ -1,4 +1,4 @@
-﻿/*1/28/2025 6:59:51 AM*/
+﻿/*1/28/2025 3:27:32 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -418,6 +418,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ComponentPackage_CenterY_Help
 
 		public static string ComponentPackage_CenterY_Help { get { return GetResourceString("ComponentPackage_CenterY_Help"); } }
+//Resources:ManufacturingResources:ComponentPackage_CustomTapePitch
+
+		public static string ComponentPackage_CustomTapePitch { get { return GetResourceString("ComponentPackage_CustomTapePitch"); } }
 //Resources:ManufacturingResources:ComponentPackage_Description
 
 		public static string ComponentPackage_Description { get { return GetResourceString("ComponentPackage_Description"); } }
@@ -1622,6 +1625,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentPackage_CenterX_Help = "ComponentPackage_CenterX_Help";
 			public const string ComponentPackage_CenterY = "ComponentPackage_CenterY";
 			public const string ComponentPackage_CenterY_Help = "ComponentPackage_CenterY_Help";
+			public const string ComponentPackage_CustomTapePitch = "ComponentPackage_CustomTapePitch";
 			public const string ComponentPackage_Description = "ComponentPackage_Description";
 			public const string ComponentPackage_HoleSpacing = "ComponentPackage_HoleSpacing";
 			public const string ComponentPackage_MaterialType_Paper = "ComponentPackage_MaterialType_Paper";

@@ -71,10 +71,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             GoToNextPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.NextPart), () => (CurrentRow != null && CurrentPartIndex < TotalPartsInFeederRow));
             GoToPreviousPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.PreviousPart), () => (CurrentRow != null && CurrentPartIndex > 1));
 
+            RemoveCurrentCommand = CreatedCommand(RemoveCurrent, () => Current != null);
 
             AddCommand = CreatedCommand(Add, () => machineRepo.HasValidMachine && SelectedTemplateId.HasValidId());
-            SaveCommand = CreatedCommand(() => Save(false), () => Current != null);
-            SaveAndCloseCommand = CreatedCommand(() => Save(true), () => Current != null);
+            SaveCommand = CreatedCommand(async () => await SaveAsync(false), () => Current != null);
+            SaveAndCloseCommand = CreatedCommand(async () => await SaveAsync(true), () => Current != null);
             CancelCommand = CreatedCommand(Cancel, () => Current != null);
             DoneRowCommand = CreatedCommand(() => DoneRow(), () => CurrentRow != null);
             CancelRowCommand = CreatedCommand(() => CurrentRow = null, () => CurrentRow != null);
@@ -166,6 +167,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }            
         }
 
+
+        public async void RemoveCurrent()
+        {
+            Current.Machine = null;
+            var result = await SaveAsync(true);
+            if(result.Successful)
+                Feeders.Remove(Current);
+        }
+
+
         private async Task LoadFeeders()
         {
             var stripFeeders = await _restClient.GetListResponseAsync<StripFeeder>($"/api/mfg/machine/{MachineRepo.CurrentMachine.Settings.Id}/stripfeeders?loadcomponents=true");
@@ -191,7 +202,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             CurrentRow = null;
         }
 
-        public async void Save(bool close)
+        public async Task<InvokeResult> SaveAsync(bool close)
         {
             if (Current != null)
             {
@@ -214,7 +225,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 {
                     Machine.AddStatusMessage(StatusMessageTypes.FatalError, result.ErrorMessage);
                 }
+
+                return result;
             }
+
+            return InvokeResult.FromError("No current feeder");
         }
 
 
@@ -261,6 +276,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public InvokeResult<Point2D<double>> FindLocation(StripFeederLocationTypes moveType)
         {
+            if(Current.StagingPlate == null)
+            {
+                return InvokeResult<Point2D<double>>.FromError("Could not move, staging plate not set on feeder.");
+            }
+
             var stagePlate = MachineConfiguration.StagingPlates.Single(sp => sp.Id == Current.StagingPlate.Id);
             if (stagePlate == null)
             {
@@ -439,7 +459,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             CurrentPartIndex = Math.Min(CurrentPartIndex, TotalPartsInFeederRow);
 
             var tapeSize = TapeSize.ToDouble();
-            var tapePitch = TapePitch.ToDouble();
+            var tapePitch = CurrentComponentPackage.CustomTapePitch ?? TapePitch.ToDouble();
             var feederIsVertical = Current.Orientation.Value == FeederOrientations.Vertical;
 
             var tapeLength = (CurrentRow.LastTapeHoleOffset.X - CurrentRow.FirstTapeHoleOffset.X) + 2;
@@ -447,7 +467,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var expectedDeltaY = 0;
             var expectedDelta = new Point2D<double>(expectedDetlaX, expectedDeltaY);
 
-            var partOffsetInTapeFromReferenceHole = (CurrentPartIndex - 1) * tapePitch + 2.0;    
+            var partOffsetInTapeFromReferenceHole = ((CurrentPartIndex - 1) * tapePitch);
+            partOffsetInTapeFromReferenceHole += (CurrentComponentPackage.XOffsetFromReferenceHole ?? 2.0);    
             
             var ratioInTape = partOffsetInTapeFromReferenceHole / expectedDetlaX;
             if(CurrentComponentPackage == null)
@@ -656,6 +677,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
+        public override void NextPart()
+        {
+            CurrentRow.CurrentPartIndex++;
+        }
+
 
         public ObservableCollection<MachineStagingPlate> StagingPlates { get => MachineRepo.CurrentMachine.Settings.StagingPlates; }
 
@@ -695,5 +721,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand ClearPartCommand { get; }
 
         public RelayCommand SetCurrentPartIndexOnRowCommand { get; }        
+
+        public RelayCommand RemoveCurrentCommand { get; }
     }
 }

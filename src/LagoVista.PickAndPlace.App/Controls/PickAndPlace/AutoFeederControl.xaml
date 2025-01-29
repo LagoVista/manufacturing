@@ -31,6 +31,7 @@
                 <DataGridTextColumn Width="200" Header="Component" Binding="{Binding Component}" ></DataGridTextColumn>
                 <DataGridTextColumn Width="200" Header="Feeder Id" Binding="{Binding FeederId}" ></DataGridTextColumn>
                 <DataGridTextColumn Width="100" Header="Tape Size" Binding="{Binding TapeSize}" ></DataGridTextColumn>
+                <DataGridTextColumn Width="100" Header="Pick Height" Binding="{Binding PickHeight}" ></DataGridTextColumn>
 
             </DataGrid.Columns>
         </DataGrid>
@@ -48,6 +49,9 @@
                 <TextBox ToolTip="please enter a name for your feeder" Text="{Binding Current.Name, Mode=TwoWay}"></TextBox>
                 <TextBlock Style="{StaticResource label}" Text="Part Count:"></TextBlock>
                 <TextBox ToolTip="please enter a name for your feeder" Text="{Binding Current.PartCount, Mode=TwoWay}"></TextBox>
+                
+                <TextBlock Style="{StaticResource label}" Text="Pick Height:"></TextBlock>
+                <TextBox ToolTip="please enter a name for your feeder" Text="{Binding Current.PickHeight, Mode=TwoWay}"></TextBox>
 
                 <TextBlock Style="{StaticResource label}" Text="Component Category"></TextBlock>
                 <ComboBox ItemsSource="{Binding ComponentCategories}" DisplayMemberPath="Text" SelectedValuePath="Key" SelectedValue="{Binding SelectedCategoryKey, Mode=TwoWay}"></ComboBox>

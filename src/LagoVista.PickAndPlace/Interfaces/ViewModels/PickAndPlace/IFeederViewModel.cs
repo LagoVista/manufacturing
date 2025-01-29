@@ -20,6 +20,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 
         int AvailableParts { get; }
 
+        abstract void NextPart();
+  
         Task<InvokeResult> MoveToCurrentPartInFeederAsync();
         Task<InvokeResult> PickCurrentPartAsync();
         Task<InvokeResult> RecycleCurrentPartAsync();
@@ -41,5 +43,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand PickCurrentPartCommand { get; }
         RelayCommand InspectCurrentPartCommand { get; }
         RelayCommand RecycleCurrentPartCommand { get; }
+
+        RelayCommand NextPartCommand { get; }
     }
 }

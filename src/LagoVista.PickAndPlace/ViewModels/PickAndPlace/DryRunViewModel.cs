@@ -1,10 +1,14 @@
 ﻿using LagoVista.Client.Core;
+using LagoVista.Core;
 using LagoVista.Core.Commanding;
 using LagoVista.Core.Models;
 using LagoVista.Core.PlatformSupport;
 using LagoVista.Core.Validation;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
+using LagoVista.PickAndPlace.Models;
+using Newtonsoft.Json;
 using System;
 using System.Linq;
 
@@ -12,20 +16,22 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 {
     public class DryRunViewModel : MachineViewModelBase, IDryRunViewModel
     {
-        IStripFeederViewModel _stripFeederViewModel;
-        IAutoFeederViewModel _autoFeederViewModel;
+        readonly IStripFeederViewModel _stripFeederViewModel;
+        readonly IAutoFeederViewModel _autoFeederViewModel;
+
         IFeederViewModel _feederViewModel;
 
         private bool _feederIsVertical;
 
-        public DryRunViewModel(IRestClient restClient, ICircuitBoardViewModel pcbVM, IPartInspectionViewModel partInspectionVM, IJobManagementViewModel jobVM, IStripFeederViewModel stripFeederViewModel, IAutoFeederViewModel autoFeederViewModel, IMachineRepo machineRepo) : base(machineRepo)
+        public DryRunViewModel(IRestClient restClient, ICircuitBoardViewModel pcbVM, IPartInspectionViewModel partInspectionVM, IVacuumViewModel vacuumViewModel, IJobManagementViewModel jobVM, IStripFeederViewModel stripFeederViewModel, IAutoFeederViewModel autoFeederViewModel, IMachineRepo machineRepo) : base(machineRepo)
         {
-            _autoFeederViewModel = autoFeederViewModel;
-            _stripFeederViewModel = stripFeederViewModel;
+            _autoFeederViewModel = autoFeederViewModel ?? throw new ArgumentNullException(nameof(autoFeederViewModel)); 
+            _stripFeederViewModel = stripFeederViewModel ?? throw new ArgumentNullException(nameof(stripFeederViewModel));
 
             PartInspectionVM = partInspectionVM ?? throw new ArgumentException(nameof(partInspectionVM));
             JobVM = jobVM ?? throw new ArgumentNullException(nameof(jobVM));
             PcbVM = pcbVM ?? throw new ArgumentNullException(nameof(pcbVM));
+            VacuumViewModel = vacuumViewModel ?? throw new ArgumentNullException(nameof(vacuumViewModel));
 
             JobVM.PropertyChanged += JobVM_PropertyChanged;
 
@@ -39,10 +45,24 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             GoToPartOnBoardCommand = CreatedMachineConnectedCommand(() => PcbVM.GoToPartOnBoardAsync(JobVM.PickAndPlaceJobPart, JobVM.Placement), () => JobVM.Placement != null);
             InspectPartOnBoardCommand = CreatedMachineConnectedCommand(() => PcbVM.InspectPartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement), () => JobVM.Placement != null);
             
-            PickPartFromBoardCommand = CreatedMachineConnectedCommand(() => PcbVM.PickPartFromBoardAsync(JobVM.CurrentComponent, JobVM.Placement), () => JobVM.Placement != null);
+            PickPartFromBoardCommand = CreatedMachineConnectedCommand(async () =>
+            {
+                await PcbVM.PickPartFromBoardAsync(JobVM.CurrentComponent, JobVM.Placement);
+                CheckPartPresent();
+                InspectPart();
+            }, () => JobVM.Placement != null);
 
             RotatePartCommand = CreatedMachineConnectedCommand(() => JobVM.RotateCurrentPartAsync(JobVM.PickAndPlaceJobPart, JobVM.Placement, _feederIsVertical, false), () => JobVM.Placement != null);
             RotateBackPartCommand = CreatedMachineConnectedCommand(() => JobVM.RotateCurrentPartAsync(JobVM.PickAndPlaceJobPart, JobVM.Placement, _feederIsVertical, true), () => JobVM.Placement != null);
+
+            ClonePartInspectionVisionProfileCommand = CreatedCommand(ClonePartInspectionVisionProfile, () => JobVM.CurrentComponentPackage != null);
+            ClonePartInTapeVisionProfileCommand = CreatedCommand(ClonePartInspectionVisionProfile, () => JobVM.CurrentComponentPackage != null);
+            ClonePartOnBoardVisionProfileCommand = CreatedCommand(ClonePartInspectionVisionProfile, () => JobVM.CurrentComponentPackage != null);
+
+            CheckPartPresentCommand = CreatedCommand(CheckPartPresent, () => JobVM.CurrentComponent != null);
+            CheckNoPartPresentCommand = CreatedCommand(CheckNoPartPresent, () => JobVM.CurrentComponent != null);
+
+            NextPartCommand = CreatedCommand(NextPart, () => _feederViewModel != null);
         }
 
         private InvokeResult ResolveFeeder()
@@ -52,11 +72,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return InvokeResult.FromError("No part to place.");
             }
 
-            JobVM.Placement = JobVM.PickAndPlaceJobPart.Placements.FirstOrDefault();
-            if (JobVM.Placement == null)
+            var placement = JobVM.PickAndPlaceJobPart.Placements.FirstOrDefault();
+            if (placement == null)
             {
                 return InvokeResult.FromError("Could not identify first placement.");
             }
+
+            var currentFeeder = _feederViewModel;
+
+            _feederViewModel = null;
 
             if (!EntityHeader.IsNullOrEmpty(JobVM.PickAndPlaceJobPart.StripFeeder))
             {
@@ -78,38 +102,148 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 }
 
                 _feederViewModel = _stripFeederViewModel;
-                _autoFeederViewModel = null;
                 _feederIsVertical = _stripFeederViewModel.Current.Orientation.Value == Manufacturing.Models.FeederOrientations.Vertical;
 
             }
             else if (!EntityHeader.IsNullOrEmpty(JobVM.PickAndPlaceJobPart.AutoFeeder))
             {
-                _autoFeederViewModel.Current = _autoFeederViewModel.Feeders.SingleOrDefault(sf => sf.Id == JobVM.PickAndPlaceJobPart.AutoFeeder.Id);
+                var fdr = _autoFeederViewModel.Feeders.SingleOrDefault(sf => sf.Id == JobVM.PickAndPlaceJobPart.AutoFeeder.Id);
+                _autoFeederViewModel.Current = fdr;
+                _feederViewModel = _autoFeederViewModel;
                 if (_autoFeederViewModel.Current == null)
                 {
                     return InvokeResult.FromError($"Could not find auto feeder {JobVM.PickAndPlaceJobPart.AutoFeeder}");
                 }
 
-                _stripFeederViewModel = null;
                 _feederIsVertical = true;
-
-                _feederViewModel = _autoFeederViewModel;
             }
             else
             {
+                
                 return InvokeResult.FromError("Selected component does not have an assocaited feeder.");
             }
+
+            if(currentFeeder != _feederViewModel)
+            {
+                JobVM.Placement = placement;
+            }
+
+            RaiseCanExecuteChanged();
 
             return InvokeResult.Success;
         }
 
-        public void MoveToPartInFeeder()
+        public void ClonePartInspectionVisionProfile()
+        {
+            var partInspectionCampera = MachineConfiguration.Cameras.SingleOrDefault(cam => cam.CameraType.Value == Manufacturing.Models.CameraTypes.PartInspection);
+            if(partInspectionCampera == null)
+            {
+                Machine.AddStatusMessage(Manufacturing.Models.StatusMessageTypes.FatalError, "Could not find part inspection camera.");
+                return;
+            }
+            var newName = $"{MachineConfiguration.Cameras.First().CurrentVisionProfile.Name} ({JobVM.CurrentComponentPackage.Name})";
+            var newProfile = JsonConvert.DeserializeObject<VisionProfile>(JsonConvert.SerializeObject(MachineConfiguration.Cameras.First().CurrentVisionProfile));
+            newProfile.Name = newName;
+            newProfile.Id = Guid.NewGuid().ToId();
+            JobVM.CurrentComponentPackage.PartInspectionVisionProfile = newProfile;
+            Machine.SetVisionProfile(Manufacturing.Models.CameraTypes.PartInspection, newProfile);
+            JobVM.SaveComponentPackageCommand.Execute(null);
+        }
+
+        public void NextPart()
+        {
+            _feederViewModel.NextPart();
+            var idx = JobVM.PickAndPlaceJobPart.Placements.IndexOf(JobVM.Placement);
+            if(idx == -1)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not find current placement.");
+            }
+            idx++;
+            if(JobVM.PickAndPlaceJobPart.Placements.Count > idx)
+            {
+                JobVM.Placement = JobVM.PickAndPlaceJobPart.Placements[idx];
+                MoveToPartInFeeder();
+            }
+            else
+            {
+                JobVM.Placement = null;
+            }
+
+
+        }
+
+        public void ClonePartOnBoardisionProfile()
+        {
+
+        }
+
+        public void ClonePartInTapeVisionProfile()
+        {
+
+        }
+
+        public async void CheckPartPresent()
+        {
+            var result = await VacuumViewModel.CheckPartPresent(JobVM.CurrentComponent, 1000);
+            if (result.Successful)
+            {
+                LastActionSuccess = true;
+                LastStatus = "Success";
+            }
+            else
+            {
+                LastActionSuccess = false;
+                LastStatus = result.ErrorMessage;
+            }
+        }
+
+        public async void CheckNoPartPresent()
+        {
+             var result = await VacuumViewModel.CheckNoPartPresent(JobVM.CurrentComponent, 1000);
+            if (result.Successful)
+            {
+                LastActionSuccess = true;
+                LastStatus = "Success";
+            }
+            else
+            {
+                LastActionSuccess = false;
+                LastStatus = result.ErrorMessage;
+            }
+        }
+
+        public string _lastStatus;
+        public string LastStatus
+        {
+            get => _lastStatus;
+            set => Set(ref _lastStatus, value);
+        }
+
+        bool _lastActionSuccess;
+        public bool LastActionSuccess
+        {
+            get => _lastActionSuccess;
+            set => Set(ref _lastActionSuccess, value);
+        }
+        
+        
+        void GotoPartInFeeder(PickAndPlaceJobPart part)
+        {
+            JobVM.PickAndPlaceJobPart = part;
+            MoveToPartInFeeder();
+        }
+
+
+        public async void MoveToPartInFeeder()
         {
             var result = ResolveFeeder();
             if (!result.Successful)
                 Machine.AddStatusMessage(Manufacturing.Models.StatusMessageTypes.FatalError, result.ErrorMessage);
             else
-                _feederViewModel.MoveToPartInFeederAsync(JobVM.CurrentComponent);
+            {
+                await Machine.MoveToCameraAsync();
+                await _feederViewModel.MoveToPartInFeederAsync(JobVM.CurrentComponent);
+            }
         }
 
         public void PickPart()
@@ -144,7 +278,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 case nameof(JobVM.Placement): RaiseCanExecuteChanged(); break;
             }
         }
-   
+
+        public IVacuumViewModel VacuumViewModel { get; }   
         public IJobManagementViewModel JobVM { get; }
         public ICircuitBoardViewModel PcbVM { get; }
         public IPartInspectionViewModel PartInspectionVM { get; }
@@ -160,5 +295,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand PlacePartCommand { get; }
         public RelayCommand RotatePartCommand { get; }
         public RelayCommand RotateBackPartCommand { get; }
+
+        public RelayCommand CheckPartPresentCommand { get; }
+        public RelayCommand CheckNoPartPresentCommand { get; }
+
+        public RelayCommand NextPartCommand { get; }
+
+        public RelayCommand ClonePartInTapeVisionProfileCommand { get; }
+        public RelayCommand ClonePartOnBoardVisionProfileCommand { get; }
+        public RelayCommand ClonePartInspectionVisionProfileCommand { get;  }
     }
 }

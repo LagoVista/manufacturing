@@ -112,6 +112,9 @@ namespace LagoVista.Manufacturing.Models
         public List<ComponentAttribute> Attributes { get; set; } = new List<ComponentAttribute>();
 
 
+        [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeColor, FieldType: FieldTypes.Picker, EnumType: typeof(TapeColors), WaterMark: ManufacturingResources.Names.ComponentPackage_TapeColor_Select, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader<TapeColors> TapeColor { get; set; }
+
         public ComponentSummary CreateSummary()
         {
             return new ComponentSummary()
@@ -176,6 +179,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Attr1),
                 nameof(Attr2),
                 nameof(Attributes),
+                nameof(TapeColor),
             };
         }
 

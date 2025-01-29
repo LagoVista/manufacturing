@@ -28,6 +28,19 @@
                         <DataGridTextColumn Header="Auto Feeder" Width="*" Binding="{Binding AutoFeeder}"  />
                         <DataGridTextColumn Header="Strip Feeder" Width="*" Binding="{Binding StripFeeder}"  />
                         <DataGridTextColumn Header="Strip Feeder Row" Width="*" Binding="{Binding StripFeederRow}"  />
+                        <!--<DataGridTemplateColumn Header="Action">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button 
+                                        VerticalAlignment="Top"
+                                        Command="{Binding DataContext.GoToPartInFeederCommand, RelativeSource={RelativeSource FindAncestor, 
+                                            AncestorLevel=1, AncestorType={x:Type UserControl}}}" 
+                                        CommandParameter="{Binding .}"
+                                        Content="Delete">
+                                    </Button>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn> -->
                     </DataGrid.Columns>
                 </DataGrid>
 
@@ -54,30 +67,55 @@
                             </DataGrid.Columns>
                         </DataGrid>
 
-                        <TextBlock Style="{StaticResource header}" Text="Component" />
-                        <StackPanel Orientation="Horizontal">
-                            <Button Style="{StaticResource CommandButton}" Command="{Binding MoveToPartInFeederCommand}" Content="Move To Part in Feeder"></Button>
-                            <Button Style="{StaticResource CommandButton}" Command="{Binding PickPartCommand}" Content="Pick Part"></Button>
-                            <Button Style="{StaticResource CommandButton}" Command="{Binding InspectPartCommand}" Content="Inspect Part"></Button>
-                            <Button Style="{StaticResource CommandButton}" Command="{Binding RecyclePartCommand}" Content="Recycle Part"></Button>
-                        </StackPanel>
+                        <Grid Margin="0,20,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="33*" />
+                                <ColumnDefinition Width="33*" />
+                                <ColumnDefinition Width="33*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Style="{StaticResource content}" Text="{Binding LastStatus}" />
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" >
+                                <TextBlock Style="{StaticResource header}" Text="Component" HorizontalAlignment="Center" />
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding MoveToPartInFeederCommand}" Content="Move To Part in Feeder"></Button>
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding PickPartCommand}" Content="Pick Part"></Button>
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding CheckPartPresentCommand}" Content="Check Part Present"></Button>
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding InspectPartCommand}" Content="Inspect Part"></Button>
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding RecyclePartCommand}" Content="Recycle Part"></Button>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="1">
+                                <TextBlock Style="{StaticResource header}" Text="Placeable Part" HorizontalAlignment="Center" />
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding RotatePartCommand}" Content="Rotate To Place"></Button>
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding GoToPartOnBoardCommand}" Content="Go To Part In Board"></Button>
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding PlacePartCommand}" Content="Place Part Board"></Button>
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding CheckNoPartPresentCommand}" Content="Part Not Present"></Button>
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding NextPartCommand}" Content="Advance Part"></Button>
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding InspectPartOnBoardCommand}" Content="Inspect Part on Board"></Button>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="2">
+                                <TextBlock Style="{StaticResource header}" Text="Recycle" HorizontalAlignment="Center" />
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding PickPartFromBoardCommand}" Content="Pick Part From Board"></Button>
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding RotateBackPartCommand}" Content="Rotate Back"></Button>
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding RecyclePartCommand}" Content="Recycle Part"></Button>
+                            </StackPanel>
 
-                        <TextBlock Style="{StaticResource header}" Text="Placeable Part" />
-                        <StackPanel Orientation="Horizontal">
-                            <Button Style="{StaticResource CommandButton}" Command="{Binding RotatePartCommand}" Content="Rotate To Place"></Button>
-                            <Button Style="{StaticResource CommandButton}" Command="{Binding GoToPartOnBoardCommand}" Content="Go To Part In Board"></Button>
-                            <Button Style="{StaticResource CommandButton}" Command="{Binding PlacePartCommand}" Content="Place Part Board"></Button>
-                            <Button Style="{StaticResource CommandButton}" Command="{Binding InspectPartOnBoardCommand}" Content="Inspect Part on Board"></Button>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <Button Style="{StaticResource CommandButton}" Command="{Binding PickPartFromBoardCommand}" Content="Pick Part From Board"></Button>
-                            <Button Style="{StaticResource CommandButton}" Command="{Binding RotateBackPartCommand}" Content="Rotate Back"></Button>
-                            <Button Style="{StaticResource CommandButton}" Command="{Binding RecyclePartCommand}" Content="Recycle Part"></Button>
-                        </StackPanel>
+                        </Grid>
+
                     </StackPanel>
 
                     <local:CircuitBoardControl Grid.Column="1" />
                 </Grid>
+
+
+                <StackPanel Margin="0,20,0,0"  >
+                    <TextBlock Style="{StaticResource header}" Text="Vision Profiles"></TextBlock>
+                    <StackPanel Orientation="Horizontal">
+                        <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Command="{Binding ClonePartInTapeVisionProfileCommand}">Clone In Tape</Button>
+                        <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Command="{Binding ClonePartInspectionVisionProfileCommand}">Clone Inspection</Button>
+                        <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Command="{Binding ClonePartOnBoardVisionProfileCommand}">Clone On Board</Button>
+                    </StackPanel>
+                </StackPanel>
 
             </StackPanel>
 

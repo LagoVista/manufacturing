@@ -58,6 +58,7 @@
                         <Button Style="{StaticResource CommandButton}" Command="{Binding ReloadFeederCommand}" Content="Reload from Server"></Button>
                         <Button Style="{StaticResource CommandButton}" Command="{Binding SaveAndCloseCommand}" Content="Save and Close"></Button>
                         <Button Style="{StaticResource CommandButton}" Command="{Binding SaveCommand}" Content="Save"></Button>
+                        <Button Style="{StaticResource CommandButton}" Command="{Binding RemoveCurrentCommand}" Content="Remove Current"></Button>
                         <Button Style="{StaticResource CommandButton}" Command="{Binding CancelCommand}" Content="Cancel"></Button>
                     </StackPanel>
 

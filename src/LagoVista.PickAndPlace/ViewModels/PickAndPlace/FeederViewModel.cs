@@ -44,7 +44,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             SaveComponentPackageCommand = CreatedCommand(SaveComponentPackage, () => CurrentComponentPackage != null);
             ShowComponentDetailCommand = CreatedCommand(ShowComponentDetail, () => CurrentComponent != null);
             ShowComponentPackageDetailCommand = CreatedCommand(ShowComponentPackageDetail, () => CurrentComponent != null && CurrentComponent?.ComponentPackage != null);
-            ShowDataSheetCommand = CreatedCommand(ShowDataSheeet, () => CurrentComponent != null && !String.IsNullOrEmpty(CurrentComponent.DataSheet));            
+            ShowDataSheetCommand = CreatedCommand(ShowDataSheeet, () => CurrentComponent != null && !String.IsNullOrEmpty(CurrentComponent.DataSheet));
+            NextPartCommand = CreatedMachineConnectedCommand(NextPart);            
         }
 
         public override async Task InitAsync()
@@ -140,6 +141,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return InvokeResult.FromError("No current part selected, can not pick.");
             }
 
+            if(CurrentComponent.ComponentPackage == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Current part does not have a package, can not place..");
+                return InvokeResult.FromError("Current part does not have a package, can not place.");
+            }
+
             var currentLocation = CurrentPartLocation;
             if (currentLocation == null)
             {
@@ -185,8 +192,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             return InvokeResult.Success;
         }
 
- 
-
         public async Task<InvokeResult> InspectCurrentPartAsync()
         {
             if (CurrentComponent == null)
@@ -205,7 +210,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _pickStates = PickStates.Inspecting;
             }
 
-            Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
+            if(CurrentComponentPackage!.PartInspectionVisionProfile != null)
+                Machine.SetVisionProfile(CameraTypes.PartInspection, CurrentComponentPackage!.PartInspectionVisionProfile);
+            else
+                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
 
             return InvokeResult.Success;
         }
@@ -265,18 +273,21 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 
                 var component = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Component>>($"/api/mfg/component/{componentId}");
-                SelectedComponent = component.Result.Model;
-                
-                if (SelectedComponent.ComponentType.Key != _selectedCategoryKey)
+                if (component.Result.Successful)
                 {
-                    _selectedCategoryKey = SelectedComponent.ComponentType.Key;
-                    await LoadComponentsByCategory(_selectedCategoryKey);
-                    RaisePropertyChanged(nameof(SelectedCategoryKey));
-                }
+                    SelectedComponent = component.Result.Model;
 
-                SelectedComponentSummaryId = componentId;
+                    if (SelectedComponent.ComponentType.Key != _selectedCategoryKey)
+                    {
+                        _selectedCategoryKey = SelectedComponent.ComponentType.Key;
+                        await LoadComponentsByCategory(_selectedCategoryKey);
+                        RaisePropertyChanged(nameof(SelectedCategoryKey));
+                    }
+
+                    SelectedComponentSummaryId = componentId;
+                }
+                }
             }
-        }
 
         public async Task LoadComponentsByCategory(string categoryKey)
         {
@@ -298,12 +309,42 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             Machine.SendSafeMoveHeight();
             Machine.SendCommand(CurrentPartLocation.ToGCode());
 
+            if(CurrentComponentPackage == null && CurrentComponent.ComponentPackage != null)
+            {
+                CurrentComponentPackage = CurrentComponent.ComponentPackage.Value;
+            }
+
+            if(!EntityHeader.IsNullOrEmpty(CurrentComponent.TapeColor))
+            {
+                switch (CurrentComponent.TapeColor.Value)
+                {
+                    case TapeColors.Clear: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInClearTape); break;
+                    case TapeColors.White: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInWhiteTape); break;
+                    case TapeColors.Black: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInBlackTape); break;
+
+                }
+            }
+            else if (CurrentComponentPackage != null)
+            {
+                switch (CurrentComponentPackage.TapeColor.Value)
+                {
+                    case TapeColors.Clear: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInClearTape); break;
+                    case TapeColors.White: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInWhiteTape); break;
+                    case TapeColors.Black: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInBlackTape); break;
+
+                }
+            }
+            else
+                Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInWhiteTape);
+
             return Task.FromResult(InvokeResult.Success);
         }
 
         public Task<InvokeResult> MoveToPartInFeederAsync(Component component)
         {
-            CurrentComponent = component;
+            if(CurrentComponent != component)
+                CurrentComponent = component;
+
             return MoveToCurrentPartInFeederAsync();
         }
 
@@ -343,10 +384,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 if (value != _selectedComponentSummaryId)
                 {
-                    Set(ref _selectedComponentSummaryId, value);
-                    if (value.HasValidId())
-                        LoadComponent(_selectedComponentSummaryId);
-                    else
+                        Set(ref _selectedComponentSummaryId, value);
+                        if (value.HasValidId())
+                            LoadComponent(_selectedComponentSummaryId);
+                        else
+                        {
+                        }
+
                         SelectedComponent = null;
                 }
             }
@@ -417,6 +461,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public abstract int AvailableParts { get; }
 
+        public abstract void NextPart();
+
         public RelayCommand PickCurrentPartCommand { get; }
 
         public RelayCommand InspectCurrentPartCommand { get; }
@@ -427,6 +473,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand ShowDataSheetCommand { get; }
         public RelayCommand ShowComponentDetailCommand { get; }
         public RelayCommand ShowComponentPackageDetailCommand { get; }
+
+        public RelayCommand NextPartCommand { get; }
 
         public abstract Point2D<double> CurrentPartLocation { get;  }
 

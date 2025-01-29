@@ -1547,6 +1547,9 @@
   <data name="StripFeeder_PartCapacity_Help" xml:space="preserve">
     <value>Total number of parts that this strip feeder could hold, this is usually calculated as part of setup (feeder length / tape pitch)</value>
   </data>
+  <data name="ComponentPackage_CustomTapePitch" xml:space="preserve">
+    <value>Custom Tape Pitch</value>
+  </data>
   <data name="MachineToolHead_VacuumTolerancePercent" xml:space="preserve">
     <value>Vacuum Tolerance</value>
   </data>

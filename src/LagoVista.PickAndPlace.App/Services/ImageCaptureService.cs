@@ -61,6 +61,16 @@ namespace LagoVista.PickAndPlace.App.Services
                     Camera.VisionProfiles.Add(profile);
                     Camera.CurrentVisionProfile = profile;
                 }
+
+                Camera.PropertyChanged += Camera_PropertyChanged;
+            }
+        }
+
+        private void Camera_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == nameof(Camera.CurrentVisionProfile))
+            {
+                RaisePropertyChanged(nameof(Profile));
             }
         }
 

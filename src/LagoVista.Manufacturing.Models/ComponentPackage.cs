@@ -6,6 +6,7 @@ using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models.Resources;
 using LagoVista.PCB.Eagle.Models;
+using LagoVista.PickAndPlace.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -193,6 +194,14 @@ namespace LagoVista.Manufacturing.Models
         }
 
 
+        double? _customTapePitch;
+        [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_CustomTapePitch, FieldType: FieldTypes.Decimal, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public double? CustomTapePitch 
+        {
+            get => _customTapePitch;
+            set => Set(ref _customTapePitch, value);
+        }
+
 
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeAndReelSpecImage, FieldType: FieldTypes.FileUpload, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader TapeAndReelSpecImage { get; set; }
@@ -343,6 +352,27 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _pickVacuumLevel, value);
         }
 
+        VisionProfile _partInspectionVisionProfile;
+        public VisionProfile PartInspectionVisionProfile
+        {
+            get => _partInspectionVisionProfile;
+            set => Set(ref _partInspectionVisionProfile, value);
+        }
+
+        VisionProfile _partOnBoardVisionProfile;
+        public VisionProfile PartOnBoardVisionProfile
+        {
+            get => _partOnBoardVisionProfile;
+            set => Set(ref _partOnBoardVisionProfile, value);
+        }
+
+        VisionProfile _partInTapeVisionProfile;
+        public VisionProfile PartInTapeVisionProfile
+        {
+            get => _partInTapeVisionProfile;
+            set => Set(ref _partInTapeVisionProfile, value);
+        }
+
         public ComponentPackageSummary CreateSummary()
         {
             return new ComponentPackageSummary()
@@ -391,6 +421,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(TapeSpecificationPage),
                 nameof(TapeSize),
                 nameof(TapePitch),
+                nameof(CustomTapePitch),
                 nameof(TapeRotation),
                 nameof(TapeColor),
                 nameof(TapeMaterialType),

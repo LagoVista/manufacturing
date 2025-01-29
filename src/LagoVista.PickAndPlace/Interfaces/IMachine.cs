@@ -5,6 +5,7 @@ using LagoVista.GCode;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
+using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -327,6 +328,7 @@ namespace LagoVista.PickAndPlace.Interfaces
         Task<InvokeResult<byte>> I2CReadHexByte(byte address);
 
         void SetVisionProfile(CameraTypes cameraType, string profile);
+        void SetVisionProfile(CameraTypes cameraType, VisionProfile profile);
 
         Task MoveToToolHeadAsync(MachineToolHead toolHeadToMoveTo);
         Task MoveToCameraAsync();
