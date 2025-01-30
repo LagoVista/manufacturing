@@ -42,7 +42,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             return InvokeResult.Success;
         }
        
-        public async Task<InvokeResult> CenterPartAsync(Component component, PickAndPlaceJobPlacement placement)
+        public async Task<InvokeResult> CenterPartAsync(Component component, PickAndPlaceJobPlacement placement, string algorithm)
         {
             if (component.ComponentPackage.Value.PartInspectionVisionProfile != null)
                 Machine.SetVisionProfile(CameraTypes.PartInspection, component.ComponentPackage.Value.PartInspectionVisionProfile);
@@ -51,7 +51,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             _waitForCenter = new ManualResetEventSlim(false);
             _locatorViewModel.RegisterRectangleLocatedHandler(this);
-
 
             await Task.Run(() =>
             {

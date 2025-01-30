@@ -11,7 +11,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
     {
         Task<InvokeResult<ulong>> ReadVacuumAsync();
 
-        Task<InvokeResult> CheckPartPresent(Component component, int timeoutMS);
+        Task<InvokeResult> CheckPartPresent(Component component, int timeoutMS, ulong? vacuumOverride);
 
         Task<InvokeResult> CheckNoPartPresent(Component component, int timeoutMS);
 

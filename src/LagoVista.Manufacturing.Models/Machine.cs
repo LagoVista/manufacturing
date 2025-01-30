@@ -13,6 +13,7 @@ using LagoVista.Core.Attributes;
 using LagoVista.Manufacturing.Models.Resources;
 using LagoVista.Core.Interfaces;
 using LagoVista.PickAndPlace.Models;
+using System.Runtime.InteropServices;
 
 namespace LagoVista.Manufacturing.Models
 {
@@ -369,6 +370,45 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _defaultToolReferencePoint, value);
         }
 
+        private bool _connecttoMQTT;
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_ConnectToMQTT, FieldType: FieldTypes.Bool, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public bool ConnectToMQTT
+        {
+            get => _connecttoMQTT;
+            set => Set(ref _connecttoMQTT, value);
+        }
+
+        private string _mqttHostName;
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_HostName, FieldType: FieldTypes.Text, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public string MqttHostName
+        {
+            get => _mqttHostName;
+            set => Set(ref _mqttHostName, value);
+        }
+
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_Port, FieldType: FieldTypes.Integer, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public int ConnectToPort { get; set; }
+
+        bool _secureConnection;
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_SecureConnection, FieldType: FieldTypes.Bool, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public bool SecureConnection
+        {
+            get => _secureConnection;
+            set => Set(ref _secureConnection, value);
+        }
+
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_DeviceId, FieldType: FieldTypes.Text, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public string DeviceId { get; set; }
+
+
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_UserName, FieldType: FieldTypes.Text, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public string UserName { get; set; }
+
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_Password, FieldType: FieldTypes.Text, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public string Password { get; set; }
+
+        public string PasswordSecretId { get; set; }
+
         public string DefaultPnPMachineFile { get; set; }
 
         public bool EnableCodePreview { get; set; }
@@ -680,6 +720,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(WorkAreaSize),
                 nameof(FrameSize),
                 nameof(WorkspaceFrameOffset),
+                nameof(GcodeMapping),
             };
         }
 
@@ -687,9 +728,15 @@ namespace LagoVista.Manufacturing.Models
         {
             return new List<string>()
             {
-                nameof(GcodeMapping),
                 nameof(MaximumFeedRate),
                 nameof(JogFeedRate),
+                nameof(ConnectToMQTT),
+                nameof(DeviceId),
+                nameof(MqttHostName),
+                nameof(ConnecttoPort),
+                nameof(SecureConnection),
+                nameof(UserName),
+                nameof(Password),
                 nameof(Nozzles),
                 nameof(StagingPlates),
                 nameof(FeederRails),

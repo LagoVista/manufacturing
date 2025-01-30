@@ -1559,4 +1559,91 @@
   <data name="ComponentPackage_PickVacuumLevel" xml:space="preserve">
     <value>Pick Vacuum Level</value>
   </data>
+  <data name="PnPState_Idle" xml:space="preserve">
+    <value>Idle</value>
+  </data>
+  <data name="PnpState_FeederResolved" xml:space="preserve">
+    <value>Feeder Resolved</value>
+  </data>
+  <data name="PnpState_Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="PnpState_Validated" xml:space="preserve">
+    <value>Validated</value>
+  </data>
+  <data name="PnpState_AtFeeder" xml:space="preserve">
+    <value>At Feeder</value>
+  </data>
+  <data name="PnpState_PartPicked" xml:space="preserve">
+    <value>Part Picked</value>
+  </data>
+  <data name="PnpState_PartDetected" xml:space="preserve">
+    <value>Part Detected</value>
+  </data>
+  <data name="PnpState_PartNotDetected" xml:space="preserve">
+    <value>Part Not Detected</value>
+  </data>
+  <data name="PnpState_DetectingPart" xml:space="preserve">
+    <value>Detecting Part</value>
+  </data>
+  <data name="PnPState_Inspecting" xml:space="preserve">
+    <value>Inspecting</value>
+  </data>
+  <data name="PnPState_Inspected" xml:space="preserve">
+    <value>Inspected</value>
+  </data>
+  <data name="PnPState_PickErrorCompensating" xml:space="preserve">
+    <value>Pick Error Compensating</value>
+  </data>
+  <data name="PnPState_PickErrorCompensated" xml:space="preserve">
+    <value>Pick Error Compensated</value>
+  </data>
+  <data name="PnPState_PickErrorNotCompensated" xml:space="preserve">
+    <value>Pick Error not Compensated</value>
+  </data>
+  <data name="PnPState_AtPlaceLocation" xml:space="preserve">
+    <value>At Place Location</value>
+  </data>
+  <data name="PnPState_OnBoard" xml:space="preserve">
+    <value>On Board</value>
+  </data>
+  <data name="PnPState_Placed" xml:space="preserve">
+    <value>Placed</value>
+  </data>
+  <data name="PnPState_Advanced" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+  <data name="PnPState_PlacementCompleted" xml:space="preserve">
+    <value>Placement Complete</value>
+  </data>
+  <data name="PnPState_PartCompleted" xml:space="preserve">
+    <value>Part Completed</value>
+  </data>
+  <data name="PnPState_JobCompleted" xml:space="preserve">
+    <value>Job Completed</value>
+  </data>
+  <data name="Machine_ConnectToMQTT" xml:space="preserve">
+    <value>Connect to MQTT</value>
+  </data>
+  <data name="Machine_HostName" xml:space="preserve">
+    <value>Host Name</value>
+  </data>
+  <data name="Machine_DeviceId" xml:space="preserve">
+    <value>Device Id</value>
+  </data>
+  <data name="Machine_SecureConnection" xml:space="preserve">
+    <value>Secure Connection</value>
+  </data>
+  <data name="Machine_UserName" xml:space="preserve">
+    <value>User Name</value>
+  </data>
+  <data name="Machine_Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="Machine_Port" xml:space="preserve">
+    <value>Port</value>
+  </data>
+  <data name="PnPState_New" xml:space="preserve">
+    <value>New</value>
+  </data>
 </root>

@@ -1,4 +1,4 @@
-﻿/*1/28/2025 3:27:32 PM*/
+﻿/*1/30/2025 8:29:45 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -809,9 +809,15 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Machine_Cameras
 
 		public static string Machine_Cameras { get { return GetResourceString("Machine_Cameras"); } }
+//Resources:ManufacturingResources:Machine_ConnectToMQTT
+
+		public static string Machine_ConnectToMQTT { get { return GetResourceString("Machine_ConnectToMQTT"); } }
 //Resources:ManufacturingResources:Machine_Description
 
 		public static string Machine_Description { get { return GetResourceString("Machine_Description"); } }
+//Resources:ManufacturingResources:Machine_DeviceId
+
+		public static string Machine_DeviceId { get { return GetResourceString("Machine_DeviceId"); } }
 //Resources:ManufacturingResources:Machine_FeederRail_Description
 
 		public static string Machine_FeederRail_Description { get { return GetResourceString("Machine_FeederRail_Description"); } }
@@ -863,18 +869,33 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Machine_GCodeMapping_Select
 
 		public static string Machine_GCodeMapping_Select { get { return GetResourceString("Machine_GCodeMapping_Select"); } }
+//Resources:ManufacturingResources:Machine_HostName
+
+		public static string Machine_HostName { get { return GetResourceString("Machine_HostName"); } }
 //Resources:ManufacturingResources:Machine_JogFeedRate
 
 		public static string Machine_JogFeedRate { get { return GetResourceString("Machine_JogFeedRate"); } }
 //Resources:ManufacturingResources:Machine_MaxFeedRate
 
 		public static string Machine_MaxFeedRate { get { return GetResourceString("Machine_MaxFeedRate"); } }
+//Resources:ManufacturingResources:Machine_Password
+
+		public static string Machine_Password { get { return GetResourceString("Machine_Password"); } }
+//Resources:ManufacturingResources:Machine_Port
+
+		public static string Machine_Port { get { return GetResourceString("Machine_Port"); } }
+//Resources:ManufacturingResources:Machine_SecureConnection
+
+		public static string Machine_SecureConnection { get { return GetResourceString("Machine_SecureConnection"); } }
 //Resources:ManufacturingResources:Machine_Title
 
 		public static string Machine_Title { get { return GetResourceString("Machine_Title"); } }
 //Resources:ManufacturingResources:Machine_ToolHeads
 
 		public static string Machine_ToolHeads { get { return GetResourceString("Machine_ToolHeads"); } }
+//Resources:ManufacturingResources:Machine_UserName
+
+		public static string Machine_UserName { get { return GetResourceString("Machine_UserName"); } }
 //Resources:ManufacturingResources:Machine_WorkAreaOrigin
 
 		public static string Machine_WorkAreaOrigin { get { return GetResourceString("Machine_WorkAreaOrigin"); } }
@@ -1226,6 +1247,72 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:PickAndPlaceJobs_Title
 
 		public static string PickAndPlaceJobs_Title { get { return GetResourceString("PickAndPlaceJobs_Title"); } }
+//Resources:ManufacturingResources:PnPState_Advanced
+
+		public static string PnPState_Advanced { get { return GetResourceString("PnPState_Advanced"); } }
+//Resources:ManufacturingResources:PnpState_AtFeeder
+
+		public static string PnpState_AtFeeder { get { return GetResourceString("PnpState_AtFeeder"); } }
+//Resources:ManufacturingResources:PnPState_AtPlaceLocation
+
+		public static string PnPState_AtPlaceLocation { get { return GetResourceString("PnPState_AtPlaceLocation"); } }
+//Resources:ManufacturingResources:PnpState_DetectingPart
+
+		public static string PnpState_DetectingPart { get { return GetResourceString("PnpState_DetectingPart"); } }
+//Resources:ManufacturingResources:PnpState_Error
+
+		public static string PnpState_Error { get { return GetResourceString("PnpState_Error"); } }
+//Resources:ManufacturingResources:PnpState_FeederResolved
+
+		public static string PnpState_FeederResolved { get { return GetResourceString("PnpState_FeederResolved"); } }
+//Resources:ManufacturingResources:PnPState_Idle
+
+		public static string PnPState_Idle { get { return GetResourceString("PnPState_Idle"); } }
+//Resources:ManufacturingResources:PnPState_Inspected
+
+		public static string PnPState_Inspected { get { return GetResourceString("PnPState_Inspected"); } }
+//Resources:ManufacturingResources:PnPState_Inspecting
+
+		public static string PnPState_Inspecting { get { return GetResourceString("PnPState_Inspecting"); } }
+//Resources:ManufacturingResources:PnPState_JobCompleted
+
+		public static string PnPState_JobCompleted { get { return GetResourceString("PnPState_JobCompleted"); } }
+//Resources:ManufacturingResources:PnPState_New
+
+		public static string PnPState_New { get { return GetResourceString("PnPState_New"); } }
+//Resources:ManufacturingResources:PnPState_OnBoard
+
+		public static string PnPState_OnBoard { get { return GetResourceString("PnPState_OnBoard"); } }
+//Resources:ManufacturingResources:PnPState_PartCompleted
+
+		public static string PnPState_PartCompleted { get { return GetResourceString("PnPState_PartCompleted"); } }
+//Resources:ManufacturingResources:PnpState_PartDetected
+
+		public static string PnpState_PartDetected { get { return GetResourceString("PnpState_PartDetected"); } }
+//Resources:ManufacturingResources:PnpState_PartNotDetected
+
+		public static string PnpState_PartNotDetected { get { return GetResourceString("PnpState_PartNotDetected"); } }
+//Resources:ManufacturingResources:PnpState_PartPicked
+
+		public static string PnpState_PartPicked { get { return GetResourceString("PnpState_PartPicked"); } }
+//Resources:ManufacturingResources:PnPState_PickErrorCompensated
+
+		public static string PnPState_PickErrorCompensated { get { return GetResourceString("PnPState_PickErrorCompensated"); } }
+//Resources:ManufacturingResources:PnPState_PickErrorCompensating
+
+		public static string PnPState_PickErrorCompensating { get { return GetResourceString("PnPState_PickErrorCompensating"); } }
+//Resources:ManufacturingResources:PnPState_PickErrorNotCompensated
+
+		public static string PnPState_PickErrorNotCompensated { get { return GetResourceString("PnPState_PickErrorNotCompensated"); } }
+//Resources:ManufacturingResources:PnPState_Placed
+
+		public static string PnPState_Placed { get { return GetResourceString("PnPState_Placed"); } }
+//Resources:ManufacturingResources:PnPState_PlacementCompleted
+
+		public static string PnPState_PlacementCompleted { get { return GetResourceString("PnPState_PlacementCompleted"); } }
+//Resources:ManufacturingResources:PnpState_Validated
+
+		public static string PnpState_Validated { get { return GetResourceString("PnpState_Validated"); } }
 //Resources:ManufacturingResources:StripFeeder_AngleOffset
 
 		public static string StripFeeder_AngleOffset { get { return GetResourceString("StripFeeder_AngleOffset"); } }
@@ -1754,7 +1841,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string JobState_Failed = "JobState_Failed";
 			public const string JobState_Running = "JobState_Running";
 			public const string Machine_Cameras = "Machine_Cameras";
+			public const string Machine_ConnectToMQTT = "Machine_ConnectToMQTT";
 			public const string Machine_Description = "Machine_Description";
+			public const string Machine_DeviceId = "Machine_DeviceId";
 			public const string Machine_FeederRail_Description = "Machine_FeederRail_Description";
 			public const string Machine_FeederRail_FirstFeederOrigin = "Machine_FeederRail_FirstFeederOrigin";
 			public const string Machine_FeederRail_FirstFeederOrigin_Help = "Machine_FeederRail_FirstFeederOrigin_Help";
@@ -1772,10 +1861,15 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Machine_GCode_Description = "Machine_GCode_Description";
 			public const string Machine_GCodeMapping = "Machine_GCodeMapping";
 			public const string Machine_GCodeMapping_Select = "Machine_GCodeMapping_Select";
+			public const string Machine_HostName = "Machine_HostName";
 			public const string Machine_JogFeedRate = "Machine_JogFeedRate";
 			public const string Machine_MaxFeedRate = "Machine_MaxFeedRate";
+			public const string Machine_Password = "Machine_Password";
+			public const string Machine_Port = "Machine_Port";
+			public const string Machine_SecureConnection = "Machine_SecureConnection";
 			public const string Machine_Title = "Machine_Title";
 			public const string Machine_ToolHeads = "Machine_ToolHeads";
+			public const string Machine_UserName = "Machine_UserName";
 			public const string Machine_WorkAreaOrigin = "Machine_WorkAreaOrigin";
 			public const string Machine_WorkAreaOrigin_Help = "Machine_WorkAreaOrigin_Help";
 			public const string Machine_WorkAreaSize = "Machine_WorkAreaSize";
@@ -1893,6 +1987,28 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string PickAndPlaceJobRun_Title = "PickAndPlaceJobRun_Title";
 			public const string PickAndPlaceJobRuns_Title = "PickAndPlaceJobRuns_Title";
 			public const string PickAndPlaceJobs_Title = "PickAndPlaceJobs_Title";
+			public const string PnPState_Advanced = "PnPState_Advanced";
+			public const string PnpState_AtFeeder = "PnpState_AtFeeder";
+			public const string PnPState_AtPlaceLocation = "PnPState_AtPlaceLocation";
+			public const string PnpState_DetectingPart = "PnpState_DetectingPart";
+			public const string PnpState_Error = "PnpState_Error";
+			public const string PnpState_FeederResolved = "PnpState_FeederResolved";
+			public const string PnPState_Idle = "PnPState_Idle";
+			public const string PnPState_Inspected = "PnPState_Inspected";
+			public const string PnPState_Inspecting = "PnPState_Inspecting";
+			public const string PnPState_JobCompleted = "PnPState_JobCompleted";
+			public const string PnPState_New = "PnPState_New";
+			public const string PnPState_OnBoard = "PnPState_OnBoard";
+			public const string PnPState_PartCompleted = "PnPState_PartCompleted";
+			public const string PnpState_PartDetected = "PnpState_PartDetected";
+			public const string PnpState_PartNotDetected = "PnpState_PartNotDetected";
+			public const string PnpState_PartPicked = "PnpState_PartPicked";
+			public const string PnPState_PickErrorCompensated = "PnPState_PickErrorCompensated";
+			public const string PnPState_PickErrorCompensating = "PnPState_PickErrorCompensating";
+			public const string PnPState_PickErrorNotCompensated = "PnPState_PickErrorNotCompensated";
+			public const string PnPState_Placed = "PnPState_Placed";
+			public const string PnPState_PlacementCompleted = "PnPState_PlacementCompleted";
+			public const string PnpState_Validated = "PnpState_Validated";
 			public const string StripFeeder_AngleOffset = "StripFeeder_AngleOffset";
 			public const string StripFeeder_AngleOffset_Help = "StripFeeder_AngleOffset_Help";
 			public const string StripFeeder_CurrentPartindex = "StripFeeder_CurrentPartindex";

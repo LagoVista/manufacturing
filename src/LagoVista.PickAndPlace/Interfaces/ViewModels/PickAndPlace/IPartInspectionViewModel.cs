@@ -11,7 +11,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
     {
         Task<InvokeResult> InspectAsync();
         Task<InvokeResult> InspectAsync(Component component);
-        Task<InvokeResult> CenterPartAsync(Component component, PickAndPlaceJobPlacement placement);
+        Task<InvokeResult> CenterPartAsync(Component component, PickAndPlaceJobPlacement placement, string algorithm = "");
 
         Component CurrentComponent { get; set; }
     }

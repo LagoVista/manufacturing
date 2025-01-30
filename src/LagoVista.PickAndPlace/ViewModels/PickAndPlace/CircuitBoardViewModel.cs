@@ -1,4 +1,5 @@
 ﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
@@ -222,13 +223,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 return InvokeResult.FromError("Please calibrate board first");
             }
-
+          
             await GoToPartOnBoardAsync(null, placement);
-            
+            placement.State = EntityHeader<PnPStates>.Create(PnPStates.AtPlaceLocation);
+
             Machine.SetToolHeadHeight(MachineConfiguration.WorkOriginZ + component.ComponentPackage.Value.Height);
+            placement.State = EntityHeader<PnPStates>.Create(PnPStates.OnBoard);
             Machine.Dwell(100);
             Machine.VacuumPump = false;
             Machine.SendSafeMoveHeight();
+            placement.State = EntityHeader<PnPStates>.Create(PnPStates.Placed);
 
             return InvokeResult.Success;
         }

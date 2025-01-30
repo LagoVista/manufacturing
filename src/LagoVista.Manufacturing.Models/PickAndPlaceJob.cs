@@ -12,6 +12,55 @@ using System.Threading;
 
 namespace LagoVista.Manufacturing.Models
 {
+
+    public enum PnPStates
+    {
+        [EnumLabel("new", ManufacturingResources.Names.PnPState_New, typeof(ManufacturingResources))]
+        New,
+        [EnumLabel("idle", ManufacturingResources.Names.PnPState_Idle, typeof(ManufacturingResources))]
+        Idle,
+        [EnumLabel("error", ManufacturingResources.Names.PnpState_Error, typeof(ManufacturingResources))]
+        Error,
+        [EnumLabel("feederresolved", ManufacturingResources.Names.PnpState_FeederResolved, typeof(ManufacturingResources))]
+        FeederResolved,
+        [EnumLabel("validated", ManufacturingResources.Names.PnpState_Validated, typeof(ManufacturingResources))]
+        Validated,
+        [EnumLabel("atfeeder", ManufacturingResources.Names.PnpState_AtFeeder, typeof(ManufacturingResources))]
+        AtFeeder,
+        [EnumLabel("partpicked", ManufacturingResources.Names.PnpState_PartPicked, typeof(ManufacturingResources))]
+        PartPicked,
+        [EnumLabel("detectingpart", ManufacturingResources.Names.PnpState_DetectingPart, typeof(ManufacturingResources))]
+        DetectingPart,
+        [EnumLabel("partdetected", ManufacturingResources.Names.PnpState_PartDetected, typeof(ManufacturingResources))]
+        PartDetected,
+        [EnumLabel("partnotdetected", ManufacturingResources.Names.PnpState_PartNotDetected, typeof(ManufacturingResources))]
+        PartNotDetected,
+        [EnumLabel("inspecting", ManufacturingResources.Names.PnPState_Inspecting, typeof(ManufacturingResources))]
+        Inspecting,
+        [EnumLabel("inspected", ManufacturingResources.Names.PnPState_Inspected, typeof(ManufacturingResources))]
+        Inspected,
+        [EnumLabel("pickercompensating", ManufacturingResources.Names.PnPState_PickErrorCompensating, typeof(ManufacturingResources))]
+        PickErrorCompensating,
+        [EnumLabel("pickerrorcompensated", ManufacturingResources.Names.PnPState_PickErrorCompensated, typeof(ManufacturingResources))]
+        PickErrorCompensated,
+        [EnumLabel("pickerronotcompensated", ManufacturingResources.Names.PnPState_PickErrorNotCompensated, typeof(ManufacturingResources))]
+        PickErrorNotCompensated,
+        [EnumLabel("atplacelocation", ManufacturingResources.Names.PnPState_AtPlaceLocation, typeof(ManufacturingResources))]
+        AtPlaceLocation,
+        [EnumLabel("onboard", ManufacturingResources.Names.PnPState_OnBoard, typeof(ManufacturingResources))]
+        OnBoard,
+        [EnumLabel("placed", ManufacturingResources.Names.PnPState_Placed, typeof(ManufacturingResources))]
+        Placed,
+        [EnumLabel("advanced", ManufacturingResources.Names.PnPState_Advanced, typeof(ManufacturingResources))]
+        Advanced,
+        [EnumLabel("placementcompleted", ManufacturingResources.Names.PnPState_PlacementCompleted, typeof(ManufacturingResources))]
+        PlacementCompleted,
+        [EnumLabel("partcompleted", ManufacturingResources.Names.PnPState_JobCompleted, typeof(ManufacturingResources))]
+        PartCompleted,
+        [EnumLabel("jobcompleted", ManufacturingResources.Names.JobState_Completed, typeof(ManufacturingResources))]
+        JobCompleted,
+    }
+
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.PickAndPlaceJob_Title, ManufacturingResources.Names.PickAndPlaceJob_Description,
     ManufacturingResources.Names.PickAndPlaceJob_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-control-panel", Cloneable: true,
     SaveUrl: "/api/mfg/pnpjob", GetUrl: "/api/mfg/pnpjob/{id}", GetListUrl: "/api/mfg/pnpjobs", FactoryUrl: "/api/mfg/pnpjob/factory", DeleteUrl: "/api/mfg/pnpjob/{id}",
@@ -298,6 +347,20 @@ namespace LagoVista.Manufacturing.Models
         {
             get => _pickErrorAngle;
             set => Set(ref _pickErrorAngle, value);
+        }
+
+        EntityHeader<PnPStates> _state = EntityHeader<PnPStates>.Create(PnPStates.New);
+        public EntityHeader<PnPStates> State
+        {
+            get => _state;
+            set => Set(ref _state, value);
+        }
+
+        private string _lastError;
+        public string LastError
+        {
+            get => _lastError;
+            set => Set(ref _lastError, value);
         }
     }
 }

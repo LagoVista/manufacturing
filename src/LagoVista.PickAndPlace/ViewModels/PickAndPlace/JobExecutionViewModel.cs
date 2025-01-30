@@ -1,100 +1,111 @@
-﻿using LagoVista.Core.Commanding;
+﻿using LagoVista.Client.Core;
+using LagoVista.Core.Attributes;
+using LagoVista.Core.Commanding;
 using LagoVista.Core.Models;
 using LagoVista.Core.Validation;
+using LagoVista.Manufacturing.Models.Resources;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
-using System;
-using System.Linq;
+using RingCentral;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 {
-    public class JobExecutionViewModel : MachineViewModelBase, IJobExecutionViewModel
+    public class JobExecutionViewModel : JobExecutionBaseViewModel, IJobExecutionViewModel
     {
 
-        IStripFeederViewModel _stripFeederViewModel;
-        IAutoFeederViewModel _autoFeederViewModel;
-        IFeederViewModel _feederViewModel;
-        IPartInspectionViewModel _partInspectionVM;
-        IJobRunViewModel _jobRunVM;
-        IVacuumViewModel _vacuumViewModel;
-
-        public JobExecutionViewModel(IMachineRepo machineRepo, ICircuitBoardViewModel pcbVM, IJobManagementViewModel pnpJobVM, IVacuumViewModel vacuumViewModel, IPartInspectionViewModel partInspectionVM, IStripFeederViewModel stripFeederViewModel, IAutoFeederViewModel autoFeederViewModel) : base(machineRepo)
+        public enum PnPStates
         {
-            JobVM = pnpJobVM ?? throw new ArgumentNullException(nameof(pnpJobVM));
-            PcbVM = pcbVM ?? throw new ArgumentNullException(nameof(pcbVM));
-            _stripFeederViewModel = stripFeederViewModel ?? throw new ArgumentNullException(nameof(stripFeederViewModel));
-            _autoFeederViewModel = autoFeederViewModel ?? throw new ArgumentNullException(nameof(autoFeederViewModel));
-            _partInspectionVM = partInspectionVM ?? throw new ArgumentNullException(nameof(partInspectionVM));
-            _vacuumViewModel = vacuumViewModel ?? throw new ArgumentNullException(nameof(vacuumViewModel));
+            [EnumLabel("idle", ManufacturingResources.Names.PnPState_Idle, typeof(ManufacturingResources))]
+            Idle,
+            [EnumLabel("error", ManufacturingResources.Names.PnpState_Error, typeof(ManufacturingResources))]
+            Error,
+            [EnumLabel("feederresolved", ManufacturingResources.Names.PnpState_FeederResolved, typeof(ManufacturingResources))]
+            FeederResolved,
+            [EnumLabel("validated", ManufacturingResources.Names.PnpState_Validated, typeof(ManufacturingResources))]
+            Validated,
+            [EnumLabel("atfeeder", ManufacturingResources.Names.PnpState_AtFeeder, typeof(ManufacturingResources))]
+            AtFeeder,
+            [EnumLabel("partpicked", ManufacturingResources.Names.PnpState_PartPicked, typeof(ManufacturingResources))]
+            PartPicked,
+            [EnumLabel("detectingpart", ManufacturingResources.Names.PnpState_DetectingPart, typeof(ManufacturingResources))]
+            DetectingPart,
+            [EnumLabel("partdetected", ManufacturingResources.Names.PnpState_PartDetected, typeof(ManufacturingResources))]
+            PartDetected,
+            [EnumLabel("partnotdetected", ManufacturingResources.Names.PnpState_PartNotDetected, typeof(ManufacturingResources))]
+            PartNotDetected,
+            [EnumLabel("inspecting", ManufacturingResources.Names.PnPState_Inspecting, typeof(ManufacturingResources))]
+            Inspecting,
+            [EnumLabel("inspected", ManufacturingResources.Names.PnPState_Inspected, typeof(ManufacturingResources))]
+            Inspected,
+            [EnumLabel("pickercompensating", ManufacturingResources.Names.PnPState_PickErrorCompensating, typeof(ManufacturingResources))]
+            PickErrorCompensating,
+            [EnumLabel("pickerrorcompensated", ManufacturingResources.Names.PnPState_PickErrorCompensated, typeof(ManufacturingResources))]
+            PickErrorCompensated,
+            [EnumLabel("pickerronotcompensated", ManufacturingResources.Names.PnPState_PickErrorNotCompensated, typeof(ManufacturingResources))]
+            PickErrorNotCompensated,
+            [EnumLabel("atplacelocation", ManufacturingResources.Names.PnPState_AtPlaceLocation, typeof(ManufacturingResources))]
+            AtPlaceLocation,
+            [EnumLabel("onboard", ManufacturingResources.Names.PnPState_OnBoard, typeof(ManufacturingResources))]
+            OnBoard,
+            [EnumLabel("placed", ManufacturingResources.Names.PnPState_Placed, typeof(ManufacturingResources))]
+            Placed,
+            [EnumLabel("advanced", ManufacturingResources.Names.PnPState_Advanced, typeof(ManufacturingResources))]
+            Advanced,
+            [EnumLabel("placementcompleted", ManufacturingResources.Names.PnPState_PlacementCompleted, typeof(ManufacturingResources))]
+            PlacementCompleted,
+            [EnumLabel("partcompleted", ManufacturingResources.Names.PnPState_JobCompleted, typeof(ManufacturingResources))]
+            PartCompleted,
+            [EnumLabel("jobcompleted", ManufacturingResources.Names.JobState_Completed, typeof(ManufacturingResources))]
+            JobCompleted,
         }
+     
 
-        private InvokeResult ResolveFeeder()
+        public JobExecutionViewModel(IRestClient restClient, ICircuitBoardViewModel pcbVM, IPartInspectionViewModel partInspectionVM, IVacuumViewModel vacuumViewModel,
+                                     IJobManagementViewModel jobVM, IStripFeederViewModel stripFeederViewModel, IAutoFeederViewModel autoFeederViewModel, IMachineRepo machineRepo) :
+                                     base(restClient, pcbVM, partInspectionVM, vacuumViewModel, jobVM, stripFeederViewModel, autoFeederViewModel, machineRepo)
         {
-            if (JobVM.PickAndPlaceJobPart == null)
-            {
-                return InvokeResult.FromError("No part to place.");
-            }
-
-            JobVM.Placement = JobVM.PickAndPlaceJobPart.Placements.FirstOrDefault();
-            if (JobVM.Placement == null)
-            {
-                return InvokeResult.FromError("Could not identify first placement.");
-            }
-
-            if (!EntityHeader.IsNullOrEmpty(JobVM.PickAndPlaceJobPart.StripFeeder))
-            {
-                _stripFeederViewModel.Current = _stripFeederViewModel.Feeders.SingleOrDefault(sf => sf.Id == JobVM.PickAndPlaceJobPart.StripFeeder.Id);
-                if (_stripFeederViewModel.Current == null)
-                {
-                    return InvokeResult.FromError($"Could not find strip feeder {JobVM.PickAndPlaceJobPart.StripFeeder.Text}.");
-                }
-
-                if (EntityHeader.IsNullOrEmpty(JobVM.PickAndPlaceJobPart.StripFeederRow))
-                {
-                    return InvokeResult.FromError($"Strip feeder {JobVM.PickAndPlaceJobPart.StripFeeder} does ont have row.");
-                }
-
-                _stripFeederViewModel.CurrentRow = _stripFeederViewModel.Current.Rows.SingleOrDefault(r => r.Id == JobVM.PickAndPlaceJobPart.StripFeederRow.Id);
-                if (_stripFeederViewModel.CurrentRow == null)
-                {
-                    return InvokeResult.FromError($"On Strip feeder {JobVM.PickAndPlaceJobPart.StripFeeder}, could not find row {JobVM.PickAndPlaceJobPart.StripFeederRow.Text}.");
-                }
-
-                _feederViewModel = _stripFeederViewModel;
-
-            }
-            else if (!EntityHeader.IsNullOrEmpty(JobVM.PickAndPlaceJobPart.AutoFeeder))
-            {
-                _autoFeederViewModel.Current = _autoFeederViewModel.Feeders.SingleOrDefault(sf => sf.Id == JobVM.PickAndPlaceJobPart.AutoFeeder.Id);
-                if (_autoFeederViewModel.Current == null)
-                {
-                    return InvokeResult.FromError($"Could not find auto feeder {JobVM.PickAndPlaceJobPart.AutoFeeder}");
-                }
-
-                _feederViewModel = _autoFeederViewModel;
-            }
-            else
-            {
-                return InvokeResult.FromError("Selected component does not have an assocaited feeder.");
-            }
-
-            return InvokeResult.Success;
         }
-
+  
         public async Task<InvokeResult> PlaceCycleAsync()
         {
+            if (JobVM.CurrentComponent == null)
+                return InvokeResult.FromError("No current component");
+
+            if (JobVM.CurrentComponentPackage == null)
+                return InvokeResult.FromError("No current component package");
+
+            if (JobVM.Placement == null)
+                return InvokeResult.FromError("No placement");
+
             var result = ResolveFeeder();
             if (!result.Successful) return result;
+            State = EntityHeader<PnPStates>.Create(PnPStates.FeederResolved);
 
             result = JobVM.PickAndPlaceJobPart.Validate();
             if (!result.Successful) return result;
+            State = EntityHeader<PnPStates>.Create(PnPStates.Validated);
 
-            result = await _feederViewModel.PickCurrentPartAsync();
+            result = await ActiveFeederViewModel.PickCurrentPartAsync();
             if (!result.Successful) return result;
+            State = EntityHeader<PnPStates>.Create(PnPStates.PartPicked);
 
-            result = await _partInspectionVM.InspectAsync();
-            if (!result.Successful) return result;
+            if (JobVM.CurrentComponentPackage.CheckForPartPrecence)
+            {
+                result = await VacuumViewModel.CheckPartPresent(JobVM.CurrentComponent, 2500, JobVM.CurrentComponentPackage.PresenseVacuumOverride);
+                if (!result.Successful) return result;
+            }
+
+            if (JobVM.CurrentComponentPackage.CompensateForPickError)
+            { 
+                result = await PartInspectionVM.CenterPartAsync(JobVM.CurrentComponent, JobVM.Placement, JobVM.CurrentComponentPackage.PartInspectionAlgorithm);
+                if (!result.Successful) return result;
+                State = EntityHeader<PnPStates>.Create(PnPStates.PickErrorCompensated);
+            }
+            else
+            {
+                result = await PartInspectionVM.InspectAsync(JobVM.CurrentComponent);
+            }
 
             result = await PcbVM.PlacePartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement);
             if (!result.Successful) return result;
@@ -102,7 +113,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             result = await PcbVM.InspectPartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement);
             if (!result.Successful) return result;
 
-            //  _jobRunVM.Current.Placements.Add(JobVM.Placement);
+            result = await ActiveFeederViewModel.NextPartAsync();
+            if (!result.Successful) return result;
 
             return InvokeResult.Success;
         }
@@ -154,10 +166,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         }
 
-
-        public IJobManagementViewModel JobVM { get; }
-        public ICircuitBoardViewModel PcbVM { get; }
-
+        private EntityHeader<PnPStates> _state;
+        public EntityHeader<PnPStates> State
+        {
+            get => _state;
+            set => Set(ref _state, value);
+        }
 
         public RelayCommand StartJobCommand { get; }
         public RelayCommand StopJobCommand { get;  }

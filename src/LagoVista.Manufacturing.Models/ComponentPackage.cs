@@ -202,7 +202,6 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _customTapePitch, value);
         }
 
-
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeAndReelSpecImage, FieldType: FieldTypes.FileUpload, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader TapeAndReelSpecImage { get; set; }
 
@@ -235,7 +234,6 @@ namespace LagoVista.Manufacturing.Models
                 return null;
             }
         }
-
 
         [JsonIgnore]
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_HoleSpacing, FieldType: FieldTypes.Decimal,
@@ -371,6 +369,34 @@ namespace LagoVista.Manufacturing.Models
         {
             get => _partInTapeVisionProfile;
             set => Set(ref _partInTapeVisionProfile, value);
+        }
+
+        private bool _checkForPartPresense = true;
+        public bool CheckForPartPrecence
+        {
+            get => _checkForPartPresense;
+            set => Set(ref _checkForPartPresense, value);
+        }
+
+        ulong? _presenseVacuumOverride;
+        public ulong? PresenseVacuumOverride
+        {
+            get => _presenseVacuumOverride;
+            set => Set(ref _presenseVacuumOverride, value);
+        }
+
+        private bool _compensatePickError = true;
+        public bool CompensateForPickError
+        {
+            get => _compensatePickError;
+            set => Set(ref _compensatePickError, value);
+        }
+
+        private string _partInspectionAlgorithm;
+        public string PartInspectionAlgorithm
+        {
+            get => _partInspectionAlgorithm;
+            set => Set(ref _partInspectionAlgorithm, value);)
         }
 
         public ComponentPackageSummary CreateSummary()
