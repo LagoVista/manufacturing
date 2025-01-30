@@ -68,7 +68,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 await base.InitAsync();
         }
 
-
         public void ShowComponentPackageDetail()
         {
             if (CurrentComponent == null)

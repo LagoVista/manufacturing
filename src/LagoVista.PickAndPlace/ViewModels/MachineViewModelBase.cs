@@ -27,13 +27,23 @@ namespace LagoVista.PickAndPlace.ViewModels
             Machine = e;
             SaveMachineConfigurationCommand.RaiseCanExecuteChanged();
             RaisePropertyChanged(nameof(MachineConfiguration));
-            Machine.MachineDisconnected += (e,m) => RaiseCanExecuteChanged();
-            Machine.MachineConnected += (e, m) => RaiseCanExecuteChanged();
+            Machine.MachineDisconnected += (e, m) => { RaiseCanExecuteChanged(); OnMachineDisconnected(); };
+            Machine.MachineConnected += (e, m) => { RaiseCanExecuteChanged(); OnMachineConnected(); };
             Machine.SettingsLocked += (e, m) => RaiseCanExecuteChanged();
             Machine.SettingsUnlocked += (e, m) => RaiseCanExecuteChanged();
             Machine.PropertyChanged += Machine_PropertyChanged;
 
             MachineChanged(e);            
+        }
+
+        protected virtual void OnMachineConnected()
+        {
+        }
+
+
+        protected virtual void OnMachineDisconnected()
+        {
+         
         }
 
         private void Machine_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)

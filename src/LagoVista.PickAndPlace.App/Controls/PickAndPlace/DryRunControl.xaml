@@ -82,6 +82,9 @@
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding PickPartCommand}" Content="Pick Part"></Button>
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding CheckPartPresentCommand}" Content="Check Part Present"></Button>
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding InspectPartCommand}" Content="Inspect Part"></Button>
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding CenterInspectedPartCommand}" Content="Center Part"></Button>
+                                
+                                
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding RecyclePartCommand}" Content="Recycle Part"></Button>
                             </StackPanel>
                             <StackPanel Grid.Row="1" Grid.Column="1">

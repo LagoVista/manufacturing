@@ -3,8 +3,11 @@ using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
+using ProtoBuf.Meta;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 
 namespace LagoVista.PickAndPlace.ViewModels.Vision
 {
@@ -14,6 +17,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         private List<ICirclesLocatedHandler> _circlesLocatedHandlers = new List<ICirclesLocatedHandler>();
         private List<IRectangleLocatedHandler> _rectLocatedHandlers = new List<IRectangleLocatedHandler>();
         private List<ICornerLocatedHandler> _cornerLocatedHandlers = new List<ICornerLocatedHandler>();
+
+        Timer _circlesLocatedTimeoutTimer;
+        Timer _circleLocatedTimeoutTimer;
+        Timer _rectLocatedTimeoutTimer;
+        Timer _cornerLocatedTimoutTimer;
+
 
         public LocatorViewModel()
         {
@@ -90,52 +99,171 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             }
         }
 
+        private void RectangleLocatorTimeoutHandler(object state)
+        {
+            lock (_rectLocatedHandlers)
+            {
+                if (_rectLocatedTimeoutTimer != null)
+                {
+                    _rectLocatedTimeoutTimer.Dispose();
+                }
+
+                foreach (var handler in _rectLocatedHandlers.ToList())
+                {
+                    handler.RectangleLocatorTimeout();
+                }
+            }
+        }
+
+        public void RegisterRectangleLocatedHandler(IRectangleLocatedHandler handler, int timeoutMS = 5000)
+        {
+            lock (_rectLocatedHandlers)
+            {
+                if (_rectLocatedTimeoutTimer != null)
+                {
+                    _rectLocatedTimeoutTimer.Dispose();
+                }
+
+                _rectLocatedHandlers.Add(handler);
+                _rectLocatedTimeoutTimer = new Timer(RectangleLocatorTimeoutHandler, handler, TimeSpan.FromMilliseconds(timeoutMS), TimeSpan.Zero);
+            }
+        }
+
+        public void UnregisterRectangleLocatedHandler(IRectangleLocatedHandler handler)
+        {
+            lock (_rectLocatedHandlers)
+            {
+                if (_rectLocatedTimeoutTimer != null)
+                {
+                    _rectLocatedTimeoutTimer.Dispose();
+                }
+
+                _rectLocatedHandlers.Remove(handler);
+            }
+        }
+
         public void CornerLocated(MVLocatedCorner corner)
         {
-            foreach(var handler in _cornerLocatedHandlers)
+            foreach (var handler in _cornerLocatedHandlers.ToList())
             {
                 handler.CornerLocated(corner);
             }
         }
 
-        public void RegisterRectangleLocatedHandler(IRectangleLocatedHandler handler)
+        private void CornerLocatorTimedOut(object state)
         {
-            _rectLocatedHandlers.Add(handler);
+            lock (_cornerLocatedHandlers)
+            {
+                if (_cornerLocatedTimoutTimer != null)
+                {
+                    _cornerLocatedTimoutTimer.Dispose();
+                }
+
+                foreach (var handler in _cornerLocatedHandlers)
+                {
+                    handler.CornerLocatorTimeout();
+                }
+            }
         }
 
-        public void UnregisterRectangleLocatedHandler(IRectangleLocatedHandler handler)
+        public void RegisterCornerLocatedHandler(ICornerLocatedHandler handler, int timeoutMS = 5000)
         {
-            _rectLocatedHandlers.Remove(handler);
-        }
+            lock (_cornerLocatedHandlers)
+            {
+                if (_cornerLocatedTimoutTimer != null)
+                {
+                    _cornerLocatedTimoutTimer.Dispose();
+                }
 
-        public void RegisterCornerLocatedHandler(ICornerLocatedHandler handler)
-        {
-            _cornerLocatedHandlers.Add(handler);
+                _cornerLocatedHandlers.Add(handler);
+                _cornerLocatedTimoutTimer = new Timer(CornerLocatorTimedOut, handler, timeoutMS, -1);
+            }
         }
 
         public void UnRegisterCornerLocatedHandler(ICornerLocatedHandler handler)
         {
-            _cornerLocatedHandlers.Remove(handler);
+            lock (_cornerLocatedHandlers)
+            {
+                _cornerLocatedHandlers.Remove(handler);
+            }
         }
 
-        public void RegisterCircleLocatedHandler(ICircleLocatedHandler handler)
+        private void CircleLocatorTimedOut(object state)
         {
-            _circleLocatedHandlers.Add(handler);
+            lock (_circleLocatedHandlers)
+            {
+                if (_circleLocatedTimeoutTimer != null)
+                {
+                    _circleLocatedTimeoutTimer.Dispose();
+                }
+
+                foreach (var handler in _circleLocatedHandlers.ToList())
+                {
+                    handler.CircleLocatorTimeout();
+                }
+            }
+        }
+
+        public void RegisterCircleLocatedHandler(ICircleLocatedHandler handler, int timeoutMS = 5000)
+        {
+            lock (_circleLocatedHandlers)
+            {
+                if (_circleLocatedTimeoutTimer != null)
+                {
+                    _circleLocatedTimeoutTimer.Dispose();
+                }
+
+                _circleLocatedHandlers.Add(handler);
+                _circleLocatedTimeoutTimer = new Timer(CircleLocatorTimedOut, handler, timeoutMS, -1);
+            }
         }
 
         public void UnregisterCircleLocatedHandler(ICircleLocatedHandler handler)
         {
-            _circleLocatedHandlers.Remove(handler);
+            lock (_circleLocatedHandlers)
+            {
+                _circleLocatedHandlers.Remove(handler);
+            }
         }
 
-        public void RegisterCirclesLocatedHandler(ICirclesLocatedHandler handler)
+        private void CirclesLocatorTimedOut(object state)
         {
-            _circlesLocatedHandlers.Remove(handler);
+            lock (_circlesLocatedHandlers)
+            {
+                if (_circlesLocatedTimeoutTimer != null)
+                {
+                    _circlesLocatedTimeoutTimer.Dispose();
+                }
+
+                foreach (var handler in _circlesLocatedHandlers)
+                {
+                    handler.CirclesLocatorTimeout();
+                }
+            }
         }
+
+        public void RegisterCirclesLocatedHandler(ICirclesLocatedHandler handler, int timeoutMS = 5000)
+        {
+            lock (_circlesLocatedHandlers)
+            {
+                if (_circlesLocatedTimeoutTimer != null)
+                {
+                    _circlesLocatedTimeoutTimer.Dispose();
+                }
+
+                _circlesLocatedHandlers.Add(handler);
+                _circlesLocatedTimeoutTimer = new Timer(CirclesLocatorTimedOut, handler, timeoutMS, -1);
+            }
+        }
+
+
 
         public void UnregisterCirclesLocatedHandler(ICirclesLocatedHandler handler)
         {
-            _circlesLocatedHandlers.Remove(handler);
+            lock (_circlesLocatedHandlers)
+            {
+                _circlesLocatedHandlers.Remove(handler);
+            }
         }
 
         public RelayCommand AbortMVLocatorCommand { get; private set; }

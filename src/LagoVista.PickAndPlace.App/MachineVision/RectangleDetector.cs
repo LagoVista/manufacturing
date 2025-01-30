@@ -14,6 +14,8 @@ using LagoVista.PickAndPlace.Interfaces.Services;
 using System.Collections.ObjectModel;
 using System.Windows.Controls;
 using System.Linq;
+using System.Diagnostics;
+using LagoVista.UserAdmin.Models.Contacts;
 
 namespace LagoVista.PickAndPlace.App.MachineVision
 {
@@ -55,6 +57,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
                 CvInvoke.FindContours(_edges, contours, null, RetrType.External, ChainApproxMethod.ChainApproxNone);
                 int count = contours.Size;
+           
                 for (int i = 0; i < count; i++)
                 {
                     using (var contour = contours[i])
@@ -62,7 +65,15 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     {
                         CvInvoke.ApproxPolyDP(contour, approxContour, CvInvoke.ArcLength(contour, true) * profile.PolygonEpsilonFactor, profile.ContourFindOnlyClosed);
                         var area = CvInvoke.ContourArea(approxContour, false);
-                        if (area > profile.ContourMinArea && area < profile.CountourMaxArea) //only consider contours with area greater than 250
+                        if(area < profile.ContourMinArea)
+                        {
+                           
+                        }
+                        else if (area > profile.CountourMaxArea)
+                        {
+                           
+                        }
+                        else
                         {
                             var pts = approxContour.ToArray();
 
@@ -122,6 +133,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                             }
                         }
                     }
+                    
+
                 }
             }
 

@@ -38,7 +38,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             MoveToPartInFeederCommand = CreatedMachineConnectedCommand(MoveToPartInFeeder, () => JobVM.CurrentComponent != null);
             PickPartCommand = CreatedMachineConnectedCommand(PickPart, () => JobVM.CurrentComponent != null);
             InspectPartCommand = CreatedMachineConnectedCommand(InspectPart, () => JobVM.CurrentComponent != null);
+            CenterInspectedPartCommand = CreatedMachineConnectedCommand(CenterInspectedPart, () => JobVM.CurrentComponent != null);
             RecyclePartCommand = CreatedMachineConnectedCommand(RecyclePart, () => JobVM.CurrentComponent != null);
+
+
 
             PlacePartCommand = CreatedMachineConnectedCommand(() => PcbVM.PlacePartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement), () => JobVM.Placement != null);
 
@@ -145,6 +148,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var newProfile = JsonConvert.DeserializeObject<VisionProfile>(JsonConvert.SerializeObject(MachineConfiguration.Cameras.First().CurrentVisionProfile));
             newProfile.Name = newName;
             newProfile.Id = Guid.NewGuid().ToId();
+            newProfile.ComponentPackage = JobVM.CurrentComponentPackage.ToEntityHeader();
             JobVM.CurrentComponentPackage.PartInspectionVisionProfile = newProfile;
             Machine.SetVisionProfile(Manufacturing.Models.CameraTypes.PartInspection, newProfile);
             JobVM.SaveComponentPackageCommand.Execute(null);
@@ -255,6 +259,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _feederViewModel.PickPartAsync(JobVM.CurrentComponent);            
         }
 
+        public async void CenterInspectedPart()
+        {
+            var result = await PartInspectionVM.CenterPartAsync(JobVM.CurrentComponent, JobVM.Placement);
+            if(result.Successful)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Info, $"Found center for {JobVM.Placement.Name} ");
+                MessageText = "Centered Part!!";
+            }
+        }
+
         public void InspectPart()
         {
             PartInspectionVM.InspectAsync(JobVM.CurrentComponent);            
@@ -291,6 +305,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand InspectPartCommand { get; }
         public RelayCommand RecyclePartCommand { get; }
         public RelayCommand InspectPartOnBoardCommand { get; }
+        public RelayCommand CenterInspectedPartCommand { get; }
         public RelayCommand PickPartFromBoardCommand { get; }
         public RelayCommand PlacePartCommand { get; }
         public RelayCommand RotatePartCommand { get; }

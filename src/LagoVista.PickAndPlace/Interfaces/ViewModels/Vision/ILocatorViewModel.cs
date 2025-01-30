@@ -1,4 +1,5 @@
 ﻿using LagoVista.PickAndPlace.Models;
+using System;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
 {
@@ -25,16 +26,16 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
         void CornerLocated(MVLocatedCorner corner);
         void CircleLocated(MVLocatedCircle circle);
 
-        void RegisterCircleLocatedHandler(ICircleLocatedHandler handler);
+        void RegisterCircleLocatedHandler(ICircleLocatedHandler handler, int timeoutMS = 5000);
         void UnregisterCircleLocatedHandler(ICircleLocatedHandler handler);
 
-        void RegisterCirclesLocatedHandler(ICirclesLocatedHandler handler);
+        void RegisterCirclesLocatedHandler(ICirclesLocatedHandler handler, int timeoutMS = 5000);
         void UnregisterCirclesLocatedHandler(ICirclesLocatedHandler handler);
 
-        void RegisterRectangleLocatedHandler(IRectangleLocatedHandler handler);
+        void RegisterRectangleLocatedHandler(IRectangleLocatedHandler handler, int timeoutMS = 5000);
         void UnregisterRectangleLocatedHandler(IRectangleLocatedHandler handler);
         
-        void RegisterCornerLocatedHandler(ICornerLocatedHandler handler);
+        void RegisterCornerLocatedHandler(ICornerLocatedHandler handler, int timeoutMS = 5000);
         void UnRegisterCornerLocatedHandler(ICornerLocatedHandler handler);
     }
 }

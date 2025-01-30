@@ -1,23 +1,30 @@
-﻿using LagoVista.Core.Commanding;
+﻿using LagoVista.Client.Core;
+using LagoVista.Core.Commanding;
 using LagoVista.Core.Models;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Models;
 using Newtonsoft.Json;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels.Vision
 {
     public class VisionProfileViewModel : MachineViewModelBase, IVisionProfileViewModel
     {
+        IRestClient _restClient;
 
-        public VisionProfileViewModel(IMachineRepo machineRepo) : base(machineRepo)
+        public VisionProfileViewModel(IMachineRepo machineRepo, IRestClient restClient) : base(machineRepo)
         {
             VisionProfiles = new ObservableCollection<EntityHeader>(VisionProfile.DefaultVisionProfiles);
             SetPixelsPerMMCommand = new RelayCommand(SetPixelsPerMM, () => MeasuredMM.HasValue);
+            SaveCommand = new RelayCommand(async () => await SaveAsync());
             CopyVisionProfileFromDefaultCommand = new RelayCommand(CopyVisionProfile, () => Camera.CurrentVisionProfile.Key != "default");
+
+            _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
         }
 
         void SetPixelsPerMM()
@@ -134,7 +141,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
                     if (Camera.CameraType.Value == CameraTypes.Position)
                     {
-                        Machine.ConfigureTopLight(Camera.CurrentVisionProfile.LightOn, Camera.CurrentVisionProfile.LightPower, 
+                        Machine.ConfigureTopLight(Camera.CurrentVisionProfile.LightOn, Camera.CurrentVisionProfile.LightPower,
                             Camera.CurrentVisionProfile.LightRed, Camera.CurrentVisionProfile.LightGreen, Camera.CurrentVisionProfile.LightBlue);
                     }
                     else if (Camera.CameraType.Value == CameraTypes.PartInspection)
@@ -152,21 +159,21 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
         private void CurrentVisionProfile_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (Camera.CameraType.Value == CameraTypes.Position)
+            if (e.PropertyName == nameof(VisionProfile.LightRed) ||
+               e.PropertyName == nameof(VisionProfile.LightGreen) ||
+               e.PropertyName == nameof(VisionProfile.LightBlue) ||
+               e.PropertyName == nameof(VisionProfile.LightOn) ||
+               e.PropertyName == nameof(VisionProfile.LightPower))
             {
-                if (e.PropertyName == nameof(VisionProfile.LightOn)) Machine.TopLightOn = Camera.CurrentVisionProfile.LightOn;
-                if (e.PropertyName == nameof(VisionProfile.LightRed)) Machine.TopRed = Camera.CurrentVisionProfile.LightRed;
-                if (e.PropertyName == nameof(VisionProfile.LightBlue)) Machine.TopBlue = Camera.CurrentVisionProfile.LightBlue;
-                if (e.PropertyName == nameof(VisionProfile.LightGreen)) Machine.TopGreen = Camera.CurrentVisionProfile.LightGreen;
-                if (e.PropertyName == nameof(VisionProfile.LightPower)) Machine.TopPower = Camera.CurrentVisionProfile.LightPower;
-            }
-            else if (Camera.CameraType.Value == CameraTypes.PartInspection)
-            {
-                if (e.PropertyName == nameof(VisionProfile.LightOn)) Machine.BottomLightOn = Camera.CurrentVisionProfile.LightOn;
-                if (e.PropertyName == nameof(VisionProfile.LightRed)) Machine.BottomRed = Camera.CurrentVisionProfile.LightRed;
-                if (e.PropertyName == nameof(VisionProfile.LightBlue)) Machine.BottomBlue = Camera.CurrentVisionProfile.LightBlue;
-                if (e.PropertyName == nameof(VisionProfile.LightGreen)) Machine.BottomGreen = Camera.CurrentVisionProfile.LightGreen;
-                if (e.PropertyName == nameof(VisionProfile.LightPower)) Machine.BottomPower = Camera.CurrentVisionProfile.LightPower;
+
+                if (Camera.CameraType.Value == CameraTypes.Position)
+                {
+                    Machine.ConfigureTopLight(Camera.CurrentVisionProfile.LightOn, Camera.CurrentVisionProfile.LightPower, Camera.CurrentVisionProfile.LightRed, Camera.CurrentVisionProfile.LightGreen, Camera.CurrentVisionProfile.LightBlue);
+                }
+                else if (Camera.CameraType.Value == CameraTypes.PartInspection)
+                {
+                    Machine.ConfigureBottomLight(Camera.CurrentVisionProfile.LightOn, Camera.CurrentVisionProfile.LightPower, Camera.CurrentVisionProfile.LightRed, Camera.CurrentVisionProfile.LightGreen, Camera.CurrentVisionProfile.LightBlue);
+                }
             }
         }
 
@@ -185,7 +192,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
                 _camera.PropertyChanged += _camera_PropertyChanged;
 
-                if(_camera.CurrentVisionProfile != null) 
+                if (_camera.CurrentVisionProfile != null)
                     Camera.CurrentVisionProfile.PropertyChanged += CurrentVisionProfile_PropertyChanged;
             }
         }
@@ -200,6 +207,30 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                 if (SelectedProfile != null)
                 {
                     Camera.CurrentVisionProfile.PropertyChanged += CurrentVisionProfile_PropertyChanged;
+                }
+            }
+        }
+
+        public async Task SaveAsync()
+        {
+            await MachineRepo.SaveCurrentMachineAsync();
+            if (!EntityHeader.IsNullOrEmpty(Profile.ComponentPackage))
+            {
+                if (Camera.CameraType.Value == CameraTypes.PartInspection)
+                {
+                    await _restClient.PutAsync($"/api/mfg/component/package/{Profile.ComponentPackage.Id}/visionprofile/inspection", Profile);
+                }
+                else if (Profile.Name.ToLower().Contains("tape"))
+                {
+                    await _restClient.PutAsync($"/api/mfg/component/package/{Profile.ComponentPackage.Id}/visionprofile/partintape", Profile);
+                }
+                else if (Profile.Name.ToLower().Contains("board"))
+                {
+                    await _restClient.PutAsync($"/api/mfg/component/package/{Profile.ComponentPackage.Id}/visionprofile/partonboard", Profile);
+                }
+                else
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Part has a component package, but don't know how to update profile on package because Kevin Wolf was lazy and had a horrible algorithm for this...sorry");
                 }
             }
         }
@@ -219,5 +250,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         public RelayCommand SetPixelsPerMMCommand { get; }
 
         public RelayCommand CopyVisionProfileFromDefaultCommand { get; }
+
+
     }
 }

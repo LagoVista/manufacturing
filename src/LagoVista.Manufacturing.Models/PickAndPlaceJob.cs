@@ -285,5 +285,19 @@ namespace LagoVista.Manufacturing.Models
             get => _errors;
             set => Set(ref _errors, value); 
         }
+
+        Point2D<double> _pickErrorOffset;
+        public Point2D<double> PickErrorOffset
+        {
+            get => _pickErrorOffset;
+            set => Set(ref _pickErrorOffset, value);
+        }
+
+        double _pickErrorAngle;
+        public double PickErrorAngle
+        {
+            get => _pickErrorAngle;
+            set => Set(ref _pickErrorAngle, value);
+        }
     }
 }

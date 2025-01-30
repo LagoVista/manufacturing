@@ -39,7 +39,7 @@ namespace LagoVista.PickAndPlace.Models
         {
             _rects[_head] = rect;
             _angles[_head] = rect.Angle;
-            _centers[_head++] = new Point2D<float>(rect.Center.Y, rect.Center.Y);
+            _centers[_head++] = new Point2D<float>(rect.Center.X, rect.Center.Y);
             
             if (_head == FILTER_SIZE)
             {
@@ -119,7 +119,7 @@ namespace LagoVista.PickAndPlace.Models
 
         public string Summary
         {
-             get => $"{OffsetMM}mm {Angle}°";
+             get => $"{OffsetMM.X:0.00}x{OffsetMM.Y:0.00}xmm ({SizeMM.X:0.0}x{SizeMM.Y:0.0})mm {Angle:000.00}° ";
         }
 
         public int Iteration { get; set; }

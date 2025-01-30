@@ -382,12 +382,19 @@ namespace LagoVista.PickAndPlace
 
         private string ConvertTopLightColors(string gcode)
         {
-            return gcode.Replace("{red}", $"{TopRed}").Replace("{green}", $"{TopGreen}").Replace("{blue}", $"{TopBlue}").Replace("{pwr}", TopPower.ToString());
+            return gcode.Replace("{red}", $"{TopRed}")
+                        .Replace("{green}", $"{TopGreen}")
+                        .Replace("{blue}", $"{TopBlue}")
+                        .Replace("{pwr}",
+                        TopPower.ToString());
         }
 
         private string ConvertBottomLightColors(string gcode)
         {
-            return gcode.Replace("{red}", $"{TopRed}").Replace("{green}", $"{BottomGreen}").Replace("{blue}", $"{BottomBlue}").Replace("{pwr}", BottomPower.ToString());
+            return gcode.Replace("{red}", $"{BottomRed}")
+                        .Replace("{green}", $"{BottomGreen}")
+                        .Replace("{blue}", $"{BottomBlue}")
+                        .Replace("{pwr}", BottomPower.ToString());
         }
 
         private bool _topLightOn = false;

@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using LagoVista.PCB.Eagle.Models;
+using LagoVista.PickAndPlace.Models;
 
 namespace LagoVista.Manufacturing.Rest.Controllers
 {
@@ -82,6 +83,28 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         public Task<InvokeResult> SetPads(string id, [FromBody] PcbPackage layout)
         {
             return _mgr.SetLayoutAsync(id, layout, OrgEntityHeader, UserEntityHeader);
+        }
+
+        [HttpPut("/api/mfg/component/package/{id}/visionprofile/{type}")]
+        public async Task<InvokeResult> UpdateVisionProfile(string id, string type, [FromBody] VisionProfile profile)
+        {
+            var component = await _mgr.GetComponentPackageAsync(id, OrgEntityHeader, UserEntityHeader);
+            switch(type.ToLower())
+            {
+                case "inspection":
+                    component.PartInspectionVisionProfile = profile;
+                    break;
+                case "partonboard":
+                    component.PartOnBoardVisionProfile = profile;
+                    break;
+                case "partintape":
+                    component.PartInTapeVisionProfile = profile;
+                    break;
+                default:
+                    return InvokeResult.FromError($"{type} is not a valid vision profile type for a component.");
+            }
+
+            return await _mgr.UpdateComponentPackageAsync(component, OrgEntityHeader, UserEntityHeader);    
         }
 
     }

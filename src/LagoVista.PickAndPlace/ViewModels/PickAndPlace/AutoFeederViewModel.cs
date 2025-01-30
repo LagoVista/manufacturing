@@ -51,6 +51,18 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             ReloadFeederCommand = CreatedCommand(ReloadFeeder, () => Current != null);
         }
 
+        protected async override void OnMachineConnected()
+        {
+            base.OnMachineConnected();
+
+            foreach(var feeder in _autoFeeders)
+            {
+                var result = await PhotonFeederViewModel.InitializeFeederAsync((byte)feeder.Slot, feeder.FeederId);
+                if (result.Successful)
+                    Machine.AddStatusMessage(StatusMessageTypes.Info, $"Initialized feeder {feeder.Name}");
+            }
+        }
+
         private void PhotonFeederViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if(e.PropertyName == nameof(IPhotonFeederViewModel.SelectedPhotonFeeder))
@@ -58,7 +70,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 CurrentPhotonFeeder = PhotonFeederViewModel.SelectedPhotonFeeder;
                 RaiseCanExecuteChanged();
             }
-        }
+        }       
 
         private async void Add()
         {
