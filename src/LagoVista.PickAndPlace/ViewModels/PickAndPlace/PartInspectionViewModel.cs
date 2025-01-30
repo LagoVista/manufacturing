@@ -1,4 +1,5 @@
-﻿using LagoVista.Core.Validation;
+﻿using LagoVista.Core.Models.Drawing;
+using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
@@ -15,6 +16,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
     {
         private readonly ILocatorViewModel _locatorViewModel;
         ManualResetEventSlim _waitForCenter;
+
+        Point2D<double> _corectionFactor;
 
         public PartInspectionViewModel(ILocatorViewModel locatorViewModel, IMachineRepo machineRepo) : base(machineRepo)
         {
@@ -44,6 +47,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
        
         public async Task<InvokeResult> CenterPartAsync(Component component, PickAndPlaceJobPlacement placement, string algorithm)
         {
+            await Machine.GoToPartInspectionCameraAsync();
+
+            _corectionFactor = new Point2D<double>();
+
             if (component.ComponentPackage.Value.PartInspectionVisionProfile != null)
                 Machine.SetVisionProfile(CameraTypes.PartInspection, component.ComponentPackage.Value.PartInspectionVisionProfile);
             else
@@ -72,6 +79,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Machine.AddStatusMessage(StatusMessageTypes.Warning, "Couldn't find rectangle to center.");
             }
 
+            placement.PickErrorOffset = _corectionFactor;
+            
             return success ? InvokeResult.Success : InvokeResult.FromError("Timeout centering part.");
         }
 
@@ -103,6 +112,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 {
                     Machine.SetRelativeMode();
                     Machine.SendCommand($"G0  X{rectangleLocated.OffsetMM.X},Y{rectangleLocated.OffsetMM.Y}");
+                    _corectionFactor += rectangleLocated.OffsetMM;
+                   
                     Machine.SetAbsoluteMode();
                     rectangleLocated.Reset();
                 }

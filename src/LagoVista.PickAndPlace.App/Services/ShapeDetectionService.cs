@@ -11,6 +11,7 @@ using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Models;
 using System.Drawing;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace LagoVista.PickAndPlace.App.Services
 {
@@ -45,10 +46,9 @@ namespace LagoVista.PickAndPlace.App.Services
                 _imageHelper.Circle(img, camera.CurrentVisionProfile.ZoomLevel, foundCircle, size);
             }
 
-            foreach(var rect in _rectangleDetector.FoundRectangles)
-            {
+            var rect = _rectangleDetector.FoundRectangles.OrderByDescending(rect => rect.FoundCount).FirstOrDefault();
+            if(rect != null)
                 _imageHelper.DrawRect(img, camera.CurrentVisionProfile.ZoomLevel, rect, rect.Centered ? System.Drawing.Color.Green : System.Drawing.Color.Red);
-            }
         }
 
         private void FindShapes(IMVImage<IInputOutputArray> input, IInputOutputArray output, MachineCamera camera, System.Drawing.Size size)
@@ -132,7 +132,12 @@ namespace LagoVista.PickAndPlace.App.Services
 
                             if (camera.CurrentVisionProfile.UseBlurredImage)
                             {
-                                CvInvoke.GaussianBlur(input, blurredGray, new System.Drawing.Size(5, 5), camera.CurrentVisionProfile.GaussianSigma);
+                                if (camera.CurrentVisionProfile.GausianKernellSize == 0)
+                                    camera.CurrentVisionProfile.GausianKernellSize = 1;
+                                if (camera.CurrentVisionProfile.GausianKernellSize % 2 == 0)
+                                    camera.CurrentVisionProfile.GausianKernellSize = camera.CurrentVisionProfile.GausianKernellSize - 1;
+
+                                CvInvoke.GaussianBlur(input, blurredGray, new Size(camera.CurrentVisionProfile.GausianKernellSize,camera.CurrentVisionProfile.GausianKernellSize), camera.CurrentVisionProfile.GaussianSigma);
                                 input = blurredGray;
                             }
 
@@ -166,7 +171,7 @@ namespace LagoVista.PickAndPlace.App.Services
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 /*NOP, sometimes OpenCV acts a little funny. */
                 return null;

@@ -499,7 +499,7 @@ namespace LagoVista.PickAndPlace.Models
         }
 
         EntityHeader _componentPackage;
-        public EntityHeader ComponentPackage
+        public EntityHeader SourceComponentPackage
         {
             get => _componentPackage;
             set => Set(ref _componentPackage, value);

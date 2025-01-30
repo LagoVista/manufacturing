@@ -40,13 +40,8 @@
                 </Image.RenderTransform>
             </Image>
         </Grid>
-    
 
-        <Rectangle Grid.Row="2" Fill="Black" Opacity="0.5">
-
-            
-
-        </Rectangle>
+        <Rectangle Grid.Row="2" Fill="Black" Opacity="0.5"/>
 
         <Button  Grid.Row="2" x:Name="Settings" Margin="2" HorizontalAlignment="Right" Click="Settings_Click" Style="{StaticResource VideoControlButton}" >
             <Button.Content>
@@ -83,23 +78,24 @@
                 <TextBlock Foreground="Black"  Margin="1,1,1,1" Style="{StaticResource header}" Text="{Binding Profile.Name, StringFormat={}Profile: {0}}" />
                 <TextBlock Foreground="White" Style="{StaticResource header}" Text="{Binding Profile.Name, StringFormat={}Profile: {0}}" />
             </Grid>
-            <ListView ItemsSource="{Binding ShapeDetector.FoundRectangles}" Background="Transparent" Foreground="White">
+            <ListView ItemsSource="{Binding ShapeDetector.FoundRectangles}" BorderBrush="Transparent" Background="Transparent" Foreground="White">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
                             
-                            <TextBlock Foreground="White" Text="{Binding FoundCount}"></TextBlock>
                             <TextBlock Foreground="White" Text="{Binding Summary}"></TextBlock>
-                        </StackPanel>
+
+                            <TextBlock Margin="10,0,0,0" Foreground="White" Text="{Binding FoundCount, StringFormat={} Found: {0}}"></TextBlock>
+                        </StackPanel>   
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
-            <ListView ItemsSource="{Binding ShapeDetector.FoundCircles}" Background="Gray"  Foreground="White">
+            <ListView ItemsSource="{Binding ShapeDetector.FoundCircles}"  BorderBrush="Transparent" Background="Transparent"  Foreground="White">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Foreground="White" Text="{Binding FoundCount}"></TextBlock>
-                            <TextBlock Foreground="White" Text="{Binding Summary}"></TextBlock>
+                            <TextBlock Foreground="White" Text="{Binding .}"></TextBlock>
                         </StackPanel>
                     </DataTemplate>
                 </ListView.ItemTemplate>

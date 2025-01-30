@@ -214,19 +214,19 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         public async Task SaveAsync()
         {
             await MachineRepo.SaveCurrentMachineAsync();
-            if (!EntityHeader.IsNullOrEmpty(Profile.ComponentPackage))
+            if (!EntityHeader.IsNullOrEmpty(Profile.SourceComponentPackage))
             {
                 if (Camera.CameraType.Value == CameraTypes.PartInspection)
                 {
-                    await _restClient.PutAsync($"/api/mfg/component/package/{Profile.ComponentPackage.Id}/visionprofile/inspection", Profile);
+                    await _restClient.PutAsync($"/api/mfg/component/package/{Profile.SourceComponentPackage.Id}/visionprofile/inspection", Profile);
                 }
                 else if (Profile.Name.ToLower().Contains("tape"))
                 {
-                    await _restClient.PutAsync($"/api/mfg/component/package/{Profile.ComponentPackage.Id}/visionprofile/partintape", Profile);
+                    await _restClient.PutAsync($"/api/mfg/component/package/{Profile.SourceComponentPackage.Id}/visionprofile/partintape", Profile);
                 }
                 else if (Profile.Name.ToLower().Contains("board"))
                 {
-                    await _restClient.PutAsync($"/api/mfg/component/package/{Profile.ComponentPackage.Id}/visionprofile/partonboard", Profile);
+                    await _restClient.PutAsync($"/api/mfg/component/package/{Profile.SourceComponentPackage.Id}/visionprofile/partonboard", Profile);
                 }
                 else
                 {

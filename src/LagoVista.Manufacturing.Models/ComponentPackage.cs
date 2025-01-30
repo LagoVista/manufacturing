@@ -396,7 +396,7 @@ namespace LagoVista.Manufacturing.Models
         public string PartInspectionAlgorithm
         {
             get => _partInspectionAlgorithm;
-            set => Set(ref _partInspectionAlgorithm, value);)
+            set => Set(ref _partInspectionAlgorithm, value);
         }
 
         public ComponentPackageSummary CreateSummary()

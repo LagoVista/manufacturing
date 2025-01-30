@@ -122,11 +122,14 @@ namespace LagoVista.PickAndPlace
         public void SetAbsoluteMode()
         {
             SendCommand("G90");
+            DistanceMode = ParseDistanceMode.Absolute;
+        
         }
 
         public void SetRelativeMode()
         {
             SendCommand("G91");
+            DistanceMode = ParseDistanceMode.Relative;
         }
 
         public void SetFile(GCodeFile file)

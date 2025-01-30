@@ -742,7 +742,8 @@ namespace LagoVista.PickAndPlace
 
                 SendSafeMoveHeight();
 
-                Enqueue("G91"); // relative move
+
+                SetRelativeMode();
 
                 _viewType = ViewTypes.Moving;
                 RaisePropertyChanged();
@@ -760,7 +761,7 @@ namespace LagoVista.PickAndPlace
                 Debug.WriteLine("Un Ack Bytes Good.");
 
                 // 4. set the machine back to absolute points
-                Enqueue("G90");
+                SetAbsoluteMode();
 
                 // 5. Set the machine location to where it was prior to the move.
                 Enqueue($"G92 X{currentLocationX} Y{currentLocationY}");
@@ -804,7 +805,7 @@ namespace LagoVista.PickAndPlace
 
                 SendSafeMoveHeight();
 
-                Enqueue("G91"); // relative move
+                SetRelativeMode();
 
                 _viewType = ViewTypes.Moving;
                 RaisePropertyChanged();
@@ -818,7 +819,7 @@ namespace LagoVista.PickAndPlace
                 System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
 
                 // 4. set the machine back to absolute points
-                Enqueue("G90");
+                SetAbsoluteMode();
 
                 // 5. Set the machine location to where it was prior to the move.
                 Enqueue($"G92 X{currentLocationX} Y{currentLocationY}");

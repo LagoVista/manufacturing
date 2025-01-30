@@ -1550,17 +1550,20 @@
   <data name="ComponentPackage_CustomTapePitch" xml:space="preserve">
     <value>Custom Tape Pitch</value>
   </data>
-  <data name="MachineToolHead_VacuumTolerancePercent" xml:space="preserve">
-    <value>Vacuum Tolerance</value>
+  <data name="PnPJobState_New" xml:space="preserve">
+    <value>New</value>
   </data>
-  <data name="MachineToolHead_VacuumTolerancePercent_Help" xml:space="preserve">
-    <value>The vacuum read by the sensor can vary, the tolerance percentage accounts for this.</value>
+  <data name="PnPJobState_Aborted" xml:space="preserve">
+    <value>Aborted</value>
   </data>
-  <data name="ComponentPackage_PickVacuumLevel" xml:space="preserve">
-    <value>Pick Vacuum Level</value>
+  <data name="PnPJobState_Paused" xml:space="preserve">
+    <value>Paused</value>
   </data>
-  <data name="PnPState_Idle" xml:space="preserve">
-    <value>Idle</value>
+  <data name="PnPJobState_Running" xml:space="preserve">
+    <value>Running</value>
+  </data>
+  <data name="PnPJobState_Completed" xml:space="preserve">
+    <value>Completed</value>
   </data>
   <data name="PnpState_FeederResolved" xml:space="preserve">
     <value>Feeder Resolved</value>
@@ -1645,5 +1648,20 @@
   </data>
   <data name="PnPState_New" xml:space="preserve">
     <value>New</value>
+  </data>
+  <data name="MachineToolHead_VacuumTolerancePercent" xml:space="preserve">
+    <value>Vacuum Tolerance</value>
+  </data>
+  <data name="MachineToolHead_VacuumTolerancePercent_Help" xml:space="preserve">
+    <value>The vacuum read by the sensor can vary, the tolerance percentage accounts for this.</value>
+  </data>
+  <data name="ComponentPackage_PickVacuumLevel" xml:space="preserve">
+    <value>Pick Vacuum Level</value>
+  </data>
+  <data name="PnPJobState_Error" xml:space="preserve">
+    <value>Errored Out</value>
+  </data>
+  <data name="PnPJobState_Idle" xml:space="preserve">
+    <value>Idle</value>
   </data>
 </root>

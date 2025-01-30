@@ -42,8 +42,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             GoToPickLocationCommand = CreatedMachineConnectedCommand(GoToPickLocation, () => Current != null);
 
             InitializeFeederCommand = CreatedMachineConnectedCommand(async () => await InitializeFeederAsync(), () => Current != null);
-            AdvanceFeedCommand = CreatedMachineConnectedCommand(async () => await AdvanceFeed(), () => Current != null);
-            RetractFeedCommand = CreatedMachineConnectedCommand(async () => await RetractFeed(), () => Current != null);
+            AdvanceFeedCommand = CreatedMachineConnectedCommand(async () => await AdvanceFeedAsync(), () => Current != null);
+            RetractFeedCommand = CreatedMachineConnectedCommand(async () => await RetractFeedAsync(), () => Current != null);
 
             AddCommand = CreatedCommand(Add, () => MachineRepo.HasValidMachine && SelectedTemplateId.HasValidId() && CurrentPhotonFeeder != null);
             SaveCommand = CreatedCommand(Save, () => Current != null);
@@ -207,19 +207,19 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        public async Task InitializeFeederAsync()
+        public async Task<InvokeResult> InitializeFeederAsync()
         {
-            await PhotonFeederViewModel.InitializeFeederAsync((byte)Current.Slot, Current.FeederId);
+            return await PhotonFeederViewModel.InitializeFeederAsync((byte)Current.Slot, Current.FeederId);
         }
 
-        public async Task AdvanceFeed()
+        public async Task<InvokeResult> AdvanceFeedAsync()
         {
-            await PhotonFeederViewModel.AdvanceFeed((byte)Current.Slot, 4);
+            return await PhotonFeederViewModel.AdvanceFeed((byte)Current.Slot, 4);
         }
 
-        public async Task RetractFeed()
+        public async Task<InvokeResult> RetractFeedAsync()
         {
-            await PhotonFeederViewModel.RetractFeed((byte)Current.Slot, 4);
+            return await PhotonFeederViewModel.RetractFeed((byte)Current.Slot, 4);
         }
 
         public InvokeResult<Point2D<double>> FindFeederFiducial(string autoFeederId)
@@ -265,7 +265,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 if (CurrentComponentPackage != null)
                 {
-                    switch(CurrentComponentPackage.TapeColor.Value)
+                    var tapeColor = CurrentComponentPackage.TapeColor.Value;
+                    if(!EntityHeader.IsNullOrEmpty(CurrentComponent.TapeColor))
+                    {
+                        tapeColor = CurrentComponent.TapeColor.Value;
+                    }
+
+                    switch (tapeColor)
                     {
                         case TapeColors.Clear:
                             Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInClearTape);
@@ -373,13 +379,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RaisePropertyChanged(nameof(Feeders));
         }
 
-        public async override void NextPart()
+        public async override Task<InvokeResult> NextPartAsync()
         {
             if (Current != null)
             {
-                await AdvanceFeed();
                 Current.PartCount--;
+                return await AdvanceFeedAsync();
             }
+
+            return InvokeResult.FromError("No current feeder.");
             
         }
 

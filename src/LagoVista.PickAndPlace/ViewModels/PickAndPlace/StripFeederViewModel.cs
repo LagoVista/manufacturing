@@ -180,10 +180,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private async Task LoadFeeders()
         {
             var stripFeeders = await _restClient.GetListResponseAsync<StripFeeder>($"/api/mfg/machine/{MachineRepo.CurrentMachine.Settings.Id}/stripfeeders?loadcomponents=true");
-
-            _stripFeeders = new ObservableCollection<StripFeeder>(stripFeeders.Model);
-
-            RaisePropertyChanged(nameof(Feeders));
+            if (stripFeeders.Successful)
+            {
+                _stripFeeders = new ObservableCollection<StripFeeder>(stripFeeders.Model);
+                RaisePropertyChanged(nameof(Feeders));
+            }
+            else
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, stripFeeders.ErrorMessage);
+            }
         }
 
         private async void DoneRow()
@@ -677,9 +682,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        public override void NextPart()
+        public override Task<InvokeResult> NextPartAsync()
         {
             CurrentRow.CurrentPartIndex++;
+            return Task.FromResult(InvokeResult.Success);
         }
 
 

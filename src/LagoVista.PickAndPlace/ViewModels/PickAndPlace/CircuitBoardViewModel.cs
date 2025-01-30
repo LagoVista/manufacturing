@@ -3,13 +3,10 @@ using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
-using LagoVista.Manufacturing.Utils;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
-using MSDMarkwort.Kicad.Parser.PcbNew.Models.PartZone;
-using RingCentral;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -143,9 +140,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
 
                 Debug.WriteLine($"Expected: {expectedDegrees}; Actual: {actualDegrees}, Scale Error: {this.ScalingError}");
+                IsBoardAligned = true;
             }
+            else
+                IsBoardAligned = false;
 
-            IsBoardAligned = true;
+
 
             return InvokeResult.Success;
         }
@@ -191,7 +191,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             Machine.SendSafeMoveHeight();
-            var boardLocation = GetWorkSpaceLocation(placement);            
+            var boardLocation = GetWorkSpaceLocation(placement);
+            boardLocation += placement.PickErrorOffset;
             Machine.GotoPoint(boardLocation);
 
             Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartOnBoard);

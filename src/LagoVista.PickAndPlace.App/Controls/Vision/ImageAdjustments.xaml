@@ -100,7 +100,7 @@
                         <Label Content="Kernel Size (XY):" Style="{StaticResource Caption}"/>
                         <Label Content="{Binding Profile.GausianKernellSize, FallbackValue=3}" Style="{StaticResource Value}" />
                     </StackPanel>
-                    <Slider Minimum="0.1" Maximum="10" SmallChange="0.1" LargeChange="0.5" Value="{Binding Path=Profile.GausianKernellSize, Mode=TwoWay}" ToolTip="{Binding GaussianSigmaXHelp}"  />                    
+                    <Slider Minimum="1" Maximum="15" SmallChange="2" LargeChange="2" Value="{Binding Path=Profile.GausianKernellSize, Mode=TwoWay}" ToolTip="{Binding GaussianSigmaXHelp}"  />                    
                 </StackPanel>
             </TabItem>
             

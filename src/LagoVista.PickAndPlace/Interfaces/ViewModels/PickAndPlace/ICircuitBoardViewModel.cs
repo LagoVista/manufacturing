@@ -25,5 +25,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 
         double AngleOffset { get; }
         Point2D<double> ScalingError { get; }
+
+        bool IsBoardAligned { get; }
     }
 }

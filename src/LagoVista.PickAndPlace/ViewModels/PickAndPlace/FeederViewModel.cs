@@ -45,7 +45,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             ShowComponentDetailCommand = CreatedCommand(ShowComponentDetail, () => CurrentComponent != null);
             ShowComponentPackageDetailCommand = CreatedCommand(ShowComponentPackageDetail, () => CurrentComponent != null && CurrentComponent?.ComponentPackage != null);
             ShowDataSheetCommand = CreatedCommand(ShowDataSheeet, () => CurrentComponent != null && !String.IsNullOrEmpty(CurrentComponent.DataSheet));
-            NextPartCommand = CreatedMachineConnectedCommand(NextPart);            
+            NextPartCommand = CreatedMachineConnectedCommand(async () => await NextPartAsync());            
         }
 
         public override async Task InitAsync()
@@ -271,18 +271,19 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             else
             {
                 
-                var component = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Component>>($"/api/mfg/component/{componentId}");
+                var component = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Component>>($"/api/mfg/component/{componentId}?loadcomponent=true");
                 if (component.Result.Successful)
                 {
                     SelectedComponent = component.Result.Model;
-
+                    CurrentComponent = SelectedComponent;
+                    CurrentComponentPackage = SelectedComponent.ComponentPackage?.Value;
                     if (SelectedComponent.ComponentType.Key != _selectedCategoryKey)
                     {
                         _selectedCategoryKey = SelectedComponent.ComponentType.Key;
                         await LoadComponentsByCategory(_selectedCategoryKey);
                         RaisePropertyChanged(nameof(SelectedCategoryKey));
                     }
-
+                    
                     SelectedComponentSummaryId = componentId;
                 }
                 }
@@ -460,7 +461,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public abstract int AvailableParts { get; }
 
-        public abstract void NextPart();
+        public abstract Task<InvokeResult> NextPartAsync();
 
         public RelayCommand PickCurrentPartCommand { get; }
 

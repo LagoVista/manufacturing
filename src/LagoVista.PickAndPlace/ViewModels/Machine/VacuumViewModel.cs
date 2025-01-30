@@ -104,7 +104,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             return InvokeResult.FromError($"Could not read vacuum.");
         }
 
-        public async Task<InvokeResult> CheckPartPresent(Component component, int timeoutMS)
+        public async Task<InvokeResult> CheckPartPresent(Component component, int timeoutMS, ulong? vacuumOverride)
         {
             if (Machine.CurrentMachineToolHead == null)
             {

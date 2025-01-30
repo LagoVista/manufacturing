@@ -40,16 +40,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RotateBackPartCommand = CreatedMachineConnectedCommand(() => JobVM.RotateCurrentPartAsync(JobVM.PickAndPlaceJobPart, JobVM.Placement, ActiveFeederViewModel != null, true), () => JobVM.Placement != null);
 
             ClonePartInspectionVisionProfileCommand = CreatedCommand(ClonePartInspectionVisionProfile, () => JobVM.CurrentComponentPackage != null);
-            ClonePartInTapeVisionProfileCommand = CreatedCommand(ClonePartInspectionVisionProfile, () => JobVM.CurrentComponentPackage != null);
-            ClonePartOnBoardVisionProfileCommand = CreatedCommand(ClonePartInspectionVisionProfile, () => JobVM.CurrentComponentPackage != null);
+            ClonePartInTapeVisionProfileCommand = CreatedCommand(ClonePartInTapeVisionProfile, () => JobVM.CurrentComponentPackage != null);
+            ClonePartOnBoardVisionProfileCommand = CreatedCommand(ClonePartOnBoardisionProfile, () => JobVM.CurrentComponentPackage != null);
 
             CheckPartPresentCommand = CreatedCommand(CheckPartPresent, () => JobVM.CurrentComponent != null);
             CheckNoPartPresentCommand = CreatedCommand(CheckNoPartPresent, () => JobVM.CurrentComponent != null);
 
             NextPartCommand = CreatedCommand(NextPart, () => ActiveFeederViewModel != null);
         }
-
-    
 
         public void ClonePartInspectionVisionProfile()
         {
@@ -63,15 +61,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var newProfile = JsonConvert.DeserializeObject<VisionProfile>(JsonConvert.SerializeObject(MachineConfiguration.Cameras.First().CurrentVisionProfile));
             newProfile.Name = newName;
             newProfile.Id = Guid.NewGuid().ToId();
-            newProfile.ComponentPackage = JobVM.CurrentComponentPackage.ToEntityHeader();
+            newProfile.SourceComponentPackage = JobVM.CurrentComponentPackage.ToEntityHeader();
             JobVM.CurrentComponentPackage.PartInspectionVisionProfile = newProfile;
             Machine.SetVisionProfile(Manufacturing.Models.CameraTypes.PartInspection, newProfile);
             JobVM.SaveComponentPackageCommand.Execute(null);
         }
 
-        public void NextPart()
+        public async void NextPart()
         {
-            ActiveFeederViewModel.NextPart();
+            await ActiveFeederViewModel.NextPartAsync();
             var idx = JobVM.PickAndPlaceJobPart.Placements.IndexOf(JobVM.Placement);
             if(idx == -1)
             {
@@ -93,17 +91,43 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public void ClonePartOnBoardisionProfile()
         {
-
+            var positionCamera = MachineConfiguration.Cameras.SingleOrDefault(cam => cam.CameraType.Value == Manufacturing.Models.CameraTypes.Position);
+            if (positionCamera == null)
+            {
+                Machine.AddStatusMessage(Manufacturing.Models.StatusMessageTypes.FatalError, "Could not find part position camera.");
+                return;
+            }
+            var newName = $"{MachineConfiguration.Cameras.First().CurrentVisionProfile.Name} ({JobVM.CurrentComponentPackage.Name})";
+            var newProfile = JsonConvert.DeserializeObject<VisionProfile>(JsonConvert.SerializeObject(MachineConfiguration.Cameras.First().CurrentVisionProfile));
+            newProfile.Name = newName;
+            newProfile.Id = Guid.NewGuid().ToId();
+            newProfile.SourceComponentPackage = JobVM.CurrentComponentPackage.ToEntityHeader();
+            JobVM.CurrentComponentPackage.PartOnBoardVisionProfile = newProfile;
+            Machine.SetVisionProfile(Manufacturing.Models.CameraTypes.Position, newProfile);
+            JobVM.SaveComponentPackageCommand.Execute(null);
         }
 
         public void ClonePartInTapeVisionProfile()
         {
-
+            var positionCamera = MachineConfiguration.Cameras.SingleOrDefault(cam => cam.CameraType.Value == Manufacturing.Models.CameraTypes.Position);
+            if (positionCamera == null)
+            {
+                Machine.AddStatusMessage(Manufacturing.Models.StatusMessageTypes.FatalError, "Could not find part position camera.");
+                return;
+            }
+            var newName = $"{MachineConfiguration.Cameras.First().CurrentVisionProfile.Name} ({JobVM.CurrentComponentPackage.Name})";
+            var newProfile = JsonConvert.DeserializeObject<VisionProfile>(JsonConvert.SerializeObject(MachineConfiguration.Cameras.First().CurrentVisionProfile));
+            newProfile.Name = newName;
+            newProfile.Id = Guid.NewGuid().ToId();
+            newProfile.SourceComponentPackage = JobVM.CurrentComponentPackage.ToEntityHeader();
+            JobVM.CurrentComponentPackage.PartInTapeVisionProfile = newProfile;
+            Machine.SetVisionProfile(Manufacturing.Models.CameraTypes.Position, newProfile);
+            JobVM.SaveComponentPackageCommand.Execute(null);
         }
 
         public async void CheckPartPresent()
         {
-            var result = await VacuumViewModel.CheckPartPresent(JobVM.CurrentComponent, 1000);
+            var result = await VacuumViewModel.CheckPartPresent(JobVM.CurrentComponent, 1000, JobVM.CurrentComponentPackage.PresenseVacuumOverride);
             if (result.Successful)
             {
                 LastActionSuccess = true;

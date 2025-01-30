@@ -55,7 +55,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.CurrentVisionProfile.PixelsPerMM);
                 var searchBounds = new CircleF(new System.Drawing.PointF(center.X, center.Y), scaledTarget);
 
-                CvInvoke.FindContours(_edges, contours, null, RetrType.External, ChainApproxMethod.ChainApproxNone);
+                CvInvoke.FindContours(_edges, contours, null, RetrType.External, ChainApproxMethod.ChainApproxTc89Kcos);
                 int count = contours.Size;
            
                 for (int i = 0; i < count; i++)
@@ -65,7 +65,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     {
                         CvInvoke.ApproxPolyDP(contour, approxContour, CvInvoke.ArcLength(contour, true) * profile.PolygonEpsilonFactor, profile.ContourFindOnlyClosed);
                         var area = CvInvoke.ContourArea(approxContour, false);
-                        if(area < profile.ContourMinArea)
+                            if(area < profile.ContourMinArea)
                         {
                            
                         }
@@ -102,7 +102,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                                     {
                                         if (rect.Size.Width > rect.Size.Height && profile.FindLandScape || rect.Size.Height > rect.Size.Width && profile.FindPortrait)
                                         {
-                                            var previous = _foundRectangles.FindPrevious(rect, 10);
+                                            var previous = _foundRectangles.FindPrevious(rect, 20);
                                             if (previous != null)
                                             {
                                                 previous.Iteration = _iteration;
@@ -117,7 +117,6 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                                                 _locatorViewModel.RectLocated(foundRect);
                                                 FoundRectangles.Add(foundRect);
                                             }
-
                                         }
                                     }
                                 }
@@ -139,7 +138,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             }
 
             // Get a list of stale ones, run the query so they can be removed..w/o ToList it will run the query when trying to delete.
-            var staleRects = FoundRectangles.Where(itr => itr.Iteration != _iteration).ToList();
+            var staleRects = FoundRectangles.Where(itr => itr.Iteration < _iteration -2).ToList();
             foreach (var rect in staleRects)
             {
                 _foundRectangles.Remove(rect);

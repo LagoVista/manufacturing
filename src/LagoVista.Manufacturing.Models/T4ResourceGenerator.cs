@@ -1,4 +1,4 @@
-﻿/*1/30/2025 8:29:45 AM*/
+﻿/*1/30/2025 4:19:49 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -1247,6 +1247,27 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:PickAndPlaceJobs_Title
 
 		public static string PickAndPlaceJobs_Title { get { return GetResourceString("PickAndPlaceJobs_Title"); } }
+//Resources:ManufacturingResources:PnPJobState_Aborted
+
+		public static string PnPJobState_Aborted { get { return GetResourceString("PnPJobState_Aborted"); } }
+//Resources:ManufacturingResources:PnPJobState_Completed
+
+		public static string PnPJobState_Completed { get { return GetResourceString("PnPJobState_Completed"); } }
+//Resources:ManufacturingResources:PnPJobState_Error
+
+		public static string PnPJobState_Error { get { return GetResourceString("PnPJobState_Error"); } }
+//Resources:ManufacturingResources:PnPJobState_Idle
+
+		public static string PnPJobState_Idle { get { return GetResourceString("PnPJobState_Idle"); } }
+//Resources:ManufacturingResources:PnPJobState_New
+
+		public static string PnPJobState_New { get { return GetResourceString("PnPJobState_New"); } }
+//Resources:ManufacturingResources:PnPJobState_Paused
+
+		public static string PnPJobState_Paused { get { return GetResourceString("PnPJobState_Paused"); } }
+//Resources:ManufacturingResources:PnPJobState_Running
+
+		public static string PnPJobState_Running { get { return GetResourceString("PnPJobState_Running"); } }
 //Resources:ManufacturingResources:PnPState_Advanced
 
 		public static string PnPState_Advanced { get { return GetResourceString("PnPState_Advanced"); } }
@@ -1265,9 +1286,6 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:PnpState_FeederResolved
 
 		public static string PnpState_FeederResolved { get { return GetResourceString("PnpState_FeederResolved"); } }
-//Resources:ManufacturingResources:PnPState_Idle
-
-		public static string PnPState_Idle { get { return GetResourceString("PnPState_Idle"); } }
 //Resources:ManufacturingResources:PnPState_Inspected
 
 		public static string PnPState_Inspected { get { return GetResourceString("PnPState_Inspected"); } }
@@ -1987,13 +2005,19 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string PickAndPlaceJobRun_Title = "PickAndPlaceJobRun_Title";
 			public const string PickAndPlaceJobRuns_Title = "PickAndPlaceJobRuns_Title";
 			public const string PickAndPlaceJobs_Title = "PickAndPlaceJobs_Title";
+			public const string PnPJobState_Aborted = "PnPJobState_Aborted";
+			public const string PnPJobState_Completed = "PnPJobState_Completed";
+			public const string PnPJobState_Error = "PnPJobState_Error";
+			public const string PnPJobState_Idle = "PnPJobState_Idle";
+			public const string PnPJobState_New = "PnPJobState_New";
+			public const string PnPJobState_Paused = "PnPJobState_Paused";
+			public const string PnPJobState_Running = "PnPJobState_Running";
 			public const string PnPState_Advanced = "PnPState_Advanced";
 			public const string PnpState_AtFeeder = "PnpState_AtFeeder";
 			public const string PnPState_AtPlaceLocation = "PnPState_AtPlaceLocation";
 			public const string PnpState_DetectingPart = "PnpState_DetectingPart";
 			public const string PnpState_Error = "PnpState_Error";
 			public const string PnpState_FeederResolved = "PnpState_FeederResolved";
-			public const string PnPState_Idle = "PnPState_Idle";
 			public const string PnPState_Inspected = "PnPState_Inspected";
 			public const string PnPState_Inspecting = "PnPState_Inspecting";
 			public const string PnPState_JobCompleted = "PnPState_JobCompleted";

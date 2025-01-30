@@ -733,7 +733,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(ConnectToMQTT),
                 nameof(DeviceId),
                 nameof(MqttHostName),
-                nameof(ConnecttoPort),
+                nameof(ConnectToPort),
                 nameof(SecureConnection),
                 nameof(UserName),
                 nameof(Password),

@@ -17,7 +17,7 @@
                 <ColumnDefinition Width="50*" />
                 <ColumnDefinition Width="50*" />
             </Grid.ColumnDefinitions>
-            <StackPanel>
+            <StackPanel Visibility="{Binding PcbVM.IsBoardAligned, Converter= {StaticResource BoolToVisibilityConverter}}">
                 <TextBlock Style="{StaticResource header}" Text="Parts to Place"></TextBlock>
                 <DataGrid ItemsSource="{Binding JobVM.Job.Parts}" LoadingRow="DataGrid_LoadingRow"  SelectionMode="Single" SelectedItem="{Binding JobVM.PickAndPlaceJobPart, Mode=TwoWay}" CanUserAddRows="false" AutoGenerateColumns="False">
                     <DataGrid.Columns>
@@ -68,6 +68,10 @@
                         </DataGrid>
 
                         <Grid Margin="0,20,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="33*" />
                                 <ColumnDefinition Width="33*" />
@@ -76,6 +80,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Style="{StaticResource content}" Text="{Binding LastStatus}" />
                             </StackPanel>
+                            
                             <StackPanel Grid.Row="1" >
                                 <TextBlock Style="{StaticResource header}" Text="Component" HorizontalAlignment="Center" />
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding MoveToPartInFeederCommand}" Content="Move To Part in Feeder"></Button>
@@ -107,7 +112,7 @@
 
                     </StackPanel>
 
-                    <local:CircuitBoardControl Grid.Column="1" />
+                    
                 </Grid>
 
 
@@ -122,8 +127,17 @@
 
             </StackPanel>
 
-            <pcb:PCBRenderer Grid.Column="1" TopWiresVisible="true" BottomWiresVisible="true" PCBVisible="true" CenterBoard="true" Grid.Row="2" CircuitBoard="{Binding JobVM.CircuitBoard}" ></pcb:PCBRenderer>
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <local:CircuitBoardControl Grid.Column="1" />
+                <pcb:PCBRenderer Grid.Column="1" TopWiresVisible="true" BottomWiresVisible="true" PCBVisible="true" CenterBoard="true" Grid.Row="2" CircuitBoard="{Binding JobVM.CircuitBoard}" ></pcb:PCBRenderer>
+            </Grid>
         </Grid>
+
+        
 
     </Grid>
 </ucb:VMBoundUserControl>

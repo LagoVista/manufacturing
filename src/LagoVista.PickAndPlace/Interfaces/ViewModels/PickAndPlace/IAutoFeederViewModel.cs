@@ -18,9 +18,9 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 
         AutoFeeder Current { get; set; }
 
-        Task InitializeFeederAsync();
-        Task AdvanceFeed();
-        Task RetractFeed();
+        Task<InvokeResult> InitializeFeederAsync();
+        Task<InvokeResult> AdvanceFeedAsync();
+        Task<InvokeResult> RetractFeedAsync();
 
         RelayCommand CreateAutoFeederFromTemplateCommand { get; }
         RelayCommand SetPartPickLocationCommand { get; }

@@ -106,6 +106,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 JobVM.Placement = placement;
             }
 
+            if(ActiveFeederViewModel != null)
+            {
+                ActiveFeederViewModel.CurrentComponent = JobVM.CurrentComponent;
+            }
+
             RaiseCanExecuteChanged();
 
             return InvokeResult.Success;

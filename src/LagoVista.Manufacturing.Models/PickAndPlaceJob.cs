@@ -17,10 +17,6 @@ namespace LagoVista.Manufacturing.Models
     {
         [EnumLabel("new", ManufacturingResources.Names.PnPState_New, typeof(ManufacturingResources))]
         New,
-        [EnumLabel("idle", ManufacturingResources.Names.PnPState_Idle, typeof(ManufacturingResources))]
-        Idle,
-        [EnumLabel("error", ManufacturingResources.Names.PnpState_Error, typeof(ManufacturingResources))]
-        Error,
         [EnumLabel("feederresolved", ManufacturingResources.Names.PnpState_FeederResolved, typeof(ManufacturingResources))]
         FeederResolved,
         [EnumLabel("validated", ManufacturingResources.Names.PnpState_Validated, typeof(ManufacturingResources))]
@@ -55,10 +51,8 @@ namespace LagoVista.Manufacturing.Models
         Advanced,
         [EnumLabel("placementcompleted", ManufacturingResources.Names.PnPState_PlacementCompleted, typeof(ManufacturingResources))]
         PlacementCompleted,
-        [EnumLabel("partcompleted", ManufacturingResources.Names.PnPState_JobCompleted, typeof(ManufacturingResources))]
-        PartCompleted,
-        [EnumLabel("jobcompleted", ManufacturingResources.Names.JobState_Completed, typeof(ManufacturingResources))]
-        JobCompleted,
+        [EnumLabel("error", ManufacturingResources.Names.PnpState_Error, typeof(ManufacturingResources))]
+        Error,
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.PickAndPlaceJob_Title, ManufacturingResources.Names.PickAndPlaceJob_Description,
