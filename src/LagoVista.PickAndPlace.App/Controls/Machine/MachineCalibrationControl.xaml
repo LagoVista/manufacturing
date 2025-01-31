@@ -13,8 +13,8 @@
              d:DesignHeight="1200" d:DesignWidth="1600">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="160" />
+            <RowDefinition Height="160" />
             <RowDefinition Height="*" />
             <RowDefinition Height="*" />
             <RowDefinition Height="*" />
@@ -125,43 +125,65 @@
                 </DataGrid.Columns>
             </DataGrid>
             <StackPanel Grid.Column="1" Visibility="{Binding SelectedStagingPlate, Converter={StaticResource NoTNullToVisibilityConverter}}">
-                <TextBlock FontSize="23" Text="{Binding SelectedStagingPlate.Name}"></TextBlock>
-                <TextBlock Style="{StaticResource header}">Reference Hole 1</TextBlock>
+                <TextBlock Style="{StaticResource header}"  Text="{Binding SelectedStagingPlate.Name}"></TextBlock>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleLocation1}" Style="{StaticResource content}"></TextBlock>
-                    <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleRow1}"  Style="{StaticResource content}"></TextBlock>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource header}">Reference Hole 1</TextBlock>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleRow1}"  Style="{StaticResource content}"></TextBlock>
+
+                    </StackPanel>
+                    <StackPanel>
+
+                    </StackPanel>
+
+                </StackPanel>
+
+
+                <StackPanel Orientation="Horizontal">
+
+
                     <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleColumn1}"  Style="{StaticResource content}"></TextBlock>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetStagingPlateReferenceHole1LocationCommand}"  ToolTip="Set Reference Hole 1" Width="64" Height="64"  >
-                        <Button.Content>
-                            <Image Source="/imgs/SetTarget.png"/>
-                        </Button.Content>
-                    </Button>
-                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToStagingPlateReferenceHole1LocationCommand}"  ToolTip="Move To Reference Hole 1" Width="64" Height="64"  >
-                        <Button.Content>
-                            <Image Source="/imgs/MoveToTarget.png"/>
-                        </Button.Content>
-                    </Button>
-                </StackPanel>
-                <TextBlock Style="{StaticResource header}">Reference Hole 2</TextBlock>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetStagingPlateReferenceHole2LocationCommand}"  ToolTip="Set Reference Hole 2" Width="64" Height="64"  >
-                        <Button.Content>
-                            <Image Source="/imgs/SetTarget.png"/>
-                        </Button.Content>
-                    </Button>
-                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToStagingPlateReferenceHole2LocationCommand}"  ToolTip="Move To Reference Hole 2" Width="64" Height="64"  >
-                        <Button.Content>
-                            <Image Source="/imgs/MoveToTarget.png"/>
-                        </Button.Content>
-                    </Button>
+                <StackPanel Orientation="Horizontal">
+                    <StackPanel>
+                        <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleLocation1}" Style="{StaticResource content}"></TextBlock>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetStagingPlateReferenceHole1LocationCommand}"  ToolTip="Set Reference Hole 1" Width="64" Height="64"  >
+                                <Button.Content>
+                                    <Image Source="/imgs/SetTarget.png"/>
+                                </Button.Content>
+                            </Button>
+                            <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToStagingPlateReferenceHole1LocationCommand}"  ToolTip="Move To Reference Hole 1" Width="64" Height="64"  >
+                                <Button.Content>
+                                    <Image Source="/imgs/MoveToTarget.png"/>
+                                </Button.Content>
+                            </Button>
+                        </StackPanel>
+
+                        <StackPanel>
+                        <TextBlock Style="{StaticResource header}">Reference Hole 2</TextBlock>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetStagingPlateReferenceHole2LocationCommand}"  ToolTip="Set Reference Hole 2" Width="64" Height="64"  >
+                                <Button.Content>
+                                    <Image Source="/imgs/SetTarget.png"/>
+                                </Button.Content>
+                            </Button>
+                            <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToStagingPlateReferenceHole2LocationCommand}"  ToolTip="Move To Reference Hole 2" Width="64" Height="64"  >
+                                <Button.Content>
+                                    <Image Source="/imgs/MoveToTarget.png"/>
+                                </Button.Content>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleRow2}" Style="{StaticResource content}" ></TextBlock>
                     <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleColumn2}" Style="{StaticResource content}"></TextBlock>
                     <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleLocation2}" Style="{StaticResource content}"></TextBlock>
                 </StackPanel>
+            </StackPanel>
             </StackPanel>
 
         </Grid>

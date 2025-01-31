@@ -49,7 +49,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private readonly ILocatorViewModel _locatorVM;
         private bool _isEditing;
 
-        public StripFeederViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorVM, IRestClient restClient, IMachineUtilitiesViewModel machineUtilitiesViewModel) : base(machineRepo, restClient, machineUtilitiesViewModel)
+        public StripFeederViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorVM, IRestClient restClient, IMachineUtilitiesViewModel machineUtilitiesViewModel) : base(machineRepo, restClient, locatorVM, machineUtilitiesViewModel)
         {
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
             _locatorVM = locatorVM ?? throw new ArgumentNullException(nameof(locatorVM));
@@ -193,10 +193,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         private async void DoneRow()
         {
-            if (SelectedComponent != null)
+            if (CurrentComponent != null)
             {
-                CurrentRow.Component = EntityHeader<Component>.Create(SelectedComponent.Id, SelectedComponent.Key, SelectedComponent.Name);
-                CurrentRow.Component.Value = SelectedComponent;
+                CurrentRow.Component = EntityHeader<Component>.Create(CurrentComponent.Id, CurrentComponent.Key, CurrentComponent.Name);
+                CurrentRow.Component.Value = CurrentComponent;
                 if(CurrentRow.Component.Value.ComponentPackage != null)
                 {
                     var result = await _restClient.GetAsync<DetailResponse<ComponentPackage>>($"/api/mfg/component/package/{CurrentRow.Component.Value.ComponentPackage.Id}");

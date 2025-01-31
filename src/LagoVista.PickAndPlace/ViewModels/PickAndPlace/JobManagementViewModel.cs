@@ -37,7 +37,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             CheckBoardFiducialsCommand = CreatedMachineConnectedCommand(() => CheckBoardFiducials(), () => Job != null);
 
             ShowSchematicCommand = CreatedCommand(ShowSchematic, () => Job != null && CircuitBoard.SchematicPDFFile != null);
-            ShowComponentDetailCommand = CreatedCommand(ShowComponentDetail, () => PickAndPlaceJobPart != null);
+            ShowComponentDetailCommand = CreatedCommand(ShowComponentDetail, () => PartGroup != null);
             ShowComponentPackageDetailCommand = CreatedCommand(ShowComponentPackageDetail, () => CurrentComponent != null && CurrentComponent?.ComponentPackage != null);
             ShowDataSheetCommand = CreatedCommand(ShowDataSheeet, () => CurrentComponent != null && !String.IsNullOrEmpty(CurrentComponent.DataSheet));
             ResolveJobCommand = CreatedCommand(ResolveJob, () => Job != null);
@@ -73,7 +73,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             await base.InitAsync();
         }
 
-        public Task<InvokeResult> RotateCurrentPartAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement, bool rotated90, bool reverse)
+        public Task<InvokeResult> RotateCurrentPartAsync(PartsGroup part, PickAndPlaceJobPlacement placement, bool rotated90, bool reverse)
         {
             var inTapeAngle = 0.0;
 
@@ -168,7 +168,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return;
             }
 
-            var substitutes = Job.Parts.Where(prt => prt.Component.Id == PickAndPlaceJobPart.Component.Id);
+            var substitutes = Job.Parts.Where(prt => prt.Component.Id == PartGroup.Component.Id);
             foreach(var substitute in substitutes)
             {
                 substitute.Component = SelectedAvailablePart.Component;
@@ -244,9 +244,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public void ShowComponentDetail()
         {
-            if (PickAndPlaceJobPart != null)
+            if (PartGroup != null)
             {
-                var url = $"https://www.nuviot.com/mfg/component/{PickAndPlaceJobPart.Component.Id}";
+                var url = $"https://www.nuviot.com/mfg/component/{PartGroup.Component.Id}";
                 System.Diagnostics.Process.Start(new ProcessStartInfo
                 {
                     FileName = url as string,
@@ -255,29 +255,34 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        public async void LoadComponent(string componentId)
+        public async Task<InvokeResult> LoadComponent(string componentId)
         {
             if (!componentId.HasValidId())
             {
                 CurrentComponent = null;
+                return InvokeResult.Success;
             }
             else
             {
-                var result = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Component>>($"/api/mfg/component/{componentId}");
+                var result = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Component>>($"/api/mfg/component/{componentId}?loadcomponent=true");
                 if (result.Successful)
                 {
-                    CurrentComponent = result.Result.Model;
-                    if (CurrentComponent.ComponentPackage != null && CurrentComponent.ComponentPackage.Value == null)
+                    CurrentComponent = result.Result.Model; 
+                    if (EntityHeader.IsNullOrEmpty(result.Result.Model.ComponentPackage))
                     {
-                        var packageResult = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.ComponentPackage>>($"/api/mfg/component/package/{CurrentComponent.ComponentPackage.Id}");
-                        if(packageResult.Successful)
-                        {
-                            CurrentComponent.ComponentPackage.Value = packageResult.Result.Model;
-                            CurrentComponentPackage = packageResult.Result.Model;
-                        }                        
+                        Machine.AddStatusMessage(StatusMessageTypes.Warning, "Loaded component for execution without a component package, likely trouble ahead!");
                     }
+                    else
+                    {
+                        CurrentComponentPackage = result.Result.Model.ComponentPackage.Value;
+                    }
+
+                    return InvokeResult.Success;
                 }
-                
+                else
+                {
+                    return InvokeResult.FromError(result.ErrorMessage);
+                }
             }
         }
 
@@ -358,22 +363,40 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             set => Set(ref _board, value);
         }
 
-
-        PickAndPlaceJobPart _jobPart;
-        public PickAndPlaceJobPart PickAndPlaceJobPart
+        public async Task<InvokeResult> SetPartGroupToPlaceAsync(PartsGroup part)
         {
-            get => _jobPart;
+            var result = await LoadComponent(part.Component.Id);
+            if (result.Successful)
+            {
+                _partGroup = part;
+                RaisePropertyChanged(nameof(PartGroup));
+                RaiseCanExecuteChanged();
+            }
+            
+            return result;
+        }
+
+        public Task<InvokeResult> SetIndividualPartToPlaceAsync(PickAndPlaceJobPlacement placement)
+        {
+            Placement = placement;
+            return Task.FromResult(InvokeResult.Success);
+        }
+
+        PartsGroup _partGroup;
+        public PartsGroup PartGroup
+        {
+            get => _partGroup;
             set
             {
-                Set(ref _jobPart, value);
-                if(EntityHeader.IsNullOrEmpty( _jobPart?.Component))
+                Set(ref _partGroup, value);
+                if(EntityHeader.IsNullOrEmpty( _partGroup?.Component))
                 {
                     CurrentComponent = null;
                     RaiseCanExecuteChanged();
                 }
                 else
                 {
-                    LoadComponent(_jobPart.Component.Id);
+                    LoadComponent(_partGroup.Component.Id);
                 }
             }
         }

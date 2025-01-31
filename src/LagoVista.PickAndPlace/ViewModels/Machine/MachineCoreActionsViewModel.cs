@@ -62,7 +62,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             Machine.HomingCycle();
         }
 
-        public void MachineVisionOrigin()
+        public async void MachineVisionOrigin()
         {
             if(MachineConfiguration.MachineFiducial.IsOrigin())
             {
@@ -72,6 +72,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             {
                 Machine.SetVisionProfile(Manufacturing.Models.CameraTypes.Position, VisionProfile.VisionProfile_MachineFiducual);
                 Machine.SendSafeMoveHeight();
+                await Machine.MoveToCameraAsync();
                 Machine.GotoPoint(MachineConfiguration.MachineFiducial);
                 _locatorViewModel.RegisterCircleLocatedHandler(this);
             }
@@ -86,7 +87,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     _locatorViewModel.UnregisterCircleLocatedHandler(this);
                     Machine.AddStatusMessage(Manufacturing.Models.StatusMessageTypes.Info, "Found origin");
                     Machine.WasMachinOriginCalibrated = true;
-                    Machine.SendCommand(MachineConfiguration.MachineFiducial.ToGCode("G92"));
+                    Machine.ResetMachineCoordinates(MachineConfiguration.MachineFiducial);
                 }
                 else
                 {

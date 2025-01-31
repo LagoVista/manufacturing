@@ -252,6 +252,8 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         void GotoPoint(double x, double y, double z, bool rapidMove = true);
 
+        Task<InvokeResult> ResetMachineCoordinates(Point2D<double> point);
+
         void SetWorkspaceHome();
         void GotoWorkspaceHome();
 

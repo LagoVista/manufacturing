@@ -19,7 +19,7 @@
             </Grid.ColumnDefinitions>
             <StackPanel Visibility="{Binding PcbVM.IsBoardAligned, Converter= {StaticResource BoolToVisibilityConverter}}">
                 <TextBlock Style="{StaticResource header}" Text="Parts to Place"></TextBlock>
-                <DataGrid ItemsSource="{Binding JobVM.Job.Parts}" LoadingRow="DataGrid_LoadingRow"  SelectionMode="Single" SelectedItem="{Binding JobVM.PickAndPlaceJobPart, Mode=TwoWay}" CanUserAddRows="false" AutoGenerateColumns="False">
+                <DataGrid ItemsSource="{Binding JobVM.Job.Parts}" LoadingRow="DataGrid_LoadingRow"  SelectionMode="Single" SelectedItem="{Binding JobVM.PartGroup, Mode=TwoWay}" CanUserAddRows="false" AutoGenerateColumns="False">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Count" Width="80" Binding="{Binding Count}"  />
                         <DataGridTextColumn Header="Package" Width="200" Binding="{Binding PackageName, Mode=TwoWay}"  />
@@ -59,7 +59,7 @@
                         </StackPanel>
 
                         <TextBlock Style="{StaticResource header}" Text="Placements"></TextBlock>
-                        <DataGrid ItemsSource="{Binding JobVM.PickAndPlaceJobPart.Placements}"  SelectionMode="Single" SelectedItem="{Binding JobVM.Placement, Mode=TwoWay}" CanUserAddRows="false"  AutoGenerateColumns="False">
+                        <DataGrid ItemsSource="{Binding JobVM.PartGroup.Placements}"  SelectionMode="Single" SelectedItem="{Binding JobVM.Placement, Mode=TwoWay}" CanUserAddRows="false"  AutoGenerateColumns="False">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Name" Width="*" Binding="{Binding Name}"  />
                                 <DataGridTextColumn Header="Location" Width="*" Binding="{Binding PCBLocation}"  />
@@ -84,6 +84,7 @@
                             <StackPanel Grid.Row="1" >
                                 <TextBlock Style="{StaticResource header}" Text="Component" HorizontalAlignment="Center" />
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding MoveToPartInFeederCommand}" Content="Move To Part in Feeder"></Button>
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding ActiveFeederViewModel.CenterOnPartCommand}" Content="Center Part in Feeder"></Button>
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding PickPartCommand}" Content="Pick Part"></Button>
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding CheckPartPresentCommand}" Content="Check Part Present"></Button>
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding InspectPartCommand}" Content="Inspect Part"></Button>

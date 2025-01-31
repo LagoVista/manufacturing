@@ -100,7 +100,7 @@ namespace LagoVista.PickAndPlace
                     Enqueue("G90");
 
                     // 5. Set the machine location to where it was prior to the move.
-                    Enqueue($"G92 X{currentLocationX} Y{currentLocationY}");
+                    ResetMachineCoordinates(new Core.Models.Drawing.Point2D<double>(currentLocationX, currentLocationY));
                 });
             }
 

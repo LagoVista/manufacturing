@@ -97,8 +97,10 @@
                         </Button>
                     </StackPanel>
                 </StackPanel>
-            </StackPanel>
+                
 
+            </StackPanel>
+            
             <StackPanel Orientation="Horizontal">
                 <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="Previous Part" Command="{Binding InitializeFeederCommand}" >
                     <Button.Content>
@@ -119,8 +121,10 @@
                 </Button>
 
             </StackPanel>
-        </StackPanel>
 
+            <Button Command="{Binding CenterOnPartCommand}" Style="{StaticResource  CommandButton}" Content="Center on Pick Location" />
+        </StackPanel>
+        
         <StackPanel Grid.Row="2" Visibility="{Binding CurrentPhotonFeeder, Converter={StaticResource NoTNullToVisibilityConverter}}" Grid.Column="1" >
             <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Add" Command="{Binding AddCommand}"></Button>
             <StackPanel>

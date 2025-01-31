@@ -186,7 +186,7 @@ namespace LagoVista.Manufacturing.Models
         public List<string> GetFormFieldsCol2()
         {
             return new List<string>()
-            {
+                {
                 nameof(Supplier),
                 nameof(SupplierPartNumber),
                 nameof(ManufacturePartNumber),
@@ -211,7 +211,7 @@ namespace LagoVista.Manufacturing.Models
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Component_Title, ManufacturingResources.Names.Component_Title,
         ManufacturingResources.Names.Component_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-core-1", Cloneable: true,
-        SaveUrl: "/api/component", GetUrl: "/api/component/{id}", GetListUrl: "/api/compoents", FactoryUrl: "/api/mfg/component/factory", DeleteUrl: "/api/component/{id}",
+        SaveUrl: "/api/component", GetUrl: "/api/component/{id}", GetListUrl: " ", FactoryUrl: "/api/mfg/component/factory", DeleteUrl: "/api/component/{id}",
         ListUIUrl: "/mfg/components", EditUIUrl: "/mfg/component/{id}", CreateUIUrl: "/mfg/component/add")]
     public class ComponentSummary : SummaryData
     {

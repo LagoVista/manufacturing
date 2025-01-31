@@ -28,14 +28,12 @@
             </DataGrid.Columns>
         </DataGrid>
         <StackPanel Grid.Column="1" Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}">
-            <TextBlock FontSize="24" Text="{Binding Current.Name}"></TextBlock>
-            <TextBlock TextWrapping="Wrap">Move the camera to a known location on the board where you can position the tool head.</TextBlock>
+            <TextBlock Style="{StaticResource header}" FontSize="24" Text="{Binding Current.Name}"></TextBlock>
+            <TextBlock TextWrapping="Wrap" Style="{StaticResource content}">Move the camera to a known location on the board where you can position the tool head.</TextBlock>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                 <StackPanel Margin="10">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Known Location: "></TextBlock>
-                        <TextBlock Text="{Binding MachineConfiguration.KnownCalibrationPoint}"></TextBlock>
-                    </StackPanel>
+                    <TextBlock Style="{StaticResource label}" Text="Known Location"></TextBlock>
+                    <TextBlock Style="{StaticResource content}" Text="{Binding MachineConfiguration.KnownCalibrationPoint}"></TextBlock>
                     <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToKnownLocationCommand}"  ToolTip="Move to known location." Width="64" Height="64"  >
                         <Button.Content>
                             <Image Source="/imgs/MoveToTarget.png"/>
@@ -44,27 +42,22 @@
                 </StackPanel>
 
                 <StackPanel Margin="10">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Known Location: "></TextBlock>
-                        <TextBlock Text="{Binding MachineConfiguration.DefaultToolReferencePoint}"></TextBlock>
-                    </StackPanel>
-                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetDefaultToolReferencePointCommand }"  ToolTip="Capture the known location." Width="64" Height="64"  >
-                        <Button.Content>
-                            <Image Source="/imgs/SetTarget.png"/>
-                        </Button.Content>
-                    </Button>
-                </StackPanel>
-
-                <StackPanel Margin="10">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Tool Offset: "></TextBlock>
-                        <TextBlock Text="{Binding Current.Offset}"></TextBlock>
+                    <StackPanel >
+                        <TextBlock Style="{StaticResource label}" Text="Tool Offset"></TextBlock>
+                        <TextBlock  Style="{StaticResource content}" Text="{Binding Current.Offset}"></TextBlock>
                     </StackPanel>
                     <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetToolOffsetCommand }"  ToolTip="Set the origin of the first feeder on the rail." Width="64" Height="64"  >
                         <Button.Content>
                             <Image Source="/imgs/SetTarget.png"/>
                         </Button.Content>
                     </Button>
+                </StackPanel>
+                <StackPanel Margin="10" Width="400">
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding ToggleCaptureToolHeadCalibrationCommand}" >Tweak Calibration</Button>
+                    <TextBlock TextWrapping="Wrap" Style="{StaticResource content}" Text="To make small adjustments, click Tweak and move the XY position of the tool head into the known location and then press capture.  After setting any calibration values, you should re-center based on machine fiducial."></TextBlock>
+                    <TextBlock Style="{StaticResource content}" Text="{Binding CalibrationOffset}" />
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding SetToolHeadCalibrationCommand}" >Set</Button>
+                    
                 </StackPanel>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
@@ -74,19 +67,21 @@
                 <Button Command="{Binding SetPartPickedVacuumCommand}" Style="{StaticResource CommandButton}" Content="set Part Picked Vacuum" />
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Left Vacuum" FontSize="24" Width="250"></TextBlock>
+                
                 <Button Width="100" Command="{Binding Vacuum.LeftVacuumOnCommand}" Style="{StaticResource CommandButton}" >On</Button>
                 <Button Width="100" Command="{Binding Vacuum.LeftVacuumOffCommand}" Style="{StaticResource CommandButton}" >Off</Button>
                 <Button Width="100" Command="{Binding Vacuum.ReadLeftVacuumCommand}" Style="{StaticResource CommandButton}" >Read</Button>
-                <TextBlock Text="{Binding Vacuum.LeftVacuum}" FontSize="32" />
+                <TextBlock Text="Left Vacuum" Style="{StaticResource label}" Width="250"></TextBlock>
+                <TextBlock Text="{Binding Vacuum.LeftVacuum}" Style="{StaticResource content}"/>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Right Vacuum" FontSize="24" Width="250"></TextBlock>
+                
                 <Button Width="100" Command="{Binding Vacuum.RightVacuumOnCommand}" Style="{StaticResource CommandButton}" >On</Button>
                 <Button Width="100" Command="{Binding Vacuum.RightVacuumOffCommand}" Style="{StaticResource CommandButton}" >Off</Button>
                 <Button Width="100" Command="{Binding Vacuum.ReadRightVacuumCommand}" Style="{StaticResource CommandButton}" >Read</Button>
-                <TextBlock Text="{Binding Vacuum.RightVacuum}" FontSize="32" />
+                <TextBlock Text="Right Vacuum" Style="{StaticResource label}" Width="250"></TextBlock>
+                <TextBlock Text="{Binding Vacuum.RightVacuum}" Style="{StaticResource content}"/>
             </StackPanel>
         </StackPanel>
     </Grid>

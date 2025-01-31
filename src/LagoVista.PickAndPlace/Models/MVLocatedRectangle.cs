@@ -117,6 +117,9 @@ namespace LagoVista.PickAndPlace.Models
         /// </summary>
         public int FoundCount { get; private set; }
 
+        public bool Stabilized => FoundCount >= _stabilizationCount;
+
+
         public string Summary
         {
              get => $"{OffsetMM.X:0.00}x{OffsetMM.Y:0.00}xmm ({SizeMM.X:0.0}x{SizeMM.Y:0.0})mm {Angle:000.00}° ";

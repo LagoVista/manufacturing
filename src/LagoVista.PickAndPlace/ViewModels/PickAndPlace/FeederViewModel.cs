@@ -7,18 +7,21 @@ using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
 using LagoVista.PickAndPlace.ViewModels.Machine;
+using LagoVista.PickAndPlace.ViewModels.Vision;
 using RingCentral;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 {
-    public abstract class FeederViewModel : MachineViewModelBase, IFeederViewModel
+    public abstract class FeederViewModel : MachineViewModelBase, IFeederViewModel, IRectangleLocatedHandler
     {
 
         private enum PickStates
@@ -29,15 +32,19 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             TrialPlaced,
         }
 
-        private PickStates _pickStates = PickStates.Idle;
+        private Point2D<double> _feederOffset;
 
+        private PickStates _pickStates = PickStates.Idle;
+        ManualResetEventSlim _waitForCenter;
+        private readonly ILocatorViewModel _locatorViewModel;
         private readonly IRestClient _restClient;
         private readonly IMachineUtilitiesViewModel _machineUtilitiesViewModel;
 
-        protected FeederViewModel(IMachineRepo machineRepo, IRestClient resteClient, IMachineUtilitiesViewModel machineUtilitiesViewModel) : base(machineRepo)
+        protected FeederViewModel(IMachineRepo machineRepo, IRestClient resteClient, ILocatorViewModel locatorViewModel, IMachineUtilitiesViewModel machineUtilitiesViewModel) : base(machineRepo)
         {
             _restClient = resteClient ?? throw new ArgumentNullException(nameof(resteClient));
             _machineUtilitiesViewModel = machineUtilitiesViewModel ?? throw new ArgumentNullException(nameof(machineUtilitiesViewModel));
+            _locatorViewModel = locatorViewModel ?? throw new ArgumentNullException(nameof(locatorViewModel));
             PickCurrentPartCommand = CreatedMachineConnectedCommand(async () => await PickCurrentPartAsync(), () => CurrentComponent != null);
             RecycleCurrentPartCommand = CreatedMachineConnectedCommand(async () => await RecycleCurrentPartAsync(), () => CurrentComponent != null);
             InspectCurrentPartCommand = CreatedMachineConnectedCommand(async () => await InspectCurrentPartAsync(), () => CurrentComponent != null);
@@ -45,7 +52,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             ShowComponentDetailCommand = CreatedCommand(ShowComponentDetail, () => CurrentComponent != null);
             ShowComponentPackageDetailCommand = CreatedCommand(ShowComponentPackageDetail, () => CurrentComponent != null && CurrentComponent?.ComponentPackage != null);
             ShowDataSheetCommand = CreatedCommand(ShowDataSheeet, () => CurrentComponent != null && !String.IsNullOrEmpty(CurrentComponent.DataSheet));
-            NextPartCommand = CreatedMachineConnectedCommand(async () => await NextPartAsync());            
+            NextPartCommand = CreatedMachineConnectedCommand(async () => await NextPartAsync());
+            CenterOnPartCommand = CreatedMachineConnectedCommand(async () => await CenterOnPartAsync(CurrentComponent), () => CurrentComponent != null);
         }
 
         public override async Task InitAsync()
@@ -65,7 +73,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, componentCategories.ErrorMessage);
             }
 
-                await base.InitAsync();
+            await base.InitAsync();
         }
 
         public void ShowComponentPackageDetail()
@@ -134,13 +142,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public async Task<InvokeResult> PickCurrentPartAsync()
         {
-            if(CurrentComponent == null)
+            if (CurrentComponent == null)
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current part selected, can not pick.");
                 return InvokeResult.FromError("No current part selected, can not pick.");
             }
 
-            if(CurrentComponent.ComponentPackage == null)
+            if (CurrentComponent.ComponentPackage == null)
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Current part does not have a package, can not place..");
                 return InvokeResult.FromError("Current part does not have a package, can not place.");
@@ -152,15 +160,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not identify location of current part.");
                 _pickStates = PickStates.Idle;
                 return InvokeResult.FromError("Could not identify location of current part.");
-            }            
+            }
 
             Machine.SendSafeMoveHeight();
-            if(CurrentComponent.ComponentPackage.HasValue)
+            if (CurrentComponent.ComponentPackage.HasValue)
             {
-                if(!EntityHeader.IsNullOrEmpty(CurrentComponent.ComponentPackage.Value.NozzleTip))
+                if (!EntityHeader.IsNullOrEmpty(CurrentComponent.ComponentPackage.Value.NozzleTip))
                 {
                     var toolHead = MachineConfiguration.ToolHeads.FirstOrDefault(th => th.CurrentNozzle?.Id == CurrentComponent.ComponentPackage.Value.NozzleTip.Id);
-                    if(toolHead != null)
+                    if (toolHead != null)
                         await Machine.MoveToToolHeadAsync(toolHead);
                     else
                         await Machine.MoveToToolHeadAsync(MachineConfiguration.ToolHeads.First());
@@ -169,11 +177,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     await Machine.MoveToToolHeadAsync(MachineConfiguration.ToolHeads.First());
             }
             else
-                await Machine.MoveToToolHeadAsync( MachineConfiguration.ToolHeads.First());
-            
-            Machine.SendCommand(CurrentPartLocation.ToGCode());
+                await Machine.MoveToToolHeadAsync(MachineConfiguration.ToolHeads.First());
 
-            if(PickHeight.HasValue)
+
+            Machine.SendCommand(CurrentPartLocation.ToGCode());
+            Machine.SetRelativeMode();
+            Machine.SendCommand(_feederOffset.ToGCode());
+            Machine.SetAbsoluteMode();
+
+            if (PickHeight.HasValue)
                 Machine.SetToolHeadHeight(PickHeight.Value);
 
             Machine.VacuumPump = true;
@@ -209,7 +221,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _pickStates = PickStates.Inspecting;
             }
 
-            if(CurrentComponentPackage!.PartInspectionVisionProfile != null)
+            if (CurrentComponentPackage!.PartInspectionVisionProfile != null)
                 Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfileSource.ComponentPackage, CurrentComponentPackage.Id, CurrentComponentPackage!.PartInspectionVisionProfile);
             else
                 Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
@@ -265,56 +277,57 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             if (!componentId.HasValidId())
             {
-                SelectedComponent = null;
+                CurrentComponent = null;
                 SelectedCategoryKey = StringExtensions.NotSelectedId;
             }
             else
             {
-                
+
                 var component = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Component>>($"/api/mfg/component/{componentId}?loadcomponent=true");
                 if (component.Result.Successful)
                 {
-                    SelectedComponent = component.Result.Model;
-                    CurrentComponent = SelectedComponent;
-                    CurrentComponentPackage = SelectedComponent.ComponentPackage?.Value;
-                    if (SelectedComponent.ComponentType.Key != _selectedCategoryKey)
+                    CurrentComponent = component.Result.Model;
+
+                    if (CurrentComponent.ComponentType.Key != _selectedCategoryKey)
                     {
-                        _selectedCategoryKey = SelectedComponent.ComponentType.Key;
+                        _selectedCategoryKey = CurrentComponent.ComponentType.Key;
                         await LoadComponentsByCategory(_selectedCategoryKey);
                         RaisePropertyChanged(nameof(SelectedCategoryKey));
                     }
-                    
+
                     SelectedComponentSummaryId = componentId;
                 }
-                }
             }
+        }
 
         public async Task LoadComponentsByCategory(string categoryKey)
         {
             var components = await _restClient.GetListResponseAsync<ComponentSummary>($"/api/mfg/components?componentType={categoryKey}");
             Components = new ObservableCollection<ComponentSummary>(components.Model);
-            Components.Insert(0, new ComponentSummary() {Id = StringExtensions.NotSelectedId, Name = "-select component-" });
+            Components.Insert(0, new ComponentSummary() { Id = StringExtensions.NotSelectedId, Name = "-select component-" });
             SelectedComponentSummaryId = StringExtensions.NotSelectedId;
         }
 
-        public Task<InvokeResult> MoveToCurrentPartInFeederAsync()
+        public Task<InvokeResult> MoveToPartInFeederAsync()
         {
+            _feederOffset = new Point2D<double>();
+
             if (CurrentComponent == null)
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current part selected, can not inspect.");
-                return Task.FromResult( InvokeResult.FromError("No current part selected, can not inspect."));
+                return Task.FromResult(InvokeResult.FromError("No current part selected, can not inspect."));
             }
 
             Machine.SendSafeMoveHeight();
             Machine.SendSafeMoveHeight();
             Machine.SendCommand(CurrentPartLocation.ToGCode());
 
-            if(CurrentComponentPackage == null && CurrentComponent.ComponentPackage != null)
+            if (CurrentComponentPackage == null && CurrentComponent.ComponentPackage != null)
             {
                 CurrentComponentPackage = CurrentComponent.ComponentPackage.Value;
             }
 
-            if(!EntityHeader.IsNullOrEmpty(CurrentComponent.TapeColor))
+            if (!EntityHeader.IsNullOrEmpty(CurrentComponent.TapeColor))
             {
                 switch (CurrentComponent.TapeColor.Value)
                 {
@@ -342,10 +355,68 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public Task<InvokeResult> MoveToPartInFeederAsync(Component component)
         {
-            if(CurrentComponent != component)
+            if (CurrentComponent != component)
                 CurrentComponent = component;
 
-            return MoveToCurrentPartInFeederAsync();
+            return MoveToPartInFeederAsync();
+        }
+
+        
+
+        public Task<InvokeResult> CenterOnPartAsync(Component component)
+        {
+            CurrentComponent = component;
+            return CenterOnPartAsync();
+        }
+       public async Task<InvokeResult> CenterOnPartAsync()
+        {
+            if(CurrentComponent == null)
+            {
+                return InvokeResult.FromError("Could not center on part.");
+            }
+
+            _feederOffset = new Point2D<double>();
+
+            _locatorViewModel.RegisterRectangleLocatedHandler(this);
+
+            var toolHead = Machine.CurrentMachineToolHead;
+            await Machine.MoveToCameraAsync();
+
+            if (CurrentComponent.ComponentPackage.Value.PartInspectionVisionProfile != null)
+                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfileSource.ComponentPackage, CurrentComponent.ComponentPackage.Id,
+                    CurrentComponent.ComponentPackage.Value.PartInspectionVisionProfile);
+            else
+                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartOnBoard);
+
+            _waitForCenter = new ManualResetEventSlim(false);
+            _locatorViewModel.RegisterRectangleLocatedHandler(this);
+
+            await Task.Run(() =>
+            {
+                var attemptCount = 0;
+                while (!_waitForCenter.IsSet && ++attemptCount < 200)
+                    _waitForCenter.Wait(25);
+            });
+
+            _locatorViewModel.UnregisterRectangleLocatedHandler(this);
+
+            var success = _waitForCenter.IsSet;
+            _waitForCenter.Dispose();
+            _waitForCenter = null;
+
+            if (toolHead != null)
+                await Machine.MoveToToolHeadAsync(toolHead);
+
+            if (success)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Info, $"Centered on part in feeder for {CurrentComponent.Name}.");
+                return InvokeResult.Success;
+            }
+            else
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, $"Could not center on part in feeder for {CurrentComponent.Name}.");
+                return InvokeResult.FromError($"Could not center on part in feeder for {CurrentComponent.Name}.");
+            }
         }
 
         ObservableCollection<EntityHeader> _componentCategories;
@@ -361,17 +432,20 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             get => _selectedCategoryKey;
             set
             {
-                if (value == null)
-                    value = StringExtensions.NotSelectedId;
-                Set(ref _selectedCategoryKey, value);
-
-                if (SelectedCategoryKey.HasValidId())
-                    LoadComponentsByCategory(value);
-                else
+                if (_selectedCategoryKey != value)
                 {
-                    Components = new ObservableCollection<ComponentSummary>();
-                    Components.Insert(0, new ComponentSummary() { Id = StringExtensions.NotSelectedId, Name = "-select component category first-" });
-                    SelectedComponentSummaryId = StringExtensions.NotSelectedId;
+                    _selectedCategoryKey = value;
+                    if (_selectedCategoryKey.HasValidId())
+                    {
+                        LoadComponentsByCategory(value);
+                    }
+                    else
+                    {
+                        value = StringExtensions.NotSelectedId;
+                        Components = new ObservableCollection<ComponentSummary>();
+                        Components.Insert(0, new ComponentSummary() { Id = StringExtensions.NotSelectedId, Name = "-select component category first-" });
+                        SelectedComponentSummaryId = StringExtensions.NotSelectedId;
+                    }
                 }
             }
         }
@@ -384,23 +458,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 if (value != _selectedComponentSummaryId)
                 {
-                        Set(ref _selectedComponentSummaryId, value);
-                        if (value.HasValidId())
-                            LoadComponent(_selectedComponentSummaryId);
-                        else
-                        {
-                        }
-
-                        SelectedComponent = null;
+                    Set(ref _selectedComponentSummaryId, value);
+                    if (value.HasValidId())
+                        LoadComponent(_selectedComponentSummaryId);
                 }
             }
-        }
-   
-        Manufacturing.Models.Component _selectedComponent;
-        public Manufacturing.Models.Component SelectedComponent
-        {
-            get => _selectedComponent;
-            set => Set(ref _selectedComponent, value);
         }
 
         ObservableCollection<ComponentSummary> _components;
@@ -417,18 +479,25 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             get => _currentComponent;
             set
             {
-                Set(ref _currentComponent, value);
-                if(value != null)
+                if (_currentComponent?.Id != value?.Id)
                 {
-                    SelectedComponentSummaryId = value.Id;
+                    _currentComponent = value;
+                    if(value != null)
+                    {
+                        SelectedComponentSummaryId = value.Id;
+                        CurrentComponentPackage = CurrentComponent.ComponentPackage?.Value;
+                        _currentComponent = value;
+                    }
+
+                    PickCurrentPartCommand.RaiseCanExecuteChanged();
+                    RecycleCurrentPartCommand.RaiseCanExecuteChanged();
+                    InspectCurrentPartCommand.RaiseCanExecuteChanged();
                 }
-                PickCurrentPartCommand.RaiseCanExecuteChanged();
-                RecycleCurrentPartCommand.RaiseCanExecuteChanged();
-                InspectCurrentPartCommand.RaiseCanExecuteChanged();
+
             }
         }
 
-        ComponentPackage _currentComponentPackage;       
+        ComponentPackage _currentComponentPackage;
         public ComponentPackage CurrentComponentPackage
         {
             get => _currentComponentPackage;
@@ -463,6 +532,39 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public abstract Task<InvokeResult> NextPartAsync();
 
+        public void RectangleLocated(MVLocatedRectangle rectangleLocated)
+        {
+            if (rectangleLocated.Centered)
+            {
+                if (rectangleLocated.Stabilized)
+                {
+                    _locatorViewModel.UnregisterRectangleLocatedHandler(this);
+                    _waitForCenter.Set();
+                }
+            }
+            else
+            {
+                if (rectangleLocated.Stabilized)
+                {
+                    Machine.SetRelativeMode();
+                    _feederOffset -= rectangleLocated.OffsetMM;
+                    Machine.SendCommand($"G0  X{-rectangleLocated.OffsetMM.X},Y{-rectangleLocated.OffsetMM.Y}");
+                    Machine.SetAbsoluteMode();
+                    rectangleLocated.Reset();
+                }
+            }
+        }
+
+        public void RectangleLocatorTimeout()
+        {
+            _locatorViewModel.UnregisterRectangleLocatedHandler(this);
+        }
+
+        public void RectangleLocatorAborted()
+        {
+            _locatorViewModel.UnregisterRectangleLocatedHandler(this);
+        }
+
         public RelayCommand PickCurrentPartCommand { get; }
 
         public RelayCommand InspectCurrentPartCommand { get; }
@@ -476,9 +578,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public RelayCommand NextPartCommand { get; }
 
-        public abstract Point2D<double> CurrentPartLocation { get;  }
+        public RelayCommand CenterOnPartCommand { get; }
 
-        public abstract double? PickHeight { get;  }
+        public abstract Point2D<double> CurrentPartLocation { get; }
+
+        public abstract double? PickHeight { get; }
 
         string _statusMessage;
         public string StatusMessage

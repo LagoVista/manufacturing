@@ -18,6 +18,7 @@ using Newtonsoft.Json;
 using System.Threading;
 using System.Collections.Generic;
 using System.Diagnostics;
+using LagoVista.Core.Validation;
 
 namespace LagoVista.PickAndPlace
 {
@@ -189,6 +190,12 @@ namespace LagoVista.PickAndPlace
 
             if (relativeMove)
                 SetAbsoluteMode();
+        }
+
+        public Task<InvokeResult> ResetMachineCoordinates(Point2D<double> point)
+        {
+            Enqueue($"G92 X{point.X} Y{point.Y}");
+            return Task.FromResult(InvokeResult.Success);
         }
 
         public void GotoPoint(double x, double y, double z, bool rapidMove = true)

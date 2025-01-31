@@ -12,7 +12,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         Task<InvokeResult> InspectPartOnboardAsync(Component component, PickAndPlaceJobPlacement placement);
         Task<InvokeResult> PlacePartOnboardAsync(Component component, PickAndPlaceJobPlacement placement);
         Task<InvokeResult> PickPartFromBoardAsync(Component component, PickAndPlaceJobPlacement placement);
-        Task<InvokeResult> GoToPartOnBoardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement);
+        Task<InvokeResult> GoToPartOnBoardAsync(PartsGroup part, PickAndPlaceJobPlacement placement);
 
         PickAndPlaceJob Job { get; set; }
 

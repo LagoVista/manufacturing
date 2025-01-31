@@ -42,9 +42,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             ResetJobCommand = CreatedMachineConnectedCommand(async () => await ResetJobAsync(), () => JobVM.Job != null && State.Value != JobState.Running && State.Value != JobState.New);
             AbortJobCommand = CreatedMachineConnectedCommand(async () => await AbortJobAsync(), () => JobVM.Job != null && State.Value == JobState.Running || State.Value == JobState.Paused);
 
-            PlaceGroupPartCommand = CreatedMachineConnectedCommand(async () => await PartCycle(), () => JobVM.Job != null && JobVM.PickAndPlaceJobPart != null);
-            PlaceIndependentPartCommand = CreatedMachineConnectedCommand(async () => await PlaceCycleAsync(), () => JobVM.Job != null && JobVM.PickAndPlaceJobPart != null && JobVM.Placement != null);
-            ResetIndpentPartCommand = CreatedMachineConnectedCommand(async () => await ResetIndependentPartAsync(), () => JobVM.Job != null && JobVM.PickAndPlaceJobPart != null && JobVM.Placement != null);
+            PlaceGroupPartCommand = CreatedMachineConnectedCommand(async () => await PartCycleAsync(), () => JobVM.Job != null && JobVM.PartGroup != null);
+            PlaceIndependentPartCommand = CreatedMachineConnectedCommand(async () => await PlaceCycleAsync(), () => JobVM.Job != null && JobVM.PartGroup != null && JobVM.Placement != null);
+            ResetIndpentPartCommand = CreatedMachineConnectedCommand(async () => await ResetIndependentPartAsync(), () => JobVM.Job != null && JobVM.PartGroup != null && JobVM.Placement != null);
 
             JobVM.PropertyChanged += JobVM_PropertyChanged;
         }
@@ -52,7 +52,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private void JobVM_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if(e.PropertyName == nameof(IJobManagementViewModel.Job) ||
-               e.PropertyName == nameof(IJobManagementViewModel.PickAndPlaceJobPart) || 
+               e.PropertyName == nameof(IJobManagementViewModel.PartGroup) || 
                e.PropertyName == nameof(IJobManagementViewModel.Placement))
                 RaiseCanExecuteChanged();
         }
@@ -98,9 +98,17 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if (!result.Successful) return result;
             JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.FeederResolved);
 
-            result = JobVM.PickAndPlaceJobPart.Validate();
+            result = JobVM.PartGroup.Validate();
             if (!result.Successful) return result;
             JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.Validated);
+
+            result = await ActiveFeederViewModel.MoveToPartInFeederAsync();
+            if (!result.Successful) return result;
+            JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.PartCenteredOnFeeder);
+
+            result = await ActiveFeederViewModel.CenterOnPartAsync();
+            if (!result.Successful) return result;
+            JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.PartPicked);
 
             result = await ActiveFeederViewModel.PickCurrentPartAsync();
             if (!result.Successful) return result;
@@ -148,12 +156,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
              }
         }
 
-        public async Task<InvokeResult> PartCycle()
+        public async Task<InvokeResult> PartCycleAsync()
         {
-            foreach (var placement in JobVM.PickAndPlaceJobPart.Placements)
+            foreach (var placement in JobVM.PartGroup.Placements)
             {
+                var result = await JobVM.SetIndividualPartToPlaceAsync(placement);
+                if (!result.Successful) return result;
+
                 JobVM.Placement = placement;
-                var result = await PlaceCycleAsync();
+                result = await PlaceCycleAsync();
                 if (!result.Successful) return result;
             }
 
@@ -164,8 +175,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             foreach(var part in JobVM.Job.Parts)
             {
-                JobVM.PickAndPlaceJobPart = part;
-                var result = await PartCycle();
+                var result = await JobVM.SetPartGroupToPlaceAsync(part);
+                if (!result.Successful) return result;
+
+                result = await PartCycleAsync();
                 if (!result.Successful) return result;
             }
 

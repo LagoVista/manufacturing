@@ -12,6 +12,7 @@ using LagoVista.PickAndPlace.Models;
 using System.Drawing;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 
 namespace LagoVista.PickAndPlace.App.Services
 {
@@ -173,6 +174,8 @@ namespace LagoVista.PickAndPlace.App.Services
             }
             catch (Exception ex)
             {
+                Debug.WriteLine(ex.Message);
+                Debug.WriteLine(ex.StackTrace);
                 /*NOP, sometimes OpenCV acts a little funny. */
                 return null;
             }

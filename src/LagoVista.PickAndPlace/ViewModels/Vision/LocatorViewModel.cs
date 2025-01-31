@@ -77,7 +77,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
         public void CirclesLocated(MVLocatedCircles circles)
         {
-            foreach(var handler in _circlesLocatedHandlers)
+            foreach(var handler in _circlesLocatedHandlers.ToList())
             {
                 handler.CirclesLocated(circles);
             }   
@@ -85,7 +85,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
         public void CircleLocated(MVLocatedCircle circle)
         {
-            foreach (var handler in _circleLocatedHandlers)
+            foreach (var handler in _circleLocatedHandlers.ToList())
             {
                 handler.CircleLocated(circle);
             }
@@ -93,7 +93,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
         public void RectLocated(MVLocatedRectangle rect)
         {
-            foreach(var handler in _rectLocatedHandlers)
+            foreach(var handler in _rectLocatedHandlers.ToList())
             {
                 handler.RectangleLocated(rect);
             }

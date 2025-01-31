@@ -1664,4 +1664,7 @@
   <data name="PnPJobState_Idle" xml:space="preserve">
     <value>Idle</value>
   </data>
+  <data name="PnpState_PartCenteredOnFeeder" xml:space="preserve">
+    <value>Part Centered on Feeder</value>
+  </data>
 </root>

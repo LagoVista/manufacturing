@@ -23,6 +23,8 @@ namespace LagoVista.Manufacturing.Models
         Validated,
         [EnumLabel("atfeeder", ManufacturingResources.Names.PnpState_AtFeeder, typeof(ManufacturingResources))]
         AtFeeder,
+        [EnumLabel("partcenteredonfeeder", ManufacturingResources.Names.PnpState_PartCenteredOnFeeder, typeof(ManufacturingResources))]
+        PartCenteredOnFeeder,
         [EnumLabel("partpicked", ManufacturingResources.Names.PnpState_PartPicked, typeof(ManufacturingResources))]
         PartPicked,
         [EnumLabel("detectingpart", ManufacturingResources.Names.PnpState_DetectingPart, typeof(ManufacturingResources))]
@@ -115,7 +117,7 @@ namespace LagoVista.Manufacturing.Models
 
         public CircuitBoardRevision BoardRevision { get; set; }
 
-        public ObservableCollection<PickAndPlaceJobPart> Parts { get; set; } = new ObservableCollection<PickAndPlaceJobPart>();
+        public ObservableCollection<PartsGroup> Parts { get; set; } = new ObservableCollection<PartsGroup>();
 
         public ObservableCollection<ErrorMessage> ErrorMessages { get; set; } = new ObservableCollection<ErrorMessage>();
 
@@ -185,7 +187,7 @@ namespace LagoVista.Manufacturing.Models
         }
     }
 
-    public class PickAndPlaceJobPart : ModelBase
+    public class PartsGroup : ModelBase
     {
         private string _value;
         public string Value 

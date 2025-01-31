@@ -760,11 +760,13 @@ namespace LagoVista.PickAndPlace
                 System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
                 Debug.WriteLine("Un Ack Bytes Good.");
 
+                Task.Delay(500);
+
                 // 4. set the machine back to absolute points
                 SetAbsoluteMode();
 
                 // 5. Set the machine location to where it was prior to the move.
-                Enqueue($"G92 X{currentLocationX} Y{currentLocationY}");
+                ResetMachineCoordinates(new Core.Models.Drawing.Point2D<double>(currentLocationX, currentLocationY));
 
                 _viewType = ViewTypes.Tool;
                 _currentMachineToolHead = toolHeadToMoveTo;
@@ -821,8 +823,10 @@ namespace LagoVista.PickAndPlace
                 // 4. set the machine back to absolute points
                 SetAbsoluteMode();
 
+                Task.Delay(500);
+
                 // 5. Set the machine location to where it was prior to the move.
-                Enqueue($"G92 X{currentLocationX} Y{currentLocationY}");
+                ResetMachineCoordinates(new Core.Models.Drawing.Point2D<double>(currentLocationX, currentLocationY));
 
                 _currentMachineToolHead = null;
                 _viewType = ViewTypes.Camera;

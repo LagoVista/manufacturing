@@ -24,8 +24,8 @@
                 <Button Style="{StaticResource CommandButton}" Content="Resume Job" Command="{Binding ResumeJobCommand}"></Button>
                 <Button Style="{StaticResource CommandButton}" Content="Abort Job" Command="{Binding AbortJobCommand}"></Button>
             </StackPanel>
-            
-            <DataGrid ItemsSource="{Binding JobVM.Job.Parts}" SelectionMode="Single" SelectedItem="{Binding JobVM.PickAndPlaceJobPart, Mode=TwoWay}" CanUserAddRows="false" AutoGenerateColumns="False">
+
+            <DataGrid ItemsSource="{Binding JobVM.Job.Parts}" SelectionMode="Single" SelectedItem="{Binding JobVM.PartGroup, Mode=TwoWay}" CanUserAddRows="false" AutoGenerateColumns="False">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Count" Width="80" Binding="{Binding Count}"  />
                     <DataGridTextColumn Header="Package" Width="200" Binding="{Binding PackageName}"  />
@@ -46,7 +46,7 @@
             <StackPanel Orientation="Horizontal">
                 <Button Style="{StaticResource CommandButton}" Command="{Binding PlaceGroupPartCommand}" Content="Place Part Group" ></Button>
             </StackPanel>
-            <DataGrid ItemsSource="{Binding JobVM.PickAndPlaceJobPart.Placements}" SelectedItem="{Binding JobVM.Placement}" CanUserAddRows="false" AutoGenerateColumns="false" >
+            <DataGrid ItemsSource="{Binding JobVM.PartGroup.Placements}" SelectedItem="{Binding JobVM.Placement}" CanUserAddRows="false" AutoGenerateColumns="false" >
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Name" Width="80" Binding="{Binding Name}"  />
                     <DataGridTextColumn Header="X" Width="50" Binding="{Binding X}"  />

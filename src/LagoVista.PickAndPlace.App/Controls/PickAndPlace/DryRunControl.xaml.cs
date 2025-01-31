@@ -30,7 +30,7 @@ namespace LagoVista.PickAndPlace.App.Controls.PickAndPlace
 
         private void DataGrid_LoadingRow(object sender, DataGridRowEventArgs e)
         {
-            var placeablePart = e.Row.DataContext as PickAndPlaceJobPart;
+            var placeablePart = e.Row.DataContext as PartsGroup;
             if (placeablePart != null && (placeablePart.AutoFeeder != null || placeablePart.StripFeeder != null && placeablePart.StripFeederRow != null))
             {
                 if (placeablePart.AvailableCount >= placeablePart.Count)

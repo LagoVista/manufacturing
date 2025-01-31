@@ -20,9 +20,12 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 
         AvailablePart SelectedAvailablePart { get; set; }
 
-        PickAndPlaceJobPart PickAndPlaceJobPart { get; set; }
+        PartsGroup PartGroup { get; set; }
 
         PickAndPlaceJobPlacement Placement { get; set; }
+
+        Task<InvokeResult> SetPartGroupToPlaceAsync(PartsGroup part);
+        Task<InvokeResult> SetIndividualPartToPlaceAsync(PickAndPlaceJobPlacement placement);
 
         IPartsViewModel PartsViewModel { get; }
         bool IsSubstituting { get; }
@@ -35,7 +38,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         /// <param name="placement"></param>
         /// <param name="rotated90">If the feeder is rotated/vertical, we need to correct for that.</param>
         /// <returns></returns>
-        Task<InvokeResult> RotateCurrentPartAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement, bool rotated90, bool reverse);
+        Task<InvokeResult> RotateCurrentPartAsync(PartsGroup part, PickAndPlaceJobPlacement placement, bool rotated90, bool reverse);
 
 
         RelayCommand SaveCommand { get; }

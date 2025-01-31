@@ -63,7 +63,9 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     using (var contour = contours[i])
                     using (var approxContour = new VectorOfPoint())
                     {
-                        CvInvoke.ApproxPolyDP(contour, approxContour, CvInvoke.ArcLength(contour, true) * profile.PolygonEpsilonFactor, profile.ContourFindOnlyClosed);
+                        var epsilon = CvInvoke.ArcLength(contour, true) * profile.PolygonEpsilonFactor;
+
+                        CvInvoke.ApproxPolyDP(contour, approxContour, epsilon, profile.ContourFindOnlyClosed);
                         var area = CvInvoke.ContourArea(approxContour, false);
                             if(area < profile.ContourMinArea)
                         {

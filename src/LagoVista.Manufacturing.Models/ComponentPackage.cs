@@ -371,6 +371,21 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _partInTapeVisionProfile, value);
         }
 
+
+        private bool _checkInFeeder = true;
+        public bool CheckInFeeder
+        {
+            get => _checkInFeeder;
+            set => Set(ref _checkInFeeder, value);
+        }
+
+        private string _checkInFeederAlgorithm;
+        public string CheckInFeederAlgorithm
+        {
+            get => _checkInFeederAlgorithm;
+            set => Set(ref _checkInFeederAlgorithm, value);
+        }
+
         private bool _checkForPartPresense = true;
         public bool CheckForPartPrecence
         {

@@ -53,7 +53,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _corectionFactor = new Point2D<double>();
 
             if (component.ComponentPackage.Value.PartInspectionVisionProfile != null)
-                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfileSource.ComponentPackage, CurrentComponent.ComponentPackage.Id, 
+                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfileSource.ComponentPackage, component.ComponentPackage.Id, 
                     component.ComponentPackage.Value.PartInspectionVisionProfile);
             else
                 Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartOnBoard);

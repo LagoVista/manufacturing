@@ -16,6 +16,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         RelayCommand CaptureKnownLocationCommand { get; }
         RelayCommand MoveToKnownLocationCommand { get; }
         RelayCommand SetToolOffsetCommand { get; }
+        RelayCommand ToggleCaptureToolHeadCalibrationCommand {get;}
+        RelayCommand SetToolHeadCalibrationCommand { get; }
 
         Point2D<double> KnownLocation { get; }
         Point2D<double> Delta { get; }

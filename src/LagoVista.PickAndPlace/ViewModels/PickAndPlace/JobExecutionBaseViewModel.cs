@@ -38,7 +38,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             switch (e.PropertyName)
             {
                 case nameof(JobVM.CurrentComponent):
-                case nameof(JobVM.PickAndPlaceJobPart):
+                case nameof(JobVM.PartGroup):
                 case nameof(JobVM.Placement): RaiseCanExecuteChanged(); break;
             }
         }
@@ -46,12 +46,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         protected InvokeResult ResolveFeeder()
         {
-            if (JobVM.PickAndPlaceJobPart == null)
+            if (JobVM.PartGroup == null)
             {
                 return InvokeResult.FromError("No part to place.");
             }
 
-            var placement = JobVM.PickAndPlaceJobPart.Placements.FirstOrDefault();
+            var placement = JobVM.PartGroup.Placements.FirstOrDefault();
             if (placement == null)
             {
                 return InvokeResult.FromError("Could not identify first placement.");
@@ -60,37 +60,37 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var currentFeeder = ActiveFeederViewModel;
             ActiveFeederViewModel = null;
 
-            if (!EntityHeader.IsNullOrEmpty(JobVM.PickAndPlaceJobPart.StripFeeder))
+            if (!EntityHeader.IsNullOrEmpty(JobVM.PartGroup.StripFeeder))
             {
-                _stripFeederViewModel.Current = _stripFeederViewModel.Feeders.SingleOrDefault(sf => sf.Id == JobVM.PickAndPlaceJobPart.StripFeeder.Id);
+                _stripFeederViewModel.Current = _stripFeederViewModel.Feeders.SingleOrDefault(sf => sf.Id == JobVM.PartGroup.StripFeeder.Id);
                 if (_stripFeederViewModel.Current == null)
                 {
-                    return InvokeResult.FromError($"Could not find strip feeder {JobVM.PickAndPlaceJobPart.StripFeeder.Text}.");
+                    return InvokeResult.FromError($"Could not find strip feeder {JobVM.PartGroup.StripFeeder.Text}.");
                 }
 
-                if (EntityHeader.IsNullOrEmpty(JobVM.PickAndPlaceJobPart.StripFeederRow))
+                if (EntityHeader.IsNullOrEmpty(JobVM.PartGroup.StripFeederRow))
                 {
-                    return InvokeResult.FromError($"Strip feeder {JobVM.PickAndPlaceJobPart.StripFeeder} does ont have row.");
+                    return InvokeResult.FromError($"Strip feeder {JobVM.PartGroup.StripFeeder} does ont have row.");
                 }
 
-                _stripFeederViewModel.CurrentRow = _stripFeederViewModel.Current.Rows.SingleOrDefault(r => r.Id == JobVM.PickAndPlaceJobPart.StripFeederRow.Id);
+                _stripFeederViewModel.CurrentRow = _stripFeederViewModel.Current.Rows.SingleOrDefault(r => r.Id == JobVM.PartGroup.StripFeederRow.Id);
                 if (_stripFeederViewModel.CurrentRow == null)
                 {
-                    return InvokeResult.FromError($"On Strip feeder {JobVM.PickAndPlaceJobPart.StripFeeder}, could not find row {JobVM.PickAndPlaceJobPart.StripFeederRow.Text}.");
+                    return InvokeResult.FromError($"On Strip feeder {JobVM.PartGroup.StripFeeder}, could not find row {JobVM.PartGroup.StripFeederRow.Text}.");
                 }
 
                 ActiveFeederViewModel = _stripFeederViewModel;
                 _feederIsVertical = _stripFeederViewModel.Current.Orientation.Value == Manufacturing.Models.FeederOrientations.Vertical;
 
             }
-            else if (!EntityHeader.IsNullOrEmpty(JobVM.PickAndPlaceJobPart.AutoFeeder))
+            else if (!EntityHeader.IsNullOrEmpty(JobVM.PartGroup.AutoFeeder))
             {
-                var fdr = _autoFeederViewModel.Feeders.SingleOrDefault(sf => sf.Id == JobVM.PickAndPlaceJobPart.AutoFeeder.Id);
+                var fdr = _autoFeederViewModel.Feeders.SingleOrDefault(sf => sf.Id == JobVM.PartGroup.AutoFeeder.Id);
                 _autoFeederViewModel.Current = fdr;
                 ActiveFeederViewModel = _autoFeederViewModel;
                 if (_autoFeederViewModel.Current == null)
                 {
-                    return InvokeResult.FromError($"Could not find auto feeder {JobVM.PickAndPlaceJobPart.AutoFeeder}");
+                    return InvokeResult.FromError($"Could not find auto feeder {JobVM.PartGroup.AutoFeeder}");
                 }
 
                 _feederIsVertical = true;

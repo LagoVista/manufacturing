@@ -10,6 +10,7 @@ using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
 using RingCentral;
 using SixLabors.ImageSharp.Formats.Bmp;
@@ -28,7 +29,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private readonly IRestClient _restClient;
         ObservableCollection<AutoFeeder> _autoFeeders;
 
-        public AutoFeederViewModel(IMachineRepo machineRepo, IPhotonFeederViewModel photonFeederViewModel, IRestClient restClient, IMachineUtilitiesViewModel machineUtilitiesViewModel) : base(machineRepo, restClient, machineUtilitiesViewModel)
+        public AutoFeederViewModel(IMachineRepo machineRepo, IPhotonFeederViewModel photonFeederViewModel, ILocatorViewModel locatorViewModel, IRestClient restClient, IMachineUtilitiesViewModel machineUtilitiesViewModel) : base(machineRepo, restClient, locatorViewModel, machineUtilitiesViewModel)
         {
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
             PhotonFeederViewModel = photonFeederViewModel ?? throw new ArgumentNullException(nameof(photonFeederViewModel));
@@ -343,9 +344,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return;
             }
 
-            if(SelectedComponent != null)
+            if(CurrentComponent != null)
             {
-                Current.Component = EntityHeader<Component>.Create(SelectedComponent.Id, SelectedComponent.Key, SelectedComponent.Name);
+                Current.Component = EntityHeader<Component>.Create(CurrentComponent.Id, CurrentComponent.Key, CurrentComponent.Name);
             }
             else
             {

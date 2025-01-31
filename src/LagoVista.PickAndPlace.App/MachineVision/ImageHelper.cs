@@ -21,11 +21,6 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
             Line(img, 0, (int)circle.CenterPixels.Y, size.Width, (int)circle.CenterPixels.Y, color);
             Line(img, (int)circle.CenterPixels.X, 0, (int)circle.CenterPixels.X, size.Height, color);
-
-            CvInvoke.Circle(img.Image, new System.Drawing.Point((int)circle.CenterPixels.X, (int)circle.CenterPixels.Y), (int)circle.RadiusPixels, new Bgr(color).MCvScalar, thickness, Emgu.CV.CvEnum.LineType.AntiAlias);
-            CvInvoke.PutText(img.Image, $"Diameter {circle.RadiusMM * 2}mm", new Point(size.Width - 300, size.Height - 100), FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.White).MCvScalar);
-            CvInvoke.PutText(img.Image, $"Found Count: {circle.FoundCount}", new Point(size.Width - 300, size.Height - 70), FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.White).MCvScalar);
-            CvInvoke.PutText(img.Image, $"Error (mm) {circle.OffsetMM}", new Point(size.Width - 300, size.Height - 40), FontFace.HersheyPlain, 1, new Bgr(System.Drawing.Color.White).MCvScalar);
         }
 
         public void Circle(IMVImage<IInputOutputArray> img, int x, int y, int radius, System.Drawing.Color color, int thickness = 1)
@@ -51,12 +46,6 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             Line(img, (int)p[1].X, (int)p[1].Y, (int)p[2].X, (int)p[2].Y, color);
             Line(img, (int)p[2].X, (int)p[2].Y, (int)p[3].X, (int)p[3].Y, color);
             Line(img, (int)p[3].X, (int)p[3].Y, (int)p[0].X, (int)p[0].Y, color);
-
-            var msg = $"Width: {Math.Round(rect.SizeMM.X, 2):0.0} x {Math.Round(rect.SizeMM.Y, 2):0.0}";
-
-            var size = new Size(480, 480);
-
-            CvInvoke.PutText(img.Image, msg, new Point(size.Width - 200, size.Height - 100), FontFace.HersheyPlain, 1, new Bgr(rect.Centered ? System.Drawing.Color.Green : System.Drawing.Color.Red).MCvScalar);
         }
 
         public void ShowCalibrationSquare(IMVImage<IInputOutputArray> destImage, Size size)

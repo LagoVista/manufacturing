@@ -14,7 +14,6 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         string SelectedCategoryKey { get; set; }
         string SelectedComponentSummaryId { get; set; }
         Point2D<double> CurrentPartLocation { get; }
-        Component SelectedComponent { get; set; }
         Component CurrentComponent { get; set; }
         bool UseCalculated { get; set; }
 
@@ -22,12 +21,15 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 
         abstract Task<InvokeResult> NextPartAsync();
   
-        Task<InvokeResult> MoveToCurrentPartInFeederAsync();
         Task<InvokeResult> PickCurrentPartAsync();
         Task<InvokeResult> RecycleCurrentPartAsync();
         Task<InvokeResult> InspectCurrentPartAsync();
 
-        Task<InvokeResult> MoveToPartInFeederAsync(Component component);
+        Task<InvokeResult> CenterOnPartAsync();
+        Task<InvokeResult> CenterOnPartAsync(Component component);
+
+        Task<InvokeResult> MoveToPartInFeederAsync();
+        Task<InvokeResult> MoveToPartInFeederAsync(Component component);        
         Task<InvokeResult> PickPartAsync(Component component);
         Task<InvokeResult> InspectPartAsync(Component component);        
         Task<InvokeResult> RecyclePartAsync(Component component);
@@ -45,5 +47,6 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand RecycleCurrentPartCommand { get; }
 
         RelayCommand NextPartCommand { get; }
+        RelayCommand CenterOnPartCommand { get;  }
     }
 }

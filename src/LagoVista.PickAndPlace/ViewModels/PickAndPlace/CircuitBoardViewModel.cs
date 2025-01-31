@@ -88,6 +88,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public async Task<InvokeResult> AlignBoardAsync()
         {
             Machine.SendSafeMoveHeight();
+            await Machine.MoveToCameraAsync();
             Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_BoardFiducial);
 
             foreach (var fiducial in Job.BoardFiducials)
@@ -138,16 +139,28 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 this.AngleOffset = expectedDegrees - actualDegrees;
                 this.ScalingError = actualDelta - expectedDelta;
 
+                Machine.AddStatusMessage(StatusMessageTypes.Info, "Board calibrated.");
+                Machine.GotoPoint(MachineConfiguration.DefaultWorkOrigin);
 
                 Debug.WriteLine($"Expected: {expectedDegrees}; Actual: {actualDegrees}, Scale Error: {this.ScalingError}");
                 IsBoardAligned = true;
+                return InvokeResult.Success;
             }
             else
+            {
                 IsBoardAligned = false;
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not identify all fiducials, board not calibrated.");
+                foreach(var fiducial in Job.BoardFiducials)
+                {
+                    fiducial.Actual = null;
+                }
+                return InvokeResult.FromError("Could not find all fiducials and calibrate the board.");
+            }
+                
 
 
 
-            return InvokeResult.Success;
+            
         }
 
         double _angleOffset;
@@ -183,7 +196,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             return boardLocation;
         }
 
-        public async Task<InvokeResult> GoToPartOnBoardAsync(PickAndPlaceJobPart part, PickAndPlaceJobPlacement placement)
+        public async Task<InvokeResult> GoToPartOnBoardAsync(PartsGroup part, PickAndPlaceJobPlacement placement)
         {
             if (!IsBoardAligned)
             {

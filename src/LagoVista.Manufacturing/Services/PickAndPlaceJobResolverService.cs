@@ -16,7 +16,7 @@ namespace LagoVista.Manufacturing.Services
             var commonParts = job.BoardRevision.PcbComponents.Where(prt => prt.Included).GroupBy(prt => prt.PackageAndValue.ToLower());
             foreach (var entries in commonParts)
             {
-                var part = new PickAndPlaceJobPart()
+                var part = new PartsGroup()
                 {
                     Component = entries.First().Component,
                     PackageName = entries.First().PackageName,

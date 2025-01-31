@@ -1,4 +1,4 @@
-﻿/*1/30/2025 4:19:49 PM*/
+﻿/*1/31/2025 3:59:33 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -1301,6 +1301,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:PnPState_OnBoard
 
 		public static string PnPState_OnBoard { get { return GetResourceString("PnPState_OnBoard"); } }
+//Resources:ManufacturingResources:PnpState_PartCenteredOnFeeder
+
+		public static string PnpState_PartCenteredOnFeeder { get { return GetResourceString("PnpState_PartCenteredOnFeeder"); } }
 //Resources:ManufacturingResources:PnPState_PartCompleted
 
 		public static string PnPState_PartCompleted { get { return GetResourceString("PnPState_PartCompleted"); } }
@@ -2023,6 +2026,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string PnPState_JobCompleted = "PnPState_JobCompleted";
 			public const string PnPState_New = "PnPState_New";
 			public const string PnPState_OnBoard = "PnPState_OnBoard";
+			public const string PnpState_PartCenteredOnFeeder = "PnpState_PartCenteredOnFeeder";
 			public const string PnPState_PartCompleted = "PnPState_PartCompleted";
 			public const string PnpState_PartDetected = "PnpState_PartDetected";
 			public const string PnpState_PartNotDetected = "PnpState_PartNotDetected";

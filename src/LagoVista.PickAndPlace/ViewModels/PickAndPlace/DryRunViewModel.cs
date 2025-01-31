@@ -27,7 +27,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             PlacePartCommand = CreatedMachineConnectedCommand(() => PcbVM.PlacePartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement), () => JobVM.Placement != null);
 
-            GoToPartOnBoardCommand = CreatedMachineConnectedCommand(() => PcbVM.GoToPartOnBoardAsync(JobVM.PickAndPlaceJobPart, JobVM.Placement), () => JobVM.Placement != null);
+            GoToPartOnBoardCommand = CreatedMachineConnectedCommand(() => PcbVM.GoToPartOnBoardAsync(JobVM.PartGroup, JobVM.Placement), () => JobVM.Placement != null);
             InspectPartOnBoardCommand = CreatedMachineConnectedCommand(() => PcbVM.InspectPartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement), () => JobVM.Placement != null);
             
             PickPartFromBoardCommand = CreatedMachineConnectedCommand(async () =>
@@ -37,8 +37,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 InspectPart();
             }, () => JobVM.Placement != null);
 
-            RotatePartCommand = CreatedMachineConnectedCommand(() => JobVM.RotateCurrentPartAsync(JobVM.PickAndPlaceJobPart, JobVM.Placement, ActiveFeederViewModel != null, false), () => JobVM.Placement != null);
-            RotateBackPartCommand = CreatedMachineConnectedCommand(() => JobVM.RotateCurrentPartAsync(JobVM.PickAndPlaceJobPart, JobVM.Placement, ActiveFeederViewModel != null, true), () => JobVM.Placement != null);
+            RotatePartCommand = CreatedMachineConnectedCommand(() => JobVM.RotateCurrentPartAsync(JobVM.PartGroup, JobVM.Placement, ActiveFeederViewModel != null, false), () => JobVM.Placement != null);
+            RotateBackPartCommand = CreatedMachineConnectedCommand(() => JobVM.RotateCurrentPartAsync(JobVM.PartGroup, JobVM.Placement, ActiveFeederViewModel != null, true), () => JobVM.Placement != null);
 
             ClonePartInspectionVisionProfileCommand = CreatedCommand(ClonePartInspectionVisionProfile, () => JobVM.CurrentComponentPackage != null);
             ClonePartInTapeVisionProfileCommand = CreatedCommand(ClonePartInTapeVisionProfile, () => JobVM.CurrentComponentPackage != null);
@@ -70,15 +70,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public async void NextPart()
         {
             await ActiveFeederViewModel.NextPartAsync();
-            var idx = JobVM.PickAndPlaceJobPart.Placements.IndexOf(JobVM.Placement);
+            var idx = JobVM.PartGroup.Placements.IndexOf(JobVM.Placement);
             if(idx == -1)
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not find current placement.");
             }
             idx++;
-            if(JobVM.PickAndPlaceJobPart.Placements.Count > idx)
+            if(JobVM.PartGroup.Placements.Count > idx)
             {
-                JobVM.Placement = JobVM.PickAndPlaceJobPart.Placements[idx];
+                JobVM.Placement = JobVM.PartGroup.Placements[idx];
                 MoveToPartInFeeder();
             }
             else
@@ -168,9 +168,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
         
         
-        void GotoPartInFeeder(PickAndPlaceJobPart part)
+        void GotoPartInFeeder(PartsGroup part)
         {
-            JobVM.PickAndPlaceJobPart = part;
+            JobVM.PartGroup = part;
             MoveToPartInFeeder();
         }
 
