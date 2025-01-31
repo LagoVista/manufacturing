@@ -9,6 +9,8 @@ using LagoVista.Core.Interfaces;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using LagoVista.PickAndPlace.Models;
+using Newtonsoft.Json;
+using LagoVista.UserAdmin.Models.Orgs;
 
 namespace LagoVista.Manufacturing.Models
 {
@@ -20,6 +22,13 @@ namespace LagoVista.Manufacturing.Models
         PartInspection,
         [EnumLabel(MachineCamera.MachineCamera_Type_Observation, ManufacturingResources.Names.MachineCamera_Type_Observation, typeof(ManufacturingResources))]
         Observation
+    }
+
+    public enum VisionProfileSource
+    {
+        Camera, 
+        Component,
+        ComponentPackage,
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.MachineCamera_Title, ManufacturingResources.Names.MachineCamera_Description,
@@ -121,6 +130,14 @@ namespace LagoVista.Manufacturing.Models
             get => _currentVisionProfile;
             set => Set(ref _currentVisionProfile, value);
         }
+
+        [JsonIgnore]
+        public VisionProfileSource ProfileSource { get; set; }
+
+
+        [JsonIgnore]
+        public string ProfileSourceId { get; set; }
+
 
         public Point2D<double> Tool3Offset { get; set; }
 

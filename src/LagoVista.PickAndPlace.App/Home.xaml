@@ -144,6 +144,10 @@
                 <ctls:ManualSend Grid.Row="1" VerticalAlignment="Bottom"/>
             </Grid>
 
+            <mch:ErrorsControl Grid.Column="1" Margin="0,20,0,0" HorizontalAlignment="Right" VerticalAlignment="Top">
+                
+            </mch:ErrorsControl>
+            
             <ctls:MachineStatusControl  Height="250"  VerticalAlignment="Bottom" Grid.Column="2"  Grid.Row="1"/>
 
             <Grid Grid.Column="2" Grid.RowSpan="2" >

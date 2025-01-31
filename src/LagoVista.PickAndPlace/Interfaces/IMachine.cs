@@ -328,7 +328,7 @@ namespace LagoVista.PickAndPlace.Interfaces
         Task<InvokeResult<byte>> I2CReadHexByte(byte address);
 
         void SetVisionProfile(CameraTypes cameraType, string profile);
-        void SetVisionProfile(CameraTypes cameraType, VisionProfile profile);
+        void SetVisionProfile(CameraTypes cameraType, VisionProfileSource sourceType, string sourceId, VisionProfile profile);
 
         Task MoveToToolHeadAsync(MachineToolHead toolHeadToMoveTo);
         Task MoveToCameraAsync();
@@ -343,6 +343,8 @@ namespace LagoVista.PickAndPlace.Interfaces
         Task GoToPartInspectionCameraAsync();
 
         Task<Point2D<double>> GetCurrentLocationAsync();
+
+        ObservableCollection<Models.StatusMessage> Messages { get; }
 
     }
 }

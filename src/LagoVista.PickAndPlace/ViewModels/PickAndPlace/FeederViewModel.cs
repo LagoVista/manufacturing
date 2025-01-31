@@ -210,7 +210,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             if(CurrentComponentPackage!.PartInspectionVisionProfile != null)
-                Machine.SetVisionProfile(CameraTypes.PartInspection, CurrentComponentPackage!.PartInspectionVisionProfile);
+                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfileSource.ComponentPackage, CurrentComponentPackage.Id, CurrentComponentPackage!.PartInspectionVisionProfile);
             else
                 Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
 

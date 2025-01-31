@@ -208,7 +208,7 @@ namespace LagoVista.PickAndPlace
             SendCommand($"G0 Z{Settings.SafMoveHeight}");
         }
 
-        public void SetVisionProfile(CameraTypes cameraType, VisionProfile profile)
+        public void SetVisionProfile(CameraTypes cameraType, VisionProfileSource sourceType, string sourceId, VisionProfile profile)
         {
             var camera = Settings.Cameras.FirstOrDefault(cam => cam.CameraType.Value == cameraType);
             if (camera == null)

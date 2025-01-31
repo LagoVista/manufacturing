@@ -212,7 +212,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             Machine.GotoPoint(boardLocation);
             await Machine.GoToPartInspectionCameraAsync();
             if(component.ComponentPackage.Value.PartInspectionVisionProfile != null)
-                Machine.SetVisionProfile(CameraTypes.PartInspection, component.ComponentPackage.Value.PartInspectionVisionProfile);
+                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfileSource.ComponentPackage, component.ComponentPackage.Id, component.ComponentPackage.Value.PartInspectionVisionProfile);
             else
                 Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartOnBoard);
             return InvokeResult.Success;

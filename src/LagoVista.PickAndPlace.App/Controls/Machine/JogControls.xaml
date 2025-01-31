@@ -36,9 +36,9 @@
                     Value="{Binding Machine.Settings.JogFeedRate, Mode=TwoWay}" 
                     VerticalAlignment="Center"  />
 
-        <TextBlock Text="Rate" Grid.Row="1" FontSize="16" Margin="8,4,4,4" />
-        <TextBlock Text="XY" Grid.Row="2" FontSize="16" Margin="8,4,4,4" />
-        <TextBlock Text="Z" Grid.Row="3" FontSize="16" Margin="8,4,4,4"/>
+        <TextBlock Style="{StaticResource label}" Text="Rate" Grid.Row="1" FontSize="16" Margin="8,4,4,4" />
+        <TextBlock Style="{StaticResource label}" Text="XY" Grid.Row="2" FontSize="16" Margin="8,4,4,4" />
+        <TextBlock Style="{StaticResource label}" Text="Z" Grid.Row="3" FontSize="16" Margin="8,4,4,4"/>
 
         <Slider Grid.Row="2" Grid.Column="1" PreviewKeyDown="Dummy_PreviewKeyUp"
                     Minimum="{Binding XYStepMin}"
@@ -54,11 +54,11 @@
                     SmallChange="{Binding Path=ZStepInterval}"
                     Value="{Binding ZStepSizeSlider, Mode=TwoWay}"  
                     VerticalAlignment="Center" />
-        <TextBlock Text="{Binding Machine.Settings.JogFeedRate, FallbackValue=1000, StringFormat=0.00}"
+        <TextBlock Style="{StaticResource label}" Text="{Binding Machine.Settings.JogFeedRate, FallbackValue=1000, StringFormat=0.00}"
                        Grid.Row="1" Grid.Column="3" FontSize="16" Margin="4" TextAlignment="Right" />
-        <TextBlock Text="{Binding XYStepSize, FallbackValue=0.5, StringFormat=0.00}"
+        <TextBlock Style="{StaticResource label}" Text="{Binding XYStepSize, FallbackValue=0.5, StringFormat=0.00}"
                        Grid.Row="2" Grid.Column="2" FontSize="16" Margin="4" TextAlignment="Right" />
-        <TextBlock Text="{Binding ZStepSize, FallbackValue=0.5, StringFormat=0.00}"
+        <TextBlock Style="{StaticResource label}" Text="{Binding ZStepSize, FallbackValue=0.5, StringFormat=0.00}"
                        Grid.Row="3" Grid.Column="2" FontSize="16" Margin="4" TextAlignment="Right" />
 
         <ComboBox IsReadOnly="True" Grid.Column="4" Grid.Row="2" Margin="4" FontSize="16" 

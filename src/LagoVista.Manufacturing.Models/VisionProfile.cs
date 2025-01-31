@@ -498,13 +498,6 @@ namespace LagoVista.PickAndPlace.Models
             set => Set(ref _showRectLocatorImage, value);
         }
 
-        EntityHeader _componentPackage;
-        public EntityHeader SourceComponentPackage
-        {
-            get => _componentPackage;
-            set => Set(ref _componentPackage, value);
-        }
-
         public override string ToString()
         {
             return Name;

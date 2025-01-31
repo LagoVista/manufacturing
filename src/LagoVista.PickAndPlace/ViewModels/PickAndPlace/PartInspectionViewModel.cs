@@ -1,4 +1,5 @@
-﻿using LagoVista.Core.Models.Drawing;
+﻿using LagoVista.Core.Models;
+using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
@@ -52,7 +53,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _corectionFactor = new Point2D<double>();
 
             if (component.ComponentPackage.Value.PartInspectionVisionProfile != null)
-                Machine.SetVisionProfile(CameraTypes.PartInspection, component.ComponentPackage.Value.PartInspectionVisionProfile);
+                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfileSource.ComponentPackage, CurrentComponent.ComponentPackage.Id, 
+                    component.ComponentPackage.Value.PartInspectionVisionProfile);
             else
                 Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartOnBoard);
 
@@ -89,7 +91,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             CurrentComponent = component;
 
             if (component.ComponentPackage.Value.PartInspectionVisionProfile != null)
-                Machine.SetVisionProfile(CameraTypes.PartInspection, component.ComponentPackage.Value.PartInspectionVisionProfile);
+                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfileSource.ComponentPackage, component.ComponentPackage.Id, component.ComponentPackage.Value.PartInspectionVisionProfile);
             else
                 Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartOnBoard);
 

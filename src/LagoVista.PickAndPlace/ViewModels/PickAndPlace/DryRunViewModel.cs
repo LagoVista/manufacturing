@@ -7,6 +7,7 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Models;
 using Newtonsoft.Json;
 using System;
+using System.ComponentModel;
 using System.Linq;
 
 namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
@@ -61,9 +62,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var newProfile = JsonConvert.DeserializeObject<VisionProfile>(JsonConvert.SerializeObject(MachineConfiguration.Cameras.First().CurrentVisionProfile));
             newProfile.Name = newName;
             newProfile.Id = Guid.NewGuid().ToId();
-            newProfile.SourceComponentPackage = JobVM.CurrentComponentPackage.ToEntityHeader();
             JobVM.CurrentComponentPackage.PartInspectionVisionProfile = newProfile;
-            Machine.SetVisionProfile(Manufacturing.Models.CameraTypes.PartInspection, newProfile);
+            Machine.SetVisionProfile(Manufacturing.Models.CameraTypes.PartInspection, VisionProfileSource.ComponentPackage, JobVM.CurrentComponentPackage.Id, newProfile);
             JobVM.SaveComponentPackageCommand.Execute(null);
         }
 
@@ -101,9 +101,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var newProfile = JsonConvert.DeserializeObject<VisionProfile>(JsonConvert.SerializeObject(MachineConfiguration.Cameras.First().CurrentVisionProfile));
             newProfile.Name = newName;
             newProfile.Id = Guid.NewGuid().ToId();
-            newProfile.SourceComponentPackage = JobVM.CurrentComponentPackage.ToEntityHeader();
             JobVM.CurrentComponentPackage.PartOnBoardVisionProfile = newProfile;
-            Machine.SetVisionProfile(Manufacturing.Models.CameraTypes.Position, newProfile);
+            Machine.SetVisionProfile(Manufacturing.Models.CameraTypes.Position, VisionProfileSource.ComponentPackage, JobVM.CurrentComponentPackage.Id, newProfile);
             JobVM.SaveComponentPackageCommand.Execute(null);
         }
 
@@ -119,9 +118,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var newProfile = JsonConvert.DeserializeObject<VisionProfile>(JsonConvert.SerializeObject(MachineConfiguration.Cameras.First().CurrentVisionProfile));
             newProfile.Name = newName;
             newProfile.Id = Guid.NewGuid().ToId();
-            newProfile.SourceComponentPackage = JobVM.CurrentComponentPackage.ToEntityHeader();
             JobVM.CurrentComponentPackage.PartInTapeVisionProfile = newProfile;
-            Machine.SetVisionProfile(Manufacturing.Models.CameraTypes.Position, newProfile);
+            Machine.SetVisionProfile(Manufacturing.Models.CameraTypes.Position, VisionProfileSource.ComponentPackage, JobVM.CurrentComponentPackage.Id, newProfile);
             JobVM.SaveComponentPackageCommand.Execute(null);
         }
 

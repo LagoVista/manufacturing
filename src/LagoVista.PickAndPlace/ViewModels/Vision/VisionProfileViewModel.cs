@@ -5,6 +5,7 @@ using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Models;
+using LagoVista.UserAdmin.Models.Calendar;
 using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
@@ -214,24 +215,24 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         public async Task SaveAsync()
         {
             await MachineRepo.SaveCurrentMachineAsync();
-            if (!EntityHeader.IsNullOrEmpty(Profile.SourceComponentPackage))
+
+            switch (Camera.ProfileSource)
             {
-                if (Camera.CameraType.Value == CameraTypes.PartInspection)
-                {
-                    await _restClient.PutAsync($"/api/mfg/component/package/{Profile.SourceComponentPackage.Id}/visionprofile/inspection", Profile);
-                }
-                else if (Profile.Name.ToLower().Contains("tape"))
-                {
-                    await _restClient.PutAsync($"/api/mfg/component/package/{Profile.SourceComponentPackage.Id}/visionprofile/partintape", Profile);
-                }
-                else if (Profile.Name.ToLower().Contains("board"))
-                {
-                    await _restClient.PutAsync($"/api/mfg/component/package/{Profile.SourceComponentPackage.Id}/visionprofile/partonboard", Profile);
-                }
-                else
-                {
-                    Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Part has a component package, but don't know how to update profile on package because Kevin Wolf was lazy and had a horrible algorithm for this...sorry");
-                }
+                case VisionProfileSource.ComponentPackage:
+                    if (Camera.CameraType.Value == CameraTypes.PartInspection)
+                    {
+                        await _restClient.PutAsync($"/api/mfg/component/package/{Camera.ProfileSourceId}/visionprofile/inspection", Profile);
+                    }
+                    else if (Profile.Name.ToLower().Contains("tape"))
+                    {
+                        await _restClient.PutAsync($"/api/mfg/component/package/{Camera.ProfileSourceId}/visionprofile/partintape", Profile);
+                    }
+                    else if (Profile.Name.ToLower().Contains("board"))
+                    {
+                        await _restClient.PutAsync($"/api/mfg/component/package/{Camera.ProfileSourceId}/visionprofile/partonboard", Profile);
+                    }
+                    break; 
+
             }
         }
 
