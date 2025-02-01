@@ -338,6 +338,7 @@ namespace LagoVista.PickAndPlace.Interfaces
         void MoveToToolHead(MachineToolHead toolHeadToMoveTo);
         void MoveToCamera();
         IImageCaptureService PositionImageCaptureService { get; set; }
+        IImageCaptureService PartInspectionCaptureService { get; set; }
 
         bool WasMachineHomed { get; }
         bool WasMachinOriginCalibrated { get; set; }

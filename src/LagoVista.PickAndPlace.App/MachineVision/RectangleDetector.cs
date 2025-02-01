@@ -55,7 +55,18 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.CurrentVisionProfile.PixelsPerMM);
                 var searchBounds = new CircleF(new System.Drawing.PointF(center.X, center.Y), scaledTarget);
 
-                CvInvoke.FindContours(_edges, contours, null, RetrType.External, ChainApproxMethod.ChainApproxTc89Kcos);
+                var retrType = RetrType.List;
+
+                switch (profile.ContourRetrieveMode.Value)
+                {
+                    case ContourRetrieveModes.List: retrType = RetrType.List; break;
+                    case ContourRetrieveModes.External: retrType = RetrType.External; break;
+                    case ContourRetrieveModes.Tree: retrType = RetrType.Tree; break;
+                    case ContourRetrieveModes.FloodFill: retrType = RetrType.Floodfill; break;
+                    case ContourRetrieveModes.TwoLevelHierarchy: retrType = RetrType.Ccomp; break;
+                }
+
+                CvInvoke.FindContours(_edges, contours, null, retrType, ChainApproxMethod.ChainApproxTc89Kcos);
                 int count = contours.Size;
            
                 for (int i = 0; i < count; i++)

@@ -16,6 +16,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             SLWIOC.Register<ICircleDetector<IInputOutputArray>, CircleDetector>();
             SLWIOC.Register<ICornerDetector<IInputOutputArray>, CornerDetector>();
             SLWIOC.Register<IImageHelper<IInputOutputArray>, ImageHelper>();
+            SLWIOC.Register<ILineDetector<IInputOutputArray>, LineDetector>();
             SLWIOC.Register<IRectangleDetector<IInputOutputArray>, RectangleDetector>();
         }
     }

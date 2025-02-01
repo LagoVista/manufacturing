@@ -59,7 +59,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 }
             }
 
-            var staleRects = FoundCircles.Where(itr => itr.Iteration != _iteration).ToList();
+            var staleRects = FoundCircles.Where(itr => itr.Iteration < _iteration - 2).ToList();
             foreach (var rect in staleRects)
             {
                 FoundCircles.Remove(rect);

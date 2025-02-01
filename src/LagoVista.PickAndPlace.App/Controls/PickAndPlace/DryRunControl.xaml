@@ -88,6 +88,7 @@
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding PickPartCommand}" Content="Pick Part"></Button>
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding CheckPartPresentCommand}" Content="Check Part Present"></Button>
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding InspectPartCommand}" Content="Inspect Part"></Button>
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding RotatePartCommand}" Content="Rotate To Place"></Button>
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding CenterInspectedPartCommand}" Content="Center Part"></Button>
                                 
                                 
@@ -95,7 +96,7 @@
                             </StackPanel>
                             <StackPanel Grid.Row="1" Grid.Column="1">
                                 <TextBlock Style="{StaticResource header}" Text="Placeable Part" HorizontalAlignment="Center" />
-                                <Button Style="{StaticResource CommandButton}" Command="{Binding RotatePartCommand}" Content="Rotate To Place"></Button>
+                                
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding GoToPartOnBoardCommand}" Content="Go To Part In Board"></Button>
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding PlacePartCommand}" Content="Place Part Board"></Button>
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding CheckNoPartPresentCommand}" Content="Part Not Present"></Button>

@@ -45,6 +45,7 @@
 
             <StackPanel Orientation="Horizontal">
                 <Button Style="{StaticResource CommandButton}" Command="{Binding PlaceGroupPartCommand}" Content="Place Part Group" ></Button>
+                <Button Style="{StaticResource CommandButton}" Command="{Binding MoveToPartInFeederCommand}" Content="Move To Part in Feeder"></Button>
             </StackPanel>
             <DataGrid ItemsSource="{Binding JobVM.PartGroup.Placements}" SelectedItem="{Binding JobVM.Placement}" CanUserAddRows="false" AutoGenerateColumns="false" >
                 <DataGrid.Columns>

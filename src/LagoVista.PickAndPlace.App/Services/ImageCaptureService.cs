@@ -294,6 +294,8 @@ namespace LagoVista.PickAndPlace.App.Services
 
                 if(value != null && value.CameraType.Value == CameraTypes.Position)
                     Machine.PositionImageCaptureService = this;
+                else if (value != null && value.CameraType.Value == CameraTypes.PartInspection)
+                    Machine.PartInspectionCaptureService = this;
             }
         }
 

@@ -19,8 +19,16 @@
         </Grid.RowDefinitions>
 
         <TextBlock FontSize="24" Text="{Binding Camera.Name}"></TextBlock>
-        <TextBlock Grid.Row="1" Text="Vision Profile"></TextBlock>
-        <ComboBox Margin="100,0,0,0" Grid.Row="1" ItemsSource="{Binding VisionProfiles}" SelectedValuePath="Key" SelectedValue="{Binding SelectedProfile}" ></ComboBox>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Visibility="{Binding CustomProfile, Converter={StaticResource NullVisibilityConverter}}">
+            <TextBlock Grid.Row="1" Text="Vision Profile"></TextBlock>
+            <ComboBox Margin="100,0,0,0" Grid.Row="1" ItemsSource="{Binding VisionProfiles}" SelectedValuePath="Key" SelectedValue="{Binding SelectedProfile}" ></ComboBox>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Visibility="{Binding CustomProfile, Converter={StaticResource NoTNullToVisibilityConverter}}">
+            <TextBlock FontSize="16" Grid.Row="1" Text="Custom Profile:"></TextBlock>
+            <TextBlock FontSize="16" Margin="100,0,0,0" Grid.Row="1" Text="{Binding CustomProfile.Text}"></TextBlock>
+        </StackPanel>
+        
         <Controls:MVViewOptions Grid.Row="2" VerticalAlignment="Bottom"  />
         <Controls:ImageAdjustments  Grid.Row="3"  VerticalAlignment="Top" />
         <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">

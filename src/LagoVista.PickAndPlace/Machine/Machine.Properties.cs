@@ -906,5 +906,17 @@ namespace LagoVista.PickAndPlace
                 RaisePropertyChanged();
             }
         }
+
+
+        IImageCaptureService _partInspectionCaptureService;
+        public IImageCaptureService PartInspectionCaptureService
+        {
+            get => _partInspectionCaptureService;
+            set
+            {
+                _partInspectionCaptureService = value;
+                RaisePropertyChanged();
+            }
+        }
     }
 }

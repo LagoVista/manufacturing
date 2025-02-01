@@ -24,16 +24,18 @@ namespace LagoVista.PickAndPlace.App.Services
         IRectangleDetector<IInputOutputArray> _rectangleDetector;
         ICircleDetector<IInputOutputArray> _circleDetector;
         ICornerDetector<IInputOutputArray> _cornerDetector;
-
+        ILineDetector<IInputOutputArray> _lineDetector;
 
         public ShapeDetectionService(IMachineRepo machineRepo,
             IImageHelper<IInputOutputArray> imageHelper, IRectangleDetector<IInputOutputArray> rectLocator,
-            ICircleDetector<IInputOutputArray> circleLocator, ICornerDetector<IInputOutputArray> cornerDetector)
+            ICircleDetector<IInputOutputArray> circleLocator, ICornerDetector<IInputOutputArray> cornerDetector,
+            ILineDetector<IInputOutputArray> lineDetector)
         {
             _machineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
             _imageHelper = imageHelper ?? throw new ArgumentNullException(nameof(imageHelper));
             _rectangleDetector = rectLocator ?? throw new ArgumentNullException(nameof(rectLocator));
             _circleDetector = circleLocator ?? throw new ArgumentNullException(nameof(circleLocator));
+            _lineDetector = lineDetector ?? throw new ArgumentNullException(nameof(lineDetector));
             _cornerDetector = cornerDetector ?? throw new ArgumentNullException(nameof(cornerDetector));
         }
 
@@ -59,6 +61,7 @@ namespace LagoVista.PickAndPlace.App.Services
                 if (camera.CurrentVisionProfile.FindCircles) _circleDetector.FindCircles(input, camera, size); else _circleDetector.Reset();
                 if (camera.CurrentVisionProfile.FindCorners) _cornerDetector.FindCorners(input, camera, size); else _cornerDetector.Reset();
                 if (camera.CurrentVisionProfile.FindRectangles) _rectangleDetector.FindRectangles(input, camera, size); else _rectangleDetector.Reset();
+                if (camera.CurrentVisionProfile.FindLines) _lineDetector.FindLines(input, camera, size); else _lineDetector.Reset();
                 //if(camera.CurrentVisionProfile.FindLines) _line
             }
             else
@@ -66,6 +69,7 @@ namespace LagoVista.PickAndPlace.App.Services
                 _cornerDetector.Reset();
                 _circleDetector.Reset();
                 _rectangleDetector.Reset();
+                _lineDetector.Reset();
             }
         }
 

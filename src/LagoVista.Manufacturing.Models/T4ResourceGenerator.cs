@@ -1,4 +1,4 @@
-﻿/*1/31/2025 3:59:33 PM*/
+﻿/*2/1/2025 2:03:57 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -557,6 +557,21 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ComponentPurchase_Vendor
 
 		public static string ComponentPurchase_Vendor { get { return GetResourceString("ComponentPurchase_Vendor"); } }
+//Resources:ManufacturingResources:ContourRetrieveMode_External
+
+		public static string ContourRetrieveMode_External { get { return GetResourceString("ContourRetrieveMode_External"); } }
+//Resources:ManufacturingResources:ContourRetrieveMode_FloodFill
+
+		public static string ContourRetrieveMode_FloodFill { get { return GetResourceString("ContourRetrieveMode_FloodFill"); } }
+//Resources:ManufacturingResources:ContourRetrieveMode_List
+
+		public static string ContourRetrieveMode_List { get { return GetResourceString("ContourRetrieveMode_List"); } }
+//Resources:ManufacturingResources:ContourRetrieveMode_Tree
+
+		public static string ContourRetrieveMode_Tree { get { return GetResourceString("ContourRetrieveMode_Tree"); } }
+//Resources:ManufacturingResources:ContourRetrieveMode_TwoLevelHierarchy
+
+		public static string ContourRetrieveMode_TwoLevelHierarchy { get { return GetResourceString("ContourRetrieveMode_TwoLevelHierarchy"); } }
 //Resources:ManufacturingResources:FeedDirection_Backwards
 
 		public static string FeedDirection_Backwards { get { return GetResourceString("FeedDirection_Backwards"); } }
@@ -1559,6 +1574,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:VisionProfile_BoardFiducial
 
 		public static string VisionProfile_BoardFiducial { get { return GetResourceString("VisionProfile_BoardFiducial"); } }
+//Resources:ManufacturingResources:VisionProfile_CountourRetrievealMode
+
+		public static string VisionProfile_CountourRetrievealMode { get { return GetResourceString("VisionProfile_CountourRetrievealMode"); } }
+//Resources:ManufacturingResources:VisionProfile_CountourRetrievealMode_Select
+
+		public static string VisionProfile_CountourRetrievealMode_Select { get { return GetResourceString("VisionProfile_CountourRetrievealMode_Select"); } }
 //Resources:ManufacturingResources:VisionProfile_Defauilt
 
 		public static string VisionProfile_Defauilt { get { return GetResourceString("VisionProfile_Defauilt"); } }
@@ -1778,6 +1799,11 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentPurchase_Quantity = "ComponentPurchase_Quantity";
 			public const string ComponentPurchase_Title = "ComponentPurchase_Title";
 			public const string ComponentPurchase_Vendor = "ComponentPurchase_Vendor";
+			public const string ContourRetrieveMode_External = "ContourRetrieveMode_External";
+			public const string ContourRetrieveMode_FloodFill = "ContourRetrieveMode_FloodFill";
+			public const string ContourRetrieveMode_List = "ContourRetrieveMode_List";
+			public const string ContourRetrieveMode_Tree = "ContourRetrieveMode_Tree";
+			public const string ContourRetrieveMode_TwoLevelHierarchy = "ContourRetrieveMode_TwoLevelHierarchy";
 			public const string FeedDirection_Backwards = "FeedDirection_Backwards";
 			public const string FeedDirection_Forwards = "FeedDirection_Forwards";
 			public const string Feeder_AdvanceGCode = "Feeder_AdvanceGCode";
@@ -2112,6 +2138,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ToolNozzleTip_Description = "ToolNozzleTip_Description";
 			public const string ToolNozzleTip_Title = "ToolNozzleTip_Title";
 			public const string VisionProfile_BoardFiducial = "VisionProfile_BoardFiducial";
+			public const string VisionProfile_CountourRetrievealMode = "VisionProfile_CountourRetrievealMode";
+			public const string VisionProfile_CountourRetrievealMode_Select = "VisionProfile_CountourRetrievealMode_Select";
 			public const string VisionProfile_Defauilt = "VisionProfile_Defauilt";
 			public const string VisionProfile_FeederFiducial = "VisionProfile_FeederFiducial";
 			public const string VisionProfile_FeederOrigin = "VisionProfile_FeederOrigin";

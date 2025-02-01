@@ -71,6 +71,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         public string GaussianKSizeHelp { get { return "Gaussian kernel size.this is the supplied value for both X and Y.  This can be zero and it will be compueted from sigma."; } }
         public string GaussianSigmaHelp { get { return "Gaussian kernel standard deviation this is supplied for both the X and Y.."; } }
 
+        public string CountourRetrievalModelHelp { get => "How should contours be returned, external works best when there are lots of small countours in a larger one.  List works best when there is one large countour that encloses your shape."; }
+        public string CountourRetrievalModelLink { get => "https://docs.opencv.org/4.x/d9/d8b/tutorial_py_contours_hierarchy.html"; }
+
 
         void CopyVisionProfile()
         {
@@ -208,8 +211,25 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                 if (SelectedProfile != null)
                 {
                     Camera.CurrentVisionProfile.PropertyChanged += CurrentVisionProfile_PropertyChanged;
+
+                    var profile = Camera.VisionProfiles.FirstOrDefault(prf => prf.Id == Camera.CurrentVisionProfile.Id);
+                    if (profile == null)
+                    {
+                        CustomProfile = null;
+                    }
+                    else
+                    { 
+                        CustomProfile = EntityHeader.Create(profile.Id, profile.Key, profile.Name);
+                    }
                 }
             }
+        }
+
+        EntityHeader _customProfile;
+        public EntityHeader CustomProfile
+        {
+            get => _customProfile;
+            set => Set(ref _customProfile, value);
         }
 
         public async Task SaveAsync()

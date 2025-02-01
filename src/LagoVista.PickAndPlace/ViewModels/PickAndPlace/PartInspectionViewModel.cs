@@ -56,7 +56,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfileSource.ComponentPackage, component.ComponentPackage.Id, 
                     component.ComponentPackage.Value.PartInspectionVisionProfile);
             else
-                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartOnBoard);
+                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
 
             _waitForCenter = new ManualResetEventSlim(false);
             _locatorViewModel.RegisterRectangleLocatedHandler(this);
@@ -93,7 +93,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if (component.ComponentPackage.Value.PartInspectionVisionProfile != null)
                 Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfileSource.ComponentPackage, component.ComponentPackage.Id, component.ComponentPackage.Value.PartInspectionVisionProfile);
             else
-                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartOnBoard);
+                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
 
             return InspectAsync();
         }
@@ -102,7 +102,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             if (rectangleLocated.Centered)
             {
-                if (rectangleLocated.FoundCount > 5)
+                if (rectangleLocated.Stabilized)
                 {
                     _locatorViewModel.UnregisterRectangleLocatedHandler(this);
                     _waitForCenter.Set();
@@ -110,11 +110,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
             else
             {
-                if (rectangleLocated.FoundCount > 5)
+                if (rectangleLocated.Stabilized)
                 {
                     Machine.SetRelativeMode();
                     Machine.SendCommand($"G0  X{rectangleLocated.OffsetMM.X},Y{rectangleLocated.OffsetMM.Y}");
-                    _corectionFactor += rectangleLocated.OffsetMM;
+                    var offset = new Point2D<double>(rectangleLocated.OffsetMM.X * 0.8, rectangleLocated.OffsetMM.Y * 0.75);
+                    _corectionFactor += offset;
                    
                     Machine.SetAbsoluteMode();
                     rectangleLocated.Reset();

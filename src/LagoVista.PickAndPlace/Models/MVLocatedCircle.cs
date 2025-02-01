@@ -1,5 +1,7 @@
 ﻿using Emgu.CV.Cuda;
 using Emgu.CV.CvEnum;
+using Emgu.CV.Structure;
+using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Util;
@@ -8,7 +10,7 @@ using System.Linq;
 
 namespace LagoVista.PickAndPlace.Models
 {
-    public class MVLocatedCircle
+    public class MVLocatedCircle : ModelBase
     {
         const int FILTER_SIZE = 9;
         const int THROW_AWAY = 3;
@@ -74,6 +76,16 @@ namespace LagoVista.PickAndPlace.Models
                 _filteredCenter = new Point2D<float>(sortedX.Average(), sortedY.Average());
                 _filteredRadius = Math.Round(sortedRadiuses.Average(), 2);
             }
+
+            RaisePropertyChanged(nameof(Summary));
+            RaisePropertyChanged(nameof(Centered));
+            RaisePropertyChanged(nameof(CenterPixels));
+            RaisePropertyChanged(nameof(OffsetPixels));
+            RaisePropertyChanged(nameof(OffsetMM));
+            RaisePropertyChanged(nameof(RadiusPixels));
+            RaisePropertyChanged(nameof(RadiusMM));
+            RaisePropertyChanged(nameof(FoundCount));
+            RaisePropertyChanged(nameof(Stabilized));
         }
 
         public bool Stabilized => _foundCount >= _stabilizationCount;
@@ -107,5 +119,12 @@ namespace LagoVista.PickAndPlace.Models
         public CameraTypes CameraType { get; }
 
         public int Iteration { get; set; }
+
+        public string Summary
+        {
+            get => $"Err: {OffsetMM.X:0.00}x{OffsetMM.Y:0.00} mm Dia: {(RadiusMM * 2) :0.0} mm ";
+        }
     }
+
+    
 }

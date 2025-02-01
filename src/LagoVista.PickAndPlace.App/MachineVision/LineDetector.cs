@@ -2,10 +2,12 @@
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
+using LagoVista.PickAndPlace.Interfaces.Services;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,10 +15,10 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace LagoVista.PickAndPlace.App.MachineVision
 {
-    public class LineDetector
+    public class LineDetector : ILineDetector<IInputOutputArray>
     {
         private readonly ILocatorViewModel _locatorViewModel;
-        private readonly List<MVLocatedLine> _foundLines = new List<MVLocatedLine>();
+        private readonly ObservableCollection<MVLocatedLine> _foundLines = new ObservableCollection<MVLocatedLine>();
 
         public LineDetector(ILocatorViewModel locatorViewModel)
         {
@@ -29,7 +31,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
             if (profile.FindLines)
             {
-                var lines = CvInvoke.HoughLinesP(input.Image, profile.HoughLinesRHO, profile.HoughLinesTheta * (Math.PI / 180), profile.HoughLinesThreshold, profile.HoughLinesMinLineLength, profile.HoughLinesMaxLineGap);
+                var lines = CvInvoke.HoughLinesP(input.Image, profile.HoughLinesRHO, profile.HoughLinesTheta * (Math.PI / 180), profile.HoughLinesThreshold, profile.HoughLinesMinLineLength / profile.PixelsPerMM, profile.HoughLinesMaxLineGap);
                 foreach (var line in lines)
                 {
                     _foundLines.Add(new MVLocatedLine()
@@ -42,7 +44,13 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
             _foundLines.Clear();
         }
-        public List<MVLocatedLine> FoundLines { get => _foundLines; }
+
+        public void Reset()
+        {
+            _foundLines.Clear();
+        }
+
+        public ObservableCollection<MVLocatedLine> FoundLines { get => _foundLines; }
 
     }
 }

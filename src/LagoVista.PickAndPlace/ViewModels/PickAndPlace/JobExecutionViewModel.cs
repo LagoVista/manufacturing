@@ -100,15 +100,18 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             result = JobVM.PartGroup.Validate();
             if (!result.Successful) return result;
-            JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.Validated);
+                JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.Validated);
+                result = await ActiveFeederViewModel.MoveToPartInFeederAsync();
+                if (!result.Successful) return result;
+                JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.PartCenteredOnFeeder);
 
-            result = await ActiveFeederViewModel.MoveToPartInFeederAsync();
-            if (!result.Successful) return result;
-            JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.PartCenteredOnFeeder);
 
-            result = await ActiveFeederViewModel.CenterOnPartAsync();
-            if (!result.Successful) return result;
-            JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.PartPicked);
+            if (JobVM.CurrentComponentPackage.CheckInFeeder)
+            {
+                result = await ActiveFeederViewModel.CenterOnPartAsync();
+                if (!result.Successful) return result;
+                JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.PartPicked);
+            }
 
             result = await ActiveFeederViewModel.PickCurrentPartAsync();
             if (!result.Successful) return result;
@@ -137,8 +140,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             result = await PcbVM.PlacePartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement);
             if (!result.Successful) return result;
 
-            result = await PcbVM.InspectPartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement);
-            if (!result.Successful) return result;
+            //result = await PcbVM.InspectPartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement);
+            //if (!result.Successful) return result;
 
             result = await ActiveFeederViewModel.NextPartAsync();
             if (!result.Successful) return result;

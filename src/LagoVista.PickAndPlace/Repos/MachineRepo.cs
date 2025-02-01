@@ -152,6 +152,11 @@ namespace LagoVista.PickAndPlace.Repos
                 {
                     CurrentMachine.PositionImageCaptureService.StopCapture();
                 }
+
+                if (CurrentMachine.PartInspectionCaptureService != null)
+                {
+                    CurrentMachine.PartInspectionCaptureService.StopCapture();
+                }
             }
             else
             {
@@ -173,15 +178,21 @@ namespace LagoVista.PickAndPlace.Repos
                         await socketClient.ConnectAsync(CurrentMachine.Settings.IPAddress, 3000);
                         await CurrentMachine.ConnectAsync(socketClient);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-
+                        CurrentMachine.AddStatusMessage(StatusMessageTypes.FatalError, $"Could not connect to machine via network: {ex.Message}.");
+                        return;
                     }
                 }
 
                 if(CurrentMachine.PositionImageCaptureService != null)
                 {
                     CurrentMachine.PositionImageCaptureService.StartCapture();
+                }
+
+                if (CurrentMachine.PartInspectionCaptureService != null)
+                {
+                    CurrentMachine.PartInspectionCaptureService.StartCapture();
                 }
             }
         }

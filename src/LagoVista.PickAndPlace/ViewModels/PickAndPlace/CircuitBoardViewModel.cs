@@ -1,4 +1,5 @@
-﻿using LagoVista.Core.Commanding;
+﻿using LagoVista.Client.Core.Exceptions;
+using LagoVista.Core.Commanding;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
@@ -109,7 +110,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     int attemptCount = 0;
 
                     while (!_completed.IsSet && ++attemptCount < 200)
-                        _completed.Wait(250);
+                        _completed.Wait(25);
                     
                     if (!_completed.IsSet)
                     {
@@ -155,12 +156,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     fiducial.Actual = null;
                 }
                 return InvokeResult.FromError("Could not find all fiducials and calibrate the board.");
-            }
-                
-
-
-
-            
+            }            
         }
 
         double _angleOffset;
@@ -205,7 +201,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             Machine.SendSafeMoveHeight();
             var boardLocation = GetWorkSpaceLocation(placement);
-            boardLocation += placement.PickErrorOffset;
+            if(placement.PickErrorOffset != null)
+                boardLocation -= placement.PickErrorOffset;
             Machine.GotoPoint(boardLocation);
 
             Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartOnBoard);

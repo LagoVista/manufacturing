@@ -76,7 +76,7 @@
             </Grid.RowDefinitions>
             <StackPanel Grid.Row="0" Grid.ColumnSpan="2" >
                 <TextBlock Style="{StaticResource header}" Text="Parts to Place"></TextBlock>
-                <DataGrid ItemsSource="{Binding Job.Parts}" LoadingRow="DataGrid_LoadingRow"  SelectionMode="Single" SelectedItem="{Binding PickAndPlaceJobPart, Mode=TwoWay}" CanUserAddRows="false" AutoGenerateColumns="False">
+                <DataGrid ItemsSource="{Binding Job.Parts}" LoadingRow="DataGrid_LoadingRow"  SelectionMode="Single" SelectedItem="{Binding PartGroup, Mode=TwoWay}" CanUserAddRows="false" AutoGenerateColumns="False">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Count" Width="80" Binding="{Binding Count}"  />
                         <DataGridTextColumn Header="Package" Width="200" Binding="{Binding PackageName, Mode=TwoWay}"  />
@@ -93,6 +93,7 @@
                 <StackPanel Grid.Row="2" Visibility="{Binding IsSubstituting, Converter={StaticResource BoolToInverseVisibilityConverter}}">
                     <local:ComponentEditorControl></local:ComponentEditorControl>
                     <local:ComponentPackageEditor></local:ComponentPackageEditor>
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding SaveComponentPackageCommand}" Content="Save Component Package" />
                 </StackPanel>
 
                 <Grid Grid.Row="2" Visibility="{Binding IsSubstituting, Converter={StaticResource BoolToVisibilityConverter}}">

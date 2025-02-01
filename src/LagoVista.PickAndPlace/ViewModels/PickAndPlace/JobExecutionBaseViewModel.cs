@@ -1,4 +1,5 @@
 ﻿using LagoVista.Client.Core;
+using LagoVista.Core.Commanding;
 using LagoVista.Core.Models;
 using LagoVista.Core.Validation;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
@@ -25,6 +26,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _autoFeederViewModel = autoFeederViewModel ?? throw new ArgumentNullException(nameof(autoFeederViewModel));
             _stripFeederViewModel = stripFeederViewModel ?? throw new ArgumentNullException(nameof(stripFeederViewModel));
 
+            MoveToPartInFeederCommand = CreatedMachineConnectedCommand(MoveToPartInFeeder, () => JobVM.CurrentComponent != null);
             PartInspectionVM = partInspectionVM ?? throw new ArgumentException(nameof(partInspectionVM));
             JobVM = jobVM ?? throw new ArgumentNullException(nameof(jobVM));
             PcbVM = pcbVM ?? throw new ArgumentNullException(nameof(pcbVM));
@@ -117,6 +119,19 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
 
 
+        public async void MoveToPartInFeeder()
+        {
+            var result = ResolveFeeder();
+            if (!result.Successful)
+                Machine.AddStatusMessage(Manufacturing.Models.StatusMessageTypes.FatalError, result.ErrorMessage);
+            else
+            {
+                await Machine.MoveToCameraAsync();
+                await ActiveFeederViewModel.MoveToPartInFeederAsync(JobVM.CurrentComponent);
+            }
+        }
+
+
         private IFeederViewModel _activeFeeder;
         public IFeederViewModel ActiveFeederViewModel
         {
@@ -129,6 +144,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public IJobManagementViewModel JobVM { get; }
         public ICircuitBoardViewModel PcbVM { get; }
         public IPartInspectionViewModel PartInspectionVM { get; }
+
+        public RelayCommand MoveToPartInFeederCommand { get; }
 
     }
 }

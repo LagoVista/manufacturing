@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:ui="clr-namespace:LagoVista.PickAndPlace.App.Controls.UI"
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="600">
@@ -31,7 +32,7 @@
             </Style>
         </Grid.Resources>
 
-        <TabControl VerticalContentAlignment="Stretch" Grid.Row="3" Grid.ColumnSpan="2">
+        <TabControl VerticalContentAlignment="Stretch" Grid.Row="3" Grid.ColumnSpan="2" Margin="10">
             <TabItem Header="Image">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">
@@ -104,11 +105,12 @@
                 </StackPanel>
             </TabItem>
             
-            <TabItem Header="Edge">
-                <StackPanel>
-                    <Label Content="Edge Detection" FontSize="36" />
+            <TabItem Header="Countour">
+                <StackPanel Margin="20">
+                    <Label Content="Countour Detection" FontSize="36" />
                     <Label Content="Canny Edge Detection 1" Style="{StaticResource Link}" MouseDown="ShowLink_Handler" Tag="{Binding  CannyLink}" />
                     <Label Content="Canny Edge Detection 2" Style="{StaticResource Link}" MouseDown="ShowLink_Handler" Tag="{Binding  CannyLink2}" />
+                    <Label Content="Contour Retrieval Mode" Style="{StaticResource Link}" MouseDown="ShowLink_Handler" Tag="{Binding  CountourRetrievalModelLink}" />
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Use Canny Edge Detection" Style="{StaticResource Caption}"/>
                         <CheckBox IsChecked="{Binding Path=Profile.UseCannyEdgeDetection}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
@@ -132,6 +134,9 @@
                         <Label Content="{Binding Profile.CannyHighThreshold, FallbackValue=3}" Style="{StaticResource Value}" />
                     </StackPanel>
                     <Slider Value="{Binding Path=Profile.CannyLowThreshold, Mode=TwoWay}" Minimum="0" Maximum="100" SmallChange="0" LargeChange="5" ToolTip="{Binding CannyLowThresholdHelp}" />
+
+                    <Label Content="{Binding CountourRetrievalModelHelp}" />
+                    <ui:Picker Model="{Binding Profile}" FieldName="ContourRetrieveMode" />
 
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Threshold Edge Detection" Style="{StaticResource Caption}" FontWeight="Bold" />

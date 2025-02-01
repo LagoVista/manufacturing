@@ -19,7 +19,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                                IJobManagementViewModel jobVM, IStripFeederViewModel stripFeederViewModel, IAutoFeederViewModel autoFeederViewModel, IMachineRepo machineRepo) : 
                                 base(restClient, pcbVM, partInspectionVM, vacuumViewModel, jobVM, stripFeederViewModel, autoFeederViewModel, machineRepo)
         {
-            MoveToPartInFeederCommand = CreatedMachineConnectedCommand(MoveToPartInFeeder, () => JobVM.CurrentComponent != null);
+            
             PickPartCommand = CreatedMachineConnectedCommand(PickPart, () => JobVM.CurrentComponent != null);
             InspectPartCommand = CreatedMachineConnectedCommand(InspectPart, () => JobVM.CurrentComponent != null);
             CenterInspectedPartCommand = CreatedMachineConnectedCommand(CenterInspectedPart, () => JobVM.CurrentComponent != null);
@@ -85,8 +85,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 JobVM.Placement = null;
             }
-
-
         }
 
         public void ClonePartOnBoardisionProfile()
@@ -175,17 +173,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
 
 
-        public async void MoveToPartInFeeder()
-        {
-            var result = ResolveFeeder();
-            if (!result.Successful)
-                Machine.AddStatusMessage(Manufacturing.Models.StatusMessageTypes.FatalError, result.ErrorMessage);
-            else
-            {
-                await Machine.MoveToCameraAsync();
-                await ActiveFeederViewModel.MoveToPartInFeederAsync(JobVM.CurrentComponent);
-            }
-        }
+
 
         public void PickPart()
         {
@@ -224,7 +212,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public RelayCommand GoToPartOnBoardCommand { get; }
 
-        public RelayCommand MoveToPartInFeederCommand { get; }
+        
         public RelayCommand PickPartCommand { get; }
         public RelayCommand InspectPartCommand { get; }
         public RelayCommand RecyclePartCommand { get; }

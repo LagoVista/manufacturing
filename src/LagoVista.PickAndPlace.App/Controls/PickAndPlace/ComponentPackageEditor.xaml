@@ -39,6 +39,10 @@
             <TextBlock Text="Y=" Style="{StaticResource label}"  Margin="10,0,0,0" />
             <ui:MaskingTextBox UnitType="Size" Text="{Binding CurrentComponentPackage.YOffsetFromReferenceHole}" Width="120" ></ui:MaskingTextBox>
         </StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+            <TextBlock Style="{StaticResource label}" Text="Chart Part Alignment in Feeder"></TextBlock>
+            <CheckBox IsChecked="{Binding CurrentComponentPackage.CheckInFeeder}" VerticalAlignment="Center" FontSize="24" />
+        </StackPanel>
         <TextBlock Margin="0,10,0,4" Style="{StaticResource label}" Text="Tape Pitch Override"></TextBlock>
         <ui:MaskingTextBox HorizontalAlignment="Left" UnitType="Size" Text="{Binding CurrentComponentPackage.CustomTapePitch}" Width="120" ></ui:MaskingTextBox>
     </StackPanel>

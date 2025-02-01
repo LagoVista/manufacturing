@@ -3,9 +3,25 @@ using LagoVista.Core.Models;
 using LagoVista.Manufacturing.Models.Resources;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace LagoVista.PickAndPlace.Models
 {
+    public enum ContourRetrieveModes
+    {
+        [EnumLabel("external", ManufacturingResources.Names.ContourRetrieveMode_External, typeof(ManufacturingResources))]
+        External = 0,
+        [EnumLabel("list", ManufacturingResources.Names.ContourRetrieveMode_List, typeof(ManufacturingResources))]
+        List = 1,
+        [EnumLabel("twolevel", ManufacturingResources.Names.ContourRetrieveMode_TwoLevelHierarchy, typeof(ManufacturingResources))]
+        TwoLevelHierarchy = 2,
+        [EnumLabel("tree", ManufacturingResources.Names.ContourRetrieveMode_Tree, typeof(ManufacturingResources))]
+        Tree = 3,
+        [EnumLabel("floodfill", ManufacturingResources.Names.ContourRetrieveMode_FloodFill, typeof(ManufacturingResources))]
+        FloodFill = 4,
+        
+    }
+
     public class VisionProfile : ModelBase
     {
         public static List<EntityHeader> DefaultVisionProfiles
@@ -79,6 +95,15 @@ namespace LagoVista.PickAndPlace.Models
         {
             get => _show200PixelSquare;
             set => Set(ref _show200PixelSquare, value);
+        }
+
+
+        private EntityHeader<ContourRetrieveModes> _contourRetrievalModes = EntityHeader<ContourRetrieveModes>.Create(ContourRetrieveModes.External);
+        [FormField(LabelResource:ManufacturingResources.Names.VisionProfile_CountourRetrievealMode, WaterMark:ManufacturingResources.Names.VisionProfile_CountourRetrievealMode_Select, EnumType:typeof(ContourRetrieveModes), ResourceType:typeof(ManufacturingResources))]
+        public EntityHeader<ContourRetrieveModes> ContourRetrieveMode
+        {
+            get => _contourRetrievalModes;
+            set => Set(ref _contourRetrievalModes, value);
         }
 
 
@@ -213,6 +238,7 @@ namespace LagoVista.PickAndPlace.Models
             get { return _contourMinArea; }
             set { _contourMinArea = value; RaisePropertyChanged(); }
         }
+        
 
         double _pixelsPerMM = 50;
         public double PixelsPerMM

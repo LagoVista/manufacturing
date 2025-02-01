@@ -29,7 +29,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             public string Address { get; set; }
         }
 
-        public PhotonFeederViewModel(IMachineRepo machineRepo, IPhotonProtocolHandler protocolHandler, IRestClient restClient, ILogger logger) : base(machineRepo) 
+        public PhotonFeederViewModel(IMachineRepo machineRepo, IPhotonProtocolHandler protocolHandler, IRestClient restClient, ILogger logger) : base(machineRepo)
         {
             _protocolHandler = protocolHandler ?? throw new ArgumentNullException(nameof(protocolHandler));
             DiscoverFeedersCommand = CreatedMachineConnectedCommand(Discover);
@@ -64,8 +64,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _completed.Set();
             }
         }
-
-      
 
         ManualResetEventSlim _completed = new ManualResetEventSlim();
 
@@ -130,32 +128,35 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
 
         public async Task<InvokeResult> InitializeFeederAsync(byte slotIndex, string feederId)
-        {            
-            var gcode = _protocolHandler.GenerateGCode(LumenSupport.FeederCommands.Initialize, slotIndex, feederId);
-
-            MachineRepo.CurrentMachine.SendCommand(gcode.GCode);
-
-            MachineRepo.CurrentMachine.LineReceived += CurrentMachine_LineReceived_Advance;
-            _completed.Reset();
-            int attemptCount = 0;
-            while (!_completed.IsSet && ++attemptCount < 200)
+        {
+            var retryCount = 5;
+            while (retryCount > 0)
             {
-                _completed.Wait(1);
-                await Task.Delay(5);
+                var gcode = _protocolHandler.GenerateGCode(LumenSupport.FeederCommands.Initialize, slotIndex, feederId);
+
+                MachineRepo.CurrentMachine.SendCommand(gcode.GCode);
+
+                MachineRepo.CurrentMachine.LineReceived += CurrentMachine_LineReceived_Advance;
+                _completed.Reset();
+                int attemptCount = 0;
+                while (!_completed.IsSet && ++attemptCount < 200)
+                {
+                    _completed.Wait(1);
+                    await Task.Delay(5);
+                }
+
+                MachineRepo.CurrentMachine.LineReceived -= CurrentMachine_LineReceived_Advance;
+
+                if (_completed.IsSet)
+                    return InvokeResult.Success;
+
+                Machine.AddStatusMessage(StatusMessageTypes.Warning, $"could not initialize feeder, will retry.  Retry count {retryCount}");
+                retryCount++;
             }
 
-            MachineRepo.CurrentMachine.LineReceived -= CurrentMachine_LineReceived_Advance;
+            Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not initailzed feeder.");
+            return InvokeResult.FromError("Could not inialize feeder.");
 
-            if (!_completed.IsSet)
-            {
-                Debug.WriteLine($"Does not appear to be completed {attemptCount}");
-                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not initailzed feeder.");
-                return InvokeResult.FromError("Could not inialize feeder.");
-            }
-            
-            else            
-                return InvokeResult.Success;
-            
         }
 
         public async Task<InvokeResult> AdvanceFeed(byte slotIndex, double mm)
@@ -172,7 +173,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 await Task.Delay(5);
             }
 
-             MachineRepo.CurrentMachine.LineReceived -= CurrentMachine_LineReceived_Advance;
+            MachineRepo.CurrentMachine.LineReceived -= CurrentMachine_LineReceived_Advance;
 
             return InvokeResult.Success;
         }
@@ -228,7 +229,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             get => _selectedPhotonFeeder;
             set => Set(ref _selectedPhotonFeeder, value);
-         }
+        }
 
         private byte _slotsToSearch = 50;
         public byte SlotsToSearch

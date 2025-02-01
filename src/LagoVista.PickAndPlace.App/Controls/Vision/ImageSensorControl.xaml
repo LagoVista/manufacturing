@@ -14,7 +14,7 @@
     
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="35"></RowDefinition>
+            <RowDefinition Height="30"></RowDefinition>
             <RowDefinition Height="480"/>
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
@@ -24,10 +24,8 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Text="Vision" Margin="4" FontWeight="Bold" VerticalAlignment="Center" />
-            <TextBlock Text="{Binding Profile.Name}"></TextBlock>
-            <TextBlock Text="{Binding Profile.ZoomLevel}"></TextBlock>
-            
+            <TextBlock Text="{Binding Camera.Name}" Margin="4" FontWeight="Bold" FontSize="20" VerticalAlignment="Center" />
+            <TextBlock TextAlignment="Right" FontSize="20" Text="{Binding Profile.ZoomLevel, StringFormat={} Zoom {0:0.0}x}"></TextBlock>
         </Grid>
 
         <Grid Width="480" Height="480"  Grid.RowSpan="2" Grid.Row="1">
@@ -94,8 +92,8 @@
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Foreground="White" Text="{Binding FoundCount}"></TextBlock>
-                            <TextBlock Foreground="White" Text="{Binding .}"></TextBlock>
+                            <TextBlock Foreground="White" Text="{Binding Summary}"></TextBlock>
+                            <TextBlock Margin="10,0,0,0" Foreground="White" Text="{Binding FoundCount, StringFormat={} Found: {0}}"></TextBlock>
                         </StackPanel>
                     </DataTemplate>
                 </ListView.ItemTemplate>
