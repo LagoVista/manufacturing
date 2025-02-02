@@ -9,7 +9,7 @@
         mc:Ignorable="d"
         xmlns:Controls="clr-namespace:LagoVista.PickAndPlace.App.Controls"
         Title="Vision Configuration" Height="1000" Width="600">
-    <Grid>
+    <Grid Background="{StaticResource ContentBackgroundBrush}" >
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
@@ -18,18 +18,21 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock Background="{StaticResource ContentBackgroundBrush}" Style="{StaticResource header}" FontSize="24" Text="{Binding Camera.Name, FallbackValue=Camera}"></TextBlock>
-        <StackPanel Grid.Row="1" Background="{StaticResource ContentBackgroundBrush}">        
-            <StackPanel Orientation="Horizontal" >
-                <TextBlock Style="{StaticResource label}" Grid.Row="1" Text="Vision Profile"></TextBlock>
-                <ComboBox Margin="100,0,0,0" Grid.Row="1" ItemsSource="{Binding VisionProfiles}" SelectedValuePath="Key" SelectedValue="{Binding SelectedProfile}" ></ComboBox>
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Style="{StaticResource label}" FontSize="16" Grid.Row="1" Text="Custom Profile:"></TextBlock>
-                <TextBlock Style="{StaticResource content}" FontSize="16" Margin="100,0,0,0" Grid.Row="1" Text="{Binding CustomProfile.Text, FallbackValue=None}"></TextBlock>
-            </StackPanel>
-        </StackPanel>
+        <TextBlock  Style="{StaticResource header}" FontSize="24" Text="{Binding Camera.Name, FallbackValue=Camera}"></TextBlock>
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="50*" />
+                <ColumnDefinition Width="50*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Style="{StaticResource label}" Grid.Column="0" Text="Vision Profile"></TextBlock>
+            <ComboBox Grid.Column="1" ItemsSource="{Binding VisionProfiles}" SelectedValuePath="Key" SelectedValue="{Binding SelectedProfile}" ></ComboBox>
+            <TextBlock Style="{StaticResource label}" Grid.Row="1" Text="Custom Profile:"></TextBlock>
+            <TextBlock Style="{StaticResource content}"  Grid.Row="1" Grid.Column="1" Text="{Binding CustomProfile.Text, FallbackValue=None}"></TextBlock>
+        </Grid>
 
         <Controls:MVViewOptions Grid.Row="2" VerticalAlignment="Bottom"  />
         <Controls:ImageAdjustments  Grid.Row="3"  VerticalAlignment="Top" />

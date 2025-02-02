@@ -24,7 +24,14 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Text="{Binding Camera.Name}" Margin="4" FontWeight="Bold" FontSize="20" VerticalAlignment="Center" />
+            <TextBlock  Margin="4" FontWeight="Bold" FontSize="20" VerticalAlignment="Center" >
+                <TextBlock.Text >
+                    <MultiBinding StringFormat="{}{0} ({1})">
+                        <Binding Path="Camera.Name" />
+                        <Binding Path="Camera.CurrentVisionProfile" />
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
             <TextBlock TextAlignment="Right" FontSize="20" Text="{Binding Profile.ZoomLevel, StringFormat={} Zoom {0:0.0}x}"></TextBlock>
         </Grid>
 
@@ -70,37 +77,30 @@
             <TextBlock Text="Please wait..."  FontSize="42" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
 
-        <StackPanel Grid.Row="1">
-            <Grid Margin="0,20,30,0">
-                
-                <TextBlock Foreground="Black"  Margin="1,1,1,1" Style="{StaticResource header}" Text="{Binding Profile.Name, StringFormat={}Profile: {0}}" />
-                <TextBlock Foreground="White" Style="{StaticResource header}" Text="{Binding Profile.Name, StringFormat={}Profile: {0}}" />
-            </Grid>
-            <ListView ItemsSource="{Binding ShapeDetector.FoundRectangles}" BorderBrush="Transparent" Background="Transparent" Foreground="White">
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            
-                            <TextBlock Foreground="White" Text="{Binding Summary}"></TextBlock>
+        <Grid Grid.Row="1">
+            <StackPanel>
+                <ListView ItemsSource="{Binding ShapeDetector.FoundRectangles}" BorderBrush="Transparent" Background="Transparent" Foreground="White">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Foreground="White" Text="{Binding Summary}"></TextBlock>
+                            </StackPanel>   
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+                <ListView ItemsSource="{Binding ShapeDetector.FoundCircles}"  BorderBrush="Transparent" Background="Transparent"  Foreground="White">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Foreground="White" Text="{Binding Summary}"></TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
 
-                            <TextBlock Margin="10,0,0,0" Foreground="White" Text="{Binding FoundCount, StringFormat={} Found: {0}}"></TextBlock>
-                        </StackPanel>   
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-            <ListView ItemsSource="{Binding ShapeDetector.FoundCircles}"  BorderBrush="Transparent" Background="Transparent"  Foreground="White">
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Foreground="White" Text="{Binding Summary}"></TextBlock>
-                            <TextBlock Margin="10,0,0,0" Foreground="White" Text="{Binding FoundCount, StringFormat={} Found: {0}}"></TextBlock>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-
-            <TextBlock Text="{Binding Profile.ZoomLevel}" />
-        </StackPanel>
+                <TextBlock Text="{Binding Profile.ZoomLevel}" />
+            </StackPanel>
+        </Grid>
 
 
     </Grid>

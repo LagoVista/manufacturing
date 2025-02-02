@@ -1,4 +1,5 @@
-﻿using LagoVista.Core.Commanding;
+﻿using LagoVista.Core;
+using LagoVista.Core.Commanding;
 using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
@@ -106,25 +107,52 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
         public void CirclesLocated(MVLocatedCircles circles)
         {
-            foreach(var handler in _circlesLocatedHandlers.ToList())
+            if (_circlesLocatedHandlers.Any())
             {
-                handler.CirclesLocated(circles);
-            }   
+                Status = $"{DateTime.Now:t} - Circles Located - Notify {_rectLocatedHandlers.Count} handlers.";
+
+                foreach (var handler in _circlesLocatedHandlers.ToList())
+                {
+                    handler.CirclesLocated(circles);
+                }
+            }
         }
 
         public void CircleLocated(MVLocatedCircle circle)
         {
-            foreach (var handler in _circleLocatedHandlers.ToList())
+            if (_circleLocatedHandlers.Any())
             {
-                handler.CircleLocated(circle);
+                Status = $"{DateTime.Now:t} - Circle Located - Notify {_rectLocatedHandlers.Count} handlers.";
+
+                foreach (var handler in _circleLocatedHandlers.ToList())
+                {
+                    handler.CircleLocated(circle);
+                }
             }
         }
 
         public void RectLocated(MVLocatedRectangle rect)
         {
-            foreach(var handler in _rectLocatedHandlers.ToList())
+            if (_rectLocatedHandlers.Any())
             {
-                handler.RectangleLocated(rect);
+                Status = $"{DateTime.Now:t} - Rectangle Located - Notify {_rectLocatedHandlers.Count} handlers.";
+                foreach (var handler in _rectLocatedHandlers.ToList())
+                {
+                    handler.RectangleLocated(rect);
+                }
+            }
+        }
+
+        public void CornerLocated(MVLocatedCorner corner)
+        {
+            if (_cornerLocatedHandlers.Any())
+            {
+                Status = $"{DateTime.Now:t} - Corner Located - Notify {_rectLocatedHandlers.Count} handlers.";
+
+                foreach (var handler in _cornerLocatedHandlers.ToList())
+                {
+                    handler.CornerLocated(corner);
+                }
             }
         }
 
@@ -136,6 +164,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                 {
                     _rectLocatedTimeoutTimer.Dispose();
                 }
+
+                Status = $"{DateTime.Now:t} - Rectangle Locator Timeout - Notify {_rectLocatedHandlers.Count} handlers.";
 
                 foreach (var handler in _rectLocatedHandlers.ToList())
                 {
@@ -176,22 +206,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             SetLocatorStatus();
         }
 
-        public void CornerLocated(MVLocatedCorner corner)
-        {
-            foreach (var handler in _cornerLocatedHandlers.ToList())
-            {
-                handler.CornerLocated(corner);
-            }
-        }
 
         private void CornerLocatorTimedOut(object state)
         {
             lock (_cornerLocatedHandlers)
             {
-                if (_cornerLocatedTimoutTimer != null)
-                {
-                    _cornerLocatedTimoutTimer.Dispose();
-                }
+                _cornerLocatedTimoutTimer?.Dispose();
+
+                Status = $"{DateTime.Now:t} - Corner Locator Timeout - Notify {_cornerLocatedHandlers.Count} handlers.";
 
                 foreach (var handler in _cornerLocatedHandlers)
                 {
@@ -207,7 +229,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                 if (_cornerLocatedTimoutTimer != null)
                 {
                     _cornerLocatedTimoutTimer.Dispose();
-                }
+                }                
 
                 _cornerLocatedHandlers.Add(handler);
                 _cornerLocatedTimoutTimer = new Timer(CornerLocatorTimedOut, handler, timeoutMS, -1);
@@ -232,6 +254,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                 {
                     _circleLocatedTimeoutTimer.Dispose();
                 }
+
+                Status = $"{DateTime.Now:t} - Circle Locator Timeout - Notify {_circleLocatedHandlers.Count} handlers.";
 
                 foreach (var handler in _circleLocatedHandlers.ToList())
                 {
@@ -272,6 +296,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                 {
                     _circlesLocatedTimeoutTimer.Dispose();
                 }
+
+                Status = $"{DateTime.Now:t} - Circles Locator Timeout - Notify {_circlesLocatedHandlers.Count} handlers.";
 
                 foreach (var handler in _circlesLocatedHandlers)
                 {

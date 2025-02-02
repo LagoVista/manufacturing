@@ -1,4 +1,5 @@
-﻿using LagoVista.PickAndPlace.Models;
+﻿using LagoVista.Core.ViewModels;
+using LagoVista.PickAndPlace.Models;
 using System;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
@@ -15,7 +16,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
         PartInTape,
     }
 
-    public interface ILocatorViewModel
+    public interface ILocatorViewModel : IViewModel
     {
         MVLocatorState LocatorState { get; }
         string Status { get; }

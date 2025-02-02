@@ -11,8 +11,14 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel>
-        <TextBlock Style="{StaticResource label}" Text="{Binding ToolHead.Name}" />
-        <TextBlock Style="{StaticResource label}" Text="{Binding Component.Name}" />
+        <StackPanel Orientation="Horizontal">
+            <TextBlock Style="{StaticResource label}" Width="150" Text="Tool Head:"></TextBlock>
+            <TextBlock Style="{StaticResource label}" Text="{Binding ToolHead.Name, FallbackValue=none}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <TextBlock Style="{StaticResource label}" Width="150" Text="Component:"></TextBlock>
+            <TextBlock Style="{StaticResource label}" Text="{Binding Component.Name, FallbackValue=none}" />
+        </StackPanel>
         <StackPanel Orientation="Horizontal">
             <TextBlock Style="{StaticResource label}" Text="Idle:" Width="150" />
             <TextBlock Style="{StaticResource content}" Text="{Binding ToolHead.IdleVacuum}" />

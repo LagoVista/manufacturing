@@ -64,13 +64,15 @@
                     <RowDefinition Height="32" />
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="auto" />
-                    <RowDefinition Height="*" />
+                    <RowDefinition Height="200" />
+                    <RowDefinition Height="120" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <ctls:ImageSensorControl CameraType="Position" Grid.Row="1" />
                 <ctls:ImageSensorControl CameraType="PartInspection" Grid.Row="2" />
                 <mch:VacuumControl Grid.Row="3" />
-                <ctls:MachineResponseControl x:Name="MachineResponse" Grid.Row="4"/>
+                <mch:LocatorControl Grid.Row="4" />
+                <ctls:MachineResponseControl x:Name="MachineResponse" Grid.Row="5"/>
             </Grid>
 
             <Grid Grid.Column="1" >
