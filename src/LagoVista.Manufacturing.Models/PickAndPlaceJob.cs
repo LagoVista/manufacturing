@@ -347,6 +347,14 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _pickErrorAngle, value);
         }
 
+        public void Reset()
+        {
+            State = EntityHeader<PnPStates>.Create(PnPStates.New);
+            StartTimeStamp = null;
+            EndTimeStamp = null;
+            Duration = null;
+        }
+
         EntityHeader<PnPStates> _state = EntityHeader<PnPStates>.Create(PnPStates.New);
         public EntityHeader<PnPStates> State
         {
@@ -355,12 +363,23 @@ namespace LagoVista.Manufacturing.Models
             {
                 if(_state.Value == PnPStates.New)
                     StartTimeStamp = DateTime.UtcNow;
-             
-                if(value.Value == PnPStates.Placed)
+
+                if (value.Value == PnPStates.Placed)
+                {
                     EndTimeStamp = DateTime.UtcNow;
+                    if (StartTimeStamp.HasValue)
+                        Duration = EndTimeStamp - StartTimeStamp;
+                }
 
                 Set(ref _state, value);
             }
+        }
+
+        TimeSpan? _duration;
+        public TimeSpan? Duration
+        {
+            get => _duration;
+            set => Set(ref _duration, value);
         }
 
         private string _lastError;

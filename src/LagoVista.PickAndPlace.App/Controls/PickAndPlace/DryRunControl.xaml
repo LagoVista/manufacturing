@@ -73,15 +73,21 @@
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="33*" />
-                                <ColumnDefinition Width="33*" />
-                                <ColumnDefinition Width="33*" />
+                                <ColumnDefinition Width="25*" />
+                                <ColumnDefinition Width="25*" />
+                                <ColumnDefinition Width="25*" />
+                                <ColumnDefinition Width="25*" />
                             </Grid.ColumnDefinitions>
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Style="{StaticResource content}" Text="{Binding LastStatus}" />
+                                <TextBlock Style="{StaticResource content}" Text="{Binding LastStatus}"  Grid.ColumnSpan="4"/>
                             </StackPanel>
-                            
-                            <StackPanel Grid.Row="1" >
+
+                            <StackPanel Grid.Row="1"  >
+                                <TextBlock Style="{StaticResource header}" Text="Feeder" HorizontalAlignment="Center" />
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding ActiveFeederViewModel.NextPartCommand}" Content="NextPart"></Button>
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1" Grid.Column="1" >
                                 <TextBlock Style="{StaticResource header}" Text="Component" HorizontalAlignment="Center" />
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding MoveToPartInFeederCommand}" Content="Move To Part in Feeder"></Button>
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding ActiveFeederViewModel.CenterOnPartCommand}" Content="Center Part in Feeder"></Button>
@@ -94,7 +100,7 @@
                                 
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding RecyclePartCommand}" Content="Recycle Part"></Button>
                             </StackPanel>
-                            <StackPanel Grid.Row="1" Grid.Column="1">
+                            <StackPanel Grid.Row="1" Grid.Column="2">
                                 <TextBlock Style="{StaticResource header}" Text="Placeable Part" HorizontalAlignment="Center" />
                                 
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding GoToPartOnBoardCommand}" Content="Go To Part In Board"></Button>
@@ -103,7 +109,7 @@
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding NextPartCommand}" Content="Advance Part"></Button>
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding InspectPartOnBoardCommand}" Content="Inspect Part on Board"></Button>
                             </StackPanel>
-                            <StackPanel Grid.Row="1" Grid.Column="2">
+                            <StackPanel Grid.Row="1" Grid.Column="3">
                                 <TextBlock Style="{StaticResource header}" Text="Recycle" HorizontalAlignment="Center" />
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding PickPartFromBoardCommand}" Content="Pick Part From Board"></Button>
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding RotateBackPartCommand}" Content="Rotate Back"></Button>

@@ -7,6 +7,7 @@ using RingCentral;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace
@@ -732,24 +733,33 @@ namespace LagoVista.PickAndPlace
 
         public async Task MoveToToolHeadAsync(MachineToolHead toolHeadToMoveTo)
         {
+            _toolHeadMoveSempahorr.Wait();
+
             if (_viewType == ViewTypes.Moving)
             {
                 AddStatusMessage(StatusMessageTypes.Info, "Can not move to camera, busy.");
+                _toolHeadMoveSempahorr.Release();
                 return;
             }
 
             if(_currentMachineToolHead == toolHeadToMoveTo)
             {
+                _toolHeadMoveSempahorr.Release();
                 return;
             }
 
             if (_currentMachineToolHead != null )
             {
+                _toolHeadMoveSempahorr.Release();
                 await MoveToCameraAsync();
+                _toolHeadMoveSempahorr.Wait();
             }
 
             await Task.Run(() =>
             {
+                System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount == 0, 5000);
+                System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
+
                 var currentLocationX = MachinePosition.X;
                 var currentLocationY = MachinePosition.Y;
 
@@ -792,6 +802,8 @@ namespace LagoVista.PickAndPlace
                     
                 });
             });
+
+            _toolHeadMoveSempahorr.Release();
             // wait until G4 gets marked at sent
             //    
 
@@ -799,22 +811,31 @@ namespace LagoVista.PickAndPlace
 
         }
 
+        SemaphoreSlim _toolHeadMoveSempahorr = new SemaphoreSlim(1);
+
         public async Task  MoveToCameraAsync()
         {
+            _toolHeadMoveSempahorr.Wait();
+            
             if(_viewType == ViewTypes.Moving)
             {
                 AddStatusMessage(StatusMessageTypes.Info, "Can not move to camera, busy.");
+                _toolHeadMoveSempahorr.Release();
                 return;
             }
 
             if(_currentMachineToolHead == null)
             {
                 AddStatusMessage(StatusMessageTypes.Info, "Already viewing camera.");
+                _toolHeadMoveSempahorr.Release();
                 return;
             }
 
             await Task.Run(() =>
             {
+                System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount == 0, 5000);
+                System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
+
                 var currentLocationX = MachinePosition.X;
                 var currentLocationY = MachinePosition.Y;
 
@@ -849,9 +870,10 @@ namespace LagoVista.PickAndPlace
                     RaisePropertyChanged(nameof(ViewType));
                     RaisePropertyChanged(nameof(CurrentMachineToolHead));
                     AddStatusMessage(StatusMessageTypes.Info, "Reset to camera view.");
-                });
-                
+                });                
             });
+
+            _toolHeadMoveSempahorr.Release();
         }
 
         public async void MoveToToolHead(MachineToolHead toolHead)

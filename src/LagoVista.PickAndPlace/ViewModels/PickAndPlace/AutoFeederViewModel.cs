@@ -127,11 +127,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return InvokeResult.FromError("Could not center on part.");
             }
 
-            if(Machine.CurrentMachineToolHead == null)
-            {
-                return InvokeResult.FromError("No tool head selected.");
-            }
-
             lock (this)
             {
                 if (_waitForCenter != null)
@@ -143,9 +138,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             _feederOffset = new Point2D<double>();
-
-            _locatorViewModel.RegisterRectangleLocatedHandler(this);
-
+            
             var toolHead = Machine.CurrentMachineToolHead;
             await Machine.MoveToCameraAsync();
 

@@ -189,8 +189,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var delta = Job.BoardFiducials[1].Expected - Job.BoardFiducials[0].Expected;
             var xRatio = point.X / delta.X;
             var yRatio = point.Y / delta.Y;
-            var correctedY = point.Y + (yRatio * ScalingError.Y);
-            var correctedX = point.X + (xRatio * ScalingError.X);
+            var correctedY = point.Y + (xRatio * ScalingError.Y);
+            var correctedX = point.X + (yRatio * ScalingError.X);
 
             return new Point2D<double>(correctedX, correctedY);
         }
@@ -199,6 +199,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             var positionOnBoard = placement.PCBLocation;
             var adjustedPosition = Adjust(positionOnBoard);
+            
             var boardLocation = MachineConfiguration.DefaultWorkOrigin + adjustedPosition;
             return boardLocation;
         }
@@ -213,7 +214,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             Machine.SendSafeMoveHeight();
             var boardLocation = GetWorkSpaceLocation(placement);
             if(placement.PickErrorOffset != null)
-                boardLocation -= placement.PickErrorOffset;
+                boardLocation += placement.PickErrorOffset;
             Machine.GotoPoint(boardLocation);
 
             Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartOnBoard);
@@ -231,11 +232,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             await Machine.MoveToCameraAsync();
             var boardLocation = GetWorkSpaceLocation(placement);
             Machine.GotoPoint(boardLocation);
-            await Machine.GoToPartInspectionCameraAsync();
-            if(component.ComponentPackage.Value.PartInspectionVisionProfile != null)
-                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfileSource.ComponentPackage, component.ComponentPackage.Id, component.ComponentPackage.Value.PartInspectionVisionProfile);
+            if (component.PartOnBoardVisionProfile != null)
+                Machine.SetVisionProfile(CameraTypes.Position, VisionProfileSource.Component, component.Id, component.PartOnBoardVisionProfile);
+            else if (component.ComponentPackage.Value.PartOnBoardVisionProfile != null)
+                Machine.SetVisionProfile(CameraTypes.Position, VisionProfileSource.ComponentPackage, component.ComponentPackage.Id, component.ComponentPackage.Value.PartOnBoardVisionProfile);
             else
-                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartOnBoard);
+                Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartOnBoard);
             return InvokeResult.Success;
         }
 

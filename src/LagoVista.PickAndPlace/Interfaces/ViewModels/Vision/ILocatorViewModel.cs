@@ -20,6 +20,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
     {
         MVLocatorState LocatorState { get; }
         string Status { get; }
+        bool IsLocating { get; }
         void SetLocatorState(MVLocatorState state);
 
         void CirclesLocated(MVLocatedCircles circles);

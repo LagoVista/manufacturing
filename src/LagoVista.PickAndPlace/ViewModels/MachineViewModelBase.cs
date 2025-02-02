@@ -5,6 +5,7 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Windows.Input;
 
 namespace LagoVista.PickAndPlace.ViewModels
@@ -52,6 +53,7 @@ namespace LagoVista.PickAndPlace.ViewModels
                 e.PropertyName == nameof(Machine.IsLocating) ||
                 e.PropertyName == nameof(Machine.WasMachineHomed))
             {
+                Debug.WriteLine("PROPERTY CHANGED: " + e.PropertyName);
                 RaiseCanExecuteChanged();
             }
         }

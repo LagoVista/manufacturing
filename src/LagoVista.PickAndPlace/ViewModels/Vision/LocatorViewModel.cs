@@ -27,6 +27,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
         IMachineRepo _machineRepo;
 
+        DateTime? _locatorStart;
+        TimeSpan? _locatorDuration;
+
         public LocatorViewModel(IMachineRepo machineRepo)
         {
             _machineRepo = machineRepo;
@@ -36,6 +39,22 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                 SetLocatorState(MVLocatorState.Idle);
                 AbortVMLocator();
             });
+        }
+
+        bool _isLocating;
+        public bool IsLocating
+        {
+            get => _isLocating;
+            set
+            {
+                Set(ref _isLocating, value);
+                _machineRepo.CurrentMachine.IsLocating = value;
+                if (value)
+                {
+                    _locatorStart = DateTime.Now;
+                    _locatorDuration = null;
+                }
+            }
         }
 
         private void AbortVMLocator()
@@ -67,22 +86,22 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         {
             if (_circlesLocatedHandlers.Any())
             {
-                _machineRepo.CurrentMachine.IsLocating = true;
+                IsLocating = true;
             }
             else if (_circleLocatedHandlers.Any())
             {
-                _machineRepo.CurrentMachine.IsLocating = true;
+                IsLocating = true;
             }
             else if (_rectLocatedHandlers.Any())
             {
-                _machineRepo.CurrentMachine.IsLocating = true;
+                IsLocating = true;
             }
             else if (_cornerLocatedHandlers.Any())
             {
-                _machineRepo.CurrentMachine.IsLocating = true;
+                IsLocating = true;
             }
             else
-                _machineRepo.CurrentMachine.IsLocating = false;
+                IsLocating = false;
 
         }
 
@@ -93,7 +112,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             private set => _mvLocatorState = value;
         }
 
-        private string _status;
+        private string _status = "idle";
         public string Status
         {
             private set => Set(ref _status, value);
@@ -122,7 +141,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         {
             if (_circleLocatedHandlers.Any())
             {
-                Status = $"{DateTime.Now:t} - Circle Located - Notify {_rectLocatedHandlers.Count} handlers.";
+                Status = $"{DateTime.Now:t} - Circle Located - Notify {_circleLocatedHandlers.Count} handlers.";
 
                 foreach (var handler in _circleLocatedHandlers.ToList())
                 {
@@ -186,11 +205,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
                 _rectLocatedHandlers.Add(handler);
                 _rectLocatedTimeoutTimer = new Timer(RectangleLocatorTimeoutHandler, handler, TimeSpan.FromMilliseconds(timeoutMS), TimeSpan.Zero);
-                _machineRepo.CurrentMachine.IsLocating = true;
+                IsLocating = true;
+                
             }
         }
-
-
 
         public void UnregisterRectangleLocatedHandler(IRectangleLocatedHandler handler)
         {
@@ -199,7 +217,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                 if (_rectLocatedTimeoutTimer != null)
                 {
                     _rectLocatedTimeoutTimer.Dispose();
+                    _rectLocatedTimeoutTimer = null;
                 }
+
+                if (_locatorStart != null)
+                    _locatorDuration = DateTime.Now - _locatorStart.Value;
 
                 _rectLocatedHandlers.Remove(handler);
             }
@@ -233,7 +255,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
                 _cornerLocatedHandlers.Add(handler);
                 _cornerLocatedTimoutTimer = new Timer(CornerLocatorTimedOut, handler, timeoutMS, -1);
-                _machineRepo.CurrentMachine.IsLocating = true;
+                IsLocating = true;
             }
         }
 
@@ -242,6 +264,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             lock (_cornerLocatedHandlers)
             {
                 _cornerLocatedHandlers.Remove(handler);
+                if(_cornerLocatedTimoutTimer != null)
+                {
+                    _cornerLocatedTimoutTimer.Dispose();
+                    _cornerLocatedTimoutTimer = null;
+                }
+
             }
             SetLocatorStatus();
         }
@@ -275,7 +303,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
                 _circleLocatedHandlers.Add(handler);
                 _circleLocatedTimeoutTimer = new Timer(CircleLocatorTimedOut, handler, timeoutMS, -1);
-                _machineRepo.CurrentMachine.IsLocating = true;
+                IsLocating = true;
             }
         }
 
@@ -284,8 +312,17 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             lock (_circleLocatedHandlers)
             {
                 _circleLocatedHandlers.Remove(handler);
+                if(_circleLocatedTimeoutTimer != null)
+                {
+                    _circleLocatedTimeoutTimer.Dispose();
+                    _circleLocatedTimeoutTimer = null;
+                }
+
+                if (_locatorStart != null)
+                    _locatorDuration = DateTime.Now - _locatorStart.Value;
+
             }
-            _machineRepo.CurrentMachine.IsLocating = true;
+            IsLocating = false;
         }
 
         private void CirclesLocatorTimedOut(object state)
@@ -313,14 +350,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                 if (_circlesLocatedTimeoutTimer != null)
                 {
                     _circlesLocatedTimeoutTimer.Dispose();
+                    _circlesLocatedTimeoutTimer = null;
                 }
 
                 _circlesLocatedHandlers.Add(handler);
                 _circlesLocatedTimeoutTimer = new Timer(CirclesLocatorTimedOut, handler, timeoutMS, -1);
-                _machineRepo.CurrentMachine.IsLocating = true;
+                IsLocating = false;
             }
         }
-
 
 
         public void UnregisterCirclesLocatedHandler(ICirclesLocatedHandler handler)
@@ -328,6 +365,16 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             lock (_circlesLocatedHandlers)
             {
                 _circlesLocatedHandlers.Remove(handler);
+                if(_circleLocatedTimeoutTimer != null)
+                {
+                    _circlesLocatedTimeoutTimer.Dispose();
+                    _circleLocatedTimeoutTimer = null;
+                }
+
+                if (_locatorStart != null)
+                    _locatorDuration = DateTime.Now - _locatorStart.Value;
+
+
             }
             SetLocatorStatus();
         }

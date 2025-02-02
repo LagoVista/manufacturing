@@ -142,8 +142,6 @@
 
 
                 <StackPanel Orientation="Horizontal">
-
-
                     <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleColumn1}"  Style="{StaticResource content}"></TextBlock>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
@@ -238,14 +236,17 @@
                 </DataGrid.Columns>
             </DataGrid>
             <StackPanel Grid.Column="1" Visibility="{Binding SelectedMachineCamera, Converter={StaticResource NoTNullToVisibilityConverter}}">
-                <TextBlock FontSize="23" Text="{Binding SelectedMachineCamera.Name}"></TextBlock>
-                <TextBlock>This is only done with the camera that is fixed.  Move the position camera over the bottom camera, center the position camera lens over the bottom camera and capture the point.</TextBlock>
+                <TextBlock Style="{StaticResource header}" Text="{Binding SelectedMachineCamera.Name}"></TextBlock>
+                <TextBlock TextWrapping="Wrap" Width="600" Style="{StaticResource content}" >This is only done with the camera that is fixed.  Move the position camera over the bottom camera, center the position camera lens over the bottom camera and capture the point.</TextBlock>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetCameraLocationCommand}"  ToolTip="Set the camera location." Width="64" Height="64"  >
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource content}" Text="{Binding SelectedMachineCamera.AbsolutePosition}" />
+                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetCameraLocationCommand}"  ToolTip="Set the camera location." Width="64" Height="64"  >
                         <Button.Content>
                             <Image Source="/imgs/SetTarget.png"/>
                         </Button.Content>
                     </Button>
+                    </StackPanel>
                     <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToCameraLocationCommand}"  ToolTip="Move to the camera location." Width="64" Height="64"  >
                         <Button.Content>
                             <Image Source="/imgs/MoveToTarget.png"/>

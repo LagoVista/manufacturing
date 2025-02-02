@@ -32,7 +32,7 @@
                     </MultiBinding>
                 </TextBlock.Text>
             </TextBlock>
-            <TextBlock TextAlignment="Right" FontSize="20" Text="{Binding Profile.ZoomLevel, StringFormat={} Zoom {0:0.0}x}"></TextBlock>
+            <TextBlock Margin="0,0,10,0" TextAlignment="Right" FontSize="20" Text="{Binding Profile.ZoomLevel, StringFormat={} Zoom {0:0.0}x}"></TextBlock>
         </Grid>
 
         <Grid Width="480" Height="480"  Grid.RowSpan="2" Grid.Row="1">
@@ -84,6 +84,7 @@
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Foreground="White" Text="{Binding Summary}"></TextBlock>
+                                <TextBlock Foreground="White" Text="{Binding FoundCount}"></TextBlock>
                             </StackPanel>   
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -93,6 +94,7 @@
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Foreground="White" Text="{Binding Summary}"></TextBlock>
+                                <TextBlock Foreground="White" Text="{Binding FoundCount}"></TextBlock>
                             </StackPanel>
                         </DataTemplate>
                     </ListView.ItemTemplate>

@@ -39,7 +39,7 @@
                         <Label Content="Zoom Level" Style="{StaticResource Caption}" />
                         <Label Content="{Binding Profile.ZoomLevel, FallbackValue=3}" Style="{StaticResource Value}" />
                     </StackPanel>
-                    <Slider Value="{Binding Path=Profile.ZoomLevel, Mode=TwoWay}" Minimum="1" Maximum="3"/>
+                    <Slider Value="{Binding Path=Profile.ZoomLevel, Mode=TwoWay}" Minimum="1" Maximum="10"/>
 
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Search Radius" Style="{StaticResource Caption}" />

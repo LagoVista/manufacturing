@@ -8,6 +8,7 @@ using LagoVista.Manufacturing.Models.Resources;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using RingCentral;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
@@ -43,7 +44,20 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             AbortJobCommand = CreatedMachineConnectedCommand(async () => await AbortJobAsync(), () => JobVM.Job != null && State.Value == JobState.Running || State.Value == JobState.Paused);
 
             PlaceGroupPartCommand = CreatedMachineConnectedCommand(async () => await PartCycleAsync(), () => JobVM.Job != null && JobVM.PartGroup != null);
-            PlaceIndependentPartCommand = CreatedMachineConnectedCommand(async () => await PlaceCycleAsync(), () => JobVM.Job != null && JobVM.PartGroup != null && JobVM.Placement != null);
+            PlaceIndependentPartCommand = CreatedMachineConnectedCommand(async () =>
+            {
+                var result = await PlaceCycleAsync();
+                if (result.Successful)
+                {
+                    await Machine.MoveToCameraAsync();
+                    Machine.AddStatusMessage(StatusMessageTypes.FatalError, $"Completed part {JobVM.Placement.Name} in {JobVM.Placement.Duration}"); ;
+                }
+                else
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.FatalError, result.ErrorMessage);
+                }
+
+            }, () => JobVM.Job != null && JobVM.PartGroup != null && JobVM.Placement != null);
             ResetIndpentPartCommand = CreatedMachineConnectedCommand(async () => await ResetIndependentPartAsync(), () => JobVM.Job != null && JobVM.PartGroup != null && JobVM.Placement != null);
 
             JobVM.PropertyChanged += JobVM_PropertyChanged;
@@ -101,16 +115,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             result = JobVM.PartGroup.Validate();
             if (!result.Successful) return result;
                 JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.Validated);
-                result = await ActiveFeederViewModel.MoveToPartInFeederAsync();
-                if (!result.Successful) return result;
-                JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.PartCenteredOnFeeder);
 
+            result = await ActiveFeederViewModel.MoveToPartInFeederAsync();
+            if (!result.Successful) return result;
+                JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.AtFeeder);
 
             if (JobVM.CurrentComponentPackage.CheckInFeeder)
             {
                 result = await ActiveFeederViewModel.CenterOnPartAsync();
                 if (!result.Successful) return result;
-                JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.PartPicked);
+                JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.PartCenteredOnFeeder);
             }
 
             result = await ActiveFeederViewModel.PickCurrentPartAsync();
@@ -122,6 +136,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 result = await VacuumViewModel.CheckPartPresent(JobVM.CurrentComponent, 2500, JobVM.CurrentComponentPackage.PresenseVacuumOverride);
                 if (!result.Successful) return result;
             }
+
+            result = await JobVM.RotateCurrentPartAsync(JobVM.PartGroup, JobVM.Placement, true, false);
+            if (!result.Successful) return result;
 
             if (JobVM.CurrentComponentPackage.CompensateForPickError)
             { 

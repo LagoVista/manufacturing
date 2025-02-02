@@ -11,6 +11,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel>
+        <TextBlock Text="Vacuum" Style="{StaticResource header}" />
         <StackPanel Orientation="Horizontal">
             <TextBlock Style="{StaticResource label}" Width="150" Text="Tool Head:"></TextBlock>
             <TextBlock Style="{StaticResource label}" Text="{Binding ToolHead.Name, FallbackValue=none}" />

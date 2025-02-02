@@ -449,9 +449,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         _currentComponent = value;
                     }
 
-                    PickCurrentPartCommand.RaiseCanExecuteChanged();
-                    RecycleCurrentPartCommand.RaiseCanExecuteChanged();
-                    InspectCurrentPartCommand.RaiseCanExecuteChanged();
+                    RaiseCanExecuteChanged();
                 }
 
             }

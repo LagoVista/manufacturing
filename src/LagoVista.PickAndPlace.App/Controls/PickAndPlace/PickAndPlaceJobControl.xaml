@@ -53,7 +53,10 @@
                     <DataGridTextColumn Header="X" Width="50" Binding="{Binding X}"  />
                     <DataGridTextColumn Header="Y" Width="50" Binding="{Binding Y}"  />
                     <DataGridTextColumn Header="Angle"  Width="50" Binding="{Binding Rotation}"  />
-                    <DataGridTextColumn Header="Angle"  Width="50" Binding="{Binding State}"  />
+                    <DataGridTextColumn Header="Start"  Width="160" Binding="{Binding StartTimeStamp}"  />
+                    <DataGridTextColumn Header="End"  Width="160" Binding="{Binding EndTimeStamp}"  />
+                    <DataGridTextColumn Header="Duration"  Width="120" Binding="{Binding Duration}"  />
+                    <DataGridTextColumn Header="Status"  Width="*" Binding="{Binding State}"  />
                 </DataGrid.Columns>
             </DataGrid>
  
