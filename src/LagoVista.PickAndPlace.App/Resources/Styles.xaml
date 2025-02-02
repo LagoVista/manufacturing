@@ -35,6 +35,11 @@
         <Setter Property="FontSize" Value="18" />
     </Style>
 
+    <Style TargetType="PasswordBox">
+        <Setter Property="FontSize" Value="18" />
+    </Style>
+
+
     <Style TargetType="TextBlock" x:Key="content" >
         <Setter Property="Margin" Value="2" />
         <Setter Property="FontSize" Value="18" />

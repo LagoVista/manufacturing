@@ -44,6 +44,7 @@
     <None Remove="Imgs\ShowAll.png" />
     <None Remove="Imgs\ShowObject.png" />
     <None Remove="Imgs\Solenoid.png" />
+    <None Remove="Imgs\spash_image.png" />
     <None Remove="Imgs\SpindleOff.png" />
     <None Remove="Imgs\SpindleOn.png" />
     <None Remove="Imgs\TestPattern.JPG" />
@@ -71,7 +72,7 @@
     <PackageReference Include="Meziantou.WpfFontAwesome" Version="5.15.4" />
     <PackageReference Include="SharpDX.XInput" Version="4.2.0" />
     <PackageReference Include="System.IO.Ports" Version="9.0.0" />
-    <PackageReference Include="LagoVista.Core" Version="3.0.2814.1404" />
+    <PackageReference Include="LagoVista.Core" Version="3.0.2818.0740" />
 
   </ItemGroup>
 
@@ -134,6 +135,7 @@
     <Resource Include="Imgs\ComputerBug.jpg" />
     <Resource Include="Imgs\ComputerBugFunny.jpg" />
     <Resource Include="Imgs\PleaseWait.jpg" />
+    <Content Include="Imgs\spash_image.png" />
     <Content Include="Resources\DSEG14Classic-Regular.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

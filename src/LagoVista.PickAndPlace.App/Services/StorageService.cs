@@ -64,7 +64,9 @@ namespace LagoVista.PickAndPlace.App.Services
 
         public async Task ClearKVP(string key)
         {
-            (await GetDictionary()).Clear();
+            var dictionary = await GetDictionary();
+            dictionary.Remove(key);
+
             await PersistDictionary();
         }
 
@@ -241,9 +243,10 @@ namespace LagoVista.PickAndPlace.App.Services
             return Task.FromResult(fileName);
         }
 
-        public Task ClearAllAsync()
+        public async Task ClearAllAsync()
         {
-            throw new NotImplementedException();
+            (await GetDictionary()).Clear();
+            await PersistDictionary();
         }
     }
 }

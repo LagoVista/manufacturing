@@ -5,14 +5,32 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LagoVista.PickAndPlace.App"
         mc:Ignorable="d"
-        Title="PCB Commander - Login" Height="200" Width="500">
-    <Grid>
-        <StackPanel Width="300" VerticalAlignment="Center">
-            <Label>User Name</Label>
+        Background="Transparent"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        Height="600" Width="600">
+    <Grid Background="Transparent">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <Rectangle RadiusX="30" RadiusY="30"  Grid.RowSpan="5" Fill="{StaticResource ContentBackgroundBrush}"
+      >
+            
+        </Rectangle>
+        <StackPanel Grid.Row="3" Width="300" Margin="0,0,0,20" VerticalAlignment="Center" x:Name="LoginSection" Visibility="Collapsed">
+            <TextBlock Style="{StaticResource label}" Text="Email" />
             <TextBox x:Name="UserName"></TextBox>
-            <Label>Password</Label>
-             <TextBox x:Name="Password"></TextBox>
-            <Button HorizontalAlignment="Right" Width="120" Height="32" Click="Button_Click" >Login</Button>
+            <TextBlock Style="{StaticResource label}" Text="Password" />
+            <PasswordBox x:Name="Password" ></PasswordBox>
+            <Button Style="{StaticResource CommandButton}" HorizontalAlignment="Right" Width="120" Height="32" Click="Button_Click" >Login</Button>
         </StackPanel>
+        <TextBlock HorizontalAlignment="Center" Style="{StaticResource content}" Text="V0.1.0 - Febraury 2025"  Grid.Row="4"/>
+        <TextBlock Text="GCode Machine Workbench" Style="{StaticResource header}" HorizontalAlignment="Center" />
+        <TextBlock Text="by Software Logistics" Grid.Row="1" Style="{StaticResource content}" HorizontalAlignment="Center" />
+        <Image VerticalAlignment="Top" Grid.Row="2" Source="/Imgs/spash_image.png" Width="500"/>
     </Grid>
 </Window>
