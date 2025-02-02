@@ -32,11 +32,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             TrialPlaced,
         }
 
-        private Point2D<double> _feederOffset;
+        protected Point2D<double> _feederOffset;
 
         private PickStates _pickStates = PickStates.Idle;
-        ManualResetEventSlim _waitForCenter;
-        private readonly ILocatorViewModel _locatorViewModel;
+        protected ManualResetEventSlim _waitForCenter;
+        protected readonly ILocatorViewModel _locatorViewModel;
         private readonly IRestClient _restClient;
         private readonly IMachineUtilitiesViewModel _machineUtilitiesViewModel;
 
@@ -297,7 +297,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                             RaisePropertyChanged(nameof(SelectedCategoryKey));
                         }
 
-                        SelectedComponentSummaryId = componentId;
+                        _selectedComponentSummaryId = componentId;
+                        RaisePropertyChanged(SelectedComponentSummaryId);
                     }
                 }
                 else
@@ -366,62 +367,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             return MoveToPartInFeederAsync();
         }
         
-
-        public Task<InvokeResult> CenterOnPartAsync(Component component)
+        public virtual Task<InvokeResult> CenterOnPartAsync(Component component)
         {
-            CurrentComponent = component;
-            return CenterOnPartAsync();
+            return Task.FromResult(InvokeResult.Success);
         }
-       public async Task<InvokeResult> CenterOnPartAsync()
+
+        public virtual Task<InvokeResult> CenterOnPartAsync()
         {
-            if(CurrentComponent == null)
-            {
-                return InvokeResult.FromError("Could not center on part.");
-            }
-
-            _feederOffset = new Point2D<double>();
-
-            _locatorViewModel.RegisterRectangleLocatedHandler(this);
-
-            var toolHead = Machine.CurrentMachineToolHead;
-            await Machine.MoveToCameraAsync();
-
-            if (CurrentComponent.ComponentPackage.Value.PartInspectionVisionProfile != null)
-                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfileSource.ComponentPackage, CurrentComponent.ComponentPackage.Id,
-                    CurrentComponent.ComponentPackage.Value.PartInspectionVisionProfile);
-            else
-                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInClearTape);
-
-            _waitForCenter = new ManualResetEventSlim(false);
-            _locatorViewModel.RegisterRectangleLocatedHandler(this);
-
-            await Task.Run(() =>
-            {
-                var attemptCount = 0;
-                while (!_waitForCenter.IsSet && ++attemptCount < 200)
-                    _waitForCenter.Wait(25);
-            });
-
-            _locatorViewModel.UnregisterRectangleLocatedHandler(this);
-
-            var success = _waitForCenter.IsSet;
-            _waitForCenter.Dispose();
-            _waitForCenter = null;
-
-            if (toolHead != null)
-                await Machine.MoveToToolHeadAsync(toolHead);
-
-            if (success)
-            {
-                Machine.AddStatusMessage(StatusMessageTypes.Info, $"Centered on part in feeder for {CurrentComponent.Name}.");
-                return InvokeResult.Success;
-            }
-            else
-            {
-                Machine.AddStatusMessage(StatusMessageTypes.FatalError, $"Could not center on part in feeder for {CurrentComponent.Name}.");
-                return InvokeResult.FromError($"Could not center on part in feeder for {CurrentComponent.Name}.");
-            }
+            return Task.FromResult(InvokeResult.Success);
         }
+
 
         ObservableCollection<EntityHeader> _componentCategories;
         public ObservableCollection<EntityHeader> ComponentCategories
@@ -488,7 +443,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     _currentComponent = value;
                     if(value != null)
                     {
-                        SelectedComponentSummaryId = value.Id;
+                        _selectedComponentSummaryId = value.Id;
+                        RaisePropertyChanged(SelectedComponentSummaryId);
                         CurrentComponentPackage = CurrentComponent.ComponentPackage?.Value;
                         _currentComponent = value;
                     }
@@ -558,6 +514,58 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     rectangleLocated.Reset();
                 }
             }
+        }
+
+        protected void SetTapeHoleProfile()
+        {
+            if (!EntityHeader.IsNullOrEmpty(CurrentComponent.TapeColor))
+            {
+                switch (CurrentComponent.TapeColor.Value)
+                {
+                    case TapeColors.Clear: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleClearTape); break;
+                    case TapeColors.White: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleWhiteTape); break;
+                    case TapeColors.Black: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleBlackTape); break;
+
+                }
+            }
+            else if (CurrentComponentPackage != null)
+            {
+                switch (CurrentComponentPackage.TapeColor.Value)
+                {
+                    case TapeColors.Clear: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleClearTape); break;
+                    case TapeColors.White: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleWhiteTape); break;
+                    case TapeColors.Black: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleBlackTape); break;
+
+                }
+            }
+            else
+                Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInWhiteTape);
+        }
+
+        protected void SetPartInTapeHoleProfile()
+        {
+            if (!EntityHeader.IsNullOrEmpty(CurrentComponent.TapeColor))
+            {
+                switch (CurrentComponent.TapeColor.Value)
+                {
+                    case TapeColors.Clear: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInClearTape); break;
+                    case TapeColors.White: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInWhiteTape); break;
+                    case TapeColors.Black: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInBlackTape); break;
+
+                }
+            }
+            else if (CurrentComponentPackage != null)
+            {
+                switch (CurrentComponentPackage.TapeColor.Value)
+                {
+                    case TapeColors.Clear: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInClearTape); break;
+                    case TapeColors.White: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInWhiteTape); break;
+                    case TapeColors.Black: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInBlackTape); break;
+
+                }
+            }
+            else
+                Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInWhiteTape);
         }
 
         public void RectangleLocatorTimeout()

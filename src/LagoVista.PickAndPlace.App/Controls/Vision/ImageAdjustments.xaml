@@ -135,9 +135,10 @@
                     </StackPanel>
                     <Slider Value="{Binding Path=Profile.CannyLowThreshold, Mode=TwoWay}" Minimum="0" Maximum="100" SmallChange="0" LargeChange="5" ToolTip="{Binding CannyLowThresholdHelp}" />
 
-                    <Label Content="{Binding CountourRetrievalModelHelp}" />
+                    
                     <ui:Picker Model="{Binding Profile}" FieldName="ContourRetrieveMode" />
-
+                    <Label Content="{Binding CountourRetrievalModelHelp}" />
+                    
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Threshold Edge Detection" Style="{StaticResource Caption}" FontWeight="Bold" />
                         <Label Content="{Binding Profile.ThresholdEdgeDetection, FallbackValue=3}" Style="{StaticResource Value}" />
@@ -288,7 +289,7 @@
                         <Label Content="Max Area:" Width="210"/>
                         <Label Content="{Binding Profile.CountourMaxArea, FallbackValue=3}" HorizontalContentAlignment="Right" Width="80"/>
                     </StackPanel>
-                    <Slider Value="{Binding Path=Profile.CountourMaxArea, Mode=TwoWay}"  Minimum="300" Maximum="10000" SmallChange="1" LargeChange="50" />
+                    <Slider Value="{Binding Path=Profile.CountourMaxArea, Mode=TwoWay}"  Minimum="300" Maximum="50000" SmallChange="1" LargeChange="50" />
                 </StackPanel>
             </TabItem>
 

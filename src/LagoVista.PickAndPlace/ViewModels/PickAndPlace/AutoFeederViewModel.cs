@@ -12,11 +12,13 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
+using LagoVista.PickAndPlace.ViewModels.Vision;
 using RingCentral;
 using SixLabors.ImageSharp.Formats.Bmp;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using static QRCoder.PayloadGenerator;
 
@@ -116,6 +118,64 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, result.ErrorMessage);
             }
         }
+
+        public override async Task<InvokeResult> CenterOnPartAsync()
+        {
+            if (CurrentComponent == null)
+            {
+                return InvokeResult.FromError("Could not center on part.");
+            }
+
+            _feederOffset = new Point2D<double>();
+
+            _locatorViewModel.RegisterRectangleLocatedHandler(this);
+
+            var toolHead = Machine.CurrentMachineToolHead;
+            await Machine.MoveToCameraAsync();
+
+            if (CurrentComponent.ComponentPackage.Value.PartInspectionVisionProfile != null)
+                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfileSource.ComponentPackage, CurrentComponent.ComponentPackage.Id,
+                    CurrentComponent.ComponentPackage.Value.PartInspectionVisionProfile);
+            else
+                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInClearTape);
+
+            _waitForCenter = new ManualResetEventSlim(false);
+            _locatorViewModel.RegisterRectangleLocatedHandler(this);
+
+            await Task.Run(() =>
+            {
+                var attemptCount = 0;
+                while (!_waitForCenter.IsSet && ++attemptCount < 200)
+                    _waitForCenter.Wait(25);
+            });
+
+            _locatorViewModel.UnregisterRectangleLocatedHandler(this);
+
+            var success = _waitForCenter.IsSet;
+            _waitForCenter.Dispose();
+            _waitForCenter = null;
+
+            if (toolHead != null)
+                await Machine.MoveToToolHeadAsync(toolHead);
+
+            if (success)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Info, $"Centered on part in feeder for {CurrentComponent.Name}.");
+                return InvokeResult.Success;
+            }
+            else
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, $"Could not center on part in feeder for {CurrentComponent.Name}.");
+                return InvokeResult.FromError($"Could not center on part in feeder for {CurrentComponent.Name}.");
+            }
+        }
+
+        public override Task<InvokeResult> CenterOnPartAsync(Component component)
+        {
+            CurrentComponent = component;
+            return CenterOnPartAsync();
+        }
+
 
         private async void ReloadFeeder()
         {

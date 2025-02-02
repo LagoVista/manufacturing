@@ -66,7 +66,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     case ContourRetrieveModes.TwoLevelHierarchy: retrType = RetrType.Ccomp; break;
                 }
 
-                CvInvoke.FindContours(_edges, contours, null, retrType, ChainApproxMethod.ChainApproxTc89Kcos);
+                CvInvoke.FindContours(_edges, contours, null, retrType, ChainApproxMethod.ChainApproxSimple);
                 int count = contours.Size;
            
                 for (int i = 0; i < count; i++)

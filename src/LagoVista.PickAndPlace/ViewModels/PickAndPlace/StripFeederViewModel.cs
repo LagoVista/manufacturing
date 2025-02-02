@@ -97,7 +97,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private async Task LoadTemplates()
         {
             var result = await _restClient.GetListResponseAsync<StripFeederTemplate>("/api/mfg/stripfeeder/templates");
-            if(result.Successful)
+            if (result.Successful)
             {
                 var feeders = result.Model.ToList();
                 feeders.Insert(0, new StripFeederTemplate() { Id = "-1", Name = "-select feeder template-" });
@@ -117,7 +117,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             var result = await _restClient.GetAsync<DetailResponse<StripFeeder>>($"/api/mfg/stripfeeder/template/{SelectedTemplateId}/factory");
             if (result.Successful)
-            {                
+            {
                 Current = result.Result.Model;
                 Current.Machine = MachineConfiguration.ToEntityHeader();
                 Current.Key = Current.Id.ToLower();
@@ -139,7 +139,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     var existing = Feeders.Remove(Current);
                     Current = result.Result.Model;
                     Feeders.Add(Current);
-                    
+
                 }
             }
         }
@@ -160,11 +160,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         private void GoTo(StripFeederLocationTypes locationType)
         {
-            var result = FindLocation(locationType);  
-            if(result.Successful)
+            var result = FindLocation(locationType);
+            if (result.Successful)
             {
                 Machine.GotoPoint(result.Result);
-            }            
+            }
         }
 
 
@@ -172,7 +172,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             Current.Machine = null;
             var result = await SaveAsync(true);
-            if(result.Successful)
+            if (result.Successful)
                 Feeders.Remove(Current);
         }
 
@@ -197,7 +197,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 CurrentRow.Component = EntityHeader<Component>.Create(CurrentComponent.Id, CurrentComponent.Key, CurrentComponent.Name);
                 CurrentRow.Component.Value = CurrentComponent;
-                if(CurrentRow.Component.Value.ComponentPackage != null)
+                if (CurrentRow.Component.Value.ComponentPackage != null)
                 {
                     var result = await _restClient.GetAsync<DetailResponse<ComponentPackage>>($"/api/mfg/component/package/{CurrentRow.Component.Value.ComponentPackage.Id}");
                     CurrentRow.Component.Value.ComponentPackage.Value = result.Result.Model;
@@ -211,11 +211,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             if (Current != null)
             {
-                var result = _isEditing ? await _restClient.PutAsync("/api/mfg/stripfeeder", Current) : 
+                var result = _isEditing ? await _restClient.PutAsync("/api/mfg/stripfeeder", Current) :
                                 await _restClient.PostAsync("/api/mfg/stripfeeder", Current);
-                if(result.Successful)
+                if (result.Successful)
                 {
-                    if(!_isEditing)
+                    if (!_isEditing)
                         Feeders.Add(Current);
 
                     _isEditing = true;
@@ -279,9 +279,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
+     
+
         public InvokeResult<Point2D<double>> FindLocation(StripFeederLocationTypes moveType)
         {
-            if(Current.StagingPlate == null)
+            if (Current.StagingPlate == null)
             {
                 return InvokeResult<Point2D<double>>.FromError("Could not move, staging plate not set on feeder.");
             }
@@ -303,7 +305,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return InvokeResult<Point2D<double>>.FromError($"Could not move, reference hole or column not set on strip feeder {Current.Name}.");
             }
 
-            var feederIsVertical = Current.Orientation.Value == FeederOrientations.Vertical;            
+            var feederIsVertical = Current.Orientation.Value == FeederOrientations.Vertical;
             if (moveType == StripFeederLocationTypes.FeederReferenceHole)
             {
                 Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_StagingPlateHole);
@@ -326,6 +328,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var deltaY = ((CurrentRow.RowIndex - 1) * Current.RowWidth) + (TapeSize.ToDouble() - 2);
             var deltaX = 2;
 
+
+
             var calculateFirstReferneceHole = feederIsVertical ? new Point2D<double>(deltaY, -deltaX) : new Point2D<double>(deltaX, deltaY);
             var firstReferenceHole = (CurrentRow.FirstTapeHoleOffset.IsOrigin() ? calculateFirstReferneceHole : CurrentRow.FirstTapeHoleOffset).Clone();
             CurrentRow.PartCapacity = TotalPartsInFeederRow;
@@ -333,66 +337,31 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 case StripFeederLocationTypes.FirstFeederRowReferenceHole:
                     {
-                        if (CurrentComponent?.ComponentPackage != null)
-                        {
-                            switch (CurrentComponent.ComponentPackage.Value.TapeColor.Value)
-                            {
-                                case TapeColors.Black: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleBlackTape); break;
-                                case TapeColors.Clear: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleClearTape); break;
-                                case TapeColors.White: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleWhiteTape); break;
-                            }
-                        }
-                        else
-                            Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleWhiteTape); 
-
-
+                        SetTapeHoleProfile();
                         if (UseCalculated)
                             return InvokeResult<Point2D<double>>.Create(feederOrigin + calculateFirstReferneceHole);
                         else
                             return InvokeResult<Point2D<double>>.Create(feederOrigin.AddWithConditionalSwap(feederIsVertical, firstReferenceHole));
                     }
-       
-                case StripFeederLocationTypes.FindLastFeederReferenceHole:
-                    if (CurrentComponent?.ComponentPackage != null)
-                    {
-                        switch (CurrentComponent.ComponentPackage.Value.TapeColor.Value)
-                        {
-                            case TapeColors.Black: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleBlackTape); break;
-                            case TapeColors.Clear: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleClearTape); break;
-                            case TapeColors.White: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleWhiteTape); break;
-                        }
-                    }
-                    else
-                        Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleWhiteTape);
 
-                    var partCount = Math.Floor(Current.Length / TapePitch.ToDouble()) ;
+                case StripFeederLocationTypes.FindLastFeederReferenceHole:
+                    SetTapeHoleProfile();
+                    var partCount = Math.Floor(Current.Length / TapePitch.ToDouble());
                     var lastPartX = TapePitch.ToDouble() * (partCount - 1);
                     var calculatedLastPoint = firstReferenceHole.AddToX(lastPartX);
                     var newLastPoint = feederOrigin.AddWithConditionalSwap(feederIsVertical, calculatedLastPoint);
                     return InvokeResult<Point2D<double>>.Create(newLastPoint);
 
                 case StripFeederLocationTypes.LastFeederRowReferenceHole:
-                    {
-                        if (CurrentComponent?.ComponentPackage != null)
-                        {
-                            switch (CurrentComponent.ComponentPackage.Value.TapeColor.Value)
-                            {
-                                case TapeColors.Black: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleBlackTape); break;
-                                case TapeColors.Clear: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleClearTape); break;
-                                case TapeColors.White: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleWhiteTape); break;
-                            }
-                        }
-                        else
-                            Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_TapeHoleWhiteTape);
+                    SetTapeHoleProfile();
+                    if (!UseCalculated && !CurrentRow.LastTapeHoleOffset.IsOrigin())
+                        return InvokeResult<Point2D<double>>.Create(feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.LastTapeHoleOffset));
 
-                        if (!UseCalculated && !CurrentRow.LastTapeHoleOffset.IsOrigin())
-                            return InvokeResult<Point2D<double>>.Create(feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.LastTapeHoleOffset));
+                    var deltaEndX = (TotalPartsInFeederRow - 1) * TapePitch.ToDouble();
+                    var lastPoint = (feederIsVertical ? firstReferenceHole.SubtractFromY(deltaX) : firstReferenceHole.AddToX(deltaX));
+                    return InvokeResult<Point2D<double>>.Create(feederOrigin + lastPoint);
 
-                        var deltaEndX = (TotalPartsInFeederRow - 1) * TapePitch.ToDouble();
-                        var lastPoint = (feederIsVertical ? firstReferenceHole.SubtractFromY(deltaX) : firstReferenceHole.AddToX(deltaX));
-                        return InvokeResult<Point2D<double>>.Create(feederOrigin + lastPoint);
-                    }
-                    
+
                 case StripFeederLocationTypes.FirstPart:
                     CurrentPartIndex = 1;
                     break;
@@ -410,20 +379,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     break;
             }
 
-            if (CurrentComponent != null)
-            {
-                switch (CurrentComponent.ComponentPackage.Value.TapeColor.Value)
-                {
-                    case TapeColors.Black: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInBlackTape); break;
-                    case TapeColors.Clear: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInClearTape); break;
-                    case TapeColors.White: Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInWhiteTape); break;
-                }
-            }
-            else
-            {
-                Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInWhiteTape);
-            }
-
+            SetPartInTapeHoleProfile();
             RaiseCanExecuteChanged();
             return ResolvePartInTape(feederOrigin);
         }
@@ -473,10 +429,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var expectedDelta = new Point2D<double>(expectedDetlaX, expectedDeltaY);
 
             var partOffsetInTapeFromReferenceHole = ((CurrentPartIndex - 1) * tapePitch);
-            partOffsetInTapeFromReferenceHole += (CurrentComponentPackage.XOffsetFromReferenceHole ?? 2.0);    
-            
+            partOffsetInTapeFromReferenceHole += (CurrentComponentPackage.XOffsetFromReferenceHole ?? 2.0);
+
             var ratioInTape = partOffsetInTapeFromReferenceHole / expectedDetlaX;
-            if(CurrentComponentPackage == null)
+            if (CurrentComponentPackage == null)
             {
                 return InvokeResult<Point2D<double>>.FromError("No component package, can not move to part.");
             }
@@ -488,15 +444,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     CurrentComponentPackage.DualHoles ? (tapeSize / 2) - 1.8 : (tapeSize / 2) - 0.5;
 
             var firstHole = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.LastTapeHoleOffset);
-            var lastHole = feederOrigin.AddWithConditionalSwap(feederIsVertical,  CurrentRow.FirstTapeHoleOffset);
+            var lastHole = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.FirstTapeHoleOffset);
             var actualDelta = new Point2D<double>(lastHole.Y - firstHole.Y, lastHole.X - firstHole.X);
-            
+
             /* 1) Set to reference hole, based on the feeder feeding forward or reverse, forward is first hole
              *    not forwad (reverse is last hole) */
-            var pickLocation = feederOrigin.AddWithConditionalSwap(feederIsVertical, Current.FeedDirection.Value == FeedDirections.Forward ? 
+            var pickLocation = feederOrigin.AddWithConditionalSwap(feederIsVertical, Current.FeedDirection.Value == FeedDirections.Forward ?
                 CurrentRow.FirstTapeHoleOffset : CurrentRow.LastTapeHoleOffset);
 
-            if(feederIsVertical)
+            if (feederIsVertical)
             {
                 if (Current.TapeHolesOnTop)
                     pickLocation.SubtractFromX(yOffsetFromHole);
@@ -534,7 +490,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 }
             }
 
-           pickLocation = Extrapolate(actualDelta, expectedDelta, ratioInTape, pickLocation);
+            pickLocation = Extrapolate(actualDelta, expectedDelta, ratioInTape, pickLocation);
 
             return InvokeResult<Point2D<double>>.Create(pickLocation);
 
@@ -657,7 +613,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
 
         private Point2D<double> _currentPartLocation;
-        public override Point2D<double> CurrentPartLocation 
+        public override Point2D<double> CurrentPartLocation
         {
             get
             {
@@ -669,7 +625,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        public override double? PickHeight => _current?.PickHeight; 
+        public override double? PickHeight => _current?.PickHeight;
 
         public override int AvailableParts
         {
@@ -714,7 +670,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public RelayCommand RefreshTemplatesCommand { get; }
 
-        public RelayCommand AddCommand { get;  }
+        public RelayCommand AddCommand { get; }
         public RelayCommand SaveCommand { get; }
         public RelayCommand SaveAndCloseCommand { get; }
         public RelayCommand CancelCommand { get; }
@@ -726,7 +682,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public RelayCommand ClearPartCommand { get; }
 
-        public RelayCommand SetCurrentPartIndexOnRowCommand { get; }        
+        public RelayCommand SetCurrentPartIndexOnRowCommand { get; }
 
         public RelayCommand RemoveCurrentCommand { get; }
     }
