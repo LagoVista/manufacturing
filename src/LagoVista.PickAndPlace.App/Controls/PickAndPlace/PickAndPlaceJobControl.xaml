@@ -19,6 +19,7 @@
 
         <StackPanel Visibility="{Binding PcbVM.IsBoardAligned, Converter={StaticResource BoolToVisibilityConverter}}" >
             <StackPanel Orientation="Horizontal">
+                <Button Style="{StaticResource CommandButton}" Content="Create Job Run" Command="{Binding JobVM.CreateJobRunCommand}"  ></Button>
                 <Button Style="{StaticResource CommandButton}" Content="Start Job" Command="{Binding StartJobCommand}"  ></Button>
                 <Button Style="{StaticResource CommandButton}" Content="Pause Job" Command="{Binding PauseJobCommand}"></Button>
                 <Button Style="{StaticResource CommandButton}" Content="Resume Job" Command="{Binding ResumeJobCommand}"></Button>
@@ -46,6 +47,7 @@
             <StackPanel Orientation="Horizontal">
                 <Button Style="{StaticResource CommandButton}" Command="{Binding PlaceGroupPartCommand}" Content="Place Part Group" ></Button>
                 <Button Style="{StaticResource CommandButton}" Command="{Binding MoveToPartInFeederCommand}" Content="Move To Part in Feeder"></Button>
+                <Button Style="{StaticResource CommandButton}" Command="{Binding ActiveFeederViewModel.NextPartCommand}" Content="Advance Part"></Button>
             </StackPanel>
             <DataGrid ItemsSource="{Binding JobVM.PartGroup.Placements}" SelectedItem="{Binding JobVM.Placement}" CanUserAddRows="false" AutoGenerateColumns="false" >
                 <DataGrid.Columns>

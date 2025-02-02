@@ -53,7 +53,6 @@ namespace LagoVista.PickAndPlace.ViewModels
                 e.PropertyName == nameof(Machine.IsLocating) ||
                 e.PropertyName == nameof(Machine.WasMachineHomed))
             {
-                Debug.WriteLine("PROPERTY CHANGED: " + e.PropertyName);
                 RaiseCanExecuteChanged();
             }
         }

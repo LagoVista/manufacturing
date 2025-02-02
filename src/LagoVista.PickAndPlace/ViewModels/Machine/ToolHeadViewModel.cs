@@ -3,6 +3,7 @@ using LagoVista.Core.Models.Drawing;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
+using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -29,7 +30,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             SetToolOffsetCommand = CreatedMachineConnectedSettingsCommand(() => Current.Offset = (Machine.MachinePosition.ToPoint2D() - MachineConfiguration.DefaultToolReferencePoint).Round(2), () => Current != null);
 
             CaptureKnownLocationCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.KnownCalibrationPoint = Machine.MachinePosition.ToPoint2D());
-            MoveToKnownLocationCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(MachineConfiguration.KnownCalibrationPoint), () => !MachineConfiguration.KnownCalibrationPoint.IsOrigin());
+            MoveToKnownLocationCommand = CreatedMachineConnectedCommand(() => {
+                Machine.GotoPoint(MachineConfiguration.KnownCalibrationPoint);
+                Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_MachineFiducual);
+                }, () => !MachineConfiguration.KnownCalibrationPoint.IsOrigin());
 
             SetDefaultOriginCommand = CreatedMachineConnectedSettingsCommand(() => Current.DefaultOriginPosition = Machine.MachinePosition.Z, () => Current != null);
             SetIdleVacuumCommand = CreatedMachineConnectedSettingsCommand(() => SetVacuum(VacuumState.Idle), () => Current != null);

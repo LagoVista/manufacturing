@@ -91,9 +91,7 @@ namespace LagoVista.PickAndPlace
                 while (_commands.Any())
                 {
                     var cmd = _commands.Dequeue();
-                    Debug.WriteLine("Start -> " + cmd);
                     HandleCommand(cmd);
-                    Debug.WriteLine("End -> " + cmd);
                 }
                 _timer.Start();
             }

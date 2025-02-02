@@ -474,6 +474,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             get => _current;
             set
             {
+                if (_current.Id == value?.Id)
+                    return;
+
                 Set(ref _current, value);
                 _isEding = true;
                 RaiseCanExecuteChanged();

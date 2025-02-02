@@ -755,13 +755,16 @@ namespace LagoVista.PickAndPlace
                 _toolHeadMoveSempahorr.Wait();
             }
 
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
+                Enqueue("M400"); // Wait for previous command to finish before executing next one.
+
                 System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount == 0, 5000);
                 System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
 
-                var currentLocationX = MachinePosition.X;
-                var currentLocationY = MachinePosition.Y;
+                var currentPosition = await GetCurrentLocationAsync();
+                var currentLocationX = currentPosition.X;
+                var currentLocationY = currentPosition.Y;
 
                 SendSafeMoveHeight();
 
@@ -778,18 +781,15 @@ namespace LagoVista.PickAndPlace
 
                 // Wait for the all the messages to get sent out (but won't get an OK for G4 until G0 finishes)
                 System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount > 0, 5000);
-
-                Debug.WriteLine("All Sent");
                 System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
-                Debug.WriteLine("Un Ack Bytes Good.");
 
-                Task.Delay(500);
+                await Task.Delay(500);
 
                 // 4. set the machine back to absolute points
                 SetAbsoluteMode();
 
                 // 5. Set the machine location to where it was prior to the move.
-                ResetMachineCoordinates(new Core.Models.Drawing.Point2D<double>(currentLocationX, currentLocationY));
+                await ResetMachineCoordinates(new Core.Models.Drawing.Point2D<double>(currentLocationX, currentLocationY));
 
                 _viewType = ViewTypes.Tool;
                 _currentMachineToolHead = toolHeadToMoveTo;
@@ -831,13 +831,16 @@ namespace LagoVista.PickAndPlace
                 return;
             }
 
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
+                Enqueue("M400"); // Wait for previous command to finish before executing next one.
+
                 System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount == 0, 5000);
                 System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
 
-                var currentLocationX = MachinePosition.X;
-                var currentLocationY = MachinePosition.Y;
+                var currentPosition = await GetCurrentLocationAsync();
+                var currentLocationX = currentPosition.X;
+                var currentLocationY = currentPosition.Y;
 
                 SendSafeMoveHeight();
 
@@ -857,10 +860,10 @@ namespace LagoVista.PickAndPlace
                 // 4. set the machine back to absolute points
                 SetAbsoluteMode();
 
-                Task.Delay(500);
+                await Task.Delay(500);
 
                 // 5. Set the machine location to where it was prior to the move.
-                ResetMachineCoordinates(new Core.Models.Drawing.Point2D<double>(currentLocationX, currentLocationY));
+                await ResetMachineCoordinates(new Core.Models.Drawing.Point2D<double>(currentLocationX, currentLocationY));
 
                 _currentMachineToolHead = null;
                 _viewType = ViewTypes.Camera;

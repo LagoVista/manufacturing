@@ -50,7 +50,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (result.Successful)
                 {
                     await Machine.MoveToCameraAsync();
-                    Machine.AddStatusMessage(StatusMessageTypes.FatalError, $"Completed part {JobVM.Placement.Name} in {JobVM.Placement.Duration}"); ;
+                    Machine.AddStatusMessage(StatusMessageTypes.FatalError, $"Completed part {JobVM.Placement.Name} in {JobVM.Placement.Duration}");
+                    var idx = JobVM.PartGroup.Placements.IndexOf(JobVM.Placement);
+                    if (idx < JobVM.PartGroup.Placements.Count)
+                        JobVM.Placement = JobVM.PartGroup.Placements[idx + 1];
+                    else
+                        JobVM.Placement = null;
                 }
                 else
                 {
@@ -163,8 +168,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             result = await ActiveFeederViewModel.NextPartAsync();
             if (!result.Successful) return result;
 
-            result = await JobVM.CompletePlacementAsync();
-            if (!result.Successful) return result;
+            if (JobVM.JobRun != null)
+            {
+                result = await JobVM.CompletePlacementAsync();
+                if (!result.Successful) return result;
+            }
 
             return InvokeResult.Success;
         }

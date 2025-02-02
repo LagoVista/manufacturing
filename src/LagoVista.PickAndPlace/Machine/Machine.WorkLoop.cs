@@ -72,8 +72,6 @@ namespace LagoVista.PickAndPlace
 
             if (send_line != "M114")
             {
-                Debug.WriteLine("SENDING LINE => " + send_line);
-
                 UpdateStatus(send_line.ToString());
                 AddStatusMessage(StatusMessageTypes.SentLine, send_line.ToString());
             }
@@ -98,8 +96,6 @@ namespace LagoVista.PickAndPlace
             _writer.Write(trimmedLine);
             _writer.Write('\n');
             _writer.Flush();
-
-            Debug.WriteLine(">>> " + trimmedLine);
 
             cmd.Status = GCodeCommand.StatusTypes.Sent;
 

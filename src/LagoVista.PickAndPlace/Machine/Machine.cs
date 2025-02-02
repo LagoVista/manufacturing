@@ -306,7 +306,6 @@ namespace LagoVista.PickAndPlace
             _waitForPositionResetEvent.Reset();
 
             var waitForLocation = new SemaphoreSlim(0);
-            Debug.WriteLine("Start wait for location");
             //var entered = await waitForLocation.WaitAsync(3000);
             
             waitForLocation.Dispose();
@@ -317,9 +316,7 @@ namespace LagoVista.PickAndPlace
                 var attemptCount = 0;
                 while (!_waitForPositionResetEvent.IsSet && ++attemptCount < 200)
                     _waitForPositionResetEvent.Wait(25);
-
-                Debug.WriteLine($"Did we get location? {_waitForPositionResetEvent.IsSet}");
-
+               
                 _waitForPositionResetEvent.Dispose();
                 _waitForPositionResetEvent = null;
             });

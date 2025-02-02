@@ -343,10 +343,19 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return;
             }
 
-            var jobLoadReslut = await _restClient.GetAsync<DetailResponse<PickAndPlaceJobRun>>($"/api/mfg/pnpjob/${Job.Id}/run/factory");
-            if (jobLoadReslut.Successful)
+            var jobLoadReslut = await _restClient.GetAsync<DetailResponse<PickAndPlaceJobRun>>($"/api/mfg/pnpjob/{Job.Id}/run/factory");
+            if (jobLoadReslut.Successful && jobLoadReslut.Result.Successful)
             {
                 JobRun = jobLoadReslut.Result.Model;
+                await _storageService.StoreKVP("last-job-run-id", JobRun.Id);
+            }
+            else
+            {
+                if(jobLoadReslut.Successful)
+                    Machine.AddStatusMessage(StatusMessageTypes.FatalError, jobLoadReslut.Result.ErrorMessage);
+                else
+                    Machine.AddStatusMessage(StatusMessageTypes.FatalError, jobLoadReslut.ErrorMessage);
+
             }
         }
 

@@ -18,8 +18,6 @@ namespace LagoVista.PickAndPlace
         private void ParseMessage(string fullMessageLine)
         {
             fullMessageLine = fullMessageLine.ToLower();
-            Debug.WriteLine(fullMessageLine);
-
             if (fullMessageLine.StartsWith("ok") ||
                             fullMessageLine.StartsWith("<ok:"))
             {
