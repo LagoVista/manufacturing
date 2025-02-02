@@ -109,6 +109,18 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return _mgr.GetStripFeedersForMachineAsync(machineid, loadcomponents, OrgEntityHeader, UserEntityHeader);
         }
 
+        [HttpPut("/api/mfg/stripfeeder/{id}/row/{rowidx}/partindex/{idx}")]
+        public async Task<InvokeResult> UpdatePartIndex(string id, int rowidx, int idx)
+        {
+            var fdr = await _mgr.GetStripFeederAsync(id,false, OrgEntityHeader, UserEntityHeader);
+            var existingRow = fdr.Rows.SingleOrDefault(row => row.RowIndex == idx);
+            if(existingRow == null)
+                return InvokeResult.FromError("Could not find row.");
+
+            existingRow.CurrentPartIndex = idx;
+            return await _mgr.UpdateStripFeederAsync(fdr, OrgEntityHeader, UserEntityHeader);
+        }
+
         [HttpGet("/api/mfg/machine/{machineid}/stagingplate/{plateid}/{row}/{col}/stripfeeder/{feederid}/attach")]
         public async Task<InvokeResult> AttachToMachine(string machineid, string plateid, string row, string col, string feederid)
         {

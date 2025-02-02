@@ -4,6 +4,7 @@ using LagoVista.Core.Interfaces;
 using LagoVista.Core.Models;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models.Resources;
+using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.Generic;
 
@@ -115,6 +116,28 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeColor, FieldType: FieldTypes.Picker, EnumType: typeof(TapeColors), WaterMark: ManufacturingResources.Names.ComponentPackage_TapeColor_Select, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<TapeColors> TapeColor { get; set; }
 
+        VisionProfile _partInspectionVisionProfile;
+        public VisionProfile PartInspectionVisionProfile
+        {
+            get => _partInspectionVisionProfile;
+            set => Set(ref _partInspectionVisionProfile, value);
+        }
+
+        VisionProfile _partOnBoardVisionProfile;
+        public VisionProfile PartOnBoardVisionProfile
+        {
+            get => _partOnBoardVisionProfile;
+            set => Set(ref _partOnBoardVisionProfile, value);
+        }
+
+        VisionProfile _partInTapeVisionProfile;
+        public VisionProfile PartInTapeVisionProfile
+        {
+            get => _partInTapeVisionProfile;
+            set => Set(ref _partInTapeVisionProfile, value);
+        }
+
+
         public ComponentSummary CreateSummary()
         {
             return new ComponentSummary()
@@ -172,6 +195,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(ComponentPackage),
                 nameof(Polarized),
                 nameof(Value),
+                nameof(TapeColor),
                 nameof(Description),
                 nameof(QuantityOnHand),
                 nameof(QuantityOnOrder),
@@ -179,7 +203,6 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Attr1),
                 nameof(Attr2),
                 nameof(Attributes),
-                nameof(TapeColor),
             };
         }
 

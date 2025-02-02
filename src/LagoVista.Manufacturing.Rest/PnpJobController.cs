@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
+using RingCentral;
 
 namespace LagoVista.Manufacturing.Rest.Controllers
 {
@@ -97,6 +98,13 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             SetUpdatedProperties(run);
             return _mgr.UpdatePickAndPlaceJobRunAsync(run, OrgEntityHeader, UserEntityHeader);
         }
+
+        [HttpPut("/api/mfg/pmpjob/run/{id}/placement")]
+        public Task<InvokeResult> UpdatePickAndPlaceJobRun(string id, [FromBody] PickAndPlaceJobRunPlacement placement)
+        {
+            return _mgr.UpdatePickAndPlaceJobRunPlacementAsync(id, placement, OrgEntityHeader, UserEntityHeader);
+        }
+
 
         [HttpGet("/api/mfg/pnpjob/runs")]
         public Task<ListResponse<PickAndPlaceJobSummary>> GetPnPJobRunss()

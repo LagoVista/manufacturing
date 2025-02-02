@@ -10,8 +10,8 @@ using LagoVista.IoT.Logging.Loggers;
 using System;
 using static LagoVista.Core.Models.AuthorizeResult;
 using System.Threading.Tasks;
-using System.Drawing.Text;
-using System.Collections.Generic;
+using System.Linq;
+using System.Drawing.Imaging;
 
 namespace LagoVista.Manufacturing.Managers
 {
@@ -101,6 +101,19 @@ namespace LagoVista.Manufacturing.Managers
         {
             await AuthorizeOrgAccessAsync(user, org.Id, typeof(PickAndPlaceJobRun));
             return await _jobRunRepo.GetJobRuns(jobId, org.Id, listRequest);
+        }
+
+        public async Task<InvokeResult> UpdatePickAndPlaceJobRunPlacementAsync(string id, PickAndPlaceJobRunPlacement placement, EntityHeader org, EntityHeader user)
+        {
+            var job = await GetPickAndPlaceJobRunAsync(id, org, user);
+            var existing = job.Placements.SingleOrDefault(plc => plc.Id == placement.Id);
+            if(existing != null)
+            {
+                job.Placements.Remove(existing);
+            }
+
+            job.Placements.Add(placement);
+            return await UpdatePickAndPlaceJobRunAsync(job, org, user);
         }
     }
 }

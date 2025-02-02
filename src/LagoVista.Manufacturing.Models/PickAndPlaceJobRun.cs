@@ -1,4 +1,5 @@
-﻿using LagoVista.Core.Attributes;
+﻿using LagoVista.Core;
+using LagoVista.Core.Attributes;
 using LagoVista.Core.Interfaces;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
@@ -116,6 +117,13 @@ namespace LagoVista.Manufacturing.Models
         public const string JobPlacementStatus_InProcess = "InProcess";
         public const string JobPlacementStatus_Placed = "Placed";
         public const string JobPlacementStatus_Failed = "Failed";
+
+        public PickAndPlaceJobRunPlacement()
+        {
+            Id = Guid.NewGuid().ToId();
+        }
+
+        public string Id { get; set; }
 
         public EntityHeader AutoFeeder { get; set; }
         public EntityHeader StripFeeder { get; set; }

@@ -89,6 +89,14 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return _mgr.GetFeedersForMachineAsync(machineid, loadcomponents, OrgEntityHeader, UserEntityHeader);
         }
 
+        [HttpPut("/api/mfg/autofeeder/{id}/partcount/{partcount}")]
+        public async Task<InvokeResult> UpdatePartCount(string id, int partcount)
+        {
+            var feeder = await _mgr.GetFeederAsync(id, false, OrgEntityHeader, UserEntityHeader);
+            feeder.PartCount = partcount;
+            return await _mgr.UpdateFeederAsync(feeder, OrgEntityHeader, UserEntityHeader);
+        }
+
         [HttpGet("/mft/machine/{machineid}/autofeeder/{feederid}/attach")]
         public async Task<InvokeResult> AttachToMachine(string machineid, string feederid)
         {

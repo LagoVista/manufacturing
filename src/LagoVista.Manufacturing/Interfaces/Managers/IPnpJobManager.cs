@@ -16,6 +16,7 @@ namespace LagoVista.Manufacturing.Interfaces.Managers
         Task<ListResponse<PickAndPlaceJobRunSummary>> GetPickAndPlaceJobRunsAsync(string jobId, ListRequest listRequest, EntityHeader org, EntityHeader user);
         Task<PickAndPlaceJobRun> GetPickAndPlaceJobRunAsync(string jobRunId, EntityHeader org, EntityHeader user);
         Task<InvokeResult> UpdatePickAndPlaceJobRunAsync(PickAndPlaceJobRun jobRun, EntityHeader org, EntityHeader user);
+        Task<InvokeResult> UpdatePickAndPlaceJobRunPlacementAsync(string id, PickAndPlaceJobRunPlacement placement, EntityHeader org, EntityHeader user);
         Task<InvokeResult> AddPickAndPlaceJobRunAsync(PickAndPlaceJobRun jobRun, EntityHeader org, EntityHeader user);
     }
 }
