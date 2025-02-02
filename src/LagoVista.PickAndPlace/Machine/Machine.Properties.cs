@@ -147,6 +147,19 @@ namespace LagoVista.PickAndPlace
             }
         }
 
+        private bool _isLocating;
+        public bool IsLocating
+        {
+            get => _isLocating;
+            set
+            {
+                if(_isLocating != value)
+                {
+                    _isLocating = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
 
         IBoardAlignmentManager _boardAlignmentManager;
         public IBoardAlignmentManager BoardAlignmentManager

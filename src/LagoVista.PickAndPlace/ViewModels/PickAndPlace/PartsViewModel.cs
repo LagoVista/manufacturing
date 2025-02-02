@@ -15,7 +15,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             AutoFeederViewModel = autoFeederViewModel ?? throw new ArgumentNullException(nameof(autoFeederViewModel));
             StripFeederViewModel = stripFeederViewModel ?? throw new ArgumentNullException(nameof(stripFeederViewModel));
-            RefreshAvailablePartsCommand = CreatedCommand(RefreshAvailableParts);
+            RefreshAvailablePartsCommand = CreateCommand(RefreshAvailableParts);
         }        
 
         public void RefreshAvailableParts()

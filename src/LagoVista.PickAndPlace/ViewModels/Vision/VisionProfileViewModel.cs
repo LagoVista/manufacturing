@@ -118,7 +118,17 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
         public string SelectedProfile
         {
-            get => Camera.CurrentVisionProfile.Key;
+            get
+            {
+                if (Camera.ProfileSource == VisionProfileSource.Camera)
+                {
+                    return Camera.CurrentVisionProfile.Key;
+                }
+                else
+                {
+                    return VisionProfile.VisionProfile_Custom;
+                }
+            }
             set
             {
                 if (Camera.CurrentVisionProfile != null)
@@ -164,10 +174,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         private void CurrentVisionProfile_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(VisionProfile.LightRed) ||
-               e.PropertyName == nameof(VisionProfile.LightGreen) ||
-               e.PropertyName == nameof(VisionProfile.LightBlue) ||
-               e.PropertyName == nameof(VisionProfile.LightOn) ||
-               e.PropertyName == nameof(VisionProfile.LightPower))
+                e.PropertyName == nameof(VisionProfile.LightGreen) ||
+                e.PropertyName == nameof(VisionProfile.LightBlue) ||
+                e.PropertyName == nameof(VisionProfile.LightOn) ||
+                e.PropertyName == nameof(VisionProfile.LightPower))
             {
 
                 if (Camera.CameraType.Value == CameraTypes.Position)
@@ -205,23 +215,20 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         {
             if (e.PropertyName == nameof(Camera.CurrentVisionProfile))
             {
-                RaisePropertyChanged(nameof(Profile));
-                RaisePropertyChanged(nameof(SelectedProfile));
+                Camera.CurrentVisionProfile.PropertyChanged += CurrentVisionProfile_PropertyChanged;
 
-                if (SelectedProfile != null)
+                var profile = Camera.VisionProfiles.FirstOrDefault(prf => prf.Id == Camera.CurrentVisionProfile.Id);
+                if (profile != null)
                 {
-                    Camera.CurrentVisionProfile.PropertyChanged += CurrentVisionProfile_PropertyChanged;
-
-                    var profile = Camera.VisionProfiles.FirstOrDefault(prf => prf.Id == Camera.CurrentVisionProfile.Id);
-                    if (profile == null)
-                    {
-                        CustomProfile = null;
-                    }
-                    else
-                    { 
-                        CustomProfile = EntityHeader.Create(profile.Id, profile.Key, profile.Name);
-                    }
+                    CustomProfile = null;
                 }
+                else
+                {
+                    CustomProfile = EntityHeader.Create(Camera.CurrentVisionProfile.Id, Camera.CurrentVisionProfile.Key, Camera.CurrentVisionProfile.Name);
+                }
+             
+                RaisePropertyChanged(nameof(SelectedProfile));
+                RaisePropertyChanged(nameof(Profile));
             }
         }
 
@@ -234,10 +241,22 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
         public async Task SaveAsync()
         {
-            await MachineRepo.SaveCurrentMachineAsync();
-
             switch (Camera.ProfileSource)
             {
+                case VisionProfileSource.Component:
+                    if (Camera.CameraType.Value == CameraTypes.PartInspection)
+                    {
+                        await _restClient.PutAsync($"/api/mfg/component/{Camera.ProfileSourceId}/visionprofile/inspection", Profile);
+                    }
+                    else if (Profile.Name.ToLower().Contains("tape"))
+                    {
+                        await _restClient.PutAsync($"/api/mfg/component/{Camera.ProfileSourceId}/visionprofile/partintape", Profile);
+                    }
+                    else if (Profile.Name.ToLower().Contains("board"))
+                    {
+                        await _restClient.PutAsync($"/api/mfg/component/{Camera.ProfileSourceId}/visionprofile/partonboard", Profile);
+                    }
+                    break;
                 case VisionProfileSource.ComponentPackage:
                     if (Camera.CameraType.Value == CameraTypes.PartInspection)
                     {
@@ -251,11 +270,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                     {
                         await _restClient.PutAsync($"/api/mfg/component/package/{Camera.ProfileSourceId}/visionprofile/partonboard", Profile);
                     }
-                    break; 
-
+                    break;
+                case VisionProfileSource.Camera:
+                    await MachineRepo.SaveCurrentMachineAsync();
+                    break;
             }
         }
-
 
         private double? _measuedMM;
         public double? MeasuredMM

@@ -40,14 +40,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RotatePartCommand = CreatedMachineConnectedCommand(() => JobVM.RotateCurrentPartAsync(JobVM.PartGroup, JobVM.Placement, ActiveFeederViewModel != null, false), () => JobVM.Placement != null);
             RotateBackPartCommand = CreatedMachineConnectedCommand(() => JobVM.RotateCurrentPartAsync(JobVM.PartGroup, JobVM.Placement, ActiveFeederViewModel != null, true), () => JobVM.Placement != null);
 
-            ClonePartInspectionVisionProfileCommand = CreatedCommand(ClonePartInspectionVisionProfile, () => JobVM.CurrentComponentPackage != null);
-            ClonePartInTapeVisionProfileCommand = CreatedCommand(ClonePartInTapeVisionProfile, () => JobVM.CurrentComponentPackage != null);
-            ClonePartOnBoardVisionProfileCommand = CreatedCommand(ClonePartOnBoardisionProfile, () => JobVM.CurrentComponentPackage != null);
+            ClonePartInspectionVisionProfileCommand = CreateCommand(ClonePartInspectionVisionProfile, () => JobVM.CurrentComponentPackage != null);
+            ClonePartInTapeVisionProfileCommand = CreateCommand(ClonePartInTapeVisionProfile, () => JobVM.CurrentComponentPackage != null);
+            ClonePartOnBoardVisionProfileCommand = CreateCommand(ClonePartOnBoardisionProfile, () => JobVM.CurrentComponentPackage != null);
 
-            CheckPartPresentCommand = CreatedCommand(CheckPartPresent, () => JobVM.CurrentComponent != null);
-            CheckNoPartPresentCommand = CreatedCommand(CheckNoPartPresent, () => JobVM.CurrentComponent != null);
+            CheckPartPresentCommand = CreateCommand(CheckPartPresent, () => JobVM.CurrentComponent != null);
+            CheckNoPartPresentCommand = CreateCommand(CheckNoPartPresent, () => JobVM.CurrentComponent != null);
 
-            NextPartCommand = CreatedCommand(NextPart, () => ActiveFeederViewModel != null);
+            NextPartCommand = CreateCommand(NextPart, () => ActiveFeederViewModel != null);
         }
 
         public void ClonePartInspectionVisionProfile()
@@ -165,16 +165,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             set => Set(ref _lastActionSuccess, value);
         }
         
-        
-        void GotoPartInFeeder(PartsGroup part)
-        {
-            JobVM.PartGroup = part;
-            MoveToPartInFeeder();
-        }
-
-
-
-
         public void PickPart()
         {
             var result = ResolveFeeder();
@@ -207,8 +197,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             else
                 ActiveFeederViewModel.RecyclePartAsync(JobVM.CurrentComponent);
         }
-
-
 
         public RelayCommand GoToPartOnBoardCommand { get; }
 

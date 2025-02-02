@@ -88,24 +88,23 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         [HttpPut("/api/mfg/component/package/{id}/visionprofile/{type}")]
         public async Task<InvokeResult> UpdateVisionProfile(string id, string type, [FromBody] VisionProfile profile)
         {
-            var component = await _mgr.GetComponentPackageAsync(id, OrgEntityHeader, UserEntityHeader);
+            var componentPackage = await _mgr.GetComponentPackageAsync(id, OrgEntityHeader, UserEntityHeader);
             switch(type.ToLower())
             {
                 case "inspection":
-                    component.PartInspectionVisionProfile = profile;
+                    componentPackage.PartInspectionVisionProfile = profile;
                     break;
                 case "partonboard":
-                    component.PartOnBoardVisionProfile = profile;
+                    componentPackage.PartOnBoardVisionProfile = profile;
                     break;
                 case "partintape":
-                    component.PartInTapeVisionProfile = profile;
+                    componentPackage.PartInTapeVisionProfile = profile;
                     break;
                 default:
-                    return InvokeResult.FromError($"{type} is not a valid vision profile type for a component.");
+                    return InvokeResult.FromError($"{type} is not a valid vision profile type for a component package.");
             }
 
-            return await _mgr.UpdateComponentPackageAsync(component, OrgEntityHeader, UserEntityHeader);    
+            return await _mgr.UpdateComponentPackageAsync(componentPackage, OrgEntityHeader, UserEntityHeader);    
         }
-
     }
 }

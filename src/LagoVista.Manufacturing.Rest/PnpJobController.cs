@@ -83,6 +83,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             form.Model.Extended = job.Extended;
             SetAuditProperties(form.Model);
             SetOwnedProperties(form.Model);
+            await _mgr.AddPickAndPlaceJobRunAsync(form.Model, OrgEntityHeader, UserEntityHeader);
             return form;
         }
 

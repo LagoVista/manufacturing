@@ -349,5 +349,6 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         ObservableCollection<Models.StatusMessage> Messages { get; }
 
+        bool IsLocating { get; set; }
     }
 }

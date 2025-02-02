@@ -1,6 +1,7 @@
 ﻿using LagoVista.Core.Commanding;
 using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
 using ProtoBuf.Meta;
@@ -23,9 +24,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         Timer _rectLocatedTimeoutTimer;
         Timer _cornerLocatedTimoutTimer;
 
+        IMachineRepo _machineRepo;
 
-        public LocatorViewModel()
+        public LocatorViewModel(IMachineRepo machineRepo)
         {
+            _machineRepo = machineRepo;
+         
             AbortMVLocatorCommand = new RelayCommand(() =>
             {
                 SetLocatorState(MVLocatorState.Idle);
@@ -54,6 +58,31 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             {
                 handler.CirclesLocatorAborted();
             }
+
+            SetLocatorStatus();
+        }
+
+        private void SetLocatorStatus()
+        {
+            if (_circlesLocatedHandlers.Any())
+            {
+                _machineRepo.CurrentMachine.IsLocating = true;
+            }
+            else if (_circleLocatedHandlers.Any())
+            {
+                _machineRepo.CurrentMachine.IsLocating = true;
+            }
+            else if (_rectLocatedHandlers.Any())
+            {
+                _machineRepo.CurrentMachine.IsLocating = true;
+            }
+            else if (_cornerLocatedHandlers.Any())
+            {
+                _machineRepo.CurrentMachine.IsLocating = true;
+            }
+            else
+                _machineRepo.CurrentMachine.IsLocating = false;
+
         }
 
         private MVLocatorState _mvLocatorState = MVLocatorState.Default;
@@ -112,6 +141,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                 {
                     handler.RectangleLocatorTimeout();
                 }
+
             }
         }
 
@@ -126,8 +156,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
                 _rectLocatedHandlers.Add(handler);
                 _rectLocatedTimeoutTimer = new Timer(RectangleLocatorTimeoutHandler, handler, TimeSpan.FromMilliseconds(timeoutMS), TimeSpan.Zero);
+                _machineRepo.CurrentMachine.IsLocating = true;
             }
         }
+
+
 
         public void UnregisterRectangleLocatedHandler(IRectangleLocatedHandler handler)
         {
@@ -140,6 +173,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
                 _rectLocatedHandlers.Remove(handler);
             }
+            SetLocatorStatus();
         }
 
         public void CornerLocated(MVLocatedCorner corner)
@@ -177,6 +211,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
                 _cornerLocatedHandlers.Add(handler);
                 _cornerLocatedTimoutTimer = new Timer(CornerLocatorTimedOut, handler, timeoutMS, -1);
+                _machineRepo.CurrentMachine.IsLocating = true;
             }
         }
 
@@ -186,6 +221,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             {
                 _cornerLocatedHandlers.Remove(handler);
             }
+            SetLocatorStatus();
         }
 
         private void CircleLocatorTimedOut(object state)
@@ -215,6 +251,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
                 _circleLocatedHandlers.Add(handler);
                 _circleLocatedTimeoutTimer = new Timer(CircleLocatorTimedOut, handler, timeoutMS, -1);
+                _machineRepo.CurrentMachine.IsLocating = true;
             }
         }
 
@@ -224,6 +261,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             {
                 _circleLocatedHandlers.Remove(handler);
             }
+            _machineRepo.CurrentMachine.IsLocating = true;
         }
 
         private void CirclesLocatorTimedOut(object state)
@@ -253,6 +291,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
                 _circlesLocatedHandlers.Add(handler);
                 _circlesLocatedTimeoutTimer = new Timer(CirclesLocatorTimedOut, handler, timeoutMS, -1);
+                _machineRepo.CurrentMachine.IsLocating = true;
             }
         }
 
@@ -264,6 +303,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             {
                 _circlesLocatedHandlers.Remove(handler);
             }
+            SetLocatorStatus();
         }
 
         public RelayCommand AbortMVLocatorCommand { get; private set; }

@@ -12,6 +12,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
@@ -19,9 +20,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
     public class JobManagementViewModel : MachineViewModelBase, IJobManagementViewModel
     {
         private readonly IRestClient _restClient;
-        private readonly ILogger _logger;   
+        private readonly ILogger _logger;
         private readonly IStorageService _storageService;
-        
+
         private readonly IPickAndPlaceJobResolverService _resolver;
 
         public JobManagementViewModel(IRestClient restClient, IPickAndPlaceJobResolverService resolver, IStorageService storage, IMachineRepo machineRepo, IPartsViewModel partsViewModel) : base(machineRepo)
@@ -36,17 +37,17 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             SetBoardOriginCommand = CreatedMachineConnectedCommand(() => Job.DefaultBoardOrigin = Machine.MachinePosition.ToPoint2D(), () => Job != null);
             CheckBoardFiducialsCommand = CreatedMachineConnectedCommand(() => CheckBoardFiducials(), () => Job != null);
 
-            ShowSchematicCommand = CreatedCommand(ShowSchematic, () => Job != null && CircuitBoard.SchematicPDFFile != null);
-            ShowComponentDetailCommand = CreatedCommand(ShowComponentDetail, () => PartGroup != null);
-            ShowComponentPackageDetailCommand = CreatedCommand(ShowComponentPackageDetail, () => CurrentComponent != null && CurrentComponent?.ComponentPackage != null);
-            ShowDataSheetCommand = CreatedCommand(ShowDataSheeet, () => CurrentComponent != null && !String.IsNullOrEmpty(CurrentComponent.DataSheet));
-            ResolveJobCommand = CreatedCommand(ResolveJob, () => Job != null);
-            ResolvePartsCommand = CreatedCommand(ResolveParts, () => Job != null);
+            ShowSchematicCommand = CreateCommand(ShowSchematic, () => Job != null && CircuitBoard.SchematicPDFFile != null);
+            ShowComponentDetailCommand = CreateCommand(ShowComponentDetail, () => PartGroup != null);
+            ShowComponentPackageDetailCommand = CreateCommand(ShowComponentPackageDetail, () => CurrentComponent != null && CurrentComponent?.ComponentPackage != null);
+            ShowDataSheetCommand = CreateCommand(ShowDataSheeet, () => CurrentComponent != null && !String.IsNullOrEmpty(CurrentComponent.DataSheet));
+            ResolveJobCommand = CreateCommand(ResolveJob, () => Job != null);
+            ResolvePartsCommand = CreateCommand(ResolveParts, () => Job != null);
 
-            SaveComponentPackageCommand = CreatedCommand(SaveComponentPackage, () => CurrentComponentPackage != null);
-            SubstitutePartCommand = CreatedCommand(SubstitutePart, () => CurrentComponent != null);
-            SaveSubstitutePartCommand = CreatedCommand(SaveSubstitutePart, () => SelectedAvailablePart != null);
-            CancelSubstitutePartCommand = CreatedCommand(CancelSubstitutePart);
+            SaveComponentPackageCommand = CreateCommand(SaveComponentPackage, () => CurrentComponentPackage != null);
+            SubstitutePartCommand = CreateCommand(SubstitutePart, () => CurrentComponent != null);
+            SaveSubstitutePartCommand = CreateCommand(SaveSubstitutePart, () => SelectedAvailablePart != null);
+            CancelSubstitutePartCommand = CreateCommand(CancelSubstitutePart);
 
             GoToPartOnBoardCommand = CreatedMachineConnectedCommand(GoToPartOnBoard, () => Placement != null);
 
@@ -54,7 +55,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             VacuumOffCommand = CreatedMachineConnectedCommand(() => Machine.VacuumPump = false);
             ReadVacuumCommand = CreatedMachineConnectedCommand(ReadVacuum);
 
-            SaveCommand = new RelayCommand(async () => await SaveJobAsync(), () => { return Job != null; });
+            SaveCommand = CreateCommand(async () => await SaveJobAsync(), () => Job != null);
+
+            CreateJobRunCommand = CreateCommand(async () => await CreateJobRunAsync(), () => Job != null);
+            SaveJobRunCommand = CreateCommand(async () => await SaveJobRunAsync(), () => JobRun != null);
         }
 
         public override async Task InitAsync()
@@ -62,11 +66,19 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var result = await _restClient.GetListResponseAsync<PickAndPlaceJobSummary>("/api/mfg/pnpjobs");
             if (result.Successful)
             {
-                Jobs = new ObservableCollection<PickAndPlaceJobSummary>(result.Model.ToList());
-                var lastJobId = await _storageService.GetKVPAsync<string>("last-job-id");
-                if (!String.IsNullOrEmpty(lastJobId))
+                var lastJobRunId = await _storageService.GetKVPAsync<string>("last-job-run-id");
+                if (!String.IsNullOrEmpty(lastJobRunId))
                 {
-                    await LoadJobAsync(lastJobId);
+                    await LoadJobRunAsync(lastJobRunId);
+                }
+                else
+                {
+                    Jobs = new ObservableCollection<PickAndPlaceJobSummary>(result.Model.ToList());
+                    var lastJobId = await _storageService.GetKVPAsync<string>("last-job-id");
+                    if (!String.IsNullOrEmpty(lastJobId))
+                    {
+                        await LoadJobAsync(lastJobId);
+                    }
                 }
             }
 
@@ -90,14 +102,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     break;
             }
 
-            if(rotated90)
+            if (rotated90)
             {
                 inTapeAngle -= 90;
             }
 
 
             var rotatePart = inTapeAngle - placement.Rotation;
-            if(reverse)
+            if (reverse)
             {
                 rotatePart *= -1;
             }
@@ -112,7 +124,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if (result.Successful)
                 Vacuum = result.Result;
             else
-                Vacuum = 0; 
+                Vacuum = 0;
         }
 
         public void GoToPartOnBoard()
@@ -162,14 +174,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         void SaveSubstitutePart()
         {
-            if(SelectedAvailablePart == null)
+            if (SelectedAvailablePart == null)
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Please select a part.");
                 return;
             }
 
             var substitutes = Job.Parts.Where(prt => prt.Component.Id == PartGroup.Component.Id);
-            foreach(var substitute in substitutes)
+            foreach (var substitute in substitutes)
             {
                 substitute.Component = SelectedAvailablePart.Component;
             }
@@ -185,13 +197,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public void ShowComponentPackageDetail()
         {
-            if(CurrentComponent == null)
+            if (CurrentComponent == null)
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current component.");
                 return;
             }
 
-            if(CurrentComponent.ComponentPackage == null)
+            if (CurrentComponent.ComponentPackage == null)
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No component does not have package assigned.");
                 return;
@@ -212,12 +224,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current component.");
                 return;
             }
-            
-            if(String.IsNullOrEmpty(CurrentComponent.DataSheet))
+
+            if (String.IsNullOrEmpty(CurrentComponent.DataSheet))
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Data sheet not available");
             }
-                        
+
             System.Diagnostics.Process.Start(new ProcessStartInfo
             {
                 FileName = CurrentComponent.DataSheet,
@@ -228,7 +240,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public void ShowSchematic()
         {
             if (CircuitBoard?.SchematicPDFFile != null)
-            {                
+            {
                 var url = $"https://www.nuviot.com/api/media/resource/{this.Job.OwnerOrganization.Id}/{this.CircuitBoard.SchematicPDFFile.Id}/download";
                 System.Diagnostics.Process.Start(new ProcessStartInfo
                 {
@@ -267,7 +279,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 var result = await _restClient.GetAsync<DetailResponse<Manufacturing.Models.Component>>($"/api/mfg/component/{componentId}?loadcomponent=true");
                 if (result.Successful)
                 {
-                    CurrentComponent = result.Result.Model; 
+                    CurrentComponent = result.Result.Model;
                     if (EntityHeader.IsNullOrEmpty(result.Result.Model.ComponentPackage))
                     {
                         Machine.AddStatusMessage(StatusMessageTypes.Warning, "Loaded component for execution without a component package, likely trouble ahead!");
@@ -291,10 +303,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             await _restClient.PutAsync("/api/mfg/pnpjob", Job);
         }
 
+        public async Task SaveJobRunAsync()
+        {
+            await _restClient.PutAsync("/api/mfg/pnpjob/run", JobRun);
+        }
+
         async void SaveComponentPackage()
         {
             var result = await _restClient.PutAsync("/api/mfg/component/package", CurrentComponentPackage);
-            if(!result.Successful)
+            if (!result.Successful)
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, $"Could not save component package: {result.ErrorMessage}");
             }
@@ -318,6 +335,30 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not load job.");
         }
 
+        public async Task CreateJobRunAsync()
+        {
+            if (Job == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current job.");
+                return;
+            }
+
+            var jobLoadReslut = await _restClient.GetAsync<DetailResponse<PickAndPlaceJobRun>>($"/api/mfg/pnpjob/${Job.Id}/run/factory");
+            if (jobLoadReslut.Successful)
+            {
+                JobRun = jobLoadReslut.Result.Model;
+            }
+        }
+
+        public async Task LoadJobRunAsync(string jobRunId)
+        {
+            var jobLoadReslut = await _restClient.GetAsync<DetailResponse<PickAndPlaceJobRun>>($"/api/mfg/pnpjob/run/{jobRunId}");
+            if (jobLoadReslut.Successful)
+            {
+                JobRun = jobLoadReslut.Result.Model;
+                await LoadJobAsync(JobRun.Job.Id);
+            }
+        }
 
         private async void LoadJob(string jobId)
         {
@@ -337,8 +378,36 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public PickAndPlaceJob Job
         {
             get => _job;
-            private set => Set(ref _job, value);
+            private set
+            {
+                Set(ref _job, value);
+                RaiseCanExecuteChanged();
+            }
         }
+
+        private PickAndPlaceJobRun _jobRun;
+        public PickAndPlaceJobRun JobRun
+        {
+            get => _jobRun;
+            private set 
+            {
+                Set(ref _jobRun, value);
+                RaiseCanExecuteChanged();
+            }
+        }
+
+
+        public async Task<InvokeResult> CompletePlacementAsync()
+        {
+            if(JobRun == null)
+            {
+                return InvokeResult.FromError("No job run has been created.");
+            }
+
+            var jobPlacement = Placement.ToJobRunPlacement(PartGroup);
+            return await _restClient.PutAsync($"/api/mfg/pmpjob/run/{JobRun.Id}/placement", jobPlacement);
+        }
+
 
         PickAndPlaceJobSummary _selectedJob;
         public PickAndPlaceJobSummary SelectedJob
@@ -412,9 +481,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-
         Component _currentComponent;
-
         public Component CurrentComponent
         {
             get => _currentComponent;
@@ -426,12 +493,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     CurrentComponentPackage = value.ComponentPackage.Value;
                 else
                     CurrentComponentPackage = null;
-
             }
         }
 
         public ComponentPackage _currentComponentPackage;
-
         public ComponentPackage CurrentComponentPackage
         {
             get => _currentComponentPackage;
@@ -493,5 +558,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand VacuumOnCommand { get;  }
         public RelayCommand ReadVacuumCommand { get; }
         public RelayCommand VacuumOffCommand { get; }
+
+        public RelayCommand CreateJobRunCommand { get; }
+        public RelayCommand SaveJobRunCommand { get; }
     }
 }

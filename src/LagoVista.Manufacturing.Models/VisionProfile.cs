@@ -47,7 +47,7 @@ namespace LagoVista.PickAndPlace.Models
                     EntityHeader.Create(VisionProfile_PartInBlackTape, VisionProfile_PartInBlackTape, ManufacturingResources.VisionProfile_PartInBlackTape),
                     EntityHeader.Create(VisionProfile_PartInClearTape, VisionProfile_PartInClearTape, ManufacturingResources.VisionProfile_PartInClearTape),
                     EntityHeader.Create(VisionProfile_PartOnBoard, VisionProfile_PartOnBoard, ManufacturingResources.VisionProfile_PartOnBoard),
-                    EntityHeader.Create(VisionProfile_FeederFiducial, VisionProfile_FeederFiducial, ManufacturingResources.VisionProfile_FeederFiducial),
+                    EntityHeader.Create(VisionProfile_Custom, VisionProfile_Custom, ManufacturingResources.VisionProfile_FeederFiducial),
                 };
             }
         }
@@ -70,6 +70,7 @@ namespace LagoVista.PickAndPlace.Models
         public const string VisionProfile_PartInWhiteTape = "partinwhitetape";
         public const string VisionProfile_PartInBlackTape = "partinblacktape";
         public const string VisionProfile_PartInClearTape = "partincleartape";
+        public const string VisionProfile_Custom = "custom";
 
 
         private string _name;

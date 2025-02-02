@@ -61,7 +61,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
 
 
-        ManualResetEventSlim _completed = new ManualResetEventSlim();
+        ManualResetEventSlim _completed = null;
 
         public void AlignFiducial()
         {
@@ -88,6 +88,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public async Task<InvokeResult> AlignBoardAsync()
         {
+            lock(this)
+            {
+                if(this._completed != null)
+                {
+                    return InvokeResult.FromError("Alignment in progress, please try again later.");
+                }
+
+                _completed = new ManualResetEventSlim();
+            }
+
             Machine.SendSafeMoveHeight();
             await Machine.MoveToCameraAsync();
             Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_BoardFiducial);
@@ -98,31 +108,32 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             foreach (var fiducial in Job.BoardFiducials)
-            {                
-                _completed.Reset();
-                SelectedFiducial = fiducial;
-                await Task.Run(async () =>
+            {
+                try
                 {
-                    Machine.GotoPoint(MachineConfiguration.DefaultWorkOrigin + SelectedFiducial.Expected);
-                    // Give it time to move so it's not picking up the previous found circle.
-                    await Task.Delay(500);
-                    _locatorViewModel.RegisterCircleLocatedHandler(this);
-                    int attemptCount = 0;
-
-                    while (!_completed.IsSet && ++attemptCount < 200)
-                        _completed.Wait(25);
-                    
-                    if (!_completed.IsSet)
+                    _completed = new ManualResetEventSlim();
+                    _completed.Reset();
+                    SelectedFiducial = fiducial;
+                    await Task.Run(async () =>
                     {
-                        Debug.WriteLine("Timeout - Completed is not set.");
-                    }                    
-                    else
-                    {
-                        Debug.WriteLine("We are set!");
-                    }
-                });
+                        Machine.GotoPoint(MachineConfiguration.DefaultWorkOrigin + SelectedFiducial.Expected);
+                        // Give it time to move so it's not picking up the previous found circle.
+                        await Task.Delay(500);
+                        _locatorViewModel.RegisterCircleLocatedHandler(this);
+                        int attemptCount = 0;
 
-                Debug.Write("Next Fidcuial");
+                        while (!_completed.IsSet && ++attemptCount < 200)
+                            _completed.Wait(10);
+                    });
+                }
+                catch(Exception ex)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.FatalError, $"Error aligning board {ex.Message}.");
+                }
+                finally {
+                    _completed.Dispose();
+                    _completed = null;
+                }
             };
 
             RaiseCanExecuteChanged();
@@ -276,7 +287,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         Debug.WriteLine(message);
                         Machine.AddStatusMessage(Manufacturing.Models.StatusMessageTypes.Info, message);
                         selected.Actual = (currentLocation - MachineConfiguration.DefaultWorkOrigin).Round(3);
-                        _completed.Set();
+                        _completed?.Set();
                     });
                     
                 }

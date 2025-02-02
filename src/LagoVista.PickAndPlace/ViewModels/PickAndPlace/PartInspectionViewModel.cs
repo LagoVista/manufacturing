@@ -48,11 +48,24 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
        
         public async Task<InvokeResult> CenterPartAsync(Component component, PickAndPlaceJobPlacement placement, string algorithm)
         {
+            lock (this)
+            {
+                if (_waitForCenter != null)
+                {
+                    return InvokeResult.FromError("Already attempting to center part.");
+                }
+
+                _waitForCenter = new ManualResetEventSlim(false);
+            }
+
             await Machine.GoToPartInspectionCameraAsync();
 
             _corectionFactor = new Point2D<double>();
 
             if (component.ComponentPackage.Value.PartInspectionVisionProfile != null)
+                Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfileSource.Component, component.Id,
+                    component.PartInspectionVisionProfile);
+            else if (component.ComponentPackage.Value.PartInspectionVisionProfile != null)
                 Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfileSource.ComponentPackage, component.ComponentPackage.Id, 
                     component.ComponentPackage.Value.PartInspectionVisionProfile);
             else

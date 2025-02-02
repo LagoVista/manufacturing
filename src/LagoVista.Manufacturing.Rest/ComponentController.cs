@@ -15,6 +15,7 @@ using System.Linq;
 using LagoVista.Core;
 using LagoVista.Core.Models;
 using System.IO;
+using LagoVista.PickAndPlace.Models;
 
 namespace LagoVista.Manufacturing.Rest.Controllers
 {
@@ -124,6 +125,29 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         public Task<ListResponse<ComponentSummary>> GetComponentsForOrg(string componentType)
         {
             return _mgr.GetComponentsSummariesAsync(GetListRequestFromHeader(), componentType, OrgEntityHeader, UserEntityHeader);
+        }
+
+
+        [HttpPut("/api/mfg/component/{id}/visionprofile/{type}")]
+        public async Task<InvokeResult> UpdateVisionProfile(string id, string type, [FromBody] VisionProfile profile)
+        {
+            var component = await _mgr.GetComponentAsync(id, false, OrgEntityHeader, UserEntityHeader);
+            switch (type.ToLower())
+            {
+                case "inspection":
+                    component.PartInspectionVisionProfile = profile;
+                    break;
+                case "partonboard":
+                    component.PartOnBoardVisionProfile = profile;
+                    break;
+                case "partintape":
+                    component.PartInTapeVisionProfile = profile;
+                    break;
+                default:
+                    return InvokeResult.FromError($"{type} is not a valid vision profile type for a component.");
+            }
+
+            return await _mgr.UpdateComponentAsync(component, OrgEntityHeader, UserEntityHeader);
         }
     }
 }

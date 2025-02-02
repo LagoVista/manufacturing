@@ -1,10 +1,12 @@
-﻿using LagoVista.Core.Attributes;
+﻿using LagoVista.Core;
+using LagoVista.Core.Attributes;
 using LagoVista.Core.Interfaces;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models.Resources;
 using LagoVista.PCB.Eagle.Models;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -104,7 +106,7 @@ namespace LagoVista.Manufacturing.Models
 
         public double BoardAngle { get; set; }
 
-        [FormField(LabelResource: ManufacturingResources.Names.PickAndPlaceJob_CurrentSerialNumber, FieldType: FieldTypes.Integer,  ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.PickAndPlaceJob_CurrentSerialNumber, FieldType: FieldTypes.Integer, ResourceType: typeof(ManufacturingResources))]
         public int CurrentSerialNumber { get; set; } = 1000;
 
         [FormField(LabelResource: ManufacturingResources.Names.PickAndPlaceJob_Cost, IsUserEditable: true, FieldType: FieldTypes.Money, ResourceType: typeof(ManufacturingResources))]
@@ -112,7 +114,7 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.PickAndPlaceJob_Extneded, IsUserEditable: true, FieldType: FieldTypes.Money, ResourceType: typeof(ManufacturingResources))]
         public double Extended { get; set; }
 
-        [FormField(LabelResource: ManufacturingResources.Names.PickAndPlaceJob_Board, IsUserEditable:false, FieldType: FieldTypes.EntityHeaderPicker, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.PickAndPlaceJob_Board, IsUserEditable: false, FieldType: FieldTypes.EntityHeaderPicker, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader Board { get; set; }
 
         public CircuitBoardRevision BoardRevision { get; set; }
@@ -122,11 +124,11 @@ namespace LagoVista.Manufacturing.Models
         public ObservableCollection<ErrorMessage> ErrorMessages { get; set; } = new ObservableCollection<ErrorMessage>();
 
         private ObservableCollection<string> _errors = new ObservableCollection<string>();
-        public ObservableCollection<string> Errors 
+        public ObservableCollection<string> Errors
         {
             get => _errors;
             set => Set(ref _errors, value);
-        } 
+        }
 
         private ObservableCollection<string> _warnings = new ObservableCollection<string>();
         public ObservableCollection<string> Warnings
@@ -166,21 +168,21 @@ namespace LagoVista.Manufacturing.Models
     public class BoardFiducial : ModelBase
     {
         private string _name;
-        public string Name 
+        public string Name
         {
             get => _name;
             set => Set(ref _name, value);
         }
 
         private Point2D<double> _expected;
-        public Point2D<double> Expected 
+        public Point2D<double> Expected
         {
             get => _expected;
             set => Set(ref _expected, value);
         }
-        
+
         private Point2D<double> _actual;
-        public Point2D<double> Actual 
+        public Point2D<double> Actual
         {
             get => _actual;
             set => Set(ref _actual, value);
@@ -190,7 +192,7 @@ namespace LagoVista.Manufacturing.Models
     public class PartsGroup : ModelBase
     {
         private string _value;
-        public string Value 
+        public string Value
         {
             get => _value;
             set => Set(ref _value, value);
@@ -232,7 +234,7 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _component, value);
         }
 
-         EntityHeader _componentPackage;
+        EntityHeader _componentPackage;
         public EntityHeader ComponentPackage
         {
             get => _componentPackage;
@@ -247,18 +249,18 @@ namespace LagoVista.Manufacturing.Models
         }
 
         ObservableCollection<PickAndPlaceJobPlacement> _placements = new ObservableCollection<PickAndPlaceJobPlacement>();
-        public ObservableCollection<PickAndPlaceJobPlacement> Placements 
+        public ObservableCollection<PickAndPlaceJobPlacement> Placements
         {
             get => _placements;
             set
             {
                 Set(ref _placements, value);
                 RaisePropertyChanged(nameof(Count));
-                if(_placements != null)
+                if (_placements != null)
                 {
                     _placements.CollectionChanged += (s, a) => RaisePropertyChanged(nameof(Count));
                 }
-            }            
+            }
         }
 
         ObservableCollection<string> _errors = new ObservableCollection<string>();
@@ -269,10 +271,10 @@ namespace LagoVista.Manufacturing.Models
         }
 
         public int Count => Placements.Count;
-        
+
         public InvokeResult Validate()
         {
-            if(AvailableCount < Count)
+            if (AvailableCount < Count)
             {
                 return InvokeResult.FromError("not enough parts to place.");
             }
@@ -290,7 +292,7 @@ namespace LagoVista.Manufacturing.Models
     public class PickAndPlaceJobPlacement : ModelBase
     {
         private string _name;
-        public string Name 
+        public string Name
         {
             get => _name;
             set => Set(ref _name, value);
@@ -328,7 +330,7 @@ namespace LagoVista.Manufacturing.Models
         public ObservableCollection<string> Errors
         {
             get => _errors;
-            set => Set(ref _errors, value); 
+            set => Set(ref _errors, value);
         }
 
         Point2D<double> _pickErrorOffset;
@@ -349,7 +351,16 @@ namespace LagoVista.Manufacturing.Models
         public EntityHeader<PnPStates> State
         {
             get => _state;
-            set => Set(ref _state, value);
+            set
+            {
+                if(_state.Value == PnPStates.New)
+                    StartTimeStamp = DateTime.UtcNow;
+             
+                if(value.Value == PnPStates.Placed)
+                    EndTimeStamp = DateTime.UtcNow;
+
+                Set(ref _state, value);
+            }
         }
 
         private string _lastError;
@@ -357,6 +368,43 @@ namespace LagoVista.Manufacturing.Models
         {
             get => _lastError;
             set => Set(ref _lastError, value);
+        }
+
+        DateTime? _startTimeStamp;
+        public DateTime? StartTimeStamp
+        {
+            get => _startTimeStamp;
+            set => Set(ref _startTimeStamp, value);
+        }
+
+        DateTime? _endTimeStamp;
+        public DateTime? EndTimeStamp
+        {
+            get => _endTimeStamp;
+            set => Set(ref _endTimeStamp, value);
+        }
+
+        public PickAndPlaceJobRunPlacement ToJobRunPlacement(PartsGroup partGroup)
+        {
+            var jobPlacement = new PickAndPlaceJobRunPlacement()
+            {
+                AutoFeeder = partGroup.AutoFeeder,
+                StripFeeder = partGroup.StripFeeder,
+                Component = partGroup.Component,
+                ComponentPackage = partGroup.ComponentPackage,
+                Errors = LastError,
+                Name = Name,
+                PCBLocation = PCBLocation,
+                Rotation = Rotation,
+                TimeStamp = DateTime.UtcNow.ToJSONString(),
+            };
+
+            if (EndTimeStamp.HasValue && StartTimeStamp.HasValue)
+            {
+                jobPlacement.DurationMS = (EndTimeStamp.Value - StartTimeStamp.Value).TotalMilliseconds;
+            }
+
+            return jobPlacement;
         }
     }
 }

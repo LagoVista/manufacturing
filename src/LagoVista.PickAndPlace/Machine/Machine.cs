@@ -225,6 +225,8 @@ namespace LagoVista.PickAndPlace
             else
             {
                 camera.CurrentVisionProfile = profile;
+                camera.ProfileSource = sourceType;
+                camera.ProfileSourceId = sourceId;
 
                 if (camera.CameraType.Value == CameraTypes.Position)
                 {
@@ -273,7 +275,10 @@ namespace LagoVista.PickAndPlace
                 else
                     camera.CurrentVisionProfile = profile;
 
-                if(camera.CameraType.Value == CameraTypes.Position)
+                camera.ProfileSource = VisionProfileSource.Camera;
+                camera.ProfileSourceId = null;
+
+                if (camera.CameraType.Value == CameraTypes.Position)
                 {
                     ConfigureTopLight(camera.CurrentVisionProfile.LightOn, camera.CurrentVisionProfile.LightPower, camera.CurrentVisionProfile.LightRed, camera.CurrentVisionProfile.LightBlue, camera.CurrentVisionProfile.LightGreen);
                 }

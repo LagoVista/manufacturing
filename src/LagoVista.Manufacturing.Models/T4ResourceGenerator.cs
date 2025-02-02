@@ -1,4 +1,4 @@
-﻿/*2/1/2025 2:03:57 PM*/
+﻿/*2/2/2025 6:00:28 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -1580,6 +1580,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:VisionProfile_CountourRetrievealMode_Select
 
 		public static string VisionProfile_CountourRetrievealMode_Select { get { return GetResourceString("VisionProfile_CountourRetrievealMode_Select"); } }
+//Resources:ManufacturingResources:VisionProfile_Custom
+
+		public static string VisionProfile_Custom { get { return GetResourceString("VisionProfile_Custom"); } }
 //Resources:ManufacturingResources:VisionProfile_Defauilt
 
 		public static string VisionProfile_Defauilt { get { return GetResourceString("VisionProfile_Defauilt"); } }
@@ -2140,6 +2143,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string VisionProfile_BoardFiducial = "VisionProfile_BoardFiducial";
 			public const string VisionProfile_CountourRetrievealMode = "VisionProfile_CountourRetrievealMode";
 			public const string VisionProfile_CountourRetrievealMode_Select = "VisionProfile_CountourRetrievealMode_Select";
+			public const string VisionProfile_Custom = "VisionProfile_Custom";
 			public const string VisionProfile_Defauilt = "VisionProfile_Defauilt";
 			public const string VisionProfile_FeederFiducial = "VisionProfile_FeederFiducial";
 			public const string VisionProfile_FeederOrigin = "VisionProfile_FeederOrigin";

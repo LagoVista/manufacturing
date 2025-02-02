@@ -48,10 +48,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             PickCurrentPartCommand = CreatedMachineConnectedCommand(async () => await PickCurrentPartAsync(), () => CurrentComponent != null);
             RecycleCurrentPartCommand = CreatedMachineConnectedCommand(async () => await RecycleCurrentPartAsync(), () => CurrentComponent != null);
             InspectCurrentPartCommand = CreatedMachineConnectedCommand(async () => await InspectCurrentPartAsync(), () => CurrentComponent != null);
-            SaveComponentPackageCommand = CreatedCommand(SaveComponentPackage, () => CurrentComponentPackage != null);
-            ShowComponentDetailCommand = CreatedCommand(ShowComponentDetail, () => CurrentComponent != null);
-            ShowComponentPackageDetailCommand = CreatedCommand(ShowComponentPackageDetail, () => CurrentComponent != null && CurrentComponent?.ComponentPackage != null);
-            ShowDataSheetCommand = CreatedCommand(ShowDataSheeet, () => CurrentComponent != null && !String.IsNullOrEmpty(CurrentComponent.DataSheet));
+            SaveComponentPackageCommand = CreateCommand(SaveComponentPackage, () => CurrentComponentPackage != null);
+            ShowComponentDetailCommand = CreateCommand(ShowComponentDetail, () => CurrentComponent != null);
+            ShowComponentPackageDetailCommand = CreateCommand(ShowComponentPackageDetail, () => CurrentComponent != null && CurrentComponent?.ComponentPackage != null);
+            ShowDataSheetCommand = CreateCommand(ShowDataSheeet, () => CurrentComponent != null && !String.IsNullOrEmpty(CurrentComponent.DataSheet));
             NextPartCommand = CreatedMachineConnectedCommand(async () => await NextPartAsync());
             CenterOnPartCommand = CreatedMachineConnectedCommand(async () => await CenterOnPartAsync(CurrentComponent), () => CurrentComponent != null);
         }

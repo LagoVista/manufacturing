@@ -53,13 +53,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return InvokeResult.FromError("No part to place.");
             }
 
-            var placement = JobVM.PartGroup.Placements.FirstOrDefault();
-            if (placement == null)
-            {
-                return InvokeResult.FromError("Could not identify first placement.");
-            }
-
-            var currentFeeder = ActiveFeederViewModel;
+            var previousFeeder = ActiveFeederViewModel;
             ActiveFeederViewModel = null;
 
             if (!EntityHeader.IsNullOrEmpty(JobVM.PartGroup.StripFeeder))
@@ -99,18 +93,24 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
             else
             {
-
                 return InvokeResult.FromError("Selected component does not have an assocaited feeder.");
             }
 
-            if (currentFeeder != ActiveFeederViewModel)
+            if (previousFeeder != ActiveFeederViewModel)
             {
+                var placement = JobVM.PartGroup.Placements.FirstOrDefault();
+                if (placement == null)
+                {
+                    return InvokeResult.FromError("Could not identify first placement.");
+                }
+
                 JobVM.Placement = placement;
             }
 
             if(ActiveFeederViewModel != null)
             {
                 ActiveFeederViewModel.CurrentComponent = JobVM.CurrentComponent;
+                ActiveFeederViewModel.CurrentComponentPackage = JobVM.CurrentComponentPackage;
             }
 
             RaiseCanExecuteChanged();

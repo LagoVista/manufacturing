@@ -49,6 +49,7 @@ namespace LagoVista.PickAndPlace.ViewModels
         private void Machine_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(Machine.WasMachinOriginCalibrated) ||
+                e.PropertyName == nameof(Machine.IsLocating) ||
                 e.PropertyName == nameof(Machine.WasMachineHomed))
             {
                 RaiseCanExecuteChanged();
@@ -70,21 +71,21 @@ namespace LagoVista.PickAndPlace.ViewModels
 
         protected RelayCommand CreatedMachineConnectedCommand(Action execute, Func<bool> canExecute = null)
         {
-            var cmd = (canExecute == null) ? new RelayCommand(execute, () => Machine != null && Machine.Connected &&  Machine.WasMachineHomed && Machine.WasMachinOriginCalibrated) : 
-                                             new RelayCommand(execute, () => Machine != null && Machine.Connected && Machine.WasMachineHomed && Machine.WasMachinOriginCalibrated&& canExecute());
+            var cmd = (canExecute == null) ? new RelayCommand(execute, () => Machine != null && Machine.Connected && !Machine.IsLocating && Machine.WasMachineHomed && Machine.WasMachinOriginCalibrated) : 
+                                             new RelayCommand(execute, () => Machine != null && Machine.Connected && !Machine.IsLocating && Machine.WasMachineHomed && Machine.WasMachinOriginCalibrated&& canExecute());
             RegisterCommandHandler(cmd);
             return cmd;
         }
 
         protected RelayCommand CreatedMachineConnectedSettingsCommand(Action execute, Func<bool> canExecute = null)
         { 
-            var cmd = (canExecute == null) ? new RelayCommand(execute, () => Machine != null && Machine.Connected && Machine.WasMachineHomed && Machine.WasMachinOriginCalibrated && !Machine.AreSettingsLocked) :
-                                             new RelayCommand(execute, () => Machine != null && Machine.Connected && !Machine.AreSettingsLocked && canExecute());
+            var cmd = (canExecute == null) ? new RelayCommand(execute, () => Machine != null && Machine.Connected && !Machine.IsLocating && Machine.WasMachineHomed && Machine.WasMachinOriginCalibrated && !Machine.AreSettingsLocked) :
+                                             new RelayCommand(execute, () => Machine != null && Machine.Connected && !Machine.IsLocating && !Machine.AreSettingsLocked && canExecute());
             RegisterCommandHandler(cmd);
             return cmd;
         }
 
-        protected RelayCommand CreatedCommand(Action execute, Func<bool> canExecute = null)
+        protected RelayCommand CreateCommand(Action execute, Func<bool> canExecute = null)
         {
             var cmd =  (canExecute == null) ? new RelayCommand(execute) :  new RelayCommand(execute, canExecute);
             RegisterCommandHandler(cmd);

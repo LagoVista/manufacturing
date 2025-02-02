@@ -71,21 +71,21 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             GoToNextPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.NextPart), () => (CurrentRow != null && CurrentPartIndex < TotalPartsInFeederRow));
             GoToPreviousPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.PreviousPart), () => (CurrentRow != null && CurrentPartIndex > 1));
 
-            RemoveCurrentCommand = CreatedCommand(RemoveCurrent, () => Current != null);
+            RemoveCurrentCommand = CreateCommand(RemoveCurrent, () => Current != null);
 
-            AddCommand = CreatedCommand(Add, () => machineRepo.HasValidMachine && SelectedTemplateId.HasValidId());
-            SaveCommand = CreatedCommand(async () => await SaveAsync(false), () => Current != null);
-            SaveAndCloseCommand = CreatedCommand(async () => await SaveAsync(true), () => Current != null);
-            CancelCommand = CreatedCommand(Cancel, () => Current != null);
-            DoneRowCommand = CreatedCommand(() => DoneRow(), () => CurrentRow != null);
-            CancelRowCommand = CreatedCommand(() => CurrentRow = null, () => CurrentRow != null);
-            ClearPartCommand = CreatedCommand(ClearPart, () => CurrentRow != null && CurrentRow.Component != null);
+            AddCommand = CreateCommand(Add, () => machineRepo.HasValidMachine && SelectedTemplateId.HasValidId());
+            SaveCommand = CreateCommand(async () => await SaveAsync(false), () => Current != null);
+            SaveAndCloseCommand = CreateCommand(async () => await SaveAsync(true), () => Current != null);
+            CancelCommand = CreateCommand(Cancel, () => Current != null);
+            DoneRowCommand = CreateCommand(() => DoneRow(), () => CurrentRow != null);
+            CancelRowCommand = CreateCommand(() => CurrentRow = null, () => CurrentRow != null);
+            ClearPartCommand = CreateCommand(ClearPart, () => CurrentRow != null && CurrentRow.Component != null);
 
-            RefreshTemplatesCommand = CreatedCommand(async () => await LoadTemplates());
+            RefreshTemplatesCommand = CreateCommand(async () => await LoadTemplates());
 
-            ReloadFeederCommand = CreatedCommand(ReloadFeeder, () => Current != null);
+            ReloadFeederCommand = CreateCommand(ReloadFeeder, () => Current != null);
 
-            SetCurrentPartIndexOnRowCommand = CreatedCommand(() => CurrentRow.CurrentPartIndex = CurrentPartIndex, () => CurrentRow != null);
+            SetCurrentPartIndexOnRowCommand = CreateCommand(() => CurrentRow.CurrentPartIndex = CurrentPartIndex, () => CurrentRow != null);
         }
 
         public async override Task InitAsync()
@@ -638,12 +638,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        public override Task<InvokeResult> NextPartAsync()
+        public override async Task<InvokeResult> NextPartAsync()
         {
             CurrentRow.CurrentPartIndex++;
-            return Task.FromResult(InvokeResult.Success);
+            return await _restClient.PutAsync($"/api/mfg/stripfeeder/{Current.Id}/row/{CurrentRow.RowIndex}/partindex/{CurrentRow.CurrentPartIndex}", new { }, waitCursor: false);
         }
-
 
         public ObservableCollection<MachineStagingPlate> StagingPlates { get => MachineRepo.CurrentMachine.Settings.StagingPlates; }
 

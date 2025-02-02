@@ -146,6 +146,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             result = await ActiveFeederViewModel.NextPartAsync();
             if (!result.Successful) return result;
 
+            result = await JobVM.CompletePlacementAsync();
+            if (!result.Successful) return result;
+
             return InvokeResult.Success;
         }
 

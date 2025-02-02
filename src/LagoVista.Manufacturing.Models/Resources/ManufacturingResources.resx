@@ -1688,4 +1688,7 @@
   <data name="VisionProfile_CountourRetrievealMode_Select" xml:space="preserve">
     <value>-select countour retrieval mode-</value>
   </data>
+  <data name="VisionProfile_Custom" xml:space="preserve">
+    <value>Custom</value>
+  </data>
 </root>

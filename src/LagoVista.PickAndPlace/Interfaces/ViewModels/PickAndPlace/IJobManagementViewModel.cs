@@ -12,6 +12,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
     {
         ObservableCollection<PickAndPlaceJobSummary> Jobs { get; }
         PickAndPlaceJob Job { get; }
+        PickAndPlaceJobRun JobRun { get; }
         PickAndPlaceJobSummary SelectedJob { get; set; }
         CircuitBoardRevision CircuitBoard { get; }
 
@@ -30,6 +31,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         IPartsViewModel PartsViewModel { get; }
         bool IsSubstituting { get; }
 
+
+        Task<InvokeResult> CompletePlacementAsync();
 
         /// <summary>
         /// 
@@ -60,5 +63,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand SaveComponentPackageCommand { get; }
         RelayCommand CancelSubstitutePartCommand { get; }
 
+        RelayCommand CreateJobRunCommand { get; }
+        RelayCommand SaveJobRunCommand {get;}
     }
 }

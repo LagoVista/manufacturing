@@ -1,4 +1,5 @@
 ﻿using Emgu.CV.DepthAI;
+using Emgu.CV.Stitching;
 using Emgu.CV.XImgproc;
 using LagoVista.Client.Core;
 using LagoVista.Core.Commanding;
@@ -37,7 +38,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             PhotonFeederViewModel = photonFeederViewModel ?? throw new ArgumentNullException(nameof(photonFeederViewModel));
             PhotonFeederViewModel.PropertyChanged += PhotonFeederViewModel_PropertyChanged;
 
-            CreateAutoFeederFromTemplateCommand = CreatedCommand(CreateAutoFeederFromTemplateAsync, () => !string.IsNullOrEmpty(SelectedTemplateId));
+            CreateAutoFeederFromTemplateCommand = CreateCommand(CreateAutoFeederFromTemplateAsync, () => !string.IsNullOrEmpty(SelectedTemplateId));
             SetFeederFiducialLocationCommand = CreatedMachineConnectedSettingsCommand(SetFeederFiducialLocationAsync, () => Current != null);
             SetPartPickLocationCommand = CreatedMachineConnectedSettingsCommand(SetPickLocationCommand, () => Current != null);
 
@@ -48,10 +49,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             AdvanceFeedCommand = CreatedMachineConnectedCommand(async () => await AdvanceFeedAsync(), () => Current != null);
             RetractFeedCommand = CreatedMachineConnectedCommand(async () => await RetractFeedAsync(), () => Current != null);
 
-            AddCommand = CreatedCommand(Add, () => MachineRepo.HasValidMachine && SelectedTemplateId.HasValidId() && CurrentPhotonFeeder != null);
-            SaveCommand = CreatedCommand(Save, () => Current != null);
-            CancelCommand = CreatedCommand(Cancel, () => Current != null);
-            ReloadFeederCommand = CreatedCommand(ReloadFeeder, () => Current != null);
+            AddCommand = CreateCommand(Add, () => MachineRepo.HasValidMachine && SelectedTemplateId.HasValidId() && CurrentPhotonFeeder != null);
+            SaveCommand = CreateCommand(Save, () => Current != null);
+            CancelCommand = CreateCommand(Cancel, () => Current != null);
+            ReloadFeederCommand = CreateCommand(ReloadFeeder, () => Current != null);
         }
 
         protected async override void OnMachineConnected()
@@ -126,6 +127,21 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return InvokeResult.FromError("Could not center on part.");
             }
 
+            if(Machine.CurrentMachineToolHead == null)
+            {
+                return InvokeResult.FromError("No tool head selected.");
+            }
+
+            lock (this)
+            {
+                if (_waitForCenter != null)
+                {
+                    return InvokeResult.FromError("Already attempting to center part.");
+                }
+
+                _waitForCenter = new ManualResetEventSlim(false);
+            }
+
             _feederOffset = new Point2D<double>();
 
             _locatorViewModel.RegisterRectangleLocatedHandler(this);
@@ -139,21 +155,22 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             else
                 Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInClearTape);
 
-            _waitForCenter = new ManualResetEventSlim(false);
             _locatorViewModel.RegisterRectangleLocatedHandler(this);
+
+            var success = false;
 
             await Task.Run(() =>
             {
                 var attemptCount = 0;
                 while (!_waitForCenter.IsSet && ++attemptCount < 200)
                     _waitForCenter.Wait(25);
+                
+                success = _waitForCenter.IsSet;
+                _waitForCenter.Dispose();
+                _waitForCenter = null;
             });
 
             _locatorViewModel.UnregisterRectangleLocatedHandler(this);
-
-            var success = _waitForCenter.IsSet;
-            _waitForCenter.Dispose();
-            _waitForCenter = null;
 
             if (toolHead != null)
                 await Machine.MoveToToolHeadAsync(toolHead);
@@ -275,7 +292,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public async Task<InvokeResult> AdvanceFeedAsync()
         {
-            return await PhotonFeederViewModel.AdvanceFeed((byte)Current.Slot, 4);
+            var result = await PhotonFeederViewModel.AdvanceFeed((byte)Current.Slot, 4);
+            return result;
+        
         }
 
         public async Task<InvokeResult> RetractFeedAsync()
@@ -442,14 +461,18 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public async override Task<InvokeResult> NextPartAsync()
         {
-            if (Current != null)
+            if (Current == null)
             {
-                Current.PartCount--;
-                return await AdvanceFeedAsync();
+                return InvokeResult.FromError("No current feeder.");
             }
-
-            return InvokeResult.FromError("No current feeder.");
             
+            Current.PartCount--;
+            var result = await AdvanceFeedAsync();
+
+            await _restClient.PutAsync($"/api/mfg/autofeeder/{Current.Id}/partcount/{Current.PartCount}", new { }, waitCursor: false);
+
+            return result;
+        
         }
 
         AutoFeeder _current;

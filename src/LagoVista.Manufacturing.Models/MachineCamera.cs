@@ -26,8 +26,19 @@ namespace LagoVista.Manufacturing.Models
 
     public enum VisionProfileSource
     {
-        Camera, 
+        /// <summary>
+        /// Profile came from stanard profile associated with the camera.
+        /// </summary>
+        Camera,
+        
+        /// <summary>
+        /// Vision profile is specific to the component. 
+        /// </summary>
         Component,
+
+        /// <summary>
+        /// Vision profile is specific to the component package.
+        /// </summary>
         ComponentPackage,
     }
 
