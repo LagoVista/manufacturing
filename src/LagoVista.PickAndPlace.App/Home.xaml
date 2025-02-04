@@ -65,7 +65,7 @@
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="280" />
-                    <RowDefinition Height="95" />
+                    <RowDefinition Height="120" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <ctls:ImageSensorControl CameraType="Position" Grid.Row="1" />

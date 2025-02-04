@@ -52,9 +52,16 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                 if (value)
                 {
                     _locatorStart = DateTime.Now;
-                    _locatorDuration = null;
-                }
+                    Duration = null;
+                }               
             }
+        }
+
+
+        public TimeSpan? Duration
+        {
+            get => _locatorDuration;
+            set => Set(ref _locatorDuration, value);
         }
 
         private void AbortVMLocator()
@@ -126,51 +133,63 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
         public void CirclesLocated(MVLocatedCircles circles)
         {
-            if (_circlesLocatedHandlers.Any())
+            lock (this)
             {
-                Status = $"{DateTime.Now:t} - Circles Located - Notify {_rectLocatedHandlers.Count} handlers.";
-
-                foreach (var handler in _circlesLocatedHandlers.ToList())
+                if (_circlesLocatedHandlers.Any())
                 {
-                    handler.CirclesLocated(circles);
+                    Status = $"{DateTime.Now:t} - Circles Located - Notify {_rectLocatedHandlers.Count} handlers.";
+
+                    foreach (var handler in _circlesLocatedHandlers.ToList())
+                    {
+                        handler.CirclesLocated(circles);
+                    }
                 }
             }
         }
 
         public void CircleLocated(MVLocatedCircle circle)
         {
-            if (_circleLocatedHandlers.Any())
+            lock (this)
             {
-                Status = $"{DateTime.Now:t} - Circle Located - Notify {_circleLocatedHandlers.Count} handlers.";
-
-                foreach (var handler in _circleLocatedHandlers.ToList())
+                if (_circleLocatedHandlers.Any())
                 {
-                    handler.CircleLocated(circle);
+                    Status = $"{DateTime.Now:t} - Circle Located - Notify {_circleLocatedHandlers.Count} handlers.";
+
+                    foreach (var handler in _circleLocatedHandlers.ToList())
+                    {
+                        handler.CircleLocated(circle);
+                    }
                 }
             }
         }
 
         public void RectLocated(MVLocatedRectangle rect)
         {
-            if (_rectLocatedHandlers.Any())
+            lock (this)
             {
-                Status = $"{DateTime.Now:t} - Rectangle Located - Notify {_rectLocatedHandlers.Count} handlers.";
-                foreach (var handler in _rectLocatedHandlers.ToList())
+                if (_rectLocatedHandlers.Any())
                 {
-                    handler.RectangleLocated(rect);
+                    Status = $"{DateTime.Now:t} - Rectangle Located - Notify {_rectLocatedHandlers.Count} handlers.";
+                    foreach (var handler in _rectLocatedHandlers.ToList())
+                    {
+                        handler.RectangleLocated(rect);
+                    }
                 }
             }
         }
 
         public void CornerLocated(MVLocatedCorner corner)
         {
-            if (_cornerLocatedHandlers.Any())
+            lock (this)
             {
-                Status = $"{DateTime.Now:t} - Corner Located - Notify {_rectLocatedHandlers.Count} handlers.";
-
-                foreach (var handler in _cornerLocatedHandlers.ToList())
+                if (_cornerLocatedHandlers.Any())
                 {
-                    handler.CornerLocated(corner);
+                    Status = $"{DateTime.Now:t} - Corner Located - Notify {_rectLocatedHandlers.Count} handlers.";
+
+                    foreach (var handler in _cornerLocatedHandlers.ToList())
+                    {
+                        handler.CornerLocated(corner);
+                    }
                 }
             }
         }

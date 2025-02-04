@@ -106,8 +106,9 @@
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding GoToPartOnBoardCommand}" Content="Go To Part In Board"></Button>
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding PlacePartCommand}" Content="Place Part Board"></Button>
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding CheckNoPartPresentCommand}" Content="Part Not Present"></Button>
-                                <Button Style="{StaticResource CommandButton}" Command="{Binding NextPartCommand}" Content="Advance Part"></Button>
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding InspectPartOnBoardCommand}" Content="Inspect Part on Board"></Button>
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding NextPartCommand}" Content="Advance Part"></Button>
+                               
                             </StackPanel>
                             <StackPanel Grid.Row="1" Grid.Column="3">
                                 <TextBlock Style="{StaticResource header}" Text="Recycle" HorizontalAlignment="Center" />

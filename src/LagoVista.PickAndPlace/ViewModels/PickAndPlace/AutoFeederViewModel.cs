@@ -285,7 +285,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public async Task<InvokeResult> AdvanceFeedAsync()
         {
-            var result = await PhotonFeederViewModel.AdvanceFeed((byte)Current.Slot, 4);
+            var result = await PhotonFeederViewModel.AdvanceFeed((byte)Current.Slot, CurrentComponentPackage.TapePitch.ToDouble());
             return result;
         
         }
@@ -474,7 +474,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             get => _current;
             set
             {
-                if (_current.Id == value?.Id)
+                if (_current?.Id == value?.Id)
                     return;
 
                 Set(ref _current, value);

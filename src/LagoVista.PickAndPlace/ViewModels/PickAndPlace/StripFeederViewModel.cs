@@ -640,8 +640,22 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public override async Task<InvokeResult> NextPartAsync()
         {
-            CurrentRow.CurrentPartIndex++;
-            return await _restClient.PutAsync($"/api/mfg/stripfeeder/{Current.Id}/row/{CurrentRow.RowIndex}/partindex/{CurrentRow.CurrentPartIndex}", new { }, waitCursor: false);
+            var nextPartIndex = CurrentRow.CurrentPartIndex + 1;
+
+            var result = await _restClient.PutAsync($"/api/mfg/stripfeeder/{Current.Id}/row/{CurrentRow.RowIndex}/partindex/{nextPartIndex}", new { }, waitCursor: false);
+
+            if (result.Successful) 
+            {
+                CurrentRow.CurrentPartIndex = nextPartIndex;
+
+                GoTo(StripFeederLocationTypes.CurrentPart);
+            }
+            else
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, result.ErrorMessage);
+            }
+
+            return result;
         }
 
         public ObservableCollection<MachineStagingPlate> StagingPlates { get => MachineRepo.CurrentMachine.Settings.StagingPlates; }

@@ -114,6 +114,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 rotatePart *= -1;
             }
 
+            rotatePart = rotatePart % 360;
+
             Machine.RotateToolHead(-rotatePart);
             return Task<InvokeResult>.FromResult(InvokeResult.Success);
         }
@@ -330,6 +332,31 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Job = jobLoadReslut.Result.Model;
                 CircuitBoard = Job.BoardRevision;
                 await _storageService.StoreKVP<string>("last-job-id", jobId);
+
+                if(JobRun != null)
+                {
+                    foreach (var placed in JobRun.Placements)
+                    {
+                        var part = Job.Parts.FirstOrDefault(cmp => cmp.Component.Id == placed.Component.Id);
+                        if (part == null)
+                        {
+                            Machine.AddStatusMessage(StatusMessageTypes.FatalError, $"Could not find part for component: {placed.Component.Text} when restoring job.");
+                        }
+                        else
+                        {
+                            var placement = part.Placements.FirstOrDefault(pl => pl.Name == placed.Name);
+                            if (placement == null)
+                            {
+                                Machine.AddStatusMessage(StatusMessageTypes.FatalError, $"Could not find placement {placed.Name}, on ocmponent {placed.Component.Text} when restoring job.");
+                            }
+                            else
+                            {
+                                if (placed.Status.Value == JobPlacementStatuses.Placed)
+                                    placement.State = EntityHeader<PnPStates>.Create(PnPStates.Placed);
+                            }
+                        }
+                    }                   
+                }
             }
             else
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not load job.");

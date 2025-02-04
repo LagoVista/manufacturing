@@ -4,6 +4,7 @@ using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using RingCentral;
+using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -733,150 +734,170 @@ namespace LagoVista.PickAndPlace
 
         public async Task MoveToToolHeadAsync(MachineToolHead toolHeadToMoveTo)
         {
-            _toolHeadMoveSempahorr.Wait();
-
-            if (_viewType == ViewTypes.Moving)
+            try
             {
-                AddStatusMessage(StatusMessageTypes.Info, "Can not move to camera, busy.");
-                _toolHeadMoveSempahorr.Release();
-                return;
-            }
-
-            if(_currentMachineToolHead == toolHeadToMoveTo)
-            {
-                _toolHeadMoveSempahorr.Release();
-                return;
-            }
-
-            if (_currentMachineToolHead != null )
-            {
-                _toolHeadMoveSempahorr.Release();
-                await MoveToCameraAsync();
                 _toolHeadMoveSempahorr.Wait();
-            }
 
-            await Task.Run(async () =>
-            {
-                Enqueue("M400"); // Wait for previous command to finish before executing next one.
-
-                System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount == 0, 5000);
-                System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
-
-                var currentPosition = await GetCurrentLocationAsync();
-                var currentLocationX = currentPosition.X;
-                var currentLocationY = currentPosition.Y;
-
-                SendSafeMoveHeight();
-
-
-                SetRelativeMode();
-
-                _viewType = ViewTypes.Moving;
-                RaisePropertyChanged();
-
-                Enqueue($"G0 X{toolHeadToMoveTo.Offset.X} Y{toolHeadToMoveTo.Offset.Y} F{Settings.FastFeedRate}");
-
-                Enqueue("M400"); // Wait for previous command to finish before executing next one.
-                                 //            Enqueue("G4 P1"); // just pause for 1ms
-
-                // Wait for the all the messages to get sent out (but won't get an OK for G4 until G0 finishes)
-                System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount > 0, 5000);
-                System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
-
-                await Task.Delay(500);
-
-                // 4. set the machine back to absolute points
-                SetAbsoluteMode();
-
-                // 5. Set the machine location to where it was prior to the move.
-                await ResetMachineCoordinates(new Core.Models.Drawing.Point2D<double>(currentLocationX, currentLocationY));
-
-                _viewType = ViewTypes.Tool;
-                _currentMachineToolHead = toolHeadToMoveTo;
-
-                Services.DispatcherServices.Invoke(() =>
+                if (_viewType == ViewTypes.Moving)
                 {
-                    RaisePropertyChanged(nameof(ViewType));
-                    RaisePropertyChanged(nameof(CurrentMachineToolHead));
-                    AddStatusMessage(StatusMessageTypes.Info, $"Moved to tool head {toolHeadToMoveTo.Name}.");
-                    
+                    AddStatusMessage(StatusMessageTypes.Info, "Can not move to camera, busy.");
+                    _toolHeadMoveSempahorr.Release();
+                    return;
+                }
+
+                if (_currentMachineToolHead == toolHeadToMoveTo)
+                {
+                    _toolHeadMoveSempahorr.Release();
+                    return;
+                }
+
+                if (_currentMachineToolHead != null)
+                {
+                    _toolHeadMoveSempahorr.Release();
+                    await MoveToCameraAsync();
+                    _toolHeadMoveSempahorr.Wait();
+                }
+
+                await Task.Run(async () =>
+                {
+                    await Task.Delay(500);
+
+                    Enqueue("M400"); // Wait for previous command to finish before executing next one.
+
+                    System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount == 0, 5000);
+                    System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
+
+                    var currentPosition = await GetCurrentLocationAsync();
+                    var currentLocationX = currentPosition.X;
+                    var currentLocationY = currentPosition.Y;
+
+                    SendSafeMoveHeight();
+
+
+                    SetRelativeMode();
+
+                    _viewType = ViewTypes.Moving;
+                    RaisePropertyChanged();
+
+                    Enqueue($"G0 X{toolHeadToMoveTo.Offset.X} Y{toolHeadToMoveTo.Offset.Y} F{Settings.FastFeedRate}");
+
+                    Enqueue("M400"); // Wait for previous command to finish before executing next one.
+                                     //            Enqueue("G4 P1"); // just pause for 1ms
+
+                    // Wait for the all the messages to get sent out (but won't get an OK for G4 until G0 finishes)
+                    System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount > 0, 5000);
+                    System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
+
+                    await Task.Delay(500);
+
+                    // 4. set the machine back to absolute points
+                    SetAbsoluteMode();
+
+                    // 5. Set the machine location to where it was prior to the move.
+                    await ResetMachineCoordinates(new Core.Models.Drawing.Point2D<double>(currentLocationX, currentLocationY));
+
+                    _viewType = ViewTypes.Tool;
+                    _currentMachineToolHead = toolHeadToMoveTo;
+
+                    Services.DispatcherServices.Invoke(() =>
+                    {
+                        RaisePropertyChanged(nameof(ViewType));
+                        RaisePropertyChanged(nameof(CurrentMachineToolHead));
+                        AddStatusMessage(StatusMessageTypes.Info, $"Moved to tool head {toolHeadToMoveTo.Name}.");
+
+                    });
                 });
-            });
-
-            _toolHeadMoveSempahorr.Release();
-            // wait until G4 gets marked at sent
-            //    
-
-            //        Debug.WriteLine("Un Ack Bytes Good.");
-
+            }
+            catch(Exception ex)
+            {
+                AddStatusMessage(StatusMessageTypes.FatalError, ex.Message);
+            }
+            finally
+            {
+                _toolHeadMoveSempahorr.Release();
+            }
+          
         }
 
         SemaphoreSlim _toolHeadMoveSempahorr = new SemaphoreSlim(1);
 
         public async Task  MoveToCameraAsync()
         {
-            _toolHeadMoveSempahorr.Wait();
-            
-            if(_viewType == ViewTypes.Moving)
+            try
             {
-                AddStatusMessage(StatusMessageTypes.Info, "Can not move to camera, busy.");
-                _toolHeadMoveSempahorr.Release();
-                return;
-            }
+                _toolHeadMoveSempahorr.Wait();
 
-            if(_currentMachineToolHead == null)
-            {
-                AddStatusMessage(StatusMessageTypes.Info, "Already viewing camera.");
-                _toolHeadMoveSempahorr.Release();
-                return;
-            }
-
-            await Task.Run(async () =>
-            {
-                Enqueue("M400"); // Wait for previous command to finish before executing next one.
-
-                System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount == 0, 5000);
-                System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
-
-                var currentPosition = await GetCurrentLocationAsync();
-                var currentLocationX = currentPosition.X;
-                var currentLocationY = currentPosition.Y;
-
-                SendSafeMoveHeight();
-
-                SetRelativeMode();
-
-                _viewType = ViewTypes.Moving;
-                RaisePropertyChanged();
-
-                Enqueue($"G0 X{-_currentMachineToolHead.Offset.X} Y{-_currentMachineToolHead.Offset.Y} F{Settings.FastFeedRate}");
-                Enqueue("M400"); // Wait for previous command to finish before executing next one.
-                                 //            Enqueue("G4 P1"); // just pause for 1ms
-
-                // Wait for the all the messages to get sent out (but won't get an OK for G4 until G0 finishes)
-                System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount > 0, 5000);
-                System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
-
-                // 4. set the machine back to absolute points
-                SetAbsoluteMode();
-
-                await Task.Delay(500);
-
-                // 5. Set the machine location to where it was prior to the move.
-                await ResetMachineCoordinates(new Core.Models.Drawing.Point2D<double>(currentLocationX, currentLocationY));
-
-                _currentMachineToolHead = null;
-                _viewType = ViewTypes.Camera;
-
-                Services.DispatcherServices.Invoke(() =>
+                if (_viewType == ViewTypes.Moving)
                 {
-                    RaisePropertyChanged(nameof(ViewType));
-                    RaisePropertyChanged(nameof(CurrentMachineToolHead));
-                    AddStatusMessage(StatusMessageTypes.Info, "Reset to camera view.");
-                });                
-            });
+                    AddStatusMessage(StatusMessageTypes.Info, "Can not move to camera, busy.");
+                    _toolHeadMoveSempahorr.Release();
+                    return;
+                }
 
-            _toolHeadMoveSempahorr.Release();
+                if (_currentMachineToolHead == null)
+                {
+                    AddStatusMessage(StatusMessageTypes.Info, "Already viewing camera.");
+                    _toolHeadMoveSempahorr.Release();
+                    return;
+                }
+
+                await Task.Run(async () =>
+                {
+                    await Task.Delay(500);
+
+                    Enqueue("M400"); // Wait for previous command to finish before executing next one.
+
+                    System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount == 0, 5000);
+                    System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
+
+                    var currentPosition = await GetCurrentLocationAsync();
+                    var currentLocationX = currentPosition.X;
+                    var currentLocationY = currentPosition.Y;
+
+                    SendSafeMoveHeight();
+
+                    SetRelativeMode();
+
+                    _viewType = ViewTypes.Moving;
+                    RaisePropertyChanged();
+
+                    Enqueue($"G0 X{-_currentMachineToolHead.Offset.X} Y{-_currentMachineToolHead.Offset.Y} F{Settings.FastFeedRate}");
+                    Enqueue("M400"); // Wait for previous command to finish before executing next one.
+                                     //            Enqueue("G4 P1"); // just pause for 1ms
+
+                    // Wait for the all the messages to get sent out (but won't get an OK for G4 until G0 finishes)
+                    System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount > 0, 5000);
+                    System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
+
+                    // 4. set the machine back to absolute points
+                    SetAbsoluteMode();
+
+                    await Task.Delay(500);
+
+                    // 5. Set the machine location to where it was prior to the move.
+                    await ResetMachineCoordinates(new Core.Models.Drawing.Point2D<double>(currentLocationX, currentLocationY));
+
+                    _currentMachineToolHead = null;
+                    _viewType = ViewTypes.Camera;
+
+                    Services.DispatcherServices.Invoke(() =>
+                    {
+                        RaisePropertyChanged(nameof(ViewType));
+                        RaisePropertyChanged(nameof(CurrentMachineToolHead));
+                        AddStatusMessage(StatusMessageTypes.Info, "Reset to camera view.");
+                    });
+                });
+            }
+            catch(Exception ex)
+            {
+                AddStatusMessage(StatusMessageTypes.FatalError, ex.Message);
+            }
+            finally
+            {
+                _toolHeadMoveSempahorr.Release();
+            }
+
+
         }
 
         public async void MoveToToolHead(MachineToolHead toolHead)

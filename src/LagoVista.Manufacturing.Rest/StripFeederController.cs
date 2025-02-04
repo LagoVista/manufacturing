@@ -113,11 +113,12 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         public async Task<InvokeResult> UpdatePartIndex(string id, int rowidx, int idx)
         {
             var fdr = await _mgr.GetStripFeederAsync(id,false, OrgEntityHeader, UserEntityHeader);
-            var existingRow = fdr.Rows.SingleOrDefault(row => row.RowIndex == idx);
+            var existingRow = fdr.Rows.SingleOrDefault(row => row.RowIndex == rowidx);
             if(existingRow == null)
-                return InvokeResult.FromError("Could not find row.");
+                return InvokeResult.FromError("Could not find row on strip feeder to update part index.");
 
             existingRow.CurrentPartIndex = idx;
+
             return await _mgr.UpdateStripFeederAsync(fdr, OrgEntityHeader, UserEntityHeader);
         }
 

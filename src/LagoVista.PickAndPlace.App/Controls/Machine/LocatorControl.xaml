@@ -13,6 +13,7 @@
     <StackPanel>
         <TextBlock Text="Locator Status" Style="{StaticResource header}" />
         <TextBlock Style="{StaticResource content}" Text="{Binding Status, FallbackValue=idle}" />
+        <TextBlock Style="{StaticResource content}" Text="{Binding Duration, FallbackValue=idle}" />
         <ProgressBar Visibility="{Binding IsLocating, Converter={StaticResource BoolToVisibilityConverter}}" IsIndeterminate="True"  Height="24"/>
     </StackPanel>
 </ucb:VMBoundUserControl>

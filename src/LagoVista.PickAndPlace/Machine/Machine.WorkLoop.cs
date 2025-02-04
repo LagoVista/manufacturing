@@ -258,7 +258,13 @@ namespace LagoVista.PickAndPlace
 
                 while (Connected)
                 {
-                    await WorkLoop();
+                    try
+                    {
+                        await WorkLoop();
+                    }catch(Exception ex)
+                    {
+                        AddStatusMessage(StatusMessageTypes.FatalError, ex.Message);
+                    }
                 }
             }
             catch (Exception ex)

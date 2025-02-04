@@ -181,6 +181,13 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _expected, value);
         }
 
+        Point2D<double> _absoluteActual;
+        public Point2D<double> AbsoluteActual
+        {
+            get => _absoluteActual;
+            set => Set(ref _absoluteActual, value);
+        }
+
         private Point2D<double> _actual;
         public Point2D<double> Actual
         {
@@ -239,6 +246,16 @@ namespace LagoVista.Manufacturing.Models
         {
             get => _componentPackage;
             set => Set(ref _componentPackage, value);
+        }
+
+        public double PercentComplete
+        {
+            get
+            {
+                var partsPlaced = Placements.Where(prt => prt.State.Value == PnPStates.Placed).Count();
+
+                return Math.Round( (double)(partsPlaced * 100 / Placements.Count), 1);
+            }
         }
 
         int _availableCount;
@@ -374,7 +391,7 @@ namespace LagoVista.Manufacturing.Models
                 Set(ref _state, value);
             }
         }
-
+        
         TimeSpan? _duration;
         public TimeSpan? Duration
         {

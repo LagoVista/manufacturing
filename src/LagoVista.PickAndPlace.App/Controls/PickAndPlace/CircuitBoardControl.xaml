@@ -15,8 +15,13 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <DataGrid ItemsSource="{Binding Job.BoardFiducials}" SelectedItem="{Binding SelectedFiducial}">
-            
+        <DataGrid ItemsSource="{Binding Job.BoardFiducials}" SelectedItem="{Binding SelectedFiducial}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="true">
+            <DataGrid.Columns>
+                <DataGridTextColumn Width="100" Header="Name" Binding="{Binding Name}"></DataGridTextColumn>
+                <DataGridTextColumn Width="150" Header="Expected Offset" Binding="{Binding Expected}"></DataGridTextColumn>
+                <DataGridTextColumn Width="150" Header="Actual Offset" Binding="{Binding Actual}"></DataGridTextColumn>
+                <DataGridTextColumn Width="150" Header="Absolute" Binding="{Binding AbsoluteActual}"></DataGridTextColumn>
+            </DataGrid.Columns>
         </DataGrid>
         <StackPanel Orientation="Horizontal" Grid.Row="1">
             <Button Command="{Binding GoToExpectedFiducialCommand}" Style="{StaticResource CommandButton}">GoTo Expected Fiducial</Button>

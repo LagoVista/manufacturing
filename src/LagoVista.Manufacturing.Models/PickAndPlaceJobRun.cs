@@ -43,7 +43,7 @@ namespace LagoVista.Manufacturing.Models
         public EntityHeader RanBy { get; set; }
         [FormField(IsRequired:true)]
         public EntityHeader Job { get; set; }
-        public ObservableCollection<PickAndPlaceJobRunPlacement> Placements { get; set; }
+        public ObservableCollection<PickAndPlaceJobRunPlacement> Placements { get; set; } = new ObservableCollection<PickAndPlaceJobRunPlacement>();
         public double PercentCompleted { get; set; }
         public double PercentSuccess { get; set; }
         public int SerialNumber { get; set; }

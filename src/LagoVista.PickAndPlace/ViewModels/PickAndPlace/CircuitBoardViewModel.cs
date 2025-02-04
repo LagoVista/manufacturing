@@ -186,6 +186,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public Point2D<double> Adjust(Point2D<double> point)
         {
+            //return point;
+
             var delta = Job.BoardFiducials[1].Expected - Job.BoardFiducials[0].Expected;
             var xRatio = point.X / delta.X;
             var yRatio = point.Y / delta.Y;
@@ -197,11 +199,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public Point2D<double> GetWorkSpaceLocation(PickAndPlaceJobPlacement placement)
         {
-            var positionOnBoard = placement.PCBLocation;
+            var positionOnBoard = placement.PCBLocation - Job.BoardFiducials.First().Expected;
             var adjustedPosition = Adjust(positionOnBoard);
-            
-            var boardLocation = MachineConfiguration.DefaultWorkOrigin + adjustedPosition;
-            return boardLocation;
+
+            return adjustedPosition + Job.BoardFiducials.First().AbsoluteActual;
         }
 
         public async Task<InvokeResult> GoToPartOnBoardAsync(PartsGroup part, PickAndPlaceJobPlacement placement)
@@ -253,8 +254,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             Machine.SetToolHeadHeight(MachineConfiguration.WorkOriginZ + component.ComponentPackage.Value.Height);
             placement.State = EntityHeader<PnPStates>.Create(PnPStates.OnBoard);
-            Machine.Dwell(100);
             Machine.VacuumPump = false;
+            Machine.Dwell(250);            
             Machine.SendSafeMoveHeight();
             placement.State = EntityHeader<PnPStates>.Create(PnPStates.Placed);
 
@@ -277,18 +278,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 if (circle.Centered)
                 {
-                    Debug.WriteLine("Found Centered Circle...");
                     _locatorViewModel.UnregisterCircleLocatedHandler(this);
 
                     var currentLocation = await Machine.GetCurrentLocationAsync();
-                    Debug.WriteLine($"We got the current location {currentLocation}");
                     var selected = SelectedFiducial;
                     DispatcherServices.Invoke(() =>
                     {
                         var message = $"Found fiducial {selected.Name}; Expected: {selected.Expected}; Actual: {selected.Actual}";
-                        Debug.WriteLine(message);
                         Machine.AddStatusMessage(Manufacturing.Models.StatusMessageTypes.Info, message);
                         selected.Actual = (currentLocation - MachineConfiguration.DefaultWorkOrigin).Round(3);
+                        selected.AbsoluteActual = currentLocation;
                         _completed?.Set();
                     });
                     

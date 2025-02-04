@@ -26,14 +26,20 @@
                 <Button Style="{StaticResource CommandButton}" Content="Abort Job" Command="{Binding AbortJobCommand}"></Button>
             </StackPanel>
 
+            <StackPanel>
+                <TextBlock Style="{StaticResource header}" Text="{Binding JobVM.JobRun.Name}" />
+                <TextBlock Style="{StaticResource content}" Text="{Binding JobVM.JobRun.Status}" />
+            </StackPanel>
+            
             <DataGrid ItemsSource="{Binding JobVM.Job.Parts}" SelectionMode="Single" SelectedItem="{Binding JobVM.PartGroup, Mode=TwoWay}" CanUserAddRows="false" AutoGenerateColumns="False">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Count" Width="80" Binding="{Binding Count}"  />
+                    <DataGridTextColumn Header="% Complete" Width="80" Binding="{Binding PercentComplete}"  />
                     <DataGridTextColumn Header="Package" Width="200" Binding="{Binding PackageName}"  />
                     <DataGridTextColumn Header="Value" Width="200" Binding="{Binding Value}"  />
                     <DataGridTextColumn Header="Component" Width="200" Binding="{Binding ComponentName}"  />
                     <DataGridTextColumn Header="Names" Width="*" Binding="{Binding PartsNames}"  />
-                    <DataGridTextColumn Header="Strip Feeder" Width="150" Binding="{Binding StripFeeder}"  />
+                    <DataGridTextColumn Header="Auto Feeder" Width="150" Binding="{Binding AutoFeeder}"  />
                     <DataGridTextColumn Header="Strip Feeder" Width="150" Binding="{Binding StripFeeder}"  />
                     <DataGridTextColumn Header="Auto Feeder" Width="150" Binding="{Binding Feeder}"  />
                 </DataGrid.Columns>
@@ -52,11 +58,10 @@
             <DataGrid ItemsSource="{Binding JobVM.PartGroup.Placements}" SelectedItem="{Binding JobVM.Placement}" CanUserAddRows="false" AutoGenerateColumns="false" >
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Name" Width="80" Binding="{Binding Name}"  />
-                    <DataGridTextColumn Header="X" Width="50" Binding="{Binding X}"  />
-                    <DataGridTextColumn Header="Y" Width="50" Binding="{Binding Y}"  />
+                    <DataGridTextColumn Header="Location" Width="200" Binding="{Binding PCBLocation}"  />
                     <DataGridTextColumn Header="Angle"  Width="50" Binding="{Binding Rotation}"  />
-                    <DataGridTextColumn Header="Start"  Width="160" Binding="{Binding StartTimeStamp}"  />
-                    <DataGridTextColumn Header="End"  Width="160" Binding="{Binding EndTimeStamp}"  />
+                    <DataGridTextColumn Header="Start"  Width="160" Binding="{Binding StartTimeStamp, StringFormat={} {0:t}}"  />
+                    <DataGridTextColumn Header="End"  Width="160" Binding="{Binding EndTimeStamp, StringFormat={} {0:t}}"  />
                     <DataGridTextColumn Header="Duration"  Width="120" Binding="{Binding Duration}"  />
                     <DataGridTextColumn Header="Status"  Width="*" Binding="{Binding State}"  />
                 </DataGrid.Columns>

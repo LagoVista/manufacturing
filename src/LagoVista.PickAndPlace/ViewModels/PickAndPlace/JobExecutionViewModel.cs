@@ -50,10 +50,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (result.Successful)
                 {
                     await Machine.MoveToCameraAsync();
-                    Machine.AddStatusMessage(StatusMessageTypes.FatalError, $"Completed part {JobVM.Placement.Name} in {JobVM.Placement.Duration}");
+                    Machine.AddStatusMessage(StatusMessageTypes.Info, $"Completed part {JobVM.Placement.Name} in {JobVM.Placement.Duration}");
                     var idx = JobVM.PartGroup.Placements.IndexOf(JobVM.Placement);
+                    idx++;
                     if (idx < JobVM.PartGroup.Placements.Count)
-                        JobVM.Placement = JobVM.PartGroup.Placements[idx + 1];
+                        JobVM.Placement = JobVM.PartGroup.Placements[idx ];
                     else
                         JobVM.Placement = null;
                 }
@@ -98,7 +99,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             Machine.VacuumPump = false;
 
-            JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.New);
+            JobVM.Placement.Reset();
             return Task.CompletedTask;
         }
 
@@ -125,12 +126,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if (!result.Successful) return result;
                 JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.AtFeeder);
 
-            if (JobVM.CurrentComponentPackage.CheckInFeeder)
-            {
-                result = await ActiveFeederViewModel.CenterOnPartAsync();
-                if (!result.Successful) return result;
-                JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.PartCenteredOnFeeder);
-            }
+            //if (JobVM.CurrentComponentPackage.CheckInFeeder)
+            //{
+            //    result = await ActiveFeederViewModel.CenterOnPartAsync();
+            //    if (!result.Successful) return result;
+            //    JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.PartCenteredOnFeeder);
+            //}
 
             result = await ActiveFeederViewModel.PickCurrentPartAsync();
             if (!result.Successful) return result;
@@ -191,12 +192,23 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             foreach (var placement in JobVM.PartGroup.Placements)
             {
-                var result = await JobVM.SetIndividualPartToPlaceAsync(placement);
-                if (!result.Successful) return result;
+                if (placement.State.Value == PnPStates.New)
+                {
+                    var result = await JobVM.SetIndividualPartToPlaceAsync(placement);
+                    if (!result.Successful)
+                    {
+                        Machine.AddStatusMessage(StatusMessageTypes.FatalError, result.ErrorMessage);
+                        return result;
+                    }
 
-                JobVM.Placement = placement;
-                result = await PlaceCycleAsync();
-                if (!result.Successful) return result;
+                    JobVM.Placement = placement;
+                    result = await PlaceCycleAsync();
+                    if (!result.Successful)
+                    {
+                        Machine.AddStatusMessage(StatusMessageTypes.FatalError, result.ErrorMessage);
+                        return result;
+                    }
+                }
             }
 
             return InvokeResult.Success;
