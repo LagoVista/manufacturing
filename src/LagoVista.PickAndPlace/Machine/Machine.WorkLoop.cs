@@ -174,7 +174,9 @@ namespace LagoVista.PickAndPlace
             if (_toSend.Count == 0)
                 return false;
 
-            return _toSend.Count > 0 && ((_toSend.Peek().ToString()).Length + 1) < (Settings.ControllerBufferSize - Math.Max(0, UnacknowledgedBytesSent));
+            if(_toSend.Count > 0 && _toSend.Peek() != null)
+                return _toSend.Count > 0 && ((_toSend.Peek()?.ToString()).Length + 1) < (Settings.ControllerBufferSize - Math.Max(0, UnacknowledgedBytesSent));
+            return true;
         }
 
         private async Task Send()
