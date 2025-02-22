@@ -66,6 +66,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var result = await _restClient.GetListResponseAsync<PickAndPlaceJobSummary>("/api/mfg/pnpjobs");
             if (result.Successful)
             {
+                Jobs = new ObservableCollection<PickAndPlaceJobSummary>(result.Model.ToList());
+
                 var lastJobRunId = await _storageService.GetKVPAsync<string>("last-job-run-id");
                 if (!String.IsNullOrEmpty(lastJobRunId))
                 {
@@ -73,7 +75,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 }
                 else
                 {
-                    Jobs = new ObservableCollection<PickAndPlaceJobSummary>(result.Model.ToList());
                     var lastJobId = await _storageService.GetKVPAsync<string>("last-job-id");
                     if (!String.IsNullOrEmpty(lastJobId))
                     {
