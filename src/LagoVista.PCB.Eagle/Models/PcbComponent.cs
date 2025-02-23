@@ -118,6 +118,7 @@ namespace LagoVista.PCB.Eagle.Models
         public bool Included { get; set; }
         public bool ManualPlace { get; set; }
         public bool Fiducial { get; set; }
+        public bool Ignore { get; set; }
         public string Function { get; set; }
         public string Notes { get; set; }      
         public EntityHeader Component { get; set; }

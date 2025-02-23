@@ -93,7 +93,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         [HttpDelete("/api/mfg/component/{id}")]
         public async Task<InvokeResult> DeleteComponent(string id)
         {
-            return await _mgr.DeleteCommponentAsync(id, OrgEntityHeader, UserEntityHeader);
+            return await _mgr.DeleteComponentAsync(id, OrgEntityHeader, UserEntityHeader);
         }
 
         [HttpPost("/api/mfg/component/{id}/purchase")]

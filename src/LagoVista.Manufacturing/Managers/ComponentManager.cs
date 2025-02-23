@@ -43,12 +43,7 @@ namespace LagoVista.Manufacturing.Managers
             await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
             return await base.CheckForDepenenciesAsync(part);
         }
-
-        public Task<InvokeResult> DeleteCommponentAsync(string id, EntityHeader org, EntityHeader user)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         public async Task<InvokeResult> DeleteComponentAsync(string id, EntityHeader org, EntityHeader user)
         {
             var part = await _componentRepo.GetComponentAsync(id);
