@@ -70,32 +70,35 @@ namespace LagoVista.PickAndPlace.App
                 var previousOrg = _authManager.User.CurrentOrganization;
 
                 var currentOrgResult = await _restClient.GetAsync<InvokeResult<OrganizationSummary>>("/api/org/current/summary", new CancellationTokenSource());
-                if(currentOrgResult.Successful)
+                if (currentOrgResult.Successful)
                 {
-                    if(previousOrg.Id == currentOrgResult.Result.Result.Id)
+                    if (previousOrg.Id == currentOrgResult.Result.Result.Id)
                     {
-                        var main = new Home();
-                        main.Show();
-                        this.Close();
-                    }
-                }
-                else
-                {
-                    var result = MessageBox.Show($"Your previous organization was {previousOrg.Text}, your last organization on the server was {currentOrgResult.Result.Result.Name}, would you like to chnage to your previous organization?  If you do not, you will not be able to load any machines or jobs from the previous organization. ",
-                         "Change Organization?", MessageBoxButton.YesNo);
-                    if(result == MessageBoxResult.Yes)
-                    {
-                        var getUserReault = await _restClient.GetAsync<InvokeResult<AppUser>>("/api/org/${orgid}/change");
-                        _authManager.User = getUserReault.Result.Result.ToUserInfo();
-                        await _authManager.PersistAsync();
-
                         var main = new Home();
                         main.Show();
                         this.Close();
                     }
                     else
                     {
-                        await _storageService.ClearAllAsync();
+                        var result = MessageBox.Show($"Your previous organization was {previousOrg.Text}, your last organization on the server was {currentOrgResult.Result.Result.Name}, would you like to chnage to your previous organization?  If you do not, you will not be able to load any machines or jobs from the previous organization. ",
+                             "Change Organization?", MessageBoxButton.YesNo);
+                        if (result == MessageBoxResult.Yes)
+                        {
+                            var getUserReault = await _restClient.GetAsync<InvokeResult<AppUser>>($"/api/org/{previousOrg.Id}/change");
+                            if (getUserReault.Successful)
+                            {
+                                _authManager.User = getUserReault.Result.Result.ToUserInfo();
+                                await _authManager.PersistAsync();
+
+                                var main = new Home();
+                                main.Show();
+                                this.Close();
+                            }
+                        }
+                        else
+                        {
+                            await _storageService.ClearAllAsync();
+                        }
                     }
                 }
             }

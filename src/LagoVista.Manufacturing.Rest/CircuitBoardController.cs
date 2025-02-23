@@ -96,7 +96,11 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             SetAuditProperties(job);
             var stamp = DateTime.Now;
             job.Name = name ?? $"{brd.Name} {brd.Revision} {stamp.Year}-{stamp.Month}-{stamp.Day} {stamp.Hour}:{stamp.Minute}";
-            job.Key = job.Name.ToNuvIoTKey();
+            if (brd.Key.Length > 16)
+                job.Key = $"{brd.Key.Substring(0, 16)}{stamp.Year}{stamp.Month}{stamp.Day}{stamp.Hour}{stamp.Minute}";
+            else
+                job.Key = $"{brd.Key}{stamp.Year}{stamp.Month}{stamp.Day}{stamp.Hour}{stamp.Minute}";
+          
             job.Board = brd.ToEntityHeader();
             job.BoardRevision = rev;
 

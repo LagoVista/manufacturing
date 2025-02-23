@@ -234,7 +234,7 @@ namespace LagoVista.Manufacturing.Models
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Component_Title, ManufacturingResources.Names.Component_Title,
         ManufacturingResources.Names.Component_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-core-1", Cloneable: true,
-        SaveUrl: "/api/component", GetUrl: "/api/component/{id}", GetListUrl: " ", FactoryUrl: "/api/mfg/component/factory", DeleteUrl: "/api/component/{id}",
+        SaveUrl: "/api/mfg/component", GetUrl: "/api/mfg/component/{id}", GetListUrl: "/api/mfg/components", FactoryUrl: "/api/mfg/component/factory", DeleteUrl: "/api/mfg/component/{id}",
         ListUIUrl: "/mfg/components", EditUIUrl: "/mfg/component/{id}", CreateUIUrl: "/mfg/component/add")]
     public class ComponentSummary : SummaryData
     {
