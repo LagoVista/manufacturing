@@ -333,7 +333,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 CurrentComponentPackage = CurrentComponent.ComponentPackage.Value;
             }
 
-            if (!EntityHeader.IsNullOrEmpty(CurrentComponent.TapeColor))
+            if(CurrentComponent.PartInTapeVisionProfile != null)
+            {
+                Machine.SetVisionProfile(CameraTypes.Position, VisionProfileSource.Component, CurrentComponent.Id, CurrentComponent.PartInTapeVisionProfile);
+            }
+            else if(CurrentComponentPackage?.PartInTapeVisionProfile != null)
+            {
+                Machine.SetVisionProfile(CameraTypes.Position, VisionProfileSource.ComponentPackage, CurrentComponentPackage.Id, CurrentComponentPackage.PartInTapeVisionProfile);
+            }
+            else if (!EntityHeader.IsNullOrEmpty(CurrentComponent.TapeColor))
             {
                 switch (CurrentComponent.TapeColor.Value)
                 {
@@ -542,7 +550,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         protected void SetPartInTapeHoleProfile()
         {
-            if (!EntityHeader.IsNullOrEmpty(CurrentComponent.TapeColor))
+            if (CurrentComponent.PartInTapeVisionProfile != null)
+            {
+                Machine.SetVisionProfile(CameraTypes.Position, VisionProfileSource.Component, CurrentComponent.Id, CurrentComponent.PartInTapeVisionProfile);
+            }
+            else if (CurrentComponentPackage?.PartInTapeVisionProfile != null) {
+                Machine.SetVisionProfile(CameraTypes.Position, VisionProfileSource.Component, CurrentComponentPackage.Id, CurrentComponentPackage.PartInTapeVisionProfile);
+            }
+            else if (!EntityHeader.IsNullOrEmpty(CurrentComponent.TapeColor))
             {
                 switch (CurrentComponent.TapeColor.Value)
                 {

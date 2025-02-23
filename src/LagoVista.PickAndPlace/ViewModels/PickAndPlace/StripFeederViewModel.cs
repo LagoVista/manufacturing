@@ -280,7 +280,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
 
      
-
         public InvokeResult<Point2D<double>> FindLocation(StripFeederLocationTypes moveType)
         {
             if (Current.StagingPlate == null)

@@ -244,6 +244,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             switch (Camera.ProfileSource)
             {
                 case VisionProfileSource.Component:
+                    if (CustomProfile != null)
+                        Profile.Name = CustomProfile.Text;
+
                     if (Camera.CameraType.Value == CameraTypes.PartInspection)
                     {
                         await _restClient.PutAsync($"/api/mfg/component/{Camera.ProfileSourceId}/visionprofile/inspection", Profile);
@@ -258,6 +261,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                     }
                     break;
                 case VisionProfileSource.ComponentPackage:
+                    if (CustomProfile != null)
+                        Profile.Name = CustomProfile.Text;
+
                     if (Camera.CameraType.Value == CameraTypes.PartInspection)
                     {
                         await _restClient.PutAsync($"/api/mfg/component/package/{Camera.ProfileSourceId}/visionprofile/inspection", Profile);
