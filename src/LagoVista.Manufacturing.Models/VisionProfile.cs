@@ -209,6 +209,21 @@ namespace LagoVista.PickAndPlace.Models
             set { _findIrregularPolygons = value; RaisePropertyChanged(); }
         }
 
+        private bool _locateByPads;
+        public bool LocateByPads
+        {
+            get => _locateByPads;
+            set => Set(ref _locateByPads, value);
+        }
+
+
+        private double? _detectionHeight;
+        public double? DetectionHeight
+        {
+            get => _detectionHeight;
+            set => Set(ref _detectionHeight, value);
+        }
+
 
         private bool _findLandScape = true;
         public bool FindLandScape

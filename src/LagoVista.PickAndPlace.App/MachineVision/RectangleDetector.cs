@@ -66,7 +66,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     case ContourRetrieveModes.TwoLevelHierarchy: retrType = RetrType.Ccomp; break;
                 }
 
-                CvInvoke.FindContours(_edges, contours, null, retrType, ChainApproxMethod.ChainApproxSimple);
+                CvInvoke.FindContours(_edges, contours, null, retrType, ChainApproxMethod.ChainApproxTc89L1);
                 int count = contours.Size;
            
                 for (int i = 0; i < count; i++)
@@ -90,7 +90,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                         {
                             var pts = approxContour.ToArray();
 
-                            if (approxContour.Size == 4 || true) //The contour has 4 vertices.
+                             if (approxContour.Size == 4 || true) //The contour has 4 vertices.
                             {
                                 bool isRectangle = true;
                                 var rectEdges = PointCollection.PolyLine(pts, true);

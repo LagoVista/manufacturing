@@ -21,23 +21,23 @@ namespace LagoVista.Manufacturing.Rest.Controllers
     [Authorize]
     public class MachineController : LagoVistaBaseController
     {
-        private readonly IMachineManager _mgr;
+        private readonly IMachineManager _machineManager;
 
-        public MachineController(UserManager<AppUser> userManager, IAdminLogger logger, IMachineManager mgr) : base(userManager, logger)
+        public MachineController(UserManager<AppUser> userManager, IAdminLogger logger, IMachineManager machineManager) : base(userManager, logger)
         {
-            _mgr = mgr;
+            _machineManager = machineManager ?? throw new ArgumentNullException(nameof(machineManager));
         }
 
         [HttpGet("/api/mfg/machine/{id}")]
         public async Task<DetailResponse<Machine>> GetMachine(string id)
         {
-            return DetailResponse<Machine>.Create(await _mgr.GetMachineAsync(id, OrgEntityHeader, UserEntityHeader));
+            return DetailResponse<Machine>.Create(await _machineManager.GetMachineAsync(id, OrgEntityHeader, UserEntityHeader));
         }
 
         [HttpGet("/api/mfg/machine/{id}/stagingplates")]
         public async Task<ListResponse<MachineStagingPlate>> GetStagingPlates(string id)
         {
-            var machine = await _mgr.GetMachineAsync(id, OrgEntityHeader, UserEntityHeader);
+            var machine = await _machineManager.GetMachineAsync(id, OrgEntityHeader, UserEntityHeader);
             return ListResponse<MachineStagingPlate>.Create(machine.StagingPlates);
         }
 
@@ -90,7 +90,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         [HttpDelete("/api/mfg/machine/{id}")]
         public async Task<InvokeResult> DeleteMachine(string id)
         {
-            return await _mgr.DeleteMachineAsync(id, OrgEntityHeader, UserEntityHeader);
+            return await _machineManager.DeleteMachineAsync(id, OrgEntityHeader, UserEntityHeader);
         }
 
         [HttpPost("/api/mfg/machine")]
@@ -98,21 +98,26 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         {
             Console.WriteLine("Adding machine here...." + Machine.Name);
 
-            return _mgr.AddMachineAsync(Machine, OrgEntityHeader, UserEntityHeader);
+            return _machineManager.AddMachineAsync(Machine, OrgEntityHeader, UserEntityHeader);
         }
 
         [HttpPut("/api/mfg/machine")]
         public Task<InvokeResult> UpdateMachineAsync([FromBody] Machine Machine)
         {
             SetUpdatedProperties(Machine);
-            return _mgr.UpdateMachineAsync(Machine, OrgEntityHeader, UserEntityHeader);
+            return _machineManager.UpdateMachineAsync(Machine, OrgEntityHeader, UserEntityHeader);
         }
 
         [HttpGet("/api/mfg/machines")]
         public Task<ListResponse<MachineSummary>> GetMachinesForOrgAsyc()
         {
-            return _mgr.GetMachineSummariesAsync(GetListRequestFromHeader(), OrgEntityHeader, UserEntityHeader);
+            return _machineManager.GetMachineSummariesAsync(GetListRequestFromHeader(), OrgEntityHeader, UserEntityHeader);
         }
 
+        [HttpPost("/api/mfg/machine/{machineid}/revision/testfit")]
+        public Task<InvokeResult<PcbJobTestFit>> TestFitRevision(string machineid, [FromBody] CircuitBoardRevision revision)
+        {
+            return _machineManager.TestFitJobAsync(machineid, revision, OrgEntityHeader, UserEntityHeader);
+        }
     }
 }

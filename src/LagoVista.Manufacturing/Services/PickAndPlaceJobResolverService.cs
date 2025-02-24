@@ -1,7 +1,6 @@
 ﻿using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
-using PdfSharpCore.Pdf.Filters;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,6 +8,11 @@ namespace LagoVista.Manufacturing.Services
 {
     public class PickAndPlaceJobResolverService : IPickAndPlaceJobResolverService
     {
+       
+        public PickAndPlaceJobResolverService()
+        {
+        }
+
         public InvokeResult ResolveParts(PickAndPlaceJob job)
         {
             job.Parts.Clear();
@@ -102,5 +106,7 @@ namespace LagoVista.Manufacturing.Services
 
             return InvokeResult.Success;
         }
+
+       
     }
 }

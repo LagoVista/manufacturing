@@ -11,6 +11,9 @@ using System;
 using static LagoVista.Core.Models.AuthorizeResult;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using LagoVista.Core.Models.Drawing;
+using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace LagoVista.Manufacturing.Managers
 {
@@ -18,13 +21,22 @@ namespace LagoVista.Manufacturing.Managers
     {
         private readonly IMachineRepo _machineRepo;
         private readonly IGCodeMappingRepo _gcodeRepo;
+        private readonly IStripFeederManager _stripFeederManager;
+        private readonly IAutoFeederManager _autoFeederManager;
+        private readonly IComponentManager _componentManager;
+
 
         public MachineManager(IMachineRepo machienRepo, IGCodeMappingRepo gcodeRepo,
+            IStripFeederManager stripFeederManager, IAutoFeederManager autoFeederManager, IComponentManager componentManager,
             IAdminLogger logger, IAppConfig appConfig, IDependencyManager depmanager, ISecurity security) :
             base(logger, appConfig, depmanager, security)
         {
-            _machineRepo = machienRepo;
-            _gcodeRepo = gcodeRepo;
+            _machineRepo = machienRepo ?? throw new ArgumentNullException(nameof(machienRepo));
+            _gcodeRepo = gcodeRepo ?? throw new ArgumentNullException(nameof(gcodeRepo));
+            _stripFeederManager = stripFeederManager ?? throw new ArgumentNullException(nameof(stripFeederManager));
+            _autoFeederManager = autoFeederManager ?? throw new ArgumentNullException(nameof(autoFeederManager));
+            _componentManager = componentManager ?? throw new ArgumentNullException(nameof(componentManager));
+
         }
         public async Task<InvokeResult> AddMachineAsync(Machine machine, EntityHeader org, EntityHeader user)
         {
@@ -60,7 +72,7 @@ namespace LagoVista.Manufacturing.Managers
         {
             var machine = await _machineRepo.GetMachineAsync(id);
             await AuthorizeAsync(machine, AuthorizeActions.Read, user, org);
-            if(!EntityHeader.IsNullOrEmpty(machine.GcodeMapping))
+            if (!EntityHeader.IsNullOrEmpty(machine.GcodeMapping))
             {
                 machine.GcodeMapping.Value = await _gcodeRepo.GetGCodeMappingAsync(machine.GcodeMapping.Id);
             }
@@ -122,6 +134,128 @@ namespace LagoVista.Manufacturing.Managers
             }
 
             return options;
+        }
+
+        public async Task<InvokeResult<PcbJobTestFit>> TestFitJobAsync(string machineId, CircuitBoardRevision boardRevision, EntityHeader org, EntityHeader user)
+        {
+            var jobTestFit = new PcbJobTestFit();
+
+            var autoFeeders = await _autoFeederManager.GetFeedersForMachineAsync(machineId, true, org, user);
+            var stripFeeders = await _stripFeederManager.GetStripFeedersForMachineAsync(machineId, true, org, user);
+
+
+            var fiducials = boardRevision.PcbComponents.Where(pcbc => pcbc.Fiducial).Select(fid => new BoardFiducial()
+            {
+                Name = fid.Name,
+                Expected = new Point2D<double>() { X = fid.X.Value, Y = fid.Y.Value },
+            });
+
+            foreach (var fiducial in fiducials)
+                jobTestFit.Fiducials.Add(fiducial);
+
+            jobTestFit.Warnings = new System.Collections.ObjectModel.ObservableCollection<string>();
+            jobTestFit.Errors = new System.Collections.ObjectModel.ObservableCollection<string>();
+
+            if (jobTestFit.Fiducials.Count < 2)
+            {
+                jobTestFit.Warnings.Add($"Board should have at least 2 fiducials, had {jobTestFit.Fiducials.Count}.");
+            }
+
+            var commonParts = boardRevision.PcbComponents.Where(prt => prt.Included).GroupBy(prt => prt.PackageAndValue.ToLower());
+            foreach (var entries in commonParts)
+            {
+                var part = new PartsGroup()
+                {
+                    Component = entries.First().Component,
+                    PackageName = entries.First().PackageName,
+                    Value = entries.First().Value,
+                };
+
+                foreach (var entry in entries)
+                {
+                    part.Placements.Add(new PickAndPlaceJobPlacement()
+                    {
+                        Name = entry.Name,
+                        Rotation = entry.Rotation,
+                        PCBLocation = new Point2D<double>(entry.X.Value, entry.Y.Value)
+                    });
+                }
+
+                jobTestFit.PlacedPartsGroups.Add(part);
+            }
+
+            var manualParts = boardRevision.PcbComponents.Where(prt => prt.ManualPlace).GroupBy(prt => prt.PackageAndValue.ToLower());
+            foreach (var entries in manualParts)
+            {
+                var part = new PartsGroup()
+                {
+                    Component = entries.First().Component,
+                    PackageName = entries.First().PackageName,
+                    Value = entries.First().Value,
+                };
+
+                foreach (var entry in entries)
+                {
+                    part.Placements.Add(new PickAndPlaceJobPlacement()
+                    {
+                        Name = entry.Name,
+                        Rotation = entry.Rotation,
+                        PCBLocation = new Point2D<double>(entry.X.Value, entry.Y.Value)
+                    });
+                }
+
+                jobTestFit.ManualPartGroups.Add(part);
+            }
+
+            foreach (var part in jobTestFit.PlacedPartsGroups)
+            {
+                if (part.Component == null)
+                {
+                    jobTestFit.Errors.Add($"Part {part.PackageName}/{part.Value} does not have a component");
+                }
+                else
+                {
+                    var autoFeeder = autoFeeders.Model.FirstOrDefault(af => af.Component?.Id == part.Component.Id);
+                    if (autoFeeder != null)
+                    {
+                        part.AutoFeeder = autoFeeder.ToEntityHeader();
+                        part.AvailableCount = autoFeeder.PartCount;
+
+                        if(autoFeeder.Component.HasValue)
+                        {
+                            part.ComponentPackage = autoFeeder.Component.Value.ComponentPackage;
+                        }
+                    }
+                    else
+                    {
+                        var stripFeeder = stripFeeders.Model.FirstOrDefault(sf => sf.Rows.Where(fd => fd.Component?.Id == part.Component.Id).Any());
+                        if (stripFeeder != null)
+                        {
+                            part.StripFeeder = stripFeeder.ToEntityHeader();
+                            var row = stripFeeder.Rows.First(sfr => sfr.Component?.Id == part.Component.Id);
+                            if(row.Component.HasValue)
+                            {
+                                part.ComponentPackage = row.Component.Value.ComponentPackage;
+                            }
+
+                            part.StripFeederRow = row.ToEntityHeader();
+                            part.AvailableCount = row.PartCapacity;
+                        }
+                    }
+
+                    if(part.ComponentPackage == null)
+                    {
+                        var component = await _componentManager.GetComponentAsync(part.Component.Id, false, org, user);
+                        part.ComponentPackage = component.ComponentPackage;
+                    }
+                }
+            }
+
+            var unresolvedParts = boardRevision.PcbComponents.Where(prt => !prt.ManualPlace && !prt.Ignore && !prt.Included && !prt.Fiducial);
+            foreach (var part in unresolvedParts)
+                jobTestFit.Errors.Add($"Part not resolved (not included, manual or ignored) {part.Name} {part.Value}, {part.PackageName}.");
+
+            return InvokeResult<PcbJobTestFit>.Create(jobTestFit);
         }
     }
 }

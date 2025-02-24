@@ -337,12 +337,20 @@ namespace LagoVista.PickAndPlace
             if (partInspectionCamera != null)
             {
                 this.GotoPoint(partInspectionCamera.AbsolutePosition);
-                if (CurrentMachineToolHead != null)
+
+                if (partInspectionCamera.CurrentVisionProfile.DetectionHeight.HasValue)
                 {
-                    if(_leftToolHead)
-                        this.SendCommand($"G0 ZL{partInspectionCamera.FocusHeight}");
-                    else
-                        this.SendCommand($"G0 ZR{partInspectionCamera.FocusHeight}");
+                    this.SendCommand($"G0 ZL{partInspectionCamera.CurrentVisionProfile.DetectionHeight.Value}");
+                }
+                else
+                {
+                    if (CurrentMachineToolHead != null)
+                    {
+                        if (_leftToolHead)
+                            this.SendCommand($"G0 ZL{partInspectionCamera.FocusHeight}");
+                        else
+                            this.SendCommand($"G0 ZR{partInspectionCamera.FocusHeight}");
+                    }
                 }
             }
             else

@@ -36,7 +36,9 @@
 
         <Controls:MVViewOptions Grid.Row="2" VerticalAlignment="Bottom"  />
         <Controls:ImageAdjustments  Grid.Row="3"  VerticalAlignment="Top" />
+        
         <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Style="{StaticResource CommandButton}" Command="{Binding SetInspectionHeight}" Content="Set Inspection Height" />
             <Button Style="{StaticResource CommandButton}" Margin="20" Width="120" Height="32" HorizontalAlignment="Right" Grid.Row="4" Command="{Binding SaveCommand}">Save</Button>
             <Button Style="{StaticResource CommandButton}" Command="{Binding CopyVisionProfileFromDefaultCommand}" Content="Copy from Default"></Button>
         </StackPanel>

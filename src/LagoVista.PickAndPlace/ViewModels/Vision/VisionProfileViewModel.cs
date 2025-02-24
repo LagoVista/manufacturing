@@ -23,6 +23,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             VisionProfiles = new ObservableCollection<EntityHeader>(VisionProfile.DefaultVisionProfiles);
             SetPixelsPerMMCommand = new RelayCommand(SetPixelsPerMM, () => MeasuredMM.HasValue);
             SaveCommand = new RelayCommand(async () => await SaveAsync());
+            SetInspectionHeight = new RelayCommand(() =>
+            {
+                Profile.DetectionHeight = Machine.MachinePosition.Z;
+            });
+
             CopyVisionProfileFromDefaultCommand = new RelayCommand(CopyVisionProfile, () => Camera.CurrentVisionProfile.Key != "default");
 
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
@@ -295,9 +300,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         }
 
         public RelayCommand SetPixelsPerMMCommand { get; }
-
+        public RelayCommand SetInspectionHeight { get; }
         public RelayCommand CopyVisionProfileFromDefaultCommand { get; }
-
-
     }
 }

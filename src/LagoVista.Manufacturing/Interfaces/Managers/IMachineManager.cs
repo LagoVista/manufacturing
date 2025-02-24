@@ -13,5 +13,7 @@ namespace LagoVista.Manufacturing.Interfaces.Managers
         Task<ListResponse<MachineSummary>> GetMachineSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user);
         Task<Machine> GetMachineAsync(string id, EntityHeader org, EntityHeader user);
         Task<InvokeResult> DeleteMachineAsync(string id, EntityHeader org, EntityHeader user);
+        Task<InvokeResult<PcbJobTestFit>> TestFitJobAsync(string machineId, CircuitBoardRevision revision, EntityHeader org, EntityHeader user);
+
     }
 }

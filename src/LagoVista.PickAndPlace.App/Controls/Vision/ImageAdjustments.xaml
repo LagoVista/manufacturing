@@ -259,6 +259,13 @@
                         <Label Content="Find Irregular Polygons" Width="270"/>
                         <CheckBox IsChecked="{Binding Path=Profile.FindIrregularPolygons, Mode=TwoWay}" VerticalAlignment="Center" />
                     </StackPanel>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Label Content="Pad Detection Algorithm" Width="270"/>
+                        <CheckBox IsChecked="{Binding Path=Profile.LocateByPads, Mode=TwoWay}"  VerticalAlignment="Center"/>
+                    </StackPanel>
+
+
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Show Only Closed" Width="270"/>
                         <CheckBox IsChecked="{Binding Path=Profile.ContourFindOnlyClosed, Mode=TwoWay}"  VerticalAlignment="Center"/>
@@ -289,7 +296,7 @@
                         <Label Content="Max Area:" Width="210"/>
                         <Label Content="{Binding Profile.CountourMaxArea, FallbackValue=3}" HorizontalContentAlignment="Right" Width="80"/>
                     </StackPanel>
-                    <Slider Value="{Binding Path=Profile.CountourMaxArea, Mode=TwoWay}"  Minimum="300" Maximum="50000" SmallChange="1" LargeChange="50" />
+                    <Slider Value="{Binding Path=Profile.CountourMaxArea, Mode=TwoWay}"  Minimum="300" Maximum="200000" SmallChange="1" LargeChange="50" />
                 </StackPanel>
             </TabItem>
 

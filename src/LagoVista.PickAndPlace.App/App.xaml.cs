@@ -10,6 +10,8 @@ using LagoVista.Core.WPF.PlatformSupport;
 using LagoVista.IoT.Logging.Loggers;
 using LagoVista.IoT.Logging.Models;
 using LagoVista.Manufacturing;
+using LagoVista.Manufacturing.Interfaces.Managers;
+using LagoVista.Manufacturing.Managers;
 using LagoVista.Manufacturing.Services;
 using LagoVista.PickAndPlace.App.Services;
 using LagoVista.PickAndPlace.Interfaces;
