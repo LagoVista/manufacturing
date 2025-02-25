@@ -116,23 +116,25 @@ namespace LagoVista.Manufacturing.Managers
 
             pdf.AddColText(PDFServices.Style.Small, idx, $"{component.ComponentType.Text}/{component.ComponentPackage?.Text}", align: XStringFormats.CenterLeft);
 
-            var locationLine = String.Empty;
-            if (!String.IsNullOrEmpty(component.Room))
-                locationLine += component.Room;
+            if (component.Location != null)
+            {
+                var locationLine = String.Empty;
+                if (!EntityHeader.IsNullOrEmpty(component.Location.Room))
+                    locationLine += component.Location.Room.Text;
 
-            if (!String.IsNullOrEmpty(component.ShelfUnit))
-                locationLine += $"/{component.ShelfUnit}";
+                if (!EntityHeader.IsNullOrEmpty(component.Location.ShelfUnit))
+                    locationLine += $"/{component.Location.ShelfUnit.Text}";
 
-            if (!String.IsNullOrEmpty(component.Shelf))
-                locationLine += $"/{component.Shelf}";
+                if (!EntityHeader.IsNullOrEmpty(component.Location.Shelf))
+                    locationLine += $"/{component.Location.Shelf.Text}";
 
-            if (!String.IsNullOrEmpty(component.Column))
-                locationLine += $"/{component.Column}";
+                if (!EntityHeader.IsNullOrEmpty(component.Location.Column))
+                    locationLine += $"/{component.Location.Column.Text}";
 
-            if (!String.IsNullOrEmpty(component.Bin))
-                locationLine += $"/{component.Bin}";
-
-            pdf.AddColText(PDFServices.Style.Small, idx, locationLine, align: XStringFormats.BottomLeft);
+                if (!EntityHeader.IsNullOrEmpty(component.Location.Bin))
+                    locationLine += $"/{component.Location.Bin}";
+                pdf.AddColText(PDFServices.Style.Small, idx, locationLine, align: XStringFormats.BottomLeft);
+            }
 
             using (var qrGenerator = new QRCodeGenerator())
             using (var qrCodeData = qrGenerator.CreateQrCode($"https://www.nuviot.com/mfg/component/{compoentId}.", QRCodeGenerator.ECCLevel.Q))
@@ -180,23 +182,26 @@ namespace LagoVista.Manufacturing.Managers
 
                 pdf.AddColText(PDFServices.Style.Small, idx, $"{component.ComponentType.Text}/{component.ComponentPackage?.Text}", align: XStringFormats.CenterLeft);
 
-                var locationLine = String.Empty;
-                if (!String.IsNullOrEmpty(component.Room))
-                    locationLine += component.Room;
+                if (component.Location != null)
+                {
+                    var locationLine = String.Empty;
+                    if (!EntityHeader.IsNullOrEmpty(component.Location.Room))
+                        locationLine += component.Location.Room.Text;
 
-                if (!String.IsNullOrEmpty(component.ShelfUnit))
-                    locationLine += $"/{component.ShelfUnit}";
+                    if (!EntityHeader.IsNullOrEmpty(component.Location.ShelfUnit))
+                        locationLine += $"/{component.Location.ShelfUnit.Text}";
 
-                if (!String.IsNullOrEmpty(component.Shelf))
-                    locationLine += $"/{component.Shelf}";
+                    if (!EntityHeader.IsNullOrEmpty(component.Location.Shelf))
+                        locationLine += $"/{component.Location.Shelf.Text}";
 
-                if (!String.IsNullOrEmpty(component.Column))
-                    locationLine += $"/{component.Column}";
+                    if (!EntityHeader.IsNullOrEmpty(component.Location.Column))
+                        locationLine += $"/{component.Location.Column.Text}";
 
-                if (!String.IsNullOrEmpty(component.Bin))
-                    locationLine += $"/{component.Bin}";
+                    if (!EntityHeader.IsNullOrEmpty(component.Location.Bin))
+                        locationLine += $"/{component.Location.Bin}";
+                    pdf.AddColText(PDFServices.Style.Small, idx, locationLine, align: XStringFormats.BottomLeft);
+                }
 
-                pdf.AddColText(PDFServices.Style.Small, idx, locationLine, align: XStringFormats.BottomLeft);
 
                 using (var qrGenerator = new QRCodeGenerator())
                 using (var qrCodeData = qrGenerator.CreateQrCode($"https://www.nuviot.com/mfg/component/{compoentId}.", QRCodeGenerator.ECCLevel.Q))

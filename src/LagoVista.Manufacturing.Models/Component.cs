@@ -20,21 +20,8 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Component_ComponentType, FieldType: FieldTypes.Category, WaterMark:ManufacturingResources.Names.Component_ComponentType_Select, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader ComponentType { get; set; }
 
-        [FormField(LabelResource: ManufacturingResources.Names.Component_Room, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
-        public string Room { get; set; }
-
-        [FormField(LabelResource: ManufacturingResources.Names.Component_ShelfUnit, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
-        public string ShelfUnit { get; set; }
-
-        [FormField(LabelResource: ManufacturingResources.Names.Component_Shelf, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
-        public string Shelf { get; set; }
-
-        [FormField(LabelResource: ManufacturingResources.Names.Component_Column, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
-        public string Column { get; set; }
-
-
-        [FormField(LabelResource: ManufacturingResources.Names.Component_Bin, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
-        public string Bin { get; set; }
+        [FormField(LabelResource: ManufacturingResources.Names.Component_Location, FieldType: FieldTypes.Custom, CustomFieldType:"inventorylocation", ResourceType: typeof(ManufacturingResources))]
+        public ComponentLocation Location { get; set; }
 
 
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
@@ -217,11 +204,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(DataSheet),
                 nameof(ExtendedPrice),
                 nameof(Cost),
-                nameof(Room),
-                nameof(ShelfUnit),
-                nameof(Shelf),
-                nameof(Column),
-                nameof(Bin),
+                nameof(Location),
                 nameof(Purchases),
             };
         }
@@ -276,5 +259,15 @@ namespace LagoVista.Manufacturing.Models
                 nameof(AttributeValue),
             };
         }
+    }
+
+    public class ComponentLocation
+    {
+        public EntityHeader Location { get; set; }
+        public EntityHeader Room { get; set; }
+        public EntityHeader ShelfUnit { get; set; }
+        public EntityHeader Shelf { get; set; }
+        public EntityHeader Column { get; set; }
+        public EntityHeader Bin { get; set; }
     }
 }

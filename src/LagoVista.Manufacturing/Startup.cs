@@ -24,6 +24,7 @@ namespace LagoVista.Manufacturing
             services.AddTransient<IPnPMachineNozzleTipManager, PnPMachineNozzleManager>();
             services.AddTransient<IStripFeederTemplateManager, StripFeederTemplateManager>();
             services.AddTransient<IAutoFeederTemplateManager, AutoFeederTemplateManager>();
+            services.AddTransient<IInventoryLocationManager, InventoryLocationManager>();
         }
     }
 }

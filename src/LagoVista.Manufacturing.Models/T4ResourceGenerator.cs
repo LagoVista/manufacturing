@@ -1,4 +1,4 @@
-﻿/*2/2/2025 6:00:28 AM*/
+﻿/*2/25/2025 4:05:40 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -258,6 +258,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Component_Feeder_Select
 
 		public static string Component_Feeder_Select { get { return GetResourceString("Component_Feeder_Select"); } }
+//Resources:ManufacturingResources:Component_Location
+
+		public static string Component_Location { get { return GetResourceString("Component_Location"); } }
 //Resources:ManufacturingResources:Component_MfgPartNumb
 
 		public static string Component_MfgPartNumb { get { return GetResourceString("Component_MfgPartNumb"); } }
@@ -794,6 +797,27 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:GCodeMappings_Title
 
 		public static string GCodeMappings_Title { get { return GetResourceString("GCodeMappings_Title"); } }
+//Resources:ManufacturingResources:InventoryLocation_Address1
+
+		public static string InventoryLocation_Address1 { get { return GetResourceString("InventoryLocation_Address1"); } }
+//Resources:ManufacturingResources:InventoryLocation_Address2
+
+		public static string InventoryLocation_Address2 { get { return GetResourceString("InventoryLocation_Address2"); } }
+//Resources:ManufacturingResources:InventoryLocation_City
+
+		public static string InventoryLocation_City { get { return GetResourceString("InventoryLocation_City"); } }
+//Resources:ManufacturingResources:InventoryLocation_Description
+
+		public static string InventoryLocation_Description { get { return GetResourceString("InventoryLocation_Description"); } }
+//Resources:ManufacturingResources:InventoryLocation_PostalCode
+
+		public static string InventoryLocation_PostalCode { get { return GetResourceString("InventoryLocation_PostalCode"); } }
+//Resources:ManufacturingResources:InventoryLocation_State
+
+		public static string InventoryLocation_State { get { return GetResourceString("InventoryLocation_State"); } }
+//Resources:ManufacturingResources:InventoryLocation_Title
+
+		public static string InventoryLocation_Title { get { return GetResourceString("InventoryLocation_Title"); } }
 //Resources:ManufacturingResources:JobPlacementStatus_Failed
 
 		public static string JobPlacementStatus_Failed { get { return GetResourceString("JobPlacementStatus_Failed"); } }
@@ -1705,6 +1729,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Component_ExtendedPrice = "Component_ExtendedPrice";
 			public const string Component_Feeder = "Component_Feeder";
 			public const string Component_Feeder_Select = "Component_Feeder_Select";
+			public const string Component_Location = "Component_Location";
 			public const string Component_MfgPartNumb = "Component_MfgPartNumb";
 			public const string Component_PackageType = "Component_PackageType";
 			public const string Component_PartNumber = "Component_PartNumber";
@@ -1881,6 +1906,13 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string GCode_TopLightOn = "GCode_TopLightOn";
 			public const string GCodeMapping_Title = "GCodeMapping_Title";
 			public const string GCodeMappings_Title = "GCodeMappings_Title";
+			public const string InventoryLocation_Address1 = "InventoryLocation_Address1";
+			public const string InventoryLocation_Address2 = "InventoryLocation_Address2";
+			public const string InventoryLocation_City = "InventoryLocation_City";
+			public const string InventoryLocation_Description = "InventoryLocation_Description";
+			public const string InventoryLocation_PostalCode = "InventoryLocation_PostalCode";
+			public const string InventoryLocation_State = "InventoryLocation_State";
+			public const string InventoryLocation_Title = "InventoryLocation_Title";
 			public const string JobPlacementStatus_Failed = "JobPlacementStatus_Failed";
 			public const string JobPlacementStatus_InProcess = "JobPlacementStatus_InProcess";
 			public const string JobPlacementStatus_Pending = "JobPlacementStatus_Pending";
