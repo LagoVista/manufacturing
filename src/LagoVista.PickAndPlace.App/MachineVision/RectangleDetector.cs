@@ -151,7 +151,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             }
 
             // Get a list of stale ones, run the query so they can be removed..w/o ToList it will run the query when trying to delete.
-            var staleRects = FoundRectangles.Where(itr => itr.Iteration < _iteration -2).ToList();
+            var staleRects = FoundRectangles.Where(itr => itr.Iteration < _iteration -4).ToList();
             foreach (var rect in staleRects)
             {
                 _foundRectangles.Remove(rect);

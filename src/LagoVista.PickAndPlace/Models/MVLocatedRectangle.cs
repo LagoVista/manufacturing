@@ -3,6 +3,7 @@ using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Manufacturing.Models;
 using System;
+using System.Drawing;
 using System.Linq;
 
 namespace LagoVista.PickAndPlace.Models
@@ -11,10 +12,10 @@ namespace LagoVista.PickAndPlace.Models
     {
         int _head;
         
-        const int THROW_AWAY = 3;
+        const int THROW_AWAY = 6;
 
-        const int FILTER_SIZE = 9;
-        public RotatedRect[] _rects = new RotatedRect[FILTER_SIZE];
+        const int FILTER_SIZE = 18;
+        public RotatedRect?[] _rects = new RotatedRect?[FILTER_SIZE];
         public float?[] _angles = new float?[FILTER_SIZE];
         public Point2D<float>[] _centers = new Point2D<float>[FILTER_SIZE];
         private double _pixelsPerMM;
@@ -33,6 +34,12 @@ namespace LagoVista.PickAndPlace.Models
             _errorMargin = erorMargin;
             _stabilizationCount = stabilizationCount;
             CameraType = cameraType;
+            for(var idx = 0; idx < FILTER_SIZE; idx++)
+            {
+                _rects[idx] = null;
+                _angles[idx] = 0;  
+                _centers[idx] = null;
+            }
         }
 
         public void Add(RotatedRect rect)
@@ -66,8 +73,15 @@ namespace LagoVista.PickAndPlace.Models
             {
                 _filteredCenter = new Point2D<float>(sortedX.Average(), sortedY.Average());
                 Angle = Math.Round(sortedAngles.Select(val => val.Value).Average(), 2);
+                RotatedRect = rect;
             }
-       
+
+            var size = new SizeF(_rects.Where(rect => rect != null).Average(rct => rct.Value.Size.Width),
+                                  _rects.Where(rect => rect != null).Average(rct => rct.Value.Size.Height));
+            var center = new PointF(_rects.Where(rect => rect != null).Average(rct => rct.Value.Center.X),
+                                    _rects.Where(rect => rect != null).Average(rct => rct.Value.Center.X));
+
+            RotatedRect = new RotatedRect(center, size, (float)Angle);
 
             Size = new Point2D<double>(rect.Size.Width, rect.Size.Height);
             
@@ -78,8 +92,6 @@ namespace LagoVista.PickAndPlace.Models
             RaisePropertyChanged(nameof(FoundCount));
             RaisePropertyChanged(nameof(Size));
             RaisePropertyChanged(nameof(Summary));
-
-            RotatedRect = rect;
         }
 
         /// <summary>
