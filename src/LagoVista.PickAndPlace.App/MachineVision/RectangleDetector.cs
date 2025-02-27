@@ -39,6 +39,10 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
             var profile = camera.CurrentVisionProfile;
 
+            var bb = CvInvoke.BoundingRectangle(input.Image);
+
+            
+
             if (profile.UseCannyEdgeDetection)
             {
                 CvInvoke.Canny(input.Image, _edges, profile.CannyLowThreshold, profile.CannyHighThreshold, profile.CannyApetureSize, profile.CannyGradient);
@@ -66,7 +70,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     case ContourRetrieveModes.TwoLevelHierarchy: retrType = RetrType.Ccomp; break;
                 }
 
-                CvInvoke.FindContours(_edges, contours, null, retrType, ChainApproxMethod.ChainApproxTc89L1);
+                CvInvoke.FindContours(_edges, contours, null, retrType, ChainApproxMethod.ChainApproxSimple);
                 int count = contours.Size;
            
                 for (int i = 0; i < count; i++)
@@ -74,11 +78,13 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     using (var contour = contours[i])
                     using (var approxContour = new VectorOfPoint())
                     {
-                        var epsilon = CvInvoke.ArcLength(contour, true) * profile.PolygonEpsilonFactor;
+                        //var epsilon = CvInvoke.ArcLength(contour, true) * profile.PolygonEpsilonFactor;
 
-                        CvInvoke.ApproxPolyDP(contour, approxContour, epsilon, profile.ContourFindOnlyClosed);
-                        var area = CvInvoke.ContourArea(approxContour, false);
-                            if(area < profile.ContourMinArea)
+                        //var mar = CvInvoke.MinAreaRect(contour);
+
+                        //CvInvoke.ApproxPolyDP(contour, approxContour, epsilon, profile.ContourFindOnlyClosed);
+                        var area = CvInvoke.ContourArea(contour, false);
+                        if(area < profile.ContourMinArea)
                         {
                            
                         }
@@ -110,10 +116,10 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
                                 if (isRectangle || true)
                                 {
-                                    var rect = CvInvoke.MinAreaRect(approxContour);
+                                    var rect = CvInvoke.MinAreaRect(contour);
                                     if (searchBounds.WithinRadius(rect))
                                     {
-                                        if (rect.Size.Width > rect.Size.Height && profile.FindLandScape || rect.Size.Height > rect.Size.Width && profile.FindPortrait)
+                                        if ((rect.Size.Width > rect.Size.Height && profile.FindLandScape) || ( rect.Size.Height > rect.Size.Width && profile.FindPortrait))
                                         {
                                             var previous = _foundRectangles.FindPrevious(rect, 20);
                                             if (previous != null)

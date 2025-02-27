@@ -286,12 +286,12 @@
                         <Label Content="Epsilon:" Width="210"/>
                         <Label Content="{Binding Profile.PolygonEpsilonFactor, FallbackValue=3.324, StringFormat=0.000}" Width="80" HorizontalContentAlignment="Right" />
                     </StackPanel>
-                    <Slider Value="{Binding Path=Profile.PolygonEpsilonFactor, Mode=TwoWay}" ToolTip="{Binding PolygonEpsilonHelp}" Minimum="0.01" Maximum="0.25" SmallChange="0.01" LargeChange="0.01" />
+                    <Slider Value="{Binding Path=Profile.PolygonEpsilonFactor, Mode=TwoWay}" ToolTip="{Binding PolygonEpsilonHelp}" Minimum="0.01" Maximum=".5" SmallChange="0.01" LargeChange="0.01" />
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Min Area:" Width="210"/>
                         <Label Content="{Binding Profile.ContourMinArea, FallbackValue=3}" HorizontalContentAlignment="Right" Width="80"/>
                     </StackPanel>
-                    <Slider Value="{Binding Path=Profile.ContourMinArea, Mode=TwoWay}" Minimum="00" Maximum="1500" SmallChange="1" LargeChange="10" />
+                    <Slider Value="{Binding Path=Profile.ContourMinArea, Mode=TwoWay}" Minimum="00" Maximum="50000" SmallChange="1" LargeChange="10" />
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Max Area:" Width="210"/>
                         <Label Content="{Binding Profile.CountourMaxArea, FallbackValue=3}" HorizontalContentAlignment="Right" Width="80"/>

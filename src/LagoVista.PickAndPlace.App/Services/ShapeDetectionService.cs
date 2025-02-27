@@ -39,7 +39,7 @@ namespace LagoVista.PickAndPlace.App.Services
             _cornerDetector = cornerDetector ?? throw new ArgumentNullException(nameof(cornerDetector));
         }
 
-        private void RenderOutput(IMVImage<IInputOutputArray> img, MachineCamera camera, System.Drawing.Size size)
+        private async void RenderOutput(IMVImage<IInputOutputArray> img, MachineCamera camera, System.Drawing.Size size)
         {
             if (camera.CurrentVisionProfile.ShowCrossHairs) _imageHelper.DrawCrossHairs(img, camera, size);
             if (camera.CurrentVisionProfile.Show200PixelSquare) _imageHelper.ShowCalibrationSquare(img, size);
@@ -49,9 +49,23 @@ namespace LagoVista.PickAndPlace.App.Services
                 _imageHelper.Circle(img, camera.CurrentVisionProfile.ZoomLevel, foundCircle, size);
             }
 
-            var rect = _rectangleDetector.FoundRectangles.OrderByDescending(rect => rect.FoundCount).FirstOrDefault();
-            if(rect != null)
-                _imageHelper.DrawRect(img, camera.CurrentVisionProfile.ZoomLevel, rect, rect.Centered ? System.Drawing.Color.Green : System.Drawing.Color.Red);
+            
+            if (camera.CurrentVisionProfile.LocateByPads)
+            {
+                foreach(var rect in _rectangleDetector.FoundRectangles)
+                {
+                    _imageHelper.DrawRect(img, camera.CurrentVisionProfile.ZoomLevel, rect, rect.Centered ? System.Drawing.Color.Green : System.Drawing.Color.Red);
+                }
+            }
+            else
+            {
+                var rect = _rectangleDetector.FoundRectangles.OrderByDescending(rect => rect.FoundCount).FirstOrDefault();
+                if (rect != null)
+                {
+                    _imageHelper.DrawRect(img, camera.CurrentVisionProfile.ZoomLevel, rect, rect.Centered ? System.Drawing.Color.Green : System.Drawing.Color.Red);
+                }
+             
+            }
         }
 
         private void FindShapes(IMVImage<IInputOutputArray> input, IInputOutputArray output, MachineCamera camera, System.Drawing.Size size)

@@ -115,6 +115,13 @@ namespace LagoVista.PickAndPlace.Models
             set => Set(ref _useBlurredImage, value);
         }
 
+        private bool _showFoundObjectsList = true;
+        public bool ShowFoundObjectsList
+        {
+            get => _showFoundObjectsList;
+            set => Set(ref _showFoundObjectsList, value);
+        }
+
         private bool _showCrosshairs = true;
         public bool ShowCrossHairs
         {

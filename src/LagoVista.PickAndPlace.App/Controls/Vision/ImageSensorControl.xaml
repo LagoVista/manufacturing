@@ -77,7 +77,7 @@
             <TextBlock Text="Please wait..."  FontSize="42" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
 
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" Visibility="{Binding Profile.ShowFoundObjectsList, Converter={StaticResource BoolToVisibilityConverter}}">
             <StackPanel>
                 <ListView ItemsSource="{Binding ShapeDetector.FoundRectangles}" BorderBrush="Transparent" Background="Transparent" Foreground="White">
                     <ListView.ItemTemplate>

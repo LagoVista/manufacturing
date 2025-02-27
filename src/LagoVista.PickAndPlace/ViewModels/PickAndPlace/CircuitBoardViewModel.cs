@@ -30,7 +30,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             GoToExpectedFiducialCommand = CreatedMachineConnectedCommand(GoToExpectedFiducial, () => SelectedFiducial != null);
             GoToActualFiducialCommand = CreatedMachineConnectedCommand(GoToActualFiducial, () => SelectedFiducial != null && SelectedFiducial.Actual != null);
-            AlignCommand = CreatedMachineConnectedCommand(async () => await AlignBoardAsync(), () => Job != null && Job.BoardFiducials.Count > 0);
+            AlignCommand = CreatedMachineConnectedCommand(async () => await AlignBoardAsync(), () => Job != null && Job.BoardFiducials?.Count > 0);
             AlignFiducialCommand = CreatedMachineConnectedCommand(() => AlignFiducial(), () => SelectedFiducial != null);
         }
 
@@ -118,7 +118,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     {
                         Machine.GotoPoint(MachineConfiguration.DefaultWorkOrigin + SelectedFiducial.Expected);
                         // Give it time to move so it's not picking up the previous found circle.
-                        await Task.Delay(500);
+                        await Task.Delay(1000);
                         _locatorViewModel.RegisterCircleLocatedHandler(this);
                         int attemptCount = 0;
 

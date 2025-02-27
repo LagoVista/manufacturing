@@ -384,7 +384,6 @@ namespace LagoVista.PickAndPlace
                 VacuumPump = false;
                 PuffPump = false;
                 VacuumSolendoid = false;
-                SendSafeMoveHeight();
                 Enqueue("G28");
                 if (Settings.MachineType == FirmwareTypes.Repeteir_PnP)
                 {

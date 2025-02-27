@@ -73,6 +73,10 @@
         <TextBlock Style="{StaticResource label}"  Text="Find Polygons"  Grid.Row="5" />
         <CheckBox IsChecked="{Binding Profile.FindRectangles, Mode=TwoWay}" Grid.Row="5" Grid.Column="1" />
 
+        <TextBlock Style="{StaticResource label}"  Text="Show Found Objects List"  Grid.Row="6" Grid.Column="0" />
+        <CheckBox IsChecked="{Binding Profile.ShowFoundObjectsList, Mode=TwoWay}" Grid.Row="6" Grid.Column="1" />
+
+
 
         <TextBlock Style="{StaticResource label}"  Text="Show Cross Hairs"  Grid.Row="6" Grid.Column="2" />
         <CheckBox IsChecked="{Binding Profile.ShowCrossHairs, Mode=TwoWay}" Grid.Row="6" Grid.Column="3" />

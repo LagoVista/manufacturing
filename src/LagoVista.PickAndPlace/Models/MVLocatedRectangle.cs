@@ -37,7 +37,7 @@ namespace LagoVista.PickAndPlace.Models
             for(var idx = 0; idx < FILTER_SIZE; idx++)
             {
                 _rects[idx] = null;
-                _angles[idx] = 0;  
+                _angles[idx] = null;  
                 _centers[idx] = null;
             }
         }
@@ -79,7 +79,7 @@ namespace LagoVista.PickAndPlace.Models
             var size = new SizeF(_rects.Where(rect => rect != null).Average(rct => rct.Value.Size.Width),
                                   _rects.Where(rect => rect != null).Average(rct => rct.Value.Size.Height));
             var center = new PointF(_rects.Where(rect => rect != null).Average(rct => rct.Value.Center.X),
-                                    _rects.Where(rect => rect != null).Average(rct => rct.Value.Center.X));
+                                    _rects.Where(rect => rect != null).Average(rct => rct.Value.Center.Y));
 
             RotatedRect = new RotatedRect(center, size, (float)Angle);
 

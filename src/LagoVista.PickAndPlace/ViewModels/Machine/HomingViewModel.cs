@@ -37,7 +37,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         public Task WorkSpaceHomeAsync()
         {
-            _machineRepo.CurrentMachine.SendSafeMoveHeight();
             _machineRepo.CurrentMachine.GotoWorkspaceHome();
 
             _locatorViewModel.SetLocatorState(MVLocatorState.WorkHome);
