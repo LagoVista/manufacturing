@@ -170,6 +170,9 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_YOffsetReferenceHole, FieldType: FieldTypes.Decimal, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public double? YOffsetFromReferenceHole { get; set; }
 
+        [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_PickOffset, HelpResource: ManufacturingResources.Names.ComponentPackage_PickOffset_Help, FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> PickOffset { get; set; } = new Point2D<double>(0, 0);
+
         public PcbPackage Layout { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeSize, FieldType: FieldTypes.Picker, EnumType:typeof(TapeSizes), 
@@ -466,6 +469,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(TapeColor),
                 nameof(TapeMaterialType),
                 nameof(DualHoles),
+                nameof(PickOffset),
                 nameof(PickVacuumLevel),
                 nameof(XOffsetFromReferenceHole),
                 nameof(YOffsetFromReferenceHole),

@@ -1715,4 +1715,10 @@
   <data name="Component_Location" xml:space="preserve">
     <value>Location</value>
   </data>
+  <data name="ComponentPackage_PickOffset" xml:space="preserve">
+    <value>Pick Offset</value>
+  </data>
+  <data name="ComponentPackage_PickOffset_Help" xml:space="preserve">
+    <value>Offset to pick the component this is useful for parts that do not have a flat surface and the optimal pick location is not in the center of the part.</value>
+  </data>
 </root>

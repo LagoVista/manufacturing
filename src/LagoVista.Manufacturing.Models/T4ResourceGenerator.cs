@@ -1,4 +1,4 @@
-﻿/*2/25/2025 4:05:40 AM*/
+﻿/*2/28/2025 1:05:00 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -460,6 +460,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ComponentPackage_PartWidth
 
 		public static string ComponentPackage_PartWidth { get { return GetResourceString("ComponentPackage_PartWidth"); } }
+//Resources:ManufacturingResources:ComponentPackage_PickOffset
+
+		public static string ComponentPackage_PickOffset { get { return GetResourceString("ComponentPackage_PickOffset"); } }
+//Resources:ManufacturingResources:ComponentPackage_PickOffset_Help
+
+		public static string ComponentPackage_PickOffset_Help { get { return GetResourceString("ComponentPackage_PickOffset_Help"); } }
 //Resources:ManufacturingResources:ComponentPackage_PickVacuumLevel
 
 		public static string ComponentPackage_PickVacuumLevel { get { return GetResourceString("ComponentPackage_PickVacuumLevel"); } }
@@ -1795,6 +1801,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentPackage_PartType = "ComponentPackage_PartType";
 			public const string ComponentPackage_PartType_Select = "ComponentPackage_PartType_Select";
 			public const string ComponentPackage_PartWidth = "ComponentPackage_PartWidth";
+			public const string ComponentPackage_PickOffset = "ComponentPackage_PickOffset";
+			public const string ComponentPackage_PickOffset_Help = "ComponentPackage_PickOffset_Help";
 			public const string ComponentPackage_PickVacuumLevel = "ComponentPackage_PickVacuumLevel";
 			public const string ComponentPackage_Rotation = "ComponentPackage_Rotation";
 			public const string ComponentPackage_SpacingX = "ComponentPackage_SpacingX";
