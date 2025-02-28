@@ -37,7 +37,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             SetBoardOriginCommand = CreatedMachineConnectedCommand(() => Job.DefaultBoardOrigin = Machine.MachinePosition.ToPoint2D(), () => Job != null);
             CheckBoardFiducialsCommand = CreatedMachineConnectedCommand(() => CheckBoardFiducials(), () => Job != null);
 
-            ShowSchematicCommand = CreateCommand(ShowSchematic, () => Job != null && CircuitBoard.SchematicPDFFile != null);
+            ShowSchematicCommand = CreateCommand(ShowSchematic, () => Job != null && CircuitBoard?.SchematicPDFFile != null);
             ShowComponentDetailCommand = CreateCommand(ShowComponentDetail, () => PartGroup != null);
             ShowComponentPackageDetailCommand = CreateCommand(ShowComponentPackageDetail, () => CurrentComponent != null && CurrentComponent?.ComponentPackage != null);
             ShowDataSheetCommand = CreateCommand(ShowDataSheeet, () => CurrentComponent != null && !String.IsNullOrEmpty(CurrentComponent.DataSheet));

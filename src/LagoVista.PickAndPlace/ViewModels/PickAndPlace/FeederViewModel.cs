@@ -524,7 +524,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         protected void SetTapeHoleProfile()
         {
-            if (!EntityHeader.IsNullOrEmpty(CurrentComponent.TapeColor))
+            if (CurrentComponent == null)
+            {
+                Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInWhiteTape);
+            }
+            else if (!EntityHeader.IsNullOrEmpty(CurrentComponent.TapeColor))
             {
                 switch (CurrentComponent.TapeColor.Value)
                 {
@@ -550,7 +554,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         protected void SetPartInTapeHoleProfile()
         {
-            if (CurrentComponent.PartInTapeVisionProfile != null)
+
+            if (CurrentComponent == null)
+            {
+                Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartInWhiteTape);
+            }
+            else if(CurrentComponent.PartInTapeVisionProfile != null)
             {
                 Machine.SetVisionProfile(CameraTypes.Position, VisionProfileSource.Component, CurrentComponent.Id, CurrentComponent.PartInTapeVisionProfile);
             }

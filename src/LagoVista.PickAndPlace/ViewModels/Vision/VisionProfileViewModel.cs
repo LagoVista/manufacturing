@@ -28,7 +28,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                 Profile.DetectionHeight = Machine.MachinePosition.Z;
             });
 
-            CopyVisionProfileFromDefaultCommand = new RelayCommand(CopyVisionProfile, () => Camera.CurrentVisionProfile.Key != "default");
+            CopyVisionProfileFromDefaultCommand = new RelayCommand(CopyVisionProfile, () => Camera?.CurrentVisionProfile.Key != "default");
 
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
         }
@@ -105,7 +105,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             get { return _selectedCameraDevicePath; }
             set
             {
-                if (value != "-1" && value != Camera.CameraDevice?.Id)
+                if (value != "-1" && value != Camera?.CameraDevice?.Id)
                 {
                     Camera.CameraDevice = CameraList.FirstOrDefault(x => x.Id == value);
                 }
@@ -125,7 +125,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         {
             get
             {
-                if (Camera.ProfileSource == VisionProfileSource.Camera)
+                if (Camera != null && Camera.ProfileSource == VisionProfileSource.Camera)
                 {
                     return Camera.CurrentVisionProfile.Key;
                 }
@@ -196,7 +196,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             }
         }
 
-        public VisionProfile Profile { get => Camera.CurrentVisionProfile; }
+        public VisionProfile Profile { get => Camera?.CurrentVisionProfile; }
 
         MachineCamera _camera;
         public MachineCamera Camera
@@ -209,10 +209,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
                 Set(ref _camera, value);
 
-                _camera.PropertyChanged += _camera_PropertyChanged;
+                if (_camera != null)
+                {
+                    _camera.PropertyChanged += _camera_PropertyChanged;
 
-                if (_camera.CurrentVisionProfile != null)
-                    Camera.CurrentVisionProfile.PropertyChanged += CurrentVisionProfile_PropertyChanged;
+                    if (_camera.CurrentVisionProfile != null)
+                        Camera.CurrentVisionProfile.PropertyChanged += CurrentVisionProfile_PropertyChanged;
+                }
             }
         }
 
@@ -246,46 +249,52 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
         public async Task SaveAsync()
         {
-            switch (Camera.ProfileSource)
+            if (Camera != null)
             {
-                case VisionProfileSource.Component:
-                    if (CustomProfile != null)
-                        Profile.Name = CustomProfile.Text;
+                switch (Camera.ProfileSource)
+                {
+                    case VisionProfileSource.Component:
+                        if (CustomProfile != null)
+                            Profile.Name = CustomProfile.Text;
 
-                    if (Camera.CameraType.Value == CameraTypes.PartInspection)
-                    {
-                        await _restClient.PutAsync($"/api/mfg/component/{Camera.ProfileSourceId}/visionprofile/inspection", Profile);
-                    }
-                    else if (Profile.Name.ToLower().Contains("tape"))
-                    {
-                        await _restClient.PutAsync($"/api/mfg/component/{Camera.ProfileSourceId}/visionprofile/partintape", Profile);
-                    }
-                    else if (Profile.Name.ToLower().Contains("board"))
-                    {
-                        await _restClient.PutAsync($"/api/mfg/component/{Camera.ProfileSourceId}/visionprofile/partonboard", Profile);
-                    }
-                    break;
-                case VisionProfileSource.ComponentPackage:
-                    if (CustomProfile != null)
-                        Profile.Name = CustomProfile.Text;
+                        if (Camera.CameraType.Value == CameraTypes.PartInspection)
+                        {
+                            await _restClient.PutAsync($"/api/mfg/component/{Camera.ProfileSourceId}/visionprofile/inspection", Profile);
+                        }
+                        else if (Profile.Name.ToLower().Contains("tape"))
+                        {
+                            await _restClient.PutAsync($"/api/mfg/component/{Camera.ProfileSourceId}/visionprofile/partintape", Profile);
+                        }
+                        else if (Profile.Name.ToLower().Contains("board"))
+                        {
+                            await _restClient.PutAsync($"/api/mfg/component/{Camera.ProfileSourceId}/visionprofile/partonboard", Profile);
+                        }
+                        break;
+                    case VisionProfileSource.ComponentPackage:
+                        if (CustomProfile != null)
+                            Profile.Name = CustomProfile.Text;
 
-                    if (Camera.CameraType.Value == CameraTypes.PartInspection)
-                    {
-                        await _restClient.PutAsync($"/api/mfg/component/package/{Camera.ProfileSourceId}/visionprofile/inspection", Profile);
-                    }
-                    else if (Profile.Name.ToLower().Contains("tape"))
-                    {
-                        await _restClient.PutAsync($"/api/mfg/component/package/{Camera.ProfileSourceId}/visionprofile/partintape", Profile);
-                    }
-                    else if (Profile.Name.ToLower().Contains("board"))
-                    {
-                        await _restClient.PutAsync($"/api/mfg/component/package/{Camera.ProfileSourceId}/visionprofile/partonboard", Profile);
-                    }
-                    break;
-                case VisionProfileSource.Camera:
-                    await MachineRepo.SaveCurrentMachineAsync();
-                    break;
+                        if (Camera.CameraType.Value == CameraTypes.PartInspection)
+                        {
+                            await _restClient.PutAsync($"/api/mfg/component/package/{Camera.ProfileSourceId}/visionprofile/inspection", Profile);
+                        }
+                        else if (Profile.Name.ToLower().Contains("tape"))
+                        {
+                            await _restClient.PutAsync($"/api/mfg/component/package/{Camera.ProfileSourceId}/visionprofile/partintape", Profile);
+                        }
+                        else if (Profile.Name.ToLower().Contains("board"))
+                        {
+                            await _restClient.PutAsync($"/api/mfg/component/package/{Camera.ProfileSourceId}/visionprofile/partonboard", Profile);
+                        }
+                        break;
+                    case VisionProfileSource.Camera:
+                        await MachineRepo.SaveCurrentMachineAsync();
+                        break;
+                }
             }
+            else
+                await MachineRepo.SaveCurrentMachineAsync();
+
         }
 
         private double? _measuedMM;

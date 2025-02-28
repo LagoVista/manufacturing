@@ -45,7 +45,8 @@ namespace LagoVista.Manufacturing.Services
 
         public InvokeResult ResolveJobAsync(Machine machine, PickAndPlaceJob job, CircuitBoardRevision boardRevision, IEnumerable<StripFeeder> stripFeeders, IEnumerable<AutoFeeder> autoFeeders)
         {
-            job.BoardFiducials.Clear();
+
+            job.BoardFiducials = new System.Collections.ObjectModel.ObservableCollection<BoardFiducial>();
             var fiducials = boardRevision.PcbComponents.Where(pcbc => pcbc.Fiducial).Select(fid => new BoardFiducial()
             {
                 Name = fid.Name,

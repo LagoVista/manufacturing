@@ -41,7 +41,7 @@ namespace LagoVista.PickAndPlace.App.Controls
         {
             var vm = SLWIOC.Create<IVisionProfileViewModel>();
             vm.Camera = ViewModel.Camera;
-            vm.SelectedCameraDevicePath = ViewModel.Camera.CameraDevice?.Id ?? "-1";
+            vm.SelectedCameraDevicePath = ViewModel.Camera?.CameraDevice?.Id ?? "-1";
             var cameras = DsDevice.GetDevicesOfCat(FilterCategory.VideoInputDevice);
             var cameraList = cameras.Select(cm => EntityHeader.Create(cm.DevicePath, cm.Name)).ToList();
             cameraList.Insert(0, EntityHeader.Create("-1","-select camera-"));
