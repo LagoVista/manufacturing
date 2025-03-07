@@ -141,7 +141,7 @@ namespace LagoVista.Manufacturing.Models
         Normal,
         Quiet,
     }
-
+    
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.Machine_Title, ManufacturingResources.Names.Machine_Description,
         ManufacturingResources.Names.Machine_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-ruler", Cloneable: true,
         SaveUrl: "/api/mfg/machine", GetUrl: "/api/mfg/machine/{id}", GetListUrl: "/api/mfg/machines", FactoryUrl: "/api/mfg/machine/factory",

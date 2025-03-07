@@ -337,46 +337,51 @@ namespace LagoVista.PickAndPlace
 
         public void ConfigureTopLight(bool on, byte power, byte red, byte green, byte blue)
         {
-            _topLightOn = on;
-            _topPower = power;
-            _topRed = red;
-            _topGreen = green;
-            _topBlue = blue;
+            if (Settings.GcodeMapping != null)
+            {
+                _topLightOn = on;
+                _topPower = power;
+                _topRed = red;
+                _topGreen = green;
+                _topBlue = blue;
 
-            if (_topLightOn)
-                Enqueue(ConvertTopLightColors(Settings.GcodeMapping.Value.TopLightOn));
-            else
-                Enqueue(Settings.GcodeMapping.Value.TopLightOff);
+                if (_topLightOn)
+                    Enqueue(ConvertTopLightColors(Settings.GcodeMapping.Value.TopLightOn));
+                else
+                    Enqueue(Settings.GcodeMapping.Value.TopLightOff);
 
-            UpdateTopLight();
+                UpdateTopLight();
 
-            RaisePropertyChanged(nameof(TopLightOn));
-            RaisePropertyChanged(nameof(TopPower));
-            RaisePropertyChanged(nameof(TopRed));
-            RaisePropertyChanged(nameof(TopBlue));
-            RaisePropertyChanged(nameof(TopGreen));
-            
+                RaisePropertyChanged(nameof(TopLightOn));
+                RaisePropertyChanged(nameof(TopPower));
+                RaisePropertyChanged(nameof(TopRed));
+                RaisePropertyChanged(nameof(TopBlue));
+                RaisePropertyChanged(nameof(TopGreen));
+            }
         }
         public void ConfigureBottomLight(bool on, byte power, byte red, byte green, byte blue)
         {
-            _bottomLightOn = on;
-            _bottomPower = power;
-            _bottomRed = red;
-            _bottomGreen = green;
-            _bottomBlue = blue;
+            if (Settings.GcodeMapping != null)
+            {
+                _bottomLightOn = on;
+                _bottomPower = power;
+                _bottomRed = red;
+                _bottomGreen = green;
+                _bottomBlue = blue;
 
-            if (_bottomLightOn)
-                Enqueue(ConvertTopLightColors(Settings.GcodeMapping.Value.BottmLightOn));
-            else
-                Enqueue(Settings.GcodeMapping.Value.BottmLightOff);
+                if (_bottomLightOn)
+                    Enqueue(ConvertTopLightColors(Settings.GcodeMapping.Value.BottmLightOn));
+                else
+                    Enqueue(Settings.GcodeMapping.Value.BottmLightOff);
 
-            UpdateBottomLight();
+                UpdateBottomLight();
 
-            RaisePropertyChanged(nameof(BottomLightOn));
-            RaisePropertyChanged(nameof(BottomPower));
-            RaisePropertyChanged(nameof(BottomRed));
-            RaisePropertyChanged(nameof(BottomBlue));
-            RaisePropertyChanged(nameof(BottomGreen));
+                RaisePropertyChanged(nameof(BottomLightOn));
+                RaisePropertyChanged(nameof(BottomPower));
+                RaisePropertyChanged(nameof(BottomRed));
+                RaisePropertyChanged(nameof(BottomBlue));
+                RaisePropertyChanged(nameof(BottomGreen));
+            }
         }
 
         private void UpdateTopLight()
@@ -470,7 +475,7 @@ namespace LagoVista.PickAndPlace
             get { return _leftVacuumPump; }
             set
             {
-                if (Settings.GcodeMapping.Value != null)
+                if (Settings.GcodeMapping?.Value != null)
                 {
                     if (value)
                         Enqueue(Settings.GcodeMapping.Value.LeftVacuumOn);
@@ -492,7 +497,7 @@ namespace LagoVista.PickAndPlace
                 if (value)
                     Enqueue(Settings.GcodeMapping.Value.RightVacuumOn);
                 else
-                    Enqueue(Settings.GcodeMapping.Value.RightVacuumOff);
+                    Enqueue(Settings.GcodeMapping?.Value.RightVacuumOff);
 
                 _rightVacuumPump = value;
                 RaisePropertyChanged();

@@ -52,7 +52,6 @@
 
   <ItemGroup>
     <Folder Include="Interfaces\Obsolete\" />
-    <Folder Include="Interfaces\ViewModels\GCode\" />
     <Folder Include="Proxies\" />
   </ItemGroup>
 

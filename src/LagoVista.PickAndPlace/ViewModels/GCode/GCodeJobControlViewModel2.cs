@@ -1,5 +1,6 @@
 ﻿using LagoVista.Core.Commanding;
 using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.GCode;
 using LagoVista.PickAndPlace.Managers;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels.GCode
 {
-    public partial class GCodeJobControlViewModel
+    public partial class GCodeJobControlViewModel : IGCodeJobControlViewModel
     {
         private void InitCommands()
         {
@@ -272,6 +273,6 @@ namespace LagoVista.PickAndPlace.ViewModels.GCode
 
         public RelayCommand ExhaustSolenoidCommand { get; private set; }
 
-        public RelayCommand SuctionSolenoidCommand { get; private set;}
+        public RelayCommand SuctionSolenoidCommand { get; private set; }
     }
 }

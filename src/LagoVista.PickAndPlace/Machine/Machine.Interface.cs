@@ -254,6 +254,12 @@ namespace LagoVista.PickAndPlace
 
         public void Enqueue(String cmd, bool highPriority = false)
         {
+            if(cmd == null)
+            {
+                Messages.Add(StatusMessage.Create(StatusMessageTypes.Warning, "Null command, will not send."));
+                return;
+            }
+
             if (AssertConnected())
             {
                 Services.DispatcherServices.Invoke(() =>
@@ -277,7 +283,7 @@ namespace LagoVista.PickAndPlace
                             }
                         }
                     }
-                });
+                    });
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using LagoVista.Core.Models.Drawing;
 using LagoVista.GCode.Commands;
 using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.Util;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,11 +30,13 @@ namespace LagoVista.PickAndPlace
             while (_toSendPriority.Count > 0)
             {
                 var line = _toSendPriority.Dequeue();
-
-                _writer.Write(line);
-                if (line != "?" && line != "M114")
+                if (line != null)
                 {
-                    AddStatusMessage(StatusMessageTypes.SentLinePriority, line.TrimStart().TrimEnd());
+                    _writer.Write(line);
+                    if(line != "?" && line != "M114")
+                    {
+                        AddStatusMessage(StatusMessageTypes.SentLinePriority, line.TrimStart().TrimEnd());
+                    }
                 }
 
                 _writer.Flush();
@@ -213,7 +216,7 @@ namespace LagoVista.PickAndPlace
 
             await Task.Delay(5);
              
-            var lineTask = Settings.ConnectionType == ConnectionTypes.Serial_Port ? _reader.ReadToEndAsync() : _reader.ReadLineAsync(); 
+            var lineTask = Settings.ConnectionType == ConnectionTypes.Serial_Port ? _reader.ReadLineAsync() : _reader.ReadLineAsync(); 
 
             /* While we are awaiting for a line to come in process any outgoing stuff */
             while (!lineTask.IsCompleted)
@@ -247,11 +250,16 @@ namespace LagoVista.PickAndPlace
                 _reader = new StreamReader(inputStream);
                 _writer = new StreamWriter(outputStream);
 
+                await GrblErrorProvider.InitAsync();
+
                 UnacknowledgedBytesSent = 0;
 
                 if (Settings.MachineType == FirmwareTypes.GRBL1_1)
                 {
-                    Enqueue("\n$G\n", true);
+                    //Enqueue("\n$G\n", true);
+                    _port.DtrEnable = false;
+                    await Task.Delay(250);
+                    _port.DtrEnable = false;
                 }
                 else if (Settings.MachineType == FirmwareTypes.LagoVista_PnP)
                 {

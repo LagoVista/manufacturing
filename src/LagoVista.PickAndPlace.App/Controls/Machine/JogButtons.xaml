@@ -1,11 +1,14 @@
-﻿<UserControl x:Class="LagoVista.PickAndPlace.App.Controls.JogButtons"
+﻿<ucb:VMBoundUserControl x:Class="LagoVista.PickAndPlace.App.Controls.JogButtons"
+             x:TypeArguments="vm:ILocatorViewModel"                                                
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls"
+             xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
              xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
              xmlns:sndr="clr-namespace:LagoVista.Manufacturing.Models;assembly=LagoVista.Manufacturing.Models"
+            xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;assembly=LagoVista.PickAndPlace"             
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
@@ -59,4 +62,4 @@
             </Button>
         </Grid>
     </Grid>
-</UserControl>
+</ucb:VMBoundUserControl>
