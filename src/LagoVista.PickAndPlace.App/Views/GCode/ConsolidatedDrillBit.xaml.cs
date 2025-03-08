@@ -1,4 +1,5 @@
-﻿using LagoVista.PCB.Eagle.Models;
+﻿using LagoVista.Manufacturing.Models;
+using LagoVista.PCB.Eagle.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +27,7 @@ namespace LagoVista.PickAndPlace.App
         }
 
         bool _isEdit;
-        PcbProject _project; 
+        PcbMillingProject _project; 
 
 
 
@@ -85,7 +86,7 @@ namespace LagoVista.PickAndPlace.App
         public ConsolidatedDrillBit ConsolidatedDrill { get; set; }
         
 
-        public void ShowForNew(PcbProject project, Window owner)
+        public void ShowForNew(PcbMillingProject project, Window owner)
         {
             _project = project;
 
@@ -102,7 +103,7 @@ namespace LagoVista.PickAndPlace.App
             this.ShowDialog();
         }
 
-        public void ShowForEdit(PcbProject project, ConsolidatedDrillBit drill, Window owner)
+        public void ShowForEdit(PcbMillingProject project, ConsolidatedDrillBit drill, Window owner)
         {
             _project = project;
 

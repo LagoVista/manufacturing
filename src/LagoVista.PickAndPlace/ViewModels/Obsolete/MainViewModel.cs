@@ -106,7 +106,6 @@ namespace LagoVista.PickAndPlace.ViewModels
             }
 
             await SaveMRUsAsync();
-
         }
 
         public async void AddBoardFileMRU(string boardFile)
@@ -151,7 +150,7 @@ namespace LagoVista.PickAndPlace.ViewModels
         {
             try
             {
-                Project = await PcbProject.OpenAsync(projectFile);
+                Project = await PcbMillingProject.OpenAsync(projectFile);
                 Machine.PCBManager.ProjectFilePath = projectFile;
                 AddProjectFileMRU(projectFile);
                 return true;

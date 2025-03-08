@@ -23,6 +23,7 @@ namespace LagoVista.Manufacturing.Repos
             services.AddTransient<IAutoFeederTemplateRepo, AutoFeederTemplateRepo>();
             services.AddTransient<IInventoryLocationRepo, InventoryLocationRepo>();
             services.AddTransient<IPickAndPlaceJobRunRepo, PickAndPlaceJobRunRepo>();
+            services.AddTransient<IPcbMillingProjectRepo, PcbMillingProjectRepo>();
         }
     }
 }

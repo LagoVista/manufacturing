@@ -1,4 +1,5 @@
-﻿using LagoVista.PCB.Eagle.Managers;
+﻿using LagoVista.Manufacturing.Models;
+using LagoVista.PCB.Eagle.Managers;
 using LagoVista.PCB.Eagle.Models;
 using System;
 using System.Threading.Tasks;
@@ -28,7 +29,7 @@ namespace LagoVista.PickAndPlace.Managers
         {
             try
             {
-                Project = await PcbProject.OpenAsync(projectFile);
+                Project = await PcbMillingProject.OpenAsync(projectFile);
 
                 return true;
             }

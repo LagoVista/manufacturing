@@ -1,4 +1,4 @@
-﻿/*2/28/2025 1:05:00 PM*/
+﻿/*3/8/2025 9:03:14 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -1256,6 +1256,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Pcb_Variants
 
 		public static string Pcb_Variants { get { return GetResourceString("Pcb_Variants"); } }
+//Resources:ManufacturingResources:PcbMillingProject_Description
+
+		public static string PcbMillingProject_Description { get { return GetResourceString("PcbMillingProject_Description"); } }
+//Resources:ManufacturingResources:PcbMillProject_Title
+
+		public static string PcbMillProject_Title { get { return GetResourceString("PcbMillProject_Title"); } }
 //Resources:ManufacturingResources:Pcbs_Title
 
 		public static string Pcbs_Title { get { return GetResourceString("Pcbs_Title"); } }
@@ -2065,6 +2071,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Pcb_Variant_Description = "Pcb_Variant_Description";
 			public const string Pcb_Variant_Sku = "Pcb_Variant_Sku";
 			public const string Pcb_Variants = "Pcb_Variants";
+			public const string PcbMillingProject_Description = "PcbMillingProject_Description";
+			public const string PcbMillProject_Title = "PcbMillProject_Title";
 			public const string Pcbs_Title = "Pcbs_Title";
 			public const string Pfb_Revision_Revision = "Pfb_Revision_Revision";
 			public const string PickAndPlaceJob_Board = "PickAndPlaceJob_Board";

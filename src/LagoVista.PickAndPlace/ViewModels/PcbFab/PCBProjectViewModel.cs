@@ -1,5 +1,7 @@
 ﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.Models;
 using LagoVista.Core.ViewModels;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PCB.Eagle.Managers;
 using LagoVista.PCB.Eagle.Models;
 using System;
@@ -13,8 +15,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab
     {
         public event EventHandler GenerateIsolationEvent;
 
-        PcbProject _project;
-        public PcbProject Project
+        PcbMillingProject _project;
+        public PcbMillingProject Project
         {
             get { return _project; }
             set { Set(ref _project, value); }
@@ -27,7 +29,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab
             set { Set(ref _pcb, value); }
         }
 
-        public PCBProjectViewModel(PcbProject project)
+        public PCBProjectViewModel(PcbMillingProject project)
         {
             Project = project;
             SaveDefaultProfileCommand = new RelayCommand(SaveDefaultProfile);
@@ -37,14 +39,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab
             CenterBoardCommand = new RelayCommand(CenterBoard);
             GenerateIsolationMillingCommand = new RelayCommand(GenerateIsolation);
 
-            if (!string.IsNullOrEmpty(Project.EagleBRDFilePath))
+            if (!EntityHeader.IsNullOrEmpty(Project.EagleBRDFilePath))
             {
 
                 try
                 {
-                    var doc = XDocument.Load(Project.EagleBRDFilePath);
-                    PCB = EagleParser.ReadPCB(doc);
-                    Project.FiducialOptions = PCB.Holes.Where(drl => drl.D > 2).ToList();
+                //    var doc = XDocument.Load(Project.EagleBRDFilePath);
+                //    PCB = EagleParser.ReadPCB(doc);
+                //    Project.FiducialOptions = PCB.Holes.Where(drl => drl.D > 2).ToList();
                 }
                 catch (Exception) { }
             }
@@ -62,10 +64,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab
 
         public async Task LoadDefaultSettings()
         {
-            Project = await Storage.GetAsync<PcbProject>("Default.pcbproj");
+            Project = await Storage.GetAsync<PcbMillingProject>("Default.pcbproj");
             if (Project == null)
             {
-                Project = PcbProject.Default;
+                Project = PcbMillingProject.Default;
             }
         }
 
@@ -76,11 +78,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab
             {
                 try
                 {
-                    Project.EagleBRDFilePath = result;
+                    //Project.EagleBRDFilePath = result;
 
-                    var doc = XDocument.Load(Project.EagleBRDFilePath);
-                    PCB = EagleParser.ReadPCB(doc);
-                    Project.FiducialOptions = PCB.Holes.Where(drl => drl.D > 2).ToList();
+                    //var doc = XDocument.Load(Project.EagleBRDFilePath);
+                    //PCB = EagleParser.ReadPCB(doc);
+                    //Project.FiducialOptions = PCB.Holes.Where(drl => drl.D > 2).ToList();
                 }
                 catch
                 {
@@ -94,7 +96,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab
             var result = await Popups.ShowOpenFileAsync(Constants.FileFilterGCode);
             if (!string.IsNullOrEmpty(result))
             {
-                Project.TopEtchingFilePath = result;
+               // Project.TopEtchingFilePath = result;
             }
         }
 
@@ -103,7 +105,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab
             var result = await Popups.ShowOpenFileAsync(Constants.FileFilterGCode);
             if (!string.IsNullOrEmpty(result))
             {
-                Project.BottomEtchingFilePath = result;
+               /// Project.BottomEtchingFilePath = result;
             }
         }
 
@@ -120,14 +122,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab
 
         public async Task<bool> LoadExistingFile(string file)
         {
-            Project = await Storage.GetAsync<PcbProject>(file);
+            Project = await Storage.GetAsync<PcbMillingProject>(file);
             return Project != null;
         }
 
         public async void SaveDefaultProfile()
         {
             var brdFileName = Project.EagleBRDFilePath;
-            Project.EagleBRDFilePath = string.Empty;
+            Project.EagleBRDFilePath = null;
 
             await Storage.StoreAsync(Project, "Default.pcbproj");
             Project.EagleBRDFilePath = brdFileName;

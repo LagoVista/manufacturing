@@ -294,14 +294,14 @@ namespace LagoVista.PickAndPlace.App
 
         private void PCB2GCode_Click(object sender, RoutedEventArgs e)
         {
-            if (ViewModel.Project != null && !String.IsNullOrEmpty(ViewModel.Project.EagleBRDFilePath))
-            {
-                PCB.PCB2Gode.CreateGCode(ViewModel.Project.EagleBRDFilePath, ViewModel.Project);
-            }
-            else
-            {
-                MessageBox.Show("Please Create or Edit a Project PCB->New Project and Assign an Eagle Board File.");
-            }
+            //if (ViewModel.Project != null && !String.IsNullOrEmpty(ViewModel.Project.EagleBRDFilePath))
+            //{
+            //    PCB.PCB2Gode.CreateGCode(ViewModel.Project.EagleBRDFilePath, ViewModel.Project);
+            //}
+            //else
+            //{
+            //    MessageBox.Show("Please Create or Edit a Project PCB->New Project and Assign an Eagle Board File.");
+            //}
         }
 
         private async void OpenPCBProject_Click(object sender, RoutedEventArgs e)
@@ -347,7 +347,7 @@ namespace LagoVista.PickAndPlace.App
         private async void NewPCBProject_Click(object sender, RoutedEventArgs e)
         {
             var pcbWindow = new PCBProjectView();
-            var vm = new PCBProjectViewModel(new PcbProject());
+            var vm = new PCBProjectViewModel(new PcbMillingProject());
             await vm.LoadDefaultSettings();
             pcbWindow.DataContext = vm;
             pcbWindow.IsNew = true;
@@ -358,9 +358,9 @@ namespace LagoVista.PickAndPlace.App
             {
                 ViewModel.Project = vm.Project;
                 ViewModel.AddProjectFileMRU(pcbWindow.PCBFilepath);
-                if (!String.IsNullOrEmpty(vm.Project.EagleBRDFilePath))
+               // if (!String.IsNullOrEmpty(vm.Project.EagleBRDFilePath))
                 {
-                    await ViewModel.Machine.PCBManager.OpenFileAsync(vm.Project.EagleBRDFilePath);
+                 //   await ViewModel.Machine.PCBManager.OpenFileAsync(vm.Project.EagleBRDFilePath);
                 }
                 ViewModel.Machine.PCBManager.Project = vm.Project;
             }

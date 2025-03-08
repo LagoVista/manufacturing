@@ -15,12 +15,15 @@ using LagoVista.Manufacturing.Managers;
 using LagoVista.Manufacturing.Services;
 using LagoVista.PickAndPlace.App.Services;
 using LagoVista.PickAndPlace.Interfaces;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.GCode;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.LumenSupport;
+using LagoVista.PickAndPlace.Managers;
 using LagoVista.PickAndPlace.Repos;
 using LagoVista.PickAndPlace.ViewModels;
+using LagoVista.PickAndPlace.ViewModels.GCode;
 using LagoVista.PickAndPlace.ViewModels.Machine;
 using LagoVista.PickAndPlace.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.ViewModels.Vision;
@@ -102,15 +105,27 @@ namespace LagoVista.PickAndPlace.App
             SLWIOC.RegisterSingleton<IStagingPlateNavigationViewModel, StagingPlateNavigationViewModel>();
             SLWIOC.RegisterSingleton<IMachineCalibrationViewModel, MachineCalibrationViewModel>();
             
+            SLWIOC.Register<IGCodeJobControlViewModel, GCodeJobControlViewModel>();
+
             SLWIOC.RegisterSingleton<IStagingPlateSelectorViewModel, StagingPlateSelectorViewModel>();
             SLWIOC.RegisterSingleton<IToolHeadViewModel, ToolHeadViewModel>();
             SLWIOC.RegisterSingleton<ICircuitBoardViewModel, CircuitBoardViewModel>();
             SLWIOC.Register<IMachineCoreActionsViewModel, MachineCoreActionsViewModel>();
             SLWIOC.Register<IDryRunViewModel, DryRunViewModel>();
             SLWIOC.Register<IJobExecutionViewModel, JobExecutionViewModel>();
+            SLWIOC.Register<IGCodeViewModel, GCodeViewModel>();
+
+            SLWIOC.RegisterSingleton<IMruManager, MruManager>();
 
             MachineVision.Startup.Init();
             Services.Startup.Init();
+
+            this.LoadCompleted += App_LoadCompleted;    
+        }
+
+        private async void App_LoadCompleted(object sender, System.Windows.Navigation.NavigationEventArgs e)
+        {
+            await SLWIOC.Get<IMruManager>().LoadAsync();
         }
     }
 

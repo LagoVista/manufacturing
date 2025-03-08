@@ -114,7 +114,6 @@
 
                 <ctls:JobControl Grid.ColumnSpan="2" DataContext="{Binding JobControlVM}" />
 
-                <ctls:HeightMapControl  Grid.Row="1" Grid.ColumnSpan="2" Loaded="HeightMapControl_Loaded"  />
 
                
                 <ctls:CurrentFileControl x:Name="CurrentFile"  Grid.Row="2"/>

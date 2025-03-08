@@ -2,7 +2,7 @@
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.GCode
 {
-    public interface IGCodeJobControlViewModel
+    public interface IGCodeJobControlViewModel : IMachineViewModelBase
     {
         RelayCommand ClearAlarmCommand { get; }
         RelayCommand ConnectCommand { get; }

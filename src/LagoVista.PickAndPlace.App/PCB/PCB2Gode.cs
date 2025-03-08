@@ -1,4 +1,5 @@
-﻿using LagoVista.PCB.Eagle.Models;
+﻿using LagoVista.Manufacturing.Models;
+using LagoVista.PCB.Eagle.Models;
 using System;
 using System.Diagnostics;
 using System.Windows;
@@ -8,23 +9,23 @@ namespace LagoVista.PickAndPlace.App.PCB
     public class PCB2Gode
     {
         static Process _eagleULPProcess;
-        static PcbProject _project;
+        static PcbMillingProject _project;
 
 
-        public static void CreateGCode(String boardFile, PcbProject project)
+        public static void CreateGCode(String boardFile, PcbMillingProject project)
         {
-            if (String.IsNullOrEmpty(project.EagleBRDFilePath))
-            {
-                MessageBox.Show("Please add an Eagle Board File to your Project.");
-                return;
-            }
+            //if (String.IsNullOrEmpty(project.EagleBRDFilePath))
+            //{
+            //    MessageBox.Show("Please add an Eagle Board File to your Project.");
+            //    return;
+            //}
 
 
-            if (!System.IO.File.Exists(project.EagleBRDFilePath))
-            {
-                MessageBox.Show("Could not find Eagle Board File, please check your settings and try again.");
-                return;
-            }
+            //if (!System.IO.File.Exists(project.EagleBRDFilePath))
+            //{
+            //    MessageBox.Show("Could not find Eagle Board File, please check your settings and try again.");
+            //    return;
+            //}
 
             _project = project;
             if (String.IsNullOrEmpty(Properties.Settings.Default.EagleConExecutable) ||
@@ -89,7 +90,7 @@ namespace LagoVista.PickAndPlace.App.PCB
             _eagleULPProcess.Exited += EagleULP_Exited;
             _eagleULPProcess.StartInfo = new ProcessStartInfo()
             {
-                FileName = eagleConFileInfo.Name,
+                FileName = $"{eagleConFileInfo.DirectoryName}\\{eagleConFileInfo.Name}",
                 WorkingDirectory = eagleConFileInfo.DirectoryName,
                 Arguments = fullArgs,
             };
@@ -105,7 +106,7 @@ namespace LagoVista.PickAndPlace.App.PCB
                 return;
             }
 
-            var boardFileInfo = new System.IO.FileInfo(_project.EagleBRDFilePath);
+            var boardFileInfo = new System.IO.FileInfo(_project.EagleBRDFilePath.Text);
             var baseBoardName = boardFileInfo.Name.Replace(".brd", "");
 
             var topEtchFilePath = System.IO.Path.Combine(boardFileInfo.DirectoryName, $"{baseBoardName}.top.etch.tap");
@@ -129,8 +130,8 @@ namespace LagoVista.PickAndPlace.App.PCB
                 }
             }
            
-            _project.TopEtchingFilePath = topEtchFilePath;
-            _project.BottomEtchingFilePath = bottomEtchFilePath;
+            //_project.TopEtchingFilePath = topEtchFilePath;
+            //_project.BottomEtchingFilePath = bottomEtchFilePath;
             if (_project.IsEditing)
             {
                 await _project.SaveAsync();

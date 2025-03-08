@@ -1721,4 +1721,10 @@
   <data name="ComponentPackage_PickOffset_Help" xml:space="preserve">
     <value>Offset to pick the component this is useful for parts that do not have a flat surface and the optimal pick location is not in the center of the part.</value>
   </data>
+  <data name="PcbMillProject_Title" xml:space="preserve">
+    <value>PCB Milling Project</value>
+  </data>
+  <data name="PcbMillingProject_Description" xml:space="preserve">
+    <value>A PCB Milling Project contains GCode information ot mill a PCB Board on a CNC Machine</value>
+  </data>
 </root>

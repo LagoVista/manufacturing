@@ -1,11 +1,22 @@
-﻿<UserControl x:Class="LagoVista.PickAndPlace.App.Controls.HeightMapControl"
+﻿<ucb:VMBoundUserControl x:Class="LagoVista.PickAndPlace.App.Controls.GCode.GCode"
+             x:TypeArguments="vm:IGCodeViewModel"                        
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             d:DataContext="{d:DesignInstance vm:IGCodeViewModel}"
+             xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.GCode;assembly=LagoVista.PickAndPlace"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:h="http://helix-toolkit.org/wpf" mc:Ignorable="d" d:DesignHeight="500" d:DesignWidth="1000">
-    <Grid >
-        <h:HelixViewport3D Name="viewport" ShowViewCube="False" Panel.ZIndex="0"   >
+             xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls.GCode"
+             mc:Ignorable="d" 
+             xmlns:h="http://helix-toolkit.org/wpf"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <h:HelixViewport3D Name="viewport" Grid.Row="1" ShowViewCube="False" Panel.ZIndex="0"   >
 
             <h:HelixViewport3D.Camera >
                 <PerspectiveCamera x:Name="Camera" Position="50, -120,70" LookDirection="0, 4,-1.7" UpDirection="0,0,1"/>
@@ -25,24 +36,42 @@
             <ModelVisual3D x:Name="PCBLayer" />
 
             <h:ArrowVisual3D  x:Name="ModelTool" Direction="0,0,-10" Fill="Red"
-                Point2="{Binding Machine.NormalizedPosition, Converter={StaticResource PointConverter}}"
-                Point1="{Binding Machine.NormalizedPosition, Converter={StaticResource ToolTopPointConverter}}" />
+         Point2="{Binding Machine.NormalizedPosition, Converter={StaticResource PointConverter}}"
+         Point1="{Binding Machine.NormalizedPosition, Converter={StaticResource ToolTopPointConverter}}" />
 
             <!-- Note: Width and Height seem to have different meanings on GridLinesVisual3D-->
-        <!--    <h:GridLinesVisual3D x:Name="ModelGrid" MinorDistance="10"  MajorDistance="100"  Origin="BottomLeft"
-           	    Width="{Binding Machine.Settings.WorkAreaHeight, FallbackValue=80}"
-                Length ="{Binding Machine.Settings.WorkAreaWidth, FallbackValue=100}"  />-->
+            <!--    <h:GridLinesVisual3D x:Name="ModelGrid" MinorDistance="10"  MajorDistance="100"  Origin="BottomLeft"
+       	    Width="{Binding Machine.Settings.WorkAreaHeight, FallbackValue=80}"
+         Length ="{Binding Machine.Settings.WorkAreaWidth, FallbackValue=100}"  />-->
 
             <h:GridLinesVisual3D x:Name="ModelGrid" MinorDistance="10"  MajorDistance="100" 
-           	    Width="{Binding Machine.Settings.WorkAreaHeight, FallbackValue=80}"
-                Length ="{Binding Machine.Settings.WorkAreaWidth, FallbackValue=100}"  />
+       	    Width="{Binding Machine.Settings.WorkAreaHeight, FallbackValue=80}"
+         Length ="{Binding Machine.Settings.WorkAreaWidth, FallbackValue=100}"  />
 
             <h:MeshGeometryVisual3D Material="{StaticResource HeightMapMediaGroup}" x:Name="HeightMap" MeshGeometry="{Binding Machine.HeightMapManager.HeightMap, Converter={StaticResource HeightMap2MeshConverter}}" />
             <h:LinesVisual3D x:Name="ModelHeightMapBoundary" Thickness="2" Color="Lime"  Points="{Binding Path=Machine.HeightMapManager.HeightMap.RawBoardOutline, Converter={StaticResource Lines2Visual3DConverter}}"/>
             <h:PointsVisual3D Points="{Binding Path=Machine.HeightMapManager.HeightMap.Points, Converter={StaticResource HeightMapProbePoint2PointConverter}}" x:Name="ModelHeightMapPoints" Color="Red" Size="4"/>
         </h:HelixViewport3D>
 
-        <Grid VerticalAlignment="Top" HorizontalAlignment="Left" >
+        <Menu>
+            <MenuItem Header="PCB" >
+                <MenuItem Header="New Project" x:Name="NewPCBProject" Click="NewPCBProject_Click" />
+                <MenuItem Header="Open Project" x:Name="OpenPCBProject"  Click="OpenPCBProject_Click" />
+                <MenuItem Header="Edit project" x:Name="EditPCBProject" Click="EditPCBProject_Click" />
+                <MenuItem Header="Close project" x:Name="ClosePCBProject" Click="ClosePCBProject_Click" />
+                <MenuItem  Header="Recent Projects" x:Name="RecentProjects" />
+                <Separator />
+                <MenuItem Header="Generate Etching (PCBGCode)" x:Name="PCB2GCode" Click="PCB2GCode_Click" />
+                <Separator />
+                <MenuItem Header="Open Eagle Board File" Command="{Binding OpenEagleBoardFileCommand}" />
+                <MenuItem Header="Close Eagle Board File" Command="{Binding CloseEagleBoardFileCommand}" />
+                <MenuItem  Header="Recent Eagle Boards" x:Name="RecentBoards" />
+                <Separator />
+            </MenuItem>
+        </Menu>
+
+
+        <Grid VerticalAlignment="Top" HorizontalAlignment="Left" Grid.Row="1" >
             <Grid.RowDefinitions>
                 <RowDefinition  Height="Auto" />
                 <RowDefinition  Height="Auto" />
@@ -50,7 +79,8 @@
             </Grid.RowDefinitions>
             <Grid Grid.RowSpan="3" Background="Gray" Opacity="0.25"></Grid>
 
-            <StackPanel Orientation="Horizontal" >
+           
+            <StackPanel Orientation="Horizontal"  Grid.Row="1">
                 <Button Width="32" Background="Transparent" Click="ChangeLayer_Handler" ToolTip="Show/Hide Stock Layer" Tag="Stock">
                     <Button.Content>
                         <Image Source="/imgs/LayerStock.png" />
@@ -81,9 +111,10 @@
                         <Image Source="/imgs/TopView.png" />
                     </Button.Content>
                 </Button>
+                <Button Command="{Binding MachineRepo.CurrentMachine.GCodeFileManager.OpenFileCommand}">Open File</Button>
             </StackPanel>
-            <Label Content="Drill Rack" Grid.Row="1" FontWeight="Bold" />
-            <ListBox ItemsSource="{Binding Machine.PCBManager.DrillRack}" Margin="4" Grid.Row="2" Background="Transparent">
+            <Label Content="Drill Rack" Grid.Row="2" FontWeight="Bold" />
+            <ListBox ItemsSource="{Binding Machine.PCBManager.DrillRack}" Margin="4" Grid.Row="3" Background="Transparent">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Grid>
@@ -103,7 +134,7 @@
             </ListBox>
         </Grid>
 
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.Row="1">
             <Button Width="32" Background="Transparent" Tag="Top" Click="ChangeView_Handler" ToolTip="Top View">
                 <Button.Content>
                     <Image Source="/imgs/TopView.png" />
@@ -141,7 +172,7 @@
             </Button>
         </StackPanel>
 
-        <Grid HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,32,0,0">
+        <Grid HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,32,0,0" Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="32" />
                 <RowDefinition Height="32" />
@@ -220,5 +251,4 @@
 
 
     </Grid>
-
-</UserControl>
+</ucb:VMBoundUserControl>

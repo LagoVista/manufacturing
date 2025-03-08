@@ -1,4 +1,5 @@
-﻿using LagoVista.PCB.Eagle.Models;
+﻿using LagoVista.Manufacturing.Models;
+using LagoVista.PCB.Eagle.Models;
 using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.Generic;
@@ -14,8 +15,8 @@ namespace LagoVista.PickAndPlace.ViewModels
         public GCode.GCodeJobControlViewModel JobControlVM { get; private set; }
         public Machine.MachineControlViewModel MachineControlVM { get; private set; }
 
-        PcbProject _project;
-        public PcbProject Project
+        PcbMillingProject _project;
+        public PcbMillingProject Project
         {
             get { return _project; }
             set

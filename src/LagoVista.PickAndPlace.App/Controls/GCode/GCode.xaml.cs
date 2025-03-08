@@ -1,28 +1,30 @@
-﻿using System.Windows.Controls;
-using System.Windows;
-using System.Linq;
-using HelixToolkit.Wpf;
-using System.Windows.Media;
-using System;
+﻿using HelixToolkit.Wpf;
+using LagoVista.Core.Models;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PCB.Eagle.Models;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.GCode;
 using LagoVista.PickAndPlace.ViewModels;
+using LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab;
+using LagoVista.XPlat;
+using System;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Media.Media3D;
 
-namespace LagoVista.PickAndPlace.App.Controls
+namespace LagoVista.PickAndPlace.App.Controls.GCode
 {
-
-    public partial class HeightMapControl : UserControl
+    /// <summary>
+    /// Interaction logic for GCode.xaml
+    /// </summary>
+    public partial class GCode : VMBoundUserControl<IGCodeViewModel>
     {
-        public HeightMapControl()
+        public GCode()
         {
             InitializeComponent();
-
-            bool designTime = System.ComponentModel.DesignerProperties.GetIsInDesignMode(new DependencyObject());
-            if (!designTime)
-            {
-                Loaded += HeightMapControl_Loaded;
-            }
         }
+
 
         private void HeightMapControl_Loaded(object sender, RoutedEventArgs e)
         {
@@ -35,8 +37,8 @@ namespace LagoVista.PickAndPlace.App.Controls
             var x = ViewModel.Machine.Settings.WorkAreaSize.X / 2;
             Camera.Position = new Point3D(x, Camera.Position.Y, Camera.Position.Z);
         }
-       
-        private void RenderBoard(PrintedCircuitBoard board, PcbProject project, bool resetZoomAndView = true)
+
+        private void RenderBoard(PrintedCircuitBoard board, PcbMillingProject project, bool resetZoomAndView = true)
         {
             var linePoints = new Point3DCollection();
 
@@ -198,7 +200,7 @@ namespace LagoVista.PickAndPlace.App.Controls
 
                 var circleMeshBuilder = new MeshBuilder(false, false);
                 var holdDownDrills = project.GetHoldDownDrills(board);
-                foreach(var drl in holdDownDrills)
+                foreach (var drl in holdDownDrills)
                 {
                     circleMeshBuilder.AddCylinder(new Point3D(drl.X, drl.Y, -boardThickness), new Point3D(drl.X, drl.Y, 0.01), project.HoldDownDiameter / 2);
                 }
@@ -263,13 +265,80 @@ namespace LagoVista.PickAndPlace.App.Controls
             }
         }
 
-        public void Clear()
+
+        private async void OpenPCBProject_Click(object sender, RoutedEventArgs e)
         {
+            var file = await Core.PlatformSupport.Services.Popups.ShowOpenFileAsync(Constants.PCBProject);
+            if (!String.IsNullOrEmpty(file))
+            {
+                await ViewModel.OpenProjectAsync(file);
+            }
         }
 
-        public MainViewModel ViewModel
+        private void ClosePCBProject_Click(object sender, RoutedEventArgs e)
         {
-            get { return DataContext as MainViewModel; }
+            ViewModel.Project = null;
+        }
+
+        private void EditPCBProject_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel.Project == null)
+            {
+                MessageBox.Show("Please Open or Create a Project First.");
+                return;
+            }
+            var clonedProject = ViewModel.Project.Clone();
+            var vm = new PCBProjectViewModel(clonedProject);
+
+            var pcbWindow = new PCBProjectView();
+            pcbWindow.DataContext = vm;
+            pcbWindow.IsNew = false;
+            pcbWindow.Owner = App.Current.MainWindow;
+            pcbWindow.PCBFilepath = ViewModel.Machine.PCBManager.ProjectFilePath;
+            pcbWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            pcbWindow.ShowDialog();
+            if (pcbWindow.DialogResult.HasValue && pcbWindow.DialogResult.Value)
+            {
+                ViewModel.Project = vm.Project;
+            }
+        }
+
+        private void PCB2GCode_Click(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel.Project != null && !EntityHeader.IsNullOrEmpty(ViewModel.Project.EagleBRDFilePath))
+            {
+              //  PCB.PCB2Gode.CreateGCode(ViewModel.Project.EagleBRDFilePath, ViewModel.Project);
+            }
+            else
+            {
+                MessageBox.Show("Please Create or Edit a Project PCB->New Project and Assign an Eagle Board File.");
+            }
+        }
+
+        private async void NewPCBProject_Click(object sender, RoutedEventArgs e)
+        {
+            var pcbWindow = new PCBProjectView();
+            var vm = new PCBProjectViewModel(new PcbMillingProject());
+            await vm.LoadDefaultSettings();
+            pcbWindow.DataContext = vm;
+            pcbWindow.IsNew = true;
+            pcbWindow.Owner = App.Current.MainWindow;
+            pcbWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            pcbWindow.ShowDialog();
+            if (pcbWindow.DialogResult.HasValue && pcbWindow.DialogResult.Value)
+            {
+                ViewModel.Project = vm.Project;
+                await ViewModel.AddProjectFileMRUAsync(pcbWindow.PCBFilepath);
+                if (!EntityHeader.IsNullOrEmpty(vm.Project.EagleBRDFilePath))
+                {
+                   // await ViewModel.Machine.PCBManager.OpenFileAsync(vm.Project.EagleBRDFilePath);
+                }
+                ViewModel.Machine.PCBManager.Project = vm.Project;
+            }
+        }
+
+        public void Clear()
+        {
         }
 
         public bool ModelToolVisible
@@ -554,6 +623,7 @@ namespace LagoVista.PickAndPlace.App.Controls
             }
 
             CameraPosition.Text = $"{Camera.Position.X},{Camera.Position.Y},{Camera.Position.Z}";
+
         }
     }
 }

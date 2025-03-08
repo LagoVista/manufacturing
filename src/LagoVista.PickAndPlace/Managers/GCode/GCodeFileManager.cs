@@ -1,15 +1,15 @@
 ﻿using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.PlatformSupport;
+using LagoVista.Core.ViewModels;
 using LagoVista.GCode;
 using LagoVista.GCode.Commands;
 using LagoVista.PickAndPlace.Interfaces;
-using LagoVista.PickAndPlace.Models;
 using System;
 using System.Diagnostics;
 
 namespace LagoVista.PickAndPlace.Managers
 {
-    public partial class GCodeFileManager : Core.Models.ModelBase, IGCodeFileManager
+    public partial class GCodeFileManager : ViewModelBase, IGCodeFileManager
     {
         IMachine _machine;
         ILogger _logger;
@@ -26,7 +26,7 @@ namespace LagoVista.PickAndPlace.Managers
 
         DateTime? _started;
 
-        public GCodeFileManager(IMachine machine, ILogger logger, IToolChangeManager toolChangeManager)
+        public GCodeFileManager(IMachine machine, ILogger logger, IToolChangeManager toolChangeManager) 
         {
             _machine = machine;
             _logger = logger;
@@ -35,6 +35,15 @@ namespace LagoVista.PickAndPlace.Managers
             Lines = new System.Collections.ObjectModel.ObservableCollection<Line3D>();
             RapidMoves = new System.Collections.ObjectModel.ObservableCollection<Line3D>();
             Arcs = new System.Collections.ObjectModel.ObservableCollection<Line3D>();
+            OpenFileCommand = new Core.Commanding.RelayCommand(OpenFile);
+        }
+
+        async void OpenFile()
+        {
+            var result = await this.Popups.ShowOpenFileAsync();
+            if (!String.IsNullOrEmpty(result))
+                await OpenFileAsync(result);
+            
         }
 
         private async void HandleToolChange(ToolChangeCommand mcode)

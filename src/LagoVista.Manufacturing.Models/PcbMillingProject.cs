@@ -1,17 +1,28 @@
-﻿using LagoVista.Core.Models;
+﻿using LagoVista.Core.Attributes;
+using LagoVista.Core.Interfaces;
+using LagoVista.Core.Models;
+using LagoVista.Core.Validation;
+using LagoVista.Manufacturing.Models.Resources;
+using LagoVista.PCB.Eagle.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
-namespace LagoVista.PCB.Eagle.Models
+namespace LagoVista.Manufacturing.Models
 {
-    public class PcbProject : ModelBase
+    [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.PcbMillProject_Title, ManufacturingResources.Names.PcbMillingProject_Description,
+        ManufacturingResources.Names.PcbMillingProject_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), 
+        Icon: "icon-ae-control-panel", Cloneable: true,
+        SaveUrl: "/api/mfg/pcb/milling", GetUrl: "/api/mfg/pcb/milling/{id}", GetListUrl: "/api/mfg/pcb/millings", FactoryUrl: "/api/mfg/pcb/milling/factory", 
+        DeleteUrl: "/api/mfg/pcb/milling/{id}",
+        ListUIUrl: "/mfg/pcbmillings", EditUIUrl: "/mfg/pcbmilling/{id}", CreateUIUrl: "/mfg/pcbmilling/add")]
+    public class PcbMillingProject : MfgModelBase, IFormDescriptor, IValidateable, ISummaryFactory
     {
         private bool _isEditing;
 
-        public PcbProject()
+        public PcbMillingProject()
         {
             Fiducials = new ObservableCollection<Hole>();
             ConsolidatedDrillRack = new ObservableCollection<ConsolidatedDrillBit>();
@@ -34,22 +45,22 @@ namespace LagoVista.PCB.Eagle.Models
             set { Set(ref _scrapTopBottom, value); }
         }
 
-        private string _eagleBRDFilePath;
-        public string EagleBRDFilePath
+        private EntityHeader _eagleBRDFilePath;
+        public EntityHeader EagleBRDFilePath
         {
             get { return _eagleBRDFilePath; }
             set { Set(ref _eagleBRDFilePath, value); }
         }
 
-        private string _topEtchingFilePath;
-        public string TopEtchingFilePath
+        private EntityHeader _topEtchingFilePath;
+        public EntityHeader TopEtchingFilePath
         {
             get { return _topEtchingFilePath; }
             set { Set(ref _topEtchingFilePath, value); }
         }
 
-        private string _bottomEtchingFilePath;
-        public string BottomEtchingFilePath
+        private EntityHeader _bottomEtchingFilePath;
+        public EntityHeader BottomEtchingFilePath
         {
             get { return _bottomEtchingFilePath; }
             set { Set(ref _bottomEtchingFilePath, value); }
@@ -99,8 +110,8 @@ namespace LagoVista.PCB.Eagle.Models
 
         public bool FlipBoard { get; set; }
 
-        List<Models.Hole> _fiducualOptions;
-        public List<Models.Hole> FiducialOptions
+        List<Hole> _fiducualOptions;
+        public List<Hole> FiducialOptions
         {
             get { return _fiducualOptions; }
             set { Set(ref _fiducualOptions, value); }
@@ -108,9 +119,9 @@ namespace LagoVista.PCB.Eagle.Models
 
         public ObservableCollection<Hole> Fiducials { get; set; }
 
-        public PcbProject Clone()
+        public PcbMillingProject Clone()
         {
-            return this.MemberwiseClone() as PcbProject;
+            return this.MemberwiseClone() as PcbMillingProject;
         }
 
         public ObservableCollection<ConsolidatedDrillBit> ConsolidatedDrillRack { get; set; }
@@ -135,19 +146,45 @@ namespace LagoVista.PCB.Eagle.Models
             _isEditing = true;
         }
 
-        public static async Task<PcbProject> OpenAsync(String fileName)
+        public static async Task<PcbMillingProject> OpenAsync(String fileName)
         {
-            var project = await Core.PlatformSupport.Services.Storage.GetAsync<PcbProject>(fileName);
+            var project = await Core.PlatformSupport.Services.Storage.GetAsync<PcbMillingProject>(fileName);
             project._currentFileName = fileName;
             project._isEditing = true;
             return project;
         }
 
-        public static PcbProject Default
+        public List<string> GetFormFields()
+        {
+            return new List<string>()
+            {
+                nameof(Name),
+                nameof(Key),
+                nameof(Description),
+            };
+        }
+
+        public PcbMillingProjectSummary CreateSummary()
+        {
+            return new PcbMillingProjectSummary()
+            {
+                Description = Description,
+                Id = Id,
+                Key = Key,
+                Name = Name,
+            };
+        }
+
+        ISummaryData ISummaryFactory.CreateSummary()
+        {
+            return CreateSummary();
+        }
+
+        public static PcbMillingProject Default
         {
             get
             {
-                return new PcbProject()
+                return new PcbMillingProject()
                 {
                     PauseForToolChange = false,
                     StockWidth = 100,
@@ -177,6 +214,16 @@ namespace LagoVista.PCB.Eagle.Models
                 };
             }
         }
+    }
+
+    [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.PcbMillProject_Title, ManufacturingResources.Names.PcbMillingProject_Description,
+        ManufacturingResources.Names.PcbMillingProject_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources),
+        Icon: "icon-ae-control-panel", Cloneable: true,
+        SaveUrl: "/api/mfg/pcb/milling", GetUrl: "/api/mfg/pcb/milling/{id}", GetListUrl: "/api/mfg/pcb/millings", FactoryUrl: "/api/mfg/pcb/milling/factory",
+        DeleteUrl: "/api/mfg/pcb/milling/{id}",
+        ListUIUrl: "/mfg/pcbmillings", EditUIUrl: "/mfg/pcbmilling/{id}", CreateUIUrl: "/mfg/pcbmilling/add")]
+    public class PcbMillingProjectSummary : SummaryData
+    {
 
     }
 }

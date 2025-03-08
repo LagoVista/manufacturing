@@ -1,4 +1,5 @@
-﻿using LagoVista.GCode;
+﻿using LagoVista.Core.Commanding;
+using LagoVista.GCode;
 using LagoVista.GCode.Commands;
 using LagoVista.PickAndPlace.Models;
 using System;
@@ -168,5 +169,8 @@ namespace LagoVista.PickAndPlace.Interfaces
         /// </summary>
         /// <param name="gcode"></param>
         void SetGCode(String gcode);
+ 
+        RelayCommand OpenFileCommand { get; }
+        RelayCommand CloseFileCommand { get; }
     }
 }

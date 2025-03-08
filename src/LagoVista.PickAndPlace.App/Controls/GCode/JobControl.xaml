@@ -1,9 +1,12 @@
-﻿<UserControl x:Class="LagoVista.PickAndPlace.App.Controls.JobControl"
+﻿<ucb:VMBoundUserControl x:Class="LagoVista.PickAndPlace.App.Controls.JobControl"
+             x:TypeArguments="vm:IGCodeJobControlViewModel"                        
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"             
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
+             xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.GCode;assembly=LagoVista.PickAndPlace"                                        
+            xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
              mc:Ignorable="d" 
              d:DesignHeight="196" d:DesignWidth="1048">
     <Grid>
@@ -261,4 +264,4 @@
             </StackPanel>
         </Grid>
     </Grid>
-</UserControl>
+</ucb:VMBoundUserControl>

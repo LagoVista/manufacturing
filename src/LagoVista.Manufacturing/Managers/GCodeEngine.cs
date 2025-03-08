@@ -1,4 +1,5 @@
 ﻿using LagoVista.Core;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PCB.Eagle.Models;
 using System;
 using System.Collections.Generic;
@@ -32,7 +33,7 @@ namespace LagoVista.PCB.Eagle.Managers
             return null;
         }
 
-        public static List<DrillRackInfo> GetToolRack(PrintedCircuitBoard pcb, PcbProject pcbProject)
+        public static List<DrillRackInfo> GetToolRack(PrintedCircuitBoard pcb, PcbMillingProject pcbProject)
         {
             if (pcbProject.PauseForToolChange)
             {
@@ -94,7 +95,7 @@ namespace LagoVista.PCB.Eagle.Managers
         }
 
 
-        public static string CreateDrillGCode(PrintedCircuitBoard pcb, PcbProject pcbProject)
+        public static string CreateDrillGCode(PrintedCircuitBoard pcb, PcbMillingProject pcbProject)
         {
             var bldr = new StringBuilder();
             bldr.AppendLine("(Metric Mode)");
@@ -179,7 +180,7 @@ namespace LagoVista.PCB.Eagle.Managers
         /// <param name="pcbProject">Details about the PCB Project</param>
         /// <param name="drillIntoUnderlayment">If this is true, holes will be drilled into the underlayment or fixture the board is mounted on.  This really only should be done the first time since once holes are created they can be reused and redrilling may result in an undesired offset.</param>
         /// <returns></returns>
-        public static string CreateHoldDownGCode(PrintedCircuitBoard pcb, PcbProject pcbProject, bool drillIntoUnderlayment)
+        public static string CreateHoldDownGCode(PrintedCircuitBoard pcb, PcbMillingProject pcbProject, bool drillIntoUnderlayment)
         {
             var bldr = new StringBuilder();
 
@@ -248,7 +249,7 @@ namespace LagoVista.PCB.Eagle.Managers
             return bldr.ToString();
         }
 
-        public static string CreateCutoutMill(PrintedCircuitBoard pcb, PcbProject pcbProject)
+        public static string CreateCutoutMill(PrintedCircuitBoard pcb, PcbMillingProject pcbProject)
         {
             var bldr = new StringBuilder();
 

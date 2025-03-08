@@ -25,7 +25,7 @@ namespace LagoVista.PickAndPlace.App
 
         private void PCBProject_Loaded(object sender, RoutedEventArgs e)
         {
-            ViewModel.GenerateIsolationEvent += (s, a) => PCB.PCB2Gode.CreateGCode(ViewModel.Project.EagleBRDFilePath, ViewModel.Project);
+        //    ViewModel.GenerateIsolationEvent += (s, a) => PCB.PCB2Gode.CreateGCode(ViewModel.Project.EagleBRDFilePath, ViewModel.Project);
         }
 
         public bool IsNew

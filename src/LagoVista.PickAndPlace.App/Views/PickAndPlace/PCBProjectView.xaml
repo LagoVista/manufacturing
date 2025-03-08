@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:LagoVista.PickAndPlace.App"
         xmlns:ctls="clr-namespace:LagoVista.PickAndPlace.App.Controls.UI"
         mc:Ignorable="d"
-        Title="PCBProject" Height="480" Width="640">
+        Title="PCBProject" Height="640" Width="640">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />

@@ -1,4 +1,5 @@
 ﻿using LagoVista.Core.Models.Drawing;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PCB.Eagle.Models;
 using System;
 using System.ComponentModel;
@@ -26,7 +27,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab
 
         bool HasProject { get; }
 
-        PcbProject Project { get; set; }
+        PcbMillingProject Project { get; set; }
 
         string ProjectFilePath { get; set; }
 

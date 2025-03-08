@@ -8,6 +8,7 @@
         xmlns:mch="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine"
         xmlns:ui="clr-namespace:LagoVista.PickAndPlace.App.Controls.UI"
         xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
+        xmlns:gc="clr-namespace:LagoVista.PickAndPlace.App.Controls.GCode"
         xmlns:local="clr-namespace:LagoVista.PickAndPlace.App"
         WindowStyle="None"
         mc:Ignorable="d"
@@ -86,6 +87,16 @@
                     </TabItem>
                     <TabItem Header="Calibration">
                         <mch:MachineCalibrationControl></mch:MachineCalibrationControl>
+                    </TabItem>
+                    <TabItem Header="GCode Job">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto" ></RowDefinition>
+                                <RowDefinition Height="*" ></RowDefinition>
+                            </Grid.RowDefinitions>
+                            <ctls:JobControl></ctls:JobControl>
+                            <gc:GCode Grid.Row="1"></gc:GCode>
+                        </Grid>
                     </TabItem>
                     <TabItem Header="Alignment">
                         <ctls:ToolAlignment></ctls:ToolAlignment>
