@@ -50,9 +50,9 @@ namespace LagoVista.PickAndPlace.Managers
                 RaisePropertyChanged(nameof(HasProject));
                 if (_project != null)
                 {
-                    //if (_project != null && !String.IsNullOrEmpty(_project.EagleBRDFilePath))
+                    //if (_project != null && !String.IsNullOrEmpty(_project.EagleBRDFile))
                     //{
-                    //    OpenFileAsync(_project.EagleBRDFilePath);
+                    //    OpenFileAsync(_project.EagleBRDFile);
                     //}
                 }
                 else
@@ -127,12 +127,12 @@ namespace LagoVista.PickAndPlace.Managers
 
         public bool HasTopEtching
         {
-            get { return _project != null && !EntityHeader.IsNullOrEmpty(_project.TopEtchingFilePath); }
+            get { return _project != null && !EntityHeader.IsNullOrEmpty(_project.TopEtchingFile); }
         }
 
         public bool HasBottomEtching
         {
-            get { return _project != null && !EntityHeader.IsNullOrEmpty(_project.BottomEtchingFilePath); }
+            get { return _project != null && !EntityHeader.IsNullOrEmpty(_project.BottomEtchingFile); }
         }
 
         public String ProjectFilePath

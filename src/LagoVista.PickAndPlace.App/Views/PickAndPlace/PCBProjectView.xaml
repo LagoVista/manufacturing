@@ -30,6 +30,7 @@
                         <RowDefinition Height="auto" />
                         <RowDefinition Height="auto" />
                         <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="140" />
@@ -37,53 +38,56 @@
                         <ColumnDefinition Width="80" />
                     </Grid.ColumnDefinitions>
 
-                    <Label Content="Eagle Board File" />
-                    <ctls:MaskingTextBox Text="{Binding Path=Project.EagleBRDFilePath, Mode=TwoWay}" Grid.Column="1" Margin="4,4,0,4" />
-                    <Button Content="..." Width="30" HorizontalAlignment="Left" Grid.Column="2" Margin="0,4,4,4" Command="{Binding OpenEagleBoardCommand}" />
+                    <Label Content="Name" />
+                    <ctls:MaskingTextBox Text="{Binding Path=Project.Name, Mode=TwoWay}" Grid.Column="1" Margin="4,4,0,4" />
 
-                    <Label Content="Top Etching GCode" Grid.Row="1" />
-                    <ctls:MaskingTextBox Grid.Row="1" Text="{Binding Path=Project.TopEtchingFilePath, Mode=TwoWay}" Grid.Column="1" Margin="4,4,0,4" />
-                    <Button Grid.Row="1" Content="..." Width="30" HorizontalAlignment="Left" Grid.Column="2" Margin="0,4,4,4" Command="{Binding OpenTopEtchingCommand}"/>
+                    <Label Content="Eagle Board File" Grid.Row="1"/>
+                    <ctls:MaskingTextBox Text="{Binding Path=Project.EagleBRDFileLocalPath, Mode=TwoWay}" Grid.Row="1" Grid.Column="1" Margin="4,4,0,4" />
+                    <Button Content="..." Width="30" HorizontalAlignment="Left" Grid.Row="1" Grid.Column="2" Margin="0,4,4,4" Command="{Binding OpenEagleBoardCommand}" />
 
-                    <Label Grid.Row="2" Content="Bottom Etching GCode" />
-                    <ctls:MaskingTextBox Grid.Row="2" Text="{Binding Path=Project.BottomEtchingFilePath, Mode=TwoWay}" Grid.Column="1" Margin="4,4,0,4" />
-                    <Button Content="..." Grid.Row="2" Width="30" HorizontalAlignment="Left" Grid.Column="2" Margin="0,4,4,4" Command="{Binding OpenBottomEtchingCommand}"/>
+                    <Label Content="Top Etching GCode" Grid.Row="2" />
+                    <ctls:MaskingTextBox Grid.Row="2" Text="{Binding Path=Project.TopEtchingFileLocalPath, Mode=TwoWay}" Grid.Column="1" Margin="4,4,0,4" />
+                    <Button Grid.Row="2" Content="..." Width="30" HorizontalAlignment="Left" Grid.Column="2" Margin="0,4,4,4" Command="{Binding OpenTopEtchingCommand}"/>
 
-                    <Label Content="Scrap Sides" Grid.Row="3" />
-                    <ctls:MaskingTextBox  UnitType="Size" Min="0" Max="99" Text="{Binding Path=Project.ScrapSides, Mode=TwoWay}" ToolTip="The bottom and left margin from the origin to the PCB area.  The board edges will be milled from the scrap area." Margin="4,4,0,4" Grid.Column="1" Grid.Row="3" />
-                    <Label Content="mm" Grid.Column="2" Grid.Row="3" />
+                    <Label Grid.Row="3" Content="Bottom Etching GCode" />
+                    <ctls:MaskingTextBox Grid.Row="3" Text="{Binding Path=Project.BottomEtchingFileLocalPath, Mode=TwoWay}" Grid.Column="1" Margin="4,4,0,4" />
+                    <Button Content="..." Grid.Row="3" Width="30" HorizontalAlignment="Left" Grid.Column="2" Margin="0,4,4,4" Command="{Binding OpenBottomEtchingCommand}"/>
 
-                    <Label Content="Scrap Top/Bottom" Grid.Row="4" />
-                    <ctls:MaskingTextBox  UnitType="Size" Min="0" Max="99" Text="{Binding Path=Project.ScrapTopBottom, Mode=TwoWay}" ToolTip="The bottom and left margin from the origin to the PCB area.  The board edges will be milled from the scrap area." Margin="4,4,0,4" Grid.Column="1" Grid.Row="4" />
+                    <Label Content="Scrap Sides" Grid.Row="4" />
+                    <ctls:MaskingTextBox  UnitType="Size" Min="0" Max="99" Text="{Binding Path=Project.ScrapSides, Mode=TwoWay}" ToolTip="The bottom and left margin from the origin to the PCB area.  The board edges will be milled from the scrap area." Margin="4,4,0,4" Grid.Column="1" Grid.Row="4" />
                     <Label Content="mm" Grid.Column="2" Grid.Row="4" />
 
-
-                    <Label Content="Stock Width" Grid.Row="5" />
-                    <ctls:MaskingTextBox UnitType="Size" Min="0" Max="999" Text="{Binding Path=Project.StockWidth, Mode=TwoWay}" ToolTip="The Width of the blank PCB file, this is used for establishing drill and mill depths" Margin="4,4,0,4" Grid.Column="1" Grid.Row="5" />
+                    <Label Content="Scrap Top/Bottom" Grid.Row="5" />
+                    <ctls:MaskingTextBox  UnitType="Size" Min="0" Max="99" Text="{Binding Path=Project.ScrapTopBottom, Mode=TwoWay}" ToolTip="The bottom and left margin from the origin to the PCB area.  The board edges will be milled from the scrap area." Margin="4,4,0,4" Grid.Column="1" Grid.Row="5" />
                     <Label Content="mm" Grid.Column="2" Grid.Row="5" />
 
-                    <Label Content="Stock Height" Grid.Row="6" />
-                    <ctls:MaskingTextBox UnitType="Size" Min="0" Max="999" Text="{Binding Path=Project.StockHeight, Mode=TwoWay}" ToolTip="The Height of the blank PCB file, this is used for establishing drill and mill depths" Margin="4,4,0,4" Grid.Column="1" Grid.Row="6" />
+
+                    <Label Content="Stock Width" Grid.Row="6" />
+                    <ctls:MaskingTextBox UnitType="Size" Min="0" Max="999" Text="{Binding Path=Project.StockWidth, Mode=TwoWay}" ToolTip="The Width of the blank PCB file, this is used for establishing drill and mill depths" Margin="4,4,0,4" Grid.Column="1" Grid.Row="6" />
                     <Label Content="mm" Grid.Column="2" Grid.Row="6" />
 
-                    <Label Content="Stock Thickness" Grid.Row="7" />
-                    <ctls:MaskingTextBox UnitType="Size" Min="0" Max="99" Text="{Binding Path=Project.StockThickness, Mode=TwoWay}" ToolTip="The Thickness of the blank PCB file, this is used for establishing drill and mill depths" Margin="4,4,0,4" Grid.Column="1" Grid.Row="7" />
+                    <Label Content="Stock Height" Grid.Row="7" />
+                    <ctls:MaskingTextBox UnitType="Size" Min="0" Max="999" Text="{Binding Path=Project.StockHeight, Mode=TwoWay}" ToolTip="The Height of the blank PCB file, this is used for establishing drill and mill depths" Margin="4,4,0,4" Grid.Column="1" Grid.Row="7" />
                     <Label Content="mm" Grid.Column="2" Grid.Row="7" />
 
-                    <Label Content="Detected Width" Grid.Row="8" />
-                    <TextBlock Text="{Binding Path=PCB.Width}" Grid.Row="8" Grid.Column="1" />
+                    <Label Content="Stock Thickness" Grid.Row="8" />
+                    <ctls:MaskingTextBox UnitType="Size" Min="0" Max="99" Text="{Binding Path=Project.StockThickness, Mode=TwoWay}" ToolTip="The Thickness of the blank PCB file, this is used for establishing drill and mill depths" Margin="4,4,0,4" Grid.Column="1" Grid.Row="8" />
                     <Label Content="mm" Grid.Column="2" Grid.Row="8" />
 
-                    <Label Content="Detected Height" Grid.Row="9" />
-                    <TextBlock Text="{Binding Path=PCB.Height}" Grid.Row="9" Grid.Column="1" />
+                    <Label Content="Detected Width" Grid.Row="9" />
+                    <TextBlock Text="{Binding Path=PCB.Width}" Grid.Row="9" Grid.Column="1" />
                     <Label Content="mm" Grid.Column="2" Grid.Row="9" />
 
+                    <Label Content="Detected Height" Grid.Row="10" />
+                    <TextBlock Text="{Binding Path=PCB.Height}" Grid.Row="10" Grid.Column="1" />
+                    <Label Content="mm" Grid.Column="2" Grid.Row="10" />
 
-                    <Label Content="Mirror (Bottom Etching)" Grid.Row="10" />
-                    <CheckBox IsChecked="{Binding Path=FlipBoard}"  VerticalAlignment="Center"  Grid.Row="10" Grid.Column="1" ToolTip="How to handle bottom etching, if this is checked the board will maintain the XY origin of the bottom left for the bottom etching operation.  If this is unchecked, the board will be mirrored so the the origin will be in negative X space." />
 
-                    <Button Grid.Row="11" Grid.Column="1" Content="Center Board" Command="{Binding CenterBoardCommand}" Margin="4" />
-                    <Button Grid.Row="12" Grid.Column="1" Content="Generate Isolation Milling (pcb-gcode)" Command="{Binding GenerateIsolationMillingCommand}" Margin="4" />
+                    <Label Content="Mirror (Bottom Etching)" Grid.Row="11" />
+                    <CheckBox IsChecked="{Binding Path=FlipBoard}"  VerticalAlignment="Center"  Grid.Row="11" Grid.Column="1" ToolTip="How to handle bottom etching, if this is checked the board will maintain the XY origin of the bottom left for the bottom etching operation.  If this is unchecked, the board will be mirrored so the the origin will be in negative X space." />
+
+                    <Button Grid.Row="12" Grid.Column="1" Content="Center Board" Command="{Binding CenterBoardCommand}" Margin="4" />
+                    <Button Grid.Row="13" Grid.Column="1" Content="Generate Isolation Milling (pcb-gcode)" Command="{Binding GenerateIsolationMillingCommand}" Margin="4" />
 
                 </Grid>
             </TabItem>
@@ -164,11 +168,11 @@
                     </ListBox>
 
                     <Label Content="Consolidated Drill Rack"  Grid.Row="1" Grid.Column="2"/>
-                    <Button Content="+" x:Name="AddConsolidatedDril" Click="AddConsolidatedDrill_Click" HorizontalAlignment="Right" Grid.Column="2" Grid.Row="1" Margin="0,0,4,0" Width="24" />
+                    <Button Content="+" x:Name="AddConsolidatedDril"  HorizontalAlignment="Right" Grid.Column="2" Grid.Row="1" Margin="0,0,4,0" Width="24" />
                     <ListBox x:Name="ConsolidatedDrillRack" ItemsSource="{Binding Path=Project.ConsolidatedDrillRack}" Grid.Row="2" Grid.Column="2" Margin="4" SelectedItem="{Binding ConsolidatedDrillBit}" >
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding Display, FallbackValue=TS01 0.3 33}" Grid.Column="0" x:Name="ConsolidatedDrillBitItem" MouseDown="ConsolidatedDrillBitItem_MouseDown" />
+                                <TextBlock Text="{Binding Display, FallbackValue=TS01 0.3 33}" Grid.Column="0" x:Name="ConsolidatedDrillBitItem"/>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
@@ -314,7 +318,7 @@
                                     <TextBlock Text="{Binding X}" Grid.Column="1" />
                                     <TextBlock Text="{Binding Y}" Grid.Column="2" />
                                     <TextBlock Text="{Binding Drill}"  Grid.Column="3" />
-                                    <Button x:Name="Add" Content="Add" Click="Add_Click" Height="24" Width="60"  Grid.Column="4" />
+                                    <Button x:Name="Add" Content="Add"  Height="24" Width="60"  Grid.Column="4" />
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -333,7 +337,7 @@
                                     <TextBlock Text="{Binding X}" Grid.Column="1" />
                                     <TextBlock Text="{Binding Y}" Grid.Column="2" />
                                     <TextBlock Text="{Binding Drill}"  Grid.Column="3" />
-                                    <Button x:Name="Add" Content="Add" Click="Add_Click" Height="24" Width="60"  Grid.Column="4" />
+                                    <Button x:Name="Add" Content="Add" Height="24" Width="60"  Grid.Column="4" />
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -344,8 +348,8 @@
         </TabControl>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Save" Width="100" Height="32" Margin="4" x:Name="SaveButton" Click="SaveButton_Click" />
-            <Button Content="Cancel" Width="100" Height="32" Margin="4" x:Name="CloseButton" Click="CloseButton_Click" />
+            <Button Content="Save" Width="100" Height="32" Margin="4" x:Name="SaveButton" Command="{Binding SaveProjectCommand}" />
+            <Button Content="Cancel" Width="100" Height="32" Margin="4" x:Name="CloseButton"  />
         </StackPanel>
     </Grid>
 </Window>

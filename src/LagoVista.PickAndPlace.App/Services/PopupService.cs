@@ -1,5 +1,7 @@
-﻿using LagoVista.Core.IOC;
+﻿using LagoVista.Core.Interfaces;
+using LagoVista.Core.IOC;
 using LagoVista.Core.PlatformSupport;
+using LagoVista.Core.ViewModels;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -218,6 +220,40 @@ namespace LagoVista.PickAndPlace.App.Services
             {
                 return null;
             }
+        }
+
+        private readonly Dictionary<Type, Type> _windows = new Dictionary<Type, Type>();
+
+        public void RegisterWindow<TWindowInterface, TWindow>() where TWindowInterface : IModalWindow where TWindow : Window
+        {
+            _windows.Add(typeof(TWindowInterface), typeof(TWindow));
+        }
+
+        public Task<bool> ShowModalAsync<TModalWindow, TViewModel>(TViewModel viewModal) where TModalWindow : IModalWindow where TViewModel : IViewModel
+        {
+            var type = typeof(TModalWindow);
+
+            var resultType = _windows[type];
+
+            var instance = Activator.CreateInstance(resultType) as IModalWindow;
+
+            var win = instance as Window;
+
+            instance.DataContext = viewModal;
+            instance.ViewModel = viewModal;
+            instance.ForCreate = false;
+            win.Owner = App.Current.MainWindow;
+//            pcbWindow.PCBFilepath = ViewModel.Machine.PCBManager.ProjectFilePath;
+            win.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            instance.ShowDialog();
+            if (instance.DialogResult.HasValue && instance.DialogResult.Value)
+            {
+                return Task.FromResult(true);
+            }
+
+            return Task.FromResult(false);
+
+
         }
     }
 }

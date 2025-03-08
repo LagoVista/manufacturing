@@ -2,6 +2,7 @@
 using LagoVista.PCB.Eagle.Models;
 using LagoVista.PickAndPlace.Managers;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -80,26 +81,28 @@ namespace LagoVista.PickAndPlace.App.Controls
 
                 if (manager.HasProject)
                 {
-                    foreach (var hole in manager.Project.GetHoldDownDrills(manager.Board))
-                    {
-                        var ellipse = new Ellipse() { Width = manager.Project.HoldDownDiameter * 10.0, Height = manager.Project.HoldDownDiameter * 10.0 };
-                        ellipse.Fill = Brushes.Black;
+                    //foreach (var hole in manager.Project.GetHoldDownDrills(manager.Board))
+                    //{
+                    //    var ellipse = new Ellipse() { Width = manager.Project.HoldDownDiameter * 10.0, Height = manager.Project.HoldDownDiameter * 10.0 };
+                    //    ellipse.Fill = Brushes.Black;
 
-                        var x = hole.X;
-                        var y = hole.Y;
+                    //    var x = hole.X;
+                    //    var y = hole.Y;
 
-                        ellipse.SetValue(Canvas.TopProperty, ((BoardLayout.Height / 10) - (y + (manager.Project.HoldDownDiameter / 2))) * 10.0);
-                        ellipse.SetValue(Canvas.LeftProperty, (x - (manager.Project.HoldDownDiameter / 2)) * 10.0);
-                        ellipse.ToolTip = $"{hole.X}x{hole.Y} - {manager.Project.HoldDownDiameter}D";
-                        ellipse.Cursor = Cursors.Hand;
-                        ellipse.Tag = new Point2D<double>()
-                        {
-                            X = hole.X,
-                            Y = hole.Y
-                        };
-                        ellipse.MouseUp += Elipse_MouseUp;
-                        BoardLayout.Children.Add(ellipse);
-                    }
+                    //    ellipse.SetValue(Canvas.TopProperty, ((BoardLayout.Height / 10) - (y + (manager.Project.HoldDownDiameter / 2))) * 10.0);
+                    //    ellipse.SetValue(Canvas.LeftProperty, (x - (manager.Project.HoldDownDiameter / 2)) * 10.0);
+                    //    ellipse.ToolTip = $"{hole.X}x{hole.Y} - {manager.Project.HoldDownDiameter}D";
+                    //    ellipse.Cursor = Cursors.Hand;
+                    //    ellipse.Tag = new Point2D<double>()
+                    //    {
+                    //        X = hole.X,
+                    //        Y = hole.Y
+                    //    };
+                    //    ellipse.MouseUp += Elipse_MouseUp;
+                    //    BoardLayout.Children.Add(ellipse);
+                    //}
+
+                    Debugger.Break();
                 }
             }
         }

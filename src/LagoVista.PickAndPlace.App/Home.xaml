@@ -9,6 +9,7 @@
         xmlns:ui="clr-namespace:LagoVista.PickAndPlace.App.Controls.UI"
         xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
         xmlns:gc="clr-namespace:LagoVista.PickAndPlace.App.Controls.GCode"
+        xmlns:fab="clr-namespace:LagoVista.PickAndPlace.App.Controls.PcbFab"
         xmlns:local="clr-namespace:LagoVista.PickAndPlace.App"
         WindowStyle="None"
         mc:Ignorable="d"
@@ -95,7 +96,7 @@
                                 <RowDefinition Height="*" ></RowDefinition>
                             </Grid.RowDefinitions>
                             <ctls:JobControl></ctls:JobControl>
-                            <gc:GCode Grid.Row="1"></gc:GCode>
+                            <fab:PcbMillingControl Grid.Row="1"></fab:PcbMillingControl>
                         </Grid>
                     </TabItem>
                     <TabItem Header="Alignment">

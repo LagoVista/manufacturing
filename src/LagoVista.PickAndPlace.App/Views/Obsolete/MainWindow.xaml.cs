@@ -294,9 +294,9 @@ namespace LagoVista.PickAndPlace.App
 
         private void PCB2GCode_Click(object sender, RoutedEventArgs e)
         {
-            //if (ViewModel.Project != null && !String.IsNullOrEmpty(ViewModel.Project.EagleBRDFilePath))
+            //if (ViewModel.Project != null && !String.IsNullOrEmpty(ViewModel.Project.EagleBRDFile))
             //{
-            //    PCB.PCB2Gode.CreateGCode(ViewModel.Project.EagleBRDFilePath, ViewModel.Project);
+            //    PCB.PCB2Gode.CreateGCode(ViewModel.Project.EagleBRDFile, ViewModel.Project);
             //}
             //else
             //{
@@ -333,7 +333,7 @@ namespace LagoVista.PickAndPlace.App
 
             var pcbWindow = new PCBProjectView();
             pcbWindow.DataContext = vm;
-            pcbWindow.IsNew = false;
+            pcbWindow.ForCreate = false;
             pcbWindow.Owner = this;
             pcbWindow.PCBFilepath = ViewModel.Machine.PCBManager.ProjectFilePath;
             pcbWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
@@ -350,7 +350,7 @@ namespace LagoVista.PickAndPlace.App
             var vm = new PCBProjectViewModel(new PcbMillingProject());
             await vm.LoadDefaultSettings();
             pcbWindow.DataContext = vm;
-            pcbWindow.IsNew = true;
+            pcbWindow.ForCreate = true;
             pcbWindow.Owner = this;
             pcbWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
             pcbWindow.ShowDialog();
@@ -358,9 +358,9 @@ namespace LagoVista.PickAndPlace.App
             {
                 ViewModel.Project = vm.Project;
                 ViewModel.AddProjectFileMRU(pcbWindow.PCBFilepath);
-               // if (!String.IsNullOrEmpty(vm.Project.EagleBRDFilePath))
+               // if (!String.IsNullOrEmpty(vm.Project.EagleBRDFile))
                 {
-                 //   await ViewModel.Machine.PCBManager.OpenFileAsync(vm.Project.EagleBRDFilePath);
+                 //   await ViewModel.Machine.PCBManager.OpenFileAsync(vm.Project.EagleBRDFile);
                 }
                 ViewModel.Machine.PCBManager.Project = vm.Project;
             }

@@ -1,13 +1,8 @@
-﻿using HelixToolkit.Wpf;
-using LagoVista.Client.Core;
-using LagoVista.Core.IOC;
-using LagoVista.Core.Models;
-using LagoVista.Core.Models.UIMetaData;
+﻿using Emgu.CV.Dnn;
+using HelixToolkit.Wpf;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PCB.Eagle.Models;
-using LagoVista.PickAndPlace.Interfaces.ViewModels.GCode;
-using LagoVista.PickAndPlace.ViewModels;
-using LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
 using LagoVista.XPlat;
 using System;
 using System.Linq;
@@ -16,32 +11,31 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 
-namespace LagoVista.PickAndPlace.App.Controls.GCode
+namespace LagoVista.PickAndPlace.App.Controls.PcbFab
 {
     /// <summary>
-    /// Interaction logic for GCode.xaml
+    /// Interaction logic for PcbMillingControl.xaml
     /// </summary>
-    public partial class GCode : VMBoundUserControl<IGCodeViewModel>
+    public partial class PcbMillingControl : VMBoundUserControl<IPcbMillingViewModel>
     {
-        private readonly IRestClient _restClient;
-
-        public GCode()
+        public PcbMillingControl()
         {
             InitializeComponent();
-            _restClient = SLWIOC.Get<IRestClient>();
         }
 
-
-        private void HeightMapControl_Loaded(object sender, RoutedEventArgs e)
+        public bool ModelToolVisible
         {
-            ViewModel.Machine.GCodeFileManager.PropertyChanged += GCodeFileManager_PropertyChanged;
-            ViewModel.Machine.Settings.PropertyChanged += GCodeFileManager_PropertyChanged;
-            ViewModel.Machine.PropertyChanged += GCodeFileManager_PropertyChanged;
+            get { return ModelTool.Visible; }
+            set { ModelTool.Visible = value; }
+        }
 
-            ViewModel.Machine.PCBManager.PropertyChanged += PCBManager_PropertyChanged;
+        const int CAMERA_MOVE_DELTA = 10;
 
-            var x = ViewModel.Machine.Settings.WorkAreaSize.X / 2;
-            Camera.Position = new Point3D(x, Camera.Position.Y, Camera.Position.Z);
+        public enum ImageModes
+        {
+            Top,
+            Side,
+            Front,
         }
 
         private void RenderBoard(PrintedCircuitBoard board, PcbMillingProject project, bool resetZoomAndView = true)
@@ -174,6 +168,8 @@ namespace LagoVista.PickAndPlace.App.Controls.GCode
 
                 var boardEdgeMeshBuilder = new MeshBuilder(false, false);
 
+                var boardOutline = board.Layers.Where(layer => layer.Layer == PCBLayers.BoardOutline);
+
                 var cornerWires = board.Layers.Where(layer => layer.Layer == PCBLayers.BoardOutline).FirstOrDefault().Wires.Where(wire => wire.Crv.HasValue == true);
                 var radius = cornerWires.Any() ? Math.Abs(cornerWires.First().X1 - cornerWires.First().X2) : 0;
                 if (radius == 0)
@@ -233,34 +229,6 @@ namespace LagoVista.PickAndPlace.App.Controls.GCode
             }
         }
 
-        private void PCBManager_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(ViewModel.Machine.PCBManager.HasBoard) ||
-                e.PropertyName == nameof(ViewModel.Machine.PCBManager.HasProject))
-            {
-                if (ViewModel.Machine.PCBManager.HasBoard)
-                    RenderBoard(ViewModel.Machine.PCBManager.Board, ViewModel.Machine.PCBManager.Project);
-            }
-            else
-            {
-                PCBLayer.Content = null;
-                BottomWires.Content = null;
-                TopWires.Content = null;
-            }
-        }
-
-        private void GCodeFileManager_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(ViewModel.Machine.GCodeFileManager.Min) ||
-                e.PropertyName == nameof(ViewModel.Machine.GCodeFileManager.Max) ||
-                e.PropertyName == nameof(ViewModel.Machine.Settings.WorkAreaSize.X) ||
-                e.PropertyName == nameof(ViewModel.Machine.Settings.WorkAreaSize.Y) ||
-                e.PropertyName == nameof(ViewModel.Machine.Settings))
-            {
-                RefreshExtents();
-            }
-        }
-
         private void RefreshExtents()
         {
             switch (_imageMode)
@@ -271,94 +239,6 @@ namespace LagoVista.PickAndPlace.App.Controls.GCode
             }
         }
 
-
-        private async void OpenPCBProject_Click(object sender, RoutedEventArgs e)
-        {
-            var file = await Core.PlatformSupport.Services.Popups.ShowOpenFileAsync(Constants.PCBProject);
-            if (!String.IsNullOrEmpty(file))
-            {
-                await ViewModel.OpenProjectAsync(file);
-            }
-        }
-
-        private void ClosePCBProject_Click(object sender, RoutedEventArgs e)
-        {
-            ViewModel.Project = null;
-        }
-
-        private void EditPCBProject_Click(object sender, RoutedEventArgs e)
-        {
-            if (ViewModel.Project == null)
-            {
-                MessageBox.Show("Please Open or Create a Project First.");
-                return;
-            }
-            var clonedProject = ViewModel.Project.Clone();
-            var vm = new PCBProjectViewModel(clonedProject);
-
-            var pcbWindow = new PCBProjectView();
-            pcbWindow.DataContext = vm;
-            pcbWindow.ForCreate = false;
-            pcbWindow.Owner = App.Current.MainWindow;
-            pcbWindow.PCBFilepath = ViewModel.Machine.PCBManager.ProjectFilePath;
-            pcbWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            pcbWindow.ShowDialog();
-            if (pcbWindow.DialogResult.HasValue && pcbWindow.DialogResult.Value)
-            {
-                ViewModel.Project = vm.Project;
-            }
-        }
-
-        private void PCB2GCode_Click(object sender, RoutedEventArgs e)
-        {
-            if (ViewModel.Project != null && !EntityHeader.IsNullOrEmpty(ViewModel.Project.EagleBRDFile))
-            {
-              //  PCB.PCB2Gode.CreateGCode(ViewModel.Project.EagleBRDFile, ViewModel.Project);
-            }
-            else
-            {
-                MessageBox.Show("Please Create or Edit a Project PCB->New Project and Assign an Eagle Board File.");
-            }
-        }
-
-        private async void NewPCBProject_Click(object sender, RoutedEventArgs e)
-        {
-            var pcbWindow = new PCBProjectView();
-            var project = await _restClient.GetAsync<DetailResponse<PcbMillingProject>>("/api/mfg/pcb/milling/factory");
-
-            var vm = new PCBProjectViewModel(project.Result.Model);
-            await vm.LoadDefaultSettings();
-            pcbWindow.DataContext = vm;
-            pcbWindow.ForCreate = true;
-            pcbWindow.Owner = App.Current.MainWindow;
-            pcbWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            pcbWindow.ShowDialog();
-            if (pcbWindow.DialogResult.HasValue && pcbWindow.DialogResult.Value)
-            {
-                ViewModel.Project = vm.Project;
-                await ViewModel.AddProjectFileMRUAsync(pcbWindow.PCBFilepath);
-                ViewModel.Machine.PCBManager.Project = vm.Project;
-            }
-        }
-
-        public void Clear()
-        {
-        }
-
-        public bool ModelToolVisible
-        {
-            get { return ModelTool.Visible; }
-            set { ModelTool.Visible = value; }
-        }
-
-        const int CAMERA_MOVE_DELTA = 10;
-
-        public enum ImageModes
-        {
-            Top,
-            Side,
-            Front,
-        }
 
         private void ShowLeftView()
         {
@@ -489,8 +369,8 @@ namespace LagoVista.PickAndPlace.App.Controls.GCode
                     break;
             }
 
-            if (ViewModel.Machine.PCBManager.HasBoard)
-                RenderBoard(ViewModel.Machine.PCBManager.Board, ViewModel.Machine.PCBManager.Project, false);
+            if (ViewModel.PCB != null)
+                RenderBoard(ViewModel.PCB, ViewModel.Project, false);
         }
 
         ImageModes _imageMode = ImageModes.Front;

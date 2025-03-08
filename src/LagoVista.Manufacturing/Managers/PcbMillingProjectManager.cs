@@ -16,10 +16,10 @@ namespace LagoVista.Manufacturing.Managers
     {
         private readonly IPcbMillingProjectRepo _pcbMillingProjectRepo;
 
-        public PcbMillingProjectManager(IPcbMillingProjectRepo partRepo, IAdminLogger logger, IAppConfig appConfig, IDependencyManager depmanager, ISecurity security) :
+        public PcbMillingProjectManager(IPcbMillingProjectRepo pcbMillingProjectRepo, IAdminLogger logger, IAppConfig appConfig, IDependencyManager depmanager, ISecurity security) :
             base(logger, appConfig, depmanager, security)
         {
-            _pcbMillingProjectRepo = partRepo;
+            _pcbMillingProjectRepo = pcbMillingProjectRepo;
         }
         public async Task<InvokeResult> AddPcbMillingProjectAsync(PcbMillingProject project, EntityHeader org, EntityHeader user)
         {
@@ -32,16 +32,16 @@ namespace LagoVista.Manufacturing.Managers
 
         public async Task<DependentObjectCheckResult> CheckInUseAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _pcbMillingProjectRepo.GetPcbMillingProjectAsync(id);
-            await AuthorizeAsync(part, AuthorizeActions.Read, user, org);
-            return await base.CheckForDepenenciesAsync(part);
+            var millingProject = await _pcbMillingProjectRepo.GetPcbMillingProjectAsync(id);
+            await AuthorizeAsync(millingProject, AuthorizeActions.Read, user, org);
+            return await base.CheckForDepenenciesAsync(millingProject);
         }
 
         public async Task<InvokeResult> DeletePcbMillingProjectAsync(string id, EntityHeader org, EntityHeader user)
         {
-            var part = await _pcbMillingProjectRepo.GetPcbMillingProjectAsync(id);
-            await ConfirmNoDepenenciesAsync(part);
-            await AuthorizeAsync(part, AuthorizeActions.Delete, user, org);
+            var millingProject = await _pcbMillingProjectRepo.GetPcbMillingProjectAsync(id);
+            await ConfirmNoDepenenciesAsync(millingProject);
+            await AuthorizeAsync(millingProject, AuthorizeActions.Delete, user, org);
             await _pcbMillingProjectRepo.DeletePcbMillingProjectAsync(id);
             return InvokeResult.Success;
         }

@@ -29,7 +29,7 @@ namespace LagoVista.PickAndPlace.Managers
         {
             try
             {
-                Project = await PcbMillingProject.OpenAsync(projectFile);
+//                Project = await PcbMillingProject.OpenAsync(projectFile);
 
                 return true;
             }

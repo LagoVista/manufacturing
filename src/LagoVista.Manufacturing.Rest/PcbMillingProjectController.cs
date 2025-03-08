@@ -33,7 +33,8 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         [HttpGet("/api/mfg/pcb/milling/factory")]
         public DetailResponse<PcbMillingProject> CreatePcbMillingProject()
         {
-            var form = DetailResponse<PcbMillingProject>.Create();
+            var model = PcbMillingProject.CreateDefault();
+            var form = DetailResponse<PcbMillingProject>.Create(model, false);
             SetAuditProperties(form.Model);
             SetOwnedProperties(form.Model);
             return form;

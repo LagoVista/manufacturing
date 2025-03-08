@@ -38,7 +38,12 @@ namespace LagoVista.PCB.Eagle.Managers
                         in doc.Descendants("signal")
                            select Models.Signal.Create(eles)).ToList();
 
-            /* FIrst assign packages to components */
+            foreach (var layer in pcb.Layers)
+            {
+                layer.Wires = pcb.Plain.Wires.Where(wire => wire.L == layer.Layer).ToList();             
+            }
+
+                /* FIrst assign packages to components */
             foreach (var element in pcb.Components)
             {
                 var pck = pcb.Packages.Where(pkg => pkg.LibraryName == element.LibraryName && pkg.Name == element.PackageName).FirstOrDefault();
@@ -47,7 +52,6 @@ namespace LagoVista.PCB.Eagle.Managers
 
                 foreach (var layer in pcb.Layers)
                 {
-                    layer.Wires = pcb.Plain.Wires.Where(wire => wire.L == layer.Layer).ToList();
                     if (layer.Layer == PCBLayers.Pads)
                     {
                         foreach (var pad in element.Package.Value.Pads)

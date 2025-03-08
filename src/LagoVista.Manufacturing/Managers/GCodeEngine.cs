@@ -4,6 +4,7 @@ using LagoVista.PCB.Eagle.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -212,35 +213,38 @@ namespace LagoVista.PCB.Eagle.Managers
             //bldr.AppendLine($"G04 {pcbProject.DrillSpindleDwell}");
 
             var initialDrillDepth = pcbProject.HoldDownDiameter == pcbProject.HoldDownDrillDiameter && drillIntoUnderlayment ? -pcbProject.HoldDownDrillDepth : -pcbProject.StockThickness;
-            var drills = pcbProject.GetHoldDownDrills(pcb);
-            foreach (var hole in drills)
-            {
-                bldr.AppendLine($"G00 X{hole.X.ToDim()} Y{hole.Y.ToDim()}");
-                bldr.AppendLine($"G00 Z2 F{pcbProject.SafePlungeRecoverRate}");
-                bldr.AppendLine($"G01 Z{initialDrillDepth.ToDim()} F{pcbProject.DrillPlungeRate}");
-                bldr.AppendLine($"G00 Z{pcbProject.DrillSafeHeight} F{pcbProject.SafePlungeRecoverRate}");
-            }
+            //var drills = pcbProject.GetHoldDownDrills(pcb);
+            //foreach (var hole in drills)
+            //{
+            //    bldr.AppendLine($"G00 X{hole.X.ToDim()} Y{hole.Y.ToDim()}");
+            //    bldr.AppendLine($"G00 Z2 F{pcbProject.SafePlungeRecoverRate}");
+            //    bldr.AppendLine($"G01 Z{initialDrillDepth.ToDim()} F{pcbProject.DrillPlungeRate}");
+            //    bldr.AppendLine($"G00 Z{pcbProject.DrillSafeHeight} F{pcbProject.SafePlungeRecoverRate}");
+            //}
+            
 
-            if (pcbProject.HoldDownDiameter != pcbProject.HoldDownDrillDiameter && drillIntoUnderlayment)
-            {
-                bldr.AppendLine("M05");
-                bldr.AppendLine($"G0 Z{pcbProject.DrillSafeHeight.ToDim()}");
-                bldr.AppendLine($"G00 X0.0000 Y0.0000");
-                bldr.AppendLine($"M06 {pcbProject.HoldDownDrillDiameter.ToDim()}");
-                bldr.AppendLine($"G0 Z{pcbProject.DrillSafeHeight.ToDim()}");
+            //if (pcbProject.HoldDownDiameter != pcbProject.HoldDownDrillDiameter && drillIntoUnderlayment)
+            //{
+            //    bldr.AppendLine("M05");
+            //    bldr.AppendLine($"G0 Z{pcbProject.DrillSafeHeight.ToDim()}");
+            //    bldr.AppendLine($"G00 X0.0000 Y0.0000");
+            //    bldr.AppendLine($"M06 {pcbProject.HoldDownDrillDiameter.ToDim()}");
+            //    bldr.AppendLine($"G0 Z{pcbProject.DrillSafeHeight.ToDim()}");
 
-                bldr.AppendLine("M03");
-                bldr.AppendLine($"S{pcbProject.DrillSpindleRPM}");
-                //bldr.AppendLine($"G04 {pcbProject.DrillSpindleDwell}");
+            //    bldr.AppendLine("M03");
+            //    bldr.AppendLine($"S{pcbProject.DrillSpindleRPM}");
+            //    //bldr.AppendLine($"G04 {pcbProject.DrillSpindleDwell}");
 
-                foreach (var hole in drills)
-                {
-                    bldr.AppendLine($"G00 X{hole.X.ToDim()} Y{hole.Y.ToDim()}");
-                    bldr.AppendLine($"G00 Z2 F{pcbProject.SafePlungeRecoverRate}");
-                    bldr.AppendLine($"G01 Z-{pcbProject.HoldDownDrillDepth.ToDim()} F{pcbProject.DrillPlungeRate}");
-                    bldr.AppendLine($"G00 Z{pcbProject.DrillSafeHeight} F{pcbProject.SafePlungeRecoverRate}");
-                }
-            }
+            //    foreach (var hole in drills)
+            //    {
+            //        bldr.AppendLine($"G00 X{hole.X.ToDim()} Y{hole.Y.ToDim()}");
+            //        bldr.AppendLine($"G00 Z2 F{pcbProject.SafePlungeRecoverRate}");
+            //        bldr.AppendLine($"G01 Z-{pcbProject.HoldDownDrillDepth.ToDim()} F{pcbProject.DrillPlungeRate}");
+            //        bldr.AppendLine($"G00 Z{pcbProject.DrillSafeHeight} F{pcbProject.SafePlungeRecoverRate}");
+            //    }
+            //}
+
+            Debugger.Break(); // THIS NEEDS TO BE IMPLEMENTED
 
             bldr.AppendLine("M05");
             bldr.AppendLine($"G0 Z{pcbProject.DrillSafeHeight.ToDim()}");

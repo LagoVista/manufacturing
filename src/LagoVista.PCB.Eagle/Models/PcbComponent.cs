@@ -93,6 +93,7 @@ namespace LagoVista.PCB.Eagle.Models
         public const string Layer_Unrouted = "unrouted";
         public const string Layer_Vias = "vias";
         public const string Layer_Measures = "measures";
+        public const string Layer_Dimensions = "dimensions";
         public const string Layer_Other = "other";
 
         public string Id { get; set; }

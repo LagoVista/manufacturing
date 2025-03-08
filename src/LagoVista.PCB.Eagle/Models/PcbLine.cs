@@ -75,11 +75,6 @@ namespace LagoVista.PCB.Eagle.Models
                 N = name,
             };
 
-            if(line.L == PCBLayers.TopCopper)
-            {
-                Debugger.Break();
-            }
-
             var rect = Rect.Create(element);
             line.X1 = rect.X1;
             line.X2 = rect.X2;

@@ -12,38 +12,32 @@ namespace LagoVista.PickAndPlace.Managers
         public MruManager(IStorageService storageService)
         {
             _storageService = storageService;
+            LoadAsync();
         }
 
-        public List<string> PnPJobs { get; private set; }
 
-        public List<string> GCodeFiles { get; private set; }
-
-        public List<string> BoardFiles { get; private set; }
-
-        public List<string> ProjectFiles { get; private set; }
-
-        public async Task LoadAsync()
+        private async void LoadAsync()
         {
-            var mru = await _storageService.GetAsync<MruManager>("mrus.json");
-            if(mru != null)
-            {
-                PnPJobs = mru.PnPJobs;
-                GCodeFiles = mru.GCodeFiles;
-                BoardFiles = mru.BoardFiles;
-                ProjectFiles = mru.ProjectFiles;
-            }
-            else
-            {
-                PnPJobs = new List<string>();
-                GCodeFiles = new List<string>();
-                BoardFiles = new List<string>();
-                ProjectFiles = new List<string>();
-            }
+            Files = await _storageService.GetAsync<MruFiles>("mrus.json");
         }
+
+        public MruFiles Files { get; set; }
 
         public async Task SaveAsync()
         {
-            await _storageService.StoreAsync(this, "mrus.json");
+            await _storageService.StoreAsync(this.Files, "mrus.json");
         }
+    }
+
+    public class MruFiles
+    {
+        public List<string> PnPJobs { get; set; }
+
+        public List<string> GCodeFiles { get; set; }
+
+        public List<string> BoardFiles { get; set; }
+
+        public List<string> ProjectFiles { get; set; }
+
     }
 }

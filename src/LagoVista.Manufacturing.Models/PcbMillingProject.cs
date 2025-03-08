@@ -13,9 +13,9 @@ using System.Threading.Tasks;
 namespace LagoVista.Manufacturing.Models
 {
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.PcbMillProject_Title, ManufacturingResources.Names.PcbMillingProject_Description,
-        ManufacturingResources.Names.PcbMillingProject_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), 
+        ManufacturingResources.Names.PcbMillingProject_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources),
         Icon: "icon-ae-control-panel", Cloneable: true,
-        SaveUrl: "/api/mfg/pcb/milling", GetUrl: "/api/mfg/pcb/milling/{id}", GetListUrl: "/api/mfg/pcb/millings", FactoryUrl: "/api/mfg/pcb/milling/factory", 
+        SaveUrl: "/api/mfg/pcb/milling", GetUrl: "/api/mfg/pcb/milling/{id}", GetListUrl: "/api/mfg/pcb/millings", FactoryUrl: "/api/mfg/pcb/milling/factory",
         DeleteUrl: "/api/mfg/pcb/milling/{id}",
         ListUIUrl: "/mfg/pcbmillings", EditUIUrl: "/mfg/pcbmilling/{id}", CreateUIUrl: "/mfg/pcbmilling/add")]
     public class PcbMillingProject : MfgModelBase, IFormDescriptor, IValidateable, ISummaryFactory
@@ -39,31 +39,55 @@ namespace LagoVista.Manufacturing.Models
         }
 
         private double _scrapTopBottom;
-        public double ScrapTopBottom 
+        public double ScrapTopBottom
         {
             get { return _scrapTopBottom; }
             set { Set(ref _scrapTopBottom, value); }
         }
 
-        private EntityHeader _eagleBRDFilePath;
-        public EntityHeader EagleBRDFilePath
+        private EntityHeader _eagleBRDFile;        
+        public EntityHeader EagleBRDFile
         {
-            get { return _eagleBRDFilePath; }
-            set { Set(ref _eagleBRDFilePath, value); }
+            get { return _eagleBRDFile; }
+            set { Set(ref _eagleBRDFile, value); }
         }
 
-        private EntityHeader _topEtchingFilePath;
-        public EntityHeader TopEtchingFilePath
+        private String _eagleBRDFileLocalPath;
+        [JsonIgnore]
+        public String EagleBRDFileLocalPath
         {
-            get { return _topEtchingFilePath; }
-            set { Set(ref _topEtchingFilePath, value); }
+            get { return _eagleBRDFileLocalPath; }
+            set { Set(ref _eagleBRDFileLocalPath, value); }
         }
 
-        private EntityHeader _bottomEtchingFilePath;
-        public EntityHeader BottomEtchingFilePath
+        private string _topEtchingFileLocalPath;
+        [JsonIgnore]
+        public string TopEtchingFileLocalPath
         {
-            get { return _bottomEtchingFilePath; }
-            set { Set(ref _bottomEtchingFilePath, value); }
+            get { return _topEtchingFileLocalPath; }
+            set { Set(ref _topEtchingFileLocalPath, value); }
+        }
+
+        private string _bottomEtchingFileLocalPath;
+        [JsonIgnore]
+        public string BottomEtchingFileLocalPath
+        {
+            get { return _bottomEtchingFileLocalPath; }
+            set { Set(ref _bottomEtchingFileLocalPath, value); }
+        }
+
+        private EntityHeader _topEtchingFile;
+        public EntityHeader TopEtchingFile
+        {
+            get { return _topEtchingFile; }
+            set { Set(ref _topEtchingFile, value); }
+        }
+
+        private EntityHeader _bottomEtchingFile;
+        public EntityHeader BottomEtchingFile
+        {
+            get { return _bottomEtchingFile; }
+            set { Set(ref _bottomEtchingFile, value); }
         }
 
         public double HoldDownDiameter { get; set; }
@@ -75,19 +99,6 @@ namespace LagoVista.Manufacturing.Models
         public double StockHeight { get; set; }
         public double StockThickness { get; set; }
 
-        public List<Drill> GetHoldDownDrills(PrintedCircuitBoard board)
-        {
-
-            var radius = HoldDownDiameter / 2;
-            var drills = new List<Drill>
-            {
-                new Drill() { X = ScrapSides - (HoldDownBoardOffset + radius), Y = ScrapTopBottom - (HoldDownBoardOffset + radius), D = HoldDownDiameter },
-                new Drill() { X = board.Width + ScrapSides + HoldDownBoardOffset + radius, Y = ScrapTopBottom - (HoldDownBoardOffset + radius), D = HoldDownDiameter },
-                new Drill() { X = ScrapSides - (HoldDownBoardOffset + radius), Y = board.Height + ScrapTopBottom + HoldDownBoardOffset + radius, D = HoldDownDiameter },
-                new Drill() { X = board.Width + ScrapSides + HoldDownBoardOffset + radius, Y = board.Height + ScrapTopBottom + HoldDownBoardOffset + radius, D = HoldDownDiameter }
-            };
-            return drills;
-        }
 
         [JsonIgnore]
         public bool IsEditing { get { return _isEditing; } }
@@ -126,33 +137,6 @@ namespace LagoVista.Manufacturing.Models
 
         public ObservableCollection<ConsolidatedDrillBit> ConsolidatedDrillRack { get; set; }
 
-        public async Task SaveAsync(String fileName = null)
-        {
-
-            if(String.IsNullOrEmpty(fileName))
-            {
-                if(_currentFileName == null)
-                {
-                    throw new Exception("Must provide a file name if we aren't editing an existing file.");
-                }
-
-                fileName = _currentFileName;
-            }
-
-            await Core.PlatformSupport.Services.Storage.StoreAsync(this, fileName);
-
-            _currentFileName = fileName;
-
-            _isEditing = true;
-        }
-
-        public static async Task<PcbMillingProject> OpenAsync(String fileName)
-        {
-            var project = await Core.PlatformSupport.Services.Storage.GetAsync<PcbMillingProject>(fileName);
-            project._currentFileName = fileName;
-            project._isEditing = true;
-            return project;
-        }
 
         public List<string> GetFormFields()
         {
@@ -180,39 +164,36 @@ namespace LagoVista.Manufacturing.Models
             return CreateSummary();
         }
 
-        public static PcbMillingProject Default
+        public static PcbMillingProject CreateDefault()
         {
-            get
+            return new PcbMillingProject()
             {
-                return new PcbMillingProject()
-                {
-                    PauseForToolChange = false,
-                    StockWidth = 100,
-                    StockHeight = 80,
-                    HoldDownBoardOffset = 3,
-                    HoldDownDiameter = 3,
-                    HoldDownDrillDiameter = 2,
-                    HoldDownDrillDepth = 5,
-                    DrillSpindleDwell = 3,
-                    DrillSpindleRPM = 20000,
-                    DrillPlungeRate = 200,
-                    DrillSafeHeight = 5,
-                    StockThickness = 1.57,
-                    MillCutDepth = 0.5,
-                    MillFeedRate = 500,
-                    MillPlungeRate = 200,
-                    MillSafeHeight = 5,
-                    MillSpindleDwell = 3,
-                    MillSpindleRPM = 15000,
-                    MillToolSize = 3.15,
-                    ScrapTopBottom = 5,
-                    ScrapSides = 5,
-                    SafePlungeRecoverRate = 500,
-                    FlipBoard = true,
-                    HeightMapGridSize = 10,
-               
-                };
-            }
+                PauseForToolChange = false,
+                StockWidth = 100,
+                StockHeight = 80,
+                HoldDownBoardOffset = 3,
+                HoldDownDiameter = 3,
+                HoldDownDrillDiameter = 2,
+                HoldDownDrillDepth = 5,
+                DrillSpindleDwell = 3,
+                DrillSpindleRPM = 20000,
+                DrillPlungeRate = 200,
+                DrillSafeHeight = 5,
+                StockThickness = 1.57,
+                MillCutDepth = 0.5,
+                MillFeedRate = 500,
+                MillPlungeRate = 200,
+                MillSafeHeight = 5,
+                MillSpindleDwell = 3,
+                MillSpindleRPM = 15000,
+                MillToolSize = 3.15,
+                ScrapTopBottom = 5,
+                ScrapSides = 5,
+                SafePlungeRecoverRate = 500,
+                FlipBoard = true,
+                HeightMapGridSize = 10,
+
+            };
         }
     }
 

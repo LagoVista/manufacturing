@@ -13,18 +13,23 @@ using LagoVista.Manufacturing;
 using LagoVista.Manufacturing.Interfaces.Managers;
 using LagoVista.Manufacturing.Managers;
 using LagoVista.Manufacturing.Services;
+using LagoVista.PickAndPlace.App.PCB;
 using LagoVista.PickAndPlace.App.Services;
 using LagoVista.PickAndPlace.Interfaces;
+using LagoVista.PickAndPlace.Interfaces.Services;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.GCode;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
+using LagoVista.PickAndPlace.Interfaces.Windows;
 using LagoVista.PickAndPlace.LumenSupport;
 using LagoVista.PickAndPlace.Managers;
 using LagoVista.PickAndPlace.Repos;
 using LagoVista.PickAndPlace.ViewModels;
 using LagoVista.PickAndPlace.ViewModels.GCode;
 using LagoVista.PickAndPlace.ViewModels.Machine;
+using LagoVista.PickAndPlace.ViewModels.PcbFab;
 using LagoVista.PickAndPlace.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.ViewModels.Vision;
 using LagoVista.XPlat.WPF.Services;
@@ -45,10 +50,12 @@ namespace LagoVista.PickAndPlace.App
         {
             DeviceInfo.Register("uwpapp");
 
+            var popups = new PopupService();
+
             SLWIOC.Register<IDispatcherServices>(new NuvIoTDispatcher(Dispatcher));
             SLWIOC.RegisterSingleton<ILogger>(new AdminLogger(new DebugWriter()));
             SLWIOC.RegisterSingleton<IDeviceManager, Core.WPF.PlatformSupport.DeviceManager>();
-            SLWIOC.RegisterSingleton<IPopupServices, PopupService>();
+            SLWIOC.RegisterSingleton<IPopupServices>(popups);
             SLWIOC.RegisterSingleton<IStorageService, Core.WPF.PlatformSupport.StorageService>();
             SLWIOC.RegisterSingleton<IViewModelNavigation, VMNav>();
             SLWIOC.RegisterSingleton<INetworkService, NetworkService>();
@@ -57,6 +64,7 @@ namespace LagoVista.PickAndPlace.App
             SLWIOC.RegisterSingleton<ITimerFactory, TimerFactory>();
             SLWIOC.Register<IStorageService, Core.WPF.PlatformSupport.StorageService>();
             SLWIOC.Register<IPhotonProtocolHandler, PhotonProtocolHandler>();
+            SLWIOC.Register<IPcb2GCodeService, Pcb2GCodeService>();
 
             var local = new ServerInfo()
             {
@@ -114,18 +122,15 @@ namespace LagoVista.PickAndPlace.App
             SLWIOC.Register<IDryRunViewModel, DryRunViewModel>();
             SLWIOC.Register<IJobExecutionViewModel, JobExecutionViewModel>();
             SLWIOC.Register<IGCodeViewModel, GCodeViewModel>();
+            SLWIOC.Register<IPcbMillingViewModel, PcbMillingViewModel>();
 
             SLWIOC.RegisterSingleton<IMruManager, MruManager>();
 
+
+            popups.RegisterWindow<IPcbMillingProjectWindow, PCBProjectView>();
+
             MachineVision.Startup.Init();
             Services.Startup.Init();
-
-            this.LoadCompleted += App_LoadCompleted;    
-        }
-
-        private async void App_LoadCompleted(object sender, System.Windows.Navigation.NavigationEventArgs e)
-        {
-            await SLWIOC.Get<IMruManager>().LoadAsync();
         }
     }
 

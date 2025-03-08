@@ -37,19 +37,23 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab
             OpenTopEtchingCommand = new RelayCommand(OpenTopEtching);
             OpenBottomEtchingCommand = new RelayCommand(OpenBottomEtching);
             CenterBoardCommand = new RelayCommand(CenterBoard);
-            GenerateIsolationMillingCommand = new RelayCommand(GenerateIsolation);
+            //GenerateIsolationMillingCommand = new RelayCommand(GenerateIsolation);
 
-            if (!EntityHeader.IsNullOrEmpty(Project.EagleBRDFilePath))
+            if (!string.IsNullOrEmpty(Project.EagleBRDFileLocalPath))
             {
-
                 try
                 {
-                //    var doc = XDocument.Load(Project.EagleBRDFilePath);
-                //    PCB = EagleParser.ReadPCB(doc);
-                //    Project.FiducialOptions = PCB.Holes.Where(drl => drl.D > 2).ToList();
+                    var doc = XDocument.Load(Project.EagleBRDFileLocalPath);
+                    PCB = EagleParser.ReadPCB(doc);
+                    Project.FiducialOptions = PCB.Holes.Where(drl => drl.D > 2).ToList();
                 }
                 catch (Exception) { }
             }
+        }
+
+        public void GenerateIsolation()
+        {
+        //    PCB2Gode.CreateGCode(ViewModel.Project.EagleBRDFileLocalPath, ViewModel.Project);
         }
 
         public bool CanCenterboard()
@@ -64,11 +68,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab
 
         public async Task LoadDefaultSettings()
         {
-            Project = await Storage.GetAsync<PcbMillingProject>("Default.pcbproj");
-            if (Project == null)
-            {
-                Project = PcbMillingProject.Default;
-            }
+            //Project = await Storage.GetAsync<PcbMillingProject>("Default.pcbproj");
+            //if (Project == null)
+            //{
+            //    Project = PcbMillingProject.Default;
+            //}
         }
 
         public async void OpenEagleBoard()
@@ -78,11 +82,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab
             {
                 try
                 {
-                    //Project.EagleBRDFilePath = result;
+                    Project.EagleBRDFileLocalPath = result;
+                    Project.EagleBRDFile = null;
+                    Project.TopEtchingFile = null;
+                    Project.BottomEtchingFile = null;
 
-                    //var doc = XDocument.Load(Project.EagleBRDFilePath);
-                    //PCB = EagleParser.ReadPCB(doc);
-                    //Project.FiducialOptions = PCB.Holes.Where(drl => drl.D > 2).ToList();
+                    var doc = XDocument.Load(Project.EagleBRDFileLocalPath);
+                    PCB = EagleParser.ReadPCB(doc);
+                    Project.FiducialOptions = PCB.Holes.Where(drl => drl.D > 2).ToList();
                 }
                 catch
                 {
@@ -96,7 +103,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab
             var result = await Popups.ShowOpenFileAsync(Constants.FileFilterGCode);
             if (!string.IsNullOrEmpty(result))
             {
-               // Project.TopEtchingFilePath = result;
+               Project.TopEtchingFileLocalPath = result;
             }
         }
 
@@ -105,7 +112,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab
             var result = await Popups.ShowOpenFileAsync(Constants.FileFilterGCode);
             if (!string.IsNullOrEmpty(result))
             {
-               /// Project.BottomEtchingFilePath = result;
+               Project.BottomEtchingFileLocalPath = result;
             }
         }
 
@@ -115,10 +122,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab
             Project.ScrapTopBottom = Math.Round((Project.StockHeight - PCB.Height) / 2, 2);
         }
 
-        public void GenerateIsolation()
-        {
-            GenerateIsolationEvent?.Invoke(this, null);
-        }
+        
 
         public async Task<bool> LoadExistingFile(string file)
         {
@@ -128,11 +132,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab
 
         public async void SaveDefaultProfile()
         {
-            var brdFileName = Project.EagleBRDFilePath;
-            Project.EagleBRDFilePath = null;
+            var brdFileName = Project.EagleBRDFile;
+            Project.EagleBRDFile = null;
 
             await Storage.StoreAsync(Project, "Default.pcbproj");
-            Project.EagleBRDFilePath = brdFileName;
+            Project.EagleBRDFile = brdFileName;
         }
 
         public RelayCommand CenterBoardCommand { get; private set; }
