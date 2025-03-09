@@ -27,5 +27,12 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab
         RelayCommand OpenEagleBoardCommand { get; }
         RelayCommand OpenTopEtchingCommand { get; }
         RelayCommand OpenBottomEtchingCommand { get; }
+
+        RelayCommand ShowBoardMillingGCodeCommand { get; }
+        RelayCommand ShowBoardDrillingGCodeCommand { get; }
+    
+        RelayCommand ShowTopIsolutionGCodeCommand { get; }
+        RelayCommand ShowBottomIsolatoinGCodeCommand { get; }
+        RelayCommand ShowHoldDownGCodeCommand { get; }
     }
 }

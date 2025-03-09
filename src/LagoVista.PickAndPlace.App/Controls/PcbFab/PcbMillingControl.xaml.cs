@@ -5,6 +5,8 @@ using LagoVista.PCB.Eagle.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
 using LagoVista.XPlat;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -157,40 +159,74 @@ namespace LagoVista.PickAndPlace.App.Controls.PcbFab
                     modelGroup.Children.Add(new GeometryModel3D() { Geometry = circleMeshBuilder.ToMesh(true), Material = blackMaterial });
                 }
 
-                #region Hold your nose to discover why irregular boards don't render as expected... 
-                /* gonna cheat here in next chunk of code...need to make progress, assume all corners are
-                 * either square or round.  If rounded, same radius...WILL revisit this at some point, KDW 2/24/2017
-                 * FWIW - feel so dirty doing this, but need to move on :*( 
-                 * very happy to accept a PR to fix this!  Proper mechanism is to create a polygon and likely subdivide the curve into smaller polygon edges
-                 * more work than it's worth right now....sorry again :(
-                 */
-                //TODO: Render proper edge of board.
+               
+                var boardEdgeMeshBuilderTop = new MeshBuilder(false, false);
+                var boardEdgeMeshBuilderBottom = new MeshBuilder(false, false);
 
-                var boardEdgeMeshBuilder = new MeshBuilder(false, false);
+                var boardOutline = board.Layers.Where(layer => layer.Layer == PCBLayers.BoardOutline).SingleOrDefault();
 
-                var boardOutline = board.Layers.Where(layer => layer.Layer == PCBLayers.BoardOutline);
+                var polygon = boardOutline.Wires.Select(wire => new Point(wire.X1, wire.Y1)).ToList();
 
-                var cornerWires = board.Layers.Where(layer => layer.Layer == PCBLayers.BoardOutline).FirstOrDefault().Wires.Where(wire => wire.Crv.HasValue == true);
-                var radius = cornerWires.Any() ? Math.Abs(cornerWires.First().X1 - cornerWires.First().X2) : 0;
-                if (radius == 0)
+                var result = CuttingEarsTriangulator.Triangulate(polygon);
+
+                List<int> tri = new List<int>();
+                for (int i = 0; i < result.Count; i++)
                 {
-                    boardEdgeMeshBuilder.AddBox(new Point3D(board.Width / 2, board.Height / 2, -boardThickness / 2), board.Width, board.Height, boardThickness);
-                }
-                else
-                {
-                    boardEdgeMeshBuilder.AddBox(new Point3D(board.Width / 2, board.Height / 2, -boardThickness / 2), board.Width - (radius * 2), board.Height - (radius * 2), boardThickness);
-                    boardEdgeMeshBuilder.AddBox(new Point3D(board.Width / 2, radius / 2, -boardThickness / 2), board.Width - (radius * 2), radius, boardThickness);
-                    boardEdgeMeshBuilder.AddBox(new Point3D(board.Width / 2, board.Height - radius / 2, -boardThickness / 2), board.Width - (radius * 2), radius, boardThickness);
-                    boardEdgeMeshBuilder.AddBox(new Point3D(radius / 2, board.Height / 2, -boardThickness / 2), radius, board.Height - (radius * 2), boardThickness);
-                    boardEdgeMeshBuilder.AddBox(new Point3D(board.Width - radius / 2, board.Height / 2, -boardThickness / 2), radius, board.Height - (radius * 2), boardThickness);
-                    boardEdgeMeshBuilder.AddCylinder(new Point3D(radius, radius, -boardThickness), new Point3D(radius, radius, 0), radius, 50, true, true);
-                    boardEdgeMeshBuilder.AddCylinder(new Point3D(radius, board.Height - radius, -boardThickness), new Point3D(radius, board.Height - radius, 0), radius, 50, true, true);
-                    boardEdgeMeshBuilder.AddCylinder(new Point3D(board.Width - radius, radius, -boardThickness), new Point3D(board.Width - radius, radius, 0), radius, 50, true, true);
-                    boardEdgeMeshBuilder.AddCylinder(new Point3D(board.Width - radius, board.Height - radius, -boardThickness), new Point3D(board.Width - radius, board.Height - radius, 0), radius, 50, true, true);
-                }
-                modelGroup.Children.Add(new GeometryModel3D() { Geometry = boardEdgeMeshBuilder.ToMesh(true), Material = greenMaterial });
+                    tri.Add(result[i]);
+                    if (tri.Count == 3)
+                    {
+                        Console.WriteLine("Triangle " + (i / 3).ToString() + " : " + tri[0].ToString() + ", " + tri[1].ToString() + ", " + tri[2].ToString());
+                        boardEdgeMeshBuilderTop.AddTriangle(new Point3D(polygon[tri[0]].X, polygon[tri[0]].Y, 0),
+                            new Point3D(polygon[tri[1]].X, polygon[tri[1]].Y, 0),
+                            new Point3D(polygon[tri[2]].X, polygon[tri[2]].Y, 0));
+                        tri.Clear();
+                    }
 
-                #endregion
+                   
+                }
+
+                modelGroup.Children.Add(new GeometryModel3D() { Geometry = boardEdgeMeshBuilderTop.ToMesh(true), Material = greenMaterial });
+              
+
+                //   var cornerWires = board.Layers.Where(layer => layer.Layer == PCBLayers.BoardOutline).FirstOrDefault().Wires.Where(wire => wire.Crv.HasValue == true);
+                //   var radius = cornerWires.Any() ? Math.Abs(cornerWires.First().X1 - cornerWires.First().X2) : 0;
+                //   if (radius == 0)
+                //   {
+                //       var polyGon = new HelixToolkit.Wpf.Polygon3D(); 
+
+                //           //polyGon.Points.Add(new Point3D(wire.X1, wire.Y1, 0));
+                //           //polyGon.Points.Add(new Point3D(wire.X1, wire.Y1, 10));
+                //           //polyGon.Points.Add(new Point3D(wire.X2, wire.Y2, 0));
+
+                //           //    polyGon.Points.Add(new Point3D(wire.X1, wire.Y1, 10));
+                //           //    polyGon.Points.Add(new Point3D(wire.X2, wire.Y2, 10));
+                //           //    polyGon.Points.Add(new Point3D(wire.X2, wire.Y2, 0));
+                //           //    polyGon.Points.Add(new Point3D(wire.X1, wire.Y1, 10));
+
+                //       //var last = new Point3D(boardOutline.Wires.Last().X1, boardOutline.Wires.Last().Y1, 0);
+                //       //polyGon.Points.Add(last);
+
+                //       //last = new Point3D(boardOutline.Wires.Last().X1, boardOutline.Wires.Last().Y1, 10);
+                //       //polyGon.Points.Add(last);
+
+
+                //       //boardEdgeMeshBuilderTop.AddPolygon(polyGon.Points);
+
+                ////       boardEdgeMeshBuilderTop.AddBox(new Point3D(board.Width / 2, board.Height / 2, -boardThickness / 2), board.Width, board.Height, boardThickness);
+                //   }
+                //   else
+                //   {
+                //       boardEdgeMeshBuilderTop.AddBox(new Point3D(board.Width / 2, board.Height / 2, -boardThickness / 2), board.Width - (radius * 2), board.Height - (radius * 2), boardThickness);
+                //       boardEdgeMeshBuilderTop.AddBox(new Point3D(board.Width / 2, radius / 2, -boardThickness / 2), board.Width - (radius * 2), radius, boardThickness);
+                //       boardEdgeMeshBuilderTop.AddBox(new Point3D(board.Width / 2, board.Height - radius / 2, -boardThickness / 2), board.Width - (radius * 2), radius, boardThickness);
+                //       boardEdgeMeshBuilderTop.AddBox(new Point3D(radius / 2, board.Height / 2, -boardThickness / 2), radius, board.Height - (radius * 2), boardThickness);
+                //       boardEdgeMeshBuilderTop.AddBox(new Point3D(board.Width - radius / 2, board.Height / 2, -boardThickness / 2), radius, board.Height - (radius * 2), boardThickness);
+                //       boardEdgeMeshBuilderTop.AddCylinder(new Point3D(radius, radius, -boardThickness), new Point3D(radius, radius, 0), radius, 50, true, true);
+                //       boardEdgeMeshBuilderTop.AddCylinder(new Point3D(radius, board.Height - radius, -boardThickness), new Point3D(radius, board.Height - radius, 0), radius, 50, true, true);
+                //       boardEdgeMeshBuilderTop.AddCylinder(new Point3D(board.Width - radius, radius, -boardThickness), new Point3D(board.Width - radius, radius, 0), radius, 50, true, true);
+                //       boardEdgeMeshBuilderTop.AddCylinder(new Point3D(board.Width - radius, board.Height - radius, -boardThickness), new Point3D(board.Width - radius, board.Height - radius, 0), radius, 50, true, true);
+                //   }
+
             }
 
             PCBLayer.Content = modelGroup;

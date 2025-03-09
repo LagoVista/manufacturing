@@ -1,4 +1,5 @@
 ﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.Models.Drawing;
 using LagoVista.GCode;
 using LagoVista.GCode.Commands;
 using LagoVista.PickAndPlace.Models;

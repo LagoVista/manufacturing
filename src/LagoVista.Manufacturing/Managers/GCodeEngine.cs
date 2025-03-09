@@ -274,14 +274,18 @@ namespace LagoVista.PCB.Eagle.Managers
 
             var cornerWires = pcb.Layers.Where(layer => layer.Layer == PCBLayers.BoardOutline).FirstOrDefault().Wires.Where(wire => wire.Crv.HasValue == true);
 
+            var boardOutline = pcb.Layers.Single(layer => layer.Layer == PCBLayers.BoardOutline);
+
             /* Major hack here */
             var radius = cornerWires.Any() ? Math.Abs(cornerWires.First().X1 - cornerWires.First().X2) : 0;
 
             if (radius == 0)
             {
+                var first = boardOutline.Wires.First();
+
                 var depth = 0.0;
                 bldr.AppendLine($"G00 Z{pcbProject.MillSafeHeight}");
-                bldr.AppendLine($"G00 X{(scrapX - millRadius).ToDim()} Y{(scrapY - millRadius).ToDim()}");
+                bldr.AppendLine($"G01 X{(scrapX + first.X1 + millRadius).ToDim()} Y{(scrapY + first.Y1 + millRadius).ToDim()} F{pcbProject.MillFeedRate}"); /* Move to bottom right */
                 bldr.AppendLine($"G00 Z0 F{pcbProject.MillPlungeRate}");
 
                 depth -= pcbProject.MillCutDepth;
@@ -291,10 +295,13 @@ namespace LagoVista.PCB.Eagle.Managers
                     depth = Math.Min(depth, pcbProject.StockThickness);
                     bldr.AppendLine($"G01 Z{depth.ToDim()} F{pcbProject.MillPlungeRate}"); /* Move to cut depth interval at 0,0 */
 
-                    bldr.AppendLine($"G01 X{(scrapX + width + millRadius).ToDim()} Y{(scrapY - millRadius).ToDim()} F{pcbProject.MillFeedRate}"); /* Move to bottom right */
-                    bldr.AppendLine($"G01 X{(scrapX + width + millRadius).ToDim()} Y{(scrapY + height + millRadius).ToDim()}"); /* Move to Top Right */
-                    bldr.AppendLine($"G01 X{(scrapX - millRadius).ToDim()} Y{(scrapY + height + millRadius).ToDim()}"); /* Move to Top Left */
-                    bldr.AppendLine($"G01 X{(scrapX - millRadius).ToDim()} Y{(scrapY - millRadius).ToDim()}"); /* Move back to origin */
+                    foreach(var wire in boardOutline.Wires)
+                    {
+                        bldr.AppendLine($"G01 X{(scrapX + wire.X1 + millRadius).ToDim()} Y{(scrapY + wire.Y1 + millRadius).ToDim()} F{pcbProject.MillFeedRate}"); /* Move to bottom right */
+                    }
+
+                    var last = boardOutline.Wires.Last();
+                    bldr.AppendLine($"G01 X{(scrapX + last.X1 + millRadius).ToDim()} Y{(scrapY + last.Y1 + millRadius).ToDim()} F{pcbProject.MillFeedRate}"); /* Move to bottom right */
 
                     depth -= pcbProject.MillCutDepth;
                 }
