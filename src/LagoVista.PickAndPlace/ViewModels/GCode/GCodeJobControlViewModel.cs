@@ -1,11 +1,12 @@
 ﻿using LagoVista.Core.Commanding;
 using LagoVista.Core.ViewModels;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.GCode;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using System;
 
 namespace LagoVista.PickAndPlace.ViewModels.GCode
 {
-    public partial class GCodeJobControlViewModel : MachineViewModelBase
+    public partial class GCodeJobControlViewModel : MachineViewModelBase, IGCodeJobControlViewModel
     {
         IMachineRepo _machineRepo;
 

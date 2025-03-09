@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels.GCode
 {
-    public partial class GCodeJobControlViewModel : IGCodeJobControlViewModel
+    public partial class GCodeJobControlViewModel 
     {
         
         private void GCodeFileManager_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)

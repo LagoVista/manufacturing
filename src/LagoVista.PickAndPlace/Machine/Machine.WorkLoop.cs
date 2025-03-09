@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -207,6 +208,8 @@ namespace LagoVista.PickAndPlace
             }
         }
 
+        String messageBuffer = String.Empty;
+
         private async Task WorkLoop()
         {
             if (_reader.BaseStream.CanRead == false)
@@ -214,27 +217,68 @@ namespace LagoVista.PickAndPlace
                 return;
             }
 
-            await Task.Delay(5);
-             
-            var lineTask = Settings.ConnectionType == ConnectionTypes.Serial_Port ? _reader.ReadLineAsync() : _reader.ReadLineAsync(); 
 
-            /* While we are awaiting for a line to come in process any outgoing stuff */
-            while (!lineTask.IsCompleted)
+            if(Settings.ConnectionType == ConnectionTypes.Serial_Port)
             {
-                if (!Connected)
+                var buffer = new char[1024];
+                var lineTask = _reader.ReadAsync(buffer, 0, 1024);
+                while (!lineTask.IsCompleted)
                 {
-                    return;
+                    if (!Connected)
+                    {
+                        return;
+                    }
+
+                    await Send();
                 }
 
-                await Send();
-            }
-
-            if (lineTask.IsCompleted)
-            {
-                if (lineTask.Status != TaskStatus.Faulted)
+                if (lineTask.IsCompleted)
                 {
-                    LineReceived?.Invoke(this, lineTask.Result);
-                    ProcessResponseLine(lineTask.Result);
+                    if (lineTask.Status != TaskStatus.Faulted)
+                    {
+
+                        var received = System.Text.ASCIIEncoding.ASCII.GetString(buffer.Select(ch => (byte)ch).ToArray(), 0, lineTask.Result);
+                        foreach(var ch in received)
+                        {
+                            if(ch == '\n' || ch == '\r')
+                            {
+                                if (!String.IsNullOrEmpty(messageBuffer))
+                                {
+                                    LineReceived?.Invoke(this, messageBuffer);
+                                    ProcessResponseLine(messageBuffer);
+                                }
+                                messageBuffer = String.Empty;
+                            }
+                            else
+                            {
+                                messageBuffer += ch;
+                            }
+                        }
+                        
+                    }
+                }
+            }
+            else
+            {
+                var lineTask = _reader.ReadLineAsync();
+                /* While we are awaiting for a line to come in process any outgoing stuff */
+                while (!lineTask.IsCompleted)
+                {
+                    if (!Connected)
+                    {
+                        return;
+                    }
+
+                    await Send();
+                }
+
+                if (lineTask.IsCompleted)
+                {
+                    if (lineTask.Status != TaskStatus.Faulted)
+                    {
+                        LineReceived?.Invoke(this, lineTask.Result);
+                        ProcessResponseLine(lineTask.Result);
+                    }
                 }
             }
         }
@@ -257,7 +301,7 @@ namespace LagoVista.PickAndPlace
                 if (Settings.MachineType == FirmwareTypes.GRBL1_1)
                 {
                     //Enqueue("\n$G\n", true);
-                    _port.DtrEnable = false;
+                    _port.DtrEnable = true;
                     await Task.Delay(250);
                     _port.DtrEnable = false;
                 }

@@ -46,7 +46,6 @@ namespace LagoVista.PickAndPlace
             try
             {
                 port.Open();
-
                 port.DataReceived += Port_DataReceived;
 
                 var outputStream = _port.BaseStream;
