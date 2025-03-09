@@ -84,6 +84,22 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _drillFileLocalPath, value); }
         }
 
+        private string _millingBottomFileLocalPath;
+        [JsonIgnore]
+        public string MillingBottomFileLocalPath
+        {
+            get { return _millingBottomFileLocalPath; }
+            set { Set(ref _millingBottomFileLocalPath, value); }
+        }
+
+        private string _drillBottomFileLocalPath;
+        [JsonIgnore]
+        public string DrillBottomFileLocalPath
+        {
+            get { return _drillBottomFileLocalPath; }
+            set { Set(ref _drillBottomFileLocalPath, value); }
+        }
+
 
         private string _bottomEtchingFileLocalPath;
         [JsonIgnore]
@@ -120,6 +136,21 @@ namespace LagoVista.Manufacturing.Models
         {
             get { return _drillFile; }
             set { Set(ref _drillFile, value); }
+        }
+
+        private EntityHeader _millingBottomFile;
+        public EntityHeader MillingBottomFile
+        {
+            get { return _millingBottomFile; }
+            set { Set(ref _millingBottomFile, value); }
+        }
+
+
+        private EntityHeader _drillBottomFile;
+        public EntityHeader DrillBottomlFile
+        {
+            get { return _drillBottomFile; }
+            set { Set(ref _drillBottomFile, value); }
         }
 
 

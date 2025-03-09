@@ -112,6 +112,8 @@ namespace LagoVista.PickAndPlace.App.PCB
             var bottomEtchFilePath = System.IO.Path.Combine(boardFileInfo.DirectoryName, $"{baseBoardName}.bot.etch.tap");
             var drillFilePath = System.IO.Path.Combine(boardFileInfo.DirectoryName, $"{baseBoardName}.top.drill.tap");
             var millingFilePath = System.IO.Path.Combine(boardFileInfo.DirectoryName, $"{baseBoardName}.top.mill.tap");
+            var drillFileBottomPath = System.IO.Path.Combine(boardFileInfo.DirectoryName, $"{baseBoardName}.bot.drill.tap");
+            var millingFileBottomPath = System.IO.Path.Combine(boardFileInfo.DirectoryName, $"{baseBoardName}.bot.mill.tap");
 
             if (!System.IO.File.Exists(topEtchFilePath) ||
                 !System.IO.File.Exists(bottomEtchFilePath))
@@ -137,8 +139,12 @@ namespace LagoVista.PickAndPlace.App.PCB
             _project.BottomEtchingFileLocalPath = bottomEtchFilePath;
             _project.MillingFile = null;
             _project.MillingFileLocalPath = millingFilePath;
+            _project.MillingBottomFile = null;
+            _project.MillingBottomFileLocalPath = millingFileBottomPath;
             _project.DrillFile = null;
             _project.DrillFileLocalPath = drillFilePath;
+            _project.DrillBottomlFile = null;
+            _project.DrillBottomFileLocalPath = drillFileBottomPath;
 
             _project = null;
         }

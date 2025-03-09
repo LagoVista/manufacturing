@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
 using LagoVista;
 using LagoVista.Core.Models;
 using LagoVista.PCB.Eagle.Models;
+using MSDMarkwort.Kicad.Parser.PcbNew.Models.PartSetup;
 
 namespace LagoVista.PCB.Eagle.Managers
 {
@@ -37,6 +40,20 @@ namespace LagoVista.PCB.Eagle.Managers
             pcb.Signals = (from eles
                         in doc.Descendants("signal")
                            select Models.Signal.Create(eles)).ToList();
+
+            pcb.Holes = (from eles
+                        in doc.Descendants("hole")
+                           select Models.Hole.Create(eles)).ToList();
+
+
+            var holesLayer = pcb.Layers.Where(layer => layer.Layer == PCBLayers.Holes).FirstOrDefault();
+            if (holesLayer != null)
+            {
+                foreach (var hole in pcb.Layers.Where(layer => layer.Layer == PCBLayers.Holes).FirstOrDefault().Holes)
+                {
+                    pcb.Holes.Add(hole);
+                }
+            }
 
             foreach (var layer in pcb.Layers)
             {

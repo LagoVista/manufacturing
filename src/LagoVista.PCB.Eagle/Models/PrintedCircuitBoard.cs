@@ -13,7 +13,7 @@ namespace LagoVista.PCB.Eagle.Models
         public List<PcbComponent> Components { get; set; } = new List<PcbComponent>();
         public List<Via> Vias { get; set; } = new List<Via>();
         public List<Signal> Signals { get; set; } = new List<Signal>();
-
+        public List<Hole> Holes { get; set; } = new List<Hole>();
         public List<PcbLine> Outline { get; set; } = new List<PcbLine>();
 
         public double Width { get; set; }
@@ -76,23 +76,6 @@ namespace LagoVista.PCB.Eagle.Models
             }
         }
 
-        public List<Hole> Holes
-        {
-            get
-            {
-
-                var holesLayer = Layers.Where(layer => layer.Layer == PCBLayers.Holes).FirstOrDefault();
-                if(holesLayer == null)
-                    return new List<Hole>();
-
-                foreach (var hole in Layers.Where(layer => layer.Layer == PCBLayers.Holes).FirstOrDefault().Holes)
-                {
-                    Debug.WriteLine(hole.X + " " + hole.Y + " " + hole.D);
-                }
-
-                return Layers.Where(layer => layer.Layer == PCBLayers.Holes).FirstOrDefault().Holes;
-            }
-        }
         public List<PcbLine> UnroutedWires { get; set; }
 
         public List<PcbLine> TopWires { get; set; }

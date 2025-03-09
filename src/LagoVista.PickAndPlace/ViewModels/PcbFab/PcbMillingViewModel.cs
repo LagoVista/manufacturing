@@ -42,20 +42,31 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
             SaveProjectCommand = new RelayCommand(() => SaveAsync());
             EditProjectCommand = new RelayCommand(() => EditProject(), () => Project != null);
 
-            OpenMillingFilecommand = new RelayCommand(OpenMillingFile);
-            OpenDrillFileCommand = new RelayCommand(OpenDrillFile);
             OpenEagleBoardCommand = new RelayCommand(OpenEagleBoard);
+
+            OpenBottomMillingFilecommand = new RelayCommand(OpenBottomMillingFile);
+            OpenBottomDrillFileCommand = new RelayCommand(OpenBottomDrillFile);
+            OpenMillingFilecommand = new RelayCommand(OpenMillingFile);
+            OpenDrillFileCommand = new RelayCommand(OpenDrillFile);            
             OpenTopEtchingCommand = new RelayCommand(OpenTopEtching);
             OpenBottomEtchingCommand = new RelayCommand(OpenBottomEtching);
             CenterBoardCommand = new RelayCommand(CenterBoard);
 
-            ShowBoardDrillingGCodeCommand = new RelayCommand(ShowBoardDrillingGCode);
-            ShowBoardMillingGCodeCommand = new RelayCommand(ShowBoardMillingGCode);
-            ShowBottomIsolatoinGCodeCommand = new RelayCommand(ShowBottomIsolationGCode);
-            ShowTopIsolutionGCodeCommand = new RelayCommand(ShowTopIsolationGCode);
-            ShowHoldDownGCodeCommand = new RelayCommand(ShowHoldDownGCode);
+            ShowBoardDrillingGCodeCommand = new RelayCommand(ShowBoardDrillingGCode, () => PCB != null && Project != null && !String.IsNullOrEmpty(Project.DrillFileLocalPath));
+            ShowBoardMillingGCodeCommand = new RelayCommand(ShowBoardMillingGCode, () => PCB != null && Project != null && !String.IsNullOrEmpty(Project.MillingFileLocalPath));
+            
+            ShowBoardBottomDrillingGCodeCommand = new RelayCommand(ShowBoardBottomDrillingGCode, () => PCB != null && Project != null && !String.IsNullOrEmpty(Project.DrillBottomFileLocalPath));
+            ShowBoardBottomMillingGCodeCommand = new RelayCommand(ShowBoardBottomMillingGCode, () => PCB != null && Project != null && !String.IsNullOrEmpty(Project.MillingBottomFileLocalPath));
 
-            GenerateIsolationMillingCommand = new RelayCommand(() => _pcb2GCodeService.CreateGCode(Project), () => Project != null);
+            ShowBottomIsolationGCodeCommand = new RelayCommand(ShowBottomIsolationGCode, () => PCB != null && Project != null && !String.IsNullOrEmpty(Project.BottomEtchingFileLocalPath));
+            ShowTopIsolutionGCodeCommand = new RelayCommand(ShowTopIsolationGCode, () => PCB != null && Project != null && !String.IsNullOrEmpty(Project.TopEtchingFileLocalPath));
+            ShowHoldDownGCodeCommand = new RelayCommand(ShowHoldDownGCode, () => PCB != null && Project != null);
+
+            GenerateIsolationMillingCommand = new RelayCommand(() =>
+            {
+                _pcb2GCodeService.CreateGCode(Project);
+                RaiseCanExecuteChanged();
+            }, () => Project != null && !String.IsNullOrEmpty(Project.EagleBRDFileLocalPath));
         }
 
         void ShowHoldDownGCode()
@@ -84,6 +95,37 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
             if (!String.IsNullOrEmpty(Project.MillingFileLocalPath))
             {
                 await Machine.GCodeFileManager.OpenFileAsync(Project.MillingFileLocalPath);
+            }
+            else
+            {
+                var gcode = GCodeEngine.CreateCutoutMill(PCB, Project);
+                Machine.GCodeFileManager.SetGCode(gcode);
+            }
+
+            Machine.GCodeFileManager.ApplyOffset(Project.ScrapSides, Project.ScrapTopBottom, 0);
+        }
+
+
+        async void ShowBoardBottomDrillingGCode()
+        {
+            if (!String.IsNullOrEmpty(Project.DrillBottomFileLocalPath))
+            {
+                await Machine.GCodeFileManager.OpenFileAsync(Project.DrillBottomFileLocalPath);
+            }
+            else
+            {
+                var gcode = GCodeEngine.CreateDrillGCode(PCB, Project);
+                Machine.GCodeFileManager.SetGCode(gcode);
+            }
+
+            Machine.GCodeFileManager.ApplyOffset(Project.ScrapSides, Project.ScrapTopBottom, 0);
+        }
+
+        async void ShowBoardBottomMillingGCode()
+        {
+            if (!String.IsNullOrEmpty(Project.MillingBottomFileLocalPath))
+            {
+                await Machine.GCodeFileManager.OpenFileAsync(Project.MillingBottomFileLocalPath);
             }
             else
             {
@@ -130,8 +172,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
                 }
                 catch
                 {
-                    await Popups.ShowAsync("Could not open Eage File");
+                    Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not open Eagle Board File.");
                 }
+
+                OpenEagleBoardCommand = new RelayCommand(OpenEagleBoard);
             }
         }
 
@@ -141,6 +185,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
             if (!string.IsNullOrEmpty(result))
             {
                 Project.DrillFileLocalPath = result;
+                RaiseCanExecuteChanged();
             }
         }
 
@@ -150,6 +195,27 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
             if (!string.IsNullOrEmpty(result))
             {
                 Project.MillingFileLocalPath = result;
+                RaiseCanExecuteChanged();
+            }
+        }
+
+        public async void OpenBottomDrillFile()
+        {
+            var result = await Popups.ShowOpenFileAsync(Constants.FileFilterGCode);
+            if (!string.IsNullOrEmpty(result))
+            {
+                Project.DrillBottomFileLocalPath = result;
+                RaiseCanExecuteChanged();
+            }
+        }
+
+        public async void OpenBottomMillingFile()
+        {
+            var result = await Popups.ShowOpenFileAsync(Constants.FileFilterGCode);
+            if (!string.IsNullOrEmpty(result))
+            {
+                Project.MillingBottomFileLocalPath = result;
+                RaiseCanExecuteChanged();
             }
         }
 
@@ -159,6 +225,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
             if (!string.IsNullOrEmpty(result))
             {
                 Project.TopEtchingFileLocalPath = result;
+                RaiseCanExecuteChanged();
             }
         }
 
@@ -168,6 +235,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
             if (!string.IsNullOrEmpty(result))
             {
                 Project.BottomEtchingFileLocalPath = result;
+                RaiseCanExecuteChanged();
             }
         }
 
@@ -235,7 +303,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
             if (EntityHeader.IsNullOrEmpty(Project.DrillFile) && !String.IsNullOrEmpty(Project.DrillFileLocalPath))
             {
                 var buffer = System.IO.File.ReadAllBytes(Project.DrillFileLocalPath);
-                var result = await _restClient.PostFormFileAsync("/api/media/resource/upload", buffer, "bottometching");
+                var result = await _restClient.PostFormFileAsync("/api/media/resource/upload", buffer, "drillfile");
                 var mediaResult = JsonConvert.DeserializeObject<InvokeResult<MediaResource>>(result.Content);
                 if (mediaResult.Successful)
                 {
@@ -246,11 +314,33 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
             if (EntityHeader.IsNullOrEmpty(Project.MillingFile) && !String.IsNullOrEmpty(Project.MillingFileLocalPath))
             {
                 var buffer = System.IO.File.ReadAllBytes(Project.MillingFileLocalPath);
-                var result = await _restClient.PostFormFileAsync("/api/media/resource/upload", buffer, "bottometching");
+                var result = await _restClient.PostFormFileAsync("/api/media/resource/upload", buffer, "milling");
                 var mediaResult = JsonConvert.DeserializeObject<InvokeResult<MediaResource>>(result.Content);
                 if (mediaResult.Successful)
                 {
                     Project.MillingFile = mediaResult.Result.ToEntityHeader();
+                }
+            }
+
+            if (EntityHeader.IsNullOrEmpty(Project.DrillBottomlFile) && !String.IsNullOrEmpty(Project.DrillBottomFileLocalPath))
+            {
+                var buffer = System.IO.File.ReadAllBytes(Project.DrillBottomFileLocalPath);
+                var result = await _restClient.PostFormFileAsync("/api/media/resource/upload", buffer, "bottometching");
+                var mediaResult = JsonConvert.DeserializeObject<InvokeResult<MediaResource>>(result.Content);
+                if (mediaResult.Successful)
+                {
+                    Project.DrillBottomlFile = mediaResult.Result.ToEntityHeader();
+                }
+            }
+
+            if (EntityHeader.IsNullOrEmpty(Project.MillingBottomFile) && !String.IsNullOrEmpty(Project.MillingBottomFileLocalPath))
+            {
+                var buffer = System.IO.File.ReadAllBytes(Project.MillingBottomFileLocalPath);
+                var result = await _restClient.PostFormFileAsync("/api/media/resource/upload", buffer, "bottometching");
+                var mediaResult = JsonConvert.DeserializeObject<InvokeResult<MediaResource>>(result.Content);
+                if (mediaResult.Successful)
+                {
+                    Project.MillingBottomFile = mediaResult.Result.ToEntityHeader();
                 }
             }
 
@@ -385,6 +475,30 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
                     }
                 }
 
+                if (!EntityHeader.IsNullOrEmpty(this.Project.MillingBottomFile))
+                {
+                    var url = $"https://www.nuviot.com/api/media/resource/{this.Project.OwnerOrganization.Id}/{this.Project.MillingBottomFile.Id}/download";
+                    var response = await _restClient.DownloadFileAsync(url);
+                    if (response.Success)
+                    {
+                        var fullFileName = Path.Combine(tempPath, Project.MillingBottomFile.Id + ".gcode");
+                        System.IO.File.WriteAllBytes(fullFileName, response.BinaryContent);
+                        Project.MillingBottomFileLocalPath = fullFileName;
+                    }
+                }
+
+                if (!EntityHeader.IsNullOrEmpty(this.Project.DrillBottomlFile))
+                {
+                    var url = $"https://www.nuviot.com/api/media/resource/{this.Project.OwnerOrganization.Id}/{this.Project.DrillBottomlFile.Id}/download";
+                    var response = await _restClient.DownloadFileAsync(url);
+                    if (response.Success)
+                    {
+                        var fullFileName = Path.Combine(tempPath, Project.DrillBottomlFile.Id + ".gcode");
+                        System.IO.File.WriteAllBytes(fullFileName, response.BinaryContent);
+                        Project.DrillBottomFileLocalPath = fullFileName;
+                    }
+                }
+
 
                 if (!String.IsNullOrEmpty(Project.EagleBRDFileLocalPath))
                 {
@@ -394,7 +508,20 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
                 }
             }
 
+            RaiseCanExecuteChanged();
+            
+        }
+
+        new void RaiseCanExecuteChanged()
+        {
             this.EditProjectCommand.RaiseCanExecuteChanged();
+            this.ShowHoldDownGCodeCommand.RaiseCanExecuteChanged();
+            this.ShowBottomIsolationGCodeCommand.RaiseCanExecuteChanged();
+            this.ShowTopIsolutionGCodeCommand.RaiseCanExecuteChanged();
+            this.ShowBoardBottomDrillingGCodeCommand.RaiseCanExecuteChanged();
+            this.ShowBoardBottomMillingGCodeCommand.RaiseCanExecuteChanged();
+            this.ShowBoardDrillingGCodeCommand.RaiseCanExecuteChanged();
+            this.ShowBoardMillingGCodeCommand.RaiseCanExecuteChanged();
         }
 
         ObservableCollection<PcbMillingProjectSummary> _projects = new ObservableCollection<PcbMillingProjectSummary>();
@@ -449,12 +576,19 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
         public RelayCommand OpenBottomEtchingCommand { get; private set; }
         public RelayCommand OpenMillingFilecommand { get; }
         public RelayCommand OpenDrillFileCommand { get; }
+        public RelayCommand OpenBottomMillingFilecommand { get; }
+        public RelayCommand OpenBottomDrillFileCommand { get; }
 
         public RelayCommand ShowBoardMillingGCodeCommand { get; }
         public RelayCommand ShowBoardDrillingGCodeCommand { get; }
 
+        public RelayCommand ShowBoardBottomMillingGCodeCommand { get; }
+        public RelayCommand ShowBoardBottomDrillingGCodeCommand { get; }
+
+
+
         public RelayCommand ShowTopIsolutionGCodeCommand { get; }
-        public RelayCommand ShowBottomIsolatoinGCodeCommand { get; }
+        public RelayCommand ShowBottomIsolationGCodeCommand { get; }
     
         public RelayCommand ShowHoldDownGCodeCommand { get; }
     }

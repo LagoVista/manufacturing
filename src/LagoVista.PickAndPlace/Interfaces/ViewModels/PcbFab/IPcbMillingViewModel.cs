@@ -32,7 +32,10 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab
         RelayCommand ShowBoardDrillingGCodeCommand { get; }
     
         RelayCommand ShowTopIsolutionGCodeCommand { get; }
-        RelayCommand ShowBottomIsolatoinGCodeCommand { get; }
+        RelayCommand ShowBottomIsolationGCodeCommand { get; }
         RelayCommand ShowHoldDownGCodeCommand { get; }
+
+        RelayCommand ShowBoardBottomMillingGCodeCommand { get; }
+        RelayCommand ShowBoardBottomDrillingGCodeCommand { get; }
     }
 }

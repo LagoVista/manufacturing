@@ -89,7 +89,7 @@
                     <TabItem Header="Calibration">
                         <mch:MachineCalibrationControl></mch:MachineCalibrationControl>
                     </TabItem>
-                    <TabItem Header="GCode Job">
+                    <TabItem Header="PCB Milling">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="auto" ></RowDefinition>
@@ -99,6 +99,19 @@
                             <fab:PcbMillingControl Grid.Row="1"></fab:PcbMillingControl>
                         </Grid>
                     </TabItem>
+
+                    <TabItem Header="GCOde Job">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto" ></RowDefinition>
+                                <RowDefinition Height="*" ></RowDefinition>
+                            </Grid.RowDefinitions>
+                            <ctls:JobControl></ctls:JobControl>
+                            <fab:PcbMillingControl Grid.Row="1"></fab:PcbMillingControl>
+                        </Grid>
+                    </TabItem>
+
+
                     <TabItem Header="Alignment">
                         <ctls:ToolAlignment></ctls:ToolAlignment>
                     </TabItem>

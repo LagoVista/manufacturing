@@ -5,6 +5,7 @@
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"             
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             d:DataContext="vm:IGCodeJobControlViewModel"
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.GCode;assembly=LagoVista.PickAndPlace"                                        
             xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
              mc:Ignorable="d" 
