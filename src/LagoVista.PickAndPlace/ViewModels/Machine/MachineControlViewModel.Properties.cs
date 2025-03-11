@@ -158,7 +158,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         {
             get 
             {
-                    return _machineRepo.CurrentMachine.Settings.XYStepMode;
+                    return _machineRepo.CurrentMachine.Settings.ZStepMode;
             }
             set
             {

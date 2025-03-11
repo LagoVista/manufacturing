@@ -24,6 +24,8 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.IO;
+using LagoVista.Core.ViewModels;
+using LagoVista.PickAndPlace.Models;
 
 namespace LagoVista.PickAndPlace.ViewModels.PcbFab
 {
@@ -54,6 +56,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
 
             ShowBoardDrillingGCodeCommand = new RelayCommand(ShowBoardDrillingGCode, () => PCB != null && Project != null && !String.IsNullOrEmpty(Project.DrillFileLocalPath));
             ShowBoardMillingGCodeCommand = new RelayCommand(ShowBoardMillingGCode, () => PCB != null && Project != null && !String.IsNullOrEmpty(Project.MillingFileLocalPath));
+
+            CreateHeightMaCommand = new RelayCommand(CreateHeightMap, () => PCB != null && Project != null);
             
             ShowBoardBottomDrillingGCodeCommand = new RelayCommand(ShowBoardBottomDrillingGCode, () => PCB != null && Project != null && !String.IsNullOrEmpty(Project.DrillBottomFileLocalPath));
             ShowBoardBottomMillingGCodeCommand = new RelayCommand(ShowBoardBottomMillingGCode, () => PCB != null && Project != null && !String.IsNullOrEmpty(Project.MillingBottomFileLocalPath));
@@ -61,7 +65,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
             ShowBottomIsolationGCodeCommand = new RelayCommand(ShowBottomIsolationGCode, () => PCB != null && Project != null && !String.IsNullOrEmpty(Project.BottomEtchingFileLocalPath));
             ShowTopIsolutionGCodeCommand = new RelayCommand(ShowTopIsolationGCode, () => PCB != null && Project != null && !String.IsNullOrEmpty(Project.TopEtchingFileLocalPath));
             ShowHoldDownGCodeCommand = new RelayCommand(ShowHoldDownGCode, () => PCB != null && Project != null);
-
+            OpenGCodeFileCommand = new RelayCommand(OpenGCodeFile);
             GenerateIsolationMillingCommand = new RelayCommand(() =>
             {
                 _pcb2GCodeService.CreateGCode(Project);
@@ -176,6 +180,27 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
                 }
 
                 OpenEagleBoardCommand = new RelayCommand(OpenEagleBoard);
+            }
+        }
+
+        public void CreateHeightMap()
+        {            
+            if (Project != null && PCB != null)
+            {
+                var heightMap = new HeightMap(null);
+                heightMap.Min = new Core.Models.Drawing.Vector2(Project.ScrapSides, Project.ScrapTopBottom);
+                heightMap.Max = new Core.Models.Drawing.Vector2(PCB.Width + Project.ScrapSides, PCB.Height + Project.ScrapTopBottom);
+                heightMap.GridSize = Project.HeightMapGridSize;
+                Machine.HeightMapManager.NewHeightMap(heightMap);
+            }            
+        }
+
+        public async void OpenGCodeFile()
+        {
+            var result = await Popups.ShowOpenFileAsync(Constants.FileFilterGCode);
+            if (!string.IsNullOrEmpty(result))
+            {
+                await Machine.GCodeFileManager.OpenFileAsync(result);
             }
         }
 
@@ -522,6 +547,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
             this.ShowBoardBottomMillingGCodeCommand.RaiseCanExecuteChanged();
             this.ShowBoardDrillingGCodeCommand.RaiseCanExecuteChanged();
             this.ShowBoardMillingGCodeCommand.RaiseCanExecuteChanged();
+            this.CreateProjectCommand.RaiseCanExecuteChanged();
         }
 
         ObservableCollection<PcbMillingProjectSummary> _projects = new ObservableCollection<PcbMillingProjectSummary>();
@@ -564,6 +590,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
             }
         }
 
+        public RelayCommand OpenGCodeFileCommand { get; }
+
         public RelayCommand CreateProjectCommand {get;}
         public RelayCommand CenterBoardCommand { get; private set; }
         public RelayCommand OpenProjectCommand { get; }
@@ -591,5 +619,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
         public RelayCommand ShowBottomIsolationGCodeCommand { get; }
     
         public RelayCommand ShowHoldDownGCodeCommand { get; }
+
+        public RelayCommand CreateHeightMaCommand { get; }
     }
 }

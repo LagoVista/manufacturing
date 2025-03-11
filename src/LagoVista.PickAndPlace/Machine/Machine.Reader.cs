@@ -103,6 +103,18 @@ namespace LagoVista.PickAndPlace
 
                     _isOnHold = false;
                 }
+                else if (fullMessageLine.StartsWith("alarm:"))
+                {
+                    var alarmNumberRegEx = new Regex("alarm:(?'ErrorCode'-?[0-9\\.]*)?");
+                    var alarmMatch = alarmNumberRegEx.Match(fullMessageLine);
+
+                    if(alarmMatch.Success)
+                    {
+                        var strErrorCode = alarmMatch.Groups["ErrorCode"].Value;                        
+                        var err = GrblErrorProvider.Instance.GetAlarmCode(Convert.ToInt32(strErrorCode));
+                        AddStatusMessage(StatusMessageTypes.Warning, err, MessageVerbosityLevels.Normal);
+                    }
+                }
                 else if (fullMessageLine.StartsWith("error:"))
                 {
                     var errorline = _sentQueue.Any() ? _sentQueue.Dequeue() : "?????";
@@ -118,21 +130,23 @@ namespace LagoVista.PickAndPlace
                         AddStatusMessage(StatusMessageTypes.Warning, err, MessageVerbosityLevels.Normal);
                     }
                     else
+                    {
                         AddStatusMessage(StatusMessageTypes.Warning, $"{fullMessageLine}: {errorline}", MessageVerbosityLevels.Normal);
 
-                    if (_sentQueue.Count != 0)
-                    {
-                        var sentLine = _sentQueue.Dequeue();
-                        UnacknowledgedBytesSent -= sentLine.Length + 1;
-                    }
-                    else
-                    {
-                        if ((DateTime.Now - _connectTime).TotalMilliseconds > 200)
+                        if (_sentQueue.Count != 0)
                         {
-                            AddStatusMessage(StatusMessageTypes.Warning, $"Received <{fullMessageLine}> without anything in the Sent Buffer", MessageVerbosityLevels.Normal);
+                            var sentLine = _sentQueue.Dequeue();
+                            UnacknowledgedBytesSent -= sentLine.Length + 1;
                         }
+                        else
+                        {
+                            if ((DateTime.Now - _connectTime).TotalMilliseconds > 200)
+                            {
+                                AddStatusMessage(StatusMessageTypes.Warning, $"Received <{fullMessageLine}> without anything in the Sent Buffer", MessageVerbosityLevels.Normal);
+                            }
 
-                        UnacknowledgedBytesSent = 0;
+                            UnacknowledgedBytesSent = 0;
+                        }
                     }
 
                     Mode = OperatingMode.Manual;

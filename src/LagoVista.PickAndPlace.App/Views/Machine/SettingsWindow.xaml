@@ -107,6 +107,7 @@
                         <RowDefinition Height="auto" />
                         <RowDefinition Height="auto" />
                         <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="140" />
@@ -130,6 +131,10 @@
                     <Label Grid.Row="3" Content="Max Y" />
                     <TextBox  Text="{Binding Settings.MaxY}" Grid.Row="3" Grid.ColumnSpan="2" />
                     <Label Content="mm" Grid.Row="3" Grid.Column="3" />
+
+                    <Label Grid.Row="4" Content="Safe Move Height" />
+                    <TextBox  Text="{Binding Settings.DefaultSafeMoveHeight}" Grid.Row="4" Grid.ColumnSpan="2" />
+                    <Label Content="mm" Grid.Row="4" Grid.Column="3" />
 
                 </Grid>
             </TabItem>

@@ -220,7 +220,7 @@ namespace LagoVista.PickAndPlace
             var camera = Settings.Cameras.FirstOrDefault(cam => cam.CameraType.Value == cameraType);
             if (camera == null)
             {
-                AddStatusMessage(StatusMessageTypes.FatalError, $"Could not set vision profile, could not find camera of type: {cameraType}");
+                return;
             }
             else
             {
@@ -244,7 +244,7 @@ namespace LagoVista.PickAndPlace
             var camera = Settings.Cameras.FirstOrDefault(cam => cam.CameraType.Value == cameraType);
             if (camera == null)
             {
-                AddStatusMessage(StatusMessageTypes.FatalError, $"Could not set vision profile, could not find camera of type: {cameraType}");
+                return;
             }
             else
             { 

@@ -300,7 +300,7 @@ namespace LagoVista.PickAndPlace
             }
             else if (Settings.MachineType == FirmwareTypes.Repeteir_PnP)
             {
-                Enqueue($"G0 Z{Settings.SafMoveHeight} F{Settings.FastFeedRate}");
+                Enqueue($"G0 Z{Settings.DefaultSafeMoveHeight} F{Settings.FastFeedRate}");
                 await SetViewTypeAsync(ViewTypes.Camera);
                 GotoPoint(0, 0);
                 //ifSettings.PartInspectionCamera
@@ -308,9 +308,10 @@ namespace LagoVista.PickAndPlace
             }
             else
             {
+
                 if (Settings.MachineType == FirmwareTypes.GRBL1_1)
                 {
-                    Enqueue("G0 Z40");
+                    Enqueue($"G0 Z{Settings.DefaultSafeMoveHeight}");
                 }
 
                 Enqueue("G0 X0 Y0");
@@ -319,6 +320,7 @@ namespace LagoVista.PickAndPlace
                 {
                     Enqueue("G0 Z0");
                 }
+
             }
         }
 
@@ -552,7 +554,7 @@ namespace LagoVista.PickAndPlace
 
         public void SpindleOn()
         {
-            Enqueue("M3");
+            Enqueue("M3 S1000");
         }
 
         public void SpindleOff()

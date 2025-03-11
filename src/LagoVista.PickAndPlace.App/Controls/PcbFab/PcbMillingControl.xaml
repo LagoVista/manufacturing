@@ -24,6 +24,8 @@
 
         <Menu Grid.ColumnSpan="2">
             <MenuItem Header="GCode">
+                <MenuItem Header="Open" Command="{Binding OpenGCodeFileCommand}" />
+                <Separator />
                 <MenuItem Header="PCB Hold Down" Command="{Binding ShowHoldDownGCodeCommand}" />
                 <MenuItem Header="Probe Height Map" Command="{Binding ShowBoardMillingGCodeCommand}" />
                 <MenuItem Header="Apply HeightMap"  Command="{Binding ApplyHeightMapCommand}" />
@@ -39,6 +41,8 @@
                 <MenuItem Header="New Project" Command="{Binding CreateProjectCommand}" />
                 <MenuItem Header="Edit project" Command="{Binding EditProjectCommand}" />
                 <MenuItem  Header="Recent Projects" x:Name="RecentProjects" />
+                <Separator />
+                <MenuItem Header="Create Height Map" Command="{Binding CreateHeightMaCommand}" />
             </MenuItem>
         </Menu>
 

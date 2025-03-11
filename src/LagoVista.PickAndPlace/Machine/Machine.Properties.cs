@@ -1,4 +1,5 @@
-﻿using LagoVista.Core.PlatformSupport;
+﻿using LagoVista.Core.Models;
+using LagoVista.Core.PlatformSupport;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
@@ -475,7 +476,7 @@ namespace LagoVista.PickAndPlace
             get { return _leftVacuumPump; }
             set
             {
-                if (Settings.GcodeMapping?.Value != null)
+                if (!EntityHeader.IsNullOrEmpty(Settings.GcodeMapping))
                 {
                     if (value)
                         Enqueue(Settings.GcodeMapping.Value.LeftVacuumOn);
@@ -494,10 +495,13 @@ namespace LagoVista.PickAndPlace
             get { return _rightVacuumPump; }
             set
             {
-                if (value)
-                    Enqueue(Settings.GcodeMapping.Value.RightVacuumOn);
-                else
-                    Enqueue(Settings.GcodeMapping?.Value.RightVacuumOff);
+                if (!EntityHeader.IsNullOrEmpty(Settings.GcodeMapping))
+                {
+                    if (value)
+                        Enqueue(Settings.GcodeMapping?.Value.RightVacuumOn);
+                    else
+                        Enqueue(Settings.GcodeMapping?.Value.RightVacuumOff);
+                }
 
                 _rightVacuumPump = value;
                 RaisePropertyChanged();

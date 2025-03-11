@@ -20,6 +20,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab
         RelayCommand CreateProjectCommand { get; }
         RelayCommand GenerateIsolationMillingCommand { get; }
 
+        RelayCommand OpenGCodeFileCommand { get;  }
+
         RelayCommand OpenProjectCommand { get; }
         RelayCommand EditProjectCommand { get; }
         RelayCommand SaveProjectCommand { get; }

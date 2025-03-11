@@ -4,16 +4,19 @@ using System.Text.RegularExpressions;
 using System.IO;
 using LagoVista.Core.PlatformSupport;
 using System.Threading.Tasks;
+using LagoVista.IoT.Logging;
 
 namespace LagoVista.PickAndPlace.Util
 {
     public class GrblErrorProvider
     {
-        Dictionary<int, string> Errors;
+        Dictionary<int, string> _errors;
+        Dictionary<int, string> _alarms;
 
         private GrblErrorProvider()
         {
-            Errors = new Dictionary<int, string>();
+            _errors = new Dictionary<int, string>();
+            _alarms = new Dictionary<int, string>();
         }
 
         private async Task LoadErrorFileAsync()
@@ -21,6 +24,7 @@ namespace LagoVista.PickAndPlace.Util
             Services.Logger.AddCustomEvent(LogLevel.Message, "GrblErrorProvider_Init", "Loading GRBL Error Database");
 
             var errors = await Services.Storage.ReadAllTextAsync(Constants.FilePathErrors);
+            var alarms = await Services.Storage.ReadAllTextAsync(Constants.FilePathAlarmCodes);
 
             Regex LineParser = new Regex(@"([0-9]+)\t([^\n^\r]*)");     //test here https://www.regex101.com/r/hO5zI1/2
 
@@ -30,7 +34,16 @@ namespace LagoVista.PickAndPlace.Util
             {
                 int errorNo = int.Parse(m.Groups[1].Value);
 
-                Errors.Add(errorNo, m.Groups[2].Value);
+                _errors.Add(errorNo, m.Groups[2].Value);
+            }
+
+            mc = LineParser.Matches(alarms);
+
+            foreach (Match m in mc)
+            {
+                int errorNo = int.Parse(m.Groups[1].Value);
+
+                _alarms.Add(errorNo, m.Groups[2].Value);
             }
 
             Services.Logger.AddCustomEvent(LogLevel.Message, "GrblErrorProvider_Init", "Loaded GRBL Error Database");
@@ -38,10 +51,18 @@ namespace LagoVista.PickAndPlace.Util
 
         public string GetErrorMessage(int errorCode)
         {
-            if (Errors.ContainsKey(errorCode))
-                return Errors[errorCode];
+            if (_errors.ContainsKey(errorCode))
+                return _errors[errorCode];
             else
                 return $"Unknown Error: {errorCode}";
+        }
+
+        public string GetAlarmCode(int alarmCode)
+        {
+            if (_alarms.ContainsKey(alarmCode))
+                return _alarms[alarmCode];
+            else
+                return $"Unknown Alarm Code: {alarmCode}";
         }
 
         static Regex ErrorExp = new Regex(@"Invalid gcode ID:(\d+)");

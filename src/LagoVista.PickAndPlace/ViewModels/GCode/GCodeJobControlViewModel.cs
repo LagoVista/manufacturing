@@ -48,6 +48,7 @@ namespace LagoVista.PickAndPlace.ViewModels.GCode
             SetWorkspaceHomeCommand = new RelayCommand(SetWorkspaceHome, CanMove);
 
             _machineRepo.CurrentMachine.PropertyChanged += _machine_PropertyChanged;
+            _machineRepo.MachineChanged += (s, a) => _machineRepo.CurrentMachine.PropertyChanged += _machine_PropertyChanged;
             //Machine.Settings.PropertyChanged += _machine_PropertyChanged;
             _machineRepo.CurrentMachine.HeightMapManager.PropertyChanged += HeightMapManager_PropertyChanged;
             _machineRepo.CurrentMachine.GCodeFileManager.PropertyChanged += GCodeFileManager_PropertyChanged;

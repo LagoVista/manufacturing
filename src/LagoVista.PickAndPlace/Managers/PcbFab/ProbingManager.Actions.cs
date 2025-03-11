@@ -63,7 +63,7 @@ namespace LagoVista.PickAndPlace.Managers
             if (Machine.SetMode(OperatingMode.ProbingHeight))
             {
                 _timer = new Timer(Timer_Tick, null, Machine.Settings.ProbeTimeoutSeconds * 1000, 0);
-                Machine.SendCommand($"G38.3 Z-{Machine.Settings.ProbeMaxDepth.ToString("0.###", Constants.DecimalOutputFormat)} F{Machine.Settings.ProbeFeed.ToString("0.#", Constants.DecimalOutputFormat)}");
+                Machine.SendCommand($"G38.3 Z-{Machine.Settings.ProbeMaxDepth.ToString("0.###", Constants.DecimalOutputFormat)} F{Machine.Settings.ProbeHeightMovementFeed.ToString("0.#", Constants.DecimalOutputFormat)}");
             }
         }
 

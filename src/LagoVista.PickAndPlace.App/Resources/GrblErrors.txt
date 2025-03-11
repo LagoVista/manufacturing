@@ -1,4 +1,23 @@
+1	GCode Command letter was not found. 
+2	GCode Command value invalid or missing.
+3	Grbl '$' not recognized or supported.
+4	Negative value for an expected positive value.
+5	Homing fail. Homing not enabled in settings.
+6	Min step pulse must be greater than 3usec.
+7	EEPROM read failed. Default values used.
+8	Grbl '$' command Only valid when Idle.
+9	GCode commands invalid in alarm or jog state.
+10	Soft limits require homing to be enabled.
+11	Max characters per line exceeded. Ignored.
+12	Grbl '$' setting exceeds the maximum step rate.
+13	Safety door opened and door state initiated.
+14	Build info or start-up line > EEPROM line length
+15	Jog target exceeds machine travel, ignored.
+16	Jog Cmd missing '=' or has prohibited GCode.
+17	Laser mode requires PWM output.
 20	An unspoorted Gode was sent.
+21	> 1 GCode command in a modal group in block.
+22	Feed rate has not yet been set or is undefined.
 23	A G or M command value in the block is not an integer. For example, G4 can't be G4.13. Some G-code commands are floating point (G92.1), but these are ignored.
 24	Two G-code commands that both require the use of the XYZ axis words were detected in the block.
 25	A G-code word was repeated in the block.
@@ -14,3 +33,4 @@
 35	A G2 or G3 arc, traced with the offset definition, is missing the IJK offset word in the selected plane to trace the arc.
 36	There are unused, leftover G-code words that aren't used by any command in the block.
 37	The G43.1 dynamic tool length offset command cannot apply an offset to an axis other than its configured axis. The Grbl default axis is the Z-axis.
+38	Tool number greater than max value.
