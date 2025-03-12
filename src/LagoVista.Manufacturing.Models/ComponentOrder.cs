@@ -255,12 +255,12 @@ namespace LagoVista.Manufacturing.Models
 
             return new ComponentOrderLineItem()
             {
-                QuantityOrdered = decimal.Parse(parts[5].Trim('"', '$')),
+                QuantityOrdered = decimal.Parse(parts[6].Trim('"', '$')),
                 SupplierPartNumber = parts[1].Trim('"', '$'),
                 MfgPartNumber = parts[2].Trim('"', '$'),
-                Description = parts[3].Trim('"', '$'),
-                UnitPrice = decimal.Parse(parts[7].Trim('"', '$')),
-                QuantityBackOrdered = decimal.Parse(parts[6].Trim('"', '$'))
+                Description = parts[4].Trim('"', '$'),
+                UnitPrice = decimal.Parse(parts[8].Trim('"', '$')),
+                QuantityBackOrdered = decimal.Parse(parts[7].Trim('"', '$'))
             };
         }
     }

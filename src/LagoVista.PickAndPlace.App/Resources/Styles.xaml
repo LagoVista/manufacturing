@@ -27,34 +27,37 @@
     <Style TargetType="TextBlock" x:Key="label" >
         <Setter Property="Margin" Value="2" />
         <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontSize" Value="24" />
+        <Setter Property="Height" Value="36" />
         <Setter Property="Foreground" Value="#c0c0c0" />
     </Style>
 
     <Style TargetType="TextBox">
-        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontSize" Value="24" />
     </Style>
 
     <Style TargetType="PasswordBox">
-        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontSize" Value="24" />
     </Style>
-
 
     <Style TargetType="TextBlock" x:Key="content" >
         <Setter Property="Margin" Value="2" />
-        <Setter Property="FontSize" Value="18" />
+        <Setter Property="Height" Value="36" />
+        <Setter Property="FontSize" Value="24" />
         <Setter Property="Foreground" Value="#c0c0c0" />
     </Style>
 
     <Style TargetType="TextBlock" x:Key="header">
         <Setter Property="Margin" Value="2" />
         <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontSize" Value="32" />
         <Setter Property="Foreground" Value="White" />
     </Style>
 
     <Style TargetType="ComboBox">
         <Setter Property="Margin" Value="2" />
+        <Setter Property="Height" Value="42" />
+        <Setter Property="FontSize" Value="42" />
         <Setter Property="Background" Value="#c0c0c0" />
     </Style>
 
@@ -67,19 +70,4 @@
     <Style TargetType="{x:Type Grid}" x:Key="MainBackground">
         <Setter Property="Background" Value="#202020"/>
     </Style>
-
-    <Style TargetType="{x:Type DataGridCell}">
-        <Style.Triggers>
-            <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="{StaticResource Accent1_80_Brush}"/>
-                <Setter Property="Foreground" Value="White"/>
-                <Setter Property="FontWeight" Value="Bold"/>
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-
-
-
-
-
 </ResourceDictionary>

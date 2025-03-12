@@ -8,10 +8,10 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="30" />
-            <RowDefinition Height="30" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <TextBlock Grid.Row="0" x:Name="Label" Style="{StaticResource label}"></TextBlock>
-        <ComboBox SelectionChanged="Value_SelectionChanged" Grid.Row="1" x:Name="Value"></ComboBox>
+        <ComboBox  FontSize="28" Height="40" SelectionChanged="Value_SelectionChanged" Grid.Row="1" x:Name="Value"></ComboBox>
     </Grid>
 </UserControl>
