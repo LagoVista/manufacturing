@@ -179,8 +179,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             else
                 await Machine.MoveToToolHeadAsync(MachineConfiguration.ToolHeads.First());
 
-
-            Machine.SendCommand(CurrentPartLocation.ToGCode());
+            var location = CurrentPartLocation + CurrentComponentPackage.PickOffset;
+            Machine.SendCommand(location.ToGCode());
             Machine.SetRelativeMode();
             Machine.SendCommand(_feederOffset.ToGCode());
             Machine.SetAbsoluteMode();
@@ -218,6 +218,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 Machine.SendSafeMoveHeight();
                 await Machine.GoToPartInspectionCameraAsync();
+                if(!CurrentComponentPackage.PickOffset.IsOrigin())
+                {
+                    Machine.SetRelativeMode();
+                    Machine.SendCommand(CurrentComponentPackage.PickOffset.ToGCode());
+                    Machine.SetAbsoluteMode();
+                }
                 _pickStates = PickStates.Inspecting;
             }
 
@@ -257,10 +263,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             var beforePick = await _machineUtilitiesViewModel.ReadVacuumAsync();
             Machine.SendSafeMoveHeight();
-            Machine.SendCommand(CurrentPartLocation.ToGCode());
+
+            var location = CurrentPartLocation + CurrentComponentPackage.PickOffset;
+            Machine.SendCommand(location.ToGCode());
             Machine.SetToolHeadHeight(PickHeight.Value);
-            Machine.VacuumPump = false;
-            Machine.Dwell(100);
             Machine.SendSafeMoveHeight();
             var afterPick = await _machineUtilitiesViewModel.ReadVacuumAsync();
 
@@ -326,7 +332,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             Machine.SendSafeMoveHeight();
             Machine.SendSafeMoveHeight();
-            Machine.SendCommand(CurrentPartLocation.ToGCode());
+            var location = CurrentPartLocation + CurrentComponentPackage.PickOffset;
+            Machine.SendCommand(location.ToGCode());
 
             if (CurrentComponentPackage == null && CurrentComponent.ComponentPackage != null)
             {

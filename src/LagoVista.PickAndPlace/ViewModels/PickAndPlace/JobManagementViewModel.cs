@@ -371,6 +371,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return;
             }
 
+
+            foreach(var pg in Job.Parts)
+            {
+                foreach (var plc in pg.Placements)
+                    plc.State = EntityHeader<PnPStates>.Create(PnPStates.New);
+            }
+
             var jobLoadReslut = await _restClient.GetAsync<DetailResponse<PickAndPlaceJobRun>>($"/api/mfg/pnpjob/{Job.Id}/run/factory");
             if (jobLoadReslut.Successful && jobLoadReslut.Result.Successful)
             {

@@ -43,6 +43,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
             await Machine.GoToPartInspectionCameraAsync();
 
+            if (!CurrentComponent.ComponentPackage.Value.PickOffset.IsOrigin())
+            {
+                Machine.SetRelativeMode();
+                Machine.SendCommand(CurrentComponent.ComponentPackage.Value.PickOffset.ToGCode());
+                Machine.SetAbsoluteMode();
+            }
+
             return InvokeResult.Success;
         }
        
@@ -60,6 +67,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             await Machine.GoToPartInspectionCameraAsync();
 
+            if (!component.ComponentPackage.Value.PickOffset.IsOrigin())
+            {
+                Machine.SetRelativeMode();
+                Machine.SendCommand(component.ComponentPackage.Value.PickOffset.ToGCode());
+                Machine.SetAbsoluteMode();
+            }
+
+
             _corectionFactor = new Point2D<double>();
 
             if (component.PartInspectionVisionProfile != null)
@@ -70,12 +85,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
 
             _waitForCenter = new ManualResetEventSlim(false);
-            _locatorViewModel.RegisterRectangleLocatedHandler(this);
+            _locatorViewModel.RegisterRectangleLocatedHandler(this,10000);
 
             await Task.Run(() =>
             {
                 var attemptCount = 0;
-                while (!_waitForCenter.IsSet && ++attemptCount < 200)
+                while (!_waitForCenter.IsSet && ++attemptCount < 1000)
                     _waitForCenter.Wait(25);
 
                 Debug.WriteLine($"Did we get location? {_waitForCenter.IsSet}");
