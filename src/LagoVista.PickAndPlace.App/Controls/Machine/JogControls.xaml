@@ -54,7 +54,7 @@
                     SmallChange="{Binding Path=ZStepInterval}"
                     Value="{Binding ZStepSizeSlider, Mode=TwoWay}"  
                     VerticalAlignment="Center" />
-        <TextBlock Style="{StaticResource label}" Text="{Binding Settings.JogFeedRate, FallbackValue=1000, StringFormat=0.00}"
+        <TextBlock Style="{StaticResource label}" Text="{Binding MachineRepo.CurrentMachine.Settings.JogFeedRate, FallbackValue=1000, StringFormat=0.00}"
                        Grid.Row="1" Grid.Column="3" FontSize="16" Margin="4" TextAlignment="Right" />
         <TextBlock Style="{StaticResource label}" Text="{Binding XYStepSize, FallbackValue=0.5, StringFormat=0.00}"
                        Grid.Row="2" Grid.Column="2" FontSize="16" Margin="4" TextAlignment="Right" />

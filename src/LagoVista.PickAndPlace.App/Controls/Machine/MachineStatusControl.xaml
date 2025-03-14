@@ -53,7 +53,7 @@
             <TextBlock Grid.Row="6" Text="Units" Style="{StaticResource label}"  />
             <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding MachineRepo.CurrentMachine.Unit, FallbackValue=MM}"  Style="{StaticResource content}"/>
             <TextBlock Grid.Row="7" Text="Distance Mode" Style="{StaticResource label}"  />
-            <TextBlock  Grid.Row="7" Grid.Column="1" Text="{Binding Machine.DistanceMode, FallbackValue=Absolute}"   Style="{StaticResource content}"/>
+            <TextBlock  Grid.Row="7" Grid.Column="1" Text="{Binding MachineRepo.CurrentMachine.DistanceMode, FallbackValue=Absolute}"   Style="{StaticResource content}"/>
         </Grid>
     </Border>
 </UserControl>

@@ -83,8 +83,8 @@
          Length ="{Binding Machine.Settings.WorkAreaWidth, FallbackValue=100}"  />-->
 
             <h:GridLinesVisual3D x:Name="ModelGrid" MinorDistance="10"  MajorDistance="100" 
-       	    Width="{Binding Machine.Settings.WorkAreaHeight, FallbackValue=80}"
-         Length ="{Binding Machine.Settings.WorkAreaWidth, FallbackValue=100}"  />
+       	    Width="{Binding Machine.Settings.WorkAreaSize.Y, FallbackValue=80}"
+            Length ="{Binding Machine.Settings.WorkAreaSize.X, FallbackValue=100}"  />
 
             <h:MeshGeometryVisual3D Material="{StaticResource HeightMapMediaGroup}" x:Name="HeightMap" MeshGeometry="{Binding Path=HeightMapManager.HeightMap, Converter={StaticResource HeightMap2MeshConverter}}" />
             <h:LinesVisual3D x:Name="ModelHeightMapBoundary" Thickness="2" Color="Lime"  Points="{Binding Path=HeightMapManager.HeightMap.RawBoardOutline, Converter={StaticResource Lines2Visual3DConverter}}"/>

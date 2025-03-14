@@ -46,8 +46,8 @@
             </DataGrid>
             
             <StackPanel Orientation="Horizontal">
-                <Label Content="{Binding PlaceablePart.PackageName}" ></Label>
-                <Label Content="{Binding PlaceablePart.Value}" ></Label>
+                <Label Content="{Binding ActiveFeederViewModel.CurrentComponent.ComponentPackage.Text}" ></Label>
+                <Label Content="{Binding ActiveFeederViewModel.CurrentComponent.Value}" ></Label>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">

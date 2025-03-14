@@ -1,5 +1,6 @@
 ﻿using LagoVista.Core.Commanding;
 using LagoVista.Core.Models;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using System.Threading.Tasks;
 using static LagoVista.PickAndPlace.ViewModels.PickAndPlace.JobExecutionViewModel;
 
@@ -16,6 +17,13 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         Task AbortJobAsync();
 
         EntityHeader<JobState> State { get; }
+        IFeederViewModel ActiveFeederViewModel { get; }
+
+        IVacuumViewModel VacuumViewModel { get; }
+        IJobManagementViewModel JobVM { get; }
+        ICircuitBoardViewModel PcbVM { get; }
+        IPartInspectionViewModel PartInspectionVM { get; }
+
 
         RelayCommand PlaceIndependentPartCommand { get; }
         RelayCommand PlaceGroupPartCommand { get; }
