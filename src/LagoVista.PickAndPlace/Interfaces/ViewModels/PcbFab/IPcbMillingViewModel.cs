@@ -39,5 +39,9 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab
 
         RelayCommand ShowBoardBottomMillingGCodeCommand { get; }
         RelayCommand ShowBoardBottomDrillingGCodeCommand { get; }
+
+        public IPCBManager PCBManager { get; }
+        public IHeightMapManager HeightMapManager { get; }
+        public IGCodeFileManager GCodeFileManager { get; }
     }
 }

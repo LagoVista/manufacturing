@@ -25,7 +25,7 @@ namespace LagoVista.PickAndPlace.Models
         private bool _populated;
 
         private Point2D<float> _filteredCenter;
-        private float _filteredAngle;
+        //private float _filteredAngle;
 
         public MVLocatedRectangle(CameraTypes cameraType, Point2D<int> viewCenter, double pixelsPerMM, double erorMargin, int stabilizationCount)
         {

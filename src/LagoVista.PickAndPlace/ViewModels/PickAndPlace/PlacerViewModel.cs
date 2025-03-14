@@ -16,7 +16,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
     {
         IStripFeederViewModel _stripFeederViewModel;
         IAutoFeederViewModel _autoFeederViewModel;
-        IFeederViewModel _feederViewModel;
         ILocatorViewModel _locatorViewModel;
        
         public PlacerViewModel(IJobManagementViewModel pnpJobVM, ILocatorViewModel locatorViewModel, IMachineRepo machineRepo,  IStripFeederViewModel stripFeederViewModel, IAutoFeederViewModel autoFeederViewModel) : base(machineRepo)
@@ -25,23 +24,26 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _stripFeederViewModel = stripFeederViewModel ?? throw new ArgumentNullException(nameof(stripFeederViewModel));
             _autoFeederViewModel = autoFeederViewModel ?? throw new ArgumentNullException(nameof(autoFeederViewModel));
             _locatorViewModel = locatorViewModel ?? throw new ArgumentNullException(nameof(locatorViewModel));
+           
         }
 
        
 
 
-        public async Task PlaceComponent()
+        public Task PlaceComponent()
         {
 
             /* Cycle is:
              * 1) Verify part can be placed
              * 
              */
+
+            throw new NotImplementedException();
         }
 
 
 
-        public async Task PlacePart()
+        public Task PlacePart()
         {
             /* Cycle is:
              * 1) Verify we have part in 
@@ -52,6 +54,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
              * 6) Verify part is placed
              * 7) Move to next part
              */
+
+            throw new NotImplementedException();
         }
 
 

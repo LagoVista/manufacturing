@@ -5,7 +5,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="LagoVista.Core" Version="3.0.2852.1744" />
+    <Compile Remove="ViewModels\Obsolete\**" />
+    <EmbeddedResource Remove="ViewModels\Obsolete\**" />
+    <None Remove="ViewModels\Obsolete\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LagoVista.Core" Version="3.0.2858.1248" />
     <PackageReference Include="System.IO.Ports" Version="9.0.0" />
     <PackageReference Include="Emgu.CV" Version="4.5.5.4823" />
     <PackageReference Include="Emgu.CV.runtime.windows" Version="4.5.5.4823" />

@@ -1,6 +1,6 @@
-﻿using LagoVista.PickAndPlace.Interfaces;
+﻿using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
 using LagoVista.PickAndPlace.Models;
-using LagoVista.PickAndPlace.ViewModels;
 using LagoVista.PickAndPlace.ViewModels.PcbFab;
 using System.Windows;
 
@@ -9,11 +9,11 @@ namespace LagoVista.PickAndPlace.App
     public partial class NewHeightMapWindow : Window
 	{
         NewHeightMapViewModel _viewModel;
-        public NewHeightMapWindow(Window owner, IMachine machine, bool edit)
+        public NewHeightMapWindow(Window owner, IMachineRepo machine, IHeightMapManager heightMapManager, bool edit)
 		{
             Owner = owner;
             _viewModel = new NewHeightMapViewModel(machine);
-            _viewModel.HeightMap = edit ? _viewModel.Machine.HeightMapManager.HeightMap : new HeightMap(_viewModel.Logger);
+            _viewModel.HeightMap = edit ? heightMapManager.HeightMap : new HeightMap(_viewModel.Logger);
             ///TODO: Should really disable the edit option if we don't have a height map.
             if (_viewModel.HeightMap == null)
             {

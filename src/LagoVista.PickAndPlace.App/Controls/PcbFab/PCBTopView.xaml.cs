@@ -150,7 +150,7 @@ namespace LagoVista.PickAndPlace.App.Controls
             {
                 if (manager.Machine.Connected)
                 {
-                    point = manager.Machine.PCBManager.GetAdjustedPoint(point);
+                    point = manager.GetAdjustedPoint(point);
                     manager.Machine.GotoPoint(point);
 
                     _lastPoint = point;

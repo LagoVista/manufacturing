@@ -7,7 +7,7 @@
              xmlns:vms="clr-namespace:LagoVista.PickAndPlace.App.Services"
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;assembly=LagoVista.PickAndPlace"
-             d:DataContext="{d:DesignInstance vms:ImageCaptureService }"
+             d:DataContext="{d:DesignInstance vm:IImageCaptureService }"
              xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
              mc:Ignorable="d" 
              d:DesignHeight="550" d:DesignWidth="480">

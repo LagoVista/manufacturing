@@ -1,11 +1,11 @@
 ﻿using LagoVista.Core.Commanding;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.GCode
 {
     public interface IGCodeJobControlViewModel : IMachineViewModelBase
     {
         RelayCommand ClearAlarmCommand { get; }
-        RelayCommand ConnectCommand { get; }
         RelayCommand CycleStartCommand { get; }
         RelayCommand EmergencyStopCommand { get; }
         RelayCommand ExhaustSolenoidCommand { get; }
@@ -21,7 +21,6 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.GCode
         RelayCommand LaserOffCommand { get; }
         RelayCommand LaserOnCommand { get; }
         RelayCommand PauseCommand { get; }
-        RelayCommand SendGCodeFileCommand { get; }
         RelayCommand SetAbsoluteWorkSpaceHomeCommand { get; }
         RelayCommand SetFavorite1Command { get; }
         RelayCommand SetFavorite2Command { get; }
@@ -29,8 +28,6 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.GCode
         RelayCommand SoftResetCommand { get; }
         RelayCommand SpindleOffCommand { get; }
         RelayCommand SpindleOnCommand { get; }
-        RelayCommand StartProbeCommand { get; }
-        RelayCommand StartProbeHeightMapCommand { get; }
         RelayCommand StopCommand { get; }
         RelayCommand SuctionSolenoidCommand { get; }
 
@@ -43,36 +40,18 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.GCode
         bool CanMoveToWorkspaceHome();
         bool CanPauseFeed();
         bool CanPauseJob();
-        bool CanProbe();
-        bool CanProbeHeightMap();
         bool CanResumeFeed();
         bool CanSendEmergencyStop();
-        bool CanSendGcodeFile();
         bool CanStopJob();
         void ClearAlarm();
-        void Connect();
-        void CycleStart();
-        void EmergencyStop();
         bool FavoritesAvailable();
-        void FeedHold();
-        void GotoFavorite1();
-        void GotoFavorite2();
-        void GotoWorkspaceHome();
-        void HomeViaOrigin();
-        void HomingCycle();
-        void LaserOff();
-        void LaserOn();
         void PauseJob();
-        void SendGCodeFile();
         void SetAbsoluteWorkSpaceHome();
-        void SetFavorite1();
-        void SetFavorite2();
-        void SetWorkspaceHome();
-        void SoftReset();
-        void SpindleOff();
-        void SpindleOn();
-        void StartHeightMap();
-        void StartProbe();
+
         void StopJob();
+
+        IGCodeFileManager GCodeFileManager { get; }
+        IProbingManager ProbingManager { get; }
+        IHeightMapManager HeightMapManager { get; }
     }
 }

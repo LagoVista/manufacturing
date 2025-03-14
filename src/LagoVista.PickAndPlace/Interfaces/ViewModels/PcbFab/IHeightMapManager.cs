@@ -1,4 +1,5 @@
 ﻿using LagoVista.Core.Models.Drawing;
+using LagoVista.PickAndPlace.Managers;
 using LagoVista.PickAndPlace.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -60,6 +61,10 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab
         /// The XY Coordinates of the points that will be probed.
         /// </summary>
         ObservableCollection<Vector3> ProbePoints { get; }
+
+        IPCBManager PcbManager { get; }
+
+        IGCodeFileManager GCodeFileManager { get; }
 
     }
 }

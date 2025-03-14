@@ -1,9 +1,7 @@
 ﻿using LagoVista.Core.Models.Drawing;
-using LagoVista.Core.PlatformSupport;
 using LagoVista.Core.Validation;
 using LagoVista.GCode;
 using LagoVista.Manufacturing.Models;
-using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
 using System;
@@ -151,27 +149,6 @@ namespace LagoVista.PickAndPlace.Interfaces
         /// <summary>
         /// Business logic to manage the sending of GCode files to the machine.
         /// </summary>
-        IGCodeFileManager GCodeFileManager { get; }
-
-        /// <summary>
-        /// Business logic to handle working with Printed Circut Boards
-        /// </summary>
-        IPCBManager PCBManager { get; }
-
-        /// <summary>
-        /// Business logic for capturing a height map that can be applied to a GCode file to correct for warpage of material
-        /// </summary>
-        IHeightMapManager HeightMapManager { get; }
-
-        /// <summary>
-        /// Business logic for probe function to find the ZAxis where it comes in contact with the material to be machined.
-        /// </summary>
-        IProbingManager ProbingManager { get; }
-
-        /// <summary>
-        /// Business logic to accurately determine the board position and alignment using Machine Vision.
-        /// </summary>
-        IBoardAlignmentManager BoardAlignmentManager { get; }
 
 
         bool Busy { get; }
@@ -284,12 +261,6 @@ namespace LagoVista.PickAndPlace.Interfaces
         bool HasBufferSpaceAvailableForByteCount(int bytes);
 
         /// <summary>
-        /// Set a file to be processed.
-        /// </summary>
-        /// <param name="file"></param>
-        void SetFile(GCodeFile file);
-
-        /// <summary>
         /// Send a free form comamdn to the machine.
         /// </summary>
         /// <param name="cmd">Text that represents the command</param>
@@ -350,5 +321,10 @@ namespace LagoVista.PickAndPlace.Interfaces
         ObservableCollection<Models.StatusMessage> Messages { get; }
 
         bool IsLocating { get; set; }
+
+        void RegisterProbeCompletedHandler(IProbeCompletedHandler probeCompleted);
+        void UnregisterProbeCompletedHandler();
+
+        void RegisterGCodeFileCommandHandler(IGCodeCommandHandler commandHandler);
     }
 }

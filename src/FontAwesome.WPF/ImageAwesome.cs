@@ -21,14 +21,18 @@ namespace FontAwesome.WPF
         /// </summary>
         private static readonly Typeface FontAwesomeTypeface = new Typeface(FontAwesomeFontFamily, FontStyles.Normal,
             FontWeights.Normal, FontStretches.Normal);
+
         /// <summary>
         /// Identifies the FontAwesome.WPF.ImageAwesome.Foreground dependency property.
         /// </summary>
+        [Obsolete]
         public static readonly DependencyProperty ForegroundProperty =
             DependencyProperty.Register("Foreground", typeof(Brush), typeof(ImageAwesome), new PropertyMetadata(Brushes.Black, OnIconPropertyChanged));
+
         /// <summary>
         /// Identifies the FontAwesome.WPF.ImageAwesome.Icon dependency property.
         /// </summary>
+        [Obsolete]
         public static readonly DependencyProperty IconProperty =
             DependencyProperty.Register("Icon", typeof(FontAwesomeIcon), typeof(ImageAwesome), new PropertyMetadata(FontAwesomeIcon.None, OnIconPropertyChanged));
         /// <summary>
@@ -70,14 +74,17 @@ namespace FontAwesome.WPF
         /// <summary>
         /// Gets or sets the foreground brush of the icon. Changing this property will cause the icon to be redrawn.
         /// </summary>
+        [Obsolete]
         public Brush Foreground
         {
             get { return (Brush)GetValue(ForegroundProperty); }
             set { SetValue(ForegroundProperty, value); }
         }
+
         /// <summary>
         /// Gets or sets the FontAwesome icon. Changing this property will cause the icon to be redrawn.
         /// </summary>
+        [Obsolete]
         public FontAwesomeIcon Icon
         {
             get { return (FontAwesomeIcon)GetValue(IconProperty); }
@@ -185,6 +192,7 @@ namespace FontAwesome.WPF
             imageAwesome.SetFlipOrientation();
         }
 
+        [Obsolete]
         private static void OnIconPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var imageAwesome = d as ImageAwesome;
@@ -201,6 +209,7 @@ namespace FontAwesome.WPF
         /// <param name="icon">The FontAwesome icon to be drawn.</param>
         /// <param name="foregroundBrush">The System.Windows.Media.Brush to be used as the foreground.</param>
         /// <returns>A new System.Windows.Media.ImageSource</returns>
+        [Obsolete]
         public static ImageSource CreateImageSource(FontAwesomeIcon icon, Brush foregroundBrush, double emSize = 100)
         {
             var charIcon = char.ConvertFromUtf32((int)icon);

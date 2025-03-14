@@ -39,7 +39,7 @@ namespace LagoVista.PickAndPlace.App.Services
             _cornerDetector = cornerDetector ?? throw new ArgumentNullException(nameof(cornerDetector));
         }
 
-        private async void RenderOutput(IMVImage<IInputOutputArray> img, MachineCamera camera, System.Drawing.Size size)
+        private void RenderOutput(IMVImage<IInputOutputArray> img, MachineCamera camera, System.Drawing.Size size)
         {
             if (camera.CurrentVisionProfile.ShowCrossHairs) _imageHelper.DrawCrossHairs(img, camera, size);
             if (camera.CurrentVisionProfile.Show200PixelSquare) _imageHelper.ShowCalibrationSquare(img, size);

@@ -299,7 +299,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         if (CurrentComponent.ComponentType.Key != _selectedCategoryKey)
                         {
                             _selectedCategoryKey = CurrentComponent.ComponentType.Key;
-                            await LoadComponentsByCategory(_selectedCategoryKey);
+                            LoadComponentsByCategory(_selectedCategoryKey);
                             RaisePropertyChanged(nameof(SelectedCategoryKey));
                         }
 
@@ -312,12 +312,17 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        public async Task LoadComponentsByCategory(string categoryKey)
+        public async Task LoadComponentsByCategoryAsync(string categoryKey)
         {
             var components = await _restClient.GetListResponseAsync<ComponentSummary>($"/api/mfg/components?componentType={categoryKey}");
             Components = new ObservableCollection<ComponentSummary>(components.Model);
             Components.Insert(0, new ComponentSummary() { Id = StringExtensions.NotSelectedId, Name = "-select component-" });
             SelectedComponentSummaryId = StringExtensions.NotSelectedId;
+        }
+
+        public async void LoadComponentsByCategory(string categoryKey)
+        {
+            await LoadComponentsByCategoryAsync(categoryKey);
         }
 
         public Task<InvokeResult> MoveToPartInFeederAsync()

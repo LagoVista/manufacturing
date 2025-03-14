@@ -1,5 +1,6 @@
 ﻿using LagoVista.Manufacturing.Models;
 using LagoVista.PCB.Eagle.Models;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,7 +10,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.GCode
 {
     public interface IGCodeViewModel : IMachineViewModelBase
     {
-        PcbMillingProject Project { get; set; }
+        IHeightMapManager HeightMapManager { get; }
 
         Task AddProjectFileMRUAsync(string projectFile);
         Task<bool> OpenProjectAsync(string projectFile);

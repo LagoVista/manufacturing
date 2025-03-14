@@ -205,11 +205,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             return adjustedPosition + Job.BoardFiducials.First().AbsoluteActual;
         }
 
-        public async Task<InvokeResult> GoToPartOnBoardAsync(PartsGroup part, PickAndPlaceJobPlacement placement)
+        public Task<InvokeResult> GoToPartOnBoardAsync(PartsGroup part, PickAndPlaceJobPlacement placement)
         {
             if (!IsBoardAligned)
             {
-                return InvokeResult.FromError("Please calibrate board first");
+                return Task.FromResult(InvokeResult.FromError("Please calibrate board first"));
             }
 
             Machine.SendSafeMoveHeight();
@@ -220,7 +220,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_PartOnBoard);
 
-            return InvokeResult.Success;
+            return Task.FromResult( InvokeResult.Success);
         }
 
         public async Task<InvokeResult> InspectPartOnboardAsync(Component component, PickAndPlaceJobPlacement placement)
@@ -262,11 +262,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             return InvokeResult.Success;
         }
 
-        public async Task<InvokeResult> PickPartFromBoardAsync(Component component, PickAndPlaceJobPlacement placement)
+        public Task<InvokeResult> PickPartFromBoardAsync(Component component, PickAndPlaceJobPlacement placement)
         {
             if (ScalingError == null)
             {
-                return InvokeResult.FromError("Please calibrate board first");
+                return Task.FromResult( InvokeResult.FromError("Please calibrate board first"));
             }
 
             throw new NotImplementedException();

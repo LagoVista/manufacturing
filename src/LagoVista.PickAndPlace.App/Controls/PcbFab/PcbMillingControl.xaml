@@ -28,7 +28,7 @@
                 <Separator />
                 <MenuItem Header="PCB Hold Down" Command="{Binding ShowHoldDownGCodeCommand}" />
                 <MenuItem Header="Probe Height Map" Command="{Binding ShowBoardMillingGCodeCommand}" />
-                <MenuItem Header="Apply HeightMap"  Command="{Binding ApplyHeightMapCommand}" />
+                <MenuItem Header="Apply HeightMap"  Command="{Binding HeightMapManager.ApplyHeightMapCommand}" />
                 <Separator />
                 <MenuItem Header="Top Etching" Command="{Binding ShowTopIsolutionGCodeCommand}" />
                 <MenuItem Header="Bottom Etching" Command="{Binding ShowBottomIsolationGCodeCommand}" />
@@ -62,9 +62,9 @@
 
             <h:DefaultLights/>
             <h:CoordinateSystemVisual3D ArrowLengths="5"/>
-            <h:LinesVisual3D Thickness="1" Color="Red" Points="{Binding Path=Machine.GCodeFileManager.RapidMoves, Converter={StaticResource Lines2Visual3DConverter}}" />
-            <h:LinesVisual3D Thickness="2" Color="Red" Points="{Binding Path=Machine.GCodeFileManager.Lines, Converter={StaticResource Lines2Visual3DConverter}}"/>
-            <h:LinesVisual3D Thickness="2" Color="Red" Points="{Binding Path=Machine.GCodeFileManager.Arcs, Converter={StaticResource Lines2Visual3DConverter}}"/>
+            <h:LinesVisual3D Thickness="1" Color="Red" Points="{Binding Path=GCodeFileManager.RapidMoves, Converter={StaticResource Lines2Visual3DConverter}}" />
+            <h:LinesVisual3D Thickness="2" Color="Red" Points="{Binding Path=GCodeFileManager.Lines, Converter={StaticResource Lines2Visual3DConverter}}"/>
+            <h:LinesVisual3D Thickness="2" Color="Red" Points="{Binding Path=GCodeFileManager.Arcs, Converter={StaticResource Lines2Visual3DConverter}}"/>
 
 
             <h:LinesVisual3D Thickness="2" Color="DarkGray" x:Name="BottomWires" />
@@ -86,9 +86,9 @@
        	    Width="{Binding Machine.Settings.WorkAreaHeight, FallbackValue=80}"
          Length ="{Binding Machine.Settings.WorkAreaWidth, FallbackValue=100}"  />
 
-            <h:MeshGeometryVisual3D Material="{StaticResource HeightMapMediaGroup}" x:Name="HeightMap" MeshGeometry="{Binding Machine.HeightMapManager.HeightMap, Converter={StaticResource HeightMap2MeshConverter}}" />
-            <h:LinesVisual3D x:Name="ModelHeightMapBoundary" Thickness="2" Color="Lime"  Points="{Binding Path=Machine.HeightMapManager.HeightMap.RawBoardOutline, Converter={StaticResource Lines2Visual3DConverter}}"/>
-            <h:PointsVisual3D Points="{Binding Path=Machine.HeightMapManager.HeightMap.Points, Converter={StaticResource HeightMapProbePoint2PointConverter}}" x:Name="ModelHeightMapPoints" Color="Red" Size="4"/>
+            <h:MeshGeometryVisual3D Material="{StaticResource HeightMapMediaGroup}" x:Name="HeightMap" MeshGeometry="{Binding Path=HeightMapManager.HeightMap, Converter={StaticResource HeightMap2MeshConverter}}" />
+            <h:LinesVisual3D x:Name="ModelHeightMapBoundary" Thickness="2" Color="Lime"  Points="{Binding Path=HeightMapManager.HeightMap.RawBoardOutline, Converter={StaticResource Lines2Visual3DConverter}}"/>
+            <h:PointsVisual3D Points="{Binding Path=HeightMapManager.HeightMap.Points, Converter={StaticResource HeightMapProbePoint2PointConverter}}" x:Name="ModelHeightMapPoints" Color="Red" Size="4"/>
         </h:HelixViewport3D>
 
 
@@ -132,10 +132,10 @@
                         <Image Source="/imgs/TopView.png" />
                     </Button.Content>
                 </Button>
-                <Button Command="{Binding MachineRepo.CurrentMachine.GCodeFileManager.OpenFileCommand}">Open File</Button>
+                <Button Command="{Binding GCodeFileManager.OpenFileCommand}">Open File</Button>
             </StackPanel>
             <Label Content="Drill Rack" Grid.Row="2" FontWeight="Bold" />
-            <ListBox ItemsSource="{Binding Machine.PCBManager.DrillRack}" Margin="4" Grid.Row="3" Background="Transparent">
+            <ListBox ItemsSource="{Binding PCBManager.DrillRack}" Margin="4" Grid.Row="3" Background="Transparent">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Grid>

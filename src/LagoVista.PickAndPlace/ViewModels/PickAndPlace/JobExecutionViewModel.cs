@@ -8,6 +8,7 @@ using LagoVista.Manufacturing.Models.Resources;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using RingCentral;
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
@@ -241,29 +242,29 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        public async Task PauseJobAsync()
+        public Task PauseJobAsync()
         {
-
+            throw new NotImplementedException();
         }
 
-        public async Task ResumeJobAsync()
+        public Task ResumeJobAsync()
         {
-
+            throw new NotImplementedException();
         }
 
-        public async Task ResetJobAsync()
+        public Task ResetJobAsync()
         {
-
+            throw new NotImplementedException();
         }
 
-        public async Task StopJobAsync()
+        public Task StopJobAsync()
         {
-
+            throw new NotImplementedException();
         }
 
-        public async Task AbortJobAsync()
+        public Task AbortJobAsync()
         {
-
+            throw new NotImplementedException();
         }        
 
         public RelayCommand PlaceIndependentPartCommand { get; set; }

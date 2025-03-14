@@ -5,9 +5,9 @@
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"             
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             d:DataContext="vm:IGCodeJobControlViewModel"
+             d:DataContext="{d:DesignInstance vm:IGCodeJobControlViewModel}"
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.GCode;assembly=LagoVista.PickAndPlace"                                        
-            xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
+             xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
              mc:Ignorable="d" 
              d:DesignHeight="196" d:DesignWidth="1048">
     <Grid>
@@ -54,14 +54,6 @@
                     <Setter Property="TextAlignment" Value="Center" />
                 </Style>
             </Grid.Resources>
-            <Button Command="{Binding ConnectCommand}" Grid.Column="0"  >
-                <Button.Content>
-                    <StackPanel>
-                        <fa:ImageAwesome Icon="PowerOff" Foreground="{Binding Machine.Connected, Converter={StaticResource ColorEnabledConverter}, ConverterParameter=Green, FallbackValue=LightGray}" />
-                        <TextBlock Text="{Binding ConnectText, FallbackValue=On}" />
-                    </StackPanel>
-                </Button.Content>
-            </Button>
 
             <Button Command="{Binding StopCommand}" Grid.Column="1" >
                 <Button.Content>
@@ -80,7 +72,7 @@
                     </StackPanel>
                 </Button.Content>
             </Button>
-            <Button Command="{Binding SendGCodeFileCommand}" Grid.Column="3" >
+            <Button Command="{Binding GCodeFileManager.SendGCodeFileCommand}" Grid.Column="3" >
                 <Button.Content>
                     <StackPanel>
                         <Grid>
@@ -91,7 +83,7 @@
                     </StackPanel>
                 </Button.Content>
             </Button>
-            <Button Command="{Binding StartProbeHeightMapCommand}" Grid.Column="4"  >
+            <Button Command="{Binding  HeightMapManager.StartProbeHeightMapCommand}" Grid.Column="4"  >
                 <Button.Content>
                     <StackPanel>
                         <Grid>
@@ -102,7 +94,7 @@
                     </StackPanel>
                 </Button.Content>
             </Button>
-            <Button Command="{Binding StartProbeCommand}" Grid.Column="5" >
+            <Button Command="{Binding ProbingManager.StartProbeCommand}" Grid.Column="5" >
                 <Button.Content>
                     <StackPanel>
                         <Grid>
@@ -201,15 +193,10 @@
                     <Button.Content>
                         <Image Source="/imgs/AddWorkspaceHome.png"/>
                     </Button.Content>
-                </Button>                
+                </Button>
                 <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GotoWorkspaceHomeCommand}"  ToolTip="Go To Home"   >
                     <Button.Content>
                         <Image Source="/imgs/GotoWorkspaceHome.png"/>
-                    </Button.Content>
-                </Button>
-                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GotoFiducialHomeCommand}"  ToolTip="Go To Fiducial Home"   >
-                    <Button.Content>
-                        <Image Source="/imgs/GotoFiducialHome.png"/>
                     </Button.Content>
                 </Button>
                 <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetFavorite1Command}"  ToolTip="Set Favorite 1"   >

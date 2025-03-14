@@ -47,7 +47,7 @@
                         <fa:ImageAwesome Foreground="White" Icon="ArrowCircleUp" />
                     </Button.Content>
                 </Button>
-                <Button Margin="3" Background="Transparent" x:Name="Close" Click="Close_Click" BorderBrush="Transparent">
+                <Button Margin="3" Background="Transparent" x:Name="CloseWIndow" Click="Close_Click" BorderBrush="Transparent">
                     <Button.Content>
                         <fa:ImageAwesome Foreground="White" Icon="Close" />
                     </Button.Content>
@@ -111,10 +111,6 @@
                         </Grid>
                     </TabItem>
 
-
-                    <TabItem Header="Alignment">
-                        <ctls:ToolAlignment></ctls:ToolAlignment>
-                    </TabItem>
                     <TabItem Header="Utilities">
                         <mch:MachineUtilitiesControl></mch:MachineUtilitiesControl>
                     </TabItem>

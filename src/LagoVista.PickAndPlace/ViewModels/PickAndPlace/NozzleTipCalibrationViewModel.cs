@@ -17,10 +17,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
     public class NozzleTipCalibrationViewModel : ViewModelBase, INozzleTipCalibrationViewModel
     {
         private Dictionary<int, Point2D<double>> _nozzleCalibration;
-        private List<Point2D<double>> _averagePoints;
+  //      private List<Point2D<double>> _averagePoints;
         private readonly IMachineRepo _machineRepo;
         private readonly ILocatorViewModel _locatorViewModel;
-        private int _samplesAtPoint = 0;
+//        private int _samplesAtPoint = 0;
 
         public NozzleTipCalibrationViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel)
         {
@@ -31,10 +31,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
 
 
-        public async Task StartAsync()
+        public Task StartAsync()
         {
             _nozzleCalibration = new Dictionary<int, Point2D<double>>();
-            _averagePoints = new List<Point2D<double>>();
+    //        _averagePoints = new List<Point2D<double>>();
 
             //if (_machineRepo.CurrentMachine.Settings.PartInspectionCamera?.AbsolutePosition != null)
             //{
@@ -50,6 +50,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             //}
 
             _locatorViewModel.SetLocatorState(MVLocatorState.NozzleCalibration);
+
+            return Task.CompletedTask;
         }
 
         public void CircleLocation(Point2D<double> center, double diameter, Point2D<double> stdDeviation)

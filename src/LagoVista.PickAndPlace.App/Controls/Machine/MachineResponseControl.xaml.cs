@@ -21,7 +21,7 @@ namespace LagoVista.PickAndPlace.App.Controls
             {
                 var vm = DataContext as HomeViewModel;
                 _messagesWindow = new MessageWindow(vm.MachineRepo.CurrentMachine);
-                _messagesWindow.Owner = MainWindow.This;
+                //_messagesWindow.Owner = Home.This;
                 _messagesWindow.Closed += _messagesWindow_Closed;
                 _messagesWindow.Show();
             }

@@ -5,6 +5,6 @@ namespace LagoVista.PickAndPlace.Interfaces
 {
     public interface IToolChangeManager
     {
-        Task HandleToolChange(ToolChangeCommand cmd);
+        Task<bool> HandleToolChange(ToolChangeCommand cmd);
     }
 }

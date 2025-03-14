@@ -57,8 +57,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }       
 
-        Manufacturing.Models.Component _componentToBePlaced;
-        public Manufacturing.Models.Component CurrentComponentToBePlaced { get => _componentToBePlaced; }
+        //Manufacturing.Models.Component _componentToBePlaced;
+        //public Manufacturing.Models.Component CurrentComponentToBePlaced { get => _componentToBePlaced; }
        
 
         public ObservableCollection<AvailablePart> AvailableParts { get; } = new ObservableCollection<AvailablePart>();

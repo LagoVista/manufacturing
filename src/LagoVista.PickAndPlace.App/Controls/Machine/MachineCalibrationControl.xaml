@@ -262,7 +262,7 @@
                 <ColumnDefinition Width="800"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <DataGrid Grid.Row="1" ItemsSource="{Binding MachineConfiguration.Nozzles}" CanUserAddRows="false" SelectedItem="{Binding SelectedNozzle}" AutoGenerateColumns="false">
+            <DataGrid Grid.Row="1" ItemsSource="{Binding MachineConfiguration.Nozzles}" CanUserAddRows="false" SelectedItem="{Binding SelectedNozzleTip}" AutoGenerateColumns="false">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
                     <DataGridTextColumn Header="Safe Move Height." Binding="{Binding SafeMooveHeight}" />

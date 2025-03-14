@@ -535,7 +535,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        private Point2D<double> _currentPartLocation;
         public override Point2D<double> CurrentPartLocation 
         { 
             get

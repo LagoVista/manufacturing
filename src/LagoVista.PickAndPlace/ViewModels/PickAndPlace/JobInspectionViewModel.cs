@@ -117,7 +117,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             get => _selectedInspectPart;
             set
             {
-                //Set(ref _selectedInspectPart, value);
+                Set(ref _selectedInspectPart, value);
                 //if (value != null)
                 //{
                 //    _inspectIndex = ConfigurationParts.IndexOf(value);

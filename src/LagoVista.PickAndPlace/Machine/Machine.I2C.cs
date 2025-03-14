@@ -29,13 +29,13 @@ namespace LagoVista.PickAndPlace
         {
             throw new NotImplementedException("Has not been tested.");
 
-            var cmd = $"M260 A{address}";
+            /*var cmd = $"M260 A{address}";
             foreach (byte b in buffer)
                 cmd += $" B{b}";
 
             cmd += " S1";
 
-            SendCommand(cmd);
+            SendCommand(cmd);*/
         }
 
         ManualResetEventSlim _i2cResetEvent = new ManualResetEventSlim(false);

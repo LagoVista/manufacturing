@@ -1,5 +1,7 @@
-﻿using LagoVista.Core.PlatformSupport;
+﻿using LagoVista.Core.Models.Drawing;
+using LagoVista.Core.PlatformSupport;
 using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Util;
 using System;
 using System.Diagnostics;
@@ -14,18 +16,25 @@ namespace LagoVista.PickAndPlace
         private StringBuilder _messageBuffer = new StringBuilder();
 
         private bool _isOnHold = false;
-        
+
+        IGCodeCommandHandler _gcodeCommandHandler;
+
+        public void RegisterGCodeFileCommandHandler(IGCodeCommandHandler commandHandler)
+        {
+            _gcodeCommandHandler = commandHandler;
+        }
+
         private void ParseMessage(string fullMessageLine)
         {
             fullMessageLine = fullMessageLine.ToLower();
             if (fullMessageLine.StartsWith("ok") ||
                             fullMessageLine.StartsWith("<ok:"))
             {
-                if (GCodeFileManager.HasValidFile && Mode == OperatingMode.SendingGCodeFile)
+                if (_gcodeCommandHandler.HasValidFile && Mode == OperatingMode.SendingGCodeFile)
                 {
                     lock (this)
                     {
-                        GCodeFileManager.CommandAcknowledged();
+                        _gcodeCommandHandler.CommandAcknowledged();
 
                         lock (_queueAccessLocker)
                         {
@@ -36,7 +45,7 @@ namespace LagoVista.PickAndPlace
                             }
                         }
 
-                        if (GCodeFileManager.IsCompleted)
+                        if (_gcodeCommandHandler.IsCompleted)
                         {
                             Mode = OperatingMode.Manual;
                         }
@@ -175,21 +184,13 @@ namespace LagoVista.PickAndPlace
                 }
                 else if (fullMessageLine.StartsWith("[prb:"))
                 {
-                    var probeResult = ProbingManager.ParseProbeLine(fullMessageLine);
+                    var probeResult = ParseProbeLine(fullMessageLine);
                     if (probeResult != null)
                     {
-                        switch (Mode)
-                        {
-                            case OperatingMode.ProbingHeight:
-                                ProbingManager.ProbeCompleted(probeResult.Value);
-                                break;
-                            case OperatingMode.ProbingHeightMap:
-                                HeightMapManager.ProbeCompleted(probeResult.Value);
-                                break;
-                            default:
-                                AddStatusMessage(StatusMessageTypes.Warning, "Unexpected PRB return message.");
-                                break;
-                        }
+                        if(_probeCompletedHandler != null)
+                            _probeCompletedHandler.ProbeCompleted(probeResult.Value);
+                        else
+                            AddStatusMessage(StatusMessageTypes.Warning, "Unexpected PRB return message.");
                     }
                 }
                 else if (fullMessageLine.StartsWith("["))
@@ -226,6 +227,43 @@ namespace LagoVista.PickAndPlace
             {
                 AddStatusMessage(StatusMessageTypes.Warning, $"Empty Response From Machine.", MessageVerbosityLevels.Normal);
             }
+        }
+
+        public void RegisterProbeCompletedHandler(IProbeCompletedHandler handler)
+        {
+            _probeCompletedHandler = handler;
+        }
+
+        public void UnregisterProbeCompletedHandler()
+        {
+            _probeCompletedHandler = null;
+        }
+
+        IProbeCompletedHandler _probeCompletedHandler;
+
+        private static Regex ProbeEx = new Regex(@"\[prb:(?'mx'-?[0-9]+\.?[0-9]*),(?'my'-?[0-9]+\.?[0-9]*),(?'mz'-?[0-9]+\.?[0-9]*):(?'success'0|1)\]");
+
+        /// <summary>
+        /// Parses a recevied probe report
+        /// </summary>
+        Vector3? ParseProbeLine(string line)
+        {
+            Match probeMatch = ProbeEx.Match(line);
+            Group mx = probeMatch.Groups["mx"];
+            Group my = probeMatch.Groups["my"];
+            Group mz = probeMatch.Groups["mz"];
+            Group success = probeMatch.Groups["success"];
+
+            if (!probeMatch.Success || !(mx.Success & my.Success & mz.Success & success.Success))
+            {
+                AddStatusMessage(StatusMessageTypes.Warning, $"Received Bad Probe: '{line}'");
+                return null;
+            }
+
+            var probePos = new Vector3(double.Parse(mx.Value, Constants.DecimalParseFormat), double.Parse(my.Value, Constants.DecimalParseFormat), double.Parse(mz.Value, Constants.DecimalParseFormat));
+
+            probePos += WorkspacePosition - MachinePosition;     //Mpos, Wpos only get updated by the same dispatcher, so this should be thread safe
+            return probePos;
         }
 
         private void ProcessResponseLine(String line)

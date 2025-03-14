@@ -1,10 +1,10 @@
-﻿using System;
+﻿using LagoVista.PickAndPlace.App.Controls.PcbFab;
+using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Media3D;
-using static LagoVista.PickAndPlace.App.Controls.GCode.GCode;
 
 namespace LagoVista.PickAndPlace.App.Controls.UI
 {

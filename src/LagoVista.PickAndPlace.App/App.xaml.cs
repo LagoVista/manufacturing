@@ -15,6 +15,7 @@ using LagoVista.Manufacturing.Managers;
 using LagoVista.Manufacturing.Services;
 using LagoVista.PickAndPlace.App.PCB;
 using LagoVista.PickAndPlace.App.Services;
+using LagoVista.PickAndPlace.App.ViewModels;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.Services;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.GCode;
@@ -112,8 +113,15 @@ namespace LagoVista.PickAndPlace.App
             SLWIOC.RegisterSingleton<IJobManagementViewModel, JobManagementViewModel>();            
             SLWIOC.RegisterSingleton<IStagingPlateNavigationViewModel, StagingPlateNavigationViewModel>();
             SLWIOC.RegisterSingleton<IMachineCalibrationViewModel, MachineCalibrationViewModel>();
+
+            SLWIOC.RegisterSingleton<IProbingManager, ProbingManager>();
+            SLWIOC.RegisterSingleton<IToolChangeManager, ToolChangeManager>();
+            SLWIOC.RegisterSingleton<IGCodeFileManager, GCodeFileManager>();
             
-            SLWIOC.Register<IGCodeJobControlViewModel, GCodeJobControlViewModel>();
+
+            SLWIOC.RegisterSingleton<IPCBManager, PCBManager>();
+            SLWIOC.RegisterSingleton<IHeightMapManager, HeightMapManager>();            
+            SLWIOC.RegisterSingleton<IGCodeJobControlViewModel, GCodeJobControlViewModel>();
 
             SLWIOC.RegisterSingleton<IStagingPlateSelectorViewModel, StagingPlateSelectorViewModel>();
             SLWIOC.RegisterSingleton<IToolHeadViewModel, ToolHeadViewModel>();
@@ -158,7 +166,7 @@ namespace LagoVista.PickAndPlace.App
     #region Stubs
     public class ClientAppInfo : IClientAppInfo
     {
-        public Type MainViewModel => typeof(MainViewModel);
+        public Type MainViewModel => typeof(HomeViewModel);
     }
 
     public class VMNav : IViewModelNavigation

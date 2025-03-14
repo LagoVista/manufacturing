@@ -44,11 +44,9 @@ namespace Mfg.ServicesTests
         [Test]
         public void OrderParseTest()
         {
-            var orderCSV = @"
-1,541-4131-1-ND,CRCW08054K70FKEAC,Vishay Dale,RES 4.7K OHM 1% 1/8W 0805,,100,0,$0.01710,$1.71
+            var orderCSV = @"1,541-4131-1-ND,CRCW08054K70FKEAC,Vishay Dale,RES 4.7K OHM 1% 1/8W 0805,,100,0,$0.01710,$1.71
 2,A129741CT-ND,CRGCQ0805F220R,TE Connectivity Passive Product,RES 220 OHM 1% 1/8W 0805,,100,0,$0.01830,$1.83
-3,399-C0805C220J5GACTUCT-ND,C0805C220J5GACTU,KEMET,CAP CER 22PF 50V C0G/NP0 0805,,100,0,$0.02360,$2.36
-";
+3,399-C0805C220J5GACTUCT-ND,C0805C220J5GACTU,KEMET,CAP CER 22PF 50V C0G/NP0 0805,,100,0,$0.02360,$2.36";
             var lines = orderCSV.Split('\n'); 
             var skippedHeader = false;
             foreach (var line in lines)
@@ -64,6 +62,8 @@ namespace Mfg.ServicesTests
                         var parts = parser.Split(trimmed);
                         var lineItem = ComponentOrderLineItem.FromOrderLine(parts);
                     }
+
+                    Console.WriteLine("----");
                 }
             }
         }

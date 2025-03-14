@@ -7,6 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ViewModels\Obsolete\**" />
+    <EmbeddedResource Remove="ViewModels\Obsolete\**" />
+    <None Remove="ViewModels\Obsolete\**" />
+    <Page Remove="ViewModels\Obsolete\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Imgs\AddFavorite1.png" />
     <None Remove="Imgs\AddFavorite2.png" />
     <None Remove="Imgs\AddWorkspaceHome.png" />
@@ -72,7 +79,7 @@
     <PackageReference Include="Meziantou.WpfFontAwesome" Version="5.15.4" />
     <PackageReference Include="SharpDX.XInput" Version="4.2.0" />
     <PackageReference Include="System.IO.Ports" Version="9.0.0" />
-    <PackageReference Include="LagoVista.Core" Version="3.0.2854.1622" />
+    <PackageReference Include="LagoVista.Core" Version="3.0.2858.1248" />
 
   </ItemGroup>
 
@@ -171,7 +178,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="ViewModels\Machine\" />
+    <Folder Include="ViewModels\" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,7 @@
 ﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.Models;
 using System.Threading.Tasks;
+using static LagoVista.PickAndPlace.ViewModels.PickAndPlace.JobExecutionViewModel;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 {
@@ -12,6 +14,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         Task ResetJobAsync();
         Task StopJobAsync();
         Task AbortJobAsync();
+
+        EntityHeader<JobState> State { get; }
 
         RelayCommand PlaceIndependentPartCommand { get; }
         RelayCommand PlaceGroupPartCommand { get; }

@@ -20,7 +20,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
     public class JobManagementViewModel : MachineViewModelBase, IJobManagementViewModel
     {
         private readonly IRestClient _restClient;
-        private readonly ILogger _logger;
         private readonly IStorageService _storageService;
 
         private readonly IPickAndPlaceJobResolverService _resolver;
@@ -270,7 +269,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        public async Task<InvokeResult> LoadComponent(string componentId)
+        public async void LoadComponent(string componentId)
+        {
+            await LoadComponentAsync(componentId);
+        }
+
+        public async Task<InvokeResult> LoadComponentAsync(string componentId)
         {
             if (!componentId.HasValidId())
             {
@@ -300,6 +304,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 }
             }
         }
+
+
 
         private async Task SaveJobAsync()
         {
@@ -478,7 +484,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public async Task<InvokeResult> SetPartGroupToPlaceAsync(PartsGroup part)
         {
-            var result = await LoadComponent(part.Component.Id);
+            var result = await LoadComponentAsync(part.Component.Id);
             if (result.Successful)
             {
                 _partGroup = part;

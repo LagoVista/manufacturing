@@ -29,8 +29,6 @@ namespace LagoVista.Manufacturing.Models
             _isEditing = false;
         }
 
-        private string _currentFileName;
-
         private double _scrapSides;
         public double ScrapSides
         {

@@ -20,6 +20,7 @@ namespace FontAwesome.WPF.Converters
             return this;
         }
 
+        [Obsolete]
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (!(value is FontAwesomeIcon)) return null;

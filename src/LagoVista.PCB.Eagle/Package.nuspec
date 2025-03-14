@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>LagoVista.PCB.Eagle</id>
-    <version>3.0.2841.0416</version>
+    <version>3.0.2858.1248</version>
     <authors>Software Logistics, LLC</authors>
     <owners>Software Logistics, LLC</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -12,14 +12,14 @@
     <copyright>Copyright Software Logistics - 2025</copyright>
     <tags>HomeAutomation IoT</tags>
     <icon>LagoVistaIcon.png</icon>
-    <releaseNotes>Build Date: 2/25/2025 9:16:31 AM UTC</releaseNotes>
+    <releaseNotes>Build Date: 3/14/2025 4:48:15 PM UTC</releaseNotes>
     <repository url="https://www.github.com/lagovista" type="git" branch="master"></repository>
     <dependencies>
       <group targetFramework="netstandard2.0">
-        <dependency id="LagoVista.Core" version="3.0.2841.0416" />
+        <dependency id="LagoVista.Core" version="3.0.2858.1248" />
         <dependency id="Newtonsoft.Json" version="13.0.1" />
-        <dependency id="LagoVista.GCode" version="3.0.2841.0416" />
-        <dependency id="LagoVista.MSDMarkwort.Kicad.Parser.PcbNew" version="3.0.2841.0416" />
+        <dependency id="LagoVista.GCode" version="3.0.2858.1248" />
+        <dependency id="LagoVista.MSDMarkwort.Kicad.Parser.PcbNew" version="3.0.2858.1248" />
       </group>
     </dependencies>
   </metadata>

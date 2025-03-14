@@ -136,7 +136,7 @@ namespace LagoVista.PickAndPlace
                 if ((Now - _lastPollTime).TotalMilliseconds > Settings.StatusPollIntervalRunning)
                 {
                     if (Settings.CurrentSerialPort.Name == "Simulated")
-                        MachinePosition = GCodeFileManager.CurrentCommand.CurrentPosition;
+                        MachinePosition = _gcodeCommandHandler.CurrentCommand.CurrentPosition;
                     else
                     {
                         if (Settings.MachineType == FirmwareTypes.GRBL1_1 && LocationUpdateEnabled)
@@ -193,7 +193,7 @@ namespace LagoVista.PickAndPlace
                     _toSend.Count == 0 &&
                     Settings.ControllerBufferSize - Math.Max(0, UnacknowledgedBytesSent) > 24)
                 {
-                    var nextCommand = GCodeFileManager.GetNextJobItem();
+                    var nextCommand = _gcodeCommandHandler.GetNextJobItem();
                     if (nextCommand != null)
                         TransmitJobItem(nextCommand);
                 }

@@ -173,5 +173,7 @@ namespace LagoVista.PickAndPlace.Interfaces
  
         RelayCommand OpenFileCommand { get; }
         RelayCommand CloseFileCommand { get; }
+
+        RelayCommand SendGCodeFileCommand { get; }
     }
 }

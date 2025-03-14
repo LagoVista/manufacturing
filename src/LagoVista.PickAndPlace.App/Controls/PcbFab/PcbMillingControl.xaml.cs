@@ -15,6 +15,15 @@ using System.Windows.Media.Media3D;
 
 namespace LagoVista.PickAndPlace.App.Controls.PcbFab
 {
+
+    public enum ImageModes
+    {
+        Top,
+        Side,
+        Front,
+    }
+
+
     /// <summary>
     /// Interaction logic for PcbMillingControl.xaml
     /// </summary>
@@ -32,13 +41,6 @@ namespace LagoVista.PickAndPlace.App.Controls.PcbFab
         }
 
         const int CAMERA_MOVE_DELTA = 10;
-
-        public enum ImageModes
-        {
-            Top,
-            Side,
-            Front,
-        }
 
         private void RenderBoard(PrintedCircuitBoard board, PcbMillingProject project, bool resetZoomAndView = true)
         {
@@ -278,14 +280,14 @@ namespace LagoVista.PickAndPlace.App.Controls.PcbFab
 
         private void ShowLeftView()
         {
-            double min = ViewModel.Machine.GCodeFileManager.HasValidFile ? ViewModel.Machine.GCodeFileManager.Min.Y : 0;
+            double min = ViewModel.GCodeFileManager.HasValidFile ? ViewModel.GCodeFileManager.Min.Y : 0;
             double max = ViewModel.Machine.Settings.WorkAreaSize.Y;
 
-            if (ViewModel.Machine.PCBManager.HasBoard)
-                max = ViewModel.Machine.PCBManager.Board.Height;
+            if (ViewModel.PCBManager.HasBoard)
+                max = ViewModel.PCBManager.Board.Height;
 
-            if (ViewModel.Machine.GCodeFileManager.HasValidFile)
-                max = ViewModel.Machine.GCodeFileManager.Max.Y;
+            if (ViewModel.GCodeFileManager.HasValidFile)
+                max = ViewModel.GCodeFileManager.Max.Y;
 
             var factor = 18.0;
 
@@ -303,23 +305,23 @@ namespace LagoVista.PickAndPlace.App.Controls.PcbFab
 
         private void ShowTopView()
         {
-            double minX = ViewModel.Machine.GCodeFileManager.HasValidFile ? ViewModel.Machine.GCodeFileManager.Min.X : 0;
+            double minX = ViewModel.GCodeFileManager.HasValidFile ? ViewModel.GCodeFileManager.Min.X : 0;
             double maxX = ViewModel.Machine.Settings.WorkAreaSize.X;
 
-            if (ViewModel.Machine.PCBManager.HasBoard)
-                maxX = ViewModel.Machine.PCBManager.Board.Width;
+            if (ViewModel.PCBManager.HasBoard)
+                maxX = ViewModel.PCBManager.Board.Width;
 
-            if (ViewModel.Machine.GCodeFileManager.HasValidFile)
-                maxX = ViewModel.Machine.GCodeFileManager.Max.X;
+            if (ViewModel.GCodeFileManager.HasValidFile)
+                maxX = ViewModel.GCodeFileManager.Max.X;
 
-            double minY = ViewModel.Machine.GCodeFileManager.HasValidFile ? ViewModel.Machine.GCodeFileManager.Min.Y : 0;
+            double minY = ViewModel.GCodeFileManager.HasValidFile ? ViewModel.GCodeFileManager.Min.Y : 0;
             double maxY = ViewModel.Machine.Settings.WorkAreaSize.Y;
 
-            if (ViewModel.Machine.PCBManager.HasBoard)
-                maxY = ViewModel.Machine.PCBManager.Board.Height;
+            if (ViewModel.PCBManager.HasBoard)
+                maxY = ViewModel.PCBManager.Board.Height;
 
-            if (ViewModel.Machine.GCodeFileManager.HasValidFile)
-                maxY = ViewModel.Machine.GCodeFileManager.Max.Y;
+            if (ViewModel.GCodeFileManager.HasValidFile)
+                maxY = ViewModel.GCodeFileManager.Max.Y;
 
 
             var deltaX = maxX - minX;
@@ -328,8 +330,8 @@ namespace LagoVista.PickAndPlace.App.Controls.PcbFab
             var x = deltaX / 2 + minX;
             var y = deltaY / 2 + minY;
 
-            if (ViewModel.Machine.PCBManager.HasProject)
-                y += ViewModel.Machine.PCBManager.Project.ScrapTopBottom;
+            if (ViewModel.PCBManager.HasProject)
+                y += ViewModel.PCBManager.Project.ScrapTopBottom;
 
             Camera.Position = new Point3D(x, y, 400);
             Camera.LookDirection = new Vector3D(0, 0.0001, -1);
@@ -339,14 +341,14 @@ namespace LagoVista.PickAndPlace.App.Controls.PcbFab
 
         private void ShowFrontView()
         {
-            double min = ViewModel.Machine.GCodeFileManager.HasValidFile ? ViewModel.Machine.GCodeFileManager.Min.X : 0;
+            double min = ViewModel.GCodeFileManager.HasValidFile ? ViewModel.GCodeFileManager.Min.X : 0;
             double max = ViewModel.Machine.Settings.WorkAreaSize.X;
 
-            if (ViewModel.Machine.PCBManager.HasBoard)
-                max = ViewModel.Machine.PCBManager.Board.Width;
+            if (ViewModel.PCBManager.HasBoard)
+                max = ViewModel.PCBManager.Board.Width;
 
-            if (ViewModel.Machine.GCodeFileManager.HasValidFile)
-                max = ViewModel.Machine.GCodeFileManager.Max.X;
+            if (ViewModel.GCodeFileManager.HasValidFile)
+                max = ViewModel.GCodeFileManager.Max.X;
 
             var factor = 18.0;
 

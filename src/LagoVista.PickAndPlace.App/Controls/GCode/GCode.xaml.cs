@@ -5,7 +5,10 @@ using LagoVista.Core.Models;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PCB.Eagle.Models;
+using LagoVista.PickAndPlace.App.Controls.PcbFab;
+using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.GCode;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
 using LagoVista.PickAndPlace.ViewModels;
 using LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab;
 using LagoVista.XPlat;
@@ -25,20 +28,25 @@ namespace LagoVista.PickAndPlace.App.Controls.GCode
     {
         private readonly IRestClient _restClient;
 
+        IPCBManager PCBManager { get;  }
+        IGCodeFileManager GCodeFileManager { get; }
+
         public GCode()
         {
             InitializeComponent();
             _restClient = SLWIOC.Get<IRestClient>();
+            PCBManager = SLWIOC.Get<IPCBManager>();
+            GCodeFileManager = SLWIOC.Get<IGCodeFileManager>();
         }
 
 
         private void HeightMapControl_Loaded(object sender, RoutedEventArgs e)
         {
-            ViewModel.Machine.GCodeFileManager.PropertyChanged += GCodeFileManager_PropertyChanged;
+            GCodeFileManager.PropertyChanged += GCodeFileManager_PropertyChanged;
             ViewModel.Machine.Settings.PropertyChanged += GCodeFileManager_PropertyChanged;
             ViewModel.Machine.PropertyChanged += GCodeFileManager_PropertyChanged;
 
-            ViewModel.Machine.PCBManager.PropertyChanged += PCBManager_PropertyChanged;
+            PCBManager.PropertyChanged += PCBManager_PropertyChanged;
 
             var x = ViewModel.Machine.Settings.WorkAreaSize.X / 2;
             Camera.Position = new Point3D(x, Camera.Position.Y, Camera.Position.Z);
@@ -235,11 +243,11 @@ namespace LagoVista.PickAndPlace.App.Controls.GCode
 
         private void PCBManager_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(ViewModel.Machine.PCBManager.HasBoard) ||
-                e.PropertyName == nameof(ViewModel.Machine.PCBManager.HasProject))
+            if (e.PropertyName == nameof(PCBManager.HasBoard) ||
+                e.PropertyName == nameof(PCBManager.HasProject))
             {
-                if (ViewModel.Machine.PCBManager.HasBoard)
-                    RenderBoard(ViewModel.Machine.PCBManager.Board, ViewModel.Machine.PCBManager.Project);
+                if (PCBManager.HasBoard)
+                    RenderBoard(PCBManager.Board, PCBManager.Project);
             }
             else
             {
@@ -251,8 +259,8 @@ namespace LagoVista.PickAndPlace.App.Controls.GCode
 
         private void GCodeFileManager_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(ViewModel.Machine.GCodeFileManager.Min) ||
-                e.PropertyName == nameof(ViewModel.Machine.GCodeFileManager.Max) ||
+            if (e.PropertyName == nameof(GCodeFileManager.Min) ||
+                e.PropertyName == nameof(GCodeFileManager.Max) ||
                 e.PropertyName == nameof(ViewModel.Machine.Settings.WorkAreaSize.X) ||
                 e.PropertyName == nameof(ViewModel.Machine.Settings.WorkAreaSize.Y) ||
                 e.PropertyName == nameof(ViewModel.Machine.Settings))
@@ -283,35 +291,35 @@ namespace LagoVista.PickAndPlace.App.Controls.GCode
 
         private void ClosePCBProject_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Project = null;
+            PCBManager.Project = null;
         }
 
         private void EditPCBProject_Click(object sender, RoutedEventArgs e)
         {
-            if (ViewModel.Project == null)
+            if (PCBManager.Project == null)
             {
                 MessageBox.Show("Please Open or Create a Project First.");
                 return;
             }
-            var clonedProject = ViewModel.Project.Clone();
+            var clonedProject = PCBManager.Project.Clone();
             var vm = new PCBProjectViewModel(clonedProject);
 
             var pcbWindow = new PCBProjectView();
             pcbWindow.DataContext = vm;
             pcbWindow.ForCreate = false;
             pcbWindow.Owner = App.Current.MainWindow;
-            pcbWindow.PCBFilepath = ViewModel.Machine.PCBManager.ProjectFilePath;
+            pcbWindow.PCBFilepath = PCBManager.ProjectFilePath;
             pcbWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
             pcbWindow.ShowDialog();
             if (pcbWindow.DialogResult.HasValue && pcbWindow.DialogResult.Value)
             {
-                ViewModel.Project = vm.Project;
+                PCBManager.Project = vm.Project;
             }
         }
 
         private void PCB2GCode_Click(object sender, RoutedEventArgs e)
         {
-            if (ViewModel.Project != null && !EntityHeader.IsNullOrEmpty(ViewModel.Project.EagleBRDFile))
+            if (PCBManager.Project != null && !EntityHeader.IsNullOrEmpty(PCBManager.Project.EagleBRDFile))
             {
               //  PCB.PCB2Gode.CreateGCode(ViewModel.Project.EagleBRDFile, ViewModel.Project);
             }
@@ -335,9 +343,9 @@ namespace LagoVista.PickAndPlace.App.Controls.GCode
             pcbWindow.ShowDialog();
             if (pcbWindow.DialogResult.HasValue && pcbWindow.DialogResult.Value)
             {
-                ViewModel.Project = vm.Project;
+                PCBManager.Project = vm.Project;
                 await ViewModel.AddProjectFileMRUAsync(pcbWindow.PCBFilepath);
-                ViewModel.Machine.PCBManager.Project = vm.Project;
+                PCBManager.Project = vm.Project;
             }
         }
 
@@ -353,23 +361,17 @@ namespace LagoVista.PickAndPlace.App.Controls.GCode
 
         const int CAMERA_MOVE_DELTA = 10;
 
-        public enum ImageModes
-        {
-            Top,
-            Side,
-            Front,
-        }
 
         private void ShowLeftView()
         {
-            double min = ViewModel.Machine.GCodeFileManager.HasValidFile ? ViewModel.Machine.GCodeFileManager.Min.Y : 0;
+            double min = GCodeFileManager.HasValidFile ? GCodeFileManager.Min.Y : 0;
             double max = ViewModel.Machine.Settings.WorkAreaSize.Y;
 
-            if (ViewModel.Machine.PCBManager.HasBoard)
-                max = ViewModel.Machine.PCBManager.Board.Height;
+            if (PCBManager.HasBoard)
+                max = PCBManager.Board.Height;
 
-            if (ViewModel.Machine.GCodeFileManager.HasValidFile)
-                max = ViewModel.Machine.GCodeFileManager.Max.Y;
+            if (GCodeFileManager.HasValidFile)
+                max = GCodeFileManager.Max.Y;
 
             var factor = 18.0;
 
@@ -387,23 +389,23 @@ namespace LagoVista.PickAndPlace.App.Controls.GCode
 
         private void ShowTopView()
         {
-            double minX = ViewModel.Machine.GCodeFileManager.HasValidFile ? ViewModel.Machine.GCodeFileManager.Min.X : 0;
+            double minX = GCodeFileManager.HasValidFile ? GCodeFileManager.Min.X : 0;
             double maxX = ViewModel.Machine.Settings.WorkAreaSize.X;
 
-            if (ViewModel.Machine.PCBManager.HasBoard)
-                maxX = ViewModel.Machine.PCBManager.Board.Width;
+            if (PCBManager.HasBoard)
+                maxX = PCBManager.Board.Width;
 
-            if (ViewModel.Machine.GCodeFileManager.HasValidFile)
-                maxX = ViewModel.Machine.GCodeFileManager.Max.X;
+            if (GCodeFileManager.HasValidFile)
+                maxX = GCodeFileManager.Max.X;
 
-            double minY = ViewModel.Machine.GCodeFileManager.HasValidFile ? ViewModel.Machine.GCodeFileManager.Min.Y : 0;
+            double minY = GCodeFileManager.HasValidFile ? GCodeFileManager.Min.Y : 0;
             double maxY = ViewModel.Machine.Settings.WorkAreaSize.Y;
 
-            if (ViewModel.Machine.PCBManager.HasBoard)
-                maxY = ViewModel.Machine.PCBManager.Board.Height;
+            if (PCBManager.HasBoard)
+                maxY = PCBManager.Board.Height;
 
-            if (ViewModel.Machine.GCodeFileManager.HasValidFile)
-                maxY = ViewModel.Machine.GCodeFileManager.Max.Y;
+            if (GCodeFileManager.HasValidFile)
+                maxY = GCodeFileManager.Max.Y;
 
 
             var deltaX = maxX - minX;
@@ -412,8 +414,8 @@ namespace LagoVista.PickAndPlace.App.Controls.GCode
             var x = deltaX / 2 + minX;
             var y = deltaY / 2 + minY;
 
-            if (ViewModel.Machine.PCBManager.HasProject)
-                y += ViewModel.Machine.PCBManager.Project.ScrapTopBottom;
+            if (PCBManager.HasProject)
+                y += PCBManager.Project.ScrapTopBottom;
 
             Camera.Position = new Point3D(x, y, 400);
             Camera.LookDirection = new Vector3D(0, 0.0001, -1);
@@ -423,14 +425,14 @@ namespace LagoVista.PickAndPlace.App.Controls.GCode
 
         private void ShowFrontView()
         {
-            double min = ViewModel.Machine.GCodeFileManager.HasValidFile ? ViewModel.Machine.GCodeFileManager.Min.X : 0;
+            double min = GCodeFileManager.HasValidFile ? GCodeFileManager.Min.X : 0;
             double max = ViewModel.Machine.Settings.WorkAreaSize.X;
 
-            if (ViewModel.Machine.PCBManager.HasBoard)
-                max = ViewModel.Machine.PCBManager.Board.Width;
+            if (PCBManager.HasBoard)
+                max = PCBManager.Board.Width;
 
-            if (ViewModel.Machine.GCodeFileManager.HasValidFile)
-                max = ViewModel.Machine.GCodeFileManager.Max.X;
+            if (GCodeFileManager.HasValidFile)
+                max = GCodeFileManager.Max.X;
 
             var factor = 18.0;
 
@@ -489,8 +491,8 @@ namespace LagoVista.PickAndPlace.App.Controls.GCode
                     break;
             }
 
-            if (ViewModel.Machine.PCBManager.HasBoard)
-                RenderBoard(ViewModel.Machine.PCBManager.Board, ViewModel.Machine.PCBManager.Project, false);
+            if (PCBManager.HasBoard)
+                RenderBoard(PCBManager.Board, PCBManager.Project, false);
         }
 
         ImageModes _imageMode = ImageModes.Front;

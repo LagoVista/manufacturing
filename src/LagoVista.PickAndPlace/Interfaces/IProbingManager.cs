@@ -36,12 +36,7 @@ namespace LagoVista.PickAndPlace.Interfaces
         void SetZAxis(double zOffset);
 
         /// <summary>
-        /// Utility method to read in a line of text from machine and return probe information.
-        /// </summary>
-        /// <param name="line"></param>
-        /// <returns></returns>
-        Vector3? ParseProbeLine(string line);
-
-        
+        RelayCommand StartProbeCommand { get; }
+        RelayCommand CancelProbeCommand { get; }
     }
 }

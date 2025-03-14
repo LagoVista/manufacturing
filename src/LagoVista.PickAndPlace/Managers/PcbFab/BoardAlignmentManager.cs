@@ -12,6 +12,7 @@ using LagoVista.Core;
 using System.Diagnostics;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
+using LagoVista.PickAndPlace.Util;
 
 namespace LagoVista.PickAndPlace.Managers.PcbFab
 {
@@ -114,8 +115,11 @@ namespace LagoVista.PickAndPlace.Managers.PcbFab
 
         BoardAlignmentManagerStates _state;
 
-        public BoardAlignmentManager(IMachine machine, ILogger logger, IPCBManager boardManager, IPointStabilizationFilter pointStabilizationFilter)
+        public BoardAlignmentManager(IMachine machine, ILogger logger, IPCBManager boardManager)
         {
+            var pointStabilizationFilter = new PointStabilizationFilter(Constants.PixelToleranceEpsilon, Constants.PixelStabilizationToleranceCount);
+
+
             _machine = machine;
             _logger = logger;
             _boardManager = boardManager;
@@ -239,7 +243,7 @@ namespace LagoVista.PickAndPlace.Managers.PcbFab
         {
             _boardManager.SetMeasuredOffset(_positionManager.OffsetPoint, _positionManager.RotationOffset);
 
-            _machine.PCBManager.Tool1Navigation = true;
+            _boardManager.Tool1Navigation = true;
 
             /* Move to the new origin */
             _machine.GotoPoint(_positionManager.OffsetPoint);

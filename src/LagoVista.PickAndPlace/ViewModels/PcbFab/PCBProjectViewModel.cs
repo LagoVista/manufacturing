@@ -13,7 +13,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab
 {
     public class PCBProjectViewModel : ViewModelBase
     {
-        public event EventHandler GenerateIsolationEvent;
+//        public event EventHandler GenerateIsolationEvent;
 
         PcbMillingProject _project;
         public PcbMillingProject Project
@@ -66,8 +66,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab.PcbFab
             return PCB != null;
         }
 
-        public async Task LoadDefaultSettings()
+        public Task LoadDefaultSettings()
         {
+            return Task.CompletedTask;
             //Project = await Storage.GetAsync<PcbMillingProject>("Default.pcbproj");
             //if (Project == null)
             //{

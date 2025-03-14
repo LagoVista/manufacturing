@@ -26,6 +26,8 @@ using System.Xml.Linq;
 using System.IO;
 using LagoVista.Core.ViewModels;
 using LagoVista.PickAndPlace.Models;
+using LagoVista.PickAndPlace.Interfaces;
+using LagoVista.PickAndPlace.Managers;
 
 namespace LagoVista.PickAndPlace.ViewModels.PcbFab
 {
@@ -35,10 +37,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
         private bool _isEditing;
         private readonly IPcb2GCodeService _pcb2GCodeService;
 
-        public PcbMillingViewModel(IRestClient restClient, IMachineRepo machineRepo, IPcb2GCodeService pcb2GCodeService) : base(machineRepo)
+        public PcbMillingViewModel(IRestClient restClient, IGCodeFileManager gcodeFileManager, IPCBManager pcbManager, IHeightMapManager heightMapManager, IMachineRepo machineRepo, IPcb2GCodeService pcb2GCodeService) : base(machineRepo)
         {
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
             _pcb2GCodeService = pcb2GCodeService ?? throw new ArgumentNullException(nameof(pcb2GCodeService));
+            GCodeFileManager = gcodeFileManager ?? throw new ArgumentNullException(nameof(gcodeFileManager));
+            HeightMapManager = heightMapManager ?? throw new ArgumentNullException(nameof(heightMapManager));
+            PCBManager = pcbManager ?? throw new ArgumentNullException(nameof(pcbManager));
+
             CreateProjectCommand = new RelayCommand(CreateNewProject);
 
             SaveProjectCommand = new RelayCommand(() => SaveAsync());
@@ -76,37 +82,37 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
         void ShowHoldDownGCode()
         {
             var gcode = GCodeEngine.CreateHoldDownGCode(PCB, Project, false);
-            Machine.GCodeFileManager.SetGCode(gcode);
+            GCodeFileManager.SetGCode(gcode);
         }
 
         async void ShowBoardDrillingGCode()
         {
             if (!String.IsNullOrEmpty(Project.DrillFileLocalPath))
             {
-                await Machine.GCodeFileManager.OpenFileAsync(Project.DrillFileLocalPath);
+                await GCodeFileManager.OpenFileAsync(Project.DrillFileLocalPath);
             }
             else
             {
                 var gcode = GCodeEngine.CreateDrillGCode(PCB, Project);
-                Machine.GCodeFileManager.SetGCode(gcode);
+                GCodeFileManager.SetGCode(gcode);
             }
 
-            Machine.GCodeFileManager.ApplyOffset(Project.ScrapSides, Project.ScrapTopBottom, 0);
+            GCodeFileManager.ApplyOffset(Project.ScrapSides, Project.ScrapTopBottom, 0);
         }
 
         async void ShowBoardMillingGCode()
         {
             if (!String.IsNullOrEmpty(Project.MillingFileLocalPath))
             {
-                await Machine.GCodeFileManager.OpenFileAsync(Project.MillingFileLocalPath);
+                await GCodeFileManager.OpenFileAsync(Project.MillingFileLocalPath);
             }
             else
             {
                 var gcode = GCodeEngine.CreateCutoutMill(PCB, Project);
-                Machine.GCodeFileManager.SetGCode(gcode);
+                GCodeFileManager.SetGCode(gcode);
             }
 
-            Machine.GCodeFileManager.ApplyOffset(Project.ScrapSides, Project.ScrapTopBottom, 0);
+            GCodeFileManager.ApplyOffset(Project.ScrapSides, Project.ScrapTopBottom, 0);
         }
 
 
@@ -114,42 +120,42 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
         {
             if (!String.IsNullOrEmpty(Project.DrillBottomFileLocalPath))
             {
-                await Machine.GCodeFileManager.OpenFileAsync(Project.DrillBottomFileLocalPath);
+                await GCodeFileManager.OpenFileAsync(Project.DrillBottomFileLocalPath);
             }
             else
             {
                 var gcode = GCodeEngine.CreateDrillGCode(PCB, Project);
-                Machine.GCodeFileManager.SetGCode(gcode);
+                GCodeFileManager.SetGCode(gcode);
             }
 
-            Machine.GCodeFileManager.ApplyOffset(Project.ScrapSides, Project.ScrapTopBottom, 0);
+            GCodeFileManager.ApplyOffset(Project.ScrapSides, Project.ScrapTopBottom, 0);
         }
 
         async void ShowBoardBottomMillingGCode()
         {
             if (!String.IsNullOrEmpty(Project.MillingBottomFileLocalPath))
             {
-                await Machine.GCodeFileManager.OpenFileAsync(Project.MillingBottomFileLocalPath);
+                await GCodeFileManager.OpenFileAsync(Project.MillingBottomFileLocalPath);
             }
             else
             {
                 var gcode = GCodeEngine.CreateCutoutMill(PCB, Project);
-                Machine.GCodeFileManager.SetGCode(gcode);
+                GCodeFileManager.SetGCode(gcode);
             }
 
-            Machine.GCodeFileManager.ApplyOffset(Project.ScrapSides, Project.ScrapTopBottom, 0);
+            GCodeFileManager.ApplyOffset(Project.ScrapSides, Project.ScrapTopBottom, 0);
         }
 
         async void ShowBottomIsolationGCode()
         {
-            await Machine.GCodeFileManager.OpenFileAsync(Project.BottomEtchingFileLocalPath);
-            Machine.GCodeFileManager.ApplyOffset(Project.ScrapSides, Project.ScrapTopBottom, 0);
+            await GCodeFileManager.OpenFileAsync(Project.BottomEtchingFileLocalPath);
+            GCodeFileManager.ApplyOffset(Project.ScrapSides, Project.ScrapTopBottom, 0);
         }
 
         async void ShowTopIsolationGCode()
         {
-           await Machine.GCodeFileManager.OpenFileAsync(Project.TopEtchingFileLocalPath);
-           Machine.GCodeFileManager.ApplyOffset(Project.ScrapSides, Project.ScrapTopBottom, 0);
+           await GCodeFileManager.OpenFileAsync(Project.TopEtchingFileLocalPath);
+            GCodeFileManager.ApplyOffset(Project.ScrapSides, Project.ScrapTopBottom, 0);
         }
 
         public async void OpenEagleBoard()
@@ -191,7 +197,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
                 heightMap.Min = new Core.Models.Drawing.Vector2(Project.ScrapSides, Project.ScrapTopBottom);
                 heightMap.Max = new Core.Models.Drawing.Vector2(PCB.Width + Project.ScrapSides, PCB.Height + Project.ScrapTopBottom);
                 heightMap.GridSize = Project.HeightMapGridSize;
-                Machine.HeightMapManager.NewHeightMap(heightMap);
+                HeightMapManager.NewHeightMap(heightMap);
             }            
         }
 
@@ -200,7 +206,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
             var result = await Popups.ShowOpenFileAsync(Constants.FileFilterGCode);
             if (!string.IsNullOrEmpty(result))
             {
-                await Machine.GCodeFileManager.OpenFileAsync(result);
+                await GCodeFileManager.OpenFileAsync(result);
             }
         }
 
@@ -548,6 +554,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
             this.ShowBoardDrillingGCodeCommand.RaiseCanExecuteChanged();
             this.ShowBoardMillingGCodeCommand.RaiseCanExecuteChanged();
             this.CreateProjectCommand.RaiseCanExecuteChanged();
+            this.CreateHeightMaCommand.RaiseCanExecuteChanged();
         }
 
         ObservableCollection<PcbMillingProjectSummary> _projects = new ObservableCollection<PcbMillingProjectSummary>();
@@ -621,5 +628,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
         public RelayCommand ShowHoldDownGCodeCommand { get; }
 
         public RelayCommand CreateHeightMaCommand { get; }
+
+        public IPCBManager PCBManager  {get;}
+
+        public IHeightMapManager HeightMapManager { get; }
+
+        public IGCodeFileManager GCodeFileManager { get; }
     }
 }

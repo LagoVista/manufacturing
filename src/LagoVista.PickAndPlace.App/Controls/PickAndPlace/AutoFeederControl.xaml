@@ -26,7 +26,7 @@
         <DataGrid ItemsSource="{Binding Feeders}" Grid.RowSpan="2" CanUserAddRows="false" AutoGenerateColumns="False" SelectedItem="{Binding Current, Mode=TwoWay}" IsReadOnly="True">
             <DataGrid.Columns>
                 <DataGridTextColumn Width="40" Header="Slot" Binding="{Binding Slot}" ></DataGridTextColumn>
-                <DataGridTextColumn Width="*" Header="Name" Binding="{Binding Name}" x:Name="Name" ></DataGridTextColumn>
+                <DataGridTextColumn Width="*" Header="Part Name" Binding="{Binding Name}" x:Name="Name" ></DataGridTextColumn>
                 <DataGridTextColumn Width="60" Header="Part Count" Binding="{Binding PartCount}" ></DataGridTextColumn>
                 <DataGridTextColumn Width="200" Header="Component" Binding="{Binding Component}" ></DataGridTextColumn>
                 <DataGridTextColumn Width="200" Header="Feeder Id" Binding="{Binding FeederId}" ></DataGridTextColumn>
@@ -57,8 +57,8 @@
                 <ComboBox ItemsSource="{Binding ComponentCategories}" DisplayMemberPath="Text" SelectedValuePath="Key" SelectedValue="{Binding SelectedCategoryKey, Mode=TwoWay}"></ComboBox>
                 <TextBlock Style="{StaticResource label}" Text="Component"></TextBlock>
                 <ComboBox ItemsSource="{Binding Components}" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding SelectedComponentSummaryId}"></ComboBox>
-                <TextBlock Text="{Binding SelectedComponent.DataSheet}"></TextBlock>
-                <TextBlock Text="{Binding SelectedComponent.ComponentPackage}"></TextBlock>
+                <TextBlock Text="{Binding CurrentComponent.DataSheet}"></TextBlock>
+                <TextBlock Text="{Binding CurrentComponent.ComponentPackage}"></TextBlock>
             </StackPanel>
 
             <StackPanel Orientation="Horizontal">

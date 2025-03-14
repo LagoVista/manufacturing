@@ -1,14 +1,9 @@
 ﻿using LagoVista.Core.Models;
 using LagoVista.Core.PlatformSupport;
 using LagoVista.Manufacturing.Models;
-using LagoVista.PickAndPlace.Interfaces;
-using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
-using RingCentral;
 using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,39 +11,7 @@ namespace LagoVista.PickAndPlace
 {
     public partial class Machine
     {
-        private IGCodeFileManager _gcodeFileManager;
-        public IGCodeFileManager GCodeFileManager
-        {
-            get { return _gcodeFileManager; }
-            set
-            {
-                _gcodeFileManager = value;
-                RaisePropertyChanged();
-            }
-        }
-
-        IHeightMapManager _heightMapManager;
-        public IHeightMapManager HeightMapManager
-        {
-            get { return _heightMapManager; }
-            private set
-            {
-                _heightMapManager = value;
-                RaisePropertyChanged();
-            }
-        }
-
-        IProbingManager _probingManager;
-        public IProbingManager ProbingManager
-        {
-            get { return _probingManager; }
-            private set
-            {
-                _probingManager = value;
-                RaisePropertyChanged();
-            }
-        }
-
+  
         public bool IsPnPMachine
         {
             get
@@ -60,28 +23,6 @@ namespace LagoVista.PickAndPlace
                        Settings.MachineType == FirmwareTypes.LumenPnP_V4_Marlin ||
                        Settings.MachineType == FirmwareTypes.Repeteir_PnP ||
                        Settings.MachineType == FirmwareTypes.SimulatedMachine;
-            }
-        }
-
-        IPCBManager _pcbManager;
-        public IPCBManager PCBManager
-        {
-            get { return _pcbManager; }
-            private set
-            {
-                _pcbManager = value;
-                RaisePropertyChanged();
-            }
-        }
-
-        IToolChangeManager _toolChangeManager;
-        public IToolChangeManager ToolChangeManager
-        {
-            get { return _toolChangeManager; }
-            private set
-            {
-                _toolChangeManager = value;
-                RaisePropertyChanged();
             }
         }
 
@@ -161,17 +102,6 @@ namespace LagoVista.PickAndPlace
                     _isLocating = value;
                     RaisePropertyChanged();
                 }
-            }
-        }
-
-        IBoardAlignmentManager _boardAlignmentManager;
-        public IBoardAlignmentManager BoardAlignmentManager
-        {
-            get { return _boardAlignmentManager; }
-            private set
-            {
-                _boardAlignmentManager = value;
-                RaisePropertyChanged();
             }
         }
 
