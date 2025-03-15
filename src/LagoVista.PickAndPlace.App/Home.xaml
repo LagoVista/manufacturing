@@ -74,7 +74,15 @@
                 <ctls:ImageSensorControl CameraType="PartInspection" Grid.Row="2" />
                 <mch:VacuumControl Grid.Row="3" />
                 <mch:LocatorControl Grid.Row="4" />
-                <ctls:MachineResponseControl x:Name="MachineResponse" Grid.Row="5"/>
+                <TabControl Grid.Row="5">
+                    <TabItem Header="Responses">
+                        <ctls:MachineResponseControl x:Name="MachineResponse" Grid.Row="5"/>
+                    </TabItem>
+                    <TabItem Header="Current Gode">
+                        <ctls:CurrentFileControl x:Name="GCodeFile" Grid.Row="5"/>
+                    </TabItem>
+                </TabControl>
+                
             </Grid>
 
             <Grid Grid.Column="1" >
@@ -192,9 +200,5 @@
                 <TextBlock Foreground="White" Text="Please Wait" FontSize="32"></TextBlock>
             </StackPanel>
         </Grid>
-
-
-
-
     </Grid>
 </Window>

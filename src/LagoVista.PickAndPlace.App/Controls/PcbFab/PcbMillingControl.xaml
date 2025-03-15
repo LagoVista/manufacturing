@@ -42,7 +42,11 @@
                 <MenuItem Header="Edit project" Command="{Binding EditProjectCommand}" />
                 <MenuItem  Header="Recent Projects" x:Name="RecentProjects" />
                 <Separator />
-                <MenuItem Header="Create Height Map" Command="{Binding CreateHeightMaCommand}" />
+                <MenuItem Header="Create Height Map" Command="{Binding HeightMapManager.CreateHeightMapCommand}" />
+                <MenuItem Header="Save Height Map" Command="{Binding HeightMapManager.SaveHeightMapCommand}" />
+                <MenuItem Header="Open Height Map" Command="{Binding HeightMapManager.OpenHeightMapCommand}" />
+                <MenuItem Header="Open Height Map" Command="{Binding HeightMapManager.ApplyHeightMapCommand}" />
+                
             </MenuItem>
         </Menu>
 

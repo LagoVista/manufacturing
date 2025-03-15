@@ -24,5 +24,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         MachineSummary SelectedMachine { get; set; }
         RelayCommand LockSettingsCommand { get;  }
         RelayCommand UnlockSettingsCommand { get; }
+
+        RelayCommand ClearWarningsCommand { get; }
     }
 }

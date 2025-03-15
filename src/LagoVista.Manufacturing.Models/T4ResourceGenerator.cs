@@ -1,4 +1,4 @@
-﻿/*3/15/2025 9:56:39 AM*/
+﻿/*3/15/2025 1:47:11 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -875,6 +875,15 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:GCodePojectTool_ToolType_Select
 
 		public static string GCodePojectTool_ToolType_Select { get { return GetResourceString("GCodePojectTool_ToolType_Select"); } }
+//Resources:ManufacturingResources:GCodePoloygon_Closed
+
+		public static string GCodePoloygon_Closed { get { return GetResourceString("GCodePoloygon_Closed"); } }
+//Resources:ManufacturingResources:GCodePoloygon_Closed_Help
+
+		public static string GCodePoloygon_Closed_Help { get { return GetResourceString("GCodePoloygon_Closed_Help"); } }
+//Resources:ManufacturingResources:GCodePoloygon_Points
+
+		public static string GCodePoloygon_Points { get { return GetResourceString("GCodePoloygon_Points"); } }
 //Resources:ManufacturingResources:GCodeProject_Description
 
 		public static string GCodeProject_Description { get { return GetResourceString("GCodeProject_Description"); } }
@@ -917,6 +926,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:GCodeProjectTool_PlungeDepth_Help
 
 		public static string GCodeProjectTool_PlungeDepth_Help { get { return GetResourceString("GCodeProjectTool_PlungeDepth_Help"); } }
+//Resources:ManufacturingResources:GCodeProjectTool_SafeMoveHeight
+
+		public static string GCodeProjectTool_SafeMoveHeight { get { return GetResourceString("GCodeProjectTool_SafeMoveHeight"); } }
 //Resources:ManufacturingResources:GCodeProjectTool_SpindleRPM
 
 		public static string GCodeProjectTool_SpindleRPM { get { return GetResourceString("GCodeProjectTool_SpindleRPM"); } }
@@ -926,6 +938,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:GCodeProjectTool_Title
 
 		public static string GCodeProjectTool_Title { get { return GetResourceString("GCodeProjectTool_Title"); } }
+//Resources:ManufacturingResources:GCodeRectangle_CornerRadius
+
+		public static string GCodeRectangle_CornerRadius { get { return GetResourceString("GCodeRectangle_CornerRadius"); } }
 //Resources:ManufacturingResources:GCodeTool_ToolType
 
 		public static string GCodeTool_ToolType { get { return GetResourceString("GCodeTool_ToolType"); } }
@@ -2079,6 +2094,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string GCodeOperation_EntireDepth_Help = "GCodeOperation_EntireDepth_Help";
 			public const string GCodeOperation_Tool = "GCodeOperation_Tool";
 			public const string GCodePojectTool_ToolType_Select = "GCodePojectTool_ToolType_Select";
+			public const string GCodePoloygon_Closed = "GCodePoloygon_Closed";
+			public const string GCodePoloygon_Closed_Help = "GCodePoloygon_Closed_Help";
+			public const string GCodePoloygon_Points = "GCodePoloygon_Points";
 			public const string GCodeProject_Description = "GCodeProject_Description";
 			public const string GCodeProject_Layers = "GCodeProject_Layers";
 			public const string GCodeProject_Origin = "GCodeProject_Origin";
@@ -2093,9 +2111,11 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string GCodeProjectTool_FeedRate_Help = "GCodeProjectTool_FeedRate_Help";
 			public const string GCodeProjectTool_PlungeDepth = "GCodeProjectTool_PlungeDepth";
 			public const string GCodeProjectTool_PlungeDepth_Help = "GCodeProjectTool_PlungeDepth_Help";
+			public const string GCodeProjectTool_SafeMoveHeight = "GCodeProjectTool_SafeMoveHeight";
 			public const string GCodeProjectTool_SpindleRPM = "GCodeProjectTool_SpindleRPM";
 			public const string GCodeProjectTool_SpindleRPM_Help = "GCodeProjectTool_SpindleRPM_Help";
 			public const string GCodeProjectTool_Title = "GCodeProjectTool_Title";
+			public const string GCodeRectangle_CornerRadius = "GCodeRectangle_CornerRadius";
 			public const string GCodeTool_ToolType = "GCodeTool_ToolType";
 			public const string GCodeToolTypes_DrillBit = "GCodeToolTypes_DrillBit";
 			public const string GCodeToolTypes_Laser = "GCodeToolTypes_Laser";

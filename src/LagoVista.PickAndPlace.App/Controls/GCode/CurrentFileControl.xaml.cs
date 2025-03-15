@@ -1,5 +1,8 @@
 ﻿using LagoVista.PickAndPlace.App.ViewModels;
+using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.ViewModels;
+using LagoVista.XPlat;
+using RingCentral;
 using System.ComponentModel;
 using System.Windows.Controls;
 
@@ -8,7 +11,7 @@ namespace LagoVista.PickAndPlace.App.Controls
     /// <summary>
     /// Interaction logic for CurrentFileStatus.xaml
     /// </summary>
-    public partial class CurrentFileControl : UserControl
+    public partial class CurrentFileControl : VMBoundUserControl<IGCodeFileManager>
     {
         GCodeWindow _gCodeWindow;
         public CurrentFileControl()

@@ -1,4 +1,5 @@
-﻿using LagoVista.Core.Models.Drawing;
+﻿using LagoVista.Core.Commanding;
+using LagoVista.Core.Models.Drawing;
 using LagoVista.PickAndPlace.Managers;
 using LagoVista.PickAndPlace.Models;
 using System.Collections.ObjectModel;
@@ -65,6 +66,13 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab
         IPCBManager PcbManager { get; }
 
         IGCodeFileManager GCodeFileManager { get; }
+
+        RelayCommand CancelProbeHeightMapCommand { get; }
+        RelayCommand StartProbeHeightMapCommand { get; }
+        RelayCommand ClearHeightMapCommand { get; }
+        RelayCommand SaveHeightMapCommand { get; }
+
+        RelayCommand ApplyHeightMapCommand { get; }
 
     }
 }

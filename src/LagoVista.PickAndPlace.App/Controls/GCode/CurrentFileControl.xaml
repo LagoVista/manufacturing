@@ -1,11 +1,13 @@
-﻿<UserControl x:Class="LagoVista.PickAndPlace.App.Controls.CurrentFileControl"
+﻿<ucb:VMBoundUserControl x:Class="LagoVista.PickAndPlace.App.Controls.CurrentFileControl"
+            x:TypeArguments="vm:IGCodeFileManager"
+             xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:cvts="clr-namespace:LagoVista.PickAndPlace.App.Converters"
              xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
-         
+             xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces;assembly=LagoVista.PickAndPlace"
              xmlns:ctls="clr-namespace:LagoVista.PickAndPlace.App.Controls.UI"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="400">
@@ -27,22 +29,22 @@
                 <ColumnDefinition Width="auto" />
             </Grid.ColumnDefinitions>
 
-            <TextBlock Text="{Binding Path=MachineRepo.CurrentMachine.GCodeFileManager.FileName, FallbackValue=MyFile.nc}" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding Path=FileName, FallbackValue=MyFile.nc}" VerticalAlignment="Center" />
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top"   >
-                <Label Content="{Binding Path=MachineRepo.CurrentMachine.GCodeFileManager.Head, FallbackValue=-}" Margin="0,0,-6,0"/>
+                <Label Content="{Binding Path=Head, FallbackValue=-}" Margin="0,0,-6,0"/>
                 <Label Content="/"/>
-                <Label Content="{Binding Path=MachineRepo.CurrentMachine.GCodeFileManager.TotalLines, FallbackValue=-}" Margin="-8,0,0,0"/>
+                <Label Content="{Binding Path=TotalLines, FallbackValue=-}" Margin="-8,0,0,0"/>
             </StackPanel>
 
             <StackPanel Grid.Column="2" Orientation="Horizontal" >
-                <Label Content="{Binding Path=MachineRepo.CurrentMachine.GCodeFileManager.EstimatedTimeRemaining.Minutes, FallbackValue=0}"  />
+                <Label Content="{Binding Path=EstimatedTimeRemaining.Minutes, FallbackValue=0}"  />
                 <Label Content=":" />
-                <Label Content="{Binding Path=MachineRepo.CurrentMachine.GCodeFileManager.EstimatedTimeRemaining.Seconds, FallbackValue=00, StringFormat=00}"  />
+                <Label Content="{Binding Path=EstimatedTimeRemaining.Seconds, FallbackValue=00, StringFormat=00}"  />
             </StackPanel>
             <StackPanel Grid.Column="3" Orientation="Horizontal">
                 <Label Content="Rate: " />
-                <Label Content="{Binding Path=MachineRepo.CurrentMachine.GCodeFileManager.CurrentCommand.Feed}" />
+                <Label Content="{Binding Path=CurrentCommand.Feed}" />
             </StackPanel>
             <StackPanel Grid.Column="4" Orientation="Horizontal">
                 <Button BorderBrush="Transparent"  Background="Transparent"  x:Name="EditGCode" Click="EditGCode_Click"  >
@@ -59,9 +61,9 @@
         </Grid>
 
         <ctls:ListBoxScroll Grid.Row="1" x:Name="ListViewFile"
-                            SelectedIndex="{Binding Path=MachineRepo.CurrentMachine.GCodeFileManager.Tail}" 
+                            SelectedIndex="{Binding Path=Tail}" 
                             HorizontalContentAlignment="Stretch" 
-                            ItemsSource="{Binding Path=MachineRepo.CurrentMachine.GCodeFileManager.Commands}"
+                            ItemsSource="{Binding Path=Commands}"
                             IsHitTestVisible="False" BorderThickness="0"
                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" >
 
@@ -70,9 +72,9 @@
                     <Grid Background="{Binding Status, Converter={StaticResource GCodeSendBackgroundConverter}}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="100" />
-                            <ColumnDefinition Width="70" />
-                            <ColumnDefinition Width="200" />
                             <ColumnDefinition Width="50" />
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="100" />
                             <ColumnDefinition Width="50" />
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="{Binding Status}" Foreground="{Binding Status, Converter={StaticResource GCodeSendForegroundConverter}}"/>
@@ -85,4 +87,4 @@
             </ctls:ListBoxScroll.ItemTemplate>
         </ctls:ListBoxScroll>
     </Grid>
-</UserControl>
+</ucb:VMBoundUserControl>

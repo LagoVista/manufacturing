@@ -1,5 +1,6 @@
 ﻿using LagoVista.Core.Commanding;
 using LagoVista.Core.Models.Drawing;
+using LagoVista.Core.ViewModels;
 using LagoVista.GCode;
 using LagoVista.GCode.Commands;
 using LagoVista.PickAndPlace.Models;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.Interfaces
 {
-    public interface IGCodeFileManager : INotifyPropertyChanged
+    public interface IGCodeFileManager : INotifyPropertyChanged, IViewModel
     {
         /// <summary>
         /// Give a path, open a file that has GCode Commands

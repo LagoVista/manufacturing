@@ -32,5 +32,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public ObservableCollection<StatusMessage> Errors { get; } = new ObservableCollection<StatusMessage>();
 
         public RelayCommand<StatusMessage> ClearCommand { get; }
+
+        public void ClearAll()
+        {
+            Errors.Clear();
+        }
     }
 }

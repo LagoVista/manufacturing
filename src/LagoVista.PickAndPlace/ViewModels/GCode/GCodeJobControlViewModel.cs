@@ -16,42 +16,47 @@ namespace LagoVista.PickAndPlace.ViewModels.GCode
             HeightMapManager = heightMapManager ?? throw new ArgumentNullException(nameof(heightMapManager));
             ProbingManager = probingManager ?? throw new ArgumentNullException(nameof(probingManager));
 
-            StopCommand = new RelayCommand(StopJob, CanStopJob);
-            PauseCommand = new RelayCommand(PauseJob, CanPauseJob);
+            StopCommand = new RelayCommand(() => StopJob(), CanStopJob);
+            PauseCommand = new RelayCommand(() => PauseJob(), CanPauseJob);
 
-            HomingCycleCommand = new RelayCommand(MachineRepo.CurrentMachine.HomingCycle, CanHomeAndReset);
-            HomeViaOriginCommand = new RelayCommand(MachineRepo.CurrentMachine.HomeViaOrigin, CanHomeAndReset);
+            HomingCycleCommand = new RelayCommand(() => Machine.HomingCycle(), CanHomeAndReset);
+            HomeViaOriginCommand = new RelayCommand(Machine.HomeViaOrigin, CanHomeAndReset);
             SetAbsoluteWorkSpaceHomeCommand = new RelayCommand(SetAbsoluteWorkSpaceHome, CanMoveToWorkspaceHome); ;
-            SoftResetCommand = new RelayCommand(MachineRepo.CurrentMachine.SoftReset, CanHomeAndReset);
-            FeedHoldCommand = new RelayCommand(MachineRepo.CurrentMachine.FeedHold, CanPauseFeed);
-            CycleStartCommand = new RelayCommand(MachineRepo.CurrentMachine.CycleStart, CanResumeFeed);
+            SoftResetCommand = new RelayCommand(() => Machine.SoftReset(), CanHomeAndReset);
+            FeedHoldCommand = new RelayCommand(() => Machine.FeedHold(), CanPauseFeed);
+            CycleStartCommand = new RelayCommand(() => Machine.CycleStart(), CanResumeFeed);
 
-            ClearAlarmCommand = new RelayCommand(MachineRepo.CurrentMachine.ClearAlarm, CanClearAlarm);
+            ClearAlarmCommand = new RelayCommand(() => Machine.ClearAlarm(), CanClearAlarm);
 
-            EmergencyStopCommand = new RelayCommand(MachineRepo.CurrentMachine.EmergencyStop, CanSendEmergencyStop);
+            EmergencyStopCommand = new RelayCommand(() => Machine.EmergencyStop(), CanSendEmergencyStop);
 
-            LaserOnCommand = new RelayCommand(MachineRepo.CurrentMachine.LaserOn, CanManipulateLaser);
-            LaserOffCommand = new RelayCommand(MachineRepo.CurrentMachine.LaserOff, CanManipulateLaser);
+            LaserOnCommand = new RelayCommand(() => Machine.LaserOn(), CanManipulateLaser);
+            LaserOffCommand = new RelayCommand(() => Machine.LaserOff(), CanManipulateLaser);
 
-            SpindleOnCommand = new RelayCommand(MachineRepo.CurrentMachine.SpindleOn, CanManipulateSpindle);
-            SpindleOffCommand = new RelayCommand(MachineRepo.CurrentMachine.SpindleOff, CanManipulateSpindle);
+            SpindleOnCommand = new RelayCommand(() => Machine.SpindleOn(), CanManipulateSpindle);
+            SpindleOffCommand = new RelayCommand(() => Machine.SpindleOff(), CanManipulateSpindle);
 
-            GotoFavorite1Command = new RelayCommand(MachineRepo.CurrentMachine.GotoFavorite1, CanMove);
-            GotoFavorite2Command = new RelayCommand(MachineRepo.CurrentMachine.GotoFavorite2, CanMove);
-            SetFavorite1Command = new RelayCommand(MachineRepo.CurrentMachine.SetFavorite1, CanMove);
-            SetFavorite2Command = new RelayCommand(MachineRepo.CurrentMachine.SetFavorite2, CanMove);
+            GotoFavorite1Command = new RelayCommand(() => Machine.GotoFavorite1(), CanMove);
+            GotoFavorite2Command = new RelayCommand(() => Machine.GotoFavorite2(), CanMove);
+            SetFavorite1Command = new RelayCommand(() => Machine.SetFavorite1(), CanMove);
+            SetFavorite2Command = new RelayCommand(() => Machine.SetFavorite2(), CanMove);
 
-            GotoWorkspaceHomeCommand = new RelayCommand(MachineRepo.CurrentMachine.GotoWorkspaceHome, CanMove);
-            SetWorkspaceHomeCommand = new RelayCommand(MachineRepo.CurrentMachine.SetAbsoluteWorkSpaceHome, CanMove);
+            GotoWorkspaceHomeCommand = new RelayCommand(() => Machine.GotoWorkspaceHome(), CanMove);
+            SetWorkspaceHomeCommand = new RelayCommand(() => Machine.SetAbsoluteWorkSpaceHome(), CanMove);
 
-
-            MachineRepo.MachineChanged += (s, a) => MachineRepo.CurrentMachine.PropertyChanged += _machine_PropertyChanged;
+            HeightMapManager.PropertyChanged += (e, a) => RefreshCommandExecuteStatus();
+            ProbingManager.PropertyChanged += (e, a) => RefreshCommandExecuteStatus();
+            GCodeFileManager.PropertyChanged += (e, a) => RefreshCommandExecuteStatus(); 
         }
 
+        protected override void MachineChanged(IMachine machine)
+        {
+            machine.PropertyChanged += _machine_PropertyChanged;
+        }
 
-        public bool IsCreatingHeightMap { get { return MachineRepo.CurrentMachine.Mode == OperatingMode.ProbingHeightMap; } }
-        public bool IsProbingHeight { get { return MachineRepo.CurrentMachine.Mode == OperatingMode.ProbingHeight; } }
-        public bool IsRunningJob { get { return MachineRepo.CurrentMachine.Mode == OperatingMode.SendingGCodeFile; } }
+        public bool IsCreatingHeightMap { get { return Machine.Mode == OperatingMode.ProbingHeightMap; } }
+        public bool IsProbingHeight { get { return Machine.Mode == OperatingMode.ProbingHeight; } }
+        public bool IsRunningJob { get { return Machine.Mode == OperatingMode.SendingGCodeFile; } }
 
         private void GCodeFileManager_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
@@ -63,95 +68,100 @@ namespace LagoVista.PickAndPlace.ViewModels.GCode
 
         private void RefreshCommandExecuteStatus()
         {
-            ClearAlarmCommand.RaiseCanExecuteChanged();
+            DispatcherServices.Invoke(() =>
+            {
+                ClearAlarmCommand.RaiseCanExecuteChanged();
 
-            StopCommand.RaiseCanExecuteChanged();
-            PauseCommand.RaiseCanExecuteChanged();
+                StopCommand.RaiseCanExecuteChanged();
+                PauseCommand.RaiseCanExecuteChanged();
 
-            SoftResetCommand.RaiseCanExecuteChanged();
-            HomingCycleCommand.RaiseCanExecuteChanged();
-            HomeViaOriginCommand.RaiseCanExecuteChanged();
-            FeedHoldCommand.RaiseCanExecuteChanged();
-            CycleStartCommand.RaiseCanExecuteChanged();
+                SoftResetCommand.RaiseCanExecuteChanged();
+                HomingCycleCommand.RaiseCanExecuteChanged();
+                HomeViaOriginCommand.RaiseCanExecuteChanged();
+                FeedHoldCommand.RaiseCanExecuteChanged();
+                CycleStartCommand.RaiseCanExecuteChanged();
 
-            EmergencyStopCommand.RaiseCanExecuteChanged();
+                EmergencyStopCommand.RaiseCanExecuteChanged();
 
-            LaserOnCommand.RaiseCanExecuteChanged();
-            LaserOffCommand.RaiseCanExecuteChanged();
-            SpindleOnCommand.RaiseCanExecuteChanged();
-            SpindleOffCommand.RaiseCanExecuteChanged();
+                LaserOnCommand.RaiseCanExecuteChanged();
+                LaserOffCommand.RaiseCanExecuteChanged();
+                SpindleOnCommand.RaiseCanExecuteChanged();
+                SpindleOffCommand.RaiseCanExecuteChanged();
 
-            GotoFavorite1Command.RaiseCanExecuteChanged();
-            GotoFavorite2Command.RaiseCanExecuteChanged();
-            SetFavorite1Command.RaiseCanExecuteChanged();
-            SetFavorite2Command.RaiseCanExecuteChanged();
-            GotoWorkspaceHomeCommand.RaiseCanExecuteChanged();
-            SetWorkspaceHomeCommand.RaiseCanExecuteChanged();
+                GotoFavorite1Command.RaiseCanExecuteChanged();
+                GotoFavorite2Command.RaiseCanExecuteChanged();
+                SetFavorite1Command.RaiseCanExecuteChanged();
+                SetFavorite2Command.RaiseCanExecuteChanged();
+                GotoWorkspaceHomeCommand.RaiseCanExecuteChanged();
+                SetWorkspaceHomeCommand.RaiseCanExecuteChanged();
+            });
         }
 
         public void StopJob()
         {
             GCodeFileManager.ResetJob();
             Machine.SetMode(OperatingMode.Manual);
+            RaiseCanExecuteChanged();
         }
 
         public void HomingCycle()
         {
-            MachineRepo.CurrentMachine.HomingCycle();
+            Machine.HomingCycle();
+            RaiseCanExecuteChanged();
         }
 
         public void HomeViaOrigin()
         {
-            MachineRepo.CurrentMachine.HomeViaOrigin();
+            Machine.HomeViaOrigin();
         }
 
         public void SetAbsoluteWorkSpaceHome()
         {
-            MachineRepo.CurrentMachine.SetAbsoluteWorkSpaceHome();
+            Machine.SetAbsoluteWorkSpaceHome();
         }
 
 
         public void PauseJob()
         {
-            MachineRepo.CurrentMachine.SetMode(OperatingMode.Manual);
+            Machine.SetMode(OperatingMode.Manual);
+            RaiseCanExecuteChanged();
         }
 
         public void ClearAlarm()
         {
-            MachineRepo.CurrentMachine.ClearAlarm();
+            Machine.ClearAlarm();
+            RaiseCanExecuteChanged();
         }
-
-
 
         public bool CanManipulateLaser()
         {
-            return MachineRepo.CurrentMachine.IsInitialized &&
-                MachineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.Marlin_Laser &&
-                MachineRepo.CurrentMachine.Connected &&
-                MachineRepo.CurrentMachine.Mode == OperatingMode.Manual;
+            return Machine.IsInitialized &&
+                Machine.Settings.MachineType == FirmwareTypes.Marlin_Laser &&
+                Machine.Connected &&
+                Machine.Mode == OperatingMode.Manual;
         }
 
         public bool CanManipulateSpindle()
         {
-            return MachineRepo.CurrentMachine.IsInitialized &&
-                MachineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.GRBL1_1 &&
-                MachineRepo.CurrentMachine.Connected &&
-                MachineRepo.CurrentMachine.Mode == OperatingMode.Manual;
+            return Machine.IsInitialized &&
+                Machine.Settings.MachineType == FirmwareTypes.GRBL1_1 &&
+                Machine.Connected &&
+                Machine.Mode == OperatingMode.Manual;
         }
 
         public bool CanMove()
         {
-            return MachineRepo.CurrentMachine.IsInitialized &&
-                MachineRepo.CurrentMachine.Connected &&
-                MachineRepo.CurrentMachine.Mode == OperatingMode.Manual;
+            return Machine.IsInitialized &&
+                Machine.Connected &&
+                Machine.Mode == OperatingMode.Manual;
         }
 
         public bool CanMoveToWorkspaceHome()
         {
-            return MachineRepo.CurrentMachine.IsInitialized &&
-          MachineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.GRBL1_1 &&
-          MachineRepo.CurrentMachine.Connected &&
-          MachineRepo.CurrentMachine.Mode == OperatingMode.Manual;
+            return Machine.IsInitialized &&
+          Machine.Settings.MachineType == FirmwareTypes.GRBL1_1 &&
+          Machine.Connected &&
+          Machine.Mode == OperatingMode.Manual;
         }
 
         private void HeightMapManager_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -165,12 +175,12 @@ namespace LagoVista.PickAndPlace.ViewModels.GCode
 
         private void _machine_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(MachineRepo.CurrentMachine.IsInitialized) ||
-                e.PropertyName == nameof(MachineRepo.CurrentMachine.Mode) ||
-                e.PropertyName == nameof(MachineRepo.CurrentMachine.Settings) ||
-                e.PropertyName == nameof(MachineRepo.CurrentMachine.Status) ||
-                e.PropertyName == nameof(MachineRepo.CurrentMachine.Connected) ||
-                e.PropertyName == nameof(MachineRepo.CurrentMachine.Settings.CurrentSerialPort))
+            if (e.PropertyName == nameof(Machine.IsInitialized) ||
+                e.PropertyName == nameof(Machine.Mode) ||
+                e.PropertyName == nameof(Machine.Settings) ||
+                e.PropertyName == nameof(Machine.Status) ||
+                e.PropertyName == nameof(Machine.Connected) ||
+                e.PropertyName == nameof(Machine.Settings.CurrentSerialPort))
             {
                 DispatcherServices.Invoke(RefreshCommandExecuteStatus);
             }
@@ -178,76 +188,76 @@ namespace LagoVista.PickAndPlace.ViewModels.GCode
 
         public bool CanChangeConnectionStatus()
         {
-            return MachineRepo.CurrentMachine.IsInitialized &&
+            return Machine.IsInitialized &&
                 (
-                (MachineRepo.CurrentMachine.Settings.ConnectionType == ConnectionTypes.Serial_Port && MachineRepo.CurrentMachine.Settings.CurrentSerialPort != null && MachineRepo.CurrentMachine.Settings.CurrentSerialPort.Id != "empty")
-                || (MachineRepo.CurrentMachine.Settings.ConnectionType == ConnectionTypes.Network && !String.IsNullOrEmpty(MachineRepo.CurrentMachine.Settings.IPAddress))
-                || MachineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.SimulatedMachine);
+                (Machine.Settings.ConnectionType == ConnectionTypes.Serial_Port && Machine.Settings.CurrentSerialPort != null && Machine.Settings.CurrentSerialPort.Id != "empty")
+                || (Machine.Settings.ConnectionType == ConnectionTypes.Network && !String.IsNullOrEmpty(Machine.Settings.IPAddress))
+                || Machine.Settings.MachineType == FirmwareTypes.SimulatedMachine);
         }
 
         public bool CanHomeAndReset()
         {
-            return MachineRepo.CurrentMachine.IsInitialized && MachineRepo.CurrentMachine.Connected;
+            return Machine.IsInitialized && Machine.Connected;
         }
 
 
         public bool CanClearAlarm()
         {
-            return MachineRepo.CurrentMachine.IsInitialized &&
-                   MachineRepo.CurrentMachine.Connected &&
-                   MachineRepo.CurrentMachine.Status.ToLower() == "alarm";
+            return Machine.IsInitialized &&
+                   Machine.Connected &&
+                   Machine.Status.ToLower() == "alarm";
         }
 
         public bool FavoritesAvailable()
         {
-            return MachineRepo.CurrentMachine.IsInitialized &&
-                MachineRepo.CurrentMachine.Connected
-                && MachineRepo.CurrentMachine.Mode == OperatingMode.Manual;
+            return Machine.IsInitialized &&
+                Machine.Connected
+                && Machine.Mode == OperatingMode.Manual;
         }
 
         public bool CanPauseJob()
         {
-            return MachineRepo.CurrentMachine.IsInitialized &&
-                MachineRepo.CurrentMachine.Mode == OperatingMode.SendingGCodeFile ||
-                MachineRepo.CurrentMachine.Mode == OperatingMode.ProbingHeightMap ||
-                MachineRepo.CurrentMachine.Mode == OperatingMode.ProbingHeight;
+            return Machine.IsInitialized &&
+                Machine.Mode == OperatingMode.SendingGCodeFile ||
+                Machine.Mode == OperatingMode.ProbingHeightMap ||
+                Machine.Mode == OperatingMode.ProbingHeight;
         }
 
 
 
         public bool CanProbe()
         {
-            return MachineRepo.CurrentMachine.IsInitialized &&
-                MachineRepo.CurrentMachine.Connected
-                && MachineRepo.CurrentMachine.Mode == OperatingMode.Manual;
+            return Machine.IsInitialized &&
+                Machine.Connected
+                && Machine.Mode == OperatingMode.Manual;
         }
 
         public bool CanPauseFeed()
         {
-            return (MachineRepo.CurrentMachine.IsInitialized &&
-                        MachineRepo.CurrentMachine.Connected &&
-                        MachineRepo.CurrentMachine.Status != "Hold");
+            return (Machine.IsInitialized &&
+                        Machine.Connected &&
+                        Machine.Status != "Hold");
         }
 
         public bool CanResumeFeed()
         {
-            return (MachineRepo.CurrentMachine.IsInitialized &&
-                        MachineRepo.CurrentMachine.Connected &&
-                        MachineRepo.CurrentMachine.Status == "Hold");
+            return (Machine.IsInitialized &&
+                        Machine.Connected &&
+                        Machine.Status == "Hold");
         }
 
         public bool CanStopJob()
         {
-            return MachineRepo.CurrentMachine.IsInitialized &&
-                MachineRepo.CurrentMachine.Mode == OperatingMode.SendingGCodeFile ||
-                MachineRepo.CurrentMachine.Mode == OperatingMode.ProbingHeightMap ||
-                MachineRepo.CurrentMachine.Mode == OperatingMode.ProbingHeight;
+            return Machine.IsInitialized &&
+                Machine.Mode == OperatingMode.SendingGCodeFile ||
+                Machine.Mode == OperatingMode.ProbingHeightMap ||
+                Machine.Mode == OperatingMode.ProbingHeight;
         }
 
 
         public bool CanSendEmergencyStop()
         {
-            return MachineRepo.CurrentMachine.IsInitialized && MachineRepo.CurrentMachine.Connected;
+            return Machine.IsInitialized && Machine.Connected;
         }
 
 

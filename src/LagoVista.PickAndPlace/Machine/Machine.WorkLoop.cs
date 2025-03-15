@@ -298,14 +298,7 @@ namespace LagoVista.PickAndPlace
 
                 UnacknowledgedBytesSent = 0;
 
-                if (Settings.MachineType == FirmwareTypes.GRBL1_1)
-                {
-                    //Enqueue("\n$G\n", true);
-                    _port.DtrEnable = true;
-                    await Task.Delay(250);
-                    _port.DtrEnable = false;
-                }
-                else if (Settings.MachineType == FirmwareTypes.LagoVista_PnP)
+                if (Settings.MachineType == FirmwareTypes.LagoVista_PnP)
                 {
                     Enqueue("*", true);
                 }

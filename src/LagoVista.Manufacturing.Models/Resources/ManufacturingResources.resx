@@ -1782,7 +1782,7 @@
     <value>Drill Bit</value>
   </data>
   <data name="GCodeToolTypes_Laser" xml:space="preserve">
-    <value>Lasert</value>
+    <value>Laser</value>
   </data>
   <data name="GCodePojectTool_ToolType_Select" xml:space="preserve">
     <value>-selet tool type-</value>
@@ -1815,7 +1815,7 @@
     <value>Polygon</value>
   </data>
   <data name="GCode_Polygon_Description" xml:space="preserve">
-    <value>A polygon is a collectoin of points that tool will travel</value>
+    <value>A polygon is a collection of points that tool will travel.  </value>
   </data>
   <data name="GCodeLayer_Title" xml:space="preserve">
     <value>Layer</value>
@@ -1861,5 +1861,20 @@
   </data>
   <data name="GCodeHole_Diameter" xml:space="preserve">
     <value>Diameter</value>
+  </data>
+  <data name="GCodeRectangle_CornerRadius" xml:space="preserve">
+    <value>Corner Radius</value>
+  </data>
+  <data name="GCodePoloygon_Closed" xml:space="preserve">
+    <value>Closed</value>
+  </data>
+  <data name="GCodePoloygon_Closed_Help" xml:space="preserve">
+    <value>If the polygon is closed, if the last point entered does not equal the starting point, that final point will be connected automatically.</value>
+  </data>
+  <data name="GCodePoloygon_Points" xml:space="preserve">
+    <value>Points</value>
+  </data>
+  <data name="GCodeProjectTool_SafeMoveHeight" xml:space="preserve">
+    <value>Safe Move Height</value>
   </data>
 </root>

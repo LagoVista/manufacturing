@@ -35,6 +35,7 @@ namespace LagoVista.PickAndPlace.Repos
             CurrentMachine = new Machine();
             CurrentMachine.Settings = new Manufacturing.Models.Machine();
             UnlockSettingsCommand = new RelayCommand(() => CurrentMachine.AreSettingsLocked = false);
+            ClearWarningsCommand = new RelayCommand(() => ClearErrors());
             LockSettingsCommand = new RelayCommand(() => CurrentMachine.AreSettingsLocked = true);
             ConnectCommand = new RelayCommand(Connect, () => this.HasValidMachine);
             SaveCurrentMachineCommand = new RelayCommand(async () => await SaveCurrentMachineAsync(), ()=> HasValidMachine);
@@ -42,6 +43,11 @@ namespace LagoVista.PickAndPlace.Repos
         }
 
         public IMachine CurrentMachine { get; set; }
+
+        private void ClearErrors()
+        {
+            SLWIOC.Get<IErrorsViewModel>().ClearAll();
+        }
 
         public override async Task InitAsync()
         {
@@ -51,6 +57,8 @@ namespace LagoVista.PickAndPlace.Repos
             {
                 await LoadMachineAsync(machineId);
             }
+
+            ConnectCommand.RaiseCanExecuteChanged();
         }
 
         public async Task<List<LagoVista.Manufacturing.Models.MachineSummary>> GetMachinesAsync()
@@ -201,6 +209,7 @@ namespace LagoVista.PickAndPlace.Repos
         public RelayCommand SaveCurrentMachineCommand { get; set; }
         public RelayCommand ReloadCurrentMachineCommand { get; set; }
         public RelayCommand UnlockSettingsCommand { get; set; }
+        public RelayCommand ClearWarningsCommand { get; }
 
     }
 }

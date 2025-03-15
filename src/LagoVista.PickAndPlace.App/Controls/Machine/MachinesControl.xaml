@@ -89,6 +89,13 @@
                     </StackPanel>
                 </Button.Content>
             </Button>
+            <Button Command="{Binding ClearWarningsCommand}" >
+                <Button.Content>
+                    <StackPanel>
+                        <fa:ImageAwesome Foreground="Red" Icon="TrashOutline" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
         </StackPanel>
         
         <ListView ItemsSource="{Binding Machines}" SelectedItem="{Binding SelectedMachine}" Grid.Row="1" Visibility="Collapsed">

@@ -1,4 +1,5 @@
 ﻿using LagoVista.PickAndPlace.Interfaces;
+
 using LagoVista.Core.PlatformSupport;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab;
 using LagoVista.Core.Commanding;
@@ -14,14 +15,15 @@ using LagoVista.Core.Models.Drawing;
 
 namespace LagoVista.PickAndPlace.Managers
 {
-    public partial class HeightMapManager : MachineViewModelBase, IHeightMapManager
+    public partial class HeightMapManager : MachineViewModelBase, IHeightMapManager, IProbeCompletedHandler
     {        
         public HeightMapManager(IMachineRepo machineRepo, IPCBManager pcbManager, IGCodeFileManager gcodeFileManager, ILogger logger) : base (machineRepo)
         {
-            SaveHeightMapCommand = new RelayCommand(SaveHeightMap, CanSaveHeightMap);
-            ApplyHeightMapCommand = new RelayCommand(ApplyHeightMap, CanApplyHeightMap);
-            ClearHeightMapCommand = new RelayCommand(ClearHeightMap, CanClearHeightMap);
-            StartProbeHeightMapCommand = new RelayCommand(StartHeightMap, CanProbeHeightMap);
+            SaveHeightMapCommand = CreateCommand(SaveHeightMap, CanSaveHeightMap);
+            ApplyHeightMapCommand = CreateCommand(ApplyHeightMap, CanApplyHeightMap);
+            ClearHeightMapCommand = CreateCommand(ClearHeightMap, CanClearHeightMap);
+            StartProbeHeightMapCommand = CreateCommand(StartHeightMap, CanProbeHeightMap);
+            OpenHeightMapCommand = CreateCommand(OpenHeightMapFile);
 
             GCodeFileManager = gcodeFileManager;
             PcbManager = pcbManager;
@@ -33,17 +35,18 @@ namespace LagoVista.PickAndPlace.Managers
             if (!String.IsNullOrEmpty(file))
             {
                 await SaveHeightMapAsync(file);
+                RaiseCanExecuteChanged();
             }
         }
 
 
-
-        public async void OpenHeightMapFile(object instance)
+        public async void OpenHeightMapFile()
         {
             var file = await Popups.ShowOpenFileAsync(Constants.FileFilterHeightMap);
             if (!String.IsNullOrEmpty(file))
             {
                 await OpenHeightMapAsync(file);
+                RaiseCanExecuteChanged();
             }
         }
 
@@ -97,18 +100,25 @@ namespace LagoVista.PickAndPlace.Managers
 
             Machine.AddStatusMessage(StatusMessageTypes.Info, $"Postion as returned {position.Z.ToDim()}.");
 
-            RaisePropertyChanged(nameof(HeightMap));
+            DispatcherServices.Invoke(() =>
+            {
+                RaisePropertyChanged(nameof(HeightMap));
+            });
+
             _currentPoint = null;
 
             if (HeightMap.Status == HeightMapStatus.Populated)
             {
-                Status = HeightMapStatus.Populated;
-                Machine.SendCommand($"G0 Z{Machine.Settings.ProbeSafeHeight.ToDim()}");
-                Machine.AddStatusMessage(StatusMessageTypes.Info, $"Creating Height Map Completed");
-                Machine.AddStatusMessage(StatusMessageTypes.Info, $"Next - Apply Height Map to GCode");
-                CancelProbing();
+                DispatcherServices.Invoke(async () =>
+                {
+                    Status = HeightMapStatus.Populated;
+                    Machine.SendCommand($"G0 Z{Machine.Settings.ProbeSafeHeight.ToDim()}");
+                    Machine.AddStatusMessage(StatusMessageTypes.Info, $"Creating Height Map Completed");
+                    Machine.AddStatusMessage(StatusMessageTypes.Info, $"Next - Apply Height Map to GCode");
+                    CancelProbing();
 
-                await Core.PlatformSupport.Services.Popups.ShowAsync("Capturing Height Map completed.  You can now save or apply this height map to your GCode.");
+                    await Core.PlatformSupport.Services.Popups.ShowAsync("Capturing Height Map completed.  You can now save or apply this height map to your GCode.");
+                });
             }
             else
             {
@@ -121,6 +131,8 @@ namespace LagoVista.PickAndPlace.Managers
             HeightMap = heightMap;
             HeightMap.Refresh();
             ConstructVisuals();
+
+            RaiseCanExecuteChanged();
         }
 
         private void ConstructVisuals()
@@ -135,12 +147,10 @@ namespace LagoVista.PickAndPlace.Managers
             {
                 Machine.AddStatusMessage(StatusMessageTypes.Warning, $"Grid size must be creater than 2.5, current grid size {HeightMap.GridSize}.");
                 return;
-            }
-
+            }            
         }
 
         private string _heightMapPath;
-
         public async Task OpenHeightMapAsync(string path)
         {
             _heightMapPath = path;
@@ -174,9 +184,12 @@ namespace LagoVista.PickAndPlace.Managers
             HeightMap = heightMap;
         }
 
+
+
         public void CloseHeightMap()
         {
             HeightMap = null;
+            RaiseCanExecuteChanged();
         }
 
         public void ProbeFailed()
@@ -188,6 +201,9 @@ namespace LagoVista.PickAndPlace.Managers
         public void CancelProbing()
         {
             Machine.SetMode(OperatingMode.Manual);
+            Machine.UnregisterProbeCompletedHandler();
+            RaiseCanExecuteChanged();
+            Machine.SendSafeMoveHeight();
         }
 
         HeightMapProbePoint _currentPoint;
@@ -268,16 +284,20 @@ namespace LagoVista.PickAndPlace.Managers
                 return;
             }
 
-            _hasSetFirstProbeOffsetToZero = false;
+            if (this.Machine.RegisterProbeCompletedHandler(this))
+            {
+                _hasSetFirstProbeOffsetToZero = false;
 
+                Status = HeightMapStatus.Populating;
 
-            Status = HeightMapStatus.Populating;
+                Machine.AddStatusMessage(StatusMessageTypes.Info, "Creating Height Map - Started");
 
-            Machine.AddStatusMessage(StatusMessageTypes.Info, "Creating Height Map - Started");
+                Machine.SendCommand("G90");
 
-            Machine.SendCommand("G90");
+                HeightMapProbeNextPoint();
+            }
 
-            HeightMapProbeNextPoint();
+            RaiseCanExecuteChanged();
         }
 
         public void Reset()
@@ -285,13 +305,17 @@ namespace LagoVista.PickAndPlace.Managers
             if (HeightMap != null)
             {
                 HeightMap.Reset();
+                RaiseCanExecuteChanged();
             }
         }
 
         public void PauseProbing()
         {
-            if (Machine.Mode != OperatingMode.ProbingHeightMap)
+            if (Machine.Mode != OperatingMode.ProbingHeightMap) 
+            {
+                RaiseCanExecuteChanged();
                 return;
+            }
         }
 
 
@@ -308,16 +332,9 @@ namespace LagoVista.PickAndPlace.Managers
                 }
                 else
                     GCodeFileManager.ApplyHeightMap(HeightMap);
+
+                RaiseCanExecuteChanged();
             }
-        }
-
-
-        private void RefreshCanExecute()
-        {
-            ApplyHeightMapCommand.RaiseCanExecuteChanged();
-            OpenHeightMapCommand.RaiseCanExecuteChanged();
-            ApplyHeightMapCommand.RaiseCanExecuteChanged();
-
         }
 
 
@@ -361,6 +378,11 @@ namespace LagoVista.PickAndPlace.Managers
                 MachineRepo.CurrentMachine.Connected
                 && MachineRepo.CurrentMachine.Mode == OperatingMode.Manual
                 && HasHeightMap;
+        }
+
+        public bool CanCancel()
+        {
+            return MachineRepo.CurrentMachine.Mode == OperatingMode.ProbingHeightMap;
         }
 
         private HeightMap _heightMap;
@@ -424,5 +446,6 @@ namespace LagoVista.PickAndPlace.Managers
         public RelayCommand ApplyHeightMapCommand { get; private set; }
         public RelayCommand ClearHeightMapCommand { get; private set; }
         public RelayCommand StartProbeHeightMapCommand { get; private set; }
+        public RelayCommand CancelProbeHeightMapCommand { get; private set; }
     }
 }

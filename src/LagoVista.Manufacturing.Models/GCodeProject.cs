@@ -36,7 +36,7 @@ namespace LagoVista.Manufacturing.Models
             ResourceType: typeof(ManufacturingResources))]
         public ObservableCollection<GCodeTool> Tools { get; set; } = new ObservableCollection<GCodeTool>();
 
-        [FormField(LabelResource: ManufacturingResources.Names.GCodeProject_Layers, FieldType: FieldTypes.ChildListInline, ResourceType: typeof(ManufacturingResources))]
+        [FormField(LabelResource: ManufacturingResources.Names.GCodeProject_Layers, OpenByDefault:true, FieldType: FieldTypes.ChildListInline, ResourceType: typeof(ManufacturingResources))]
         public ObservableCollection<GCodeLayer> Layers { get; set; } = new ObservableCollection<GCodeLayer>();
 
         public GCodeProjectSummary CreateSummary()
@@ -94,6 +94,9 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Common_Name, IsRequired: true, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
         public string Name { get; set; }
 
+        [FormField(LabelResource: ManufacturingResources.Names.GCodeProjectTool_SafeMoveHeight, IsRequired: true, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
+        public double SafeMoveHeight { get; set; } = 5;
+
         [FormField(LabelResource: ManufacturingResources.Names.GCodeLayer_Holes, OpenByDefault: true, FieldType: FieldTypes.ChildListInline, FactoryUrl: "/api/mfg/gcode/hole/factory", ResourceType: typeof(ManufacturingResources))]
         public ObservableCollection<GCodeHole> Holes { get; set; } = new ObservableCollection<GCodeHole>();
 
@@ -127,6 +130,7 @@ namespace LagoVista.Manufacturing.Models
             return new List<string>()
             {
                 nameof(Name),
+                nameof(SafeMoveHeight),
                 nameof(Holes),
                 nameof(Drill),
                 nameof(Rectangles),
@@ -265,6 +269,9 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Common_Size, IsRequired: true, FieldType: FieldTypes.Point2D, ResourceType: typeof(ManufacturingResources))]
         public Point2D<double> Size { get; set; }
 
+        [FormField(LabelResource: ManufacturingResources.Names.GCodeRectangle_CornerRadius, IsRequired: true, FieldType: FieldTypes.Point2D, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> Radius { get; set; } = new Point2D<double>(0, 0);
+
         public List<string> GetFormFields()
         {
             return new List<string>()
@@ -272,6 +279,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(GcodeOperationTool),
                 nameof(Origin),
                 nameof(Size),
+                nameof(Radius),
                 nameof(EntireDepth),
                 nameof(Depth),
             };
@@ -328,17 +336,21 @@ namespace LagoVista.Manufacturing.Models
      Icon: "icon-fo-laptop-fullscreen", Cloneable: true, FactoryUrl: "/api/mfg/gcode/polygon/factory")]
     public class GCodePolygon : GCodeOperation, IFormDescriptor
     {
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Location, IsRequired:true, FieldType: FieldTypes.Point2DArray, ResourceType: typeof(ManufacturingResources))]
-        public List<Point2D<double>> Points { get; set; }
+        [FormField(LabelResource: ManufacturingResources.Names.GCodePoloygon_Closed, HelpResource: ManufacturingResources.Names.GCodePoloygon_Closed_Help, FieldType: FieldTypes.CheckBox, ResourceType: typeof(ManufacturingResources))]
+        public bool Closed { get; set; } = true;
+
+        [FormField(LabelResource: ManufacturingResources.Names.GCodePoloygon_Points, FieldType: FieldTypes.Point2DArray, ResourceType: typeof(ManufacturingResources))]
+        public List<Point2D<double>> Points { get; set; } = new List<Point2D<double>>();
 
         public List<string> GetFormFields()
         {
             return new List<string>()
             {
                 nameof(GcodeOperationTool),
-                nameof(Points),
+                nameof(Closed),
                 nameof(EntireDepth),
                 nameof(Depth),
+                nameof(Points),
             };
         }
     }

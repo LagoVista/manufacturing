@@ -6,6 +6,7 @@ using LagoVista.PickAndPlace.Util;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -229,14 +230,29 @@ namespace LagoVista.PickAndPlace
             }
         }
 
-        public void RegisterProbeCompletedHandler(IProbeCompletedHandler handler)
+        public bool RegisterProbeCompletedHandler(IProbeCompletedHandler handler)
         {
-            _probeCompletedHandler = handler;
+            if (_probeCompletedHandler == null)
+            {
+                _probeCompletedHandler = handler;
+                return true;
+            }
+            else
+            {
+                AddStatusMessage(StatusMessageTypes.Warning, $"Can not register probe handler, one already exists {_probeCompletedHandler.GetType().Name}");
+                return false;
+            }
         }
 
-        public void UnregisterProbeCompletedHandler()
+        public bool UnregisterProbeCompletedHandler()
         {
+            if(_probeCompletedHandler == null)
+            {
+                AddStatusMessage(StatusMessageTypes.Warning, $"Attempt to unregister probe handler but none has been registered.");
+            }
+
             _probeCompletedHandler = null;
+            return true;
         }
 
         IProbeCompletedHandler _probeCompletedHandler;

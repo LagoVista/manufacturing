@@ -322,8 +322,8 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         bool IsLocating { get; set; }
 
-        void RegisterProbeCompletedHandler(IProbeCompletedHandler probeCompleted);
-        void UnregisterProbeCompletedHandler();
+        bool RegisterProbeCompletedHandler(IProbeCompletedHandler probeCompleted);
+        bool UnregisterProbeCompletedHandler();
 
         void RegisterGCodeFileCommandHandler(IGCodeCommandHandler commandHandler);
     }

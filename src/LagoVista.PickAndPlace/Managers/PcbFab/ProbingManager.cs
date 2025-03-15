@@ -28,20 +28,28 @@ namespace LagoVista.PickAndPlace.Managers
 
         public ProbingManager(IMachineRepo machineRepo, ILogger logger) : base(machineRepo)
         {
-            StartProbeCommand = new RelayCommand(StartProbe, CanProbe);
-            CancelProbeCommand = new RelayCommand(CancelProbe, CanProbe);
+            StartProbeCommand = CreateCommand(StartProbe, CanProbe);
+            CancelProbeCommand = CreateCommand(CancelProbe, CanProbe);
+        }
 
+        protected override void MachineChanged(IMachine machine)
+        {
+            base.MachineChanged(machine);
+            Machine.PropertyChanged += (e, a) => DispatcherServices.Invoke(() => RaiseCanExecuteChanged()); 
         }
 
 
         public void StartProbe()
         {
-            _status = ProbeStatus.Probing;
-
-            if (Machine.SetMode(OperatingMode.ProbingHeight))
+            if (Machine.RegisterProbeCompletedHandler(this))
             {
-                _timer = new Timer(Timer_Tick, null, Machine.Settings.ProbeTimeoutSeconds * 1000, 0);
-                Machine.SendCommand($"G38.3 Z-{Machine.Settings.ProbeMaxDepth.ToString("0.###", Constants.DecimalOutputFormat)} F{Machine.Settings.ProbeHeightMovementFeed.ToString("0.#", Constants.DecimalOutputFormat)}");
+                _status = ProbeStatus.Probing;
+
+                if (Machine.SetMode(OperatingMode.ProbingHeight))
+                {
+                    _timer = new Timer(Timer_Tick, null, Machine.Settings.ProbeTimeoutSeconds * 1000, 0);
+                    Machine.SendCommand($"G38.3 Z-{Machine.Settings.ProbeMaxDepth.ToString("0.###", Constants.DecimalOutputFormat)} F{Machine.Settings.ProbeHeightMovementFeed.ToString("0.#", Constants.DecimalOutputFormat)}");
+                }
             }
         }
 
@@ -58,13 +66,14 @@ namespace LagoVista.PickAndPlace.Managers
                 _timer.Change(Timeout.Infinite, Timeout.Infinite);
                 _timer.Dispose();
                 _timer = null;
+                Machine.UnregisterProbeCompletedHandler();
             }
         }
 
         public void CancelProbe()
         {
             Machine.AddStatusMessage(StatusMessageTypes.Info, $"Probing Manually Cancelled");
-
+            Machine.UnregisterProbeCompletedHandler();
             _status = ProbeStatus.Cancelled;
 
             if (_timer != null)
@@ -74,14 +83,14 @@ namespace LagoVista.PickAndPlace.Managers
                 _timer = null;
             }
 
+
+
             Machine.SetMode(OperatingMode.Manual);
         }
 
         public bool CanProbe()
         {
-            return Machine.IsInitialized &&
-                Machine.Connected
-                && Machine.Mode == OperatingMode.Manual;
+            return Machine.IsInitialized && Machine.Connected && Machine.Mode == OperatingMode.Manual;
         }
 
 
@@ -112,7 +121,7 @@ namespace LagoVista.PickAndPlace.Managers
         public void ProbeFailed()
         {
             Machine.AddStatusMessage(StatusMessageTypes.Info, $"Probing Failed, Invalid Response");
-
+            Machine.UnregisterProbeCompletedHandler();
             if (_timer != null)
             {
                 _timer.Change(Timeout.Infinite, Timeout.Infinite);

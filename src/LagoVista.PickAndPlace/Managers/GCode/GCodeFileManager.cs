@@ -42,7 +42,13 @@ namespace LagoVista.PickAndPlace.Managers
             RapidMoves = new System.Collections.ObjectModel.ObservableCollection<Line3D>();
             Arcs = new System.Collections.ObjectModel.ObservableCollection<Line3D>();
             OpenFileCommand = new Core.Commanding.RelayCommand(OpenFile);
-            SendGCodeFileCommand = new RelayCommand(StartJob, CanSendGcodeFile);
+            SendGCodeFileCommand = CreateCommand(StartJob, CanSendGcodeFile);
+        }
+
+        protected override void MachineChanged(IMachine machine)
+        {
+            base.MachineChanged(machine);
+            machine.RegisterGCodeFileCommandHandler(this);
         }
 
         async void OpenFile()
@@ -222,17 +228,19 @@ namespace LagoVista.PickAndPlace.Managers
         {
             ResetJob();
             MachineRepo.CurrentMachine.SetMode(OperatingMode.SendingGCodeFile);
+            RaiseCanExecuteChanged();
         }
 
         public void CancelJob()
         {
             _pendingToolChangeLine = null;
+            RaiseCanExecuteChanged();
 
         }
 
         public void PauseJob()
         {
-
+            RaiseCanExecuteChanged();
         }
 
         public Task<bool> OpenFileAsync(string path)
@@ -258,6 +266,8 @@ namespace LagoVista.PickAndPlace.Managers
                 {
                     File = null;
                 }
+
+                RaiseCanExecuteChanged();
 
                 return Task.FromResult(true);
             }
@@ -323,6 +333,8 @@ namespace LagoVista.PickAndPlace.Managers
 
             await Core.PlatformSupport.Services.Storage.WriteAllLinesAsync(fileName, lines);
             IsDirty = false;
+
+            RaiseCanExecuteChanged();
         }
 
         public void SetFile(GCodeFile file)
@@ -333,6 +345,7 @@ namespace LagoVista.PickAndPlace.Managers
         public Task CloseFileAsync()
         {
             File = null;
+            RaiseCanExecuteChanged();
             return Task.FromResult(default(object));
         }
 
