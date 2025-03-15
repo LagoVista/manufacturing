@@ -79,6 +79,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
             }, () => Project != null && !String.IsNullOrEmpty(Project.EagleBRDFileLocalPath));
         }
 
+
         void ShowHoldDownGCode()
         {
             var gcode = GCodeEngine.CreateHoldDownGCode(PCB, Project, false);
@@ -143,13 +144,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PcbFab
                 GCodeFileManager.SetGCode(gcode);
             }
 
-            GCodeFileManager.ApplyOffset(Project.ScrapSides, Project.ScrapTopBottom, 0);
+            GCodeFileManager.ApplyOffset(Project.ScrapSides + PCB.Width, Project.ScrapTopBottom, 0);
         }
 
         async void ShowBottomIsolationGCode()
         {
             await GCodeFileManager.OpenFileAsync(Project.BottomEtchingFileLocalPath);
-            GCodeFileManager.ApplyOffset(Project.ScrapSides, Project.ScrapTopBottom, 0);
+            GCodeFileManager.ApplyOffset(Project.ScrapSides + PCB.Width, Project.ScrapTopBottom, 0);
         }
 
         async void ShowTopIsolationGCode()

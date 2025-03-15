@@ -77,7 +77,7 @@ namespace LagoVista.PickAndPlace.Managers
             {
                 var cmd = _file.Commands[Head];
 
-                /* If Next Command up is a Tool Change, set the nullable property to that line and bail. */
+                /* If Next Command up is a GCodeOperationTool Change, set the nullable property to that line and bail. */
                 if (cmd is ToolChangeCommand)
                 {
                     if (MachineRepo.CurrentMachine.Settings.PauseOnToolChange)

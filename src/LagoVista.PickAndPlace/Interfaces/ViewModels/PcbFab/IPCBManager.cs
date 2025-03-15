@@ -22,7 +22,6 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PcbFab
 
         Point2D<double> SecondFiducial { get; set; }
 
-        Task<bool> OpenProjectAsync(string projectFile);
 
 
         bool HasProject { get; }

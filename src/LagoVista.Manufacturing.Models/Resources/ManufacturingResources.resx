@@ -1727,4 +1727,139 @@
   <data name="PcbMillingProject_Description" xml:space="preserve">
     <value>A PCB Milling Project contains GCode information ot mill a PCB Board on a CNC Machine</value>
   </data>
+  <data name="GCodeProject_Title" xml:space="preserve">
+    <value>GCode Project</value>
+  </data>
+  <data name="GCodeProject_Description" xml:space="preserve">
+    <value>A GCode Project is a collection of layers that include operatoins and a set ot fools that let you generate GCode.</value>
+  </data>
+  <data name="GCodeProject_StockWidth" xml:space="preserve">
+    <value>Stock Width</value>
+  </data>
+  <data name="GCodeProject_StockHeight" xml:space="preserve">
+    <value>Stock Height</value>
+  </data>
+  <data name="GCodeProject_StockDepth" xml:space="preserve">
+    <value>Stock Depth</value>
+  </data>
+  <data name="GCodeProject_Layers" xml:space="preserve">
+    <value>Layers</value>
+  </data>
+  <data name="GCodeProject_Tools" xml:space="preserve">
+    <value>Tools</value>
+  </data>
+  <data name="GCodeProject_Origin" xml:space="preserve">
+    <value>Origin</value>
+  </data>
+  <data name="GCodeProjectTool_Title" xml:space="preserve">
+    <value>Tool </value>
+  </data>
+  <data name="GCodeProjectTool_Description" xml:space="preserve">
+    <value>A tool is a bit or setting for the machine that will be used to perform the operation.</value>
+  </data>
+  <data name="GCodeProjectTool_PlungeDepth" xml:space="preserve">
+    <value>Plunge Depth</value>
+  </data>
+  <data name="GCodeProjectTool_PlungeDepth_Help" xml:space="preserve">
+    <value>The Z distance the tool should move each time to peform a cut.  Typically the tool won't cut the entire material in one pass so this is the depth of each pass.</value>
+  </data>
+  <data name="GCodeProjectTool_Diameter" xml:space="preserve">
+    <value>Tool Diameter</value>
+  </data>
+  <data name="GCodeProjectTool_FeedRate" xml:space="preserve">
+    <value>Feed Rate</value>
+  </data>
+  <data name="GCodeProjectTool_FeedRate_Help" xml:space="preserve">
+    <value>The speed at which this tool should cut the material.</value>
+  </data>
+  <data name="GCodeProjectTool_SpindleRPM_Help" xml:space="preserve">
+    <value>How fast should this spindle rotate</value>
+  </data>
+  <data name="GCodeToolTypes_MillingBit" xml:space="preserve">
+    <value>Milling Bit</value>
+  </data>
+  <data name="GCodeToolTypes_DrillBit" xml:space="preserve">
+    <value>Drill Bit</value>
+  </data>
+  <data name="GCodeToolTypes_Laser" xml:space="preserve">
+    <value>Lasert</value>
+  </data>
+  <data name="GCodePojectTool_ToolType_Select" xml:space="preserve">
+    <value>-selet tool type-</value>
+  </data>
+  <data name="GCode_Hole_Title" xml:space="preserve">
+    <value>Hole</value>
+  </data>
+  <data name="GCode_Hole_Description" xml:space="preserve">
+    <value>A hole is a circle that is milled out rather than drilled.</value>
+  </data>
+  <data name="GCode_Drill_Title" xml:space="preserve">
+    <value>Drill</value>
+  </data>
+  <data name="GCode_Drill_Description" xml:space="preserve">
+    <value>A drill is a hold drilled by a drill bit rather than milled</value>
+  </data>
+  <data name="GCode_Rectangle_Title" xml:space="preserve">
+    <value>Rectangle</value>
+  </data>
+  <data name="GCode_Rectangle_Description" xml:space="preserve">
+    <value>A rectangle has an origin and a size and is either milled as a pocket or exterior</value>
+  </data>
+  <data name="GCode_Plane_Title" xml:space="preserve">
+    <value>Plane</value>
+  </data>
+  <data name="GCode_Plane_Description" xml:space="preserve">
+    <value>A plane a surface where the entire interior is milled out, where a rectangle just cuts the edges.  It is always a pocket, that is to say the size specified is the actual size of the plane rather than the outside edge.</value>
+  </data>
+  <data name="GCode_Polygon_TItle" xml:space="preserve">
+    <value>Polygon</value>
+  </data>
+  <data name="GCode_Polygon_Description" xml:space="preserve">
+    <value>A polygon is a collectoin of points that tool will travel</value>
+  </data>
+  <data name="GCodeLayer_Title" xml:space="preserve">
+    <value>Layer</value>
+  </data>
+  <data name="GCodeLayer_Description" xml:space="preserve">
+    <value>A layer is a collection of operations</value>
+  </data>
+  <data name="GCodeLayer_Drills" xml:space="preserve">
+    <value>Drills</value>
+  </data>
+  <data name="GCodeLayer_Planes" xml:space="preserve">
+    <value>Planes</value>
+  </data>
+  <data name="GCodeLayer_Rectangles" xml:space="preserve">
+    <value>Rectangles</value>
+  </data>
+  <data name="GCodeLayer_Holes" xml:space="preserve">
+    <value>Holes</value>
+  </data>
+  <data name="GCodeLayer_Polygons" xml:space="preserve">
+    <value>Polygons</value>
+  </data>
+  <data name="GCodeTool_ToolType" xml:space="preserve">
+    <value>Tool Type</value>
+  </data>
+  <data name="GCodeProjectTool_SpindleRPM" xml:space="preserve">
+    <value>Spindle RPM</value>
+  </data>
+  <data name="GCodeOperation_Depth" xml:space="preserve">
+    <value>Depth</value>
+  </data>
+  <data name="GCodeOperation_Tool" xml:space="preserve">
+    <value>Tool</value>
+  </data>
+  <data name="GCodeOperation_EntireDepth" xml:space="preserve">
+    <value>Entire Depth</value>
+  </data>
+  <data name="GCodeOperation_EntireDepth_Help" xml:space="preserve">
+    <value>Perform this operation through the entire depth of the material.</value>
+  </data>
+  <data name="Common_Location" xml:space="preserve">
+    <value>Location</value>
+  </data>
+  <data name="GCodeHole_Diameter" xml:space="preserve">
+    <value>Diameter</value>
+  </data>
 </root>

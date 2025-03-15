@@ -25,48 +25,6 @@ namespace LagoVista.PickAndPlace.Managers
         public PCBManager(IMachineRepo machineRepo, IGCodeFileManager gcodeFileManager) : base(machineRepo) 
         {
             _gcodeFileManager = gcodeFileManager ?? throw new ArgumentNullException(nameof(gcodeFileManager));
-
-            ShowCutoutMillingGCodeCommand = new RelayCommand(GenerateMillingGCode, CanGenerateGCode);
-            ShowDrillGCodeCommand = new RelayCommand(GenerateDrillGCode, CanGenerateGCode);
-            ShowHoldDownGCodeCommand = new RelayCommand(GenerateHoldDownGCode, CanGenerateGCode);
-
-            ShowTopEtchingGCodeCommand = new RelayCommand(ShowTopEtchingGCode, CanGenerateTopEtchingGCode);
-            ShowBottomEtchingGCodeCommand = new RelayCommand(ShowBottomEtchingGCode, CanGenerateBottomEtchingGCode);
-
-            OpenEagleBoardFileCommand = new RelayCommand(OpenEagleBoardFile, CanOpenEagleBoard);
-            CloseEagleBoardFileCommand = new RelayCommand(CloseEagleBoardFile, CanCloseEagleBoard);
-
-            OpenEagleBoardFileCommand = new RelayCommand(OpenEagleBoardFile, CanOpenEagleBoard);
-            CloseEagleBoardFileCommand = new RelayCommand(CloseEagleBoardFile, CanCloseEagleBoard);
-
-        }
-
-        public bool CanGenerateGCode()
-        {
-            return HasBoard && (Machine.Mode == OperatingMode.Manual || Machine.Mode == OperatingMode.Disconnected);
-        }
-
-
-        public bool CanOpenEagleBoard()
-        {
-            return (Machine.Mode == OperatingMode.Manual || Machine.Mode == OperatingMode.Disconnected);
-        }
-
-        public bool CanCloseEagleBoard()
-        {
-            return HasBoard && !HasProject && (Machine.Mode == OperatingMode.Manual || Machine.Mode == OperatingMode.Disconnected);
-        }
-
-
-        public bool CanGenerateTopEtchingGCode()
-        {
-            return HasTopEtching && (Machine.Mode == OperatingMode.Manual || Machine.Mode == OperatingMode.Disconnected);
-        }
-
-        public bool CanGenerateBottomEtchingGCode()
-        {
-
-            return HasBottomEtching && (Machine.Mode == OperatingMode.Manual || Machine.Mode == OperatingMode.Disconnected);
         }
 
 
@@ -75,30 +33,6 @@ namespace LagoVista.PickAndPlace.Managers
             var drillIntoUnderlayment = await Popups.ConfirmAsync("Drill Holes In Underlayment?", "Would you also like to drill the holes in the underlayment?  You only need to use this once when setting up a fixture.  After that you should use the holes that were already created.");
             _gcodeFileManager.SetGCode(GCodeEngine.CreateHoldDownGCode(Board, Project, drillIntoUnderlayment));
         }
-
-        public void GenerateMillingGCode()
-        {
-            _gcodeFileManager.SetGCode(GCodeEngine.CreateCutoutMill(Board, Project));
-        }
-
-        public void GenerateDrillGCode()
-        {
-            _gcodeFileManager.SetGCode(GCodeEngine.CreateDrillGCode(Board, Project));
-        }
-
-        public void ShowTopEtchingGCode()
-        {
-            _gcodeFileManager.OpenFileAsync(Project.TopEtchingFileLocalPath);
-            _gcodeFileManager.ApplyOffset(Project.ScrapSides, Project.ScrapTopBottom, 0);
-        }
-
-        public void ShowBottomEtchingGCode()
-        {
-            _gcodeFileManager.OpenFileAsync(Project.BottomEtchingFileLocalPath);
-            _gcodeFileManager.ApplyOffset((Project.ScrapSides) + Board.Width, Project.ScrapTopBottom, 0);
-        }
-
-
 
         public Point2D<double> GetAdjustedPoint(Point2D<double> point)
         {
@@ -126,37 +60,7 @@ namespace LagoVista.PickAndPlace.Managers
             }
         }
 
-        public Task<bool> OpenProjectAsync(string projectFile)
-        {
-            try
-            {
-                //                Project = await PcbMillingProject.OpenAsync(projectFile);
-
-                return Task.FromResult(true);
-            }
-            catch
-            {
-                return Task.FromResult(false);
-            }
-        }
-
-        public async void OpenEagleBoardFile()
-        {
-            var file = await Popups.ShowOpenFileAsync(Constants.FileFilterPCB);
-            if (!String.IsNullOrEmpty(file))
-            {
-                if (await OpenFileAsync(file))
-                {
-                }
-
-            }
-        }
-
-        public void CloseEagleBoardFile()
-        {
-
-        }
-
+        
         private PrintedCircuitBoard _board;
         public PrintedCircuitBoard Board
         {

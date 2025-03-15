@@ -1,4 +1,4 @@
-﻿/*3/8/2025 9:03:14 AM*/
+﻿/*3/15/2025 9:56:39 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -153,6 +153,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Common_Length
 
 		public static string Common_Length { get { return GetResourceString("Common_Length"); } }
+//Resources:ManufacturingResources:Common_Location
+
+		public static string Common_Location { get { return GetResourceString("Common_Location"); } }
 //Resources:ManufacturingResources:Common_Name
 
 		public static string Common_Name { get { return GetResourceString("Common_Name"); } }
@@ -704,6 +707,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:GCode_Description
 
 		public static string GCode_Description { get { return GetResourceString("GCode_Description"); } }
+//Resources:ManufacturingResources:GCode_Drill_Description
+
+		public static string GCode_Drill_Description { get { return GetResourceString("GCode_Drill_Description"); } }
+//Resources:ManufacturingResources:GCode_Drill_Title
+
+		public static string GCode_Drill_Title { get { return GetResourceString("GCode_Drill_Title"); } }
 //Resources:ManufacturingResources:GCode_Dwell
 
 		public static string GCode_Dwell { get { return GetResourceString("GCode_Dwell"); } }
@@ -722,6 +731,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:GCode_Exchaust2_On
 
 		public static string GCode_Exchaust2_On { get { return GetResourceString("GCode_Exchaust2_On"); } }
+//Resources:ManufacturingResources:GCode_Hole_Description
+
+		public static string GCode_Hole_Description { get { return GetResourceString("GCode_Hole_Description"); } }
+//Resources:ManufacturingResources:GCode_Hole_Title
+
+		public static string GCode_Hole_Title { get { return GetResourceString("GCode_Hole_Title"); } }
 //Resources:ManufacturingResources:GCode_HomeAllCommand
 
 		public static string GCode_HomeAllCommand { get { return GetResourceString("GCode_HomeAllCommand"); } }
@@ -761,12 +776,30 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:GCode_ParseStatusRegularExpressionHelp
 
 		public static string GCode_ParseStatusRegularExpressionHelp { get { return GetResourceString("GCode_ParseStatusRegularExpressionHelp"); } }
+//Resources:ManufacturingResources:GCode_Plane_Description
+
+		public static string GCode_Plane_Description { get { return GetResourceString("GCode_Plane_Description"); } }
+//Resources:ManufacturingResources:GCode_Plane_Title
+
+		public static string GCode_Plane_Title { get { return GetResourceString("GCode_Plane_Title"); } }
+//Resources:ManufacturingResources:GCode_Polygon_Description
+
+		public static string GCode_Polygon_Description { get { return GetResourceString("GCode_Polygon_Description"); } }
+//Resources:ManufacturingResources:GCode_Polygon_TItle
+
+		public static string GCode_Polygon_TItle { get { return GetResourceString("GCode_Polygon_TItle"); } }
 //Resources:ManufacturingResources:GCode_ReadLeftVacuumCmd
 
 		public static string GCode_ReadLeftVacuumCmd { get { return GetResourceString("GCode_ReadLeftVacuumCmd"); } }
 //Resources:ManufacturingResources:GCode_ReadRightVacuumCmd
 
 		public static string GCode_ReadRightVacuumCmd { get { return GetResourceString("GCode_ReadRightVacuumCmd"); } }
+//Resources:ManufacturingResources:GCode_Rectangle_Description
+
+		public static string GCode_Rectangle_Description { get { return GetResourceString("GCode_Rectangle_Description"); } }
+//Resources:ManufacturingResources:GCode_Rectangle_Title
+
+		public static string GCode_Rectangle_Title { get { return GetResourceString("GCode_Rectangle_Title"); } }
 //Resources:ManufacturingResources:GCode_RequestStatusCommand
 
 		public static string GCode_RequestStatusCommand { get { return GetResourceString("GCode_RequestStatusCommand"); } }
@@ -797,12 +830,114 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:GCode_TopLightOn
 
 		public static string GCode_TopLightOn { get { return GetResourceString("GCode_TopLightOn"); } }
+//Resources:ManufacturingResources:GCodeHole_Diameter
+
+		public static string GCodeHole_Diameter { get { return GetResourceString("GCodeHole_Diameter"); } }
+//Resources:ManufacturingResources:GCodeLayer_Description
+
+		public static string GCodeLayer_Description { get { return GetResourceString("GCodeLayer_Description"); } }
+//Resources:ManufacturingResources:GCodeLayer_Drills
+
+		public static string GCodeLayer_Drills { get { return GetResourceString("GCodeLayer_Drills"); } }
+//Resources:ManufacturingResources:GCodeLayer_Holes
+
+		public static string GCodeLayer_Holes { get { return GetResourceString("GCodeLayer_Holes"); } }
+//Resources:ManufacturingResources:GCodeLayer_Planes
+
+		public static string GCodeLayer_Planes { get { return GetResourceString("GCodeLayer_Planes"); } }
+//Resources:ManufacturingResources:GCodeLayer_Polygons
+
+		public static string GCodeLayer_Polygons { get { return GetResourceString("GCodeLayer_Polygons"); } }
+//Resources:ManufacturingResources:GCodeLayer_Rectangles
+
+		public static string GCodeLayer_Rectangles { get { return GetResourceString("GCodeLayer_Rectangles"); } }
+//Resources:ManufacturingResources:GCodeLayer_Title
+
+		public static string GCodeLayer_Title { get { return GetResourceString("GCodeLayer_Title"); } }
 //Resources:ManufacturingResources:GCodeMapping_Title
 
 		public static string GCodeMapping_Title { get { return GetResourceString("GCodeMapping_Title"); } }
 //Resources:ManufacturingResources:GCodeMappings_Title
 
 		public static string GCodeMappings_Title { get { return GetResourceString("GCodeMappings_Title"); } }
+//Resources:ManufacturingResources:GCodeOperation_Depth
+
+		public static string GCodeOperation_Depth { get { return GetResourceString("GCodeOperation_Depth"); } }
+//Resources:ManufacturingResources:GCodeOperation_EntireDepth
+
+		public static string GCodeOperation_EntireDepth { get { return GetResourceString("GCodeOperation_EntireDepth"); } }
+//Resources:ManufacturingResources:GCodeOperation_EntireDepth_Help
+
+		public static string GCodeOperation_EntireDepth_Help { get { return GetResourceString("GCodeOperation_EntireDepth_Help"); } }
+//Resources:ManufacturingResources:GCodeOperation_Tool
+
+		public static string GCodeOperation_Tool { get { return GetResourceString("GCodeOperation_Tool"); } }
+//Resources:ManufacturingResources:GCodePojectTool_ToolType_Select
+
+		public static string GCodePojectTool_ToolType_Select { get { return GetResourceString("GCodePojectTool_ToolType_Select"); } }
+//Resources:ManufacturingResources:GCodeProject_Description
+
+		public static string GCodeProject_Description { get { return GetResourceString("GCodeProject_Description"); } }
+//Resources:ManufacturingResources:GCodeProject_Layers
+
+		public static string GCodeProject_Layers { get { return GetResourceString("GCodeProject_Layers"); } }
+//Resources:ManufacturingResources:GCodeProject_Origin
+
+		public static string GCodeProject_Origin { get { return GetResourceString("GCodeProject_Origin"); } }
+//Resources:ManufacturingResources:GCodeProject_StockDepth
+
+		public static string GCodeProject_StockDepth { get { return GetResourceString("GCodeProject_StockDepth"); } }
+//Resources:ManufacturingResources:GCodeProject_StockHeight
+
+		public static string GCodeProject_StockHeight { get { return GetResourceString("GCodeProject_StockHeight"); } }
+//Resources:ManufacturingResources:GCodeProject_StockWidth
+
+		public static string GCodeProject_StockWidth { get { return GetResourceString("GCodeProject_StockWidth"); } }
+//Resources:ManufacturingResources:GCodeProject_Title
+
+		public static string GCodeProject_Title { get { return GetResourceString("GCodeProject_Title"); } }
+//Resources:ManufacturingResources:GCodeProject_Tools
+
+		public static string GCodeProject_Tools { get { return GetResourceString("GCodeProject_Tools"); } }
+//Resources:ManufacturingResources:GCodeProjectTool_Description
+
+		public static string GCodeProjectTool_Description { get { return GetResourceString("GCodeProjectTool_Description"); } }
+//Resources:ManufacturingResources:GCodeProjectTool_Diameter
+
+		public static string GCodeProjectTool_Diameter { get { return GetResourceString("GCodeProjectTool_Diameter"); } }
+//Resources:ManufacturingResources:GCodeProjectTool_FeedRate
+
+		public static string GCodeProjectTool_FeedRate { get { return GetResourceString("GCodeProjectTool_FeedRate"); } }
+//Resources:ManufacturingResources:GCodeProjectTool_FeedRate_Help
+
+		public static string GCodeProjectTool_FeedRate_Help { get { return GetResourceString("GCodeProjectTool_FeedRate_Help"); } }
+//Resources:ManufacturingResources:GCodeProjectTool_PlungeDepth
+
+		public static string GCodeProjectTool_PlungeDepth { get { return GetResourceString("GCodeProjectTool_PlungeDepth"); } }
+//Resources:ManufacturingResources:GCodeProjectTool_PlungeDepth_Help
+
+		public static string GCodeProjectTool_PlungeDepth_Help { get { return GetResourceString("GCodeProjectTool_PlungeDepth_Help"); } }
+//Resources:ManufacturingResources:GCodeProjectTool_SpindleRPM
+
+		public static string GCodeProjectTool_SpindleRPM { get { return GetResourceString("GCodeProjectTool_SpindleRPM"); } }
+//Resources:ManufacturingResources:GCodeProjectTool_SpindleRPM_Help
+
+		public static string GCodeProjectTool_SpindleRPM_Help { get { return GetResourceString("GCodeProjectTool_SpindleRPM_Help"); } }
+//Resources:ManufacturingResources:GCodeProjectTool_Title
+
+		public static string GCodeProjectTool_Title { get { return GetResourceString("GCodeProjectTool_Title"); } }
+//Resources:ManufacturingResources:GCodeTool_ToolType
+
+		public static string GCodeTool_ToolType { get { return GetResourceString("GCodeTool_ToolType"); } }
+//Resources:ManufacturingResources:GCodeToolTypes_DrillBit
+
+		public static string GCodeToolTypes_DrillBit { get { return GetResourceString("GCodeToolTypes_DrillBit"); } }
+//Resources:ManufacturingResources:GCodeToolTypes_Laser
+
+		public static string GCodeToolTypes_Laser { get { return GetResourceString("GCodeToolTypes_Laser"); } }
+//Resources:ManufacturingResources:GCodeToolTypes_MillingBit
+
+		public static string GCodeToolTypes_MillingBit { get { return GetResourceString("GCodeToolTypes_MillingBit"); } }
 //Resources:ManufacturingResources:InventoryLocation_Address1
 
 		public static string InventoryLocation_Address1 { get { return GetResourceString("InventoryLocation_Address1"); } }
@@ -1706,6 +1841,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Common_LastUpdated = "Common_LastUpdated";
 			public const string Common_LastUpdatedBy = "Common_LastUpdatedBy";
 			public const string Common_Length = "Common_Length";
+			public const string Common_Location = "Common_Location";
 			public const string Common_Name = "Common_Name";
 			public const string Common_Note = "Common_Note";
 			public const string Common_Notes = "Common_Notes";
@@ -1887,12 +2023,16 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string GCode_BottomLightOff = "GCode_BottomLightOff";
 			public const string GCode_BottomLightOn = "GCode_BottomLightOn";
 			public const string GCode_Description = "GCode_Description";
+			public const string GCode_Drill_Description = "GCode_Drill_Description";
+			public const string GCode_Drill_Title = "GCode_Drill_Title";
 			public const string GCode_Dwell = "GCode_Dwell";
 			public const string GCode_EmergencyStop = "GCode_EmergencyStop";
 			public const string GCode_Exchaust1_Off = "GCode_Exchaust1_Off";
 			public const string GCode_Exchaust1_On = "GCode_Exchaust1_On";
 			public const string GCode_Exchaust2_Off = "GCode_Exchaust2_Off";
 			public const string GCode_Exchaust2_On = "GCode_Exchaust2_On";
+			public const string GCode_Hole_Description = "GCode_Hole_Description";
+			public const string GCode_Hole_Title = "GCode_Hole_Title";
 			public const string GCode_HomeAllCommand = "GCode_HomeAllCommand";
 			public const string GCode_HomeXCommand = "GCode_HomeXCommand";
 			public const string GCode_HomeYCommand = "GCode_HomeYCommand";
@@ -1906,8 +2046,14 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string GCode_ParseRightVacuumRegEx = "GCode_ParseRightVacuumRegEx";
 			public const string GCode_ParseStatus_RegularExpression = "GCode_ParseStatus_RegularExpression";
 			public const string GCode_ParseStatusRegularExpressionHelp = "GCode_ParseStatusRegularExpressionHelp";
+			public const string GCode_Plane_Description = "GCode_Plane_Description";
+			public const string GCode_Plane_Title = "GCode_Plane_Title";
+			public const string GCode_Polygon_Description = "GCode_Polygon_Description";
+			public const string GCode_Polygon_TItle = "GCode_Polygon_TItle";
 			public const string GCode_ReadLeftVacuumCmd = "GCode_ReadLeftVacuumCmd";
 			public const string GCode_ReadRightVacuumCmd = "GCode_ReadRightVacuumCmd";
+			public const string GCode_Rectangle_Description = "GCode_Rectangle_Description";
+			public const string GCode_Rectangle_Title = "GCode_Rectangle_Title";
 			public const string GCode_RequestStatusCommand = "GCode_RequestStatusCommand";
 			public const string GCode_RightVacuumOff = "GCode_RightVacuumOff";
 			public const string GCode_RightVacuumOn = "GCode_RightVacuumOn";
@@ -1918,8 +2064,42 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string GCode_ToolChange = "GCode_ToolChange";
 			public const string GCode_TopLightOff = "GCode_TopLightOff";
 			public const string GCode_TopLightOn = "GCode_TopLightOn";
+			public const string GCodeHole_Diameter = "GCodeHole_Diameter";
+			public const string GCodeLayer_Description = "GCodeLayer_Description";
+			public const string GCodeLayer_Drills = "GCodeLayer_Drills";
+			public const string GCodeLayer_Holes = "GCodeLayer_Holes";
+			public const string GCodeLayer_Planes = "GCodeLayer_Planes";
+			public const string GCodeLayer_Polygons = "GCodeLayer_Polygons";
+			public const string GCodeLayer_Rectangles = "GCodeLayer_Rectangles";
+			public const string GCodeLayer_Title = "GCodeLayer_Title";
 			public const string GCodeMapping_Title = "GCodeMapping_Title";
 			public const string GCodeMappings_Title = "GCodeMappings_Title";
+			public const string GCodeOperation_Depth = "GCodeOperation_Depth";
+			public const string GCodeOperation_EntireDepth = "GCodeOperation_EntireDepth";
+			public const string GCodeOperation_EntireDepth_Help = "GCodeOperation_EntireDepth_Help";
+			public const string GCodeOperation_Tool = "GCodeOperation_Tool";
+			public const string GCodePojectTool_ToolType_Select = "GCodePojectTool_ToolType_Select";
+			public const string GCodeProject_Description = "GCodeProject_Description";
+			public const string GCodeProject_Layers = "GCodeProject_Layers";
+			public const string GCodeProject_Origin = "GCodeProject_Origin";
+			public const string GCodeProject_StockDepth = "GCodeProject_StockDepth";
+			public const string GCodeProject_StockHeight = "GCodeProject_StockHeight";
+			public const string GCodeProject_StockWidth = "GCodeProject_StockWidth";
+			public const string GCodeProject_Title = "GCodeProject_Title";
+			public const string GCodeProject_Tools = "GCodeProject_Tools";
+			public const string GCodeProjectTool_Description = "GCodeProjectTool_Description";
+			public const string GCodeProjectTool_Diameter = "GCodeProjectTool_Diameter";
+			public const string GCodeProjectTool_FeedRate = "GCodeProjectTool_FeedRate";
+			public const string GCodeProjectTool_FeedRate_Help = "GCodeProjectTool_FeedRate_Help";
+			public const string GCodeProjectTool_PlungeDepth = "GCodeProjectTool_PlungeDepth";
+			public const string GCodeProjectTool_PlungeDepth_Help = "GCodeProjectTool_PlungeDepth_Help";
+			public const string GCodeProjectTool_SpindleRPM = "GCodeProjectTool_SpindleRPM";
+			public const string GCodeProjectTool_SpindleRPM_Help = "GCodeProjectTool_SpindleRPM_Help";
+			public const string GCodeProjectTool_Title = "GCodeProjectTool_Title";
+			public const string GCodeTool_ToolType = "GCodeTool_ToolType";
+			public const string GCodeToolTypes_DrillBit = "GCodeToolTypes_DrillBit";
+			public const string GCodeToolTypes_Laser = "GCodeToolTypes_Laser";
+			public const string GCodeToolTypes_MillingBit = "GCodeToolTypes_MillingBit";
 			public const string InventoryLocation_Address1 = "InventoryLocation_Address1";
 			public const string InventoryLocation_Address2 = "InventoryLocation_Address2";
 			public const string InventoryLocation_City = "InventoryLocation_City";

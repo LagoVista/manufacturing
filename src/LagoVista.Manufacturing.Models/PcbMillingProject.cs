@@ -14,7 +14,7 @@ namespace LagoVista.Manufacturing.Models
 {
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.PcbMillProject_Title, ManufacturingResources.Names.PcbMillingProject_Description,
         ManufacturingResources.Names.PcbMillingProject_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources),
-        Icon: "icon-ae-control-panel", Cloneable: true,
+        Icon: "icon-fo-layout-ratio", Cloneable: true,
         SaveUrl: "/api/mfg/pcb/milling", GetUrl: "/api/mfg/pcb/milling/{id}", GetListUrl: "/api/mfg/pcb/millings", FactoryUrl: "/api/mfg/pcb/milling/factory",
         DeleteUrl: "/api/mfg/pcb/milling/{id}",
         ListUIUrl: "/mfg/pcbmillings", EditUIUrl: "/mfg/pcbmilling/{id}", CreateUIUrl: "/mfg/pcbmilling/add")]
@@ -261,7 +261,7 @@ namespace LagoVista.Manufacturing.Models
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.PcbMillProject_Title, ManufacturingResources.Names.PcbMillingProject_Description,
         ManufacturingResources.Names.PcbMillingProject_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources),
-        Icon: "icon-ae-control-panel", Cloneable: true,
+        Icon: "icon-fo-layout-ratio", Cloneable: true,
         SaveUrl: "/api/mfg/pcb/milling", GetUrl: "/api/mfg/pcb/milling/{id}", GetListUrl: "/api/mfg/pcb/millings", FactoryUrl: "/api/mfg/pcb/milling/factory",
         DeleteUrl: "/api/mfg/pcb/milling/{id}",
         ListUIUrl: "/mfg/pcbmillings", EditUIUrl: "/mfg/pcbmilling/{id}", CreateUIUrl: "/mfg/pcbmilling/add")]

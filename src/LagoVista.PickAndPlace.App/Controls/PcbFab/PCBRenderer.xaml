@@ -19,8 +19,8 @@
             <ModelVisual3D x:Name="PCBLayer" />
 
             <h:GridLinesVisual3D x:Name="ModelGrid" MinorDistance="10"  MajorDistance="100" 
-           	    Width="{Binding Machine.Settings.WorkAreaHeight, FallbackValue=80}"
-                Length ="{Binding Machine.Settings.WorkAreaWidth, FallbackValue=100}"  />
+           	    Width="{Binding Machine.Settings.WorkAreaSize.X, FallbackValue=80}"
+                Length ="{Binding Machine.Settings.WorkAreaSize.Y, FallbackValue=100}"  />
 
         </h:HelixViewport3D>
         <ui:Viewer3DControls RenderWidth="100" Camera="{Binding ElementName=Camera}"  RenderHeight="100"></ui:Viewer3DControls>
