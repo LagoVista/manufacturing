@@ -22,8 +22,10 @@ namespace LagoVista.Manufacturing.Services
             
         }
 
-        public void CreateGCode(GCodeLayer layer, GCodeProject project, StringBuilder bldr)
+        public void CreateGCode(GCodeLayer layer, GCodeProject project, StringBuilder bldr)        
         {
+            MoveToSafeMoveHeight(project, bldr);
+
             foreach(var drill in layer.Drill) 
                 CreateGCode(drill, project, bldr);
 
@@ -38,25 +40,27 @@ namespace LagoVista.Manufacturing.Services
 
             foreach (var plane in layer.Planes)
                 CreateGCode(plane, project, bldr);
+
+            bldr.AppendLine("G1 X0 Y0");
         }
 
         private void MoveToSurfaceGCode(StringBuilder bldr)
         {
-            bldr.AppendLine("G0 Z0");
+            bldr.AppendLine("G1 Z0");
         }
 
         private void MoveToSafeMoveHeight(GCodeProject project, StringBuilder bldr)
         {
-            bldr.AppendLine($"G0 Z{project.SafeMoveHeight}");
+            bldr.AppendLine($"G1 Z{project.SafeMoveHeight}");
         }
 
         public void CreateGCode(GCodeDrill drill, GCodeProject project, StringBuilder bldr)
         {
             var tool = project.Tools.Single(tool => tool.Id == drill.GcodeOperationTool.Id);
-            bldr.AppendLine($"G0 X{drill.Location.X} Y{drill.Location.Y}");
-            bldr.AppendLine($"G0 Z0");
+            bldr.AppendLine($"G1 X{drill.Location.X} Y{drill.Location.Y}");
+            bldr.AppendLine($"G1 Z0");
             var depth = drill.EntireDepth ? project.StockDepth : drill.Depth;
-            bldr.AppendLine($"G0 Z{depth} F{tool.PlungeRate}");
+            bldr.AppendLine($"G1 Z{depth} F{tool.PlungeRate}");
             MoveToSafeMoveHeight(project, bldr);
         }
 
@@ -65,9 +69,10 @@ namespace LagoVista.Manufacturing.Services
             var tool = project.Tools.Single(tool => tool.Id == hole.GcodeOperationTool.Id);
 
             var radius =  hole.CutType.Value == GCodeCutTypes.Interior ? (hole.Diameter / 2.0) - (tool.Diameter / 2) : (hole.Diameter / 2.0) + (tool.Diameter / 2);
-            bldr.AppendLine($"G0 Y{hole.Location.X + radius} Y{hole.Location.Y + radius} F{project.TravelFeedRate}");
-            MoveToSurfaceGCode(bldr);
 
+            bldr.AppendLine($"G1 X{hole.Location.X + radius} Y{hole.Location.Y + radius} F{project.TravelFeedRate}");
+            MoveToSurfaceGCode(bldr);
+            
             var depth = hole.EntireDepth ? project.StockDepth : hole.Depth;
             var targetDepth = 0.0;
 
@@ -75,8 +80,9 @@ namespace LagoVista.Manufacturing.Services
             {
                 targetDepth += tool.PlungeDepth;
                 targetDepth = Math.Min(targetDepth, depth);
-                bldr.AppendLine($"G0 Z{depth} F{tool.PlungeRate}");
-                bldr.AppendLine($"G2 X{hole.Location.X + radius} Y{hole.Location.Y + radius} R{radius}");
+                bldr.AppendLine($"G1 X{hole.Location.X + radius} Y{hole.Location.Y + radius} F{project.TravelFeedRate}");
+                bldr.AppendLine($"G1 Z{-targetDepth} F{tool.PlungeRate}");
+                bldr.AppendLine($"G2 X{hole.Location.X + radius} Y{hole.Location.Y + radius} I-{radius} J-{radius}");
             }
             while (targetDepth != depth);
 
@@ -102,38 +108,38 @@ namespace LagoVista.Manufacturing.Services
             if (rect.CornerRadius > 0)
             {
                 var actualRadius = rect.CornerRadius - toolRadius;
-                bldr.AppendLine($"G0 X{x1} Y{y1 + actualRadius} F{project.TravelFeedRate}");
+                bldr.AppendLine($"G1 X{x1} Y{y1 + actualRadius} F{project.TravelFeedRate}");
                 MoveToSurfaceGCode(bldr);
                 MoveToSurfaceGCode(bldr);
                 do
                 {
                     targetDepth += tool.PlungeDepth;
                     targetDepth = Math.Min(targetDepth, depth);
-                    bldr.AppendLine($"G0 Z{depth} F{tool.PlungeRate}");
-                    bldr.AppendLine($"G0 Y{y2 - actualRadius} F{tool.FeedRate}");
-                    bldr.AppendLine($"G2 X{x1 + actualRadius} Y{y1} R{actualRadius}");
-                    bldr.AppendLine($"G0 X{x2 - actualRadius} F{tool.FeedRate}");
-                    bldr.AppendLine($"G2 X{x2} Y{y2 + actualRadius} R{actualRadius}");
-                    bldr.AppendLine($"G0 Y{y1 + actualRadius} F{tool.FeedRate}");
+                    bldr.AppendLine($"G1 Z{-targetDepth} F{tool.PlungeRate}");
+                    bldr.AppendLine($"G1 Y{y2 - actualRadius} F{tool.FeedRate}");
+                    bldr.AppendLine($"G2 X{x1 + actualRadius} Y{y2} R{actualRadius}");
+                    bldr.AppendLine($"G1 X{x2 - actualRadius} F{tool.FeedRate}");
+                    bldr.AppendLine($"G2 X{x2} Y{y2 - actualRadius} R{actualRadius}");
+                    bldr.AppendLine($"G1 Y{y1 + actualRadius} F{tool.FeedRate}");
                     bldr.AppendLine($"G2 X{x2 - actualRadius} Y{y1} R{actualRadius}");
-                    bldr.AppendLine($"G0 X{x1 + actualRadius} F{tool.FeedRate}");
+                    bldr.AppendLine($"G1 X{x1 + actualRadius} F{tool.FeedRate}");
                     bldr.AppendLine($"G2 X{x1} Y{y1 + actualRadius} R{actualRadius}");
                 }
                 while (targetDepth != depth);
             }
             else
             {
-                bldr.AppendLine($"G0 X{x1} Y{y1} F{project.TravelFeedRate}");
+                bldr.AppendLine($"G1 X{x1} Y{y1} F{project.TravelFeedRate}");
                 MoveToSurfaceGCode(bldr);
                 do
                 {
                     targetDepth += tool.PlungeDepth;
                     targetDepth = Math.Min(targetDepth, depth);
-                    bldr.AppendLine($"G0 Z{depth} F{tool.PlungeRate}");
-                    bldr.AppendLine($"G0 Y{y2} F{tool.FeedRate}");
-                    bldr.AppendLine($"G0 X{x2} F{tool.FeedRate}");
-                    bldr.AppendLine($"G0 Y{y1} F{tool.FeedRate}");
-                    bldr.AppendLine($"G0 X{x1} F{tool.FeedRate}");
+                    bldr.AppendLine($"G1 Z{-targetDepth} F{tool.PlungeRate}");
+                    bldr.AppendLine($"G1 Y{y2} F{tool.FeedRate}");
+                    bldr.AppendLine($"G1 X{x2} F{tool.FeedRate}");
+                    bldr.AppendLine($"G1 Y{y1} F{tool.FeedRate}");
+                    bldr.AppendLine($"G1 X{x1} F{tool.FeedRate}");
                 }
                 while (targetDepth != depth);
             }

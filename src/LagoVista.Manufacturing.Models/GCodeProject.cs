@@ -18,7 +18,7 @@ namespace LagoVista.Manufacturing.Models
      Icon: "icon-fo-laptop-fullscreen", Cloneable: true,
      SaveUrl: "/api/mfg/gcode/project", GetUrl: "/api/mfg/gcode/project/{id}", GetListUrl: "/api/mfg/gcode/projects", FactoryUrl: "/api/mfg/gcode/project/factory",
      DeleteUrl: "/api/mfg/gcode/project/{id}", ListUIUrl: "/mfg/gcodeprojects", EditUIUrl: "/mfg/gcodeproject/{id}", CreateUIUrl: "/mfg/gcodeproject/add")]
-    public class GCodeProject : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IFormDescriptorBottom
+    public class GCodeProject : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IFormDescriptorBottom, IFormAdditionalActions
     {
         [FormField(LabelResource: ManufacturingResources.Names.GCodeProject_StockWidth, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
         public double StockWidth { get; set; }
@@ -56,6 +56,19 @@ namespace LagoVista.Manufacturing.Models
                 Key = Key,
                 Name = Name,
                 Description = Description,
+            };
+        }
+
+        public List<FormAdditionalAction> GetAdditionalActions()
+        {
+            return new List<FormAdditionalAction>()
+            {
+                 new FormAdditionalAction()
+                 {
+                      Icon = "fa fa-recycle",
+                      Title = "Preview",
+                      Key  = "preview"
+                 }
             };
         }
 
@@ -216,6 +229,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(ToolType),
                 nameof(Diameter),
                 nameof(PlungeDepth),
+                nameof(PlungeRate),
                 nameof(FeedRate),
                 nameof(SpindleRpm),
             };

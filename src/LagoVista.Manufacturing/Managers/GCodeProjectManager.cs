@@ -13,6 +13,7 @@ using System.Text;
 using static LagoVista.Core.Models.AuthorizeResult;
 using System.Threading.Tasks;
 using LagoVista.Manufacturing.Services;
+using System.Linq;
 
 namespace LagoVista.Manufacturing.Managers
 {
@@ -43,17 +44,19 @@ namespace LagoVista.Manufacturing.Managers
             return await base.CheckForDepenenciesAsync(part);
         }
 
-        public Task<InvokeResult<string>> CreateGCode(GCodeProject project)
+        public Task<InvokeResult<string[]>> CreateGCode(GCodeProject project)
         {
             var bldr = new StringBuilder();
 
             _gcodeBuilder.CreateGCode(project, bldr);
 
-            return Task.FromResult(InvokeResult<string>.Create(bldr.ToString()));
+            var lines = bldr.ToString().Split('\n').Select(s=>s.Trim());
+
+            return Task.FromResult(InvokeResult<string[]>.Create(lines.ToArray()));
         }
 
 
-        public Task<InvokeResult<string>> GetGCodeForProjectAsync(string id, EntityHeader org, EntityHeader user)
+        public Task<InvokeResult<string[]>> GetGCodeForProjectAsync(string id, EntityHeader org, EntityHeader user)
         {
             throw new NotImplementedException();
         }
