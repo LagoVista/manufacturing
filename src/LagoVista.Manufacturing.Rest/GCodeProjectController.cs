@@ -49,6 +49,12 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return DetailResponse<GCodeLayer>.Create();
         }
 
+        [HttpPost("/api/mfg/gcode/create")]
+        public Task<InvokeResult<string>> CreateGCode([FromBody] GCodeProject project)
+        {
+            return _mgr.CreateGCode(project);
+        }
+
         [HttpGet("/api/mfg/gcode/hole/factory")]
         public DetailResponse<GCodeHole> CreateGCodeProjectHole()
         {

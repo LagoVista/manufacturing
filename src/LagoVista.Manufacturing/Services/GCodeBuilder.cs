@@ -1,53 +1,158 @@
-﻿using LagoVista.Manufacturing.Models;
+﻿using LagoVista.Manufacturing.Interfaces.Managers;
+using LagoVista.Manufacturing.Models;
+using LagoVista.PCB.Eagle.Models;
+using LagoVista.UserAdmin.Models.Users;
 using PdfSharpCore.Drawing.BarCodes;
+using RingCentral;
+using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace LagoVista.Manufacturing.Services
 {
-    public class GCodeBuilder
+    public class GCodeBuilder : IGCodeBuilder
     {
         public void CreateGCode(GCodeProject project, StringBuilder bldr)
         {
 
             foreach (var layer in project.Layers)
-                CreateGCode(layer, project.Tools, bldr);
+                CreateGCode(layer, project, bldr);
             
         }
 
-        public void CreateGCode(GCodeLayer layer, IEnumerable<GCodeTool> tools, StringBuilder bldr)
+        public void CreateGCode(GCodeLayer layer, GCodeProject project, StringBuilder bldr)
         {
             foreach(var drill in layer.Drill) 
-                CreateGCode(drill, tools, bldr);
+                CreateGCode(drill, project, bldr);
 
             foreach (var hole in layer.Holes)
-                CreateGCode(hole, tools, bldr);
+                CreateGCode(hole, project, bldr);
 
             foreach (var rect in layer.Rectangles)
-                CreateGCode(rect, tools, bldr);
+                CreateGCode(rect, project, bldr);
 
             foreach (var poly in layer.Polygons)
-                CreateGCode(poly, tools, bldr);
+                CreateGCode(poly, project, bldr);
+
+            foreach (var plane in layer.Planes)
+                CreateGCode(plane, project, bldr);
         }
 
-        public void CreateGCode(GCodeDrill drill, IEnumerable<GCodeTool> tools, StringBuilder bldr)
+        private void MoveToSurfaceGCode(StringBuilder bldr)
         {
-            bldr.AppendLine($"G0 Y{drill.Location.X} Y{drill.Location.Y}");
+            bldr.AppendLine("G0 Z0");
         }
 
-        public void CreateGCode(GCodeHole hole, IEnumerable<GCodeTool> tools, StringBuilder bldr)
+        private void MoveToSafeMoveHeight(GCodeProject project, StringBuilder bldr)
         {
-            bldr.AppendLine($"G0 Y{hole.Location.X} Y{hole.Location.Y}");
+            bldr.AppendLine($"G0 Z{project.SafeMoveHeight}");
         }
 
-        public void CreateGCode(GCodeRectangle rectangle, IEnumerable<GCodeTool> tools, StringBuilder bldr)
+        public void CreateGCode(GCodeDrill drill, GCodeProject project, StringBuilder bldr)
         {
+            var tool = project.Tools.Single(tool => tool.Id == drill.GcodeOperationTool.Id);
+            bldr.AppendLine($"G0 X{drill.Location.X} Y{drill.Location.Y}");
+            bldr.AppendLine($"G0 Z0");
+            var depth = drill.EntireDepth ? project.StockDepth : drill.Depth;
+            bldr.AppendLine($"G0 Z{depth} F{tool.PlungeRate}");
+            MoveToSafeMoveHeight(project, bldr);
+        }
+
+        public void CreateGCode(GCodeHole hole, GCodeProject project, StringBuilder bldr)
+        {
+            var tool = project.Tools.Single(tool => tool.Id == hole.GcodeOperationTool.Id);
+
+            var radius =  hole.CutType.Value == GCodeCutTypes.Interior ? (hole.Diameter / 2.0) - (tool.Diameter / 2) : (hole.Diameter / 2.0) + (tool.Diameter / 2);
+            bldr.AppendLine($"G0 Y{hole.Location.X + radius} Y{hole.Location.Y + radius} F{project.TravelFeedRate}");
+            MoveToSurfaceGCode(bldr);
+
+            var depth = hole.EntireDepth ? project.StockDepth : hole.Depth;
+            var targetDepth = 0.0;
+
+            do
+            {
+                targetDepth += tool.PlungeDepth;
+                targetDepth = Math.Min(targetDepth, depth);
+                bldr.AppendLine($"G0 Z{depth} F{tool.PlungeRate}");
+                bldr.AppendLine($"G2 X{hole.Location.X + radius} Y{hole.Location.Y + radius} R{radius}");
+            }
+            while (targetDepth != depth);
+
+            MoveToSafeMoveHeight(project, bldr);
+        }
+
+        public void CreateGCode(GCodeRectangle rect, GCodeProject project, StringBuilder bldr)
+        {
+            var tool = project.Tools.Single(tool => tool.Id == rect.GcodeOperationTool.Id);
+            var toolRadius = tool.Diameter / 2;
+            if(rect.CutType.Value == GCodeCutTypes.Exterior)
+                toolRadius = -toolRadius;
+
+            var x1 = rect.Origin.X + toolRadius;
+            var y1 = rect.Origin.Y + toolRadius;
+            var x2 = rect.Origin.X + rect.Size.X - toolRadius;
+            var y2 = rect.Origin.Y + rect.Size.Y - toolRadius;
+
+            var depth = rect.EntireDepth ? project.StockDepth : rect.Depth;
+            var targetDepth = 0.0;
+
+
+            if (rect.CornerRadius > 0)
+            {
+                var actualRadius = rect.CornerRadius - toolRadius;
+                bldr.AppendLine($"G0 X{x1} Y{y1 + actualRadius} F{project.TravelFeedRate}");
+                MoveToSurfaceGCode(bldr);
+                MoveToSurfaceGCode(bldr);
+                do
+                {
+                    targetDepth += tool.PlungeDepth;
+                    targetDepth = Math.Min(targetDepth, depth);
+                    bldr.AppendLine($"G0 Z{depth} F{tool.PlungeRate}");
+                    bldr.AppendLine($"G0 Y{y2 - actualRadius} F{tool.FeedRate}");
+                    bldr.AppendLine($"G2 X{x1 + actualRadius} Y{y1} R{actualRadius}");
+                    bldr.AppendLine($"G0 X{x2 - actualRadius} F{tool.FeedRate}");
+                    bldr.AppendLine($"G2 X{x2} Y{y2 + actualRadius} R{actualRadius}");
+                    bldr.AppendLine($"G0 Y{y1 + actualRadius} F{tool.FeedRate}");
+                    bldr.AppendLine($"G2 X{x2 - actualRadius} Y{y1} R{actualRadius}");
+                    bldr.AppendLine($"G0 X{x1 + actualRadius} F{tool.FeedRate}");
+                    bldr.AppendLine($"G2 X{x1} Y{y1 + actualRadius} R{actualRadius}");
+                }
+                while (targetDepth != depth);
+            }
+            else
+            {
+                bldr.AppendLine($"G0 X{x1} Y{y1} F{project.TravelFeedRate}");
+                MoveToSurfaceGCode(bldr);
+                do
+                {
+                    targetDepth += tool.PlungeDepth;
+                    targetDepth = Math.Min(targetDepth, depth);
+                    bldr.AppendLine($"G0 Z{depth} F{tool.PlungeRate}");
+                    bldr.AppendLine($"G0 Y{y2} F{tool.FeedRate}");
+                    bldr.AppendLine($"G0 X{x2} F{tool.FeedRate}");
+                    bldr.AppendLine($"G0 Y{y1} F{tool.FeedRate}");
+                    bldr.AppendLine($"G0 X{x1} F{tool.FeedRate}");
+                }
+                while (targetDepth != depth);
+            }
+
+            MoveToSafeMoveHeight(project, bldr);
+        }
+
+        public void CreateGCode(GCodePolygon polygon, GCodeProject project,  StringBuilder bldr)
+        {
+            var tool = project.Tools.Single(tool => tool.Id == polygon.GcodeOperationTool.Id);
+
 
         }
 
-        public void CreateGCode(GCodePolygon polygon, IEnumerable<GCodeTool> tools,  StringBuilder bldr)
+        public void CreateGCode(GCodePlane plane, GCodeProject project, StringBuilder bldr)
         {
+            var tool = project.Tools.Single(tool => tool.Id == plane.GcodeOperationTool.Id);
+
+
         }
     }
 }

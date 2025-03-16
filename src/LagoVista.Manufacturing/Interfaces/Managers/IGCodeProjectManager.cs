@@ -13,5 +13,8 @@ namespace LagoVista.Manufacturing.Interfaces.Managers
         Task<ListResponse<GCodeProjectSummary>> GetGCodeProjectsSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user);
         Task<GCodeProject> GetGCodeProjectAsync(string id, EntityHeader org, EntityHeader user);
         Task<InvokeResult> DeleteGCodeProjectAsync(string id, EntityHeader org, EntityHeader user);
+        Task<InvokeResult<string>> CreateGCode(GCodeProject project);
+        Task<InvokeResult<string>> GetGCodeForProjectAsync(string id, EntityHeader org, EntityHeader user);
+
     }
 }

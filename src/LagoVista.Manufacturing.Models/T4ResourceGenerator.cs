@@ -1,4 +1,4 @@
-﻿/*3/15/2025 1:47:11 PM*/
+﻿/*3/16/2025 9:02:41 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -584,6 +584,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ContourRetrieveMode_TwoLevelHierarchy
 
 		public static string ContourRetrieveMode_TwoLevelHierarchy { get { return GetResourceString("ContourRetrieveMode_TwoLevelHierarchy"); } }
+//Resources:ManufacturingResources:CutType_Exterior
+
+		public static string CutType_Exterior { get { return GetResourceString("CutType_Exterior"); } }
+//Resources:ManufacturingResources:CutType_Interior
+
+		public static string CutType_Interior { get { return GetResourceString("CutType_Interior"); } }
 //Resources:ManufacturingResources:FeedDirection_Backwards
 
 		public static string FeedDirection_Backwards { get { return GetResourceString("FeedDirection_Backwards"); } }
@@ -704,6 +710,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:GCode_BottomLightOn
 
 		public static string GCode_BottomLightOn { get { return GetResourceString("GCode_BottomLightOn"); } }
+//Resources:ManufacturingResources:GCode_CutType
+
+		public static string GCode_CutType { get { return GetResourceString("GCode_CutType"); } }
+//Resources:ManufacturingResources:GCode_CutType_Select
+
+		public static string GCode_CutType_Select { get { return GetResourceString("GCode_CutType_Select"); } }
 //Resources:ManufacturingResources:GCode_Description
 
 		public static string GCode_Description { get { return GetResourceString("GCode_Description"); } }
@@ -893,6 +905,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:GCodeProject_Origin
 
 		public static string GCodeProject_Origin { get { return GetResourceString("GCodeProject_Origin"); } }
+//Resources:ManufacturingResources:GCodeProject_SafeMoveHeight
+
+		public static string GCodeProject_SafeMoveHeight { get { return GetResourceString("GCodeProject_SafeMoveHeight"); } }
 //Resources:ManufacturingResources:GCodeProject_StockDepth
 
 		public static string GCodeProject_StockDepth { get { return GetResourceString("GCodeProject_StockDepth"); } }
@@ -908,6 +923,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:GCodeProject_Tools
 
 		public static string GCodeProject_Tools { get { return GetResourceString("GCodeProject_Tools"); } }
+//Resources:ManufacturingResources:GCodeProject_TravelFeedRate
+
+		public static string GCodeProject_TravelFeedRate { get { return GetResourceString("GCodeProject_TravelFeedRate"); } }
 //Resources:ManufacturingResources:GCodeProjectTool_Description
 
 		public static string GCodeProjectTool_Description { get { return GetResourceString("GCodeProjectTool_Description"); } }
@@ -926,6 +944,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:GCodeProjectTool_PlungeDepth_Help
 
 		public static string GCodeProjectTool_PlungeDepth_Help { get { return GetResourceString("GCodeProjectTool_PlungeDepth_Help"); } }
+//Resources:ManufacturingResources:GCodeProjectTool_PlungeRate
+
+		public static string GCodeProjectTool_PlungeRate { get { return GetResourceString("GCodeProjectTool_PlungeRate"); } }
 //Resources:ManufacturingResources:GCodeProjectTool_SafeMoveHeight
 
 		public static string GCodeProjectTool_SafeMoveHeight { get { return GetResourceString("GCodeProjectTool_SafeMoveHeight"); } }
@@ -1997,6 +2018,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ContourRetrieveMode_List = "ContourRetrieveMode_List";
 			public const string ContourRetrieveMode_Tree = "ContourRetrieveMode_Tree";
 			public const string ContourRetrieveMode_TwoLevelHierarchy = "ContourRetrieveMode_TwoLevelHierarchy";
+			public const string CutType_Exterior = "CutType_Exterior";
+			public const string CutType_Interior = "CutType_Interior";
 			public const string FeedDirection_Backwards = "FeedDirection_Backwards";
 			public const string FeedDirection_Forwards = "FeedDirection_Forwards";
 			public const string Feeder_AdvanceGCode = "Feeder_AdvanceGCode";
@@ -2037,6 +2060,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Feeders_Title = "Feeders_Title";
 			public const string GCode_BottomLightOff = "GCode_BottomLightOff";
 			public const string GCode_BottomLightOn = "GCode_BottomLightOn";
+			public const string GCode_CutType = "GCode_CutType";
+			public const string GCode_CutType_Select = "GCode_CutType_Select";
 			public const string GCode_Description = "GCode_Description";
 			public const string GCode_Drill_Description = "GCode_Drill_Description";
 			public const string GCode_Drill_Title = "GCode_Drill_Title";
@@ -2100,17 +2125,20 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string GCodeProject_Description = "GCodeProject_Description";
 			public const string GCodeProject_Layers = "GCodeProject_Layers";
 			public const string GCodeProject_Origin = "GCodeProject_Origin";
+			public const string GCodeProject_SafeMoveHeight = "GCodeProject_SafeMoveHeight";
 			public const string GCodeProject_StockDepth = "GCodeProject_StockDepth";
 			public const string GCodeProject_StockHeight = "GCodeProject_StockHeight";
 			public const string GCodeProject_StockWidth = "GCodeProject_StockWidth";
 			public const string GCodeProject_Title = "GCodeProject_Title";
 			public const string GCodeProject_Tools = "GCodeProject_Tools";
+			public const string GCodeProject_TravelFeedRate = "GCodeProject_TravelFeedRate";
 			public const string GCodeProjectTool_Description = "GCodeProjectTool_Description";
 			public const string GCodeProjectTool_Diameter = "GCodeProjectTool_Diameter";
 			public const string GCodeProjectTool_FeedRate = "GCodeProjectTool_FeedRate";
 			public const string GCodeProjectTool_FeedRate_Help = "GCodeProjectTool_FeedRate_Help";
 			public const string GCodeProjectTool_PlungeDepth = "GCodeProjectTool_PlungeDepth";
 			public const string GCodeProjectTool_PlungeDepth_Help = "GCodeProjectTool_PlungeDepth_Help";
+			public const string GCodeProjectTool_PlungeRate = "GCodeProjectTool_PlungeRate";
 			public const string GCodeProjectTool_SafeMoveHeight = "GCodeProjectTool_SafeMoveHeight";
 			public const string GCodeProjectTool_SpindleRPM = "GCodeProjectTool_SpindleRPM";
 			public const string GCodeProjectTool_SpindleRPM_Help = "GCodeProjectTool_SpindleRPM_Help";

@@ -10,6 +10,7 @@ using LagoVista.IoT.Logging.Loggers;
 using System;
 using static LagoVista.Core.Models.AuthorizeResult;
 using System.Threading.Tasks;
+using System.Text;
 
 namespace LagoVista.Manufacturing.Managers
 {
@@ -26,7 +27,6 @@ namespace LagoVista.Manufacturing.Managers
             _repo = GCodeMappingRepo;
             _componentManager = componentManager ?? throw new ArgumentNullException(nameof(componentManager));
             _packageRepo = packageRepo ?? throw new ArgumentNullException(nameof(packageRepo));
-
         }
         public async Task<InvokeResult> AddGCodeMappingAsync(GCodeMapping mapping, EntityHeader org, EntityHeader user)
         {
@@ -44,6 +44,7 @@ namespace LagoVista.Manufacturing.Managers
             return await base.CheckForDepenenciesAsync(part);
         }
 
+      
         public async Task<InvokeResult> DeleteGCodeMappingAsync(string id, EntityHeader org, EntityHeader user)
         {
             var GCodeMapping = await _repo.GetGCodeMappingAsync(id);
@@ -52,6 +53,7 @@ namespace LagoVista.Manufacturing.Managers
             await _repo.DeleteGCodeMappingAsync(id);
             return InvokeResult.Success;
         }
+
 
         public async Task<GCodeMapping> GetGCodeMappingAsync(string id,  EntityHeader org, EntityHeader user)
         {

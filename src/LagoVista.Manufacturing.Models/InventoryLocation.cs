@@ -38,7 +38,7 @@ namespace LagoVista.Manufacturing.Models
             {
                 Id = Id,
                 Description = Description,
-                IsDeleted = IsDeleted,
+                IsDeleted = IsDeleted ?? false,
                 IsPublic = IsPublic,
                 Key = Key,
                 Name = Name,

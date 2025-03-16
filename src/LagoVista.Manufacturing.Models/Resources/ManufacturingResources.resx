@@ -1815,7 +1815,7 @@
     <value>Polygon</value>
   </data>
   <data name="GCode_Polygon_Description" xml:space="preserve">
-    <value>A polygon is a collection of points that tool will travel.  </value>
+    <value>A polygon is a collection of points that tool will travel.</value>
   </data>
   <data name="GCodeLayer_Title" xml:space="preserve">
     <value>Layer</value>
@@ -1862,6 +1862,15 @@
   <data name="GCodeHole_Diameter" xml:space="preserve">
     <value>Diameter</value>
   </data>
+  <data name="GCodeProjectTool_PlungeRate" xml:space="preserve">
+    <value>PlungeRate</value>
+  </data>
+  <data name="GCodeProject_SafeMoveHeight" xml:space="preserve">
+    <value>Safe Move Height</value>
+  </data>
+  <data name="GCodeProject_TravelFeedRate" xml:space="preserve">
+    <value>Travel Feedrate</value>
+  </data>
   <data name="GCodeRectangle_CornerRadius" xml:space="preserve">
     <value>Corner Radius</value>
   </data>
@@ -1876,5 +1885,17 @@
   </data>
   <data name="GCodeProjectTool_SafeMoveHeight" xml:space="preserve">
     <value>Safe Move Height</value>
+  </data>
+  <data name="CutType_Interior" xml:space="preserve">
+    <value>Interior</value>
+  </data>
+  <data name="CutType_Exterior" xml:space="preserve">
+    <value>Exterior</value>
+  </data>
+  <data name="GCode_CutType" xml:space="preserve">
+    <value>Cut Type</value>
+  </data>
+  <data name="GCode_CutType_Select" xml:space="preserve">
+    <value>-select cut type-</value>
   </data>
 </root>

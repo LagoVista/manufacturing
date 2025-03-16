@@ -18,7 +18,7 @@ namespace LagoVista.Manufacturing.Models
      Icon: "icon-fo-laptop-fullscreen", Cloneable: true,
      SaveUrl: "/api/mfg/gcode/project", GetUrl: "/api/mfg/gcode/project/{id}", GetListUrl: "/api/mfg/gcode/projects", FactoryUrl: "/api/mfg/gcode/project/factory",
      DeleteUrl: "/api/mfg/gcode/project/{id}", ListUIUrl: "/mfg/gcodeprojects", EditUIUrl: "/mfg/gcodeproject/{id}", CreateUIUrl: "/mfg/gcodeproject/add")]
-    public class GCodeProject : MfgModelBase, IValidateable, IFormDescriptor, ISummaryFactory
+    public class GCodeProject : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IFormDescriptorBottom
     {
         [FormField(LabelResource: ManufacturingResources.Names.GCodeProject_StockWidth, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
         public double StockWidth { get; set; }
@@ -39,12 +39,20 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.GCodeProject_Layers, OpenByDefault:true, FieldType: FieldTypes.ChildListInline, ResourceType: typeof(ManufacturingResources))]
         public ObservableCollection<GCodeLayer> Layers { get; set; } = new ObservableCollection<GCodeLayer>();
 
+
+        [FormField(LabelResource: ManufacturingResources.Names.GCodeProject_SafeMoveHeight, IsRequired: true, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
+        public double SafeMoveHeight { get; set; } = 5;
+
+        [FormField(LabelResource: ManufacturingResources.Names.GCodeProject_TravelFeedRate, IsRequired: true, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
+        public double TravelFeedRate { get; set; } = 2000;
+
+
         public GCodeProjectSummary CreateSummary()
         {
             return new GCodeProjectSummary()
             {
                 Id = Id,
-                IsDeleted = IsDeleted,
+                IsDeleted = IsDeleted ?? false,
                 Key = Key,
                 Name = Name,
                 Description = Description,
@@ -61,8 +69,24 @@ namespace LagoVista.Manufacturing.Models
                 nameof(StockHeight),
                 nameof(StockDepth),
                 nameof(Origin),
-                nameof(Tools),
+            };
+        }
+
+        public List<string> GetFormFieldsBottom()
+        {
+            return new List<string>()
+            {
                 nameof(Layers)
+            };
+        }
+
+        public List<string> GetFormFieldsCol2()
+        {
+            return new List<string>()
+            {
+                nameof(TravelFeedRate),
+                nameof(SafeMoveHeight),
+                nameof(Tools),
             };
         }
 
@@ -94,9 +118,6 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Common_Name, IsRequired: true, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
         public string Name { get; set; }
 
-        [FormField(LabelResource: ManufacturingResources.Names.GCodeProjectTool_SafeMoveHeight, IsRequired: true, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
-        public double SafeMoveHeight { get; set; } = 5;
-
         [FormField(LabelResource: ManufacturingResources.Names.GCodeLayer_Holes, OpenByDefault: true, FieldType: FieldTypes.ChildListInline, FactoryUrl: "/api/mfg/gcode/hole/factory", ResourceType: typeof(ManufacturingResources))]
         public ObservableCollection<GCodeHole> Holes { get; set; } = new ObservableCollection<GCodeHole>();
 
@@ -110,7 +131,7 @@ namespace LagoVista.Manufacturing.Models
         public ObservableCollection<GCodePolygon> Polygons { get; set; } = new ObservableCollection<GCodePolygon>();
 
         [FormField(LabelResource: ManufacturingResources.Names.GCodeLayer_Planes, FieldType: FieldTypes.ChildListInline, OpenByDefault: true, FactoryUrl: "/api/mfg/gcode/plane/factory", ResourceType: typeof(ManufacturingResources))]
-        public ObservableCollection<GCodePlane> Plane { get; set; } = new ObservableCollection<GCodePlane>();
+        public ObservableCollection<GCodePlane> Planes { get; set; } = new ObservableCollection<GCodePlane>();
 
         public List<FormAdditionalAction> GetAdditionalActions()
         {
@@ -130,12 +151,11 @@ namespace LagoVista.Manufacturing.Models
             return new List<string>()
             {
                 nameof(Name),
-                nameof(SafeMoveHeight),
                 nameof(Holes),
                 nameof(Drill),
                 nameof(Rectangles),
                 nameof(Polygons),
-                nameof(Plane)
+                nameof(Planes)
             };
         }
     }
@@ -174,6 +194,10 @@ namespace LagoVista.Manufacturing.Models
 
         [FormField(LabelResource: ManufacturingResources.Names.GCodeProjectTool_PlungeDepth, FieldType: FieldTypes.Decimal, HelpResource: ManufacturingResources.Names.GCodeProjectTool_PlungeDepth_Help, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double PlungeDepth { get; set; }
+
+        [FormField(LabelResource: ManufacturingResources.Names.GCodeProjectTool_PlungeRate, FieldType: FieldTypes.Decimal, HelpResource: ManufacturingResources.Names.GCodeProjectTool_PlungeDepth_Help, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double PlungeRate { get; set; }
+
 
         [FormField(LabelResource: ManufacturingResources.Names.GCodeProjectTool_FeedRate, FieldType: FieldTypes.Decimal, HelpResource: ManufacturingResources.Names.GCodeProjectTool_FeedRate_Help, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double FeedRate { get; set; }
@@ -234,6 +258,7 @@ namespace LagoVista.Manufacturing.Models
         }
     }
 
+   
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.GCode_Hole_Title, ManufacturingResources.Names.GCode_Hole_Description,
      ManufacturingResources.Names.GCode_Hole_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources),
      Icon: "icon-fo-laptop-fullscreen", Cloneable: true, FactoryUrl: "/api/mfg/gcode/hole/factory")]
@@ -245,6 +270,11 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.GCodeHole_Diameter, IsRequired: true, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
         public double Diameter { get; set; }
 
+
+        [FormField(LabelResource: ManufacturingResources.Names.GCode_CutType, IsRequired: true, FieldType: FieldTypes.Picker, EnumType: typeof(GCodeCutTypes),
+            WaterMark: ManufacturingResources.Names.GCode_CutType_Select, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader<GCodeCutTypes> CutType { get; set; } = EntityHeader<GCodeCutTypes>.Create(GCodeCutTypes.Interior);
+
         public List<string> GetFormFields()
         {
             return new List<string>()
@@ -252,10 +282,19 @@ namespace LagoVista.Manufacturing.Models
                 nameof(GcodeOperationTool),
                 nameof(Location),
                 nameof(Diameter),
+                nameof(CutType),
                 nameof(EntireDepth),
                 nameof(Depth),
             };
         }
+    }
+
+    public enum GCodeCutTypes
+    {
+        [EnumLabel("interior", ManufacturingResources.Names.CutType_Interior, typeof(ManufacturingResources))]
+        Interior,
+        [EnumLabel("exterior", ManufacturingResources.Names.CutType_Exterior, typeof(ManufacturingResources))]
+        Exterior
     }
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.GCode_Rectangle_Title, ManufacturingResources.Names.GCode_Rectangle_Description,
@@ -269,8 +308,12 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.Common_Size, IsRequired: true, FieldType: FieldTypes.Point2D, ResourceType: typeof(ManufacturingResources))]
         public Point2D<double> Size { get; set; }
 
-        [FormField(LabelResource: ManufacturingResources.Names.GCodeRectangle_CornerRadius, IsRequired: true, FieldType: FieldTypes.Point2D, ResourceType: typeof(ManufacturingResources))]
-        public Point2D<double> Radius { get; set; } = new Point2D<double>(0, 0);
+        [FormField(LabelResource: ManufacturingResources.Names.GCode_CutType, IsRequired: true, FieldType: FieldTypes.Picker, EnumType:typeof(GCodeCutTypes), 
+            WaterMark:ManufacturingResources.Names.GCode_CutType_Select, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader<GCodeCutTypes> CutType { get; set; }  = EntityHeader<GCodeCutTypes>.Create(GCodeCutTypes.Interior);
+
+        [FormField(LabelResource: ManufacturingResources.Names.GCodeRectangle_CornerRadius, IsRequired: true, FieldType: FieldTypes.Decimal, ResourceType: typeof(ManufacturingResources))]
+        public double CornerRadius { get; set; } = 0;
 
         public List<string> GetFormFields()
         {
@@ -279,7 +322,8 @@ namespace LagoVista.Manufacturing.Models
                 nameof(GcodeOperationTool),
                 nameof(Origin),
                 nameof(Size),
-                nameof(Radius),
+                nameof(CutType),
+                nameof(CornerRadius),
                 nameof(EntireDepth),
                 nameof(Depth),
             };
@@ -342,12 +386,18 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.GCodePoloygon_Points, FieldType: FieldTypes.Point2DArray, ResourceType: typeof(ManufacturingResources))]
         public List<Point2D<double>> Points { get; set; } = new List<Point2D<double>>();
 
+
+        [FormField(LabelResource: ManufacturingResources.Names.GCode_CutType, IsRequired: true, FieldType: FieldTypes.Picker, EnumType: typeof(GCodeCutTypes),
+            WaterMark: ManufacturingResources.Names.GCode_CutType_Select, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader<GCodeCutTypes> CutType { get; set; } = EntityHeader<GCodeCutTypes>.Create(GCodeCutTypes.Interior);
+
         public List<string> GetFormFields()
         {
             return new List<string>()
             {
                 nameof(GcodeOperationTool),
                 nameof(Closed),
+                nameof(CutType),
                 nameof(EntireDepth),
                 nameof(Depth),
                 nameof(Points),

@@ -27,6 +27,7 @@ namespace LagoVista.Manufacturing
             services.AddTransient<IInventoryLocationManager, InventoryLocationManager>();
             services.AddTransient<IGCodeProjectManager, GCodeProjectManager>();
             services.AddTransient<IPcbMillingProjectManager, PcbMillingProjectManager>();
+            services.AddTransient<IGCodeBuilder, GCodeBuilder>();
         }
     }
 }
