@@ -161,7 +161,7 @@ namespace LagoVista.PickAndPlace.Interfaces
         MachineToolHead CurrentMachineToolHead { get; set; }
 
         bool AreSettingsLocked { get; set; }
-
+        
         /// <summary>
         /// Connect to the machine
         /// </summary>
@@ -170,6 +170,9 @@ namespace LagoVista.PickAndPlace.Interfaces
         Task ConnectAsync(SerialPort serialPort);
         void Connect(SerialPort serialPort);
         Task ConnectAsync(SimulatedSerialPort serialPort);
+
+
+        void Connect(ISocketClient socketClient);
 
 
         /// <summary>

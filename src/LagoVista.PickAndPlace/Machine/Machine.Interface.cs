@@ -110,6 +110,11 @@ namespace LagoVista.PickAndPlace
 
         CancellationTokenSource _cancelSource;
 
+        public async void Connect(ISocketClient socketClient)
+        {
+            await ConnectAsync(socketClient);
+        }
+
         public async Task ConnectAsync(ISocketClient socketClient)
         {
             try
