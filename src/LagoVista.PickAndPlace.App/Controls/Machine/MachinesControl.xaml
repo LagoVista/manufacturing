@@ -45,7 +45,7 @@
             </Style>
         </Grid.Resources>
         
-        <StackPanel Orientation="Horizontal"  Grid.Row="1">
+        <StackPanel Orientation="Horizontal"  Grid.Row="0">
             <Button  >
                 <Button.Content>
                     <StackPanel >
@@ -98,7 +98,7 @@
             </Button>
         </StackPanel>
         
-        <ListView ItemsSource="{Binding Machines}" SelectedItem="{Binding SelectedMachine}" Grid.Row="1" Visibility="Collapsed">
+        <ListView ItemsSource="{Binding Machines}" SelectedItem="{Binding SelectedMachine}" Grid.Row="1" Visibility="Visible">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid>
