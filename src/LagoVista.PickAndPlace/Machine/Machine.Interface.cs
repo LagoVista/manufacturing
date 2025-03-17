@@ -1,4 +1,5 @@
-﻿using LagoVista.Core.Models.Drawing;
+﻿using Emgu.CV.CvEnum;
+using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.PlatformSupport;
 using LagoVista.Core.Validation;
 using LagoVista.GCode;
@@ -33,6 +34,11 @@ namespace LagoVista.PickAndPlace
             {
                 Work(port.InputStream, port.OutputStream);
             }, _cancelSource.Token);
+        }
+
+        public async void Connect(SerialPort port)
+        {
+            await ConnectAsync(port);
         }
 
 

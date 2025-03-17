@@ -25,6 +25,7 @@ namespace LagoVista.Manufacturing.Repos
             services.AddTransient<IPickAndPlaceJobRunRepo, PickAndPlaceJobRunRepo>();
             services.AddTransient<IPcbMillingProjectRepo, PcbMillingProjectRepo>();
             services.AddTransient<IGCodeProjectRepo, GCodeProjectRepo>();
+            services.AddTransient<IAssemblyInstructionRepo, AssemblyInstructionRepo>();
         }
     }
 }

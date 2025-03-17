@@ -97,8 +97,8 @@
                 </Button.Content>
             </Button>
         </StackPanel>
-        
-        <ListView ItemsSource="{Binding Machines}" SelectedItem="{Binding SelectedMachine}" Grid.Row="1" Visibility="Visible">
+
+        <ListView ItemsSource="{Binding Machines}" SelectedItem="{Binding SelectedMachine}" Grid.Row="1" Visibility="{Binding MachinesListVisible, Converter={StaticResource BoolToVisibilityConverter}}">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid>
