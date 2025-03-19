@@ -82,7 +82,7 @@ namespace LagoVista.Manufacturing.Services
                 targetDepth = Math.Min(targetDepth, depth);
                 bldr.AppendLine($"G1 X{hole.Location.X + radius} Y{hole.Location.Y + radius} F{project.TravelFeedRate}");
                 bldr.AppendLine($"G1 Z{-targetDepth} F{tool.PlungeRate}");
-                bldr.AppendLine($"G2 X{hole.Location.X + radius} Y{hole.Location.Y + radius} I-{radius} J-{radius}");
+                bldr.AppendLine($"G2 I-{radius} J-{radius}");
             }
             while (targetDepth != depth);
 
