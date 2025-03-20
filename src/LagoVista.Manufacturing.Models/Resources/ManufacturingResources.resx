@@ -1898,4 +1898,7 @@
   <data name="GCode_CutType_Select" xml:space="preserve">
     <value>-select cut type-</value>
   </data>
+  <data name="AssemblyInstructionStep_Parts" xml:space="preserve">
+    <value>Parts</value>
+  </data>
 </root>

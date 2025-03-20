@@ -1,4 +1,4 @@
-﻿/*3/16/2025 9:02:41 AM*/
+﻿/*3/20/2025 7:37:12 AM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -72,6 +72,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:AssemblyInstructionStep_Images
 
 		public static string AssemblyInstructionStep_Images { get { return GetResourceString("AssemblyInstructionStep_Images"); } }
+//Resources:ManufacturingResources:AssemblyInstructionStep_Parts
+
+		public static string AssemblyInstructionStep_Parts { get { return GetResourceString("AssemblyInstructionStep_Parts"); } }
 //Resources:ManufacturingResources:AssemblyInstructionStep_Title
 
 		public static string AssemblyInstructionStep_Title { get { return GetResourceString("AssemblyInstructionStep_Title"); } }
@@ -1850,6 +1853,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string AssemblyInstructions_Title = "AssemblyInstructions_Title";
 			public const string AssemblyInstructionStep_Description = "AssemblyInstructionStep_Description";
 			public const string AssemblyInstructionStep_Images = "AssemblyInstructionStep_Images";
+			public const string AssemblyInstructionStep_Parts = "AssemblyInstructionStep_Parts";
 			public const string AssemblyInstructionStep_Title = "AssemblyInstructionStep_Title";
 			public const string AssembyInstructionsStep_Instructions = "AssembyInstructionsStep_Instructions";
 			public const string AutoFeeder_Description = "AutoFeeder_Description";

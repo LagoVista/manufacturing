@@ -1,4 +1,6 @@
-﻿using LagoVista.Core.Attributes;
+﻿using LagoVista.Core;
+using LagoVista.Core.Attributes;
+using LagoVista.Core.Interfaces;
 using LagoVista.Core.Models;
 using LagoVista.Manufacturing.Models.Resources;
 using System;
@@ -7,14 +9,14 @@ using System.Text;
 
 namespace LagoVista.Manufacturing.Models
 {
-    [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.AssemblyInstruction_Title, ManufacturingResources.Names.AssemblyInstruction_Description,
+    [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.AssemblyInstructionStep_Title, ManufacturingResources.Names.AssemblyInstruction_Description,
                ManufacturingResources.Names.AssemblyInstruction_Description, EntityDescriptionAttribute.EntityTypes.Manufacturing, ResourceType: typeof(ManufacturingResources),
                Icon: "icon-pz-searching-2", Cloneable: true,
                SaveUrl: "/api/mfg/assembly", GetUrl: "/api/mfg/assembly/{id}", GetListUrl: "/api/mfg/assemblies", FactoryUrl: "/api/mfg/assembly/factory",
                DeleteUrl: "/api/mfg/assembly/{id}", ListUIUrl: "/mfg/assemblyinstructions", EditUIUrl: "/mfg/assemblyinstruction/{id}", CreateUIUrl: "/mfg/assemblyinstruction/add")]
-    public class AssemblyInstructionStep
+    public class AssemblyInstructionStep : IFormDescriptor
     {
-        public string Id { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToId();
 
         [FormField(LabelResource: ManufacturingResources.Names.AssemblyInstructionStep_Title, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
         public string Title { get; set; }
@@ -23,6 +25,20 @@ namespace LagoVista.Manufacturing.Models
         public string Instructions { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.AssemblyInstructionStep_Images, FieldType: FieldTypes.MediaResources, ResourceType: typeof(ManufacturingResources))]
-        public List<EntityHeader> Images {get; set;}
+        public List<EntityHeader> Images { get; set; } = new List<EntityHeader>();
+
+        [FormField(LabelResource: ManufacturingResources.Names.AssemblyInstructionStep_Parts, FieldType: FieldTypes.ChildListInlinePicker, ResourceType: typeof(ManufacturingResources))]
+        public List<EntityHeader> Parts { get; set; } = new List<EntityHeader>();
+
+        public List<string> GetFormFields()
+        {
+            return new List<string>()
+            {
+                nameof(Title),
+                nameof(Instructions),
+                nameof(Images),
+                nameof(Parts),
+            };
+        }
     }
 }
