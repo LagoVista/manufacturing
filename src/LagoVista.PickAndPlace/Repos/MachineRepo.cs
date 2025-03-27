@@ -201,7 +201,7 @@ namespace LagoVista.PickAndPlace.Repos
                     {
                         var socketClient = SLWIOC.Create<ISocketClient>();
 
-                        await socketClient.ConnectAsync(CurrentMachine.Settings.IPAddress, 3000);
+                        await socketClient.ConnectAsync(CurrentMachine.Settings.IPAddress, 23);
                         CurrentMachine.Connect(socketClient);
                     }
                     catch (Exception ex)

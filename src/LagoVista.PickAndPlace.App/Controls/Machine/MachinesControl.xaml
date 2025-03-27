@@ -46,7 +46,7 @@
         </Grid.Resources>
         
         <StackPanel Orientation="Horizontal"  Grid.Row="0">
-            <Button  >
+            <Button Command="{Binding ShowMachinesListCommand}" >
                 <Button.Content>
                     <StackPanel >
                         <fa:ImageAwesome Foreground="#681DD6" Icon="FolderOpen" />

@@ -175,12 +175,15 @@ namespace LagoVista.PickAndPlace
 
         private bool ShouldSendNormalPriorityItems()
         {
-            if (_toSend.Count == 0)
-                return false;
+            lock (_toSend)
+            {
+                if (_toSend.Count == 0)
+                    return false;
 
-            if(_toSend.Count > 0 && _toSend.Peek() != null)
-                return _toSend.Count > 0 && ((_toSend.Peek()?.ToString()).Length + 1) < (Settings.ControllerBufferSize - Math.Max(0, UnacknowledgedBytesSent));
-            return true;
+                if (_toSend.Count > 0 && _toSend.Peek() != null)
+                    return _toSend.Count > 0 && ((_toSend.Peek()?.ToString()).Length + 1) < (Settings.ControllerBufferSize - Math.Max(0, UnacknowledgedBytesSent));
+                return true;
+            }
         }
 
         private async Task Send()
@@ -189,22 +192,24 @@ namespace LagoVista.PickAndPlace
 
             if (!_isOnHold)
             {
-                if (Mode == OperatingMode.SendingGCodeFile &&
-                    _toSend.Count == 0 &&
-                    Settings.ControllerBufferSize - Math.Max(0, UnacknowledgedBytesSent) > 24)
+
+                lock (_toSend)
                 {
-                    var nextCommand = _gcodeCommandHandler.GetNextJobItem();
-                    if (nextCommand != null)
-                        TransmitJobItem(nextCommand);
+                    if (Mode == OperatingMode.SendingGCodeFile &&
+                        _toSend.Count == 0 &&
+                        Settings.ControllerBufferSize - Math.Max(0, UnacknowledgedBytesSent) > 24)
+                    {
+                        var nextCommand = _gcodeCommandHandler.GetNextJobItem();
+                        if (nextCommand != null)
+                            TransmitJobItem(nextCommand);
+                    }
+                    else if (ShouldSendNormalPriorityItems())
+                    {
+                        SendNormalPriorityItems();
+                    }                    
                 }
-                else if (ShouldSendNormalPriorityItems())
-                {
-                    SendNormalPriorityItems();
-                }
-                else
-                {
-                    await QueryStatus();
-                }
+
+                await QueryStatus();
             }
         }
 

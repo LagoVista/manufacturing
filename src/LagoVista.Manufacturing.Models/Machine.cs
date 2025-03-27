@@ -255,6 +255,13 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _ipAddress, value); }
         }
 
+        private String _telnetPort;
+        public String TelnetPort
+        {
+            get { return _telnetPort; }
+            set { Set(ref _telnetPort, value); }
+        }
+
         private Point2D<double> _partStripScaler = new Point2D<double>() { X = 1.0, Y = 1.0 };
         public Point2D<double> PartStripScaler
         {
