@@ -378,7 +378,18 @@ namespace LagoVista.Manufacturing.Models
             get => _state;
             set
             {
-                if(_state.Value == PnPStates.New)
+                if(Transitions.Count > 0)
+                {
+                    Transitions.Last().DurationMS = (uint)(DateTime.UtcNow - Transitions.Last().StartTimeStamp).TotalMilliseconds;
+                }
+
+                Transitions.Add(new PlacementStateHistory()
+                {
+                    State = value,
+                    StartTimeStamp = DateTime.UtcNow
+                });
+
+                if (_state.Value == PnPStates.New)
                     StartTimeStamp = DateTime.UtcNow;
 
                 if (value.Value == PnPStates.Placed)
@@ -391,7 +402,9 @@ namespace LagoVista.Manufacturing.Models
                 Set(ref _state, value);
             }
         }
-        
+
+        public List<PlacementStateHistory> Transitions { get; set; } = new List<PlacementStateHistory>();
+
         TimeSpan? _duration;
         public TimeSpan? Duration
         {
@@ -442,5 +455,13 @@ namespace LagoVista.Manufacturing.Models
 
             return jobPlacement;
         }
+    }
+
+    public class PlacementStateHistory
+    {
+        public EntityHeader<PnPStates> State { get; set; }
+        public DateTime StartTimeStamp { get; set; }
+        public uint DurationMS { get; set; }
+        public string Error { get; set; }
     }
 }
