@@ -103,6 +103,7 @@ namespace LagoVista.Manufacturing.Models
     public enum FirmwareTypes
     {
         GRBL1_1,
+        GRBL1_1_SL_Custom,
         Marlin,
         Marlin_Laser,
         LagoVista,
@@ -110,6 +111,14 @@ namespace LagoVista.Manufacturing.Models
         SimulatedMachine,
         Repeteir_PnP,
         LumenPnP_V4_Marlin
+    }
+
+    public enum MachineType
+    {
+        Laser,
+        Cnc,
+        PickAndPlace,
+        Other,
     }
 
     public enum OperatingMode
@@ -592,6 +601,14 @@ namespace LagoVista.Manufacturing.Models
         {
             get => _minRightVacuum;
             set => Set(ref _minRightVacuum, value);
+        }
+
+
+        private ulong _maxRpm;
+        public ulong MaxRpm
+        {
+            get => _maxRpm;
+            set => Set(ref _maxRpm, value);
         }
 
         private ObservableCollection<MachineCamera> _cameras = new ObservableCollection<MachineCamera>();

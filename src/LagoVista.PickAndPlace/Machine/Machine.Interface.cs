@@ -565,7 +565,7 @@ namespace LagoVista.PickAndPlace
 
         public void SpindleOn()
         {
-            Enqueue("M3 S1000");
+            Enqueue("M3 S12000");
         }
 
         public void SpindleOff()
