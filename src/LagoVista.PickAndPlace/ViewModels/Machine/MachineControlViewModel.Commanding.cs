@@ -38,7 +38,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         void SetToMoveHeight()
         {
-            if (_machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.LagoVista_PnP)
+            if (_machineRepo.CurrentMachine.Settings.FirmwareType == FirmwareTypes.LagoVista_PnP)
             {
                 _machineRepo.CurrentMachine.SendCommand("M54");
             }
@@ -50,7 +50,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         void SetToPickHeight()
         {
-            if (_machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.LagoVista_PnP)
+            if (_machineRepo.CurrentMachine.Settings.FirmwareType == FirmwareTypes.LagoVista_PnP)
             {
                 _machineRepo.CurrentMachine.SendCommand("M55");
             }
@@ -62,7 +62,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         void SetToBoardHeight()
         {
-            if (_machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.LagoVista_PnP)
+            if (_machineRepo.CurrentMachine.Settings.FirmwareType == FirmwareTypes.LagoVista_PnP)
             {
                 _machineRepo.CurrentMachine.SendCommand("M56");
             }
@@ -74,7 +74,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         void MoveToBottomCamera()
         {
-            if (_machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.LagoVista_PnP)
+            if (_machineRepo.CurrentMachine.Settings.FirmwareType == FirmwareTypes.LagoVista_PnP)
             {
                 _machineRepo.CurrentMachine.SendCommand("M52");
             }

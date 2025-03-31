@@ -165,7 +165,7 @@ namespace LagoVista.PickAndPlace
         public void GotoPoint(double x, double y, bool rapidMove = true, bool relativeMove = false)
         {
             var cmd = rapidMove ? "G0" : "G1";
-            if (Settings.MachineType != FirmwareTypes.Repeteir_PnP && !relativeMove)
+            if (Settings.FirmwareType != FirmwareTypes.Repeteir_PnP && !relativeMove)
             {
                 x = Math.Max(0, Math.Min(x, Settings.WorkAreaSize.X));
                 y = Math.Max(0, Math.Min(y, Settings.WorkAreaSize.Y));
@@ -189,7 +189,7 @@ namespace LagoVista.PickAndPlace
         public void GotoPoint(double x, double y, double z, bool rapidMove = true)
         {
             var cmd = rapidMove ? "G0" : "G1";
-            if (Settings.MachineType != FirmwareTypes.Repeteir_PnP)
+            if (Settings.FirmwareType != FirmwareTypes.Repeteir_PnP)
             {
                 x = Math.Max(0, Math.Min(x, Settings.WorkAreaSize.X));
                 y = Math.Max(0, Math.Min(y, Settings.WorkAreaSize.Y));

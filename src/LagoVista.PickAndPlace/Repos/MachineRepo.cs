@@ -186,9 +186,9 @@ namespace LagoVista.PickAndPlace.Repos
             }
             else
             {
-                if (CurrentMachine.Settings.MachineType == FirmwareTypes.SimulatedMachine)
+                if (CurrentMachine.Settings.FirmwareType == FirmwareTypes.SimulatedMachine)
                 {
-                    await CurrentMachine.ConnectAsync(new SimulatedSerialPort(CurrentMachine.Settings.MachineType));
+                    await CurrentMachine.ConnectAsync(new SimulatedSerialPort(CurrentMachine.Settings.FirmwareType));
                 }
                 else if (CurrentMachine.Settings.ConnectionType == Manufacturing.Models.ConnectionTypes.Serial_Port)
                 {

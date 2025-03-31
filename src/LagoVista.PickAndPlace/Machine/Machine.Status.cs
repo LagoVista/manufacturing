@@ -25,7 +25,7 @@ namespace LagoVista.PickAndPlace
                 return;
             }
 
-            if (Settings.MachineType == FirmwareTypes.LagoVista_PnP)
+            if (Settings.FirmwareType == FirmwareTypes.LagoVista_PnP)
             {
                 _viewType = viewType;
                 RaisePropertyChanged();
@@ -37,8 +37,8 @@ namespace LagoVista.PickAndPlace
                     case ViewTypes.Tool2: Enqueue("M51"); break;
                 }
             }
-            else if (Settings.MachineType == FirmwareTypes.Repeteir_PnP ||
-                     Settings.MachineType == FirmwareTypes.LumenPnP_V4_Marlin)
+            else if (Settings.FirmwareType == FirmwareTypes.Repeteir_PnP ||
+                     Settings.FirmwareType == FirmwareTypes.LumenPnP_V4_Marlin)
             {
                 // 1. capture current position of machine.
                 var currentLocationX = MachinePosition.X;

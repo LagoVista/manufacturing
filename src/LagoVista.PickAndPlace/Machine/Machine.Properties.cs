@@ -19,10 +19,9 @@ namespace LagoVista.PickAndPlace
                 if (Settings == null)
                     return false;
 
-                return Settings.MachineType == FirmwareTypes.LagoVista_PnP ||
-                       Settings.MachineType == FirmwareTypes.LumenPnP_V4_Marlin ||
-                       Settings.MachineType == FirmwareTypes.Repeteir_PnP ||
-                       Settings.MachineType == FirmwareTypes.SimulatedMachine;
+                return Settings.FirmwareType == FirmwareTypes.LagoVista_PnP ||
+                       Settings.FirmwareType == FirmwareTypes.LumenPnP_V4_Marlin ||
+                       Settings.FirmwareType == FirmwareTypes.SimulatedMachine;
             }
         }
 
@@ -354,7 +353,7 @@ namespace LagoVista.PickAndPlace
             get { return _topLightOn; }
             set
             {                
-                switch (Settings.MachineType)
+                switch (Settings.FirmwareType)
                 {
                     case FirmwareTypes.Repeteir_PnP: Enqueue($"M42 P31 S{(value ? 0 : 255)}"); break;
                     case FirmwareTypes.LagoVista_PnP: Enqueue($"M60 S{(value ? 255 : 0)}"); break;
@@ -379,7 +378,7 @@ namespace LagoVista.PickAndPlace
             get { return _bottomLightOn; }
             set
             {
-                switch (Settings.MachineType)
+                switch (Settings.FirmwareType)
                 {
                     case FirmwareTypes.Repeteir_PnP: Enqueue($"M42 P33 S{(value ? 0 : 255)}"); break;
                     case FirmwareTypes.LagoVista_PnP: Enqueue($"M61 S{(value ? 255 : 0)}"); break;
@@ -552,7 +551,7 @@ namespace LagoVista.PickAndPlace
             {
                 if (_puffPump != value)
                 {
-                    switch (Settings.MachineType)
+                    switch (Settings.FirmwareType)
                     {
                         case FirmwareTypes.Repeteir_PnP:
                             Enqueue($"M42 P07 S{(value ? 255 : 0)}");
@@ -586,7 +585,7 @@ namespace LagoVista.PickAndPlace
             {
                 if (_headSolenoid != value)
                 {
-                    switch (Settings.MachineType)
+                    switch (Settings.FirmwareType)
                     {
                         case FirmwareTypes.Repeteir_PnP:
                             Enqueue($"M42 P23 S{(value ? 255 : 0)}");
@@ -614,7 +613,7 @@ namespace LagoVista.PickAndPlace
             {
                 if (_puffSolenoid != value)
                 {
-                    switch (Settings.MachineType)
+                    switch (Settings.FirmwareType)
                     {
                         case FirmwareTypes.Repeteir_PnP:
                             Enqueue($"M42 P23 S{(value ? 255 : 0)}");
@@ -642,7 +641,7 @@ namespace LagoVista.PickAndPlace
             {
                 if (_vacuumSolenoid != value)
                 {
-                    switch (Settings.MachineType)
+                    switch (Settings.FirmwareType)
                     {
                         case FirmwareTypes.Repeteir_PnP:
                             Enqueue($"M42 P27 S{(value ? 255 : 0)}");

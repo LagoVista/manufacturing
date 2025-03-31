@@ -58,7 +58,7 @@ namespace LagoVista.PickAndPlace
                     {
                         if (PendingQueue.Count > 0)
                         {
-                            if (Settings.MachineType == FirmwareTypes.Repeteir_PnP || Settings.MachineType == FirmwareTypes.LumenPnP_V4_Marlin)
+                            if (Settings.FirmwareType == FirmwareTypes.Repeteir_PnP || Settings.FirmwareType == FirmwareTypes.LumenPnP_V4_Marlin)
                             {
                                 Services.DispatcherServices.Invoke(() =>
                                 {
@@ -163,7 +163,7 @@ namespace LagoVista.PickAndPlace
                 }
                 else if (fullMessageLine.StartsWith("<"))
                 {
-                    if (Settings.MachineType == FirmwareTypes.LagoVista || Settings.MachineType == FirmwareTypes.LagoVista_PnP)
+                    if (Settings.FirmwareType == FirmwareTypes.LagoVista || Settings.FirmwareType == FirmwareTypes.LagoVista_PnP)
                     {
                         if (ParseLagoVistaLine(fullMessageLine))
                         {

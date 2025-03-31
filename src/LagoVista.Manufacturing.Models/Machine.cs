@@ -113,7 +113,7 @@ namespace LagoVista.Manufacturing.Models
         LumenPnP_V4_Marlin
     }
 
-    public enum MachineType
+    public enum MachineTypes
     {
         Laser,
         Cnc,
@@ -533,6 +533,14 @@ namespace LagoVista.Manufacturing.Models
             set { Set(ref _jogFeedRate, value); }
         }
 
+        private int _powerOrRpm = 100;
+        [FormField(LabelResource: ManufacturingResources.Names.Machine_JogFeedRate, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public int PowerOrRpm
+        {
+            get { return _powerOrRpm; }
+            set { Set(ref _powerOrRpm, value); }
+        }
+
         private StepModes _xyStepMode = StepModes.Medium;
         public StepModes XYStepMode
         {
@@ -604,8 +612,8 @@ namespace LagoVista.Manufacturing.Models
         }
 
 
-        private ulong _maxRpm;
-        public ulong MaxRpm
+        private ulong _maxRpm = 100;
+        public ulong MaxPowerOrRpm 
         {
             get => _maxRpm;
             set => Set(ref _maxRpm, value);
@@ -636,7 +644,20 @@ namespace LagoVista.Manufacturing.Models
         //}
 
 
-        public FirmwareTypes MachineType { get; set; }
+
+        FirmwareTypes _firmwareType;
+        public FirmwareTypes FirmwareType
+        {
+            get => _firmwareType;
+            set => Set(ref _firmwareType, value);
+        }
+
+        MachineTypes _cartesianMachineType;
+        public MachineTypes CartesianMachineType 
+        {
+            get => _cartesianMachineType;
+            set => Set(ref _cartesianMachineType, value);
+        }
 
         public List<string> Validate()
         {
@@ -698,6 +719,7 @@ namespace LagoVista.Manufacturing.Models
             SplitSegmentLength = 5;
             XYStepSize = 1;
             ZStepSize = 1;
+            MaxPowerOrRpm = 100;
             WorkAreaSize = new Point2D<double>(400, 400);
             FrameSize = new Point3D<double>(600, 600, 30);
         }
@@ -730,6 +752,7 @@ namespace LagoVista.Manufacturing.Models
                 SplitSegmentLength = 5,
                 XYStepSize = 1,
                 ZStepSize = 1,
+                MaxPowerOrRpm = 100,
                 WorkAreaSize = new Point2D<double>(400, 400),
                 FrameSize = new Point3D<double>(600, 600, 30)
             };

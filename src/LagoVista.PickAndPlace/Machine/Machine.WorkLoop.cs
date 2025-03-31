@@ -64,7 +64,7 @@ namespace LagoVista.PickAndPlace
 
             UnacknowledgedBytesSent += send_line.Length + 1;
 
-            if (Settings.MachineType == FirmwareTypes.Repeteir_PnP &&
+            if (Settings.FirmwareType == FirmwareTypes.Repeteir_PnP &&
                 (send_line == "M400" || send_line == "G28"))
             {
                 _isOnHold = true;
@@ -88,7 +88,7 @@ namespace LagoVista.PickAndPlace
         {
             var trimmedLine = cmd.Line.Trim('\r', '\n');
 
-            if (Settings.MachineType == FirmwareTypes.Repeteir_PnP &&
+            if (Settings.FirmwareType == FirmwareTypes.Repeteir_PnP &&
                 (trimmedLine == "M400" || trimmedLine == "G28"))
             {
                 _isOnHold = true;
@@ -117,9 +117,10 @@ namespace LagoVista.PickAndPlace
             {
                 if ((Now - _lastPollTime).TotalMilliseconds > Settings.StatusPollIntervalIdle && LocationUpdateEnabled)
                 {
-                    if (Settings.MachineType == FirmwareTypes.GRBL1_1 ||
-                        Settings.MachineType == FirmwareTypes.LagoVista ||
-                        Settings.MachineType == FirmwareTypes.LagoVista_PnP)
+                    if (Settings.FirmwareType == FirmwareTypes.GRBL1_1 ||
+                        Settings.FirmwareType == FirmwareTypes.GRBL1_1_SL_Custom ||
+                        Settings.FirmwareType == FirmwareTypes.LagoVista ||
+                        Settings.FirmwareType == FirmwareTypes.LagoVista_PnP)
                     {
                         Enqueue("?", true);
                     }
@@ -139,7 +140,7 @@ namespace LagoVista.PickAndPlace
                         MachinePosition = _gcodeCommandHandler.CurrentCommand.CurrentPosition;
                     else
                     {
-                        if (Settings.MachineType == FirmwareTypes.GRBL1_1 && LocationUpdateEnabled)
+                        if (Settings.FirmwareType == FirmwareTypes.GRBL1_1 && LocationUpdateEnabled || Settings.FirmwareType == FirmwareTypes.GRBL1_1_SL_Custom)
                         {
                             Enqueue("?", true);
                         }
@@ -157,7 +158,7 @@ namespace LagoVista.PickAndPlace
             {
                 if ((Now - _lastPollTime).TotalMilliseconds > Settings.StatusPollIntervalRunning)
                 {
-                    if (Settings.MachineType == FirmwareTypes.GRBL1_1)
+                    if (Settings.FirmwareType == FirmwareTypes.GRBL1_1 || Settings.FirmwareType == FirmwareTypes.GRBL1_1_SL_Custom)
                     {
                         Enqueue("?", true);
                     }
@@ -303,7 +304,7 @@ namespace LagoVista.PickAndPlace
 
                 UnacknowledgedBytesSent = 0;
 
-                if (Settings.MachineType == FirmwareTypes.LagoVista_PnP)
+                if (Settings.FirmwareType == FirmwareTypes.LagoVista_PnP)
                 {
                     Enqueue("*", true);
                 }

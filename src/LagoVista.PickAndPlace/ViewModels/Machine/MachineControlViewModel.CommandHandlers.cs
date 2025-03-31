@@ -200,11 +200,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         public void Jog(JogDirections direction)
         {
-            if ((_machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.Repeteir_PnP ||
-                _machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.LumenPnP_V4_Marlin ||
-                _machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.Marlin_Laser ||
-                _machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.Marlin ||
-                _machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.GRBL1_1) &&
+            if ((_machineRepo.CurrentMachine.Settings.FirmwareType == FirmwareTypes.Repeteir_PnP ||
+                _machineRepo.CurrentMachine.Settings.FirmwareType == FirmwareTypes.LumenPnP_V4_Marlin ||
+                _machineRepo.CurrentMachine.Settings.FirmwareType == FirmwareTypes.Marlin_Laser ||
+                _machineRepo.CurrentMachine.Settings.FirmwareType == FirmwareTypes.Marlin ||
+                _machineRepo.CurrentMachine.Settings.FirmwareType == FirmwareTypes.GRBL1_1_SL_Custom ||
+                _machineRepo.CurrentMachine.Settings.FirmwareType == FirmwareTypes.GRBL1_1) &&
                 (direction != JogDirections.LeftToolHeadRotatePlus && direction != JogDirections.LeftToolHeadRotateMinus && 
                 direction != JogDirections.RightToolHeadRotatePlus && direction != JogDirections.RightToolHeadRotateMinus)
                 )
@@ -256,7 +257,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             switch (axis)
             {
                 case ResetAxis.All:
-                    if (_machineRepo.CurrentMachine.Settings.MachineType == FirmwareTypes.GRBL1_1)
+                    if (_machineRepo.CurrentMachine.Settings.FirmwareType == FirmwareTypes.GRBL1_1 || _machineRepo.CurrentMachine.Settings.FirmwareType == FirmwareTypes.GRBL1_1_SL_Custom)
                     {
                         _machineRepo.CurrentMachine.SendCommand("G10 P0 L20 X0 Y0 Z0");
                     }

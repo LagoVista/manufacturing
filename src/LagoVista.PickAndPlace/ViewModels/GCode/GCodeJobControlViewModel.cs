@@ -136,7 +136,7 @@ namespace LagoVista.PickAndPlace.ViewModels.GCode
         public bool CanManipulateLaser()
         {
             return Machine.IsInitialized &&
-                Machine.Settings.MachineType == FirmwareTypes.Marlin_Laser &&
+                Machine.Settings.FirmwareType == FirmwareTypes.Marlin_Laser &&
                 Machine.Connected &&
                 Machine.Mode == OperatingMode.Manual;
         }
@@ -144,7 +144,7 @@ namespace LagoVista.PickAndPlace.ViewModels.GCode
         public bool CanManipulateSpindle()
         {
             return Machine.IsInitialized &&
-                Machine.Settings.MachineType == FirmwareTypes.GRBL1_1 &&
+                (Machine.Settings.FirmwareType == FirmwareTypes.GRBL1_1 || Machine.Settings.FirmwareType == FirmwareTypes.GRBL1_1_SL_Custom) &&
                 Machine.Connected &&
                 Machine.Mode == OperatingMode.Manual;
         }
@@ -159,7 +159,7 @@ namespace LagoVista.PickAndPlace.ViewModels.GCode
         public bool CanMoveToWorkspaceHome()
         {
             return Machine.IsInitialized &&
-          Machine.Settings.MachineType == FirmwareTypes.GRBL1_1 &&
+          (Machine.Settings.FirmwareType == FirmwareTypes.GRBL1_1 || Machine.Settings.FirmwareType == FirmwareTypes.GRBL1_1_SL_Custom) &&
           Machine.Connected &&
           Machine.Mode == OperatingMode.Manual;
         }
@@ -192,7 +192,7 @@ namespace LagoVista.PickAndPlace.ViewModels.GCode
                 (
                 (Machine.Settings.ConnectionType == ConnectionTypes.Serial_Port && Machine.Settings.CurrentSerialPort != null && Machine.Settings.CurrentSerialPort.Id != "empty")
                 || (Machine.Settings.ConnectionType == ConnectionTypes.Network && !String.IsNullOrEmpty(Machine.Settings.IPAddress))
-                || Machine.Settings.MachineType == FirmwareTypes.SimulatedMachine);
+                || Machine.Settings.FirmwareType == FirmwareTypes.SimulatedMachine);
         }
 
         public bool CanHomeAndReset()

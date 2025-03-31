@@ -378,7 +378,7 @@ namespace LagoVista.PickAndPlace
 
                 if (cleanCommand == "?")
                 {
-                    if (this._firmwareType == FirmwareTypes.GRBL1_1)
+                    if (this._firmwareType == FirmwareTypes.GRBL1_1 || this._firmwareType == FirmwareTypes.GRBL1_1_SL_Custom)
                     {
                         AddResponse($"<{_state},MPos:{_machine.X},{_machine.Y},{_machine.Z},WPos:{_work.X},{_work.Y},{_work.Z}>");
                     }

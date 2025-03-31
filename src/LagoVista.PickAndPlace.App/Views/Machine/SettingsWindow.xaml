@@ -45,6 +45,9 @@
                         <RowDefinition Height="auto" />
                         <RowDefinition Height="auto" />
                         <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="140" />
@@ -55,48 +58,62 @@
                     <Label Grid.Row="0" Grid.Column="0" Content="Name" />
                     <TextBox Text="{Binding Settings.Name, Mode=TwoWay}" Grid.Column="1" x:Name="MachineName" Grid.ColumnSpan="2" />
 
-                    <Label Grid.Row="1" Content="Machine Type" />
+                    <Label Grid.Row="1" Content="Firmware Type" />
                     <ComboBox Grid.Row="1" 
+                          IsEnabled="{Binding CanChangeMachineConfig}"
+                          SelectedValue="{Binding Path=FirmwareType, Mode=TwoWay}"
+                          ItemsSource="{Binding Path=FirmwareTypes}" Grid.ColumnSpan="2"  />
+
+                    <Label Grid.Row="2" Content="Machine Type" />
+                    <ComboBox Grid.Row="2" 
                           IsEnabled="{Binding CanChangeMachineConfig}"
                           SelectedValue="{Binding Path=MachineType, Mode=TwoWay}"
                           ItemsSource="{Binding Path=MachineTypes}" Grid.ColumnSpan="2"  />
 
-                    <Label Grid.Row="2" Content="Origin" />
-                    <ComboBox Grid.Row="2" 
+                    <Label Grid.Row="3" Content="Origin" />
+                    <ComboBox Grid.Row="3" 
                           IsEnabled="{Binding CanChangeMachineConfig}"
                           SelectedValue="{Binding Path=MachineOrigin, Mode=TwoWay}"
                           ItemsSource="{Binding Path=MachineOrigins}" Grid.ColumnSpan="2"  />
 
-                    <Label Grid.Row="3" Content="Work Area Width" />
-                    <TextBox  Text="{Binding Settings.WorkAreaSize.X}" Grid.Row="3" Grid.ColumnSpan="2" />
-                    <Label Content="mm" Grid.Row="3" Grid.Column="3" />
-
-                    <Label Grid.Row="4" Content="Work Area Height" />
-                    <TextBox Text="{Binding Settings.WorkAreaSize.Y}"  Grid.Row="4" Grid.ColumnSpan="2" />
+                    <Label Grid.Row="4" Content="Work Area Width" />
+                    <TextBox  Text="{Binding Settings.WorkAreaSize.X}" Grid.Row="4" Grid.ColumnSpan="2" />
                     <Label Content="mm" Grid.Row="4" Grid.Column="3" />
 
-                    <Label Grid.Row="5" Content="Approx Work Home X" />
-                    <TextBox  Text="{Binding Settings.DefaultWorkspaceHome.X}" Grid.Row="5" Grid.ColumnSpan="2" />
+                    <Label Grid.Row="5" Content="Work Area Height" />
+                    <TextBox Text="{Binding Settings.WorkAreaSize.Y}"  Grid.Row="5" Grid.ColumnSpan="2" />
                     <Label Content="mm" Grid.Row="5" Grid.Column="3" />
 
-                    <Label Grid.Row="6" Content="Approx Work Home Y" />
-                    <TextBox Text="{Binding Settings.DefaultWorkspaceHome.Y}"  Grid.Row="6" Grid.ColumnSpan="2" />
+                    <Label Grid.Row="6" Content="Approx Work Home X" />
+                    <TextBox  Text="{Binding Settings.DefaultWorkspaceHome.X}" Grid.Row="6" Grid.ColumnSpan="2" />
                     <Label Content="mm" Grid.Row="6" Grid.Column="3" />
 
-                    <Label Grid.Row="7" Content="GCode Jog Command" />
-                    <ComboBox Grid.Row="7"  
+                    <Label Grid.Row="7" Content="Approx Work Home Y" />
+                    <TextBox Text="{Binding Settings.DefaultWorkspaceHome.Y}"  Grid.Row="7" Grid.ColumnSpan="2" />
+                    <Label Content="mm" Grid.Row="7" Grid.Column="3" />
+
+                    <Label Grid.Row="8" Content="GCode Jog Command" />
+                    <ComboBox Grid.Row="8"  
                           IsEnabled="{Binding CanChangeMachineConfig}"
                           SelectedValue="{Binding Path=GCodeJogCommand, Mode=TwoWay}"
                           ItemsSource="{Binding Path=GCodeJogCommands}" Grid.ColumnSpan="2"  />
 
-                    <Label Grid.Row="8" Content="Msg Output Level" />
-                    <ComboBox Grid.Row="8"  
+                    <Label Grid.Row="9" Content="Msg Output Level" />
+                    <ComboBox Grid.Row="9"  
                           SelectedValue="{Binding Path=MessgeOutputLevel, Mode=TwoWay}"
                           ItemsSource="{Binding Path=MessageOutputLevels}" Grid.ColumnSpan="2"  />
 
-                    <Label Grid.Row="9" Content="Fast Feed Rate" />
-                    <TextBox Text="{Binding Settings.FastFeedRate}"  Grid.Row="9" Grid.ColumnSpan="2" />
-                    <Label Content="mm/sec" Grid.Row="9" Grid.Column="3" />
+                    <Label Grid.Row="10" Content="Fast Feed Rate" />
+                    <TextBox Text="{Binding Settings.FastFeedRate}"  Grid.Row="10" Grid.ColumnSpan="2" />
+                    <Label Content="mm/sec" Grid.Row="10" Grid.Column="3" />
+
+                    <Label Grid.Row="11" Content="Max Feed Rate" />
+                    <TextBox Text="{Binding Settings.MaximumFeedRate}"  Grid.Row="11" Grid.ColumnSpan="2" />
+                    <Label Content="mm/sec" Grid.Row="11" Grid.Column="3" />
+                    
+                    <Label Grid.Row="12" Content="Max Power/RPM" />
+                    <TextBox Text="{Binding Settings.MaxPowerOrRpm}"  Grid.Row="12" Grid.ColumnSpan="2" />
+                    <Label Content="% or RPM" Grid.Row="12" Grid.Column="3" />
                 </Grid>
             </TabItem>
 

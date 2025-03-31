@@ -73,7 +73,7 @@ namespace LagoVista.PickAndPlace
 
                 Mode = OperatingMode.Manual;
 
-                if (Settings.MachineType == FirmwareTypes.Repeteir_PnP)
+                if (Settings.FirmwareType == FirmwareTypes.Repeteir_PnP)
                 {
                     Enqueue("M43 P25");
                     Enqueue("M43 P27");
@@ -247,9 +247,9 @@ namespace LagoVista.PickAndPlace
                     _toSendPriority.Clear();
                     _sentQueue.Clear();
                     PendingQueue.Clear();
-                    if (Settings.MachineType == FirmwareTypes.GRBL1_1)
+                    if (Settings.FirmwareType == FirmwareTypes.GRBL1_1 || Settings.FirmwareType == FirmwareTypes.GRBL1_1_SL_Custom)
                         _toSendPriority.Enqueue(((char)0x18).ToString());
-                    else if (Settings.MachineType == FirmwareTypes.Repeteir_PnP)
+                    else if (Settings.FirmwareType == FirmwareTypes.Repeteir_PnP)
                         _toSendPriority.Enqueue("M112");
 
 
@@ -286,9 +286,9 @@ namespace LagoVista.PickAndPlace
                             else
                             {
                                 _toSend.Enqueue(cmd);
-                                if (Settings.MachineType == FirmwareTypes.LagoVista_PnP ||
-                                    Settings.MachineType == FirmwareTypes.SimulatedMachine ||
-                                    Settings.MachineType == FirmwareTypes.Repeteir_PnP)
+                                if (Settings.FirmwareType == FirmwareTypes.LagoVista_PnP ||
+                                    Settings.FirmwareType == FirmwareTypes.SimulatedMachine ||
+                                    Settings.FirmwareType == FirmwareTypes.Repeteir_PnP)
                                     PendingQueue.Add(cmd);
                             }
                         }
@@ -305,11 +305,11 @@ namespace LagoVista.PickAndPlace
 
         public async void GotoWorkspaceHome()
         {
-            if (Settings.MachineType == FirmwareTypes.LagoVista_PnP)
+            if (Settings.FirmwareType == FirmwareTypes.LagoVista_PnP)
             {
                 Enqueue("M57");
             }
-            else if (Settings.MachineType == FirmwareTypes.Repeteir_PnP)
+            else if (Settings.FirmwareType == FirmwareTypes.Repeteir_PnP)
             {
                 Enqueue($"G0 Z{Settings.DefaultSafeMoveHeight} F{Settings.FastFeedRate}");
                 await SetViewTypeAsync(ViewTypes.Camera);
@@ -320,14 +320,14 @@ namespace LagoVista.PickAndPlace
             else
             {
 
-                if (Settings.MachineType == FirmwareTypes.GRBL1_1)
+                if (Settings.FirmwareType == FirmwareTypes.GRBL1_1 || Settings.FirmwareType == FirmwareTypes.GRBL1_1_SL_Custom)
                 {
                     Enqueue($"G0 Z{Settings.DefaultSafeMoveHeight}");
                 }
 
                 Enqueue("G0 X0 Y0");
 
-                if (Settings.MachineType == FirmwareTypes.GRBL1_1)
+                if (Settings.FirmwareType == FirmwareTypes.GRBL1_1 || Settings.FirmwareType == FirmwareTypes.GRBL1_1_SL_Custom)
                 {
                     Enqueue("G0 Z0");
                 }
@@ -342,7 +342,7 @@ namespace LagoVista.PickAndPlace
 
         public void SetWorkspaceHome()
         {
-            if (Settings.MachineType == FirmwareTypes.Repeteir_PnP)
+            if (Settings.FirmwareType == FirmwareTypes.Repeteir_PnP)
             {
                 //Settings.DefaultWorkspaceHome.X -= this.NormalizedPosition.X;
                 //                Settings.DefaultWorkspaceHome.Y -= this.NormalizedPosition.Y;
@@ -393,7 +393,7 @@ namespace LagoVista.PickAndPlace
             _currentMachineToolHead = null;
             RaisePropertyChanged(nameof(CurrentMachineToolHead));
 
-            if (Settings.MachineType == FirmwareTypes.GRBL1_1)
+            if (Settings.FirmwareType == FirmwareTypes.GRBL1_1 || Settings.FirmwareType == FirmwareTypes.GRBL1_1_SL_Custom)
             {
                 Enqueue("$H\n", true);
             }
@@ -403,7 +403,7 @@ namespace LagoVista.PickAndPlace
                 PuffPump = false;
                 VacuumSolendoid = false;
                 Enqueue("G28");
-                if (Settings.MachineType == FirmwareTypes.Repeteir_PnP)
+                if (Settings.FirmwareType == FirmwareTypes.Repeteir_PnP)
                 {
                     Enqueue($"G0 X{Settings.DefaultWorkspaceHome.X} Y{Settings.DefaultWorkspaceHome.Y} F{Settings.FastFeedRate}");
                     GotoPoint(Settings.DefaultWorkspaceHome.X, Settings.DefaultWorkspaceHome.Y);
@@ -548,7 +548,7 @@ namespace LagoVista.PickAndPlace
 
         public void ClearAlarm()
         {
-            if (Settings.MachineType == FirmwareTypes.GRBL1_1)
+            if (Settings.FirmwareType == FirmwareTypes.GRBL1_1 || Settings.FirmwareType == FirmwareTypes.GRBL1_1_SL_Custom)
             {
                 Enqueue("$X\n", true);
             }
@@ -565,7 +565,7 @@ namespace LagoVista.PickAndPlace
 
         public void SpindleOn()
         {
-            Enqueue("M3 S12000");
+            Enqueue($"M3 S{Settings.PowerOrRpm}");
         }
 
         public void SpindleOff()

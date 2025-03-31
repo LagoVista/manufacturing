@@ -63,11 +63,21 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             SerialPorts = ports;
             RaisePropertyChanged(nameof(SerialPorts));
 
-            var machineTypes = new ObservableCollection<string>();
+            var firmwareTypes = new ObservableCollection<string>();
             var enums = Enum.GetValues(typeof(FirmwareTypes));
             foreach(var enumType in enums)
             {
-                machineTypes.Add(enumType.ToString().Replace("_","."));
+                firmwareTypes.Add(enumType.ToString().Replace("_","."));
+            }
+
+            FirmwareTypes = firmwareTypes;
+            RaisePropertyChanged(nameof(FirmwareTypes));
+
+            var machineTypes = new ObservableCollection<string>();
+            enums = Enum.GetValues(typeof(MachineTypes));
+            foreach (var enumType in enums)
+            {
+                machineTypes.Add(enumType.ToString().Replace("_", "."));
             }
 
             MachineTypes = machineTypes;

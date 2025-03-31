@@ -46,6 +46,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
 
         public ObservableCollection<String> ConnectionTypes { get; private set; }
+        public ObservableCollection<String> FirmwareTypes { get; private set; }
         public ObservableCollection<String> MachineTypes { get; private set; }
         public ObservableCollection<String> GCodeJogCommands { get; private set; }
         public ObservableCollection<String> MachineOrigins { get; private set; }
@@ -95,8 +96,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         public String MachineType
         {
-            get { return Settings.MachineType.ToString().Replace("_", "."); }
-            set { Settings.MachineType = (FirmwareTypes)Enum.Parse(typeof(FirmwareTypes), value.Replace(".", "_")); }
+            get { return Settings.CartesianMachineType.ToString().Replace("_", "."); }
+            set { Settings.CartesianMachineType = (MachineTypes)Enum.Parse(typeof(MachineTypes), value.Replace(".", "_")); }
+        }
+
+        public string FirmwareType
+        {
+            get => Settings.FirmwareType.ToString().Replace("_", ".");
+            set => Settings.FirmwareType = (FirmwareTypes)Enum.Parse(typeof(FirmwareTypes), value.Replace(".", "_"));
         }
 
         public LagoVista.Manufacturing.Models.Machine Settings

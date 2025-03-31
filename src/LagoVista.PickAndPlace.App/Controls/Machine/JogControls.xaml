@@ -19,49 +19,64 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="50" />
+            <ColumnDefinition Width="80" />
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="50" />
             <ColumnDefinition Width="100" />
         </Grid.ColumnDefinitions>
+
+        <TextBlock Style="{StaticResource label}" Text="Rate" Grid.Row="1" FontSize="16" Margin="8,4,4,4" />
+        <TextBlock Style="{StaticResource label}" Text="Pwr %/RPM" Grid.Row="2" FontSize="16" Margin="8,4,4,4" />
+        <TextBlock Style="{StaticResource label}" Text="XY" Grid.Row="3" FontSize="16" Margin="8,4,4,4" />
+        <TextBlock Style="{StaticResource label}" Text="Z" Grid.Row="4" FontSize="16" Margin="8,4,4,4"/>
+
+
         <Slider Grid.Row="1" Grid.Column="1"
                     PreviewKeyDown="Dummy_PreviewKeyUp"
                     Grid.ColumnSpan="2"
                     Minimum="0"
-                    Maximum="15000" 
+                    Maximum="{Binding MachineRepo.CurrentMachine.Settings.MaximumFeedRate}"
                     LargeChange="500" 
                     SmallChange="100"
                     Value="{Binding MachineRepo.CurrentMachine.Settings.JogFeedRate, Mode=TwoWay}" 
                     VerticalAlignment="Center"  />
 
-        <TextBlock Style="{StaticResource label}" Text="Rate" Grid.Row="1" FontSize="16" Margin="8,4,4,4" />
-        <TextBlock Style="{StaticResource label}" Text="XY" Grid.Row="2" FontSize="16" Margin="8,4,4,4" />
-        <TextBlock Style="{StaticResource label}" Text="Z" Grid.Row="3" FontSize="16" Margin="8,4,4,4"/>
+        <Slider Grid.Row="2" Grid.ColumnSpan="2"  Grid.Column="1" PreviewKeyDown="Dummy_PreviewKeyUp"
+                    Minimum="0"
+                    Maximum="{Binding MachineRepo.CurrentMachine.Settings.MaxPowerOrRpm}" 
+                    Value="{Binding MachineRepo.CurrentMachine.Settings.PowerOrRpm, Mode=TwoWay}" 
+                    VerticalAlignment="Center"  />
 
-        <Slider Grid.Row="2" Grid.Column="1" PreviewKeyDown="Dummy_PreviewKeyUp"
+        <Slider Grid.Row="3" Grid.Column="1" PreviewKeyDown="Dummy_PreviewKeyUp"
                     Minimum="{Binding XYStepMin}"
                     Maximum="{Binding XYStepMax}" 
                     LargeChange="{Binding XYStepInterval}" 
                     SmallChange="{Binding XYStepInterval}"
                     Value="{Binding XYStepSizeSlider, Mode=TwoWay}" 
                     VerticalAlignment="Center"  />
-        <Slider Grid.Row="3" Grid.Column="1"  PreviewKeyDown="Dummy_PreviewKeyUp"
+        
+        <Slider Grid.Row="4" Grid.Column="1"  PreviewKeyDown="Dummy_PreviewKeyUp"
                     Minimum="{Binding ZStepMin}"
                     Maximum="{Binding ZStepMax}" 
                     LargeChange="{Binding Path=ZStepInterval}" 
                     SmallChange="{Binding Path=ZStepInterval}"
                     Value="{Binding ZStepSizeSlider, Mode=TwoWay}"  
                     VerticalAlignment="Center" />
+        
+        
         <TextBlock Style="{StaticResource label}" Text="{Binding MachineRepo.CurrentMachine.Settings.JogFeedRate, FallbackValue=1000, StringFormat=0.00}"
                        Grid.Row="1" Grid.Column="3" FontSize="16" Margin="4" TextAlignment="Right" />
+        <TextBlock Style="{StaticResource label}" Text="{Binding MachineRepo.CurrentMachine.Settings.PowerOrRpm, Mode=TwoWay}"
+                       Grid.Row="2" Grid.Column="3" FontSize="16" Margin="4" TextAlignment="Right" />
         <TextBlock Style="{StaticResource label}" Text="{Binding XYStepSize, FallbackValue=0.5, StringFormat=0.00}"
-                       Grid.Row="2" Grid.Column="2" FontSize="16" Margin="4" TextAlignment="Right" />
-        <TextBlock Style="{StaticResource label}" Text="{Binding ZStepSize, FallbackValue=0.5, StringFormat=0.00}"
                        Grid.Row="3" Grid.Column="2" FontSize="16" Margin="4" TextAlignment="Right" />
+        <TextBlock Style="{StaticResource label}" Text="{Binding ZStepSize, FallbackValue=0.5, StringFormat=0.00}"
+                       Grid.Row="4" Grid.Column="2" FontSize="16" Margin="4" TextAlignment="Right" />
 
-        <ComboBox IsReadOnly="True" Grid.Column="4" Grid.Row="2" Margin="4" FontSize="16" 
+        <ComboBox IsReadOnly="True" Grid.Column="4" Grid.Row="3" Margin="4" FontSize="16" 
                       DisplayMemberPath="Value" 
                       SelectedValuePath="Key" 
                       PreviewKeyUp="Dummy_PreviewKeyUp"
@@ -69,7 +84,7 @@
                       SelectedValue="{Binding Path=XYStepMode, Mode=TwoWay}"
                       ItemsSource="{Binding StepSizesXY}" />
 
-        <ComboBox IsReadOnly="True" Grid.Column="4" Grid.Row="3" Margin="4" FontSize="16"
+        <ComboBox IsReadOnly="True" Grid.Column="4" Grid.Row="4" Margin="4" FontSize="16"
                       DisplayMemberPath="Value" 
                       SelectedValuePath="Key" 
                       PreviewKeyUp="Dummy_PreviewKeyUp"
