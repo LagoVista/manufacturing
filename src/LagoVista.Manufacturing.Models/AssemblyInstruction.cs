@@ -11,9 +11,10 @@ namespace LagoVista.Manufacturing.Models
 {
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.AssemblyInstruction_Title, ManufacturingResources.Names.AssemblyInstruction_Description,
                ManufacturingResources.Names.AssemblyInstruction_Description, EntityDescriptionAttribute.EntityTypes.Manufacturing, ResourceType: typeof(ManufacturingResources),
-               Icon: "icon-pz-searching-2", Cloneable: true,
+               Icon: "icon-fo-instructions", Cloneable: true,
                SaveUrl: "/api/mfg/assembly/instruction", GetUrl: "/api/mfg/assembly/instruction/{id}", GetListUrl: "/api/mfg/assembly/instructions", FactoryUrl: "/api/mfg/assembly/instruction/factory",
-               DeleteUrl: "/api/mfg/assembly/instruction/{id}", ListUIUrl: "/mfg/assemblyinstructions", EditUIUrl: "/mfg/assemblyinstruction/{id}", CreateUIUrl: "/mfg/assemblyinstruction/add")]
+               DeleteUrl: "/api/mfg/assembly/instruction/{id}", ListUIUrl: "/mfg/instructions", 
+               EditUIUrl: "/mfg/instruction/{id}", CreateUIUrl: "/mfg/instruction/add")]
     public class AssemblyInstruction : MfgModelBase, IValidateable, IFormDescriptor, ISummaryFactory, IIDEntity
     {
         public AssemblyInstructionSummary CreateSummary()
@@ -49,9 +50,10 @@ namespace LagoVista.Manufacturing.Models
 
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.AssemblyInstructions_Title, ManufacturingResources.Names.AssemblyInstruction_Description,
                ManufacturingResources.Names.AssemblyInstruction_Description, EntityDescriptionAttribute.EntityTypes.Summary, ResourceType: typeof(ManufacturingResources),
-               Icon: "icon-pz-searching-2", Cloneable: true,
-               SaveUrl: "/api/mfg/assembly", GetUrl: "/api/mfg/assembly/{id}", GetListUrl: "/api/mfg/assemblies", FactoryUrl: "/api/mfg/assembly/factory",
-               DeleteUrl: "/api/mfg/assembly/{id}", ListUIUrl: "/mfg/assemblyinstructions", EditUIUrl: "/mfg/assemblyinstruction/{id}", CreateUIUrl: "/mfg/assemblyinstruction/add")]
+               Icon: "icon-fo-instructions", Cloneable: true,
+               SaveUrl: "/api/mfg/assembly/instruction", GetUrl: "/api/mfg/assembly/instruction/{id}", GetListUrl: "/api/mfg/assembly/instructions", FactoryUrl: "/api/mfg/assembly/instruction/factory",
+               DeleteUrl: "/api/mfg/assembly/instruction/{id}", ListUIUrl: "/mfg/instructions",
+               EditUIUrl: "/mfg/instruction/{id}", CreateUIUrl: "/mfg/instruction/add")]
     public class AssemblyInstructionSummary : SummaryData
     {
     }

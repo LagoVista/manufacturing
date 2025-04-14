@@ -11,9 +11,8 @@ namespace LagoVista.Manufacturing.Models
 {
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.AssemblyInstructionStep_Title, ManufacturingResources.Names.AssemblyInstruction_Description,
                ManufacturingResources.Names.AssemblyInstruction_Description, EntityDescriptionAttribute.EntityTypes.Manufacturing, ResourceType: typeof(ManufacturingResources),
-               Icon: "icon-pz-searching-2", Cloneable: true,
-               SaveUrl: "/api/mfg/assembly", GetUrl: "/api/mfg/assembly/{id}", GetListUrl: "/api/mfg/assemblies", FactoryUrl: "/api/mfg/assembly/factory",
-               DeleteUrl: "/api/mfg/assembly/{id}", ListUIUrl: "/mfg/assemblyinstructions", EditUIUrl: "/mfg/assemblyinstruction/{id}", CreateUIUrl: "/mfg/assemblyinstruction/add")]
+               Icon: "icon-fo-instructions", Cloneable: true,
+               FactoryUrl: "/api/mfg/assembly/factory")]
     public class AssemblyInstructionStep : IFormDescriptor
     {
         public string Id { get; set; } = Guid.NewGuid().ToId();

@@ -1509,10 +1509,10 @@
     <value>Tape has holes on both sides (top/bottom) this is typically true with 32mm and larger tapes.</value>
   </data>
   <data name="AssemblyInstruction_Title" xml:space="preserve">
-    <value>Assembly Intruction</value>
+    <value>Instruction</value>
   </data>
   <data name="AssemblyInstructions_Title" xml:space="preserve">
-    <value>Assembly Instructions</value>
+    <value>Instructions</value>
   </data>
   <data name="AssemblyInstruction_Description" xml:space="preserve">
     <value>Assembly Instructions are  a set of steps that need to be completed manufacture a part, assembly or product.</value>
@@ -1524,7 +1524,7 @@
     <value>Steps</value>
   </data>
   <data name="AssemblyInstructionStep_Description" xml:space="preserve">
-    <value>A single step that needs to take place to assemble a part, assembly or product.</value>
+    <value>A single step that needs to take place to assemble a part, assembly, product or perform a test.</value>
   </data>
   <data name="Common_TItle" xml:space="preserve">
     <value>Title</value>
