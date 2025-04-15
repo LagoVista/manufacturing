@@ -65,13 +65,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         {
             return DetailResponse<ComponentAttribute>.Create();
         }
-   
 
-        [HttpGet("/api/mfg/component/attribute/factory")]
-        public DetailResponse<ComponentAttribute> GetComponentByType(string componentType)
-        {
-            return DetailResponse<ComponentAttribute>.Create();
-        }
 
         [HttpGet("/api/mfg/component/{id}/label/{row}/{col}")]
         public async Task<IActionResult> GetComponentLabel(string id, int row, int col)
