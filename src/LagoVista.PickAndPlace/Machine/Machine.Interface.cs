@@ -285,11 +285,15 @@ namespace LagoVista.PickAndPlace
                             }
                             else
                             {
-                                _toSend.Enqueue(cmd);
-                                if (Settings.FirmwareType == FirmwareTypes.LagoVista_PnP ||
-                                    Settings.FirmwareType == FirmwareTypes.SimulatedMachine ||
-                                    Settings.FirmwareType == FirmwareTypes.Repeteir_PnP)
-                                    PendingQueue.Add(cmd);
+
+                                if (_toSend.Count < 255)
+                                {
+                                    _toSend.Enqueue(cmd);
+                                    if (Settings.FirmwareType == FirmwareTypes.LagoVista_PnP ||
+                                        Settings.FirmwareType == FirmwareTypes.SimulatedMachine ||
+                                        Settings.FirmwareType == FirmwareTypes.Repeteir_PnP)
+                                        PendingQueue.Add(cmd);
+                                }
                             }
                         }
                     }

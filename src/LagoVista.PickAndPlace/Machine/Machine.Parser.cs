@@ -34,7 +34,7 @@ namespace LagoVista.PickAndPlace
         private static Regex LagoVistaAccStatus = new Regex(@"<tl:(?'topLight'[01]),bl:(?'bottomLight'[01]),v1:(?'vacuum1'[01]),v2:(?'vacuum2'[01]),s1:(?'solenoid'[01]),t:(?'tool'[01])>");
 
         private static Regex MarlinLaser = new Regex(@"^x:(?'xpos'-?[0-9\.]*)y:(?'ypos'-?[0-9\.]*)z:(?'zpos'-?[0-9\.]*)e:(?'epos'-?[0-9\.]*)");
-        private static Regex MarlinPnP = new Regex(@"^x:(?'xpos'-?[0-9\.]*) y:(?'ypos'-?[0-9\.]*) z:(?'zpos'-?[0-9\.]*) a:(?'apos'-?[0-9\.]*) b:(?'bpos'-?[0-9\.]*)");
+        private static Regex MarlinPnP = new Regex(@"^x:(?'xpos'-?[0-9\.]*) y:(?'ypos'-?[0-9\.]*) z:(?'zpos'-?[0-9\.]*) a:(?'apos'-?[0-9\.]*)( b:(?'bpos'-?[0-9\.]*))?");
 
         /// <summary>
         /// Parses a recevied status report (answer to '?')
@@ -305,7 +305,8 @@ namespace LagoVista.PickAndPlace
                 
 
                 LeftToolHeadRotate = double.Parse(apos.Value, Constants.DecimalParseFormat);
-                RightToolHeadRotate = double.Parse(bpos.Value, Constants.DecimalParseFormat);
+                if(bpos.Captures.Count > 0)
+                    RightToolHeadRotate = double.Parse(bpos.Value, Constants.DecimalParseFormat);
 
                 return true;
             }

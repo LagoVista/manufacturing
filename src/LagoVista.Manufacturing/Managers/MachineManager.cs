@@ -101,7 +101,7 @@ namespace LagoVista.Manufacturing.Managers
             var options = new List<EnumDescription>();
             options.Add(new EnumDescription() { Id = "-1", Key = "-1", Text = "-select row-", Name = "-select row-", Label = "-select row-" });
 
-            for (int idx = 65; idx <= 71; ++idx)
+            for (int idx = 65; idx <= 80; ++idx)
             {
                 options.Add(new EnumDescription()
                 {

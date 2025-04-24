@@ -160,7 +160,7 @@ namespace LagoVista.Manufacturing.Models
 
         public int StatusPollIntervalIdle { get; set; }
         public int StatusPollIntervalRunning { get; set; }
-        public int ControllerBufferSize { get; set; }
+        public int ControllerBufferSize { get; set; } = 128;
 
         public double ViewportArcSplit { get; set; }
         public double ArcToLineSegmentLength { get; set; }

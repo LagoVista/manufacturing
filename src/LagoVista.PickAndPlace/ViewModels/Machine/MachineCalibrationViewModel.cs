@@ -14,7 +14,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             SetStagingPlateReferenceHole2LocationCommand = CreatedMachineConnectedSettingsCommand(() => SelectedStagingPlate.ReferenceHoleLocation2 = Machine.MachinePosition.ToPoint2D(), () => SelectedStagingPlate != null);
             SetFirstAutoFeederOriginCommand = CreatedMachineConnectedSettingsCommand(() => SelectedFeederRail.FirstFeederOrigin = Machine.MachinePosition.ToPoint2D(), () => SelectedFeederRail != null);
             
-            SetMachineFiducialCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.MachineFiducial = Machine.MachinePosition.ToPoint2D());
+            SetMachineFiducialCommand = CreateCommand(() => MachineConfiguration.MachineFiducial = Machine.MachinePosition.ToPoint2D());
             SetDefaultPCBOrigin = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.DefaultWorkOrigin = Machine.MachinePosition.ToPoint2D());
 
             SetDefaultSafeMoveHeightCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.DefaultSafeMoveHeight = Machine.MachinePosition.Z);

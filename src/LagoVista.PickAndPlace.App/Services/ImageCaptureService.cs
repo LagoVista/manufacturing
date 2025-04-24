@@ -129,8 +129,17 @@ namespace LagoVista.PickAndPlace.App.Services
                     return;
                 }
 
-                _capture.Set(Emgu.CV.CvEnum.CapProp.FrameWidth, Camera.ImageSize.X);
-                _capture.Set(Emgu.CV.CvEnum.CapProp.FrameHeight, Camera.ImageSize.Y);
+
+                if (Camera.CameraType.Value == CameraTypes.Position)
+                {
+                    _capture.Set(Emgu.CV.CvEnum.CapProp.FrameWidth, 1920);
+                    _capture.Set(Emgu.CV.CvEnum.CapProp.FrameHeight, 1920);
+                }
+                else
+                {
+                    _capture.Set(Emgu.CV.CvEnum.CapProp.FrameWidth, Camera.ImageSize.X);
+                    _capture.Set(Emgu.CV.CvEnum.CapProp.FrameHeight, Camera.ImageSize.Y);
+                }
                 _capture.Set(Emgu.CV.CvEnum.CapProp.AutoExposure, 0);
 
                 Run();

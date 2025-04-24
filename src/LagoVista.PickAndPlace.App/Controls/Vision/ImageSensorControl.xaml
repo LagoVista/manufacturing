@@ -26,9 +26,10 @@
             </Grid.ColumnDefinitions>
             <TextBlock  Margin="4" FontWeight="Bold" FontSize="20" VerticalAlignment="Center" >
                 <TextBlock.Text >
-                    <MultiBinding StringFormat="{}{0} ({1})">
+                    <MultiBinding StringFormat="{}{0} ({1}) ({2})">
                         <Binding Path="Camera.Name" />
                         <Binding Path="Camera.CurrentVisionProfile" />
+                        <Binding Path="Profile.ZoomLevel" />
                     </MultiBinding>
                 </TextBlock.Text>
             </TextBlock>
