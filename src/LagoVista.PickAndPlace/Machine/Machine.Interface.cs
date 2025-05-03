@@ -273,13 +273,19 @@ namespace LagoVista.PickAndPlace
                 return;
             }
 
+            var cmds = cmd.Split('|');
+            foreach (var m in cmds)
+            {
+                if (String.IsNullOrEmpty(m))
+                    Debugger.Break();
+            }
+
             if (AssertConnected())
             {
                 Services.DispatcherServices.Invoke(() =>
                 {
                     lock (_queueAccessLocker)
                     {
-                        var cmds = cmd.Split('|');
                         foreach (var cmd in cmds)
                         {
                             if (highPriority)
@@ -288,9 +294,11 @@ namespace LagoVista.PickAndPlace
                             }
                             else
                             {
-
                                 if (_toSend.Count < 255)
                                 {
+                                    if (String.IsNullOrEmpty(cmd))
+                                        return;
+
                                     _toSend.Enqueue(cmd);
                                     if (Settings.FirmwareType == FirmwareTypes.LagoVista_PnP ||
                                         Settings.FirmwareType == FirmwareTypes.SimulatedMachine ||

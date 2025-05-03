@@ -181,9 +181,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             var location = CurrentPartLocation + CurrentComponentPackage.PickOffset;
             Machine.SendCommand(location.ToGCode());
-            Machine.SetRelativeMode();
-            Machine.SendCommand(_feederOffset.ToGCode());
-            Machine.SetAbsoluteMode();
+            if (null != _feederOffset)
+            {
+                Machine.SetRelativeMode();
+                Machine.SendCommand(_feederOffset.ToGCode());
+                Machine.SetAbsoluteMode();
+            }
 
             if (PickHeight.HasValue)
                 Machine.SetToolHeadHeight(PickHeight.Value);

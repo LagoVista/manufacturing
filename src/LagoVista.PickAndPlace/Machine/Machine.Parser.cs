@@ -298,7 +298,6 @@ namespace LagoVista.PickAndPlace
                 else if(_waitForPositionResetEvent != null)
                 {
                     _waitForPositionResetEvent.Set();
-                    Debug.WriteLine("WAITER SHOULD BE RELEASED");
                 }
 
                 ToolCommonZ = double.Parse(zpos.Value, Constants.DecimalParseFormat);

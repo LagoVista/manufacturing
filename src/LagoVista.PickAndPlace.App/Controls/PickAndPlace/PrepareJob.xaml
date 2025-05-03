@@ -25,11 +25,12 @@
 
         <Grid Grid.ColumnSpan="2">
             <StackPanel Orientation="Horizontal">
-                <ListView Width="300" ItemsSource="{Binding Jobs}" SelectedItem="{Binding SelectedJob, Mode=TwoWay}">
+                <TextBlock Style="{StaticResource header}" Text="{Binding Job.Name}"/>
+                <ListView Width="300" ItemsSource="{Binding Jobs}"  SelectedItem="{Binding SelectedJob, Mode=TwoWay}">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <Grid>
-                                <Label Content="{Binding Name}"></Label>
+                                <Label Content="{Binding Name}" FontSize="24"></Label>
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -38,19 +39,17 @@
                 <Button Style="{StaticResource CommandButton}" Command="{Binding ResolvePartsCommand}">Resolve Parts</Button>
                 <Button Style="{StaticResource CommandButton}" Command="{Binding ResolveJobCommand }">Resolve Job</Button>
 
-
                 <Button Style="{StaticResource CommandButton}" Command="{Binding ReloadJobCommand}">Reload Job</Button>
                 <Button Style="{StaticResource CommandButton}" Command="{Binding SaveCommand}">Save Job</Button>
 
                 <Button Style="{StaticResource CommandButton}" Command="{Binding ShowSchematicCommand}">Schematic</Button>
                 <Button Style="{StaticResource CommandButton}" Command="{Binding PartsViewModel.RefreshAvailablePartsCommand}">Refresh Available Parts</Button>
 
-
             </StackPanel>
         </Grid>
 
         <TextBlock Grid.Row="1" Style="{StaticResource header}" Text="All Parts"></TextBlock>
-        <DataGrid Grid.Row="1" Margin="0,26,0,0" ItemsSource="{Binding Job.BoardRevision.PcbComponents}" VerticalScrollBarVisibility="Auto"  CanUserAddRows="True" AutoGenerateColumns="False" >
+        <DataGrid Grid.Row="1" Margin="0,45,0,0" ItemsSource="{Binding Job.BoardRevision.PcbComponents}" VerticalScrollBarVisibility="Auto"  CanUserAddRows="True" AutoGenerateColumns="False" >
             <DataGrid.Columns>
                 <DataGridCheckBoxColumn Header="Place" Binding="{Binding Included, Mode=TwoWay}" />
                 <DataGridCheckBoxColumn Header="Manual" Binding="{Binding ManualPlace, Mode=TwoWay}" />
@@ -109,6 +108,7 @@
                 </StackPanel>
             </StackPanel>
         </Grid>
+
 
         <StackPanel Grid.Row="2" Grid.Column="2">
             

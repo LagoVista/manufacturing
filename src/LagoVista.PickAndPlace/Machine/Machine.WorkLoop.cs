@@ -3,6 +3,7 @@ using LagoVista.GCode.Commands;
 using LagoVista.IoT.DeviceMessaging.Models.Cot;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Util;
+using NLog.Targets;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -47,6 +48,12 @@ namespace LagoVista.PickAndPlace
         private void SendNormalPriorityItems()
         {
             var send_line = _toSend.Peek();
+            if(String.IsNullOrEmpty(send_line))
+            {
+                Debug.WriteLine("EMPTY SEND LINE!");
+                _toSend.Dequeue();
+            }
+
             var zAxisMoveRegEx = new Regex("G([01])\\s+Z([RL])([\\d.]+)");
             var match = zAxisMoveRegEx.Match(send_line);
             if (match.Success)

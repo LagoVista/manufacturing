@@ -4,6 +4,7 @@ using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -298,9 +299,7 @@ namespace LagoVista.PickAndPlace
                 _topGreen = green;
                 _topBlue = blue;
 
-                if (_topLightOn)
-                    Enqueue(ConvertTopLightColors(Settings.GcodeMapping.Value.TopLightOn));
-                else
+                if (!_topLightOn)
                     Enqueue(Settings.GcodeMapping.Value.TopLightOff);
 
                 UpdateTopLight();
@@ -322,9 +321,7 @@ namespace LagoVista.PickAndPlace
                 _bottomGreen = green;
                 _bottomBlue = blue;
 
-                if (_bottomLightOn)
-                    Enqueue(ConvertBottomLightColors(Settings.GcodeMapping.Value.BottmLightOn));
-                else
+                if (!_bottomLightOn)
                     Enqueue(Settings.GcodeMapping.Value.BottmLightOff);
 
                 UpdateBottomLight();
@@ -697,43 +694,64 @@ namespace LagoVista.PickAndPlace
         {
             try
             {
-                _toolHeadMoveSempahorr.Wait();
+                var start = Stopwatch.StartNew();
+                var sw = Stopwatch.StartNew();
+                Debug.WriteLine("[Move_Tool_Head_{toolHeadToMoveTo.Name}] Move To Tool Head start");
+                _toolHeadMoveSempahor.Wait();
+                
+                Debug.WriteLine($"[Move_Tool_Head_{{toolHeadToMoveTo.Name}}] Semephor Wait  {sw.Elapsed.TotalMilliseconds}ms");
+                sw.Restart();
 
                 if (_viewType == ViewTypes.Moving)
                 {
                     AddStatusMessage(StatusMessageTypes.Info, "Can not move to camera, busy.");
-                    _toolHeadMoveSempahorr.Release();
+                    _toolHeadMoveSempahor.Release();
                     return;
                 }
 
                 if (_currentMachineToolHead == toolHeadToMoveTo)
                 {
-                    _toolHeadMoveSempahorr.Release();
+                    _toolHeadMoveSempahor.Release();
                     return;
                 }
 
+                Debug.WriteLine($"[Move_Tool_Head_{toolHeadToMoveTo.Name}] Semephor Released {sw.Elapsed.TotalMilliseconds}ms");
+                sw.Restart();
+
+
                 if (_currentMachineToolHead != null)
                 {
-                    _toolHeadMoveSempahorr.Release();
+                    _toolHeadMoveSempahor.Release();
                     await MoveToCameraAsync();
-                    _toolHeadMoveSempahorr.Wait();
+                    Debug.WriteLine($"[Move_Tool_Head_{toolHeadToMoveTo.Name}] Moved to Camera  {sw.Elapsed.TotalMilliseconds}ms");
+                    sw.Restart();
+
+                    _toolHeadMoveSempahor.Wait();
                 }
 
                 await Task.Run(async () =>
                 {
-                    await Task.Delay(500);
+                    await Task.Delay(100);
+                    Debug.WriteLine($"[Move_Tool_Head_{toolHeadToMoveTo.Name}] Startd Task {sw.Elapsed.TotalMilliseconds}ms");
+                    sw.Restart();
+
+
 
                     Enqueue("M400"); // Wait for previous command to finish before executing next one.
 
                     System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount == 0, 5000);
+                    Debug.WriteLine($"[Move_Tool_Head_{toolHeadToMoveTo.Name}] ToSendQUeueCount = 0 {sw.Elapsed.TotalMilliseconds}ms");
+                    sw.Restart();
+
                     System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
+                    Debug.WriteLine($"[Move_Tool_Head_{toolHeadToMoveTo.Name}] Unack Coun = 0 {sw.Elapsed.TotalMilliseconds}ms");
+                    sw.Restart();
 
                     var currentPosition = await GetCurrentLocationAsync();
                     var currentLocationX = currentPosition.X;
                     var currentLocationY = currentPosition.Y;
 
                     SendSafeMoveHeight();
-
 
                     SetRelativeMode();
 
@@ -747,9 +765,14 @@ namespace LagoVista.PickAndPlace
 
                     // Wait for the all the messages to get sent out (but won't get an OK for G4 until G0 finishes)
                     System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount > 0, 5000);
-                    System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
+                    Debug.WriteLine($"[Move_Tool_Head_{toolHeadToMoveTo.Name}] To Send Count >  {sw.Elapsed.TotalMilliseconds}ms");
+                    sw.Restart();
 
-                    await Task.Delay(500);
+                    System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
+                    Debug.WriteLine($"[Move_Tool_Head_{toolHeadToMoveTo.Name}] Unack Count >  {sw.Elapsed.TotalMilliseconds}ms");
+                    sw.Restart();
+
+                    await Task.Delay(100);
 
                     // 4. set the machine back to absolute points
                     SetAbsoluteMode();
@@ -767,6 +790,8 @@ namespace LagoVista.PickAndPlace
                         AddStatusMessage(StatusMessageTypes.Info, $"Moved to tool head {toolHeadToMoveTo.Name}.");
 
                     });
+
+                    Debug.WriteLine($"[Move_Tool_Head_{toolHeadToMoveTo.Name}] Total Execution  {start.Elapsed.TotalMilliseconds}ms");
                 });
             }
             catch(Exception ex)
@@ -775,41 +800,56 @@ namespace LagoVista.PickAndPlace
             }
             finally
             {
-                _toolHeadMoveSempahorr.Release();
+                _toolHeadMoveSempahor.Release();
             }
           
         }
 
-        SemaphoreSlim _toolHeadMoveSempahorr = new SemaphoreSlim(1);
+        SemaphoreSlim _toolHeadMoveSempahor = new SemaphoreSlim(1);
 
         public async Task  MoveToCameraAsync()
         {
             try
             {
-                _toolHeadMoveSempahorr.Wait();
+                var start = Stopwatch.StartNew();
+                var sw = Stopwatch.StartNew();
+                Debug.WriteLine("[Move_Tool_Camera] Move To Tool Head start");
+
+                _toolHeadMoveSempahor.Wait();
+
+                Debug.WriteLine($"[Move_Tool_Camera] Semaphore Completed {sw.Elapsed.TotalMilliseconds}ms");
+                sw.Restart();
 
                 if (_viewType == ViewTypes.Moving)
                 {
                     AddStatusMessage(StatusMessageTypes.Info, "Can not move to camera, busy.");
-                    _toolHeadMoveSempahorr.Release();
+                    _toolHeadMoveSempahor.Release();
                     return;
                 }
 
                 if (_currentMachineToolHead == null)
                 {
                     AddStatusMessage(StatusMessageTypes.Info, "Already viewing camera.");
-                    _toolHeadMoveSempahorr.Release();
+                    _toolHeadMoveSempahor.Release();
                     return;
                 }
 
                 await Task.Run(async () =>
                 {
-                    await Task.Delay(500);
+                    await Task.Delay(100);
+
+                    Debug.WriteLine($"[Move_Tool_Camera] Start in Task {sw.Elapsed.TotalMilliseconds}ms");
+                    sw.Restart();
 
                     Enqueue("M400"); // Wait for previous command to finish before executing next one.
 
                     System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount == 0, 5000);
+                    Debug.WriteLine($"[Move_Tool_Camera] ToSend Count = 0 {sw.Elapsed.TotalMilliseconds}ms");
+                    sw.Restart();
+
                     System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
+                    Debug.WriteLine($"[Move_Tool_Camera] UnAck Count = 0 {sw.Elapsed.TotalMilliseconds}ms");
+                    sw.Restart();
 
                     var currentPosition = await GetCurrentLocationAsync();
                     var currentLocationX = currentPosition.X;
@@ -828,8 +868,13 @@ namespace LagoVista.PickAndPlace
 
                     // Wait for the all the messages to get sent out (but won't get an OK for G4 until G0 finishes)
                     System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount > 0, 5000);
-                    System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
+                    Debug.WriteLine($"[Move_Tool_Camera] To Send = 0 {sw.Elapsed.TotalMilliseconds}ms");
+                    sw.Restart();
 
+
+                    System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
+                    Debug.WriteLine($"[Move_Tool_Camera] UnAck Count = 0 {sw.Elapsed.TotalMilliseconds}ms");
+                    sw.Restart();
                     // 4. set the machine back to absolute points
                     SetAbsoluteMode();
 
@@ -847,6 +892,8 @@ namespace LagoVista.PickAndPlace
                         RaisePropertyChanged(nameof(CurrentMachineToolHead));
                         AddStatusMessage(StatusMessageTypes.Info, "Reset to camera view.");
                     });
+
+                    Debug.WriteLine($"[Move_Tool_Camera] Total Execution Time  {start.Elapsed.TotalMilliseconds}ms");
                 });
             }
             catch(Exception ex)
@@ -855,7 +902,7 @@ namespace LagoVista.PickAndPlace
             }
             finally
             {
-                _toolHeadMoveSempahorr.Release();
+                _toolHeadMoveSempahor.Release();
             }
 
 

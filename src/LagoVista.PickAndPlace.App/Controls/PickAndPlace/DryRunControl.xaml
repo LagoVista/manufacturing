@@ -45,11 +45,7 @@
                 </DataGrid>
 
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="60*" />
-                        <ColumnDefinition Width="40*" />
-                    </Grid.ColumnDefinitions>
-
+                 
                     <StackPanel Grid.Column="0">
                         <TextBlock Style="{StaticResource header}" Text="{Binding JobVM.CurrentComponent.Name}"></TextBlock>
                         <StackPanel Grid.Row="2" Grid.Column="1"  Orientation="Horizontal">

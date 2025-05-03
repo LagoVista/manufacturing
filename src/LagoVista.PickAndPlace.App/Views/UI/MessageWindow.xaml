@@ -7,17 +7,25 @@
         xmlns:ui="clr-namespace:LagoVista.PickAndPlace.App.Controls.UI"
         xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
         mc:Ignorable="d"
-        Title="Responses" Height="480" Width="640">
+        Title="Responses" Height="600" Width="800">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="50*" />
-            <ColumnDefinition Width="50*" />
+            <ColumnDefinition Width="33*" />
+            <ColumnDefinition Width="33*" />
+            <ColumnDefinition Width="33*" />
         </Grid.ColumnDefinitions>
-        <Label>Responses</Label>
+        <StackPanel Orientation="Horizontal">
+            <Label>Responses</Label>
+            <Button Width="32" Style="{StaticResource CommandButton}" ToolTip="First Part" Name="ClearMessages" Click="ClearMessages_Click" >
+                <Button.Content>
+                    <fa:FontAwesome Icon="Trash"  />
+                </Button.Content>
+            </Button>
+        </StackPanel>
         <ui:ListBoxScroll Grid.Row="1"  HorizontalContentAlignment="Stretch"
                         
                  SelectedIndex="{Binding Path=MessageCount, Mode=OneWay}"
@@ -40,7 +48,14 @@
                 </DataTemplate>
             </ui:ListBoxScroll.ItemTemplate>
         </ui:ListBoxScroll>
-        <Label Grid.Column="1">Sent</Label>
+        <StackPanel Grid.Column="1">
+            <Label Grid.Column="1">Sent</Label>
+            <Button Width="32" Style="{StaticResource CommandButton}" ToolTip="First Part" Name="ClearSentMessages" Click="ClearSentMessages_Click" >
+                <Button.Content>
+                    <fa:FontAwesome Icon="Trash"  />
+                </Button.Content>
+            </Button>
+        </StackPanel>
         <ui:ListBoxScroll Grid.Row="1" Grid.Column="1"  HorizontalContentAlignment="Stretch"
              SelectedIndex="{Binding Path=SentMessageCount, Mode=OneWay}"
              ItemsSource="{Binding Path=SentMessages}"
@@ -58,6 +73,35 @@
                         <TextBlock Text="{Binding DateStamp}" Foreground="{Binding MessageType, Converter={StaticResource MessageTypeForegroundColorConverter}}" />
                         <TextBlock Text="{Binding MessageType}" Grid.Column="1" Foreground="{Binding MessageType, Converter={StaticResource MessageTypeForegroundColorConverter}}" />
                         <TextBlock Text="{Binding Message}" Grid.Column="2" Foreground="{Binding MessageType, Converter={StaticResource MessageTypeForegroundColorConverter}}" />
+                    </Grid>
+                </DataTemplate>
+            </ui:ListBoxScroll.ItemTemplate>
+        </ui:ListBoxScroll>
+        <StackPanel Orientation="Horizontal" Grid.Column="2">
+            <TextBlock Text="{Binding UnacknowledgedBytesSent, Mode=OneWay, FallbackValue=20}" Style="{StaticResource content}"/>
+            <TextBlock Style="{StaticResource content}" Text="/"/>
+            <TextBlock Text="{Binding ControllerBufferSize, FallbackValue=128}" Style="{StaticResource content}"/>
+            <TextBlock Style="{StaticResource content}" Text="("/>
+            <TextBlock Text="{Binding PendingQueue.Count, Mode=OneWay, FallbackValue=20}" Style="{StaticResource content}"/>
+            <TextBlock Style="{StaticResource content}" Text=")"/>
+        </StackPanel>
+
+
+        <ui:ListBoxScroll Grid.Row="1" Grid.Column="2"  HorizontalContentAlignment="Stretch"
+             SelectedIndex="{Binding Path=SentMessageCount, Mode=OneWay}"
+             ItemsSource="{Binding Path=PendingQueue}"
+             IsHitTestVisible="False" BorderThickness="0"
+             ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+             ScrollViewer.VerticalScrollBarVisibility="Disabled">
+            <ui:ListBoxScroll.ItemTemplate>
+                <DataTemplate>
+                    <Grid Background="{Binding MessageType, Converter={StaticResource MessageTypeBackgroundColorConverter}}" >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="120" />
+                            <ColumnDefinition Width="90" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding .}" Foreground="{Binding MessageType, Converter={StaticResource MessageTypeForegroundColorConverter}}" />
                     </Grid>
                 </DataTemplate>
             </ui:ListBoxScroll.ItemTemplate>

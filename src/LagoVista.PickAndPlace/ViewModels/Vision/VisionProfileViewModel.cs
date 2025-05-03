@@ -1,4 +1,5 @@
-﻿using LagoVista.Client.Core;
+﻿using Emgu.CV.DepthAI;
+using LagoVista.Client.Core;
 using LagoVista.Core.Commanding;
 using LagoVista.Core.Models;
 using LagoVista.Manufacturing.Models;
@@ -169,6 +170,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                             Camera.CurrentVisionProfile.LightRed, Camera.CurrentVisionProfile.LightGreen, Camera.CurrentVisionProfile.LightBlue);
                     }
 
+                    Camera.CurrentVisionProfile.PropertyChanged -= CurrentVisionProfile_PropertyChanged;
                     Camera.CurrentVisionProfile.PropertyChanged += CurrentVisionProfile_PropertyChanged;
                 }
 
@@ -214,7 +216,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                     _camera.PropertyChanged += _camera_PropertyChanged;
 
                     if (_camera.CurrentVisionProfile != null)
+                    {
+                        Camera.CurrentVisionProfile.PropertyChanged -= CurrentVisionProfile_PropertyChanged;
                         Camera.CurrentVisionProfile.PropertyChanged += CurrentVisionProfile_PropertyChanged;
+                    }
                 }
             }
         }
@@ -223,6 +228,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         {
             if (e.PropertyName == nameof(Camera.CurrentVisionProfile))
             {
+                Camera.CurrentVisionProfile.PropertyChanged -= CurrentVisionProfile_PropertyChanged;
                 Camera.CurrentVisionProfile.PropertyChanged += CurrentVisionProfile_PropertyChanged;
 
                 var profile = Camera.VisionProfiles.FirstOrDefault(prf => prf.Id == Camera.CurrentVisionProfile.Id);
