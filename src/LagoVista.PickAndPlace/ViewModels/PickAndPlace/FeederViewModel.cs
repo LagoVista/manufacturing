@@ -192,11 +192,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             Machine.Dwell(100);
 
+            await Task.Delay(50);
             var beforePick = await _machineUtilitiesViewModel.ReadVacuumAsync();
             Machine.SendSafeMoveHeight();
             Machine.Dwell(100);
+            await Task.Delay(50);
             var afterPick = await _machineUtilitiesViewModel.ReadVacuumAsync();
-            StatusMessage = $"Part Picked - Vacuum {beforePick} - {afterPick}";
+            StatusMessage = $"Part Picked - Vacuum Before: {beforePick} Vacuum After: {afterPick}";
 
             _pickStates = PickStates.Picked;
 
@@ -267,12 +269,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var location = CurrentPartLocation + CurrentComponentPackage.PickOffset;
             Machine.SendCommand(location.ToGCode());
             Machine.SetToolHeadHeight(PickHeight.Value);
+            Machine.VacuumPump = false;
+            Machine.Dwell(100);
             Machine.SendSafeMoveHeight();
+            await Task.Delay(250);
+
             var afterPick = await _machineUtilitiesViewModel.ReadVacuumAsync();
 
             _pickStates = PickStates.Idle;
 
-            StatusMessage = $"Part Picked - Vacuum {beforePick} - {afterPick}";
+            StatusMessage = $"Part Recyvled - Vacuum Before: {beforePick} Vacuum After: {afterPick}";
 
             await Machine.MoveToCameraAsync();
 

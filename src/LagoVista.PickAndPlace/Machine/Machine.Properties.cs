@@ -31,9 +31,9 @@ namespace LagoVista.PickAndPlace
         }
 
         // TODO: 31.5 should NOT be a constant, but need to get some boards built.
-        public double LeftToolHeadZ { get => (ToolCommonZ - 31.5) + 31.5; }
+        public double LeftToolHeadZ { get => (ToolCommonZ - Settings.SafMoveHeight) + Settings.SafMoveHeight; }
         
-        public double RightToolHeadZ { get => (31.5 - ToolCommonZ) + 31.5; }
+        public double RightToolHeadZ { get => (Settings.SafMoveHeight - ToolCommonZ) + Settings.SafMoveHeight; }
 
         private double _toolHeadCommonZ;
         public double ToolCommonZ
@@ -117,6 +117,17 @@ namespace LagoVista.PickAndPlace
             }
         }
 
+        ObservableCollection<Models.StatusMessage> _sentMessages;
+        public ObservableCollection<Models.StatusMessage> SentMessages
+        {
+            get { return _sentMessages; }
+            private set
+            {
+                _sentMessages = value;
+                RaisePropertyChanged();
+            }
+        }
+
         private bool _motorsEnabled;
         public bool MotorsEnabled
         {
@@ -138,6 +149,18 @@ namespace LagoVista.PickAndPlace
                 }
 
                 return Messages.Count - 1;
+            }
+        }
+        public int SentMessageCount
+        {
+            get
+            {
+                if (SentMessages == null)
+                {
+                    return 0;
+                }
+
+                return SentMessages.Count - 1;
             }
         }
 
@@ -300,7 +323,7 @@ namespace LagoVista.PickAndPlace
                 _bottomBlue = blue;
 
                 if (_bottomLightOn)
-                    Enqueue(ConvertTopLightColors(Settings.GcodeMapping.Value.BottmLightOn));
+                    Enqueue(ConvertBottomLightColors(Settings.GcodeMapping.Value.BottmLightOn));
                 else
                     Enqueue(Settings.GcodeMapping.Value.BottmLightOff);
 

@@ -9,13 +9,13 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
 {
     public interface IVacuumViewModel : IMachineViewModelBase
     {
-        Task<InvokeResult<ulong>> ReadVacuumAsync();
+        Task<InvokeResult<long>> ReadVacuumAsync();
 
         Task<InvokeResult> CheckPartPresent(Component component, int timeoutMS, ulong? vacuumOverride);
 
         Task<InvokeResult> CheckNoPartPresent(Component component, int timeoutMS);
 
-        ulong? Vacuum { get;  }
+        long? Vacuum { get;  }
         double? ErrorValue { get; }
         double? PercentError { get; }
 

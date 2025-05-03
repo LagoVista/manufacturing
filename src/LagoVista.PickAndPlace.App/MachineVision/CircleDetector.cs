@@ -34,7 +34,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.CurrentVisionProfile.PixelsPerMM);
             var search = new CircleF(new System.Drawing.PointF(center.X, center.Y), scaledTarget);
 
-            var circles = CvInvoke.HoughCircles(input.Image, HoughModes.Gradient, profile.HoughCirclesDP, profile.HoughCirclesMinDistance, profile.HoughCirclesParam1, profile.HoughCirclesParam2,
+            var circles = CvInvoke.HoughCircles(input.Image, HoughModes.Gradient, profile.HoughCirclesDP, profile.HoughCirclesMinDistance * camera.CurrentVisionProfile.PixelsPerMM, profile.HoughCirclesParam1, profile.HoughCirclesParam2,
                 Convert.ToInt32(profile.HoughCirclesMinRadius * camera.CurrentVisionProfile.PixelsPerMM), Convert.ToInt32(profile.HoughCirclesMaxRadius * camera.CurrentVisionProfile.PixelsPerMM));
 
             foreach (var circle in circles)

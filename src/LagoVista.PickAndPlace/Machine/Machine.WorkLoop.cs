@@ -1,5 +1,6 @@
 ﻿using LagoVista.Core.Models.Drawing;
 using LagoVista.GCode.Commands;
+using LagoVista.IoT.DeviceMessaging.Models.Cot;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Util;
 using System;
@@ -82,6 +83,9 @@ namespace LagoVista.PickAndPlace
 
             _sentQueue.Enqueue(send_line);
             _toSend.Dequeue();
+
+            if(send_line != "M114")
+                AddSentMessage(StatusMessageTypes.Info, send_line);
         }
 
         private void TransmitJobItem(GCodeCommand cmd)

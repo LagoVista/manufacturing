@@ -12,8 +12,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
     public interface IMachineUtilitiesViewModel : IViewModel
     {
 
-        ulong RightVacuum { get; }
-        ulong LeftVacuum { get; }
+        long RightVacuum { get; }
+        long LeftVacuum { get; }
 
         RelayCommand ReadLeftVacuumCommand { get; }
         RelayCommand ReadRightVacuumCommand { get; }
@@ -27,8 +27,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         RelayCommand BottomLightOnCommand { get; }
         RelayCommand BottomLightOffCommand { get; }
 
-        Task<ulong> ReadVacuumAsync();
-        Task<ulong> ReadLeftVacuumAsync();
-        Task<ulong> ReadRightVacuumAsync();
+        Task<long> ReadVacuumAsync();
+        Task<long> ReadLeftVacuumAsync();
+        Task<long> ReadRightVacuumAsync();
     }
 }

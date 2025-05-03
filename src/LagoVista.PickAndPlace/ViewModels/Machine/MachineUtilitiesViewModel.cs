@@ -25,7 +25,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             BottomLightOffCommand = CreatedMachineConnectedCommand(() => MachineRepo.CurrentMachine.BottomLightOn = false);
         }
 
-        public async Task<ulong> ReadVacuumAsync()
+        public async Task<long> ReadVacuumAsync()
         {
             var result = await MachineRepo.CurrentMachine.ReadVacuumAsync();
             if (result.Successful)
@@ -38,7 +38,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             return 0;
         }
 
-        public async Task<ulong> ReadLeftVacuumAsync()
+        public async Task<long> ReadLeftVacuumAsync()
         {
              var result = await MachineRepo.CurrentMachine.ReadLeftVacuumAsync();
             if(result.Successful)
@@ -51,7 +51,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             return 0;            
         }
 
-        public async Task<ulong> ReadRightVacuumAsync()
+        public async Task<long> ReadRightVacuumAsync()
         {
             var result = await MachineRepo.CurrentMachine.ReadRightVacuumAsync();
             if (result.Successful)
@@ -65,8 +65,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             return 0;
         }
       
-        public ulong LeftVacuum { get; private set; }
-        public ulong RightVacuum { get; private set; }
+        public long LeftVacuum { get; private set; }
+        public long RightVacuum { get; private set; }
 
 
         public RelayCommand ReadLeftVacuumCommand { get; }

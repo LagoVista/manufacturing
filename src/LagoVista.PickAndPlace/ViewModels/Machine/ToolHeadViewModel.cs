@@ -27,7 +27,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         {
             _utilties = utilties ?? throw new ArgumentNullException(nameof(utilties));
 
-            SetToolOffsetCommand = CreatedMachineConnectedSettingsCommand(() => Current.Offset = (Machine.MachinePosition.ToPoint2D() - MachineConfiguration.DefaultToolReferencePoint).Round(2), () => Current != null);
+            SetToolOffsetCommand = CreatedMachineConnectedSettingsCommand(() => Current.Offset = (Machine.MachinePosition.ToPoint2D() - MachineConfiguration.KnownCalibrationPoint).Round(2), () => Current != null);
 
             CaptureKnownLocationCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.KnownCalibrationPoint = Machine.MachinePosition.ToPoint2D());
             MoveToKnownLocationCommand = CreatedMachineConnectedCommand(() => {

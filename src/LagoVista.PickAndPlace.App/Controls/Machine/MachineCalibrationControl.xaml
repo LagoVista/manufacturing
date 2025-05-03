@@ -141,9 +141,14 @@
                 </StackPanel>
 
 
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleColumn1}"  Style="{StaticResource content}"></TextBlock>
-                </StackPanel>
+                    <TextBlock   Style="{StaticResource content}">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{} Col: {0} Row: {1}">
+                                <Binding Path="SelectedStagingPlate.ReferenceHoleColumn1.Text" />
+                                <Binding Path="SelectedStagingPlate.ReferenceHoleRow1.Text" />
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
                 <StackPanel Orientation="Horizontal">
                     <StackPanel>
                         <TextBlock Text="{Binding SelectedStagingPlate.ReferenceHoleLocation1}" Style="{StaticResource content}"></TextBlock>
@@ -162,7 +167,15 @@
 
                         <StackPanel>
                         <TextBlock Style="{StaticResource header}">Reference Hole 2</TextBlock>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <TextBlock   Style="{StaticResource content}">
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{} Col: {0} Row: {1}">
+                                        <Binding Path="SelectedStagingPlate.ReferenceHoleColumn2.Text" />
+                                        <Binding Path="SelectedStagingPlate.ReferenceHoleRow2.Text" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                             <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetStagingPlateReferenceHole2LocationCommand}"  ToolTip="Set Reference Hole 2" Width="64" Height="64"  >
                                 <Button.Content>
                                     <Image Source="/imgs/SetTarget.png"/>

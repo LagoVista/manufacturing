@@ -72,6 +72,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             GoToPreviousPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.PreviousPart), () => (CurrentRow != null && CurrentPartIndex > 1));
 
             RemoveCurrentCommand = CreateCommand(RemoveCurrent, () => Current != null);
+            
 
             AddCommand = CreateCommand(Add, () => machineRepo.HasValidMachine && SelectedTemplateId.HasValidId());
             SaveCommand = CreateCommand(async () => await SaveAsync(false), () => Current != null);
@@ -80,6 +81,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             DoneRowCommand = CreateCommand(() => DoneRow(), () => CurrentRow != null);
             CancelRowCommand = CreateCommand(() => CurrentRow = null, () => CurrentRow != null);
             ClearPartCommand = CreateCommand(ClearPart, () => CurrentRow != null && CurrentRow.Component != null);
+            SetComponentCommand = CreateCommand(SetComponent, () => CurrentRow != null && CurrentRow.Component == null);
 
             RefreshTemplatesCommand = CreateCommand(async () => await LoadTemplates());
 
@@ -144,12 +146,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        private void ClearPart()
+        private async void ClearPart()
         {
             CurrentRow.Component = null;
             SelectedCategoryKey = StringExtensions.NotSelectedId;
             CurrentComponent = null;
             CurrentComponentPackage = null;
+            CurrentRow.CurrentPartIndex = 0;
+            CurrentRow.PartCapacity = 0;
+            await SaveAsync(false);
         }
 
 
@@ -174,6 +179,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var result = await SaveAsync(true);
             if (result.Successful)
                 Feeders.Remove(Current);
+        }
+
+        public async void SetComponent()
+        {
+            CurrentRow.Component = EntityHeader<Component>.Create(CurrentComponent);
+            await SaveAsync(false);
         }
 
 
@@ -697,5 +708,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand SetCurrentPartIndexOnRowCommand { get; }
 
         public RelayCommand RemoveCurrentCommand { get; }
+
+        public RelayCommand SetComponentCommand { get;  }
     }
 }

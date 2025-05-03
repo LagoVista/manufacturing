@@ -25,8 +25,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 
         RelayCommand SetFeederOriginCommand { get; }
 
-        RelayCommand GoToFeederOriginCommand { get;  }
-        RelayCommand GoToFeederReferenceHoleCommand { get;  }
+        RelayCommand GoToFeederOriginCommand { get; }
+        RelayCommand GoToFeederReferenceHoleCommand { get; }
 
         RelayCommand SetFirstFeederReferenceHoleCommand { get; }
         RelayCommand SetLastFeederReferenceHoleCommand { get; }
@@ -45,5 +45,6 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand CancelCommand { get; }
         RelayCommand DoneRowCommand { get; }
         RelayCommand RefreshTemplatesCommand { get; }
+        RelayCommand SetComponentCommand {get;}
     }
 }

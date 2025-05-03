@@ -575,8 +575,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        private ulong _vacuum;
-        public ulong Vacuum
+        private long _vacuum;
+        public long Vacuum
         {
             get => _vacuum;
             set => Set(ref _vacuum, value);

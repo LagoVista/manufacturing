@@ -65,5 +65,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 
         RelayCommand CreateJobRunCommand { get; }
         RelayCommand SaveJobRunCommand {get;}
+
+        long Vacuum { get; set; }
     }
 }

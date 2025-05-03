@@ -1,4 +1,6 @@
 ﻿using Emgu.CV.CvEnum;
+using LagoVista.Client.Core.Models;
+using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.PlatformSupport;
 using LagoVista.Core.Validation;
@@ -9,6 +11,7 @@ using LagoVista.PickAndPlace.Models;
 using System;
 using System.Diagnostics;
 using System.IO.Ports;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -452,12 +455,12 @@ namespace LagoVista.PickAndPlace
             SetAbsoluteMode();
          }
 
-        public async Task<InvokeResult<ulong>> ReadVacuumAsync()
+        public async Task<InvokeResult<long>> ReadVacuumAsync()
         {
             if (CurrentMachineToolHead == null)
             {
                 AddStatusMessage(StatusMessageTypes.FatalError, "to call ReadVacuumAsync, need to have a current tool head selected.");
-                return InvokeResult<ulong>.FromError("No current head.");
+                return InvokeResult<long>.FromError("No current head.");
             }
 
             if (_leftToolHead)
@@ -466,67 +469,147 @@ namespace LagoVista.PickAndPlace
             return await ReadRightVacuumAsync();
         }
 
-        // https://cfsensor.com/wp-content/uploads/2022/11/XGZP6857D-Pressure-Sensor-V2.7.pdf
-        public async Task<InvokeResult<ulong>> ReadLeftVacuumAsync()
+        Int32? _leftPressure;
+        Int32? _rightPressure;
+
+        private void PressureLine_LineReceived(object sender, string e)
         {
-            // Select multiplexer At addr 112 - Left Pressure Monitor is at port 1
-            I2CSend(112, 1);
+            var regEx = new Regex("^prs1:(?'prs1'-?[0-9.]+)\\sprs2:(?'prs2'-?[0-9.]+)$");
+            var match = regEx.Match(e);
+            if (match.Success)
+            {
+                _leftPressure = Int32.Parse(match.Groups["prs2"].Value);
+                _rightPressure = Int32.Parse(match.Groups["prs1"].Value);
 
-            I2CSend(109, 0x30, 0x0A);
+                _pressureReadSet.Set();
 
-            await Task.Delay(20);
+                var sentLine = _sentQueue.Dequeue();
+                UnacknowledgedBytesSent -= (sentLine.Length + 1);
+            }
+        }
 
-            // Requst MSB 23:16 Register: 0x06
-            I2CSend(109, 6);
-            var result = await I2CReadHexByte(109);
-            if (!result.Successful) return InvokeResult<ulong>.FromInvokeResult(result.ToInvokeResult());
-            var msb = result.Result;
-            //msb = 0;
-            // Request CSB 15-8 Register: 0x07
-            I2CSend(109, 7);
-            result = await I2CReadHexByte(109);
-            if (!result.Successful) return InvokeResult<ulong>.FromInvokeResult(result.ToInvokeResult());
-            var csb = result.Result;
+        ManualResetEventSlim _pressureReadSet = new ManualResetEventSlim(false);
 
-            // Request CSB 7-0 Register: 0x08
-            I2CSend(109, 8);
-            result = await I2CReadHexByte(109);
-            if (!result.Successful) return InvokeResult<ulong>.FromInvokeResult(result.ToInvokeResult());
-            var lsb = result.Result;
+        async Task<InvokeResult> UpdatePressureAsync()
+        {
+            _pressureReadSet.Reset();
+            LineReceived += PressureLine_LineReceived;
 
-            return InvokeResult<ulong>.Create((ulong)(msb << 4 | csb >> 4));
+            var attempt = 0;
+            while(!_pressureReadSet.IsSet)
+            {
+                await Task.Delay(5);
+                attempt++;
+                if(attempt > 200)
+                {
+                    LineReceived -= PressureLine_LineReceived;
+                    return InvokeResult.FromError("Could not update pressure.");
+                }
+            }
+
+            LineReceived -= PressureLine_LineReceived;
+            return InvokeResult.Success;
+        }
+
+        // https://cfsensor.com/wp-content/uploads/2022/11/XGZP6857D-Pressure-Sensor-V2.7.pdf
+        public async Task<InvokeResult<long>> ReadLeftVacuumAsync()
+        {
+            if (!String.IsNullOrEmpty(Settings.GcodeMapping.Value.ReadLeftVacuumCmd))
+            {
+                _leftPressure = null;
+                _rightPressure = null;
+                SendCommand(Settings.GcodeMapping.Value.ReadLeftVacuumCmd);
+                var result = await UpdatePressureAsync();
+                if(result.Successful && _leftPressure.HasValue)
+                    return InvokeResult<long>.Create(_leftPressure.Value);
+
+                return InvokeResult<long>.FromInvokeResult(result.ToInvokeResult());
+            }
+            else
+            {
+                // Select multiplexer At addr 112 - Left Pressure Monitor is at port 1
+                I2CSend(112, 1);
+
+                I2CSend(109, 0x30, 0x0A);
+
+                await Task.Delay(20);
+
+                // Requst MSB 23:16 Register: 0x06
+                I2CSend(109, 6);
+                var result = await I2CReadHexByte(109);
+                if (!result.Successful) return InvokeResult<long>.FromInvokeResult(result.ToInvokeResult());
+                var msb = result.Result;
+                //msb = 0;
+                // Request CSB 15-8 Register: 0x07
+                I2CSend(109, 7);
+                result = await I2CReadHexByte(109);
+                if (!result.Successful) return InvokeResult<long>.FromInvokeResult(result.ToInvokeResult());
+                var csb = result.Result;
+
+                // Request CSB 7-0 Register: 0x08
+                I2CSend(109, 8);
+                result = await I2CReadHexByte(109);
+                if (!result.Successful) return InvokeResult<long>.FromInvokeResult(result.ToInvokeResult());
+                var lsb = result.Result;
+
+                _leftPressure = (msb << 4 | csb >> 4);
+
+                return InvokeResult<long>.Create((long)_leftPressure);
+            }
 
             //return InvokeResult<ulong>.Create((ulong)(msb << 16 | csb << 8 | lsb));
             //return InvokeResult<ulong>.Create((ulong)(msb << 8 | csb));
         }
 
-        public async Task<InvokeResult<ulong>> ReadRightVacuumAsync()
+        public async Task<InvokeResult<long>> ReadRightVacuumAsync()
         {
-            // Select multiplexer At addr 112 - right Pressure Monitor is at port 2
-            I2CSend(112, 2);
+            if (!String.IsNullOrEmpty(Settings.GcodeMapping.Value.ReadLeftVacuumCmd))
+            {
+                _leftPressure = null;
+                _rightPressure = null;
 
-            // Requst MSB 23:16 Register: 0x06
-            I2CSend(109, 6);
-            var result = await I2CReadHexByte(109);
-            if (!result.Successful) return InvokeResult<ulong>.FromInvokeResult(result.ToInvokeResult());
-            var msb = result.Result;
-           
-            //msb = 0;
-            // Request CSB 15-8 Register: 0x07
-            I2CSend(109, 7);
-            result = await I2CReadHexByte(109);
-            if (!result.Successful) return InvokeResult<ulong>.FromInvokeResult(result.ToInvokeResult());
-            var csb = result.Result;
+                await Task.Delay(100);
 
-            // Request CSB 7-0 Register: 0x08
-            I2CSend(109, 8);
-            result = await I2CReadHexByte(109);
-            if (!result.Successful) return InvokeResult<ulong>.FromInvokeResult(result.ToInvokeResult());
-            var lsb = result.Result;
+                Enqueue(Settings.GcodeMapping.Value.ReadRightVacuumCmd);
+                SendCommand(Settings.GcodeMapping.Value.ReadLeftVacuumCmd);
+                
+                var result = await UpdatePressureAsync();
+                if (result.Successful && _rightPressure.HasValue)
+                    return InvokeResult<long>.Create(_rightPressure.Value);
 
-            //return InvokeResult<ulong>.Create((ulong)(msb));
-            //return InvokeResult<ulong>.Create((ulong)(msb << 16 | csb << 8 | lsb));
-            return InvokeResult<ulong>.Create((ulong)(msb << 4 | csb >> 4));
+                return InvokeResult<long>.FromInvokeResult(result.ToInvokeResult());
+            }
+            else
+            {
+
+                // Select multiplexer At addr 112 - right Pressure Monitor is at port 2
+                I2CSend(112, 2);
+
+                // Requst MSB 23:16 Register: 0x06
+                I2CSend(109, 6);
+                var result = await I2CReadHexByte(109);
+                if (!result.Successful) return InvokeResult<long>.FromInvokeResult(result.ToInvokeResult());
+                var msb = result.Result;
+
+                //msb = 0;
+                // Request CSB 15-8 Register: 0x07
+                I2CSend(109, 7);
+                result = await I2CReadHexByte(109);
+                if (!result.Successful) return InvokeResult<long>.FromInvokeResult(result.ToInvokeResult());
+                var csb = result.Result;
+
+                // Request CSB 7-0 Register: 0x08
+                I2CSend(109, 8);
+                result = await I2CReadHexByte(109);
+                if (!result.Successful) return InvokeResult<long>.FromInvokeResult(result.ToInvokeResult());
+                var lsb = result.Result;
+
+                _rightPressure = (msb << 4 | csb >> 4);
+
+                //return InvokeResult<ulong>.Create((ulong)(msb));
+                //return InvokeResult<ulong>.Create((ulong)(msb << 16 | csb << 8 | lsb));
+                return InvokeResult<long>.Create((long)_rightPressure);
+            }
         }
 
         public void HomeViaOrigin()

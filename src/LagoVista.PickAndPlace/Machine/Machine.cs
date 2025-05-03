@@ -39,6 +39,7 @@ namespace LagoVista.PickAndPlace
             };
 
             Messages = new System.Collections.ObjectModel.ObservableCollection<Models.StatusMessage>();
+            SentMessages = new System.Collections.ObjectModel.ObservableCollection<Models.StatusMessage>();
             AddStatusMessage(StatusMessageTypes.Info, "Startup.");
           
 

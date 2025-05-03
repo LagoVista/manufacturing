@@ -97,9 +97,9 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         void RotateToolHead(double angle);
 
-        Task<InvokeResult<ulong>> ReadVacuumAsync();
-        Task<InvokeResult<ulong>> ReadLeftVacuumAsync();
-        Task<InvokeResult<ulong>> ReadRightVacuumAsync();
+        Task<InvokeResult<long>> ReadVacuumAsync();
+        Task<InvokeResult<long>> ReadLeftVacuumAsync();
+        Task<InvokeResult<long>> ReadRightVacuumAsync();
 
         void Dwell(int ms);
 
@@ -323,6 +323,7 @@ namespace LagoVista.PickAndPlace.Interfaces
         Task<Point2D<double>> GetCurrentLocationAsync();
 
         ObservableCollection<Models.StatusMessage> Messages { get; }
+        ObservableCollection<Models.StatusMessage> SentMessages { get; }
 
         bool IsLocating { get; set; }
 

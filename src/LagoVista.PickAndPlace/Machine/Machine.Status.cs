@@ -381,5 +381,17 @@ namespace LagoVista.PickAndPlace
                 });
             }
         }
+
+        public void AddSentMessage(StatusMessageTypes type, string message, MessageVerbosityLevels verbosityLevel = MessageVerbosityLevels.Normal)
+        {
+            if (IsInitialized && Settings != null && verbosityLevel >= Settings.MessageVerbosity)
+            {
+                Services.DispatcherServices.Invoke(() =>
+                {
+                    SentMessages.Add(Models.StatusMessage.Create(type, message));
+                    RaisePropertyChanged(nameof(SentMessageCount));
+                });
+            }
+        }
     }
 }

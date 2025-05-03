@@ -30,6 +30,9 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
         public void Line(IMVImage<IInputOutputArray> img, int x1, int y1, int x2, int y2, System.Drawing.Color color, int thickness = 1)
         {
+            if (y2 == 1080)
+                thickness *= 3;
+
             CvInvoke.Line(img.Image, new System.Drawing.Point(x1, y1),
                new System.Drawing.Point(x2, y2),
                new Bgr(color).MCvScalar, thickness, Emgu.CV.CvEnum.LineType.AntiAlias);
@@ -78,8 +81,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             Line(destImage, center.X, 0, center.X, center.Y - (int)scaledRadius, System.Drawing.Color.Yellow);
             Line(destImage, center.X, center.Y + (int)scaledRadius, center.X, size.Height, System.Drawing.Color.Yellow);
 
-            Line(destImage, center.X - (int)scaledRadius, center.Y, center.X + (int)scaledRadius, center.Y, System.Drawing.Color.FromArgb(0x7f, 0xFF, 0xFF, 0XFF));
-            Line(destImage, center.X, center.Y - (int)scaledRadius, center.X, center.Y + (int)scaledRadius, System.Drawing.Color.FromArgb(0x7f, 0xFF, 0xFF, 0XFF));
+            Line(destImage, center.X - (int)scaledRadius, center.Y, center.X + (int)scaledRadius, center.Y, System.Drawing.Color.FromArgb(0x7f, 0xFF, 0xFF, 0XFF), 1);
+            Line(destImage, center.X, center.Y - (int)scaledRadius, center.X, center.Y + (int)scaledRadius, System.Drawing.Color.FromArgb(0x7f, 0xFF, 0xFF, 0XFF), 1);
 
             //if (_locatorViewModel.LocatorState == MVLocatorState.PartInTape)
             //{

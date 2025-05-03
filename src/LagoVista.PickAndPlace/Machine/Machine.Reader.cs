@@ -136,8 +136,13 @@ namespace LagoVista.PickAndPlace
                     if (errMatch.Success)
                     {
                         var strErrorCode = errMatch.Groups["ErrorCode"].Value;
-                        var err = GrblErrorProvider.Instance.GetErrorMessage(Convert.ToInt32(strErrorCode));
-                        AddStatusMessage(StatusMessageTypes.Warning, err, MessageVerbosityLevels.Normal);
+                        if (int.TryParse(strErrorCode, out int errCode))
+                        {
+                            var err = GrblErrorProvider.Instance.GetErrorMessage(Convert.ToInt32(strErrorCode));
+                            AddStatusMessage(StatusMessageTypes.Warning, err, MessageVerbosityLevels.Normal);
+                        }
+                        else
+                            AddStatusMessage(StatusMessageTypes.Warning, fullMessageLine);
                     }
                     else
                     {

@@ -8,7 +8,7 @@
         d:DataContext="{d:DesignInstance vm:IVisionProfileViewModel }"
         mc:Ignorable="d"
         xmlns:Controls="clr-namespace:LagoVista.PickAndPlace.App.Controls"
-        Title="Vision Configuration" Height="1000" Width="600">
+        Title="Vision Configuration" Height="1200" Width="800">
     <Grid Background="{StaticResource ContentBackgroundBrush}" >
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -37,9 +37,9 @@
         <Controls:MVViewOptions Grid.Row="2" VerticalAlignment="Bottom"  />
         <Controls:ImageAdjustments  Grid.Row="3"  VerticalAlignment="Top" />
         
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Style="{StaticResource CommandButton}" Command="{Binding SetInspectionHeight}" Content="Set Inspection Height" />
-            <Button Style="{StaticResource CommandButton}" Margin="20" Width="120" Height="32" HorizontalAlignment="Right" Grid.Row="4" Command="{Binding SaveCommand}">Save</Button>
+        <StackPanel Grid.Row="4"  Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Style="{StaticResource CommandButton}" Width="240" Command="{Binding SetInspectionHeight}" Content="Set Insp. Height" />
+            <Button Style="{StaticResource CommandButton}" Width="129" Margin="20"  HorizontalAlignment="Right" Command="{Binding SaveCommand}">Save</Button>
             <Button Style="{StaticResource CommandButton}" Command="{Binding CopyVisionProfileFromDefaultCommand}" Content="Copy from Default"></Button>
         </StackPanel>
 

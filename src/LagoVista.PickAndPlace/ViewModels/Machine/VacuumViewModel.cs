@@ -31,8 +31,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             base.MachineChanged(machine);
         }
 
-        private ulong? _vacuum;
-        public ulong? Vacuum
+        private long? _vacuum;
+        public long? Vacuum
         {
             get => _vacuum;
             set => Set(ref _vacuum, value);
@@ -71,7 +71,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             ToolHead = Machine.CurrentMachineToolHead;
             Component = component;
 
-            ulong? lastVacuum = null;
+            long? lastVacuum = null;
 
             var done = false;
             var timeout = DateTime.Now.AddMilliseconds(timeoutMS);
@@ -121,7 +121,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             ToolHead = Machine.CurrentMachineToolHead;
             Component = component;
 
-            ulong? lastVacuum = null;
+            long? lastVacuum = null;
 
             PercentError = null;
             Vacuum = null;
@@ -185,12 +185,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             set => Set(ref _toolHead, value);
         }
 
-        public async Task<InvokeResult<ulong>> ReadVacuumAsync()
+        public async Task<InvokeResult<long>> ReadVacuumAsync()
         {
             if (Machine.CurrentMachineToolHead != null)
                 return await Machine.ReadVacuumAsync();
 
-            return InvokeResult<ulong>.FromError("No current tool head, could not read vacuum.");
+            return InvokeResult<long>.FromError("No current tool head, could not read vacuum.");
         }
 
         public RelayCommand ReadVacuumCommand { get; }

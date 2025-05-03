@@ -9,13 +9,44 @@
         mc:Ignorable="d"
         Title="Responses" Height="480" Width="640">
     <Grid>
-        <ui:ListBoxScroll  HorizontalContentAlignment="Stretch"
-                             Grid.Row="1"
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="50*" />
+            <ColumnDefinition Width="50*" />
+        </Grid.ColumnDefinitions>
+        <Label>Responses</Label>
+        <ui:ListBoxScroll Grid.Row="1"  HorizontalContentAlignment="Stretch"
+                        
                  SelectedIndex="{Binding Path=MessageCount, Mode=OneWay}"
                  ItemsSource="{Binding Path=Messages}"
                  IsHitTestVisible="False" BorderThickness="0"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
+            <ui:ListBoxScroll.ItemTemplate>
+                <DataTemplate>
+                    <Grid Background="{Binding MessageType, Converter={StaticResource MessageTypeBackgroundColorConverter}}" >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="120" />
+                            <ColumnDefinition Width="90" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding DateStamp}" Foreground="{Binding MessageType, Converter={StaticResource MessageTypeForegroundColorConverter}}" />
+                        <TextBlock Text="{Binding MessageType}" Grid.Column="1" Foreground="{Binding MessageType, Converter={StaticResource MessageTypeForegroundColorConverter}}" />
+                        <TextBlock Text="{Binding Message}" Grid.Column="2" Foreground="{Binding MessageType, Converter={StaticResource MessageTypeForegroundColorConverter}}" />
+                    </Grid>
+                </DataTemplate>
+            </ui:ListBoxScroll.ItemTemplate>
+        </ui:ListBoxScroll>
+        <Label Grid.Column="1">Sent</Label>
+        <ui:ListBoxScroll Grid.Row="1" Grid.Column="1"  HorizontalContentAlignment="Stretch"
+             SelectedIndex="{Binding Path=SentMessageCount, Mode=OneWay}"
+             ItemsSource="{Binding Path=SentMessages}"
+             IsHitTestVisible="False" BorderThickness="0"
+             ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+             ScrollViewer.VerticalScrollBarVisibility="Disabled">
             <ui:ListBoxScroll.ItemTemplate>
                 <DataTemplate>
                     <Grid Background="{Binding MessageType, Converter={StaticResource MessageTypeBackgroundColorConverter}}" >
