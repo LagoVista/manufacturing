@@ -144,7 +144,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         err = Machine.CurrentMachineToolHead.PartPickedVacuum - result.Result;
                         var delta = Math.Abs(err.Value);
                         errorPercent = Math.Round(delta / Machine.CurrentMachineToolHead.PartPickedVacuum * 100, 2);
-                        if (errorPercent < Machine.CurrentMachineToolHead.VacuumTolerancePercent)
+                        if (errorPercent < 25)// Machine.CurrentMachineToolHead.VacuumTolerancePercent)
                         {
                             ErrorValue = Math.Round(err.Value);
                             PercentError = errorPercent;

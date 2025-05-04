@@ -338,7 +338,8 @@ namespace LagoVista.PickAndPlace
         {
             if (TopLightOn && Connected)
             {
-                Enqueue(ConvertTopLightColors(Settings.GcodeMapping.Value.TopLightOn));
+                var gcode = ConvertTopLightColors(Settings.GcodeMapping.Value.TopLightOn);
+                Enqueue(gcode);
             }
         }
         
@@ -352,11 +353,23 @@ namespace LagoVista.PickAndPlace
 
         private string ConvertTopLightColors(string gcode)
         {
-            return gcode.Replace("{red}", $"{TopRed}")
+            var result = gcode.Replace("{red}", $"{TopRed}")
                         .Replace("{green}", $"{TopGreen}")
                         .Replace("{blue}", $"{TopBlue}")
                         .Replace("{pwr}",
                         TopPower.ToString());
+
+            //result = result.Replace("B255 ", String.Empty);
+            //result = result.Replace("U255 ", String.Empty);
+            //result = result.Replace("R255 ", String.Empty);
+
+            //result = result.Replace("S1", String.Empty);
+            // result = result.Replace("P255 ", String.Empty);
+
+
+            Debug.WriteLine($"[{result}]");
+
+            return result;
         }
 
         private string ConvertBottomLightColors(string gcode)

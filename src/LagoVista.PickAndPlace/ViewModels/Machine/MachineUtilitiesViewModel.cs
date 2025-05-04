@@ -64,9 +64,18 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
             return 0;
         }
-      
-        public long LeftVacuum { get; private set; }
-        public long RightVacuum { get; private set; }
+
+        private long _leftVacuum;
+        public long LeftVacuum {
+            get => _leftVacuum;
+            set => Set(ref _leftVacuum, value);
+        }
+
+        private long _rightVacuum;
+        public long RightVacuum {
+            get => _rightVacuum;
+            set => Set(ref _rightVacuum, value);
+        }
 
 
         public RelayCommand ReadLeftVacuumCommand { get; }
