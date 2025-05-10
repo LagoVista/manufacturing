@@ -80,10 +80,11 @@ namespace LagoVista.PickAndPlace.App.Services
             }
             else
             {
-                _cornerDetector.Reset();
-                _circleDetector.Reset();
-                _rectangleDetector.Reset();
-                _lineDetector.Reset();
+            //    _cornerDetector.Reset();
+            //    _circleDetector.Reset();
+            //    _rectangleDetector.Reset();
+            //    _lineDetector.Reset();
+            //
             }
         }
 

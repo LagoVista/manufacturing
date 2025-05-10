@@ -1901,4 +1901,19 @@
   <data name="AssemblyInstructionStep_Parts" xml:space="preserve">
     <value>Parts</value>
   </data>
+  <data name="PnpState_SetToolHead" xml:space="preserve">
+    <value>Set Tool Head</value>
+  </data>
+  <data name="PnpState_AtPickHeight" xml:space="preserve">
+    <value>At Pick Height</value>
+  </data>
+  <data name="PnpState_AtMoveHeight" xml:space="preserve">
+    <value>At Move Hegiht</value>
+  </data>
+  <data name="PnpState_SetVisionProfile" xml:space="preserve">
+    <value>Set Vision Profile</value>
+  </data>
+  <data name="VisionProfile_KnownLocation" xml:space="preserve">
+    <value>Known Location</value>
+  </data>
 </root>

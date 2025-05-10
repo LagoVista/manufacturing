@@ -21,7 +21,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 
         abstract Task<InvokeResult> NextPartAsync();
   
-        Task<InvokeResult> PickCurrentPartAsync();
+        Task<InvokeResult> PickCurrentPartAsync(PickAndPlaceJobPlacement placement = null);
         Task<InvokeResult> RecycleCurrentPartAsync();
         Task<InvokeResult> InspectCurrentPartAsync();
 
@@ -29,6 +29,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         Task<InvokeResult> CenterOnPartAsync(Component component);
 
         Task<InvokeResult> MoveToPartInFeederAsync();
+        Task<InvokeResult> SetVisionProfile();
         Task<InvokeResult> MoveToPartInFeederAsync(Component component);        
         Task<InvokeResult> PickPartAsync(Component component);
         Task<InvokeResult> InspectPartAsync(Component component);        

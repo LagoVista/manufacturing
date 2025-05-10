@@ -30,7 +30,7 @@
                 <TextBlock Style="{StaticResource header}" Text="{Binding JobVM.JobRun.Name}" />
                 <TextBlock Style="{StaticResource content}" Text="{Binding JobVM.JobRun.Status}" />
             </StackPanel>
-            
+
             <DataGrid ItemsSource="{Binding JobVM.Job.Parts}" SelectionMode="Single" SelectedItem="{Binding JobVM.PartGroup, Mode=TwoWay}" CanUserAddRows="false" AutoGenerateColumns="False">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Count" Width="80" Binding="{Binding Count}"  />
@@ -44,7 +44,7 @@
                     <DataGridTextColumn Header="Auto Feeder" Width="150" Binding="{Binding Feeder}"  />
                 </DataGrid.Columns>
             </DataGrid>
-            
+
             <StackPanel Orientation="Horizontal">
                 <Label Content="{Binding ActiveFeederViewModel.CurrentComponent.ComponentPackage.Text}" ></Label>
                 <Label Content="{Binding ActiveFeederViewModel.CurrentComponent.Value}" ></Label>
@@ -66,15 +66,18 @@
                     <DataGridTextColumn Header="Status"  Width="*" Binding="{Binding State}"  />
                 </DataGrid.Columns>
             </DataGrid>
- 
+
             <StackPanel Orientation="Horizontal">
                 <Button Style="{StaticResource CommandButton}" Command="{Binding PlaceIndependentPartCommand}" Content="Place Invidual Part"></Button>
                 <Button Style="{StaticResource CommandButton}" Command="{Binding ResetIndpentPartCommand}" Content="Reset"></Button>
             </StackPanel>
+
+            <DataGrid ItemsSource="{Binding JobVM.Placement.Transitions}">
+
+            </DataGrid>
         </StackPanel>
         <StackPanel Grid.Column="1">
             <local:CircuitBoardControl />
         </StackPanel>
-
     </Grid>
 </ucb:VMBoundUserControl>

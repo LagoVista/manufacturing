@@ -295,6 +295,8 @@ namespace LagoVista.PickAndPlace
                 return;
             }
 
+            Debug.WriteLine(line);
+
             ParseMessage(line);
 
             /*            foreach (var ch in line.ToCharArray())

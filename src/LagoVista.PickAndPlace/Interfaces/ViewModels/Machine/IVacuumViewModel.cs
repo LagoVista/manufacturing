@@ -16,8 +16,9 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         Task<InvokeResult> CheckNoPartPresent(Component component, int timeoutMS);
 
         long? Vacuum { get;  }
-        double? ErrorValue { get; }
-        double? PercentError { get; }
+        double? AboveThreshold { get; }
+        double? Threshold { get; }
+        double? PercentAboveThreshold { get; }
 
         Component Component { get; }
         MachineToolHead ToolHead { get; }

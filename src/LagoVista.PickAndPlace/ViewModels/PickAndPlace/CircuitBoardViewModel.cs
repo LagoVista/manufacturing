@@ -250,13 +250,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
           
             await GoToPartOnBoardAsync(null, placement);
+            await Machine.SpinUntilIdleAsync();
             placement.State = EntityHeader<PnPStates>.Create(PnPStates.AtPlaceLocation);
 
             Machine.SetToolHeadHeight(MachineConfiguration.WorkOriginZ + component.ComponentPackage.Value.Height);
+            await Machine.SpinUntilIdleAsync();
             placement.State = EntityHeader<PnPStates>.Create(PnPStates.OnBoard);
             Machine.VacuumPump = false;
             Machine.Dwell(250);            
             Machine.SendSafeMoveHeight();
+            await Machine.SpinUntilIdleAsync();
             placement.State = EntityHeader<PnPStates>.Create(PnPStates.Placed);
 
             return InvokeResult.Success;
@@ -280,17 +283,21 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 {
                     _locatorViewModel.UnregisterCircleLocatedHandler(this);
 
-                    var currentLocation = await Machine.GetCurrentLocationAsync();
-                    var selected = SelectedFiducial;
-                    DispatcherServices.Invoke(() =>
+                    var result = await Machine.GetCurrentLocationAsync();
+                    if (result.Successful)
                     {
-                        var message = $"Found fiducial {selected.Name}; Expected: {selected.Expected}; Actual: {selected.Actual}";
-                        Machine.AddStatusMessage(Manufacturing.Models.StatusMessageTypes.Info, message);
-                        selected.Actual = (currentLocation - MachineConfiguration.DefaultWorkOrigin).Round(3);
-                        selected.AbsoluteActual = currentLocation;
-                        _completed?.Set();
-                    });
-                    
+                        var currentLocation = result.Result;
+
+                        var selected = SelectedFiducial;
+                        DispatcherServices.Invoke(() =>
+                        {
+                            var message = $"Found fiducial {selected.Name}; Expected: {selected.Expected}; Actual: {selected.Actual}";
+                            Machine.AddStatusMessage(Manufacturing.Models.StatusMessageTypes.Info, message);
+                            selected.Actual = (currentLocation - MachineConfiguration.DefaultWorkOrigin).Round(3);
+                            selected.AbsoluteActual = currentLocation;
+                            _completed?.Set();
+                        });
+                    }
                 }
                 else
                 {

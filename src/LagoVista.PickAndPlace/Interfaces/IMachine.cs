@@ -318,9 +318,11 @@ namespace LagoVista.PickAndPlace.Interfaces
         bool WasMachineHomed { get; }
         bool WasMachinOriginCalibrated { get; set; }
 
-        Task GoToPartInspectionCameraAsync();
+        Task GoToPartInspectionCameraAsync(double? rotate = null);
 
-        Task<Point2D<double>> GetCurrentLocationAsync();
+        Task<InvokeResult<Point2D<double>>> GetCurrentLocationAsync(uint timeout = 2500);
+
+        Task<InvokeResult> SpinUntilIdleAsync(uint timeout = 2500);
 
         ObservableCollection<Models.StatusMessage> Messages { get; }
         ObservableCollection<Models.StatusMessage> SentMessages { get; }

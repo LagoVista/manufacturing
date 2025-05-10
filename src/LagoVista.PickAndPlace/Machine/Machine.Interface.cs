@@ -299,6 +299,7 @@ namespace LagoVista.PickAndPlace
                                     if (String.IsNullOrEmpty(cmd))
                                         return;
 
+                                    Debug.WriteLine(cmd);
                                     _toSend.Enqueue(cmd.Trim());
                                     if (Settings.FirmwareType == FirmwareTypes.LagoVista_PnP ||
                                         Settings.FirmwareType == FirmwareTypes.SimulatedMachine ||

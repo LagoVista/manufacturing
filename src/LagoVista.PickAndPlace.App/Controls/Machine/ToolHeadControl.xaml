@@ -72,6 +72,7 @@
                         </Button.Content>
                     </Button>
                 </StackPanel>
+                
                 <StackPanel Grid.Row="1">
                     <Button Command="{Binding SetDefaultOriginCommand}" Style="{StaticResource CommandButton}" Content="Default Z Origin" Grid.Row="1" />
                     <TextBlock Text="{Binding Current.DefaultOriginPosition}" />
@@ -83,10 +84,9 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock TextWrapping="WrapWithOverflow" Style="{StaticResource content}" Text="To make small adjustments, click Tweak and move the XY position of the tool head into the known location and then press capture.  After setting any calibration values, you should re-center based on machine fiducial."></TextBlock>
+                    <TextBlock TextWrapping="Wrap"  FontSize="24"  Text="To make small adjustments, click Tweak and move the XY position of the tool head into the known location and then press capture.  After setting any calibration values, you should re-center based on machine fiducial."></TextBlock>
                     <TextBlock Grid.Row="1" Style="{StaticResource content}" Text="{Binding CalibrationOffset}" />
                     <StackPanel Orientation="Horizontal" Grid.Row="2">
                         <Button  Style="{StaticResource CommandButton}" Command="{Binding ToggleCaptureToolHeadCalibrationCommand}" >Tweak Calibration</Button>

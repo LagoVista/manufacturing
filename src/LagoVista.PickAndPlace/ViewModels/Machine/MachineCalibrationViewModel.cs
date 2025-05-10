@@ -21,9 +21,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             MoveToDefaultSafeMoveHeightCommand = CreatedMachineConnectedCommand(() => Machine.SendSafeMoveHeight());
 
             CaptureKnownLocationCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.KnownCalibrationPoint = Machine.MachinePosition.ToPoint2D());
+
             MoveToKnownLocationCommand = CreatedMachineConnectedCommand(() => {
                 Machine.GotoPoint(MachineConfiguration.KnownCalibrationPoint);
-                Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_MachineFiducual);
+                Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_KnownLocation    );
             }, () => !MachineConfiguration.KnownCalibrationPoint.IsOrigin());
 
             MoveToCameraLocationCommand = CreatedMachineConnectedCommand(MoveToSelectedCamera, () => SelectedMachineCamera != null && SelectedMachineCamera.AbsolutePosition != null);

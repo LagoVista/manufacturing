@@ -120,8 +120,11 @@ namespace LagoVista.PickAndPlace
             _sentQueue.Enqueue(cmd.Line);
         }
 
-        private async Task QueryStatus()
+        private void SendQueryStatus()
         {
+            if (_spinningWhileBusy)
+                return;
+
             var Now = DateTime.Now;
 
             if (Mode == OperatingMode.Manual)
@@ -181,7 +184,11 @@ namespace LagoVista.PickAndPlace
                     _lastPollTime = Now;
                 }
             }
+        }
 
+        private async Task QueryStatus()
+        {
+            SendQueryStatus();
             await Task.Delay(_waitTime);
         }
 

@@ -1,4 +1,4 @@
-﻿/*3/20/2025 7:37:12 AM*/
+﻿/*5/10/2025 6:27:06 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -1499,6 +1499,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:PnpState_AtFeeder
 
 		public static string PnpState_AtFeeder { get { return GetResourceString("PnpState_AtFeeder"); } }
+//Resources:ManufacturingResources:PnpState_AtMoveHeight
+
+		public static string PnpState_AtMoveHeight { get { return GetResourceString("PnpState_AtMoveHeight"); } }
+//Resources:ManufacturingResources:PnpState_AtPickHeight
+
+		public static string PnpState_AtPickHeight { get { return GetResourceString("PnpState_AtPickHeight"); } }
 //Resources:ManufacturingResources:PnPState_AtPlaceLocation
 
 		public static string PnPState_AtPlaceLocation { get { return GetResourceString("PnPState_AtPlaceLocation"); } }
@@ -1556,6 +1562,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:PnPState_PlacementCompleted
 
 		public static string PnPState_PlacementCompleted { get { return GetResourceString("PnPState_PlacementCompleted"); } }
+//Resources:ManufacturingResources:PnpState_SetToolHead
+
+		public static string PnpState_SetToolHead { get { return GetResourceString("PnpState_SetToolHead"); } }
+//Resources:ManufacturingResources:PnpState_SetVisionProfile
+
+		public static string PnpState_SetVisionProfile { get { return GetResourceString("PnpState_SetVisionProfile"); } }
 //Resources:ManufacturingResources:PnpState_Validated
 
 		public static string PnpState_Validated { get { return GetResourceString("PnpState_Validated"); } }
@@ -1802,6 +1814,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:VisionProfile_FeederOrigin
 
 		public static string VisionProfile_FeederOrigin { get { return GetResourceString("VisionProfile_FeederOrigin"); } }
+//Resources:ManufacturingResources:VisionProfile_KnownLocation
+
+		public static string VisionProfile_KnownLocation { get { return GetResourceString("VisionProfile_KnownLocation"); } }
 //Resources:ManufacturingResources:VisionProfile_MachineFiducual
 
 		public static string VisionProfile_MachineFiducual { get { return GetResourceString("VisionProfile_MachineFiducual"); } }
@@ -2326,6 +2341,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string PnPJobState_Running = "PnPJobState_Running";
 			public const string PnPState_Advanced = "PnPState_Advanced";
 			public const string PnpState_AtFeeder = "PnpState_AtFeeder";
+			public const string PnpState_AtMoveHeight = "PnpState_AtMoveHeight";
+			public const string PnpState_AtPickHeight = "PnpState_AtPickHeight";
 			public const string PnPState_AtPlaceLocation = "PnPState_AtPlaceLocation";
 			public const string PnpState_DetectingPart = "PnpState_DetectingPart";
 			public const string PnpState_Error = "PnpState_Error";
@@ -2345,6 +2362,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string PnPState_PickErrorNotCompensated = "PnPState_PickErrorNotCompensated";
 			public const string PnPState_Placed = "PnPState_Placed";
 			public const string PnPState_PlacementCompleted = "PnPState_PlacementCompleted";
+			public const string PnpState_SetToolHead = "PnpState_SetToolHead";
+			public const string PnpState_SetVisionProfile = "PnpState_SetVisionProfile";
 			public const string PnpState_Validated = "PnpState_Validated";
 			public const string StripFeeder_AngleOffset = "StripFeeder_AngleOffset";
 			public const string StripFeeder_AngleOffset_Help = "StripFeeder_AngleOffset_Help";
@@ -2427,6 +2446,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string VisionProfile_Defauilt = "VisionProfile_Defauilt";
 			public const string VisionProfile_FeederFiducial = "VisionProfile_FeederFiducial";
 			public const string VisionProfile_FeederOrigin = "VisionProfile_FeederOrigin";
+			public const string VisionProfile_KnownLocation = "VisionProfile_KnownLocation";
 			public const string VisionProfile_MachineFiducual = "VisionProfile_MachineFiducual";
 			public const string VisionProfile_Nozzle = "VisionProfile_Nozzle";
 			public const string VisionProfile_NozzleCalibration = "VisionProfile_NozzleCalibration";

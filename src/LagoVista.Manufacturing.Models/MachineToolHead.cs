@@ -98,6 +98,15 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _noPartPickedPressure, value);
         }
 
+
+        private double _percentAboveNoPartPicked = 25;
+        public double PercentAboveNoPartPicked
+        {
+            get => _percentAboveNoPartPicked;
+            set => Set(ref _percentAboveNoPartPicked, value);
+        }
+
+
         double _partPickedVacuum;
         [FormField(LabelResource: ManufacturingResources.Names.MachineToolHead_PartPresentVacuum, HelpResource: ManufacturingResources.Names.MachineToolHead_PartPresentVacuum_Help, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double PartPickedVacuum

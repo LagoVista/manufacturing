@@ -57,12 +57,12 @@
                 <TextBlock Style="{StaticResource content}" Text="{Binding MachineConfiguration.KnownCalibrationPoint}" />
             </StackPanel>
             <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">
-                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding CaptureKnownLocationCommand}"  ToolTip="Set the current location as the Machine Fiducial, this will act as a know point to reference all other points on the machine." Width="64" Height="64"  >
+                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding CaptureKnownLocationCommand}"  ToolTip="Set the known reference location." Width="64" Height="64"  >
                     <Button.Content>
                         <Image Source="/imgs/SetTarget.png"/>
                     </Button.Content>
                 </Button>
-                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToKnownLocationCommand}"  ToolTip="Goto the Machine Fiducial" Width="64" Height="64"  >
+                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToKnownLocationCommand}"  ToolTip="Goto the known reference location" Width="64" Height="64"  >
                     <Button.Content>
                         <Image Source="/imgs/MoveToTarget.png"/>
                     </Button.Content>
@@ -78,7 +78,7 @@
                         <Image Source="/imgs/SetTarget.png"/>
                     </Button.Content>
                 </Button>
-                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToDefaultPCBOrigin}"  ToolTip="Goto the Machine Fiducial" Width="64" Height="64"  >
+                <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToDefaultPCBOrigin}"  ToolTip="Goto the default work location" Width="64" Height="64"  >
                     <Button.Content>
                         <Image Source="/imgs/MoveToTarget.png"/>
                     </Button.Content>

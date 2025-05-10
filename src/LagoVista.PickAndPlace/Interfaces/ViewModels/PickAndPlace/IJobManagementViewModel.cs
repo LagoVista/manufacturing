@@ -43,6 +43,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         /// <returns></returns>
         Task<InvokeResult> RotateCurrentPartAsync(PartsGroup part, PickAndPlaceJobPlacement placement, bool rotated90, bool reverse);
 
+        double GetRotationAngle(PartsGroup part, PickAndPlaceJobPlacement placement, bool rotated90, bool reverse);
 
         RelayCommand SaveCommand { get; }
         RelayCommand ReloadJobCommand { get; }

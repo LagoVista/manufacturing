@@ -23,12 +23,20 @@ namespace LagoVista.Manufacturing.Models
         FeederResolved,
         [EnumLabel("validated", ManufacturingResources.Names.PnpState_Validated, typeof(ManufacturingResources))]
         Validated,
-        [EnumLabel("atfeeder", ManufacturingResources.Names.PnpState_AtFeeder, typeof(ManufacturingResources))]
-        AtFeeder,
         [EnumLabel("partcenteredonfeeder", ManufacturingResources.Names.PnpState_PartCenteredOnFeeder, typeof(ManufacturingResources))]
         PartCenteredOnFeeder,
+        [EnumLabel("settoolhead", ManufacturingResources.Names.PnpState_SetToolHead, typeof(ManufacturingResources))]
+        SetToolHead,
+        [EnumLabel("atfeeder", ManufacturingResources.Names.PnpState_AtFeeder, typeof(ManufacturingResources))]
+        AtFeeder,
+        [EnumLabel("setvisionprofile", ManufacturingResources.Names.PnpState_SetVisionProfile, typeof(ManufacturingResources))]
+        SetVisionProfile,
+        [EnumLabel("atpickheight", ManufacturingResources.Names.PnpState_AtPickHeight, typeof(ManufacturingResources))]
+        AtPickHeight,
         [EnumLabel("partpicked", ManufacturingResources.Names.PnpState_PartPicked, typeof(ManufacturingResources))]
         PartPicked,
+        [EnumLabel("atpickheight", ManufacturingResources.Names.PnpState_AtMoveHeight, typeof(ManufacturingResources))]
+        AtMoveHeight,
         [EnumLabel("detectingpart", ManufacturingResources.Names.PnpState_DetectingPart, typeof(ManufacturingResources))]
         DetectingPart,
         [EnumLabel("partdetected", ManufacturingResources.Names.PnpState_PartDetected, typeof(ManufacturingResources))]
@@ -370,6 +378,7 @@ namespace LagoVista.Manufacturing.Models
             StartTimeStamp = null;
             EndTimeStamp = null;
             Duration = null;
+            Transitions.Clear();
         }
 
         EntityHeader<PnPStates> _state = EntityHeader<PnPStates>.Create(PnPStates.New);
@@ -403,7 +412,7 @@ namespace LagoVista.Manufacturing.Models
             }
         }
 
-        public List<PlacementStateHistory> Transitions { get; set; } = new List<PlacementStateHistory>();
+        public ObservableCollection<PlacementStateHistory> Transitions { get; set; } = new ObservableCollection<PlacementStateHistory>();
 
         TimeSpan? _duration;
         public TimeSpan? Duration

@@ -38,19 +38,25 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             set => Set(ref _vacuum, value);
         }
 
-        private double? _errorValue;
-        public double? ErrorValue
+        private double? _aboveThreadhold;
+        public double? AboveThreshold
         {
-            get => _errorValue;
-            set => Set(ref _errorValue, value);
+            get => _aboveThreadhold;
+            set => Set(ref _aboveThreadhold, value);
         }
 
-
-        double? _percentError;
-        public double? PercentError
+        private double? _threadhold;
+        public double? Threshold
         {
-            get => _percentError;
-            set => Set(ref _percentError, value);
+            get => _threadhold;
+            set => Set(ref _threadhold, value);
+        }
+
+        double? _percentAboveThreadhold;
+        public double? PercentAboveThreshold
+        {
+            get => _percentAboveThreadhold;
+            set => Set(ref _percentAboveThreadhold, value);
         }
 
 
@@ -71,24 +77,23 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             ToolHead = Machine.CurrentMachineToolHead;
             Component = component;
 
-            long? lastVacuum = null;
+            Vacuum = null;
 
             var done = false;
             var timeout = DateTime.Now.AddMilliseconds(timeoutMS);
+            Threshold = Machine.CurrentMachineToolHead.NoPartPickedVacuum *( Machine.CurrentMachineToolHead.PercentAboveNoPartPicked / 100.0) + Machine.CurrentMachineToolHead.NoPartPickedVacuum;
+
             while (!done && DateTime.Now < timeout)
             {
                 var result = await Machine.ReadVacuumAsync();
                 if (result.Successful)
                 {
-                    lastVacuum = result.Result;
+                    Vacuum = result.Result;
+                    AboveThreshold = result.Result - Machine.CurrentMachineToolHead.NoPartPickedVacuum;
+                    PercentAboveThreshold = (AboveThreshold / Machine.CurrentMachineToolHead.NoPartPickedVacuum) * 100.0;
 
-                    var err = Machine.CurrentMachineToolHead.PartPickedVacuum - result.Result;
-                    var delta = Math.Abs(err);
-                    var percentError = delta / Machine.CurrentMachineToolHead.PartPickedVacuum * 100;
-                    if (percentError > Machine.CurrentMachineToolHead.VacuumTolerancePercent)
+                    if (Vacuum < Threshold)
                     {
-                        Vacuum = lastVacuum;
-                        ErrorValue = err;
                         return InvokeResult.Success;
 
                     }
@@ -98,7 +103,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
 
             if (Vacuum != null)
-                return InvokeResult.FromError($"Part was Detected, it should not be. Pressure Detected {lastVacuum}, Expected {Machine.CurrentMachineToolHead.NoPartPickedVacuum} .");
+                return InvokeResult.FromError($"Part was Detected, it should not be. Pressure Detected {Vacuum}, Expected {Threshold} .");
 
 
             return InvokeResult.FromError($"Could not read vacuum.");
@@ -121,52 +126,33 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             ToolHead = Machine.CurrentMachineToolHead;
             Component = component;
 
-            long? lastVacuum = null;
-
-            PercentError = null;
             Vacuum = null;
-            ErrorValue = null;
-
-            double? err = null;
-            double? errorPercent = null;
 
             var done = false;
             var timeout = DateTime.Now.AddMilliseconds(timeoutMS);
+            Threshold = Machine.CurrentMachineToolHead.NoPartPickedVacuum * (Machine.CurrentMachineToolHead.PercentAboveNoPartPicked / 100.0) + Machine.CurrentMachineToolHead.NoPartPickedVacuum;
+
             while (!done && DateTime.Now < timeout)
             {
                 var result = await Machine.ReadVacuumAsync();
                 if (result.Successful)
                 {
-                    lastVacuum = result.Result;
+                    Vacuum = result.Result;
+                    AboveThreshold = result.Result - Machine.CurrentMachineToolHead.NoPartPickedVacuum;
+                    PercentAboveThreshold = (AboveThreshold / Machine.CurrentMachineToolHead.NoPartPickedVacuum) * 100.0;
 
-                    if (lastVacuum > 50)
+                    if (Vacuum > Threshold)
                     {
-                        err = Machine.CurrentMachineToolHead.PartPickedVacuum - result.Result;
-                        var delta = Math.Abs(err.Value);
-                        errorPercent = Math.Round(delta / Machine.CurrentMachineToolHead.PartPickedVacuum * 100, 2);
-                        if (errorPercent < 25)// Machine.CurrentMachineToolHead.VacuumTolerancePercent)
-                        {
-                            ErrorValue = Math.Round(err.Value);
-                            PercentError = errorPercent;
-                            Vacuum = lastVacuum;
-                            return InvokeResult.Success;
-                        }
+                        return InvokeResult.Success;
+
                     }
                 }
 
                 await Task.Delay(5);
             }
 
-            if (err.HasValue)
-                ErrorValue = Math.Round(err.Value, 2);
-            else
-                ErrorValue = null;
-            PercentError = errorPercent;
-            Vacuum = lastVacuum;
-
-
             if (Vacuum != null)
-                return InvokeResult.FromError($"Part Not Detected Pressure Detected {lastVacuum}, Expected {Machine.CurrentMachineToolHead.PartPickedVacuum}.");
+                return InvokeResult.FromError($"Part Not Detected Pressure Detected {Vacuum}, Expected {Threshold}.");
 
             return InvokeResult.FromError($"Could not read vacuum.");
         }

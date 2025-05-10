@@ -53,7 +53,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             return InvokeResult.Success;
         }
        
-        public async Task<InvokeResult> CenterPartAsync(Component component, PickAndPlaceJobPlacement placement, string algorithm)
+        public async Task<InvokeResult> CenterPartAsync(Component component, PickAndPlaceJobPlacement placement, string algorithm, double? rotation = null)
         {
             lock (this)
             {
@@ -65,15 +65,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _waitForCenter = new ManualResetEventSlim(false);
             }
 
-            await Machine.GoToPartInspectionCameraAsync();
-
+            await Machine.GoToPartInspectionCameraAsync(rotation);
+            await Machine.SpinUntilIdleAsync();
+         
             if (!component.ComponentPackage.Value.PickOffset.IsOrigin())
             {
                 Machine.SetRelativeMode();
                 Machine.SendCommand(component.ComponentPackage.Value.PickOffset.ToGCode());
                 Machine.SetAbsoluteMode();
             }
-
 
             _corectionFactor = new Point2D<double>();
 
@@ -87,6 +87,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _waitForCenter = new ManualResetEventSlim(false);
             _locatorViewModel.RegisterRectangleLocatedHandler(this,10000);
 
+            placement.State = EntityHeader<PnPStates>.Create(PnPStates.Inspecting);
+
             await Task.Run(() =>
             {
                 var attemptCount = 0;
@@ -95,6 +97,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
                 Debug.WriteLine($"Did we get location? {_waitForCenter.IsSet}");
             });
+
+            placement.State = EntityHeader<PnPStates>.Create(PnPStates.Inspected);
 
             _locatorViewModel.UnregisterRectangleLocatedHandler(this);
 

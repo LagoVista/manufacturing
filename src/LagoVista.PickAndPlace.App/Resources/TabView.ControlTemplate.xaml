@@ -49,7 +49,7 @@
                 <ControlTemplate TargetType="{x:Type TabItem}">
                     <Grid x:Name="Root" Margin="3,0,0,0">
                         <Border  x:Name="Border" Padding="5,5,5,5" BorderThickness="1,1,1,1" CornerRadius="6,6,0,0">
-                            <TextBlock x:Name="TableHaeder" FontSize="32" Text="{TemplateBinding Header}"></TextBlock>
+                            <TextBlock x:Name="TableHaeder" FontSize="24" Text="{TemplateBinding Header}"></TextBlock>
                         </Border>
                     </Grid>
                     <ControlTemplate.Triggers>

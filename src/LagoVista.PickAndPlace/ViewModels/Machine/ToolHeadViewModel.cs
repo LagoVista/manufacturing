@@ -32,7 +32,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             CaptureKnownLocationCommand = CreatedMachineConnectedSettingsCommand(() => MachineConfiguration.KnownCalibrationPoint = Machine.MachinePosition.ToPoint2D());
             MoveToKnownLocationCommand = CreatedMachineConnectedCommand(() => {
                 Machine.GotoPoint(MachineConfiguration.KnownCalibrationPoint);
-                Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_MachineFiducual);
+                Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_KnownLocation);
                 }, () => !MachineConfiguration.KnownCalibrationPoint.IsOrigin());
 
             SetDefaultOriginCommand = CreatedMachineConnectedSettingsCommand(() => Current.DefaultOriginPosition = Machine.MachinePosition.Z, () => Current != null);
@@ -88,6 +88,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             {
                 CalibrationOffset = null;
             }
+
+            RaiseCanExecuteChanged();
         }
 
        public void SetToolHeadCalibrationOffset()
@@ -95,6 +97,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             Current.Offset -= CalibrationOffset;
             Current.Offset = Current.Offset.Round(2);
             CalibrationOffset = null;
+            RaiseCanExecuteChanged();
         }
 
         public IMachineUtilitiesViewModel Vacuum => _utilties;
@@ -107,7 +110,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private void Machine_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(IMachine.MachinePosition))
+            if (e.PropertyName == nameof(IMachine.MachinePosition) && CalibrationOffset != null)
             {
                 Delta = KnownLocation - Machine.MachinePosition.ToPoint2D();
                 CalibrationOffset = (InitialLocation - Machine.MachinePosition.ToPoint2D()).Round(2);

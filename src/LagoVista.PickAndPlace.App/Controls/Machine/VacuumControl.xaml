@@ -37,12 +37,12 @@
             <TextBlock Style="{StaticResource content}" Text="{Binding Vacuum}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal">
-            <TextBlock Style="{StaticResource label}" Text="Error Value: " Width="150" />
-            <TextBlock Style="{StaticResource content}" Text="{Binding ErrorValue}" />
+            <TextBlock Style="{StaticResource label}" Text="Threshold: " Width="150" />
+            <TextBlock Style="{StaticResource content}" Text="{Binding Threshold}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal">
-            <TextBlock Style="{StaticResource label}" Text="Error (%)"  Width="150"/>
-            <TextBlock Style="{StaticResource content}" Text="{Binding PercentError}" />
+            <TextBlock Style="{StaticResource label}" Text="Above  (%)"  Width="150"/>
+            <TextBlock Style="{StaticResource content}" Text="{Binding PercentAboveThreshold}" />
         </StackPanel>
     </StackPanel>
 </ucb:VMBoundUserControl>

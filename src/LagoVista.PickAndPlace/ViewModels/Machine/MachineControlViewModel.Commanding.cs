@@ -56,7 +56,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
             else
             {
-          //      _machineRepo.CurrentMachine.SendCommand($"G0 Z{_machineRepo.CurrentMachine.Settings.ToolPickHeight} F5000");
+            
+                _machineRepo.CurrentMachine.SendCommand($"G0 Z{_machineRepo.CurrentMachine.CurrentMachineToolHead.PickHeight} F5000");
             }
         }
 

@@ -140,7 +140,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        public async Task<InvokeResult> PickCurrentPartAsync()
+        public async Task<InvokeResult> PickCurrentPartAsync(PickAndPlaceJobPlacement placement = null)
         {
             if (CurrentComponent == null)
             {
@@ -163,6 +163,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             Machine.SendSafeMoveHeight();
+            await Machine.SpinUntilIdleAsync();
+
             if (CurrentComponent.ComponentPackage.HasValue)
             {
                 if (!EntityHeader.IsNullOrEmpty(CurrentComponent.ComponentPackage.Value.NozzleTip))
@@ -179,6 +181,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             else
                 await Machine.MoveToToolHeadAsync(MachineConfiguration.ToolHeads.First());
 
+            if (placement != null)
+                placement.State = EntityHeader<PnPStates>.Create(PnPStates.SetToolHead); 
+
             var location = CurrentPartLocation + CurrentComponentPackage.PickOffset;
             Machine.SendCommand(location.ToGCode());
             if (null != _feederOffset)
@@ -188,20 +193,28 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Machine.SetAbsoluteMode();
             }
 
+            await Machine.SpinUntilIdleAsync();
+
+            if (placement != null)
+                placement.State = EntityHeader<PnPStates>.Create(PnPStates.AtFeeder);
+
+
             if (PickHeight.HasValue)
                 Machine.SetToolHeadHeight(PickHeight.Value);
 
+            await Machine.SpinUntilIdleAsync();
+
+            if (placement != null)
+                placement.State = EntityHeader<PnPStates>.Create(PnPStates.AtPickHeight);
+
             Machine.VacuumPump = true;
-
             Machine.Dwell(100);
-
-            await Task.Delay(50);
-            var beforePick = await _machineUtilitiesViewModel.ReadVacuumAsync();
             Machine.SendSafeMoveHeight();
-            Machine.Dwell(100);
-            await Task.Delay(50);
-            var afterPick = await _machineUtilitiesViewModel.ReadVacuumAsync();
-            StatusMessage = $"Part Picked - Vacuum Before: {beforePick} Vacuum After: {afterPick}";
+
+            await Machine.SpinUntilIdleAsync();
+
+            if (placement != null)
+                placement.State = EntityHeader<PnPStates>.Create(PnPStates.AtMoveHeight);
 
             _pickStates = PickStates.Picked;
 
@@ -345,7 +358,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             Machine.SendSafeMoveHeight();
-            Machine.SendSafeMoveHeight();
             var location = CurrentPartLocation + CurrentComponentPackage.PickOffset;
             Machine.SendCommand(location.ToGCode());
 
@@ -354,11 +366,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 CurrentComponentPackage = CurrentComponent.ComponentPackage.Value;
             }
 
-            if(CurrentComponent.PartInTapeVisionProfile != null)
+            return Task.FromResult(InvokeResult.Success);
+        }
+
+        public Task<InvokeResult> SetVisionProfile()
+        {
+            if (CurrentComponent.PartInTapeVisionProfile != null)
             {
                 Machine.SetVisionProfile(CameraTypes.Position, VisionProfileSource.Component, CurrentComponent.Id, CurrentComponent.PartInTapeVisionProfile);
             }
-            else if(CurrentComponentPackage?.PartInTapeVisionProfile != null)
+            else if (CurrentComponentPackage?.PartInTapeVisionProfile != null)
             {
                 Machine.SetVisionProfile(CameraTypes.Position, VisionProfileSource.ComponentPackage, CurrentComponentPackage.Id, CurrentComponentPackage.PartInTapeVisionProfile);
             }

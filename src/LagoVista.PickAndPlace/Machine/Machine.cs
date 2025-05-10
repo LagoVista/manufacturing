@@ -281,9 +281,14 @@ namespace LagoVista.PickAndPlace
         SemaphoreSlim _waitCurrent = new SemaphoreSlim(1);
 
         ManualResetEventSlim _waitForPositionResetEvent;
+        ManualResetEventSlim _waitForIdleResetEvent = new ManualResetEventSlim();
 
-        public async Task<Point2D<double>> GetCurrentLocationAsync()
+
+        const int retryPause = 25;
+
+        public async Task<InvokeResult<Point2D<double>>> GetCurrentLocationAsync(uint ms = 2500)
         {
+
             await _waitCurrent.WaitAsync();
             
             if(_waitForPositionResetEvent != null)
@@ -294,25 +299,73 @@ namespace LagoVista.PickAndPlace
             _waitForPositionResetEvent = new ManualResetEventSlim(false);
             _waitForPositionResetEvent.Reset();
 
-            var waitForLocation = new SemaphoreSlim(0);
-            //var entered = await waitForLocation.WaitAsync(3000);
-            
-            waitForLocation.Dispose();
-            waitForLocation = null;
-
+            var attemptCount = 0;
+            var maxAttempts = ms / 25;
             await Task.Run(() =>
             {
-                var attemptCount = 0;
-                while (!_waitForPositionResetEvent.IsSet && ++attemptCount < 200)
-                    _waitForPositionResetEvent.Wait(25);
-               
+                while (!_waitForPositionResetEvent.IsSet && ++attemptCount < ms / retryPause)
+                {
+                    _waitForPositionResetEvent.Wait(retryPause);                    
+                }
+
+                var timedOut = !_waitForPositionResetEvent.IsSet || attemptCount == maxAttempts;
+
                 _waitForPositionResetEvent.Dispose();
                 _waitForPositionResetEvent = null;
             });
 
+
             _waitCurrent.Release();
 
-            return MachinePosition.ToPoint2D();
+            return InvokeResult<Point2D<double>>.Create(MachinePosition.ToPoint2D());
+        }
+
+        bool _spinningWhileBusy = false;
+
+        private void PendingBusyReader(Object sender, string line)
+        {
+            if (line == "ok")
+                _waitForIdleResetEvent.Set();
+            else
+                Debug.WriteLine("wait some more => " + line);
+        }
+
+        public async Task<InvokeResult> SpinUntilIdleAsync(uint ms = 2500)
+        {
+            var start = DateTime.Now;
+
+            Debug.WriteLine("------------------------ " + start);
+            Debug.WriteLine("Start waiting...");
+            _waitForIdleResetEvent = new ManualResetEventSlim();
+
+            _waitForIdleResetEvent.Reset();
+
+            var attemptCount = 0;
+            var maxAttempts = ms / 25;
+
+           
+            await Task.Run(() =>
+            {
+                Enqueue("M400"); // Wait for previous command to finish before executing next one.
+                LineReceived += PendingBusyReader;
+
+                while (!_waitForIdleResetEvent.IsSet && ++attemptCount < ms / retryPause)
+                {
+                    _waitForIdleResetEvent.Wait(retryPause);
+                }
+            });
+
+            LineReceived -= PendingBusyReader;
+
+            var timedOut = !_waitForIdleResetEvent.IsSet || attemptCount == maxAttempts;
+
+            _spinningWhileBusy = false;
+            Debug.WriteLine("Done waiting: " + (DateTime.Now - start).TotalMilliseconds + " ms Attempt Count " + attemptCount + "  max " + maxAttempts);
+            Debug.WriteLine("------------------------" + DateTime.Now);
+
+            _waitForIdleResetEvent = null;
+
+            return timedOut ? InvokeResult.FromError("Timed out") : InvokeResult.Success; 
         }
 
         public void Dwell(int ms)
@@ -320,12 +373,17 @@ namespace LagoVista.PickAndPlace
             this.SendCommand($"G4 P{ms}");
         }
 
-        public Task GoToPartInspectionCameraAsync()
+
+        public Task GoToPartInspectionCameraAsync(double? rotate)
         {
             var partInspectionCamera = Settings.Cameras.FirstOrDefault(cam => cam.CameraType.Value == CameraTypes.PartInspection);
             if (partInspectionCamera != null)
             {
-                this.GotoPoint(partInspectionCamera.AbsolutePosition);
+                if(rotate.HasValue)
+                    SendCommand($"G0 X{partInspectionCamera.AbsolutePosition.X.ToDim()} Y{partInspectionCamera.AbsolutePosition.Y.ToDim()} {(_leftToolHead ? "A" : "B")}{-rotate.Value} F{Settings.FastFeedRate} ");
+                else
+                    SendCommand($"G0 X{partInspectionCamera.AbsolutePosition.X.ToDim()} Y{partInspectionCamera.AbsolutePosition.Y.ToDim()} F{Settings.FastFeedRate} ");
+
 
                 if (partInspectionCamera.CurrentVisionProfile.DetectionHeight.HasValue)
                 {
@@ -349,5 +407,8 @@ namespace LagoVista.PickAndPlace
 
             return Task.CompletedTask;
         }
+
+
+
     }
 }

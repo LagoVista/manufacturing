@@ -115,17 +115,26 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if (JobVM.Placement == null)
                 return InvokeResult.FromError("No placement");
 
+            Machine.RotateToolHead(360);
+
             var result = ResolveFeeder();
             if (!result.Successful) return result;
             JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.FeederResolved);
 
             result = JobVM.PartGroup.Validate();
             if (!result.Successful) return result;
-                JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.Validated);
+
+            JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.Validated);
 
             result = await ActiveFeederViewModel.MoveToPartInFeederAsync();
             if (!result.Successful) return result;
-                JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.AtFeeder);
+            await Machine.SpinUntilIdleAsync();
+            JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.AtFeeder);
+
+            result = await ActiveFeederViewModel.SetVisionProfile();
+            if (!result.Successful) return result;
+            JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.SetVisionProfile);
+
 
             //if (JobVM.CurrentComponentPackage.CheckInFeeder)
             //{
@@ -134,22 +143,26 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             //    JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.PartCenteredOnFeeder);
             //}
 
-            result = await ActiveFeederViewModel.PickCurrentPartAsync();
+            result = await ActiveFeederViewModel.PickCurrentPartAsync(JobVM.Placement);
             if (!result.Successful) return result;
+
             JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.PartPicked);
+            
+            await Machine.SpinUntilIdleAsync();
 
             if (JobVM.CurrentComponentPackage.CheckForPartPrecence)
             {
                 result = await VacuumViewModel.CheckPartPresent(JobVM.CurrentComponent, 2500, JobVM.CurrentComponentPackage.PresenseVacuumOverride);
+                JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.PartDetected);
+
                 if (!result.Successful) return result;
             }
 
-            result = await JobVM.RotateCurrentPartAsync(JobVM.PartGroup, JobVM.Placement, true, false);
-            if (!result.Successful) return result;
-
+            var angle = JobVM.GetRotationAngle(JobVM.PartGroup, JobVM.Placement, true, false);
+          
             if (JobVM.CurrentComponentPackage.CompensateForPickError)
             { 
-                result = await PartInspectionVM.CenterPartAsync(JobVM.CurrentComponent, JobVM.Placement, JobVM.CurrentComponentPackage.PartInspectionAlgorithm);
+                result = await PartInspectionVM.CenterPartAsync(JobVM.CurrentComponent, JobVM.Placement, JobVM.CurrentComponentPackage.PartInspectionAlgorithm, angle);
                 if (!result.Successful) return result;
                 JobVM.Placement.State = EntityHeader<PnPStates>.Create(PnPStates.PickErrorCompensated);
             }
@@ -163,6 +176,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             result = await PcbVM.PlacePartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement);
             if (!result.Successful) return result;
+
+            Machine.RotateToolHead(360);
 
             //result = await PcbVM.InspectPartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement);
             //if (!result.Successful) return result;

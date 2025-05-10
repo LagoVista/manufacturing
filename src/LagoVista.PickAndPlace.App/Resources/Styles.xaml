@@ -27,7 +27,7 @@
     <Style TargetType="TextBlock" x:Key="label" >
         <Setter Property="Margin" Value="2" />
         <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontSize" Value="20" />
         <Setter Property="Height" Value="36" />
         <Setter Property="Foreground" Value="#c0c0c0" />
     </Style>
@@ -43,14 +43,14 @@
     <Style TargetType="TextBlock" x:Key="content" >
         <Setter Property="Margin" Value="2" />
         <Setter Property="Height" Value="36" />
-        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontSize" Value="20" />
         <Setter Property="Foreground" Value="#c0c0c0" />
     </Style>
 
     <Style TargetType="TextBlock" x:Key="header">
         <Setter Property="Margin" Value="2" />
         <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="FontSize" Value="32" />
+        <Setter Property="FontSize" Value="24" />
         <Setter Property="Foreground" Value="White" />
     </Style>
 

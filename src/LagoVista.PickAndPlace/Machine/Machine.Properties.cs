@@ -748,8 +748,6 @@ namespace LagoVista.PickAndPlace
                     Debug.WriteLine($"[Move_Tool_Head_{toolHeadToMoveTo.Name}] Startd Task {sw.Elapsed.TotalMilliseconds}ms");
                     sw.Restart();
 
-
-
                     Enqueue("M400"); // Wait for previous command to finish before executing next one.
 
                     System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount == 0, 5000);
@@ -760,7 +758,11 @@ namespace LagoVista.PickAndPlace
                     Debug.WriteLine($"[Move_Tool_Head_{toolHeadToMoveTo.Name}] Unack Coun = 0 {sw.Elapsed.TotalMilliseconds}ms");
                     sw.Restart();
 
-                    var currentPosition = await GetCurrentLocationAsync();
+                    var result = await GetCurrentLocationAsync();
+                    if (!result.Successful)
+                        throw new Exception("Timeout getting position.");
+
+                    var currentPosition = result.Result;
                     var currentLocationX = currentPosition.X;
                     var currentLocationY = currentPosition.Y;
 
@@ -864,7 +866,13 @@ namespace LagoVista.PickAndPlace
                     Debug.WriteLine($"[Move_Tool_Camera] UnAck Count = 0 {sw.Elapsed.TotalMilliseconds}ms");
                     sw.Restart();
 
-                    var currentPosition = await GetCurrentLocationAsync();
+                    var result = await GetCurrentLocationAsync();
+                    if(!result.Successful)
+                    {
+                        throw new Exception("Timeout getting position.");
+                    }
+
+                    var currentPosition = result.Result;
                     var currentLocationX = currentPosition.X;
                     var currentLocationY = currentPosition.Y;
 
