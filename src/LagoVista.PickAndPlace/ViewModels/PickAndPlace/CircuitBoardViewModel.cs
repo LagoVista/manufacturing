@@ -123,7 +123,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         int attemptCount = 0;
 
                         while (!_completed.IsSet && ++attemptCount < 200)
-                            _completed.Wait(10);
+                            _completed.Wait(25);
                     });
                 }
                 catch(Exception ex)

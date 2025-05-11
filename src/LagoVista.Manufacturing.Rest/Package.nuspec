@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>LagoVista.Manufacturing.Rest</id>
-    <version>3.0.2858.1248</version>
+    <version>3.0.2916.1053</version>
     <authors>Software Logistics, LLC</authors>
     <owners>Software Logistics, LLC</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -12,12 +12,12 @@
     <copyright>Copyright Software Logistics - 2025</copyright>
     <tags>HomeAutomation IoT</tags>
     <icon>LagoVistaIcon.png</icon>
-    <releaseNotes>Build Date: 3/14/2025 4:48:15 PM UTC</releaseNotes>
+    <releaseNotes>Build Date: 5/11/2025 2:53:24 PM UTC</releaseNotes>
     <repository url="https://www.github.com/lagovista" type="git" branch="master"></repository>
     <dependencies>
       <group targetFramework="net6.0">
-        <dependency id="LagoVista.IoT.Web.Common" version="3.0.2858.1248" />
-        <dependency id="LagoVista.Manufacturing" version="3.0.2858.1248" />
+        <dependency id="LagoVista.IoT.Web.Common" version="3.0.2916.1053" />
+        <dependency id="LagoVista.Manufacturing" version="3.0.2916.1053" />
       </group>
     </dependencies>
   </metadata>

@@ -303,6 +303,7 @@ namespace LagoVista.PickAndPlace
                                     _toSend.Enqueue(cmd.Trim());
                                     if (Settings.FirmwareType == FirmwareTypes.LagoVista_PnP ||
                                         Settings.FirmwareType == FirmwareTypes.SimulatedMachine ||
+                                        Settings.FirmwareType == FirmwareTypes.LumenPnP_V4_Marlin ||
                                         Settings.FirmwareType == FirmwareTypes.Repeteir_PnP)
                                         PendingQueue.Add(cmd);
                                 }

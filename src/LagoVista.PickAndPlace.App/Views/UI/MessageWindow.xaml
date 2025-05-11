@@ -95,13 +95,13 @@
              ScrollViewer.VerticalScrollBarVisibility="Disabled">
             <ui:ListBoxScroll.ItemTemplate>
                 <DataTemplate>
-                    <Grid Background="{Binding MessageType, Converter={StaticResource MessageTypeBackgroundColorConverter}}" >
+                    <Grid  >
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="120" />
                             <ColumnDefinition Width="90" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="{Binding .}" Foreground="{Binding MessageType, Converter={StaticResource MessageTypeForegroundColorConverter}}" />
+                        <TextBlock Text="{Binding .}" />
                     </Grid>
                 </DataTemplate>
             </ui:ListBoxScroll.ItemTemplate>

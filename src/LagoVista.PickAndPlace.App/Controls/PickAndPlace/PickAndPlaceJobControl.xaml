@@ -68,7 +68,7 @@
             </DataGrid>
 
             <StackPanel Orientation="Horizontal">
-                <Button Style="{StaticResource CommandButton}" Command="{Binding PlaceIndependentPartCommand}" Content="Place Invidual Part"></Button>
+                <Button Style="{StaticResource CommandButton}" Command="{Binding PlaceIndependentPartCommand}" Content="Place Individual Part"></Button>
                 <Button Style="{StaticResource CommandButton}" Command="{Binding ResetIndpentPartCommand}" Content="Reset"></Button>
             </StackPanel>
 

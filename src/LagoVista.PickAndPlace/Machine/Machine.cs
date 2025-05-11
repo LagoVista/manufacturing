@@ -332,10 +332,19 @@ namespace LagoVista.PickAndPlace
 
         public async Task<InvokeResult> SpinUntilIdleAsync(uint ms = 2500)
         {
-            var start = DateTime.Now;
+            var sw = Stopwatch.StartNew();
 
-            Debug.WriteLine("------------------------ " + start);
+            Debug.WriteLine("------------------------ " + DateTime.UtcNow);
             Debug.WriteLine("Start waiting...");
+
+            System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount == 0, 5000);
+            Debug.WriteLine($"[Machine__SpinUntilIdleAsync] ToSendQUeueCount = 0 {sw.Elapsed.TotalMilliseconds}ms");
+            sw.Restart();
+
+            System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
+            Debug.WriteLine($"[Machine__SpinUntilIdleAsync] Unack Coun = 0 {sw.Elapsed.TotalMilliseconds}ms");
+            sw.Restart();
+
             _waitForIdleResetEvent = new ManualResetEventSlim();
 
             _waitForIdleResetEvent.Reset();
@@ -360,8 +369,8 @@ namespace LagoVista.PickAndPlace
             var timedOut = !_waitForIdleResetEvent.IsSet || attemptCount == maxAttempts;
 
             _spinningWhileBusy = false;
-            Debug.WriteLine("Done waiting: " + (DateTime.Now - start).TotalMilliseconds + " ms Attempt Count " + attemptCount + "  max " + maxAttempts);
-            Debug.WriteLine("------------------------" + DateTime.Now);
+            Debug.WriteLine("Done waiting: " + sw.Elapsed.TotalMilliseconds + " ms Attempt Count " + attemptCount + "  max " + maxAttempts);
+            Debug.WriteLine("------------------------");
 
             _waitForIdleResetEvent = null;
 
