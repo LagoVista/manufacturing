@@ -89,9 +89,9 @@
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding ActiveFeederViewModel.CenterOnPartCommand}" Content="Center Part in Feeder"></Button>
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding PickPartCommand}" Content="Pick Part"></Button>
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding CheckPartPresentCommand}" Content="Check Part Present"></Button>
-                                <Button Style="{StaticResource CommandButton}" Command="{Binding InspectPartCommand}" Content="Inspect Part"></Button>
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding RotatePartCommand}" Content="Rotate To Place"></Button>
-                                <Button Style="{StaticResource CommandButton}" Command="{Binding CenterInspectedPartCommand}" Content="Center Part"></Button>
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding InspectPartCommand}" Content="Move to Inspect Part"></Button>
+                                <Button Style="{StaticResource CommandButton}" Command="{Binding CenterInspectedPartCommand}" Content="Inspect and Center"></Button>
                                 
                                 
                                 <Button Style="{StaticResource CommandButton}" Command="{Binding RecyclePartCommand}" Content="Recycle Part"></Button>

@@ -88,7 +88,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public Task<InvokeResult> RotateCurrentPartAsync(PartsGroup part, PickAndPlaceJobPlacement placement, bool rotated90, bool reverse)
         {
             var rotatePart = GetRotationAngle(part, placement, rotated90, reverse);
-            Machine.RotateToolHead(-rotatePart);
+            Machine.RotateToolHeadRelative(-rotatePart);
             return Task<InvokeResult>.FromResult(InvokeResult.Success);
         }
 

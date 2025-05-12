@@ -19,6 +19,7 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Diagnostics;
 using LagoVista.Core.Validation;
+using System.Text;
 
 namespace LagoVista.PickAndPlace
 {
@@ -288,7 +289,10 @@ namespace LagoVista.PickAndPlace
 
         public async Task<InvokeResult<Point2D<double>>> GetCurrentLocationAsync(uint ms = 2500)
         {
+            var sw = Stopwatch.StartNew();
 
+            DebugWriteLine("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv");
+            DebugWriteLine("[Machine__GetCurrentLocation]");
             await _waitCurrent.WaitAsync();
             
             if(_waitForPositionResetEvent != null)
@@ -299,6 +303,8 @@ namespace LagoVista.PickAndPlace
             _waitForPositionResetEvent = new ManualResetEventSlim(false);
             _waitForPositionResetEvent.Reset();
 
+            Enqueue("M114");
+            var timedOut = false;           
             var attemptCount = 0;
             var maxAttempts = ms / 25;
             await Task.Run(() =>
@@ -308,7 +314,7 @@ namespace LagoVista.PickAndPlace
                     _waitForPositionResetEvent.Wait(retryPause);                    
                 }
 
-                var timedOut = !_waitForPositionResetEvent.IsSet || attemptCount == maxAttempts;
+                timedOut = !_waitForPositionResetEvent.IsSet || attemptCount == maxAttempts;
 
                 _waitForPositionResetEvent.Dispose();
                 _waitForPositionResetEvent = null;
@@ -316,6 +322,10 @@ namespace LagoVista.PickAndPlace
 
 
             _waitCurrent.Release();
+
+            DebugWriteLine($"[Machine__GetCurrentLocation] Timed Out: {timedOut} {sw.Elapsed.TotalMilliseconds} ms ");
+            DebugWriteLine("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+
 
             return InvokeResult<Point2D<double>>.Create(MachinePosition.ToPoint2D());
         }
@@ -327,22 +337,45 @@ namespace LagoVista.PickAndPlace
             if (line == "ok")
                 _waitForIdleResetEvent.Set();
             else
-                Debug.WriteLine("wait some more => " + line);
+                DebugWriteLine("wait some more => " + line);
         }
 
-        public async Task<InvokeResult> SpinUntilIdleAsync(uint ms = 2500)
+        public async Task<InvokeResult> SpinUntilIdleAsync(uint ms = 2500, bool verbose = false)
         {
+            var bldr = new StringBuilder();
+
             var sw = Stopwatch.StartNew();
 
-            Debug.WriteLine("------------------------ " + DateTime.UtcNow);
-            Debug.WriteLine("Start waiting...");
+            if (verbose)
+            {
+                DebugWriteLine("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv " + DateTime.UtcNow);
+                DebugWriteLine("Start waiting");
+            }
+            else
+            {
+                bldr.AppendLine("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv " + DateTime.UtcNow);
+                bldr.AppendLine("Start waiting");
+            }
 
             System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount == 0, 5000);
-            Debug.WriteLine($"[Machine__SpinUntilIdleAsync] ToSendQUeueCount = 0 {sw.Elapsed.TotalMilliseconds}ms");
+            if (verbose)
+            {
+                DebugWriteLine($"[Machine__SpinUntilIdleAsync] To Send Queue Count = 0 {sw.Elapsed.TotalMilliseconds}ms");
+            }
+
             sw.Restart();
 
             System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
-            Debug.WriteLine($"[Machine__SpinUntilIdleAsync] Unack Coun = 0 {sw.Elapsed.TotalMilliseconds}ms");
+
+            if (verbose)
+            {
+                DebugWriteLine($"[Machine__SpinUntilIdleAsync] Unack Count = 0 {sw.Elapsed.TotalMilliseconds}ms");
+            }
+            else
+            {
+                bldr.AppendLine($"[Machine__SpinUntilIdleAsync] Unack Count = 0 {sw.Elapsed.TotalMilliseconds}ms");
+            }
+        
             sw.Restart();
 
             _waitForIdleResetEvent = new ManualResetEventSlim();
@@ -352,7 +385,6 @@ namespace LagoVista.PickAndPlace
             var attemptCount = 0;
             var maxAttempts = ms / 25;
 
-           
             await Task.Run(() =>
             {
                 Enqueue("M400"); // Wait for previous command to finish before executing next one.
@@ -369,8 +401,26 @@ namespace LagoVista.PickAndPlace
             var timedOut = !_waitForIdleResetEvent.IsSet || attemptCount == maxAttempts;
 
             _spinningWhileBusy = false;
-            Debug.WriteLine("Done waiting: " + sw.Elapsed.TotalMilliseconds + " ms Attempt Count " + attemptCount + "  max " + maxAttempts);
-            Debug.WriteLine("------------------------");
+            if (verbose)
+            {
+                DebugWriteLine("Done waiting: " + sw.Elapsed.TotalMilliseconds + " ms Attempt Count " + attemptCount + "  max " + maxAttempts);
+                DebugWriteLine("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+            }
+            else
+            {
+                if(timedOut)
+                {
+                    Debug.WriteLine(bldr);
+                    bldr.AppendLine("Done waiting: " + sw.Elapsed.TotalMilliseconds + " ms Attempt Count " + attemptCount + "  max " + maxAttempts);
+                    bldr.AppendLine("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+                }
+                else
+                {
+                    DebugWriteLine($"    [SPINFOR] {sw.Elapsed.TotalMilliseconds} ms");
+                }
+            }
+
+
 
             _waitForIdleResetEvent = null;
 

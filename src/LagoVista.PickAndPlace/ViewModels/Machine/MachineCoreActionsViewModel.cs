@@ -4,6 +4,7 @@ using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
+using System.Diagnostics;
 
 namespace LagoVista.PickAndPlace.ViewModels.Machine
 {
@@ -62,9 +63,16 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             Machine.HomingCycle();
         }
 
+        Stopwatch _originSW;
+
         public async void MachineVisionOrigin()
         {
-            if(MachineConfiguration.MachineFiducial.IsOrigin())
+            _originSW = Stopwatch.StartNew();
+            Machine.DebugWriteLine("------------------------------------");
+            Machine.DebugWriteLine("[MachineVisionOrigin] - Start");
+
+
+            if (MachineConfiguration.MachineFiducial.IsOrigin())
             {
                 Machine.AddStatusMessage(Manufacturing.Models.StatusMessageTypes.FatalError, "Can not perform machine vision calibration.  No Machine Fiducial Set.  Please set Machine Fiducial on calibration tab.");
             }
@@ -74,6 +82,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 Machine.SendSafeMoveHeight();
                 await Machine.MoveToCameraAsync();
                 Machine.GotoPoint(MachineConfiguration.MachineFiducial);
+                await Machine.SpinUntilIdleAsync();
+                Machine.DebugWriteLine($"[MachineVisionOrigin] - Moved into position {_originSW.Elapsed.TotalMilliseconds}ms"); 
                 _locatorViewModel.RegisterCircleLocatedHandler(this);
             }
         }
@@ -88,6 +98,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     Machine.AddStatusMessage(Manufacturing.Models.StatusMessageTypes.Info, "Found origin");
                     Machine.WasMachinOriginCalibrated = true;
                     Machine.ResetMachineCoordinates(MachineConfiguration.MachineFiducial);
+                    Machine.DebugWriteLine($"[MachineVisionOrigin] - Success {_originSW.Elapsed.TotalMilliseconds}ms");
+                    Machine.DebugWriteLine("-----------------------------");
+
                 }
                 else
                 {
@@ -101,6 +114,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public void CircleLocatorTimeout()
         {
             _locatorViewModel.UnregisterCircleLocatedHandler(this);
+            Machine.DebugWriteLine($"[MachineVisionOrigin] - Failed {_originSW.Elapsed.TotalMilliseconds}ms");
+            Machine.DebugWriteLine("-----------------------------");
         }
 
         public void CircleLocatorAborted()

@@ -8,6 +8,7 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.ViewModels.Machine;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -122,7 +123,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public async void MoveToPartInFeeder()
         {
+            var sw = Stopwatch.StartNew();
+            Machine.DebugWriteLine("-----------------------------");
+            Machine.DebugWriteLine("[MoveToPartInFeeder] - Start");
+
+            Machine.SetMode(OperatingMode.PlacingParts);
+
             var result = ResolveFeeder();
+            Machine.DebugWriteLine($"[MoveToPartInFeeder] - Resolved Feeder {sw.Elapsed.TotalMilliseconds}ms");
+
             if (!result.Successful)
                 Machine.AddStatusMessage(Manufacturing.Models.StatusMessageTypes.FatalError, result.ErrorMessage);
             else
@@ -130,6 +139,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 await Machine.MoveToCameraAsync();
                 await ActiveFeederViewModel.MoveToPartInFeederAsync(JobVM.CurrentComponent);
             }
+
+            await Machine.SpinUntilIdleAsync();
+            Machine.SetMode(OperatingMode.Manual);
+
+            Machine.DebugWriteLine($"[MoveToPartInFeeder] - End {sw.Elapsed.TotalMilliseconds}ms");
+            Machine.DebugWriteLine("-----------------------------");
         }
 
 

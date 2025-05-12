@@ -95,7 +95,11 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         void SetToolHeadHeight(double height);
 
-        void RotateToolHead(double angle);
+        void RotateToolHeadRelative(double angle);
+
+        void RotateToolHeadAngleAbsolute(double angle);
+
+        void ClearToolHeadAngle();
 
         Task<InvokeResult<long>> ReadVacuumAsync();
         Task<InvokeResult<long>> ReadLeftVacuumAsync();
@@ -257,6 +261,8 @@ namespace LagoVista.PickAndPlace.Interfaces
         /// <returns>True if you can transition occurred, false if it did not, if it did not a warning message will be written to the message output.</returns>
         bool SetMode(OperatingMode mode);
         
+        void DebugWriteLine(string message);
+
         /// <summary>
         /// Determine if there are enough bytes in the estimated machine buffer to send the next command based on the bytes required to send that command
         /// </summary>
@@ -322,7 +328,7 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         Task<InvokeResult<Point2D<double>>> GetCurrentLocationAsync(uint timeout = 2500);
 
-        Task<InvokeResult> SpinUntilIdleAsync(uint timeout = 2500);
+        Task<InvokeResult> SpinUntilIdleAsync(uint timeout = 2500, bool verbose = false);
 
         ObservableCollection<Models.StatusMessage> Messages { get; }
         ObservableCollection<Models.StatusMessage> SentMessages { get; }

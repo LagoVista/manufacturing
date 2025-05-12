@@ -130,7 +130,8 @@ namespace LagoVista.Manufacturing.Models
         ProbingHeightMap,
         ProbingHeight,
         AligningBoard,
-        Disconnected
+        Disconnected,
+        PlacingParts,
     }
 
     public enum StatusMessageTypes

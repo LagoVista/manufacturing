@@ -100,12 +100,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             Machine.VacuumPump = false;
 
+            Machine.SetMode(OperatingMode.Manual);
+
             JobVM.Placement.Reset();
             return Task.CompletedTask;
         }
 
         public async Task<InvokeResult> PlaceCycleAsync()
         {
+            Machine.SetMode(OperatingMode.PlacingParts);
+
             if (JobVM.CurrentComponent == null)
                 return InvokeResult.FromError("No current component");
 
@@ -114,8 +118,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             if (JobVM.Placement == null)
                 return InvokeResult.FromError("No placement");
-
-            Machine.RotateToolHead(360);
 
             var result = ResolveFeeder();
             if (!result.Successful) return result;
@@ -177,7 +179,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             result = await PcbVM.PlacePartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement);
             if (!result.Successful) return result;
 
-            Machine.RotateToolHead(360);
+            Machine.RotateToolHeadRelative(360);
 
             //result = await PcbVM.InspectPartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement);
             //if (!result.Successful) return result;
@@ -190,6 +192,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 result = await JobVM.CompletePlacementAsync();
                 if (!result.Successful) return result;
             }
+
+            Machine.SetMode(OperatingMode.Manual);
 
             return InvokeResult.Success;
         }

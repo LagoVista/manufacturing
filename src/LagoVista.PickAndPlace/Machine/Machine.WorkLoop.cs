@@ -82,6 +82,8 @@ namespace LagoVista.PickAndPlace
             _writer.Write('\n');
             _writer.Flush();
 
+            DebugWriteLine($"    [SEND] {send_line}");
+
             if (send_line != "M114")
             {
                 UpdateStatus(send_line.ToString());
@@ -136,11 +138,13 @@ namespace LagoVista.PickAndPlace
                         Settings.FirmwareType == FirmwareTypes.LagoVista ||
                         Settings.FirmwareType == FirmwareTypes.LagoVista_PnP)
                     {
-                        Enqueue("?", true);
+                        if (!_internalPendingQueue.Contains("?"))
+                            Enqueue("?", true);
                     }
                     else
                     {
-                        Enqueue("M114");
+                        if(!_internalPendingQueue.Contains("M114"))
+                            Enqueue("M114");
                     }
 
                     _lastPollTime = Now;
@@ -156,11 +160,13 @@ namespace LagoVista.PickAndPlace
                     {
                         if (Settings.FirmwareType == FirmwareTypes.GRBL1_1 && LocationUpdateEnabled || Settings.FirmwareType == FirmwareTypes.GRBL1_1_SL_Custom)
                         {
-                            Enqueue("?", true);
+                            if (!_internalPendingQueue.Contains("?"))
+                                Enqueue("?", true);
                         }
                         else
                         {
-                            Enqueue("M114");
+                            if (!_internalPendingQueue.Contains("M114"))
+                                Enqueue("M114");
                         }
 
                     }
@@ -174,11 +180,13 @@ namespace LagoVista.PickAndPlace
                 {
                     if (Settings.FirmwareType == FirmwareTypes.GRBL1_1 || Settings.FirmwareType == FirmwareTypes.GRBL1_1_SL_Custom)
                     {
-                        Enqueue("?", true);
+                        if (!_internalPendingQueue.Contains("?"))
+                            Enqueue("?", true);
                     }
                     else
                     {
-                        Enqueue("M114");
+                        if (!_internalPendingQueue.Contains("M114"))
+                            Enqueue("M114");
                     }
 
                     _lastPollTime = Now;
@@ -186,11 +194,7 @@ namespace LagoVista.PickAndPlace
             }
         }
 
-        private async Task QueryStatus()
-        {
-            SendQueryStatus();
-            await Task.Delay(_waitTime);
-        }
+   
 
         private bool ShouldSendNormalPriorityItems()
         {
@@ -205,7 +209,9 @@ namespace LagoVista.PickAndPlace
             }
         }
 
-        private async Task Send()
+        DateTime _nextSend = DateTime.MinValue;
+
+        private void Send()
         {
             SendHighPriorityItems();
 
@@ -228,13 +234,18 @@ namespace LagoVista.PickAndPlace
                     }                    
                 }
 
-                await QueryStatus();
+
+                if (Mode != OperatingMode.PlacingParts && _nextSend < DateTime.Now)
+                {
+                    SendQueryStatus();
+                    _nextSend = _nextSend.Add(_waitTime);
+                }
             }
         }
 
         String messageBuffer = String.Empty;
 
-        private async Task WorkLoop()
+        private void WorkLoop()
         {
             if (_reader.BaseStream.CanRead == false)
             {
@@ -253,7 +264,7 @@ namespace LagoVista.PickAndPlace
                         return;
                     }
 
-                    await Send();
+                    Send();
                 }
 
                 if (lineTask.IsCompleted)
@@ -293,7 +304,7 @@ namespace LagoVista.PickAndPlace
                         return;
                     }
 
-                    await Send();
+                    Send();
                 }
 
                 if (lineTask.IsCompleted)
@@ -331,7 +342,8 @@ namespace LagoVista.PickAndPlace
                 {
                     try
                     {
-                        await WorkLoop();
+                         WorkLoop();
+                        await Task.Delay(2);
                     }catch(Exception ex)
                     {
                         AddStatusMessage(StatusMessageTypes.FatalError, ex.Message);

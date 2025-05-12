@@ -88,7 +88,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public async Task<InvokeResult> AlignBoardAsync()
         {
-            lock(this)
+            var fullSW = Stopwatch.StartNew();
+            Machine.DebugWriteLine("----------------------");
+            Machine.DebugWriteLine("[AlignBoardAsync]");
+
+            lock (this)
             {
                 if(this._completed != null)
                 {
@@ -116,14 +120,24 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     SelectedFiducial = fiducial;
                     await Task.Run(async () =>
                     {
+                        var sw = Stopwatch.StartNew();
+                        Machine.DebugWriteLine("   ----------------");
                         Machine.GotoPoint(MachineConfiguration.DefaultWorkOrigin + SelectedFiducial.Expected);
-                        // Give it time to move so it's not picking up the previous found circle.
-                        await Task.Delay(1000);
+                        await Machine.SpinUntilIdleAsync();
+                        Machine.DebugWriteLine($"    Moved into position: {sw.Elapsed.TotalMilliseconds}");
+                        
                         _locatorViewModel.RegisterCircleLocatedHandler(this);
                         int attemptCount = 0;
 
                         while (!_completed.IsSet && ++attemptCount < 200)
                             _completed.Wait(25);
+
+                        if(_completed.IsSet)
+                          Machine.DebugWriteLine($"    SUCCESS: Found Fiducial in {sw.Elapsed.TotalMilliseconds}ms");
+                        else
+                          Machine.DebugWriteLine($"    FAILED: Did not find fiducial in {sw.Elapsed.TotalMilliseconds}ms");
+
+                        Machine.DebugWriteLine("   ----------------");
                     });
                 }
                 catch(Exception ex)
@@ -154,8 +168,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Machine.AddStatusMessage(StatusMessageTypes.Info, "Board calibrated.");
                 Machine.GotoPoint(MachineConfiguration.DefaultWorkOrigin);
 
-                Debug.WriteLine($"Expected: {expectedDegrees}; Actual: {actualDegrees}, Scale Error: {this.ScalingError}");
                 IsBoardAligned = true;
+
+                Machine.DebugWriteLine($"[AlignBoardAsync] SUCCESS - {expectedDegrees}; Actual: {actualDegrees}, Scale Error: {this.ScalingError} in {fullSW.Elapsed.TotalMilliseconds}ms");
+                Machine.DebugWriteLine("----------------------");
+
                 return InvokeResult.Success;
             }
             else
@@ -166,6 +183,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 {
                     fiducial.Actual = null;
                 }
+
+                Machine.DebugWriteLine($"[AlignBoardAsync] FAILED - {fullSW.Elapsed.TotalMilliseconds}ms");
+                Machine.DebugWriteLine("----------------------");
+
                 return InvokeResult.FromError("Could not find all fiducials and calibrate the board.");
             }            
         }

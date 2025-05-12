@@ -142,15 +142,28 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public async Task<InvokeResult> PickCurrentPartAsync(PickAndPlaceJobPlacement placement = null)
         {
+            var fullSW = Stopwatch.StartNew();
+            var sw = Stopwatch.StartNew();
+            Machine.DebugWriteLine("---------------------------");
+            Machine.DebugWriteLine("[PickCurrentPartAsync]");
+
             if (CurrentComponent == null)
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "No current part selected, can not pick.");
+                _pickStates = PickStates.Idle;
+
+                Machine.DebugWriteLine("[Failed] - No Current Component");
+                Machine.DebugWriteLine("---------------------------");
                 return InvokeResult.FromError("No current part selected, can not pick.");
             }
 
             if (CurrentComponent.ComponentPackage == null)
             {
-                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Current part does not have a package, can not place..");
+                Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Current part does not have a package, can not place.");
+                _pickStates = PickStates.Idle;
+
+                Machine.DebugWriteLine("[Failed] - No Current Component Package");
+                Machine.DebugWriteLine("---------------------------");
                 return InvokeResult.FromError("Current part does not have a package, can not place.");
             }
 
@@ -159,11 +172,18 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not identify location of current part.");
                 _pickStates = PickStates.Idle;
+
+
+                Machine.DebugWriteLine("[Failed] - No Current Location");
+                Machine.DebugWriteLine("---------------------------");
+
                 return InvokeResult.FromError("Could not identify location of current part.");
             }
 
             Machine.SendSafeMoveHeight();
             await Machine.SpinUntilIdleAsync();
+            Machine.DebugWriteLine($"[PickCurrentPartAsync] - Safe Move Height {sw.Elapsed.TotalMilliseconds}");
+            sw.Restart();
 
             if (CurrentComponent.ComponentPackage.HasValue)
             {
@@ -181,42 +201,74 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             else
                 await Machine.MoveToToolHeadAsync(MachineConfiguration.ToolHeads.First());
 
+            Machine.DebugWriteLine($"[PickCurrentPartAsync] - Set Tool Head {sw.Elapsed.TotalMilliseconds}");
+            sw.Restart();
+
+            Machine.ClearToolHeadAngle();
+           
             if (placement != null)
                 placement.State = EntityHeader<PnPStates>.Create(PnPStates.SetToolHead); 
 
             var location = CurrentPartLocation + CurrentComponentPackage.PickOffset;
             Machine.SendCommand(location.ToGCode());
-            if (null != _feederOffset)
+            await Machine.SpinUntilIdleAsync();
+            Machine.DebugWriteLine($"[PickCurrentPartAsync] - Moved to Location {sw.Elapsed.TotalMilliseconds}");
+            sw.Restart();
+
+            if (null != _feederOffset && !_feederOffset.IsOrigin())
             {
                 Machine.SetRelativeMode();
                 Machine.SendCommand(_feederOffset.ToGCode());
                 Machine.SetAbsoluteMode();
-            }
 
-            await Machine.SpinUntilIdleAsync();
+                await Machine.SpinUntilIdleAsync();
+                Machine.DebugWriteLine($"[PickCurrentPartAsync] - Applied Feeder Offset {sw.Elapsed.TotalMilliseconds}");
+                sw.Restart();
+            }
 
             if (placement != null)
                 placement.State = EntityHeader<PnPStates>.Create(PnPStates.AtFeeder);
 
-
             if (PickHeight.HasValue)
+            {
                 Machine.SetToolHeadHeight(PickHeight.Value);
+                await Machine.SpinUntilIdleAsync();
+                Machine.DebugWriteLine($"[PickCurrentPartAsync] - Moved to Pick Height {sw.Elapsed.TotalMilliseconds}");
+                sw.Restart();
+            }
+            else
+            {
+                Machine.DebugWriteLine($"[PickCurrentPartAsync] - !!! No Pick HNeight defined, probably trouble very likley ahead!");
 
-            await Machine.SpinUntilIdleAsync();
+            }
 
             if (placement != null)
                 placement.State = EntityHeader<PnPStates>.Create(PnPStates.AtPickHeight);
 
             Machine.VacuumPump = true;
-            Machine.Dwell(100);
+            await Machine.SpinUntilIdleAsync();
+            Machine.DebugWriteLine($"[PickCurrentPartAsync] - Turned on vacuum pump {sw.Elapsed.TotalMilliseconds}");
+            sw.Restart();
+
+            await Task.Delay(100);
+            await Machine.SpinUntilIdleAsync();
+            Machine.DebugWriteLine($"[PickCurrentPartAsync] - Give a vacuum a little time {sw.Elapsed.TotalMilliseconds}");
+            sw.Restart();
+
             Machine.SendSafeMoveHeight();
 
             await Machine.SpinUntilIdleAsync();
+            Machine.DebugWriteLine($"[PickCurrentPartAsync] - Moved to safe move height {sw.Elapsed.TotalMilliseconds}");
+            sw.Restart();
 
             if (placement != null)
                 placement.State = EntityHeader<PnPStates>.Create(PnPStates.AtMoveHeight);
 
             _pickStates = PickStates.Picked;
+
+            Machine.DebugWriteLine($"[PickCurrentPartAsync] - {fullSW.Elapsed.TotalMilliseconds} ms ");
+            Machine.DebugWriteLine("---------------------------");
+
 
             return InvokeResult.Success;
         }

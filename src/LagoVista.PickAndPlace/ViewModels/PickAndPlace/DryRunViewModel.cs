@@ -8,6 +8,7 @@ using LagoVista.PickAndPlace.Models;
 using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 
 namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
@@ -123,6 +124,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public async void CheckPartPresent()
         {
+            Machine.SetMode(OperatingMode.PlacingParts);
+
             var result = await VacuumViewModel.CheckPartPresent(JobVM.CurrentComponent, 1000, JobVM.CurrentComponentPackage.PresenseVacuumOverride);
             if (result.Successful)
             {
@@ -134,11 +137,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 LastActionSuccess = false;
                 LastStatus = result.ErrorMessage;
             }
+
+            Machine.SetMode(OperatingMode.Manual);
         }
 
         public async void CheckNoPartPresent()
         {
-             var result = await VacuumViewModel.CheckNoPartPresent(JobVM.CurrentComponent, 1000);
+            Machine.SetMode(OperatingMode.PlacingParts);
+
+            var result = await VacuumViewModel.CheckNoPartPresent(JobVM.CurrentComponent, 1000);
             if (result.Successful)
             {
                 LastActionSuccess = true;
@@ -149,6 +156,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 LastActionSuccess = false;
                 LastStatus = result.ErrorMessage;
             }
+
+            Machine.SetMode(OperatingMode.Manual);
         }
 
         public string _lastStatus;
@@ -165,13 +174,19 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             set => Set(ref _lastActionSuccess, value);
         }
         
-        public void PickPart()
+        public async void PickPart()
         {
+           
+
+            Machine.SetMode(OperatingMode.PlacingParts);
+            
             var result = ResolveFeeder();
             if (!result.Successful)
                 Machine.AddStatusMessage(Manufacturing.Models.StatusMessageTypes.FatalError, result.ErrorMessage);
             else
-                ActiveFeederViewModel.PickPartAsync(JobVM.CurrentComponent);            
+                await ActiveFeederViewModel.PickPartAsync(JobVM.CurrentComponent);
+
+            Machine.SetMode(OperatingMode.Manual);
         }
 
         public async void CenterInspectedPart()
@@ -186,7 +201,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public void InspectPart()
         {
-            PartInspectionVM.InspectAsync(JobVM.CurrentComponent);            
+            Machine.SetMode(OperatingMode.PlacingParts);
+
+            PartInspectionVM.InspectAsync(JobVM.CurrentComponent);
+
+            Machine.SetMode(OperatingMode.Manual);
         }
 
         public void RecyclePart()

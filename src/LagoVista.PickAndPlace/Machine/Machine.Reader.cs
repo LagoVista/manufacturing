@@ -43,6 +43,7 @@ namespace LagoVista.PickAndPlace
                             {
                                 var sentLine = _sentQueue.Dequeue();
                                 UnacknowledgedBytesSent -= (sentLine.Length + 1);
+                                
                             }
                         }
 
@@ -56,10 +57,12 @@ namespace LagoVista.PickAndPlace
                 {
                     lock (_queueAccessLocker)
                     {
-                        if (PendingQueue.Count > 0)
+                        if (_internalPendingQueue.Count > 0)
                         {
                             if (Settings.FirmwareType == FirmwareTypes.Repeteir_PnP || Settings.FirmwareType == FirmwareTypes.LumenPnP_V4_Marlin)
                             {
+                                DebugWriteLine($"    [RECV] {fullMessageLine} - {_internalPendingQueue[0]}");
+                                _internalPendingQueue.RemoveAt(0);
                                 Services.DispatcherServices.Invoke(() =>
                                 {
                                     PendingQueue.RemoveAt(0);
@@ -77,6 +80,8 @@ namespace LagoVista.PickAndPlace
                                     {
                                         Debug.WriteLine($"MATCH =D -> TOP ITEM {PendingQueue[0]} - {code} ");
 
+                                        DebugWriteLine($"    [RECV] {fullMessageLine} - {_internalPendingQueue[0]}");
+                                        _internalPendingQueue.RemoveAt(0);
                                         Services.DispatcherServices.Invoke(() =>
                                         {
                                             PendingQueue.RemoveAt(0);
@@ -104,6 +109,7 @@ namespace LagoVista.PickAndPlace
             }
             else if (fullMessageLine != null)
             {
+                DebugWriteLine($"    [RECV] {fullMessageLine}");
                 if (fullMessageLine == "wait")
                 {
                     if(_isOnHold)
@@ -294,8 +300,6 @@ namespace LagoVista.PickAndPlace
             {
                 return;
             }
-
-            Debug.WriteLine(line);
 
             ParseMessage(line);
 

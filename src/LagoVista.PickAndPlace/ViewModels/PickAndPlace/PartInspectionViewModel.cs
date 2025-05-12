@@ -34,20 +34,26 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public async Task<InvokeResult> InspectAsync()
         {
+            var sw = Stopwatch.StartNew();
             if(CurrentComponent == null)
             {
                 return InvokeResult.FromError("Current Component is required.");
             }
-
-            
+ 
             Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
             await Machine.GoToPartInspectionCameraAsync();
+            await Machine.SpinUntilIdleAsync();
+            Machine.DebugWriteLine($"[InspectAsync] - Moved to position: {sw.Elapsed.TotalMilliseconds}");
+            sw.Restart();
 
             if (!CurrentComponent.ComponentPackage.Value.PickOffset.IsOrigin())
             {
                 Machine.SetRelativeMode();
                 Machine.SendCommand(CurrentComponent.ComponentPackage.Value.PickOffset.ToGCode());
                 Machine.SetAbsoluteMode();
+                await Machine.SpinUntilIdleAsync();
+                Machine.DebugWriteLine($"[InspectAsync] - Adjusted focus height: {sw.Elapsed.TotalMilliseconds}");
+                sw.Restart();
             }
 
             return InvokeResult.Success;
@@ -55,6 +61,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
        
         public async Task<InvokeResult> CenterPartAsync(Component component, PickAndPlaceJobPlacement placement, string algorithm, double? rotation = null)
         {
+            var fullSW = Stopwatch.StartNew();
+            var sw = Stopwatch.StartNew();
+            Machine.DebugWriteLine("--------------------------");
+            Machine.DebugWriteLine("[CenterPart]");
+
             lock (this)
             {
                 if (_waitForCenter != null)
@@ -67,12 +78,17 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             await Machine.GoToPartInspectionCameraAsync(rotation);
             await Machine.SpinUntilIdleAsync();
-         
+            Machine.DebugWriteLine($"[CenterPart] - Moved to Inspection Camera {sw.Elapsed.TotalMilliseconds} ms");
+
             if (!component.ComponentPackage.Value.PickOffset.IsOrigin())
             {
                 Machine.SetRelativeMode();
                 Machine.SendCommand(component.ComponentPackage.Value.PickOffset.ToGCode());
                 Machine.SetAbsoluteMode();
+
+                await Machine.SpinUntilIdleAsync();
+                Machine.DebugWriteLine($"[CenterPart] - Adjusted focus height: {sw.Elapsed.TotalMilliseconds}");
+                sw.Restart();
             }
 
             _corectionFactor = new Point2D<double>();
@@ -83,6 +99,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfileSource.ComponentPackage, component.ComponentPackage.Id, component.ComponentPackage.Value.PartInspectionVisionProfile);
             else
                 Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
+           
+            Machine.DebugWriteLine($"[CenterPart] - Set Vision Profile: {sw.Elapsed.TotalMilliseconds}");
+            sw.Restart();
 
             _waitForCenter = new ManualResetEventSlim(false);
             _locatorViewModel.RegisterRectangleLocatedHandler(this,10000);
@@ -94,8 +113,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 var attemptCount = 0;
                 while (!_waitForCenter.IsSet && ++attemptCount < 1000)
                     _waitForCenter.Wait(25);
-
-                Debug.WriteLine($"Did we get location? {_waitForCenter.IsSet}");
             });
 
             placement.State = EntityHeader<PnPStates>.Create(PnPStates.Inspected);
@@ -109,15 +126,38 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if(!success)
             {
                 Machine.AddStatusMessage(StatusMessageTypes.Warning, "Couldn't find rectangle to center.");
+                Machine.DebugWriteLine($"[CenterPart] - Did not find part: {fullSW.Elapsed.TotalMilliseconds}");
+                sw.Restart();
+            }
+            else
+            {
+                Machine.DebugWriteLine($"[CenterPart] - Found Part: {fullSW.Elapsed.TotalMilliseconds}");
+                sw.Restart();
+           
+                Machine.SendSafeMoveHeight();
+                await Machine.SpinUntilIdleAsync();
+                Machine.DebugWriteLine($"[CenterPart] - Moved back to Safe Height: {fullSW.Elapsed.TotalMilliseconds}");
+                sw.Restart();
             }
 
             placement.PickErrorOffset = _corectionFactor;
-            
+
+            if(success)
+                Machine.DebugWriteLine($"[CenterPart] SUCCESS: {sw.Elapsed.TotalMilliseconds} ms");
+            else
+                Machine.DebugWriteLine($"[CenterPart] FALED: {sw.Elapsed.TotalMilliseconds} ms");
+
+            Machine.DebugWriteLine("--------------------------");
+
             return success ? InvokeResult.Success : InvokeResult.FromError("Timeout centering part.");
         }
 
-        public Task<InvokeResult> InspectAsync(Component component)
+        public async Task<InvokeResult> InspectAsync(Component component)
         {
+            var sw = Stopwatch.StartNew();
+            Machine.DebugWriteLine("--------------------------");
+            Machine.DebugWriteLine("[InspectAsync]");
+
             CurrentComponent = component;
 
             if (component.ComponentPackage.Value.PartInspectionVisionProfile != null)
@@ -125,7 +165,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             else
                 Machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
 
-            return InspectAsync();
+            var result = await InspectAsync();
+
+            if(result.Successful) 
+                Machine.DebugWriteLine($"[InspectAsync] SUCCESS: Inspected in {sw.Elapsed.TotalMilliseconds}");
+            else
+                Machine.DebugWriteLine($"[InspectAsync] FAILED: Inspected in {sw.Elapsed.TotalMilliseconds}");
+
+            Machine.DebugWriteLine("--------------------------");
+
+            return result;
         }
 
         public void RectangleLocated(MVLocatedRectangle rectangleLocated)

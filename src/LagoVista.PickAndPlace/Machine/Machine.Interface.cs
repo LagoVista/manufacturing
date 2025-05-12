@@ -1,4 +1,5 @@
 ﻿using Emgu.CV.CvEnum;
+using Emgu.CV.Structure;
 using LagoVista.Client.Core.Models;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
@@ -249,6 +250,7 @@ namespace LagoVista.PickAndPlace
                     _toSend.Clear();
                     _toSendPriority.Clear();
                     _sentQueue.Clear();
+                    _internalPendingQueue.Clear();
                     PendingQueue.Clear();
                     if (Settings.FirmwareType == FirmwareTypes.GRBL1_1 || Settings.FirmwareType == FirmwareTypes.GRBL1_1_SL_Custom)
                         _toSendPriority.Enqueue(((char)0x18).ToString());
@@ -263,6 +265,12 @@ namespace LagoVista.PickAndPlace
 
                 UnacknowledgedBytesSent = 0;
             }
+        }
+
+        public void DebugWriteLine(string msg)
+        {
+            var now = DateTime.Now;
+            Debug.WriteLine($"[{now.Hour:00}:{now.Minute:00}:{now.Second:00}.{now.Millisecond:0000}] {msg}");
         }
 
         public void Enqueue(String cmd, bool highPriority = false)
@@ -282,35 +290,39 @@ namespace LagoVista.PickAndPlace
 
             if (AssertConnected())
             {
-                Services.DispatcherServices.Invoke(() =>
-                {
                     lock (_queueAccessLocker)
                     {
-                        foreach (var cmd in cmds)
+                        foreach (var gCodeCommands in cmds)
                         {
                             if (highPriority)
                             {
-                                _toSendPriority.Enqueue(cmd);
+                                DebugWriteLine($"    [PRIORITYSEND] {gCodeCommands}");
+                                _toSendPriority.Enqueue(gCodeCommands);
                             }
                             else
                             {
                                 if (_toSend.Count < 255)
                                 {
-                                    if (String.IsNullOrEmpty(cmd))
+                                    if (String.IsNullOrEmpty(gCodeCommands))
                                         return;
 
-                                    Debug.WriteLine(cmd);
-                                    _toSend.Enqueue(cmd.Trim());
-                                    if (Settings.FirmwareType == FirmwareTypes.LagoVista_PnP ||
-                                        Settings.FirmwareType == FirmwareTypes.SimulatedMachine ||
-                                        Settings.FirmwareType == FirmwareTypes.LumenPnP_V4_Marlin ||
-                                        Settings.FirmwareType == FirmwareTypes.Repeteir_PnP)
-                                        PendingQueue.Add(cmd);
+                                    _toSend.Enqueue(gCodeCommands.Trim());
+                                if (Settings.FirmwareType == FirmwareTypes.LagoVista_PnP ||
+                                    Settings.FirmwareType == FirmwareTypes.SimulatedMachine ||
+                                    Settings.FirmwareType == FirmwareTypes.LumenPnP_V4_Marlin ||
+                                    Settings.FirmwareType == FirmwareTypes.Repeteir_PnP)
+                                {
+                                    _internalPendingQueue.Add(gCodeCommands);
+
+                                    Services.DispatcherServices.Invoke(() =>
+                                    {
+                                        PendingQueue.Add(gCodeCommands);
+                                    });
+                                    }
                                 }
                             }
                         }
                     }
-                    });
             }
         }
 
@@ -395,8 +407,11 @@ namespace LagoVista.PickAndPlace
             Enqueue("M59");
         }
 
-        public void HomingCycle()
+        public async void HomingCycle()
         {
+            var sw = Stopwatch.StartNew();
+            DebugWriteLine("-------------------------");
+
             SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_Defauilt);
             SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_Defauilt);
 
@@ -409,6 +424,8 @@ namespace LagoVista.PickAndPlace
             RightVacuumPump = false;
             _currentMachineToolHead = null;
             RaisePropertyChanged(nameof(CurrentMachineToolHead));
+
+            Enqueue("G92 A0 B0");
 
             if (Settings.FirmwareType == FirmwareTypes.GRBL1_1 || Settings.FirmwareType == FirmwareTypes.GRBL1_1_SL_Custom)
             {
@@ -428,7 +445,12 @@ namespace LagoVista.PickAndPlace
                 }
             }
 
+            await SpinUntilIdleAsync();
+
             WasMachineHomed = true;
+
+            DebugWriteLine($"[HomingCycle] Completed in {sw.Elapsed.TotalMilliseconds} ms");
+            DebugWriteLine("-------------------------");
         }
 
         public void SetToolHeadHeight(double height)
@@ -440,16 +462,16 @@ namespace LagoVista.PickAndPlace
             }
 
             if (_leftToolHead)
-                Enqueue($"G0 ZL{height}");
+                Enqueue($"G0 ZL{height} F40000");
             else
-                Enqueue($"G0 ZR{height}");
+                Enqueue($"G0 ZR{height} F40000");
         }        
 
-        public void RotateToolHead(double angle)
+        public void RotateToolHeadRelative(double angle)
         {
             if (CurrentMachineToolHead == null)
             {
-                AddStatusMessage(StatusMessageTypes.FatalError, "to call RotateToolHead, need to have a current tool head selected.");
+                AddStatusMessage(StatusMessageTypes.FatalError, "to call RotateToolHeadRelative, need to have a current tool head selected.");
                 return;
             }
 
@@ -464,6 +486,42 @@ namespace LagoVista.PickAndPlace
             }
             SetAbsoluteMode();
          }
+
+        public void RotateToolHeadAngleAbsolute(double angle)
+        {
+            if (CurrentMachineToolHead == null)
+            {
+                AddStatusMessage(StatusMessageTypes.FatalError, "to call SetToolHeadAngleAbsolute, need to have a current tool head selected.");
+                return;
+            }
+
+            if (_leftToolHead)
+            {
+                Enqueue($"G0 A{angle}");
+            }
+            else
+            {
+                Enqueue($"G0 B{angle}");
+            }
+        }
+
+        public void ClearToolHeadAngle()
+        {
+            if (CurrentMachineToolHead == null)
+            {
+                AddStatusMessage(StatusMessageTypes.FatalError, "to call ClearToolHeadAngle, need to have a current tool head selected.");
+                return;
+            }
+
+            if (_leftToolHead)
+            {
+                Enqueue($"G0 A0");
+            }
+            else
+            {
+                Enqueue($"G0 B0");
+            }
+        }
 
         public async Task<InvokeResult<long>> ReadVacuumAsync()
         {

@@ -4,6 +4,7 @@ using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels.Machine
@@ -111,6 +112,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         public async Task<InvokeResult> CheckPartPresent(Component component, int timeoutMS, ulong? vacuumOverride)
         {
+            var sw = Stopwatch.StartNew();
+            Machine.DebugWriteLine("-----------------------------");
+            Machine.DebugWriteLine($"[CheckPartPresent] - Start");
             if (Machine.CurrentMachineToolHead == null)
             {
                 ToolHead = null;
@@ -143,8 +147,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
                     if (Vacuum > Threshold)
                     {
+                        Machine.DebugWriteLine($"[CheckPartPresent] Success in {sw.Elapsed.TotalMilliseconds} ms ");
+                        Machine.DebugWriteLine("-----------------------------");
                         return InvokeResult.Success;
-
                     }
                 }
 
@@ -152,8 +157,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
 
             if (Vacuum != null)
-                return InvokeResult.FromError($"Part Not Detected Pressure Detected {Vacuum}, Expected {Threshold}.");
+            {
 
+                Machine.DebugWriteLine("-----------------------------");
+                return InvokeResult.FromError($"Part Not Detected Pressure Detected {Vacuum}, Expected {Threshold}.");
+            }
+
+
+            Machine.DebugWriteLine("-----------------------------");
             return InvokeResult.FromError($"Could not read vacuum.");
         }
 

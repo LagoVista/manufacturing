@@ -25,6 +25,7 @@ namespace LagoVista.PickAndPlace
                 return;
             }
 
+
             if (Settings.FirmwareType == FirmwareTypes.LagoVista_PnP)
             {
                 _viewType = viewType;
@@ -357,7 +358,8 @@ namespace LagoVista.PickAndPlace
                 if (_unacknowledgedBytesSent == value)
                     return;
 
-                _unacknowledgedBytesSent = value;
+
+                _unacknowledgedBytesSent = System.Math.Max(0, value);
 
                 Busy = _unacknowledgedBytesSent > 0;
 
