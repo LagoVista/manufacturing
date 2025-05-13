@@ -74,7 +74,9 @@
                     <StackPanel Grid.Row="1" Grid.Column="1" Margin="10">
                         <ui:Picker Model="{Binding Current}" FieldName="TapeSize" />
                         <ui:Picker Model="{Binding Current}" FieldName="Orientation" />
-                        <ui:Point2D Model="{Binding Current}" FieldName="ReferenceHoleOffset" />
+                        <ui:Point2D Model="{Binding Current}" FieldName="MountingHoleOffset" />
+                        <ui:Point2D Model="{Binding Current}" FieldName="BottomLeftRow1Margin" />
+                        <ui:Point2D Model="{Binding Current}" FieldName="TapeReferenceHoleOffset" />
                     </StackPanel>
                     <StackPanel Grid.Row="1" Grid.Column="2" Margin="10">
                         <Grid >
@@ -117,8 +119,6 @@
                             <TextBlock Text="Tape Holes on Top (when feeder is horizontal)" Style="{StaticResource label}"></TextBlock>
                             <CheckBox IsChecked="{Binding Current.TapeHolesOnTop}" />
                         </StackPanel>
-
-
                     </StackPanel>
                 </Grid>
 
@@ -127,9 +127,9 @@
                 <DataGrid ItemsSource="{Binding Current.Rows}" AutoGenerateColumns="False"  IsReadOnly="true" SelectedItem="{Binding CurrentRow}" CanUserAddRows="false">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Idx" Width="80" Binding="{Binding RowIndex}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Current Idx" Width="120" Binding="{Binding CurrentPartIndex}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Part Capacity" Width="120" Binding="{Binding PartCapacity}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Component" Width="200" Binding="{Binding Component}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Current Idx" Width="150" Binding="{Binding CurrentPartIndex}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Part Capacity" Width="200" Binding="{Binding PartCapacity}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Component" Width="*" Binding="{Binding Component}"></DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
 
@@ -172,7 +172,7 @@
                         </StackPanel>
                         <StackPanel  Visibility="{Binding CurrentRow.Component , Converter={StaticResource NoTNullToVisibilityConverter}}">
                             <TextBlock Style="{StaticResource header}" Text="Feeder Row Alignment"></TextBlock>
-                            <TextBlock Style="{StaticResource content}" Text="The first tape hope should to be selected in the tape should be 2.0mm before the centerline of the part. " TextWrapping="Wrap" />
+                            <TextBlock Style="{StaticResource content}" Height="60" Text="The first tape hope should to be selected in the tape should be 2.0mm before the centerline of the part. " TextWrapping="Wrap" />
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Style="{StaticResource label}" Text="Move via calculated for approximate location:"></TextBlock>
                                 <CheckBox VerticalAlignment="Center" ToolTip="If this is checked, the move will go to the place where the tape hole is expected to be, otherwise it will be the actual value." IsChecked="{Binding UseCalculated }"></CheckBox>
@@ -183,12 +183,12 @@
                                     <TextBlock Style="{StaticResource label}" Text="First Tape Hole"></TextBlock>
                                     <TextBlock Style="{StaticResource content}" Text="{Binding CurrentRow.FirstTapeHoleOffset}"></TextBlock>
                                     <StackPanel Orientation="Horizontal">
-                                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetFirstFeederReferenceHoleCommand}"  ToolTip="Set Reference Hole for Feeder Row" Width="64" Height="64"  >
+                                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetFirstFeederReferenceHoleCommand}"  ToolTip="Set actual first tape hole" Width="64" Height="64"  >
                                             <Button.Content>
                                                 <Image Source="/imgs/SetTarget.png"/>
                                             </Button.Content>
                                         </Button>
-                                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToFirstFeederReferenceHoleCommand}"  ToolTip="Move To Reference Hole for Feeder Row" Width="64" Height="64"  >
+                                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToFirstFeederReferenceHoleCommand}"  ToolTip="Move to first tape hole" Width="64" Height="64"  >
                                             <Button.Content>
                                                 <Image Source="/imgs/MoveToTarget.png"/>
                                             </Button.Content>

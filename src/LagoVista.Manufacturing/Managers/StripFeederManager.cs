@@ -64,11 +64,11 @@ namespace LagoVista.Manufacturing.Managers
                 Color = template.Color,
                 OriginalTemplate = template.ToEntityHeader(),
                 OwnerOrganization = org,
-                RowOneRefHoleOffset = template.RowOneRefHoleOffset,
+                BottomLeftRow1Margin = template.BottomLeftRow1Margin,
                 Width = template.Width,
                 Height = template.Height,
                 Length = template.Length,
-                ReferenceHoleOffset = template.ReferenceHoleOffset,
+                TapeReferenceHoleOffset = template.TapeReferenceHoleOffset,
                 RowCount = template.RowCount,
                 RowWidth = template.RowWidth,
             };
@@ -84,8 +84,10 @@ namespace LagoVista.Manufacturing.Managers
                 {
                     Id = Guid.NewGuid().ToId(),
                     RowIndex = idx + 1,
-                    FirstTapeHoleOffset = new Core.Models.Drawing.Point2D<double>(template.RowOneRefHoleOffset.Y, (idx * feeder.RowWidth) + (template.RowOneRefHoleOffset.X +(feeder.TapeSize.ToDouble() - 1.5))),
-                    LastTapeHoleOffset = new Core.Models.Drawing.Point2D<double>(template.RowOneRefHoleOffset.Y + deltaX, (idx * feeder.RowWidth) + (template.RowOneRefHoleOffset.X + (feeder.TapeSize.ToDouble() - 1.5))),
+                    FirstTapeHoleOffset = new Core.Models.Drawing.Point2D<double>(template.TapeReferenceHoleOffset.X + template.BottomLeftRow1Margin.X, 
+                        template.BottomLeftRow1Margin.Y + (idx * feeder.RowWidth) + (template.TapeReferenceHoleOffset.Y +(feeder.TapeSize.ToDouble() - 1.5))),
+                    LastTapeHoleOffset = new Core.Models.Drawing.Point2D<double>(template.TapeReferenceHoleOffset.X + template.BottomLeftRow1Margin.X + deltaX, 
+                        template.BottomLeftRow1Margin.Y + (idx * feeder.RowWidth) + (template.TapeReferenceHoleOffset.Y + (feeder.TapeSize.ToDouble() - 1.5))),
                     CurrentPartIndex = 1,
                 });
             }

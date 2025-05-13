@@ -860,8 +860,8 @@
   <data name="Common_Color" xml:space="preserve">
     <value>Color</value>
   </data>
-  <data name="StripFeeder_RowOneRefHoleOffset" xml:space="preserve">
-    <value>Row One - Tap Hole Offset from Origin</value>
+  <data name="StripFeeder_TapeReferenceHoleOffset" xml:space="preserve">
+    <value>Offset from left edge of the feeder row </value>
   </data>
   <data name="MachineStagingPlate_HolesStaggered" xml:space="preserve">
     <value>Holes Staggered</value>
@@ -869,7 +869,7 @@
   <data name="MachineStagingPlate_HolesStaggered_Help" xml:space="preserve">
     <value>This is true if the the holes are diagonally aligned, this is false if the holes are in solid lines.</value>
   </data>
-  <data name="StripFeeder_RowOneRefHoleOffset_Help" xml:space="preserve">
+  <data name="StripFeeder_TapeReferenceHoleOffset_Help" xml:space="preserve">
     <value>The offset from the origin or bottom left of the feeder to the reference hole for the first row, assuming that the the tape holes are in the top of the feeder.</value>
   </data>
   <data name="StripFeeder_AngleOffset_Help" xml:space="preserve">
@@ -1016,11 +1016,11 @@
   <data name="MachineStagingPlate_ReferenceHoleLocation_Help" xml:space="preserve">
     <value>XY Coodinate of the center of the refrence hole to identify staging plate location. This is generally set via machine vision and not through the web interface.  Two points are used to compensate for installation angle errors.</value>
   </data>
-  <data name="StripFeeder_ReferenceHoleOffset" xml:space="preserve">
+  <data name="StripFeeder_MountingHoleOffset" xml:space="preserve">
     <value>Mounting Hole Offset</value>
   </data>
-  <data name="StripFeeder_ReferenceHoleOffset_Help" xml:space="preserve">
-    <value>Provide the XY offset from the bottom left origin of the strip feeder to the reference hole location.  This is assuming that the feeder is horizontal and is used to determine where the feeder origin is located.</value>
+  <data name="StripFeeder_MountingHoleOffset_Help" xml:space="preserve">
+    <value>Provide the XY offset from the bottom left origin of the strip feeder to the reference hole location.  This is assuming that the feeder is horizontal, this also assumes that the tape hole is on the bottom of the tape.  It is is used to determine where the feeder origin is located.</value>
   </data>
   <data name="StripFeeder_ReferenceHole_Row" xml:space="preserve">
     <value>Mounting Reference Hole Row</value>
@@ -1915,5 +1915,11 @@
   </data>
   <data name="VisionProfile_KnownLocation" xml:space="preserve">
     <value>Known Location</value>
+  </data>
+  <data name="StripFeeder_BottomLeftRow1Margin" xml:space="preserve">
+    <value>Bottom Left Row One Margin</value>
+  </data>
+  <data name="StripFeeder_BottomLeftRow1Margin_Help" xml:space="preserve">
+    <value>The offset from the bottom left of the feeder to the orgiin of row 1, in most cases this will be 0x0.</value>
   </data>
 </root>

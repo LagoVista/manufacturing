@@ -58,7 +58,6 @@ namespace LagoVista.Manufacturing.Models
             RowWidth = 12;
             Orientation = EntityHeader<FeederOrientations>.Create(FeederOrientations.Horizontal);
             FeedDirection = EntityHeader<FeedDirections>.Create(FeedDirections.Forward);
-            RowOneRefHoleOffset = new Point2D<double>() { X = 3, Y = 3 };
         }
 
 
@@ -109,13 +108,23 @@ namespace LagoVista.Manufacturing.Models
             FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
         public string FeederId { get; set; }
 
-        private Point2D<double> _rowOneRefHoleOffset = new Point2D<double>(3, 3);
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_RowOneRefHoleOffset, HelpResource:ManufacturingResources.Names.StripFeeder_RowOneRefHoleOffset_Help, FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public Point2D<double> RowOneRefHoleOffset 
+
+        private Point2D<double> _bottomLeftRow1Margin = new Point2D<double>(0,0);
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_BottomLeftRow1Margin, HelpResource: ManufacturingResources.Names.StripFeeder_BottomLeftRow1Margin_Help, FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> BottomLeftRow1Margin
         {
-            get => _rowOneRefHoleOffset;
-            set => Set(ref _rowOneRefHoleOffset, value);
+            get => _bottomLeftRow1Margin;
+            set => Set(ref _bottomLeftRow1Margin, value);
         }
+
+        Point2D<double> _tapeReferenceHoleOffset = new Point2D<double>();
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_TapeReferenceHoleOffset, HelpResource: ManufacturingResources.Names.StripFeeder_TapeReferenceHoleOffset_Help, FieldType: FieldTypes.Point2D, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> TapeReferenceHoleOffset
+        {
+            get => _tapeReferenceHoleOffset;
+            set => Set(ref _tapeReferenceHoleOffset, value);
+        }
+
 
         private double _rowWidth;
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_RowWidth, 
@@ -238,12 +247,12 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _referenceHoleRow, value);
         }
 
-        Point2D<double> _referenceHoleOffset = new Point2D<double>();
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_ReferenceHoleOffset, HelpResource: ManufacturingResources.Names.StripFeeder_ReferenceHoleOffset_Help, FieldType: FieldTypes.Point2D, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
-        public Point2D<double> ReferenceHoleOffset
+        Point2D<double> _mountingHoleOffset = new Point2D<double>();
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_MountingHoleOffset, HelpResource: ManufacturingResources.Names.StripFeeder_MountingHoleOffset_Help, FieldType: FieldTypes.Point2D, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> MountingHoleOffset
         {
-            get => _referenceHoleOffset;
-            set => Set(ref _referenceHoleOffset, value);
+            get => _mountingHoleOffset;
+            set => Set(ref _mountingHoleOffset, value);
         }
 
         public List<string> GetFormFields()
@@ -319,9 +328,10 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Color),
                 nameof(Description),
                 nameof(PickHeight),
-                nameof(RowOneRefHoleOffset),
                 nameof(Origin),
                 nameof(OriginOffset),
+                nameof(BottomLeftRow1Margin),
+                nameof(TapeReferenceHoleOffset),
             };
         }
 
@@ -331,7 +341,7 @@ namespace LagoVista.Manufacturing.Models
             {
                 nameof(ReferenceHoleColumn),
                 nameof(ReferenceHoleRow),
-                nameof(ReferenceHoleOffset),
+                nameof(MountingHoleOffset),
                 nameof(RowCount),
                 nameof(Width),
                 nameof(Length),

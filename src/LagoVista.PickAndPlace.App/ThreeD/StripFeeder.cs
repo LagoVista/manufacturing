@@ -23,10 +23,10 @@ namespace LagoVista.PickAndPlace.App.ThreeD
 
             for (var idx = 0; idx < model.RowCount; ++idx)
             {
-                var rowBottomY = (idx * model.RowWidth);
+                var rowBottomY = (idx * model.RowWidth) + model.BottomLeftRow1Margin.Y;
 
                 var rowMeshBuilder = new MeshBuilder(false, false);
-                var bottom = idx * model.RowWidth;
+                var bottom = idx * model.RowWidth + model.BottomLeftRow1Margin.Y;
                 var side1Rect = new Rect3D(0, bottom, 4, model.Length, 2, model.Height - 4);
                 var side2Rect = new Rect3D(0, bottom + model.RowWidth - 4, 4, model.Length, 2, model.Height - 4);
                 rowMeshBuilder.AddBox(side1Rect);
@@ -39,7 +39,6 @@ namespace LagoVista.PickAndPlace.App.ThreeD
                 {
                     var package = row.Component.Value.ComponentPackage.Value;
                     var tapeY = rowBottomY + (model.RowWidth / 2) - (package.TapeWidth.Value / 2) - 1;
-
 
                     var tapeMeshBuilder = new MeshBuilder(false, false);
                     var tapeWidth = row.Component.Value.ComponentPackage.Value.TapeWidth;

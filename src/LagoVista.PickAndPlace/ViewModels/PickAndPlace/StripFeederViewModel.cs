@@ -266,7 +266,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             var feederIsVertical = Current.Orientation.Value == FeederOrientations.Vertical;
-            var feederOrigin = stagePlateReferenceLocation.SubtractWithConditionalSwap(feederIsVertical, Current.ReferenceHoleOffset) + Current.OriginOffset;
+            var feederOrigin = stagePlateReferenceLocation.SubtractWithConditionalSwap(feederIsVertical, Current.MountingHoleOffset) + Current.OriginOffset;
 
             switch (setType)
             {
@@ -322,7 +322,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return InvokeResult<Point2D<double>>.Create(stagePlateReferenceLocation);
             }
 
-            var feederOrigin = stagePlateReferenceLocation.SubtractWithConditionalSwap(feederIsVertical, Current.ReferenceHoleOffset) + Current.OriginOffset;
+            var feederOrigin = stagePlateReferenceLocation.SubtractWithConditionalSwap(feederIsVertical, Current.MountingHoleOffset) + Current.OriginOffset;
             if (moveType == StripFeederLocationTypes.FeederOrigin)
             {
                 Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_FeederOrigin);
@@ -335,10 +335,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return InvokeResult<Point2D<double>>.FromError("Can not move to row, No feeder row selected.");
             }
 
-            var deltaY = ((CurrentRow.RowIndex - 1) * Current.RowWidth) + (TapeSize.ToDouble() - 2);
-            var deltaX = 2;
-
-
+            var deltaY = Current.BottomLeftRow1Margin.Y + Current.TapeReferenceHoleOffset.Y;
+            deltaY += ((CurrentRow.RowIndex - 1) * Current.RowWidth) + (Current.TapeHolesOnTop ? (TapeSize.ToDouble() - 1.75) : 1.75);
+            var deltaX = Current.BottomLeftRow1Margin.X + Current.TapeReferenceHoleOffset.X;
 
             var calculateFirstReferneceHole = feederIsVertical ? new Point2D<double>(deltaY, -deltaX) : new Point2D<double>(deltaX, deltaY);
             var firstReferenceHole = (CurrentRow.FirstTapeHoleOffset.IsOrigin() ? calculateFirstReferneceHole : CurrentRow.FirstTapeHoleOffset).Clone();
@@ -612,6 +611,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     }
 
                     TotalPartsInFeederRow = Convert.ToInt32(Math.Floor(Current.Length / (TapePitch != null ? TapePitch.ToDouble() : 4)));
+                    CurrentRow.PartCapacity = TotalPartsInFeederRow;
                     AvailablePartsInFeederRow = TotalPartsInFeederRow - CurrentRow.CurrentPartIndex;
                 }
 

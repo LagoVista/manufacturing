@@ -39,12 +39,12 @@ namespace LagoVista.Manufacturing.Models
         } = "#000000";
 
 
-        Point2D<double> _rowOneRefHoleOffset = new Point2D<double>(3,3);
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_RowOneRefHoleOffset, HelpResource: ManufacturingResources.Names.StripFeeder_RowOneRefHoleOffset_Help, FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public Point2D<double> RowOneRefHoleOffset 
+        private Point2D<double> _bottomLeftRow1Margin = new Point2D<double>(0, 0);
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_BottomLeftRow1Margin, HelpResource: ManufacturingResources.Names.StripFeeder_BottomLeftRow1Margin_Help, FieldType: FieldTypes.Point2D, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> BottomLeftRow1Margin
         {
-            get => _rowOneRefHoleOffset;
-            set => Set(ref _rowOneRefHoleOffset, value);
+            get => _bottomLeftRow1Margin;
+            set => Set(ref _bottomLeftRow1Margin, value);
         }
 
         private double _pickHeight = 10;
@@ -107,13 +107,12 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _length, value);
         }
 
-        Point2D<double> _referenceHoleLocation = new Point2D<double>();
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_ReferenceHoleOffset, 
-            HelpResource: ManufacturingResources.Names.StripFeeder_ReferenceHoleOffset_Help, FieldType: FieldTypes.Point2D, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
-        public Point2D<double> ReferenceHoleOffset
+        Point2D<double> _tapeReferenceHoleOffset = new Point2D<double>();
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_TapeReferenceHoleOffset, HelpResource: ManufacturingResources.Names.StripFeeder_TapeReferenceHoleOffset_Help, FieldType: FieldTypes.Point2D, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public Point2D<double> TapeReferenceHoleOffset
         {
-            get => _referenceHoleLocation;
-            set => Set(ref _referenceHoleLocation, value);
+            get => _tapeReferenceHoleOffset;
+            set => Set(ref _tapeReferenceHoleOffset, value);
         }
 
 
@@ -135,8 +134,8 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Height),
                 nameof(RowWidth),
                 nameof(RowCount),                
-                nameof(ReferenceHoleOffset),
-                nameof(RowOneRefHoleOffset),
+                nameof(TapeReferenceHoleOffset),
+                nameof(BottomLeftRow1Margin),
                 nameof(PickHeight),
             };
         }

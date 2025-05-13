@@ -40,13 +40,12 @@ namespace Mfg.ServicesTests
                 Width = 40,
                 Length = 120,
                 Height = 12,
-                RowOneRefHoleOffset = new LagoVista.Core.Models.Drawing.Point2D<double>(2, 1),
                 TapeSize = EntityHeader<LagoVista.Manufacturing.Models.TapeSizes>.Create(LagoVista.Manufacturing.Models.TapeSizes.EightMM)
             });
 
 
             var result = await _mgr.CreateFromTemplateAsync("don'tcare", _user, _org);
-            Console.WriteLine(result.ReferenceHoleOffset);
+            Console.WriteLine(result.MountingHoleOffset);
             foreach (var row in result.Rows)
             {
                 Console.WriteLine("FIRST: " + row.FirstTapeHoleOffset);
