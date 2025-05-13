@@ -120,6 +120,7 @@
                             <CheckBox IsChecked="{Binding Current.TapeHolesOnTop}" />
                         </StackPanel>
                     </StackPanel>
+                    
                 </Grid>
 
 

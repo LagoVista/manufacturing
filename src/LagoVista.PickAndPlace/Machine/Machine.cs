@@ -287,15 +287,18 @@ namespace LagoVista.PickAndPlace
 
         const int retryPause = 25;
 
-        public async Task<InvokeResult<Point2D<double>>> GetCurrentLocationAsync(uint ms = 2500)
+        public async Task<InvokeResult<Point2D<double>>> GetCurrentLocationAsync(uint ms = 2500, bool verbose = false)
         {
             var sw = Stopwatch.StartNew();
 
-            DebugWriteLine("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv");
-            DebugWriteLine("[Machine__GetCurrentLocation]");
+            if (verbose)
+            {
+                DebugWriteLine("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv");
+                DebugWriteLine("[Machine__GetCurrentLocation]");
+            }
             await _waitCurrent.WaitAsync();
-            
-            if(_waitForPositionResetEvent != null)
+
+            if (_waitForPositionResetEvent != null)
             {
                 throw new InvalidOperationException(@"Already requested current location.");
             }
@@ -304,14 +307,14 @@ namespace LagoVista.PickAndPlace
             _waitForPositionResetEvent.Reset();
 
             Enqueue("M114");
-            var timedOut = false;           
+            var timedOut = false;
             var attemptCount = 0;
             var maxAttempts = ms / 25;
             await Task.Run(() =>
             {
                 while (!_waitForPositionResetEvent.IsSet && ++attemptCount < ms / retryPause)
                 {
-                    _waitForPositionResetEvent.Wait(retryPause);                    
+                    _waitForPositionResetEvent.Wait(retryPause);
                 }
 
                 timedOut = !_waitForPositionResetEvent.IsSet || attemptCount == maxAttempts;
@@ -323,9 +326,15 @@ namespace LagoVista.PickAndPlace
 
             _waitCurrent.Release();
 
-            DebugWriteLine($"[Machine__GetCurrentLocation] Timed Out: {timedOut} {sw.Elapsed.TotalMilliseconds} ms ");
-            DebugWriteLine("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
-
+            if (verbose) 
+            {
+                DebugWriteLine($"[Machine__GetCurrentLocation] {sw.Elapsed.TotalMilliseconds} ms " + (timedOut ? "ERR: TIMED OUT" : String.Empty));
+                DebugWriteLine("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+            }
+            else
+            {
+                DebugWriteLine($"[Machine__GetCurrentLocation] {sw.Elapsed.TotalMilliseconds} ms " + (timedOut ? "ERR: TIMED OUT" : String.Empty));
+            }
 
             return InvokeResult<Point2D<double>>.Create(MachinePosition.ToPoint2D());
         }
@@ -337,7 +346,7 @@ namespace LagoVista.PickAndPlace
             if (line == "ok")
                 _waitForIdleResetEvent.Set();
             else
-                DebugWriteLine("wait some more => " + line);
+                DebugWriteLine("[PENDING_BUSY_DID_NOT_READ_OK]  Read " + line);
         }
 
         public async Task<InvokeResult> SpinUntilIdleAsync(uint ms = 2500, bool verbose = false)

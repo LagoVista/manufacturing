@@ -313,11 +313,11 @@ namespace LagoVista.PickAndPlace.Interfaces
         void SetVisionProfile(CameraTypes cameraType, string profile);
         void SetVisionProfile(CameraTypes cameraType, VisionProfileSource sourceType, string sourceId, VisionProfile profile);
 
-        Task MoveToToolHeadAsync(MachineToolHead toolHeadToMoveTo);
-        Task MoveToCameraAsync();
-
-        void MoveToToolHead(MachineToolHead toolHeadToMoveTo);
-        void MoveToCamera();
+        Task MoveToToolHeadAsync(MachineToolHead toolHeadToMoveTo, bool verbose = false);
+        Task MoveToCameraAsync(bool verbose = false);
+        
+        void MoveToToolHead(MachineToolHead toolHeadToMoveTo, bool verbose = false);
+        void MoveToCamera(bool verbose = false);
         IImageCaptureService PositionImageCaptureService { get; set; }
         IImageCaptureService PartInspectionCaptureService { get; set; }
 
@@ -326,7 +326,7 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         Task GoToPartInspectionCameraAsync(double? rotate = null);
 
-        Task<InvokeResult<Point2D<double>>> GetCurrentLocationAsync(uint timeout = 2500);
+        Task<InvokeResult<Point2D<double>>> GetCurrentLocationAsync(uint timeout = 2500, bool verbose = false);
 
         Task<InvokeResult> SpinUntilIdleAsync(uint timeout = 2500, bool verbose = false);
 
