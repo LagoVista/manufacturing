@@ -425,8 +425,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Machine.AddStatusMessage(StatusMessageTypes.Warning, $"No tape pitch configured for {Current}/{CurrentRow.RowIndex} - assuming 4 mm tape pitch.");
             }
 
+            Machine.DebugWriteLine("----------------------------");
+
+
+
             CurrentPartIndex = Math.Max(1, CurrentPartIndex);
             CurrentPartIndex = Math.Min(CurrentPartIndex, TotalPartsInFeederRow);
+
+            Machine.DebugWriteLine($"  RESOLVE LOCATION {CurrentPartIndex}, FEED LOCATION: {Current.FeedDirection.Value}");
 
             var tapeSize = TapeSize.ToDouble();
             var tapePitch = CurrentComponentPackage.CustomTapePitch ?? TapePitch.ToDouble();
@@ -440,7 +446,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var partOffsetInTapeFromReferenceHole = ((CurrentPartIndex - 1) * tapePitch);
             partOffsetInTapeFromReferenceHole += (CurrentComponentPackage.XOffsetFromReferenceHole ?? 2.0);
 
-            var ratioInTape = partOffsetInTapeFromReferenceHole / expectedDetlaX;
             if (CurrentComponentPackage == null)
             {
                 return InvokeResult<Point2D<double>>.FromError("No component package, can not move to part.");
@@ -455,6 +460,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var firstHole = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.LastTapeHoleOffset);
             var lastHole = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.FirstTapeHoleOffset);
             var actualDelta = new Point2D<double>(lastHole.Y - firstHole.Y, lastHole.X - firstHole.X);
+
+            Machine.DebugWriteLine("----------------------------");
 
             /* 1) Set to reference hole, based on the feeder feeding forward or reverse, forward is first hole
              *    not forwad (reverse is last hole) */
@@ -499,7 +506,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 }
             }
 
+
+            var ratioInTape = partOffsetInTapeFromReferenceHole / expectedDetlaX;
+            if (Current.FeedDirection.Value == FeedDirections.Backwards)
+                ratioInTape = 1.0 - ratioInTape;
+
             pickLocation = Extrapolate(actualDelta, expectedDelta, ratioInTape, pickLocation);
+            
+            Machine.DebugWriteLine($"  PICK LOCATION {pickLocation}");
+            Machine.DebugWriteLine("----------------------------");
+
 
             return InvokeResult<Point2D<double>>.Create(pickLocation);
 
@@ -509,7 +525,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             var errorX = expected.X - actual.X;
             var errorY = expected.Y - actual.Y;
-            var result = point + new Point2D<double>(errorX * ratio, errorY * ratio);
+            var correction = new Point2D<double>(errorX * ratio, errorY * ratio);
+            var result = point + correction;
+
+            Machine.DebugWriteLine($"  EXTRAPOLATE: Ratio: {ratio} ErrX:{errorX} ErrY:{errorY} Correction: {correction}  Point: {point} Result: {result}");
+
             return result;
         }
 

@@ -515,11 +515,11 @@ namespace LagoVista.PickAndPlace
 
             if (_leftToolHead)
             {
-                Enqueue($"G0 A0");
+                Enqueue($"G92 A0");
             }
             else
             {
-                Enqueue($"G0 B0");
+                Enqueue($"G92 B0");
             }
         }
 

@@ -23,7 +23,7 @@
             <ColumnDefinition Width="20*" />
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.ColumnSpan="2">
+        <Grid Grid.ColumnSpan="3">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Style="{StaticResource header}" Text="{Binding Job.Name}"/>
                 <ListView Width="300" ItemsSource="{Binding Jobs}"  SelectedItem="{Binding SelectedJob, Mode=TwoWay}">

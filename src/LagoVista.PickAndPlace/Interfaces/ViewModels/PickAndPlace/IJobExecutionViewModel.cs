@@ -24,7 +24,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         ICircuitBoardViewModel PcbVM { get; }
         IPartInspectionViewModel PartInspectionVM { get; }
 
-
+        RelayCommand GoToPartOnBoardCommand { get; }
         RelayCommand PlaceIndependentPartCommand { get; }
         RelayCommand PlaceGroupPartCommand { get; }
         RelayCommand StartJobCommand { get; }

@@ -90,21 +90,19 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         }
 
-        public Task ResetIndependentPartAsync()
+        public async Task ResetIndependentPartAsync()
         {
             if(JobVM.Placement == null)
             {
                 Machine.AddStatusMessage(StatusMessageTypes.FatalError, "Could not reset, not placement.");
-                return Task.CompletedTask;
             }
 
             Machine.VacuumPump = false;
 
             Machine.SetMode(OperatingMode.Manual);
 
-            JobVM.Placement.Reset();
-            return Task.CompletedTask;
-        }
+            await JobVM.ResetPlacementOnlineAsync();
+         }
 
         public async Task<InvokeResult> PlaceCycleAsync()
         {
@@ -179,7 +177,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             result = await PcbVM.PlacePartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement);
             if (!result.Successful) return result;
 
-            Machine.RotateToolHeadRelative(360);
 
             //result = await PcbVM.InspectPartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement);
             //if (!result.Successful) return result;
@@ -295,6 +292,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand AbortJobCommand { get;  }
         public RelayCommand PauseJobCommand { get; set; }
         public RelayCommand ResumeJobCommand { get; set; }
-        public RelayCommand ResetJobCommand { get; set; }    
+        public RelayCommand ResetJobCommand { get; set; }
+
     }
 }

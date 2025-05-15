@@ -28,6 +28,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _autoFeederViewModel = autoFeederViewModel ?? throw new ArgumentNullException(nameof(autoFeederViewModel));
             _stripFeederViewModel = stripFeederViewModel ?? throw new ArgumentNullException(nameof(stripFeederViewModel));
 
+            GoToPartOnBoardCommand = CreatedMachineConnectedCommand(() => PcbVM.GoToPartOnBoardAsync(JobVM.PartGroup, JobVM.Placement), () => JobVM.Placement != null);
+
             MoveToPartInFeederCommand = CreatedMachineConnectedCommand(MoveToPartInFeeder, () => JobVM.CurrentComponent != null);
             PartInspectionVM = partInspectionVM ?? throw new ArgumentException(nameof(partInspectionVM));
             JobVM = jobVM ?? throw new ArgumentNullException(nameof(jobVM));
@@ -162,5 +164,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public IPartInspectionViewModel PartInspectionVM { get; }
 
         public RelayCommand MoveToPartInFeederCommand { get; }
+
+        public RelayCommand GoToPartOnBoardCommand { get; }
     }
 }

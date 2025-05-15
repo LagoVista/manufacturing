@@ -106,7 +106,7 @@ namespace LagoVista.Manufacturing.Managers
         public async Task<InvokeResult> UpdatePickAndPlaceJobRunPlacementAsync(string id, PickAndPlaceJobRunPlacement placement, EntityHeader org, EntityHeader user)
         {
             var job = await GetPickAndPlaceJobRunAsync(id, org, user);
-            var existing = job.Placements.SingleOrDefault(plc => plc.Id == placement.Id);
+            var existing = job.Placements.SingleOrDefault(plc => plc.Name == placement.Name);
             if(existing != null)
             {
                 job.Placements.Remove(existing);

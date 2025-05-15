@@ -28,7 +28,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             PlacePartCommand = CreatedMachineConnectedCommand(() => PcbVM.PlacePartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement), () => JobVM.Placement != null);
 
-            GoToPartOnBoardCommand = CreatedMachineConnectedCommand(() => PcbVM.GoToPartOnBoardAsync(JobVM.PartGroup, JobVM.Placement), () => JobVM.Placement != null);
             InspectPartOnBoardCommand = CreatedMachineConnectedCommand(() => PcbVM.InspectPartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement), () => JobVM.Placement != null);
             
             PickPartFromBoardCommand = CreatedMachineConnectedCommand(async () =>
@@ -216,9 +215,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             else
                 ActiveFeederViewModel.RecyclePartAsync(JobVM.CurrentComponent);
         }
-
-        public RelayCommand GoToPartOnBoardCommand { get; }
-
         
         public RelayCommand PickPartCommand { get; }
         public RelayCommand InspectPartCommand { get; }

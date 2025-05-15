@@ -122,6 +122,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             rotatePart = rotatePart % 360;
+
+            if (rotatePart > 180)
+                rotatePart = rotatePart - 360;
+
             return rotatePart;
         }
 
@@ -365,7 +369,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                             else
                             {
                                 if (placed.Status.Value == JobPlacementStatuses.Placed)
+                                {
                                     placement.State = EntityHeader<PnPStates>.Create(PnPStates.Placed);
+                                    foreach (var transition in placed.Transitions)
+                                        placement.Transitions.Add(transition);
+                                }
+
                             }
                         }
                     }                   
@@ -452,6 +461,25 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
+        public async Task<InvokeResult> ResetPlacementOnlineAsync()
+        {
+            if (JobRun == null)
+            {
+                return InvokeResult.FromError("No job run has been created.");
+            }
+
+            if(Placement == null)
+            {
+                return InvokeResult.FromError("Placement is null.");
+            }
+
+            Placement.Reset();
+            var jobPlacement = Placement.ToJobRunPlacement(PartGroup);
+            var result = await _restClient.PutAsync($"/api/mfg/pmpjob/run/{JobRun.Id}/placement", jobPlacement);
+
+            return result;
+        }
+
 
         public async Task<InvokeResult> CompletePlacementAsync()
         {
@@ -461,7 +489,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             var jobPlacement = Placement.ToJobRunPlacement(PartGroup);
-            return await _restClient.PutAsync($"/api/mfg/pmpjob/run/{JobRun.Id}/placement", jobPlacement);
+            var result = await _restClient.PutAsync($"/api/mfg/pmpjob/run/{JobRun.Id}/placement", jobPlacement);
+
+            return result;
+        
         }
 
 

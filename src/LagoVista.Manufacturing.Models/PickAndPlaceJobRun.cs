@@ -127,7 +127,7 @@ namespace LagoVista.Manufacturing.Models
 
         public EntityHeader AutoFeeder { get; set; }
         public EntityHeader StripFeeder { get; set; }
-        public EntityHeader<JobPlacementStatuses> Status { get; set; } = EntityHeader<JobPlacementStatuses>.Create(JobPlacementStatuses.Placed);
+        public EntityHeader<JobPlacementStatuses> Status { get; set; } = EntityHeader<JobPlacementStatuses>.Create(JobPlacementStatuses.Pending);
 
         public string Name { get; set; }
         public EntityHeader Component { get; set; }
@@ -140,5 +140,7 @@ namespace LagoVista.Manufacturing.Models
         public double? DurationMS { get; set; }
         public string TimeStamp { get; set; }
         public string Errors { get; set; }
+
+        public List<PlacementStateHistory> Transitions { get; set; } = new List<PlacementStateHistory>();
     }
 }

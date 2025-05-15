@@ -457,6 +457,8 @@ namespace LagoVista.Manufacturing.Models
                 TimeStamp = DateTime.UtcNow.ToJSONString(),
             };
 
+            jobPlacement.Transitions.AddRange(Transitions);
+
             if (EndTimeStamp.HasValue && StartTimeStamp.HasValue)
             {
                 jobPlacement.DurationMS = (EndTimeStamp.Value - StartTimeStamp.Value).TotalMilliseconds;

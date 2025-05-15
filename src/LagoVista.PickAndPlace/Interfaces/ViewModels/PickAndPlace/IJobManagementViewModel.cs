@@ -34,6 +34,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 
         Task<InvokeResult> CompletePlacementAsync();
 
+        Task<InvokeResult> ResetPlacementOnlineAsync();
+
         /// <summary>
         /// 
         /// </summary>
