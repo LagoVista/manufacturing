@@ -1,4 +1,4 @@
-﻿/*5/13/2025 2:18:59 PM*/
+﻿/*5/16/2025 5:36:01 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -264,6 +264,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:Component_Feeder_Select
 
 		public static string Component_Feeder_Select { get { return GetResourceString("Component_Feeder_Select"); } }
+//Resources:ManufacturingResources:Component_HolesOnBothSide
+
+		public static string Component_HolesOnBothSide { get { return GetResourceString("Component_HolesOnBothSide"); } }
 //Resources:ManufacturingResources:Component_Location
 
 		public static string Component_Location { get { return GetResourceString("Component_Location"); } }
@@ -1577,6 +1580,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:StripFeeder_AngleOffset_Help
 
 		public static string StripFeeder_AngleOffset_Help { get { return GetResourceString("StripFeeder_AngleOffset_Help"); } }
+//Resources:ManufacturingResources:StripFeeder_BaseColor
+
+		public static string StripFeeder_BaseColor { get { return GetResourceString("StripFeeder_BaseColor"); } }
 //Resources:ManufacturingResources:StripFeeder_BottomLeftRow1Margin
 
 		public static string StripFeeder_BottomLeftRow1Margin { get { return GetResourceString("StripFeeder_BottomLeftRow1Margin"); } }
@@ -1938,6 +1944,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string Component_ExtendedPrice = "Component_ExtendedPrice";
 			public const string Component_Feeder = "Component_Feeder";
 			public const string Component_Feeder_Select = "Component_Feeder_Select";
+			public const string Component_HolesOnBothSide = "Component_HolesOnBothSide";
 			public const string Component_Location = "Component_Location";
 			public const string Component_MfgPartNumb = "Component_MfgPartNumb";
 			public const string Component_PackageType = "Component_PackageType";
@@ -2373,6 +2380,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string PnpState_Validated = "PnpState_Validated";
 			public const string StripFeeder_AngleOffset = "StripFeeder_AngleOffset";
 			public const string StripFeeder_AngleOffset_Help = "StripFeeder_AngleOffset_Help";
+			public const string StripFeeder_BaseColor = "StripFeeder_BaseColor";
 			public const string StripFeeder_BottomLeftRow1Margin = "StripFeeder_BottomLeftRow1Margin";
 			public const string StripFeeder_BottomLeftRow1Margin_Help = "StripFeeder_BottomLeftRow1Margin_Help";
 			public const string StripFeeder_CurrentPartindex = "StripFeeder_CurrentPartindex";

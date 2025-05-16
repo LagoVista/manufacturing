@@ -1922,4 +1922,10 @@
   <data name="StripFeeder_BottomLeftRow1Margin_Help" xml:space="preserve">
     <value>The offset from the bottom left of the feeder to the orgiin of row 1, in most cases this will be 0x0.</value>
   </data>
+  <data name="StripFeeder_BaseColor" xml:space="preserve">
+    <value>Base Color</value>
+  </data>
+  <data name="Component_HolesOnBothSide" xml:space="preserve">
+    <value>Holes on Both Side of Tape</value>
+  </data>
 </root>

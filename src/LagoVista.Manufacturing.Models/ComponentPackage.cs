@@ -212,6 +212,10 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeAndReelActualImage, FieldType: FieldTypes.FileUpload, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader TapeAndReelActualImage { get; set; }
 
+        [FormField(LabelResource: ManufacturingResources.Names.Component_HolesOnBothSide, FieldType: FieldTypes.CheckBox, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
+        public bool HolesOnBothSideOfTape { get; set; }
+
+
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_Verified, HelpResource:ManufacturingResources.Names.ComponentPackage_Verified_Help, FieldType: FieldTypes.CheckBox, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public bool Verified { get; set; }
 
@@ -468,6 +472,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(TapeRotation),
                 nameof(TapeColor),
                 nameof(TapeMaterialType),
+                nameof(HolesOnBothSideOfTape),
                 nameof(DualHoles),
                 nameof(PickOffset),
                 nameof(PickVacuumLevel),

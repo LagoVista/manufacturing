@@ -103,6 +103,7 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeColor, FieldType: FieldTypes.Picker, EnumType: typeof(TapeColors), WaterMark: ManufacturingResources.Names.ComponentPackage_TapeColor_Select, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<TapeColors> TapeColor { get; set; }
 
+
         VisionProfile _partInspectionVisionProfile;
         public VisionProfile PartInspectionVisionProfile
         {

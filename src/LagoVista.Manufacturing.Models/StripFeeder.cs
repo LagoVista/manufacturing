@@ -69,7 +69,13 @@ namespace LagoVista.Manufacturing.Models
         public string Color
         {
             get; set;
-        } = "#000000";
+        } = "#444444";
+
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_BaseColor, FieldType: FieldTypes.Color, ResourceType: typeof(ManufacturingResources))]
+        public string BaseColor
+        {
+            get; set;
+        } = "#222222";
 
         private bool _tapeHolesOnTop = true;
 
@@ -326,6 +332,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Orientation),
                 nameof(FeedDirection),
                 nameof(Color),
+                nameof(BaseColor),
                 nameof(Description),
                 nameof(PickHeight),
                 nameof(Origin),
