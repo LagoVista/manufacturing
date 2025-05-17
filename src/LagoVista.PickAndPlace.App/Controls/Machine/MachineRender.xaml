@@ -14,7 +14,7 @@
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
 
-        <h:HelixViewport3D Name="viewport" ShowViewCube="False" Panel.ZIndex="0" Grid.Row="1"  >
+        <h:HelixViewport3D Name="viewport" ShowViewCube="True" Panel.ZIndex="0" Grid.Row="1"  ZoomExtentsWhenLoaded="True" >
             <h:HelixViewport3D.Camera >
                 <PerspectiveCamera x:Name="Camera" Position="50, -120,70" LookDirection="0, 4,-1.7" UpDirection="0,0,1"/>
             </h:HelixViewport3D.Camera>
@@ -32,6 +32,11 @@
             <h:GridLinesVisual3D x:Name="ModelGrid" MinorDistance="50"  MajorDistance="250"  Width="1024" Length ="1024"  />
 
         </h:HelixViewport3D>
-            
+
+        <StackPanel Orientation="Horizontal">
+            <Button Width="150" Height="30" HorizontalAlignment="Right" x:Name="Refresh" Click="Refresh_Click">Refresh</Button>
+            <Button Width="150" Height="30" HorizontalAlignment="Right" x:Name="TopView" Tag="Top" Click="ChangeView_Handler">Top View</Button>
+            <Button Width="150" Height="30" HorizontalAlignment="Right" x:Name="ResetView" Click="ResetZoom_Click">Reset View</Button>
+        </StackPanel>
     </Grid>
 </ucb:VMBoundUserControl>
