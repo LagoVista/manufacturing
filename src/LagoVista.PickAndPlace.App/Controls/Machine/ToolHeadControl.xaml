@@ -66,11 +66,19 @@
                         <TextBlock Style="{StaticResource label}" Text="Set Tool Offset"></TextBlock>
                         <TextBlock  Style="{StaticResource content}" Text="{Binding Current.Offset}"></TextBlock>
                     </StackPanel>
-                    <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetToolOffsetCommand }"  ToolTip="Set the offset after moving the tool head to the known location." Width="64" Height="64"  >
-                        <Button.Content>
-                            <Image Source="/imgs/SetTarget.png"/>
-                        </Button.Content>
-                    </Button>
+                    <StackPanel Orientation="Horizontal">
+                        
+                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetToolOffsetCommand }"  ToolTip="Set the offset after moving the tool head to the known location." Width="64" Height="64"  >
+                            <Button.Content>
+                                <Image Source="/imgs/SetTarget.png"/>
+                            </Button.Content>
+                        </Button>
+                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding MoveToolHeadOverKnownLocationCommand }"  ToolTip="Move Tool Head Over Location." Width="64" Height="64"  >
+                            <Button.Content>
+                                <Image Source="/imgs/MoveToTarget.png"/>
+                            </Button.Content>
+                        </Button>
+                    </StackPanel>
                 </StackPanel>
                 
                 <StackPanel Grid.Row="1">

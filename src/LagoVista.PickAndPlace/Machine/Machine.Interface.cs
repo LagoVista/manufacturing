@@ -453,6 +453,11 @@ namespace LagoVista.PickAndPlace
             DebugWriteLine("-------------------------");
         }
 
+        public void SetHomed()
+        {
+            WasMachineHomed = true;
+        }
+
         public void SetToolHeadHeight(double height)
         {
             if (CurrentMachineToolHead == null)

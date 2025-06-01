@@ -14,6 +14,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public MachineCoreActionsViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel) : base(machineRepo)
         {
             HomeCommand = new RelayCommand(Home, () => Machine != null && Machine.Connected);
+            SkipHomeCommand = new RelayCommand(() => Machine.SetHomed(), () => Machine != null && Machine.Connected && !Machine.WasMachineHomed);
+            RegisterCommandHandler(SkipHomeCommand);
             RegisterCommandHandler(HomeCommand);
 
             MachineVisionOriginCommand = new RelayCommand(MachineVisionOrigin, () => Machine != null && Machine.Connected && Machine.WasMachineHomed);
@@ -124,6 +126,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         }
 
         public RelayCommand HomeCommand { get;  }
+        public RelayCommand SkipHomeCommand { get; }
         public RelayCommand MachineVisionOriginCommand { get; }
         public RelayCommand GoToSafeMoveHeightCommand { get; }
         public RelayCommand GoToPartInspectionCameraCommand { get; }

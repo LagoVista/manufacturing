@@ -42,6 +42,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
             ToggleCaptureToolHeadCalibrationCommand = CreatedMachineConnectedSettingsCommand(() => ToggleCaptureToolHeadOffset(), () => Current != null);
             SetToolHeadCalibrationCommand = CreatedMachineConnectedSettingsCommand(() => SetToolHeadCalibrationOffset(), () => Current != null && CalibrationOffset != null);
+
+            MoveToolHeadOverKnownLocationCommand = CreatedMachineConnectedCommand(MoveToolHeadOverKnownLocation, () => Current != null && Current.Offset != null);
+
         }
 
         private async void SetVacuum(VacuumState state)
@@ -76,6 +79,15 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     break;
             }
         }
+
+        public void MoveToolHeadOverKnownLocation()
+        {
+            if (Current?.Offset != null)
+            {
+                Machine.GotoPoint(Current.Offset, true, true);
+            }
+        }
+
 
         public void ToggleCaptureToolHeadOffset()
         {
@@ -169,6 +181,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public RelayCommand SetPartPickedVacuumCommand { get; }
 
         public RelayCommand ToggleCaptureToolHeadCalibrationCommand { get; }
+
+        public RelayCommand MoveToolHeadOverKnownLocationCommand { get; }
 
         public RelayCommand SetToolHeadCalibrationCommand { get; }
     }

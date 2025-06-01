@@ -49,12 +49,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }, () => SelectedStagingPlate != null && (UseCalibratedLocation || SelectedStagingPlate.ReferenceHoleLocation2 != null));
 
             MoveToFirstAutoFeederOriginCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(SelectedFeederRail.FirstFeederOrigin), () => SelectedFeederRail != null && SelectedFeederRail.FirstFeederOrigin != null);
-            
-            
+
             MoveToMachineFiducialCommand = CreatedMachineConnectedCommand(() => Machine.GotoPoint(Machine.Settings.MachineFiducial), () => !Machine.Settings.MachineFiducial.IsOrigin());
 
             MoveToDefaultPCBOrigin = CreatedMachineConnectedCommand(() => Machine.GotoPoint(MachineConfiguration.DefaultWorkOrigin), () => !MachineConfiguration.DefaultWorkOrigin.IsOrigin());
         }
+
 
 
         protected void MoveToSelectedCamera()
@@ -134,7 +134,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         public RelayCommand CaptureKnownLocationCommand { get; }
         public RelayCommand MoveToKnownLocationCommand { get; }
-
+        
 
         private bool _useCalibratedLocation;
         public bool UseCalibratedLocation

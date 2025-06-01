@@ -209,6 +209,7 @@ namespace LagoVista.PickAndPlace.Interfaces
         void ClearAlarm();
 
         void HomingCycle();
+        void SetHomed();
 
         void HomeViaOrigin();
 

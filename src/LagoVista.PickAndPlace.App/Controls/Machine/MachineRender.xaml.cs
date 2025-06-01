@@ -4,7 +4,9 @@ using LagoVista.PickAndPlace.App.Controls.PcbFab;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.XPlat;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -189,19 +191,39 @@ namespace LagoVista.PickAndPlace.App.Controls
                 var holeMeshBuilder = new MeshBuilder(false, false);
                 var maskMeshBuilder = new MeshBuilder(false, false);
 
-                for (double plateX = 0; plateX < plate.HoleSpacing * plate.LastUsableColumn / 2; plateX += (plate.HoleSpacing))
+                for (double plateX = 0; plateX <= plate.HoleSpacing * (plate.LastUsableColumn ) / 2; plateX += (plate.HoleSpacing))
                 {
+
                     var idx = 0;
-                    for (double plateY = 0; plateY < plate.Size.Y; plateY += (plate.HoleSpacing / 2))
+                    for (double plateY = 0; plateY < ((plate.Size.Y - 10) - plate.FirstHole.Y) ; plateY += (plate.HoleSpacing / 2))
                     {
                         var xOFfset = (idx++ % 2 == 0) ? plateX : plateX + 15;
-
                         var x = xOFfset + plate.FirstHole.X;
                         var y = plateY + plate.FirstHole.Y + plate.Origin.Y;
 
-                        maskMeshBuilder.AddCylinder(new Point3D(x, y, -0.025), new Point3D(x, y, 3.05), 3.25);
+                        maskMeshBuilder.AddCylinder(new Point3D(x, y, -0.025), new Point3D(x, y, 3.05), 3.3);
                         holeMeshBuilder.AddCylinder(new Point3D(x, y, -0.05), new Point3D(x, y, 3.1), 1.5);
                     }
+                }
+
+                for (double plateX = 0; plateX <= plate.HoleSpacing * ((plate.LastUsableColumn + 1) / 2); plateX += (plate.HoleSpacing / 2))
+                {
+                    var geometry = TextCreator.CreateTextLabelModel3D($"{(plateX / 15) + 1}", Brushes.White, true, 3, new Point3D(plateX + plate.FirstHole.X, plate.Origin.Y + 5, 3.2), new Vector3D(1, 0, 0), new Vector3D(0, 1, 0));
+                    geometry.BackMaterial = material;
+                    modelGroup.Children.Add(geometry);
+
+                    geometry = TextCreator.CreateTextLabelModel3D($"{(plateX / 15) + 1}", Brushes.White, true, 3, new Point3D(plateX + plate.FirstHole.X, plate.Origin.Y + plate.Size.Y  - 5, 3.2), new Vector3D(1, 0, 0), new Vector3D(0, 1, 0));
+                    geometry.BackMaterial = material;
+                    modelGroup.Children.Add(geometry);
+
+                }
+
+                for (double platey = 0; platey < ((plate.Size.Y - 10) - plate.FirstHole.Y); platey += (plate.HoleSpacing / 2))
+                {
+                    var letter = (char)('A' + (platey / 15));
+                    var geometry = TextCreator.CreateTextLabelModel3D($"{letter}", Brushes.White, true, 3, new Point3D( plate.FirstHole.X - 10, plate.Origin.Y + plate.FirstHole.Y + platey, 3.2), new Vector3D(1, 0, 0), new Vector3D(0, 1, 0));
+                    geometry.BackMaterial = material;
+                    modelGroup.Children.Add(geometry);
                 }
 
                 modelGroup.Children.Add(new GeometryModel3D() { Geometry = holeMeshBuilder.ToMesh(true), Material = whiteMaterial });
@@ -210,6 +232,8 @@ namespace LagoVista.PickAndPlace.App.Controls
 
                 var feederRender = new ThreeD.StripFeeder();
 
+                var screwMeshBuilder = new MeshBuilder(false, false);
+
                 if (ViewModel.StripFeederViewModel.Feeders != null)
                 {
                     foreach (var feeder in ViewModel.StripFeederViewModel.Feeders)
@@ -217,13 +241,20 @@ namespace LagoVista.PickAndPlace.App.Controls
                         var keyRow = feeder.ReferenceHoleRow.Key;
                         var keyCol = feeder.ReferenceHoleColumn.Key;
                         var colIndex = int.Parse(keyCol) - 1;
-                        var rowIndex = keyRow[0] - 'A' - 1;
+                        var rowIndex = keyRow[0] - 'A' ;
 
-                        var xOffset = (colIndex * 15 + plate.Origin.X + plate.FirstHole.X) - feeder.MountingHoleOffset.X;
-                        var yOffset = (rowIndex * 15 + plate.Origin.Y + plate.FirstHole.Y) - feeder.MountingHoleOffset.Y;
+                        var mountHoleX = ((colIndex * (plate.HoleSpacing / 2)) + plate.Origin.X + plate.FirstHole.X);
+                        var mountHoleY = ((rowIndex * (plate.HoleSpacing / 2)) + plate.Origin.Y + plate.FirstHole.Y);
 
+                        var xOffset = mountHoleX - feeder.MountingHoleOffset.X;
+                        var yOffset =  mountHoleY - feeder.MountingHoleOffset.Y;
+
+                        screwMeshBuilder.AddCylinder(new Point3D(mountHoleX, mountHoleY, -0.025), new Point3D(mountHoleX, mountHoleY, 10.05),1.5);
                         feederRender.Render3DModel(modelGroup, feeder, new Point2D<double>(xOffset, yOffset), feeder.Orientation.Key == "horizontal" ? 0 : -90);
                     }
+
+                    modelGroup.Children.Add(new GeometryModel3D() { Geometry = screwMeshBuilder.ToMesh(true), Material = grayMaterial });
+
                 }
             }
 

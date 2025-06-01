@@ -63,7 +63,8 @@ namespace LagoVista.PickAndPlace
                 var distance = Convert.ToDouble(match.Groups[3].Value);
                 if (zaxis.Value == "R")
                 {
-                    distance = (31.5 - distance) + 31.5;
+                    //distance = (31.5 - distance) + 31.5;
+                    distance = (97 - distance);
                 }
 
                 send_line = $"G{moveType} Z{distance}";
