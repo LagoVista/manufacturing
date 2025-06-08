@@ -71,6 +71,8 @@
                 <Button Style="{StaticResource CommandButton}" Command="{Binding PlaceIndependentPartCommand}" Content="Place Individual Part"></Button>
                 <Button Style="{StaticResource CommandButton}" Command="{Binding GoToPartOnBoardCommand}" Content="Go To Part In Board"></Button>
                 <Button Style="{StaticResource CommandButton}" Command="{Binding ResetIndpentPartCommand}" Content="Reset"></Button>
+                <Button Style="{StaticResource CommandButton}" Command="{Binding PlacePartOnBoardCommand}" Content="Place Part on Board"></Button>
+
             </StackPanel>
 
             <DataGrid ItemsSource="{Binding JobVM.Placement.Transitions}">
