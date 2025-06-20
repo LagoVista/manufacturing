@@ -71,6 +71,7 @@ namespace LagoVista.Manufacturing.Managers
                 TapeReferenceHoleOffset = template.TapeReferenceHoleOffset,
                 RowCount = template.RowCount,
                 RowWidth = template.RowWidth,
+                RowSpacing = template.RowSpacing,
             };
 
 

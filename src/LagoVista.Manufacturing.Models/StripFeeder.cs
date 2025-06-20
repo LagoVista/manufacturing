@@ -163,6 +163,15 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _angleOffset, value);
         }
 
+        private decimal _rowSpacing = 0;
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_RowSpacing, FieldType: FieldTypes.Decimal,  IsRequired:true,
+            ResourceType: typeof(ManufacturingResources))]
+        public decimal RowSpacing
+        {
+            get { return _rowSpacing;  }
+            set => Set(ref _rowSpacing, value);
+        }
+
         EntityHeader _stagingPlate;
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_StagingPlate, WaterMark: ManufacturingResources.Names.StripFeeder_StagingPlate_Select,
             IsUserEditable:false, EntityHeaderPickerUrl:"/api/mfg/machine/{machine.id}/stagingplates", FieldType: FieldTypes.EntityHeaderPicker, ResourceType: typeof(ManufacturingResources))]
@@ -353,7 +362,8 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Width),
                 nameof(Length),
                 nameof(Height),
-                nameof(RowWidth),                
+                nameof(RowWidth),         
+                nameof(RowSpacing),
                 nameof(AngleOffset),
             };
         }

@@ -121,12 +121,12 @@
                     <fa:ImageAwesome Margin="3"  Icon="ArrowDown" />
                 </Button.Content>
             </Button>
-            <Button Style="{StaticResource JogArrow}" Grid.Row="1" Grid.Column="7" Command="{Binding JogCommand}" CommandParameter="{x:Static sndr:JogDirections.T1Minus}">
+            <Button Style="{StaticResource JogArrow}" Grid.Row="1" Grid.Column="7" Command="{Binding JogCommand}" CommandParameter="{x:Static sndr:JogDirections.T1Plus}">
                 <Button.Content>
                     <fa:ImageAwesome Margin="3"  Icon="ArrowUp" />
                 </Button.Content>
             </Button>
-            <Button Style="{StaticResource JogArrow}"  Grid.Row="3" Grid.Column="7" Command="{Binding JogCommand}" CommandParameter="{x:Static sndr:JogDirections.T1Plus}">
+            <Button Style="{StaticResource JogArrow}"  Grid.Row="3" Grid.Column="7" Command="{Binding JogCommand}" CommandParameter="{x:Static sndr:JogDirections.T1Minus}">
                 <Button.Content>
                     <fa:ImageAwesome Margin="3" Icon="ArrowDown" />
                 </Button.Content>

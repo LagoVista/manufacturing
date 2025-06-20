@@ -18,6 +18,7 @@ namespace LagoVista.PickAndPlace.App.ThreeD
         protected readonly static Material WhiteMaterial = MaterialHelper.CreateMaterial(Colors.White);
         protected readonly static Material BlueMaterial = MaterialHelper.CreateMaterial(Colors.Blue);
         protected readonly static Material GrayMaterial = MaterialHelper.CreateMaterial(Colors.Gray);
+        protected readonly static Material SilverMaterial = MaterialHelper.CreateMaterial(Colors.Silver);
 
         public DrawingBase() {
         }

@@ -1,4 +1,4 @@
-﻿/*5/16/2025 5:36:01 PM*/
+﻿/*6/20/2025 5:42:34 PM*/
 using System.Globalization;
 using System.Reflection;
 
@@ -520,6 +520,12 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:ComponentPackage_TapePitch_Select
 
 		public static string ComponentPackage_TapePitch_Select { get { return GetResourceString("ComponentPackage_TapePitch_Select"); } }
+//Resources:ManufacturingResources:ComponentPackage_TapePocketLength
+
+		public static string ComponentPackage_TapePocketLength { get { return GetResourceString("ComponentPackage_TapePocketLength"); } }
+//Resources:ManufacturingResources:ComponentPackage_TapePocketWidth
+
+		public static string ComponentPackage_TapePocketWidth { get { return GetResourceString("ComponentPackage_TapePocketWidth"); } }
 //Resources:ManufacturingResources:ComponentPackage_TapeRotation
 
 		public static string ComponentPackage_TapeRotation { get { return GetResourceString("ComponentPackage_TapeRotation"); } }
@@ -1661,6 +1667,9 @@ namespace LagoVista.Manufacturing.Models.Resources
 //Resources:ManufacturingResources:StripFeeder_Rows
 
 		public static string StripFeeder_Rows { get { return GetResourceString("StripFeeder_Rows"); } }
+//Resources:ManufacturingResources:StripFeeder_RowSpacing
+
+		public static string StripFeeder_RowSpacing { get { return GetResourceString("StripFeeder_RowSpacing"); } }
 //Resources:ManufacturingResources:StripFeeder_RowWidth
 
 		public static string StripFeeder_RowWidth { get { return GetResourceString("StripFeeder_RowWidth"); } }
@@ -2028,6 +2037,8 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string ComponentPackage_TapeMaterialType_Select = "ComponentPackage_TapeMaterialType_Select";
 			public const string ComponentPackage_TapePitch = "ComponentPackage_TapePitch";
 			public const string ComponentPackage_TapePitch_Select = "ComponentPackage_TapePitch_Select";
+			public const string ComponentPackage_TapePocketLength = "ComponentPackage_TapePocketLength";
+			public const string ComponentPackage_TapePocketWidth = "ComponentPackage_TapePocketWidth";
 			public const string ComponentPackage_TapeRotation = "ComponentPackage_TapeRotation";
 			public const string ComponentPackage_TapeRotation_Select = "ComponentPackage_TapeRotation_Select";
 			public const string ComponentPackage_TapeSize = "ComponentPackage_TapeSize";
@@ -2407,6 +2418,7 @@ namespace LagoVista.Manufacturing.Models.Resources
 			public const string StripFeeder_ReferenceHole_Row_Help = "StripFeeder_ReferenceHole_Row_Help";
 			public const string StripFeeder_RowCount = "StripFeeder_RowCount";
 			public const string StripFeeder_Rows = "StripFeeder_Rows";
+			public const string StripFeeder_RowSpacing = "StripFeeder_RowSpacing";
 			public const string StripFeeder_RowWidth = "StripFeeder_RowWidth";
 			public const string StripFeeder_RowWidth_Help = "StripFeeder_RowWidth_Help";
 			public const string StripFeeder_StagingPlate = "StripFeeder_StagingPlate";

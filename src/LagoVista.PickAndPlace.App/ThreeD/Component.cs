@@ -10,12 +10,27 @@ namespace LagoVista.PickAndPlace.App.ThreeD
 {
     public class Component : DrawingBase
     {
-        public static Model3D Render3DModel(LagoVista.Manufacturing.Models.ComponentPackage package)
+        public static Model3DGroup Render3DModel(LagoVista.Manufacturing.Models.ComponentPackage package)
         {
+            var componentModelGroup = new Model3DGroup();
             var baseMeshBuilder = new MeshBuilder(false, false);
-            var boxRect = new Rect3D(0, 0, 0, package.Length, package.Width, package.Height);
+            var boxRect = new Rect3D(-package.Length / 2, -package.Width / 2, 0, package.Length, package.Width, package.Height);
             baseMeshBuilder.AddBox(boxRect);
-            return new GeometryModel3D() { Geometry = baseMeshBuilder.ToMesh(true), Material = RedMaterial };
+
+            var padMeshBuilder = new MeshBuilder(false, false);
+
+            foreach(var pad in package.Layout.SmdPads)
+            {
+                var padRect = new Rect3D(pad.X1, pad.Y1, 0.1, pad.DX, pad.DY, package.Height);
+                padMeshBuilder.AddBox(padRect);
+            }
+
+            var padsGeometry = new GeometryModel3D() { Geometry = padMeshBuilder.ToMesh(true), Material = CopperMaterial };
+            padsGeometry.Transform = new RotateTransform3D(new AxisAngleRotation3D(new Vector3D(0, 0, 1), 90), new Point3D(0, 0, 0));
+            componentModelGroup.Children.Add(padsGeometry);
+            componentModelGroup.Children.Add(new GeometryModel3D() { Geometry = baseMeshBuilder.ToMesh(true), Material = GrayMaterial});
+
+            return componentModelGroup;
         }
     }
 }

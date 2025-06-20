@@ -75,6 +75,16 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _rowWidth, value);
         }
 
+        private decimal _rowSpacing = 0;
+        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_RowSpacing, FieldType: FieldTypes.Decimal, IsRequired:true,
+            ResourceType: typeof(ManufacturingResources))]
+        public decimal RowSpacing
+        {
+            get { return _rowSpacing; }
+            set => Set(ref _rowSpacing, value);
+        }
+
+
         private double _rowCount;
         [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_RowCount, FieldType: FieldTypes.Integer, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double RowCount
@@ -133,6 +143,7 @@ namespace LagoVista.Manufacturing.Models
                 nameof(Width),
                 nameof(Height),
                 nameof(RowWidth),
+                nameof(RowSpacing),
                 nameof(RowCount),                
                 nameof(TapeReferenceHoleOffset),
                 nameof(BottomLeftRow1Margin),

@@ -1928,4 +1928,13 @@
   <data name="Component_HolesOnBothSide" xml:space="preserve">
     <value>Holes on Both Side of Tape</value>
   </data>
+  <data name="ComponentPackage_TapePocketWidth" xml:space="preserve">
+    <value>Tape Pocket Width (mm)</value>
+  </data>
+  <data name="ComponentPackage_TapePocketLength" xml:space="preserve">
+    <value>Tape Pocket Length (mm)</value>
+  </data>
+  <data name="StripFeeder_RowSpacing" xml:space="preserve">
+    <value>Row Spacing</value>
+  </data>
 </root>

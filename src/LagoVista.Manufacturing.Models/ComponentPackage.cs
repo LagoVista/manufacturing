@@ -161,6 +161,12 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_PartLength, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double Length { get; set; }
 
+        [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapePocketWidth, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double? TapePocketWidth { get; set; }
+
+        [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapePocketLength, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public double? TapePocketLength { get; set; }
+
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_PartHeight, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double Height { get; set; }
 
@@ -186,15 +192,6 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapePitch, FieldType: FieldTypes.Picker, EnumType: typeof(TapePitches),
             WaterMark: ManufacturingResources.Names.ComponentPackage_TapePitch_Select, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<TapePitches> TapePitch { get; set; }
-
-        private bool _dualHoles = false;
-        [FormField(LabelResource: ManufacturingResources.Names.StripFeeder_DualHoles, HelpResource: ManufacturingResources.Names.StripFeeder_DualHoles_Help,
-            FieldType: FieldTypes.CheckBox, ResourceType: typeof(ManufacturingResources))]
-        public bool DualHoles
-        {
-            get => _dualHoles;
-            set => Set(ref _dualHoles, value);
-        }
 
 
         double? _customTapePitch;
@@ -284,15 +281,22 @@ namespace LagoVista.Manufacturing.Models
                 if (EntityHeader.IsNullOrEmpty(TapeSize))
                     return null;
 
-                switch (TapeSize.Value)
+                if (HolesOnBothSideOfTape)
                 {
-                    case TapeSizes.EightMM: return 1.75 + 3.5;
-                    case TapeSizes.TwelveMM: return 1.75 + 5.5;
-                    case TapeSizes.SixteenMM: return 1.75 + 7.5;
-                    case TapeSizes.TwentyMM: return 1.75 + 9.5;
-                    case TapeSizes.TwentyFourMM: return 1.75 + 11.5;
-                    case TapeSizes.ThirtyTwoMM: return 1.75 + 15.5;
-                    case TapeSizes.FortyFourMM: return 1.75 + 21.5;
+                    return TapeWidth / 2;
+                }
+                else
+                {
+                    switch (TapeSize.Value)
+                    {
+                        case TapeSizes.EightMM: return 1.75 + 3.5;
+                        case TapeSizes.TwelveMM: return 1.75 + 5.5;
+                        case TapeSizes.SixteenMM: return 1.75 + 7.5;
+                        case TapeSizes.TwentyMM: return 1.75 + 9.5;
+                        case TapeSizes.TwentyFourMM: return 1.75 + 11.5;
+                        case TapeSizes.ThirtyTwoMM: return 1.75 + 15.5;
+                        case TapeSizes.FortyFourMM: return 1.75 + 21.5;
+                    }
                 }
 
                 return null;
@@ -468,12 +472,13 @@ namespace LagoVista.Manufacturing.Models
                 nameof(TapeSpecificationPage),
                 nameof(TapeSize),
                 nameof(TapePitch),
+                nameof(TapePocketLength),
+                nameof(TapePocketWidth),
                 nameof(CustomTapePitch),
                 nameof(TapeRotation),
                 nameof(TapeColor),
                 nameof(TapeMaterialType),
                 nameof(HolesOnBothSideOfTape),
-                nameof(DualHoles),
                 nameof(PickOffset),
                 nameof(PickVacuumLevel),
                 nameof(XOffsetFromReferenceHole),
@@ -486,7 +491,7 @@ namespace LagoVista.Manufacturing.Models
         {
             return new FormConditionals()
             {
-                ConditionalFields = new List<string>() { nameof(TapeSize), nameof(TapePitch), nameof(TapeRotation), nameof(TapeMaterialType), nameof(TapeColor), nameof(Width), nameof(Height), nameof(Length) },
+                ConditionalFields = new List<string>() { nameof(TapeSize), nameof(TapePitch), nameof(TapeRotation), nameof(TapeMaterialType), nameof(TapeColor), nameof(TapePocketWidth), nameof(TapePocketLength), nameof(Width), nameof(Height), nameof(Length) },
                 Conditionals = new List<FormConditional>()
                 {
                     new FormConditional()
@@ -494,7 +499,7 @@ namespace LagoVista.Manufacturing.Models
                         Field = nameof(PackageType),
                         Value = PartType_SurfaceMount,
                         RequiredFields = new List<string>() {nameof(TapeSize), nameof(TapePitch), nameof(TapeRotation), nameof(TapeMaterialType), nameof(TapeColor), nameof(Width), nameof(Height), nameof(Length)},
-                        VisibleFields = new List<string>() {nameof(TapeSize), nameof(TapePitch), nameof(TapeRotation), nameof(TapeMaterialType), nameof(TapeColor), nameof(Width), nameof(Height), nameof(Length) }
+                        VisibleFields = new List<string>() {nameof(TapeSize), nameof(TapePitch), nameof(TapeRotation), nameof(TapeMaterialType), nameof(TapeColor), nameof(TapePocketWidth), nameof(TapePocketLength), nameof(Width), nameof(Height), nameof(Length) }
                     }
                 }
             };

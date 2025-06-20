@@ -455,7 +455,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             var yOffsetFromHole = CurrentComponentPackage.YOffsetFromReferenceHole.HasValue ?
                     CurrentComponentPackage.YOffsetFromReferenceHole.Value :
-                    CurrentComponentPackage.DualHoles ? (tapeSize / 2) - 1.8 : (tapeSize / 2) - 0.5;
+                    CurrentComponentPackage.HolesOnBothSideOfTape ? (tapeSize / 2) - 1.8 : (tapeSize / 2) - 0.5;
 
             var firstHole = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.LastTapeHoleOffset);
             var lastHole = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.FirstTapeHoleOffset);

@@ -202,7 +202,7 @@ namespace LagoVista.PickAndPlace
 
         public void SendSafeMoveHeight()
         {
-            SendCommand($"G0 Z{Settings.SafMoveHeight}");
+            SendCommand($"G0 Z{Settings.SafMoveHeight} F1500");
         }
 
         public void SetVisionProfile(CameraTypes cameraType, VisionProfileSource sourceType, string sourceId, VisionProfile profile)

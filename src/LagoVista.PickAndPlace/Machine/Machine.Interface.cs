@@ -467,9 +467,9 @@ namespace LagoVista.PickAndPlace
             }
 
             if (_leftToolHead)
-                Enqueue($"G0 ZL{height} F40000");
+                Enqueue($"G0 ZL{height} F100000");
             else
-                Enqueue($"G0 ZR{height} F40000");
+                Enqueue($"G0 ZR{height} F100000");
         }        
 
         public void RotateToolHeadRelative(double angle)
