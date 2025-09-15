@@ -109,7 +109,7 @@ namespace LagoVista.Pcb.Tests
 
             Console.WriteLine(color);
 
-            Assert.AreEqual("#FF123456", color.ToString());
+            Assert.That("#FF123456" == color.ToString());
         }
     }
 }

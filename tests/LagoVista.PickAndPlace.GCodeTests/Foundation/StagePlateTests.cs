@@ -1,12 +1,8 @@
 ﻿using LagoVista.Core.Models;
 using LagoVista.Manufacturing.Models;
 using LagoVista.Manufacturing.Util;
-using LagoVista.PickAndPlace.Util;
+using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.GCodeTests.Foundation
 {

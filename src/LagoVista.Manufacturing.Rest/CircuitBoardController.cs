@@ -10,11 +10,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using System.ComponentModel;
 using System;
 using System.Linq;
-using Amazon.Runtime.Internal.Util;
-using LagoVista.Core;
 
 namespace LagoVista.Manufacturing.Rest.Controllers
 {
