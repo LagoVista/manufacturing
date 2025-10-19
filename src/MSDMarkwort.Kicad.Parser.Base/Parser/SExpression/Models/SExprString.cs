@@ -1,4 +1,8 @@
-﻿namespace MSDMarkwort.Kicad.Parser.Base.Parser.SExpression.Models
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: 473ed0d9058dcf3c72bcc74cf6594bd71071bc918bbbbaf794580a83f5925287
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+namespace MSDMarkwort.Kicad.Parser.Base.Parser.SExpression.Models
 {
     public class SExprString : SExpr
     {

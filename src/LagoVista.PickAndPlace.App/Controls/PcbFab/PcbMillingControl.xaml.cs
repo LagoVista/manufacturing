@@ -1,4 +1,8 @@
-﻿using Emgu.CV.Dnn;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: adf4c2502653292cf4db35946077dd4d4178d493bab5c9c2eedd11bef4aea176
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using Emgu.CV.Dnn;
 using HelixToolkit.Wpf;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PCB.Eagle.Models;

@@ -1,4 +1,8 @@
-﻿using LagoVista.PickAndPlace.App.Controls.PcbFab;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: ba9448260ff3c028609d6e3134392022426810118d2be8767a308f5927ff1f4e
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using LagoVista.PickAndPlace.App.Controls.PcbFab;
 using System;
 using System.Linq;
 using System.Runtime.CompilerServices;

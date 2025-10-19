@@ -1,4 +1,8 @@
-﻿using HelixToolkit.Wpf;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: e0eb3733cf17011b2c0ea6b7b4b1d9eedb5feaa28fd27b717238ab4e990ec73a
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using HelixToolkit.Wpf;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PCB.Eagle.Models;
 using LagoVista.PickAndPlace.App.Controls.UI;

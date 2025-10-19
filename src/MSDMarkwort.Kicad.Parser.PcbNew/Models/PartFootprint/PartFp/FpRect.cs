@@ -1,4 +1,8 @@
-﻿using MSDMarkwort.Kicad.Parser.Base.Attributes;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: 9a8db802c1896515ad8977fbbcfa7b02c2b497b04f90c69fcd148e552eeacccb
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using MSDMarkwort.Kicad.Parser.Base.Attributes;
 using MSDMarkwort.Kicad.Parser.Model.Common;
 
 namespace MSDMarkwort.Kicad.Parser.PcbNew.Models.PartFootprint.PartFp

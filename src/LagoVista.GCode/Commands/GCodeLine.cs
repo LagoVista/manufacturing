@@ -1,4 +1,8 @@
-﻿using LagoVista.Core;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: 307f616c0c92ba889dceef4a80f0786d2c386cef9bc8f13915ebc8e27a3ba771
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using LagoVista.Core;
 using LagoVista.Core.Models.Drawing;
 using System;
 using System.Collections.Generic;

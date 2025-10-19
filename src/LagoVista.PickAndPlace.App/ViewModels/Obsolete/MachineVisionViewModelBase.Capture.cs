@@ -1,4 +1,8 @@
-﻿using DirectShowLib;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: e8b8be9897db4eb536f9499fcc6e0d926723e8c59ed48efbd24ce713e7221094
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using DirectShowLib;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using System;

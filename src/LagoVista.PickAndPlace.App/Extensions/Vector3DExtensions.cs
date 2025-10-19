@@ -1,4 +1,8 @@
-﻿
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: 5c2a9be9eb4c5b259b55030071cdb163f1a64d5d76bf0cf599c1332a2deabfcd
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+
 using System.Windows.Media.Media3D;
 
 namespace LagoVista.PickAndPlace.App

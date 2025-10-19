@@ -1,4 +1,8 @@
-﻿namespace FontAwesome.WPF
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: 6753d590838507460952690502195a7c76a7b266d7f7cbaff4d0e0e95190ea1f
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+namespace FontAwesome.WPF
 {
     /// <summary>
     /// Represents a rotatable control

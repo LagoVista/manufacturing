@@ -1,4 +1,8 @@
-﻿using System.Globalization;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: 27746c74c8e24e3c349dc0df970c7d9e8fac13a4f96eb7cd816fbb5c018e75f9
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using System.Globalization;
 
 namespace LagoVista.PickAndPlace
 {

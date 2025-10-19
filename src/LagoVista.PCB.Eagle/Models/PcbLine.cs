@@ -1,4 +1,8 @@
-﻿using LagoVista.Core.Models;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: 4c427cd8637e2392869b230e4f3413b4dec3e2dadb5d01d1729e43c4f03ab978
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using LagoVista.Core.Models;
 using LagoVista.PCB.Eagle.Extensions;
 using MSDMarkwort.Kicad.Parser.PcbNew.Models.PartFootprint.PartFp;
 using Newtonsoft.Json;

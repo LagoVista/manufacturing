@@ -1,4 +1,8 @@
-﻿using HelixToolkit.Wpf;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: 9ab8155c8df85ea7b4f437eead064ea5771176de39c61131014fb8fac2e4eff7
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using HelixToolkit.Wpf;
 using LagoVista.Core.Models.Drawing;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;

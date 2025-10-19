@@ -1,4 +1,8 @@
-﻿using Emgu.CV.DepthAI;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: 0db35afca4dfeee31ff2f116484fa37322d007b66151e1e1999b79a7589c4323
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using Emgu.CV.DepthAI;
 using Emgu.CV.Stitching;
 using Emgu.CV.XImgproc;
 using LagoVista.Client.Core;

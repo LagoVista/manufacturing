@@ -1,4 +1,8 @@
-﻿using Emgu.CV.Structure;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: 88835789d442dbce9ad30c8aef4d79d28bc83a515b411da48d00bf77cb5e0ba9
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using Emgu.CV.Structure;
 using Emgu.CV;
 using System.Linq;
 using System.Drawing;

@@ -1,4 +1,8 @@
-﻿using Emgu.CV.CvEnum;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: 124360ea49658ba55ce8dde97fef563a8d326e2feb4f1c28d495a669e72273da
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using Emgu.CV;
 using LagoVista.Manufacturing.Models;

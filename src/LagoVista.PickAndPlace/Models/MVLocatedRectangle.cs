@@ -1,4 +1,8 @@
-﻿using Emgu.CV.Structure;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: 689736904a762437a57ed41561db4cab4980948fddb883a954989e0d92e5c295
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using Emgu.CV.Structure;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Manufacturing.Models;

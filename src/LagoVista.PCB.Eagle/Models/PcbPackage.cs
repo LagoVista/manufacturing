@@ -1,4 +1,8 @@
-﻿using LagoVista.Core;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: 61828be50a93e55c90f67d5b8e858df9b4a1ef6f2bda2a190d0ef0abccb5bfa2
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using LagoVista.Core;
 using LagoVista.Core.Interfaces;
 using MSDMarkwort.Kicad.Parser.PcbNew.Models.PartFootprint;
 using MSDMarkwort.Kicad.Parser.PcbNew.Models.PartFootprint.PartPad.PartPadStack;

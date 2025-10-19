@@ -1,4 +1,8 @@
-﻿// ReSharper disable StringLiteralTypo
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: 68db38b104f74ec115f991c884937499ba49a7c91f2d1a88975cfbae9f598516
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+// ReSharper disable StringLiteralTypo
 
 using MSDMarkwort.Kicad.Parser.Base.Attributes;
 

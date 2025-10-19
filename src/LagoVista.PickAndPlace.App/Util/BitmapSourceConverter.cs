@@ -1,3 +1,7 @@
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: c282a5fc02e702a08f09eb92464b538e29e708163d8eed874a37340d33f828d2
+// IndexVersion: 0
+// --- END CODE INDEX META ---
 //----------------------------------------------------------------------------
 //  Copyright (C) 2004-2016 by EMGU Corporation. All rights reserved.       
 //----------------------------------------------------------------------------

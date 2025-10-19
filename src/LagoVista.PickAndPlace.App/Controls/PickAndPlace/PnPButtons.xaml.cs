@@ -1,4 +1,8 @@
-﻿using System.Windows;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: 8f463024a547603d0e3e1925dcba5fcb6c52a81617099f4b0c696d9010d71f17
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using System.Windows;
 using System.Windows.Controls;
 using SharpDX.XInput;
 using System.Threading;

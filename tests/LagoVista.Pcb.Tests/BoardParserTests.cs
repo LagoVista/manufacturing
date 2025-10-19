@@ -1,3 +1,7 @@
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: 40a60bc6377ffc08ec71075c52162d451945150215eff93dd3e2d7d4e59638cf
+// IndexVersion: 0
+// --- END CODE INDEX META ---
 using LagoVista.PCB.Eagle.Managers;
 using NUnit.Framework;
 using System;

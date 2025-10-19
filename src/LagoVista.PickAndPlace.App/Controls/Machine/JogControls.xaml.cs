@@ -1,4 +1,8 @@
-﻿using LagoVista.Manufacturing.Models;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: 3ef9a3932c07717a8995914693f14a37d4e33a3ab0737df2480a20e6de7d316e
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.ViewModels;
 using LagoVista.PickAndPlace.ViewModels.Machine;
 using SharpDX.XInput;

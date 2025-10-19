@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: cabbe77d7024ab8c91977e549d1fffa57ca82113145e5c3b40e0c089dc33cd34
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using System.Collections.Generic;
 
 namespace MSDMarkwort.Kicad.Parser.Base.Parser.SExpression.Models
 {

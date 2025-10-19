@@ -1,4 +1,8 @@
-﻿using LagoVista.Manufacturing.Models;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: e247614ebc6c0e7a822242b888737b1faa088b61a31d948fb0115c26b040caea
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using LagoVista.Manufacturing.Models;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Media3D;

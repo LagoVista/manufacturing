@@ -1,4 +1,8 @@
-﻿using LagoVista.Core.Authentication.Models;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: c24da8159a670bce8573689d27815ff5ac556e24f95c516edf126ee6169dbe08
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using LagoVista.Core.Authentication.Models;
 using LagoVista.Core.Interfaces;
 using LagoVista.Core.IOC;
 using LagoVista.Core.Models.UIMetaData;
@@ -97,7 +101,9 @@ namespace LagoVista.PickAndPlace.App
                         }
                         else
                         {
-                            await _storageService.ClearAllAsync();
+                            var main = new Home();
+                            main.Show();
+                            this.Close();
                         }
                     }
                 }

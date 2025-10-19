@@ -1,4 +1,8 @@
-﻿using System;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: 3309f0428ecbc2ea0b1e446b51cd9dbcfc6649c3b54ae2422c1ff505c293dd2b
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using System;
 using System.Windows;
 using System.Windows.Controls;
 

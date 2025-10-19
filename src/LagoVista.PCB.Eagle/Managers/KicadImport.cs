@@ -1,4 +1,8 @@
-﻿using LagoVista.PCB.Eagle.Extensions;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: a16dfffafcb72a76d044236bce44f564ceb34a89513562e159546beb5356c567
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using LagoVista.PCB.Eagle.Extensions;
 using LagoVista.PCB.Eagle.Models;
 using MSDMarkwort.Kicad.Parser.PcbNew;
 using System;

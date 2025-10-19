@@ -1,4 +1,8 @@
-﻿using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
+// --- BEGIN CODE INDEX META (do not edit) ---
+// ContentHash: 8764b1fed09a3892c01c04b75c853f5612be4260e14ccb90bce2ec8c5cfec0e0
+// IndexVersion: 0
+// --- END CODE INDEX META ---
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Models;
 
 namespace LagoVista.PickAndPlace.ViewModels.PcbFab
