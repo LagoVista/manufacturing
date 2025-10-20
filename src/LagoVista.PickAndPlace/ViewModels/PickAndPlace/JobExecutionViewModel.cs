@@ -47,6 +47,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             ResumeJobCommand = CreatedMachineConnectedCommand(async () => await ResumeJobAsync(), () => JobVM.Job != null && State.Value == JobState.Paused);
             ResetJobCommand = CreatedMachineConnectedCommand(async () => await ResetJobAsync(), () => JobVM.Job != null && State.Value != JobState.Running && State.Value != JobState.New);
             AbortJobCommand = CreatedMachineConnectedCommand(async () => await AbortJobAsync(), () => JobVM.Job != null && State.Value == JobState.Running || State.Value == JobState.Paused);
+            PlacePartOnBoardCommand = CreatedMachineConnectedCommand(() => PcbVM.PlacePartOnboardAsync(JobVM.CurrentComponent, JobVM.Placement), () => JobVM.Placement != null);
 
             PlaceGroupPartCommand = CreatedMachineConnectedCommand(async () => await PartCycleAsync(), () => JobVM.Job != null && JobVM.PartGroup != null);
             PlaceIndependentPartCommand = CreatedMachineConnectedCommand(async () =>
@@ -298,5 +299,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand ResumeJobCommand { get; set; }
         public RelayCommand ResetJobCommand { get; set; }
 
+        public RelayCommand PlacePartOnBoardCommand { get; }
     }
 }

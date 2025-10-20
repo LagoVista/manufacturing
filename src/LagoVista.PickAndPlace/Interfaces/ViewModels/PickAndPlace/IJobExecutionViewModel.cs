@@ -36,5 +36,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand PauseJobCommand { get; }
         RelayCommand ResumeJobCommand { get; }
         RelayCommand ResetJobCommand { get;  }
+
+        RelayCommand PlacePartOnBoardCommand { get; }
     }
 }

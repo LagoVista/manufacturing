@@ -351,6 +351,8 @@ namespace LagoVista.PickAndPlace
                         await Task.Delay(2);
                     }catch(Exception ex)
                     {
+                        Console.WriteLine(ex.Message);
+                        Console.WriteLine(ex.StackTrace);
                         AddStatusMessage(StatusMessageTypes.FatalError, ex.Message);
                     }
                 }

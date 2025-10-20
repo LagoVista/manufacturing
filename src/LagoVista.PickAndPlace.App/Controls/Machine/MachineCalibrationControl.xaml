@@ -11,7 +11,7 @@
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine"
              mc:Ignorable="d" 
              d:DesignHeight="1200" d:DesignWidth="1600">
-    <Grid>
+    <Grid >
         <Grid.RowDefinitions>
             <RowDefinition Height="160" />
             <RowDefinition Height="240" />
@@ -222,7 +222,7 @@
             </StackPanel>
         </Grid>
 
-        <local:ToolHeadControl Grid.Row="3" Grid.ColumnSpan="2" ></local:ToolHeadControl>
+        <local:ToolHeadControl Grid.Row="3"  Grid.ColumnSpan="2"></local:ToolHeadControl>
 
         <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>

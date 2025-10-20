@@ -9,7 +9,7 @@
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid Grid.Row="3">
+    <Grid Grid.Row="3" >
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1000"/>
             <ColumnDefinition Width="*"/>
