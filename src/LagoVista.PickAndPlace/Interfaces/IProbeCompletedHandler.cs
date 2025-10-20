@@ -1,8 +1,7 @@
 // --- BEGIN CODE INDEX META (do not edit) ---
-// ContentHash: 965d6c46a65e7a7f0025203785ff8544f473450935ce87f921b81ce4b50d3588
+// ContentHash: 97d453bf800f2199d540aff777fb436646cb50e36d229477bc59d361a088e6cb
 // IndexVersion: 0
 // --- END CODE INDEX META ---
-
 using LagoVista.Core.Models.Drawing;
 
 namespace LagoVista.PickAndPlace.Interfaces
