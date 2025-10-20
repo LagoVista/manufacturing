@@ -591,7 +591,7 @@ namespace LagoVista.PickAndPlace
         // https://cfsensor.com/wp-content/uploads/2022/11/XGZP6857D-Pressure-Sensor-V2.7.pdf
         public async Task<InvokeResult<long>> ReadLeftVacuumAsync()
         {
-            if (!String.IsNullOrEmpty(Settings.GcodeMapping.Value.ReadLeftVacuumCmd))
+            if (!String.IsNullOrEmpty(Settings.GcodeMapping.Value.ReadLeftVacuumCmd) && false)
             {
                 _leftPressure = null;
                 _rightPressure = null;
