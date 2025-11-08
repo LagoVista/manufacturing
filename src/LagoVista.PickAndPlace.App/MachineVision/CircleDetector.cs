@@ -1,6 +1,6 @@
 // --- BEGIN CODE INDEX META (do not edit) ---
 // ContentHash: b1455b029fe86d3df1f67aa03aff42940f6bb30f0d3b677cdfaaf22e49a5ab92
-// IndexVersion: 0
+// IndexVersion: 2
 // --- END CODE INDEX META ---
 using Emgu.CV.CvEnum;
 using Emgu.CV;

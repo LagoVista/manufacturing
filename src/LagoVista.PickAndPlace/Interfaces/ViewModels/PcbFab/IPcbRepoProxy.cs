@@ -1,6 +1,6 @@
 // --- BEGIN CODE INDEX META (do not edit) ---
 // ContentHash: 6291217c49fbf6d404e33aa98e263a7d83f2a4c4b3243fd93b4843348c08dcfb
-// IndexVersion: 0
+// IndexVersion: 2
 // --- END CODE INDEX META ---
 using LagoVista.Manufacturing.Models;
 using System;

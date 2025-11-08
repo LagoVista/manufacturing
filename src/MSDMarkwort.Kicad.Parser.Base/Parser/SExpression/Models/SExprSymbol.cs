@@ -1,6 +1,6 @@
 // --- BEGIN CODE INDEX META (do not edit) ---
 // ContentHash: 0c159291889856720ce310771019e74192d91e019a9c8dc271866944aa4a161d
-// IndexVersion: 0
+// IndexVersion: 2
 // --- END CODE INDEX META ---
 namespace MSDMarkwort.Kicad.Parser.Base.Parser.SExpression.Models
 {

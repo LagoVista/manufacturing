@@ -1,6 +1,6 @@
 // --- BEGIN CODE INDEX META (do not edit) ---
 // ContentHash: ebb6e4396b6dce8b78d2d4160b4880c27b7be71223300b056c8cbfd657ba68b8
-// IndexVersion: 0
+// IndexVersion: 2
 // --- END CODE INDEX META ---
 using MSDMarkwort.Kicad.Parser.Base.Attributes;
 

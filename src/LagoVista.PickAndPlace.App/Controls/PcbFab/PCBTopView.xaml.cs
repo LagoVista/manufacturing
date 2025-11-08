@@ -1,6 +1,6 @@
 // --- BEGIN CODE INDEX META (do not edit) ---
 // ContentHash: a63fbb6c295f700da46f7fcb752e616bec9f5894d01af4ffc2fd8ced7db3dd10
-// IndexVersion: 0
+// IndexVersion: 2
 // --- END CODE INDEX META ---
 using LagoVista.Core.Models.Drawing;
 using LagoVista.PCB.Eagle.Models;

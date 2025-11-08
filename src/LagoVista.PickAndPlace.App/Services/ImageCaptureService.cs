@@ -1,6 +1,6 @@
 // --- BEGIN CODE INDEX META (do not edit) ---
 // ContentHash: 9b0fa03d4c6f50ced258c2080b20ba6d7736e2198efe1def70c5c368ef1fabf6
-// IndexVersion: 0
+// IndexVersion: 2
 // --- END CODE INDEX META ---
 using DirectShowLib;
 using Emgu.CV;

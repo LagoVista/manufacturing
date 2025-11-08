@@ -1,6 +1,6 @@
 // --- BEGIN CODE INDEX META (do not edit) ---
 // ContentHash: d07b63a2ed4d323a2399e3ad3c98f253618866cc476f6d7c2aab8932c6915e70
-// IndexVersion: 0
+// IndexVersion: 2
 // --- END CODE INDEX META ---
 using HelixToolkit.Wpf;
 using System;

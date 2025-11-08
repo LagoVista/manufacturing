@@ -1,6 +1,6 @@
 // --- BEGIN CODE INDEX META (do not edit) ---
 // ContentHash: 667a1364140e7666c26e566705a5b5e2e0abd32ce4ca69bdff06178233b92b61
-// IndexVersion: 0
+// IndexVersion: 2
 // --- END CODE INDEX META ---
 using System;
 using System.Windows;

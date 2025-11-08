@@ -1,6 +1,6 @@
 // --- BEGIN CODE INDEX META (do not edit) ---
 // ContentHash: 1eb62f7c05f82d5529ab4263367ae1042f27567d53986e629ce44fbbae0209fc
-// IndexVersion: 0
+// IndexVersion: 2
 // --- END CODE INDEX META ---
 using HelixToolkit.Wpf;
 using LagoVista.Core.Models.Drawing;

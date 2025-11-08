@@ -1,6 +1,6 @@
 // --- BEGIN CODE INDEX META (do not edit) ---
 // ContentHash: 8111e1f412b1257243b44330379ad0f074911be462c1c266e48c0ce583da22cf
-// IndexVersion: 0
+// IndexVersion: 2
 // --- END CODE INDEX META ---
 namespace LagoVista.PickAndPlace.App.Properties {
     

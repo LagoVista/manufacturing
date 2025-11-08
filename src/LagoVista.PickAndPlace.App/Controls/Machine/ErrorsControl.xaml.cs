@@ -1,6 +1,6 @@
 // --- BEGIN CODE INDEX META (do not edit) ---
 // ContentHash: f01daf38db26ca86ebd1e7e89bb308774811bbd384ab6f622c41644cba913207
-// IndexVersion: 0
+// IndexVersion: 2
 // --- END CODE INDEX META ---
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.XPlat;

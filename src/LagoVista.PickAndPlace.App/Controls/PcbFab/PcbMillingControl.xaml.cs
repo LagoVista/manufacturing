@@ -1,6 +1,6 @@
 // --- BEGIN CODE INDEX META (do not edit) ---
 // ContentHash: adf4c2502653292cf4db35946077dd4d4178d493bab5c9c2eedd11bef4aea176
-// IndexVersion: 0
+// IndexVersion: 2
 // --- END CODE INDEX META ---
 using Emgu.CV.Dnn;
 using HelixToolkit.Wpf;
