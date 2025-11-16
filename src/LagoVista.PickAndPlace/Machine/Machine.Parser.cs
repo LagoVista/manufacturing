@@ -1,5 +1,5 @@
 // --- BEGIN CODE INDEX META (do not edit) ---
-// ContentHash: 730a890248fd44769a1de1502737cdb989f46ce8f78c24769234ab2aa6d241ca
+// ContentHash: 4165680e9e7fdcda35451e1f6091bf9f1734c9103f81760c071263aabb9a1a59
 // IndexVersion: 2
 // --- END CODE INDEX META ---
 using LagoVista.Core.Models.Drawing;
@@ -324,7 +324,8 @@ namespace LagoVista.PickAndPlace
                 }
                 else
                 {
-                    _waitForPositionResetEvent.Set();
+                    if(_waitForPositionResetEvent != null)
+                        _waitForPositionResetEvent.Set();
                     
                 }
 

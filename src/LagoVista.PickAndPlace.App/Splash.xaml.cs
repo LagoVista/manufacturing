@@ -1,5 +1,5 @@
 // --- BEGIN CODE INDEX META (do not edit) ---
-// ContentHash: c24da8159a670bce8573689d27815ff5ac556e24f95c516edf126ee6169dbe08
+// ContentHash: b101332fc04ff4109a57daf1aed0fc22600afc6220bfd2f83839dde0e887ca3f
 // IndexVersion: 2
 // --- END CODE INDEX META ---
 using LagoVista.Core.Authentication.Models;
@@ -58,7 +58,7 @@ namespace LagoVista.PickAndPlace.App
             UserName.Text = "kevinw@slsys.net";
 
             await _authManager.LoadAsync();
-            if(_authManager.IsAuthenticated)
+            if(_authManager.IsAuthenticated )
             {
                 if(_authManager.AccessTokenExpirationUTC.ToDateTime() < DateTime.UtcNow )
                 {

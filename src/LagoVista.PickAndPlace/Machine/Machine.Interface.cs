@@ -1,5 +1,5 @@
 // --- BEGIN CODE INDEX META (do not edit) ---
-// ContentHash: ca0233c56d376267c11741aa7b549afa107c2232f67f066ce3b6c23e02f4144d
+// ContentHash: a1856a3be475bad44cf35c3d235ebc248afb92ba216beff9fe472c4cfefa830b
 // IndexVersion: 2
 // --- END CODE INDEX META ---
 using Emgu.CV.CvEnum;
@@ -429,11 +429,11 @@ namespace LagoVista.PickAndPlace
             _currentMachineToolHead = null;
             RaisePropertyChanged(nameof(CurrentMachineToolHead));
 
-            Enqueue("G92 A0 B0");
 
             if (Settings.FirmwareType == FirmwareTypes.GRBL1_1 || Settings.FirmwareType == FirmwareTypes.GRBL1_1_SL_Custom)
             {
                 Enqueue("$H\n", true);
+                Enqueue("G92 X0 Y0 Z0");
             }
             else
             {
@@ -447,9 +447,12 @@ namespace LagoVista.PickAndPlace
                     GotoPoint(Settings.DefaultWorkspaceHome.X, Settings.DefaultWorkspaceHome.Y);
                     SetWorkspaceHome();
                 }
+
+                Enqueue("G92 A0 B0");
+                await SpinUntilIdleAsync();
             }
 
-            await SpinUntilIdleAsync();
+            
 
             WasMachineHomed = true;
 
