@@ -10,7 +10,6 @@ using System.Text;
 
 namespace LagoVista.Manufacturing.Models
 {
-
     [DomainDescriptor]
     public class ManufacutringDomain
     {
@@ -22,7 +21,7 @@ namespace LagoVista.Manufacturing.Models
             {
                 return new DomainDescription()
                 {
-                    Description = "A set of classes that can be used to help manage manufacturing of prodcuts.",
+                    Description = "Classes for managing electronics manufacturing processes, equipment, and inventory, including circuit boards, components, machines, tooling, and related operations.",
                     DomainType = DomainDescription.DomainTypes.BusinessObject,
                     Name = "Manufacturing",
                     CurrentVersion = new Core.Models.VersionInfo()

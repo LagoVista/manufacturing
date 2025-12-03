@@ -181,17 +181,17 @@
     <value>-select category-</value>
   </data>
   <data name="Component_Title" xml:space="preserve">
-    <value>Component</value>
+    <value>Component Attribute</value>
     <comment>Component</comment>
   </data>
   <data name="Component_Description" xml:space="preserve">
-    <value>A component is part that can be used to assemble a PCB or device</value>
+    <value>A component is a single part used when assembling a printed circuit board (PCB) or other electronic device.</value>
   </data>
   <data name="ComponentPackage_TItle" xml:space="preserve">
     <value>Component Package</value>
   </data>
   <data name="ComponentPackage_Description" xml:space="preserve">
-    <value>A component package is the physical package that makes up a component.</value>
+    <value>Select or view details for the physical package that contains the component.</value>
   </data>
   <data name="Component_Room" xml:space="preserve">
     <value>Room</value>
@@ -296,7 +296,7 @@
     <value>Order Date</value>
   </data>
   <data name="ComponentPurchase_Description" xml:space="preserve">
-    <value>Records of purchased components</value>
+    <value>Use this model to record and monitor purchased components, capturing related orders, vendors, quantities, and important dates.</value>
     <comment>Records that identify purchased components</comment>
   </data>
   <data name="ComponentPurchase_Title" xml:space="preserve">
@@ -351,7 +351,7 @@
     <value>Strip Feeder</value>
   </data>
   <data name="StripFeeder_Description" xml:space="preserve">
-    <value>A strip feeder is a container for components where a tape is installed, each part is picked in a new location based on how many parts are in the strip</value>
+    <value>Load components supplied on short lengths of carrier tape using strip feeders. As parts are consumed, each pick advances to the next position along the tape, based on the number of parts in the strip.</value>
   </data>
   <data name="StripFeeders_Title" xml:space="preserve">
     <value>Strip Feeders</value>
@@ -366,13 +366,13 @@
     <value>Strip Feeder Row</value>
   </data>
   <data name="StripFeederRow_Description" xml:space="preserve">
-    <value>A row within a strip feeder</value>
+    <value>Represents a single strip feeder row, including its configuration, current part position, and total part capacity.</value>
   </data>
   <data name="Machine_Title" xml:space="preserve">
     <value>Machine</value>
   </data>
   <data name="Machine_Description" xml:space="preserve">
-    <value>Machine are XY, GCode based such as a Pick and Place Machine, a Laser Cutter or CNC Machine</value>
+    <value>Select or configure an XY, G-code–controlled XY machine (for example, a pick-and-place machine, laser cutter, or CNC machine).</value>
   </data>
   <data name="Machines_Title" xml:space="preserve">
     <value>Machines</value>
@@ -384,7 +384,7 @@
     <value>Printed Circuit Boards</value>
   </data>
   <data name="Pcb_Description" xml:space="preserve">
-    <value>Printed circuit boards are electronic components </value>
+    <value>A printed circuit board (PCB) that mechanically supports and electrically connects electronic components within an assembly or product.</value>
   </data>
   <data name="Pcb_Revision" xml:space="preserve">
     <value>Revision</value>
@@ -396,7 +396,7 @@
     <value>Board File</value>
   </data>
   <data name="Pcb_Revision_Description" xml:space="preserve">
-    <value>A circuit board revision is a version of a board with a specific layout and component set.</value>
+    <value>Use this to capture and maintain details for a specific circuit board revision, including its layout, components, and related design documentation.</value>
   </data>
   <data name="Pcb_Revision_RevisionTimeStamp" xml:space="preserve">
     <value>Revision Time Stamp YYYY-MM-DD</value>
@@ -411,7 +411,7 @@
     <value>Circuit Board Revision</value>
   </data>
   <data name="Pcb_Variant_Description" xml:space="preserve">
-    <value>A variant is a spec for building a board with a specific set of components on it.  A board may have more components than it needs.</value>
+    <value>Use this variant to define which components are populated on the circuit board. The base board may support additional components that are not included in this variant.</value>
   </data>
   <data name="Pfb_Revision_Revision" xml:space="preserve">
     <value>Revision  (X.X.X)</value>
@@ -444,10 +444,10 @@
     <value>Receive Date</value>
   </data>
   <data name="ComponentOrderLineItem_Title" xml:space="preserve">
-    <value>Line Item</value>
+    <value>Order Line Item</value>
   </data>
   <data name="ComponentOrderLineItem_Help" xml:space="preserve">
-    <value>A lineitem of an order</value>
+    <value>A single line item within a component order.</value>
   </data>
   <data name="ComponentOrderLineItem_UnitPrice" xml:space="preserve">
     <value>Unit Price</value>
@@ -462,7 +462,7 @@
     <value>Backordered</value>
   </data>
   <data name="ComponentOrder_Description" xml:space="preserve">
-    <value>An order of parts from a supplier</value>
+    <value>View key details for a component ordered from a supplier, including quantity, pricing, and inventory receipt status.</value>
   </data>
   <data name="ComponentOrder_LineItems" xml:space="preserve">
     <value>Line Items</value>
@@ -504,7 +504,7 @@
     <value>-select status-</value>
   </data>
   <data name="ComponentOrders_Title" xml:space="preserve">
-    <value>Orders</value>
+    <value>Component orders</value>
   </data>
   <data name="ComponentOrderLineItem_Component" xml:space="preserve">
     <value>Component</value>
@@ -621,10 +621,10 @@
     <value>Tariff</value>
   </data>
   <data name="ComponentAttributes_Title" xml:space="preserve">
-    <value>Component Attributes</value>
+    <value>Defines a specific characteristic of a component.</value>
   </data>
   <data name="ComponentAttribute_Description" xml:space="preserve">
-    <value>A component attribute is a component specific value that describes the part such as resistance, capacitance and so on.</value>
+    <value>Represents a component-specific property that describes a part, such as its resistance, capacitance, or other similar characteristics.</value>
   </data>
   <data name="Component_Attributes" xml:space="preserve">
     <value>Attributes</value>
@@ -651,7 +651,7 @@
     <value>Nozzle Tips</value>
   </data>
   <data name="NozzleTip_Description" xml:space="preserve">
-    <value>A nozzle tip is an attachment that goes on a pick and place head that will place parts, there are difference sizes to allow picking up differnet size components</value>
+    <value>A nozzle tip is an attachment on a pick-and-place head used to pick up and place components. Different nozzle tip sizes are selected to match the size of the component being handled.</value>
   </data>
   <data name="NozzleTip_InnerDiameter" xml:space="preserve">
     <value>Innert Diameter</value>
@@ -789,7 +789,7 @@
     <value>Staging Plate</value>
   </data>
   <data name="MachineStagingPlate_Description" xml:space="preserve">
-    <value>A staging plate is the surface of the machine with holes at fixed locations that allow feeders, boards and equipment to be attached.</value>
+    <value>Defines the machine’s mounting surface. The fixed hole grid is used to accurately position and attach feeders, circuit boards, and other equipment, and to locate the plate within the machine workspace.</value>
   </data>
   <data name="MachineStagingPlate_HoleSpacing" xml:space="preserve">
     <value>Hole Spacing</value>
@@ -882,7 +882,7 @@
     <value>Feeder Rail</value>
   </data>
   <data name="Machine_FeederRail_Description" xml:space="preserve">
-    <value>A feeder rail is attached to a machine, automated feeders are attached to the feeder rail, the feeder rail has slots where the feeders are positioned.</value>
+    <value>A machine-mounted rail that provides indexed slot positions for automated feeders, so each feeder can be attached, positioned, and referenced consistently along the machine.</value>
   </data>
   <data name="Machine_FeederRail_NumberSlots" xml:space="preserve">
     <value>Numuber Slots</value>
@@ -984,16 +984,16 @@
     <value>Offset from the bottom left of the frame to the bottom left of the work area.</value>
   </data>
   <data name="GCodeMappings_Title" xml:space="preserve">
-    <value>GCode Mappings</value>
+    <value>G-code Mappings</value>
   </data>
   <data name="GCode_Description" xml:space="preserve">
-    <value>A GCode mapping file defines the GCodes that are used to sent to a machine. </value>
+    <value>Defines the specific G-code commands that are sent to a machine.</value>
   </data>
   <data name="GCode_Dwell" xml:space="preserve">
     <value>Dwell Command</value>
   </data>
   <data name="GCodeMapping_Title" xml:space="preserve">
-    <value>GCode Mapping</value>
+    <value>G-code Mapping</value>
   </data>
   <data name="Machine_GCodeMapping" xml:space="preserve">
     <value>GCode Mapping</value>
@@ -1062,7 +1062,7 @@
     <value>Current Serial Number</value>
   </data>
   <data name="PickAndPlaceJob_Description" xml:space="preserve">
-    <value>A pick and place job is a configuration of a circuit board revision that is to be built.  This include which parts should be placed.</value>
+    <value>Configuration records for assembling a specific circuit board revision, including the parts to be placed.</value>
   </data>
   <data name="Machine_FeederRail_StartSlotIndex_Help" xml:space="preserve">
     <value>Feeder rail indexes are at the machine level.  If you have more than one feeder rail, you can configure that start index here.</value>
@@ -1110,7 +1110,7 @@
     <value>Tool Head</value>
   </data>
   <data name="MachineToolHead_Description" xml:space="preserve">
-    <value>The Tool Head is the part of the machine that will do the work such as a place head or router.</value>
+    <value>Represents the machine component that performs work on the material, such as a placement head or router. Configure its mechanical position, motion settings, and, for pick-and-place machines, its vacuum sensing behavior.</value>
   </data>
   <data name="MachineToolHead_Type_Laser" xml:space="preserve">
     <value>Laser</value>
@@ -1143,10 +1143,10 @@
     <value>Place Height for this tool head that does not include the height of the nozzle.</value>
   </data>
   <data name="MachineCamera_Title" xml:space="preserve">
-    <value>Camera</value>
+    <value>Machine Camera</value>
   </data>
   <data name="MachineCamera_Description" xml:space="preserve">
-    <value>Camera that is attached to the machine</value>
+    <value>Configure a camera mounted on the machine, including its device, type, and position.</value>
   </data>
   <data name="MachineCamera_Type" xml:space="preserve">
     <value>Camera Type</value>
@@ -1206,7 +1206,7 @@
     <value>Auto Feeder Template</value>
   </data>
   <data name="AutoFeederTemplate_Description" xml:space="preserve">
-    <value>Default parameters that can be used to create auto feeders.  The origin of the Auto Feeder will be calculated from the slot location and is the horizontal center of the feeder on the top of the rail.</value>
+    <value>Use these default parameters to create auto feeders. The feeder origin is calculated from the slot location and placed at the horizontal center of the feeder at the top of the rail.</value>
   </data>
   <data name="StripFeederTemplate_Title" xml:space="preserve">
     <value>Strip Feeder Template</value>
@@ -1215,7 +1215,7 @@
     <value>Strip Feeder Templates</value>
   </data>
   <data name="StripFeederTemplate_Description" xml:space="preserve">
-    <value>Default Parameters used to create Strip Feeders.  Dimensions as  entered expect that the feeder is oriented horizontally.  A strip feeder is a container for components where a tape is installed, each part is picked in a new location based on how many parts are in the strip.</value>
+    <value>Configure default parameters for creating strip feeders. Enter dimensions assuming the feeder is oriented horizontally. A strip feeder is a component container with installed tape, where each part is picked from a new position based on the number of parts in the strip.</value>
   </data>
   <data name="AutoFeederTemplates_Title" xml:space="preserve">
     <value>Auto Feeder Templates</value>
@@ -1386,13 +1386,13 @@
     <value>Extended</value>
   </data>
   <data name="PickAndPlaceJobRun_Title" xml:space="preserve">
-    <value>Pick and Place Job Run</value>
+    <value>Pick-and-Place Job Run</value>
   </data>
   <data name="PickAndPlaceJobRuns_Title" xml:space="preserve">
-    <value>Pick and Place Job Runs</value>
+    <value>Pick-and-Place Job Runs</value>
   </data>
   <data name="PickAndPlaceJobRun_Description" xml:space="preserve">
-    <value>A Pick and Place Job Run is an instance of a Pick and Place Job that tracks the creation of the creation of a circuit board</value>
+    <value>Each record represents a single execution of a pick-and-place job used to assemble a circuit board.</value>
   </data>
   <data name="Feeder_Size" xml:space="preserve">
     <value>Size</value>
@@ -1410,7 +1410,7 @@
     <value>Auto Feeder</value>
   </data>
   <data name="AutoFeeder_Description" xml:space="preserve">
-    <value>An auto feeder is one that typically uses a tap real to dispense parts.  The feeder pick point remains the same but the tape is advanced with each part.</value>
+    <value>An auto feeder uses a tape reel to dispense parts. The pick-up position stays fixed while the tape advances for each dispensed part.</value>
   </data>
   <data name="AutoFeeders_Title" xml:space="preserve">
     <value>Auto Feeders</value>
@@ -1509,13 +1509,13 @@
     <value>Tape has holes on both sides (top/bottom) this is typically true with 32mm and larger tapes.</value>
   </data>
   <data name="AssemblyInstruction_Title" xml:space="preserve">
-    <value>Instruction</value>
+    <value>Assembly Instruction</value>
   </data>
   <data name="AssemblyInstructions_Title" xml:space="preserve">
-    <value>Instructions</value>
+    <value>Instruction Step</value>
   </data>
   <data name="AssemblyInstruction_Description" xml:space="preserve">
-    <value>Assembly Instructions are  a set of steps that need to be completed manufacture a part, assembly or product.</value>
+    <value>Create and manage a single step in the assembly process, capturing the actions, instructions, and related details needed to manufacture a part, assembly, or product.</value>
   </data>
   <data name="AssemblyInstructionStep_Title" xml:space="preserve">
     <value>Assembly Instruction Step</value>
@@ -1695,7 +1695,7 @@
     <value>Inventory Location</value>
   </data>
   <data name="InventoryLocation_Description" xml:space="preserve">
-    <value>An inventory location is a physical location where inventory is stored.  It consists of rooms, shefl units, shelves, columns and bins.</value>
+    <value>A physical storage area for inventory, such as rooms, shelf units, shelves, columns, or bins.</value>
   </data>
   <data name="InventoryLocation_Address1" xml:space="preserve">
     <value>Address 1</value>
@@ -1725,13 +1725,13 @@
     <value>PCB Milling Project</value>
   </data>
   <data name="PcbMillingProject_Description" xml:space="preserve">
-    <value>A PCB Milling Project contains GCode information ot mill a PCB Board on a CNC Machine</value>
+    <value>Contains the G-code needed to mill a printed circuit board (PCB) with a CNC machine.</value>
   </data>
   <data name="GCodeProject_Title" xml:space="preserve">
     <value>GCode Project</value>
   </data>
   <data name="GCodeProject_Description" xml:space="preserve">
-    <value>A GCode Project is a collection of layers that include operatoins and a set ot fools that let you generate GCode.</value>
+    <value>Create and manage GCode projects to organize layers, define operations, and configure the tools required to generate GCode output.</value>
   </data>
   <data name="GCodeProject_StockWidth" xml:space="preserve">
     <value>Stock Width</value>
@@ -1752,10 +1752,10 @@
     <value>Origin</value>
   </data>
   <data name="GCodeProjectTool_Title" xml:space="preserve">
-    <value>Tool </value>
+    <value>Tool</value>
   </data>
   <data name="GCodeProjectTool_Description" xml:space="preserve">
-    <value>A tool is a bit or setting for the machine that will be used to perform the operation.</value>
+    <value>Select or configure the cutting tool (bit) and its associated machine settings that will be used for this operation.</value>
   </data>
   <data name="GCodeProjectTool_PlungeDepth" xml:space="preserve">
     <value>Plunge Depth</value>
@@ -1788,34 +1788,34 @@
     <value>-selet tool type-</value>
   </data>
   <data name="GCode_Hole_Title" xml:space="preserve">
-    <value>Hole</value>
+    <value>Milled Hole</value>
   </data>
   <data name="GCode_Hole_Description" xml:space="preserve">
-    <value>A hole is a circle that is milled out rather than drilled.</value>
+    <value>Specify a circular hole that will be created by milling instead of drilling.</value>
   </data>
   <data name="GCode_Drill_Title" xml:space="preserve">
     <value>Drill</value>
   </data>
   <data name="GCode_Drill_Description" xml:space="preserve">
-    <value>A drill is a hold drilled by a drill bit rather than milled</value>
+    <value>Use this for circular holes produced by a drill bit, not for holes created by milling.</value>
   </data>
   <data name="GCode_Rectangle_Title" xml:space="preserve">
     <value>Rectangle</value>
   </data>
   <data name="GCode_Rectangle_Description" xml:space="preserve">
-    <value>A rectangle has an origin and a size and is either milled as a pocket or exterior</value>
+    <value>Create a rectangular toolpath by specifying its origin and size, and choosing whether it is cut as a pocket or as an exterior profile.</value>
   </data>
   <data name="GCode_Plane_Title" xml:space="preserve">
     <value>Plane</value>
   </data>
   <data name="GCode_Plane_Description" xml:space="preserve">
-    <value>A plane a surface where the entire interior is milled out, where a rectangle just cuts the edges.  It is always a pocket, that is to say the size specified is the actual size of the plane rather than the outside edge.</value>
+    <value>Defines a milled surface where the entire interior is cleared instead of only tracing the perimeter. This is always a pocket operation, so the size you enter represents the actual machined area of the plane, not the external outline.</value>
   </data>
   <data name="GCode_Polygon_TItle" xml:space="preserve">
     <value>Polygon</value>
   </data>
   <data name="GCode_Polygon_Description" xml:space="preserve">
-    <value>A polygon is a collection of points that tool will travel.</value>
+    <value>Define a polygon by specifying a series of points that trace the toolpath. For closed polygons, the last point is automatically connected to the first point if needed.</value>
   </data>
   <data name="GCodeLayer_Title" xml:space="preserve">
     <value>Layer</value>

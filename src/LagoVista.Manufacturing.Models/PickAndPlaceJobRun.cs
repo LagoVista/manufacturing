@@ -45,7 +45,6 @@ namespace LagoVista.Manufacturing.Models
         public string StartTime { get; set; }
         public string EndTime { get; set; }
         public EntityHeader RanBy { get; set; }
-        [FormField(IsRequired:true)]
         public EntityHeader Job { get; set; }
         public ObservableCollection<PickAndPlaceJobRunPlacement> Placements { get; set; } = new ObservableCollection<PickAndPlaceJobRunPlacement>();
         public double PercentCompleted { get; set; }
