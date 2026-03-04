@@ -143,6 +143,11 @@ namespace LagoVista.Manufacturing.Models
         public const string ComponentPackage_MaterialType_Plastic = "plastic";
         public const string ComponentPackage_MaterialType_Paper = "paper";
 
+        public ComponentPackage()
+        {
+             Icon = "icon-pz-stamp-2";
+        }
+
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_TapeMaterialType, FieldType: FieldTypes.Picker, EnumType: typeof(TapeMaterialTypes),
             WaterMark: ManufacturingResources.Names.ComponentPackage_TapeMaterialType_Select, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader<TapeMaterialTypes> TapeMaterialType {get; set;} = EntityHeader<TapeMaterialTypes>.Create(TapeMaterialTypes.Paper);
@@ -153,11 +158,6 @@ namespace LagoVista.Manufacturing.Models
 
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_PackageId, FieldType: FieldTypes.Text, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string PackageId { get; set; }
-
-
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
-        public string Icon { get; set; } = "icon-pz-stamp-2";
-
 
         [FormField(LabelResource: ManufacturingResources.Names.ComponentPackage_PartWidth, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double Width { get; set; }

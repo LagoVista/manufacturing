@@ -23,10 +23,8 @@ namespace LagoVista.Manufacturing.Models
         public PnPMachineNozzleTip()
         {
             Id = Guid.NewGuid().ToId();
+            Icon = "icon-ae-control-panel"; 
         }
-        
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public string Icon { get; set; } = "icon-ae-control-panel";
 
         private double? _height;
         [FormField(LabelResource: ManufacturingResources.Names.NozzleTip_Height, FieldType: FieldTypes.Decimal, IsRequired: false, ResourceType: typeof(ManufacturingResources))]

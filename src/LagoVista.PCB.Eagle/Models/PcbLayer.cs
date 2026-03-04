@@ -27,11 +27,11 @@ namespace LagoVista.PCB.Eagle.Models
             Vias = new List<Via>();
         }
 
-        public string Id { get; set; }
+        public NormalizedId32 Id { get; set; }
 
         //        public int Number { get; set; }
         public string Name { get; set; }
-        public string Key { get; set; }
+        public LagoVistaKey Key { get; set; }
 
         public PCBLayers Layer { get; set; }
         public int Color { get; set; }

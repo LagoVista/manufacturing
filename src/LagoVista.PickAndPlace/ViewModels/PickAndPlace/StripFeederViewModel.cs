@@ -126,7 +126,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 Current = result.Result.Model;
                 Current.Machine = MachineConfiguration.ToEntityHeader();
-                Current.Key = Current.Id.ToLower();
+                Current.Key = Current.Id.Value.ToLower();
                 _isEditing = false;
             }
         }

@@ -27,10 +27,5 @@ namespace LagoVista.Manufacturing.Models
         [CloneOptions(false)]
         [FormField(LabelResource: ManufacturingResources.Names.Common_ValidationErrors, FieldType: FieldTypes.ChildList, IsUserEditable: false, ResourceType: typeof(ManufacturingResources))]
         public ObservableCollection<ErrorMessage> ValidationErrors { get; set; }
-
-
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Description, FieldType: FieldTypes.MultiLineText, IsUserEditable: true, ResourceType: typeof(ManufacturingResources))]
-        public string Description { get; set; }
-
     }
 }

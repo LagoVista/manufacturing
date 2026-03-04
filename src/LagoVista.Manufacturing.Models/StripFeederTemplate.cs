@@ -19,6 +19,11 @@ namespace LagoVista.Manufacturing.Models
                  DeleteUrl: "/api/mfg/stripfeeder/template/{id}", ListUIUrl: "/mfg/stripfeedertemplatess", EditUIUrl: "/mfg/stripfeeder/template/{id}", CreateUIUrl: "/mfg/stripfeeder/template/add")]
     public class StripFeederTemplate : MfgModelBase, ISummaryFactory, IFormDescriptor
     {
+        public StripFeederTemplate()
+        {
+            Icon = "icon-fo-left";
+        }
+
         public StripFeederTemplateSummary CreateSummary()
         {
             return new StripFeederTemplateSummary()
@@ -30,11 +35,6 @@ namespace LagoVista.Manufacturing.Models
                 IsPublic = IsPublic,
             };
         }
-
-
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
-        public string Icon { get; set; } = "icon-fo-left";
-
 
         [FormField(LabelResource: ManufacturingResources.Names.Common_Color, FieldType: FieldTypes.Color, ResourceType: typeof(ManufacturingResources))]
         public string Color

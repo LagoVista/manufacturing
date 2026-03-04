@@ -100,8 +100,8 @@ namespace LagoVista.PCB.Eagle.Models
         public const string Layer_Dimensions = "dimensions";
         public const string Layer_Other = "other";
 
-        public string Id { get; set; }
-        public string Key { get; set; }
+        public NormalizedId32 Id { get; set; }
+        public LagoVistaKey Key { get; set; }
 
         [JsonIgnore]
         public string PackageAndValue

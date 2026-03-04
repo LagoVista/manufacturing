@@ -18,6 +18,11 @@ namespace LagoVista.Manufacturing.Models
               DeleteUrl: "/api/mfg/autofeeder/{id}", ListUIUrl: "/mfg/autoFeedertemplatess", EditUIUrl: "/mfg/autofeeder/template/{id}", CreateUIUrl: "/mfg/autofeeder/template/add")]
     public class AutoFeederTemplate : MfgModelBase, ISummaryFactory, IFormDescriptor
     {
+        public AutoFeederTemplate()
+        {
+            Icon = "icon-pz-searching-2";
+        }
+
         public AutoFeederTemplateSummary CreateSummary()
         {
             return new AutoFeederTemplateSummary()
@@ -29,10 +34,6 @@ namespace LagoVista.Manufacturing.Models
                 IsPublic = IsPublic,
             };
         }
-
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
-        public string Icon { get; set; } = "icon-pz-searching-2";
-
 
         private Point2D<double> _pickLocation;
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_PickLocation, FieldType: FieldTypes.Point2D, ResourceType: typeof(ManufacturingResources))]

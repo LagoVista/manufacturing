@@ -60,7 +60,7 @@ namespace LagoVista.PickAndPlace.App
 
         private async void Save_Click(object sender, RoutedEventArgs e)
         {
-            _settings.Key = Guid.NewGuid().ToId().ToLower();
+            _settings.Key = Guid.NewGuid().ToId().Value.ToLower();
 
             if (String.IsNullOrEmpty(_settings.Name))
             {

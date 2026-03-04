@@ -57,17 +57,13 @@ namespace LagoVista.Manufacturing.Models
 
         public StripFeeder()
         {
+            Icon = "icon-fo-left";
             TapeSize = EntityHeader<TapeSizes>.Create(TapeSizes.EightMM);
             RowCount = 1;
             RowWidth = 12;
             Orientation = EntityHeader<FeederOrientations>.Create(FeederOrientations.Horizontal);
             FeedDirection = EntityHeader<FeedDirections>.Create(FeedDirections.Forward);
         }
-
-
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
-        public string Icon { get; set; } = "icon-fo-left";
-
 
         [FormField(LabelResource: ManufacturingResources.Names.Common_Color, FieldType: FieldTypes.Color, ResourceType: typeof(ManufacturingResources))]
         public string Color

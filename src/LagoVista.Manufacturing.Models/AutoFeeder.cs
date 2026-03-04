@@ -55,9 +55,10 @@ namespace LagoVista.Manufacturing.Models
         public const string FeederProtocol_Phonton = "photon";
         public const string FeederProtocol_Other = "other";
 
-
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
-        public string Icon { get; set; } = "icon-pz-searching-2";
+        public AutoFeeder()
+        {
+            Icon = "icon-pz-searching-2";
+        }
 
         [FormField(LabelResource: ManufacturingResources.Names.Feeder_FeederId, HelpResource:ManufacturingResources.Names.Feeder_FeederId_Help, 
             FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]

@@ -407,7 +407,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if (jobLoadReslut.Successful && jobLoadReslut.Result.Successful)
             {
                 JobRun = jobLoadReslut.Result.Model;
-                await _storageService.StoreKVP("last-job-run-id", JobRun.Id);
+                await _storageService.StoreKVP("last-job-run-id", JobRun.Id.Value);
             }
             else
             {

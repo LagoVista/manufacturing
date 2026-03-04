@@ -25,7 +25,7 @@ namespace LagoVista.Manufacturing.Models
             Id = Guid.NewGuid().ToId();
         }
 
-        public string Id { get; set; }
+        public NormalizedId32 Id { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Pcb_Revision_RevisionTimeStamp, IsRequired:true, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
         public string RevisionTimeStamp { get; set; }

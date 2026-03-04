@@ -21,10 +21,10 @@ namespace LagoVista.Manufacturing.Models
         GetListUrl:"/api/mfg/gcodemappings", GetUrl: "/api/mfg/gcodemapping/{id}", SaveUrl: "/api/mfg/gcodemapping",  DeleteUrl: "/api/mfg/gcodemapping/{id}", FactoryUrl: "/api/mfg/gcodemapping/factory")]
     public class GCodeMapping : MfgModelBase, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IIconEntity
     {
-
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
-        public string Icon { get; set; } = "icon-fo-gallery-1";
-
+        public GCodeMapping()
+        {
+            Icon = "icon-fo-gallery-1";
+        }
 
         [FormField(LabelResource: ManufacturingResources.Names.GCode_TopLightOn, FieldType: FieldTypes.Text, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public string TopLightOn { get; set; }

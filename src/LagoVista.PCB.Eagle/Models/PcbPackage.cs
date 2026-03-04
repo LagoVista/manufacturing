@@ -18,9 +18,9 @@ namespace LagoVista.PCB.Eagle.Models
 {
     public class PcbPackage : IIDEntity, INamedEntity, IKeyedEntity, IDescriptionEntity
     {
-        public string Id { get; set; } = Guid.NewGuid().ToId();
+        public NormalizedId32 Id { get; set; } = Guid.NewGuid().ToId();
 
-        public string Key { get; set; }
+        public LagoVistaKey Key { get; set; }
 
         public string LibraryName { get; set; }
         public string Name { get; set; }

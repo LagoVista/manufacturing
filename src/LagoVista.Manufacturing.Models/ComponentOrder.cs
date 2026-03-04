@@ -41,11 +41,10 @@ namespace LagoVista.Manufacturing.Models
         public const string ComponentOrderStatusTypes_Received = "received";
         public const string ComponentOrderStatusTypes_Stocked = "stocked";
 
-
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
-        public string Icon { get; set; } = "icon-pz-product-1";
-
-
+        public ComponentOrder()
+        {
+          Icon = "icon-pz-product-1";
+        }
 
         [FormField(LabelResource: Resources.ManufacturingResources.Names.ComponentOrder_Supplier, FieldType: FieldTypes.Text, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Supplier { get; set; }

@@ -2,22 +2,23 @@
 // ContentHash: 7eb41d5a191b870ecc7e0e9aad3ab5ed4a3a35fb23f2201b4600241a784022e8
 // IndexVersion: 2
 // --- END CODE INDEX META ---
-using LagoVista.Core.Models.Drawing;
+using LagoVista.Core.Attributes;
+using LagoVista.Core.Interfaces;
 using LagoVista.Core.Models;
+using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.PlatformSupport;
+using LagoVista.Manufacturing.Models.Resources;
+using LagoVista.PickAndPlace.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using System.Linq;
-using LagoVista.Core.Attributes;
-using LagoVista.Manufacturing.Models.Resources;
-using LagoVista.Core.Interfaces;
-using LagoVista.PickAndPlace.Models;
-using System.Runtime.InteropServices;
 
 namespace LagoVista.Manufacturing.Models
 {
@@ -162,6 +163,10 @@ namespace LagoVista.Manufacturing.Models
         DeleteUrl: "/api/mfg/machine/{id}", ListUIUrl: "/mfg/machinesettings", EditUIUrl: "/mfg/machine/{id}", CreateUIUrl: "/mfg/machine/add")]
     public class Machine : MfgModelBase, ISummaryFactory, INotifyPropertyChanged, IFormDescriptor, IFormDescriptorCol2
     {
+        public Machine()
+        {
+            Icon = "icon-pz-ruler";
+        }
 
         public int StatusPollIntervalIdle { get; set; }
         public int StatusPollIntervalRunning { get; set; }
@@ -380,8 +385,7 @@ namespace LagoVista.Manufacturing.Models
         //}
 
 
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
-        public string Icon { get; set; } = "icon-pz-ruler";
+
 
 
         private Point2D<Double> _defaultToolReferencePoint;

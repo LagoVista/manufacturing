@@ -23,7 +23,7 @@ namespace LagoVista.Manufacturing.Models
             Id = Guid.NewGuid().ToId();
         }
 
-        public string Id { get; set; }
+        public NormalizedId32 Id { get; set; }
 
         [FormField(LabelResource: Resources.ManufacturingResources.Names.Common_Name, FieldType: FieldTypes.Text, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Name { get; set; }

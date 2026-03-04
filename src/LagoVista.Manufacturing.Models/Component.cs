@@ -20,16 +20,17 @@ namespace LagoVista.Manufacturing.Models
         ListUIUrl: "/mfg/components", EditUIUrl: "/mfg/component/{id}", CreateUIUrl: "/mfg/component/add")]
     public class Component : MfgModelBase, IValidateable, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IIDEntity, IFormAdditionalActions
     {
+        public Component()
+        {
+            Icon = "icon-ae-core-1";
+        }
+
 
         [FormField(LabelResource: ManufacturingResources.Names.Component_ComponentType, FieldType: FieldTypes.Category, WaterMark:ManufacturingResources.Names.Component_ComponentType_Select, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader ComponentType { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Component_Location, FieldType: FieldTypes.Custom, CustomFieldType:"inventorylocation", ResourceType: typeof(ManufacturingResources))]
         public ComponentLocation Location { get; set; }
-
-
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
-        public string Icon { get; set; } = "icon-ae-core-1";
 
 
         [FormField(LabelResource: ManufacturingResources.Names.Component_PackageType, FieldType: FieldTypes.Picker, FactoryUrl: "/api/mfg/component/package/factory", ResourceType: typeof(ManufacturingResources))]

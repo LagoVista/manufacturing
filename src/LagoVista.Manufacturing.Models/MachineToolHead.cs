@@ -34,16 +34,16 @@ namespace LagoVista.Manufacturing.Models
         public const string MachineToolHead_Type_Spindle = "spindle";
         public const string MachineToolHead_Type_PartNozzle = "partnozzle";
 
-        public string Id { get; set; } = Guid.NewGuid().ToId();
+        public NormalizedId32 Id { get; set; } = Guid.NewGuid().ToId();
 
         [FormField(LabelResource: ManufacturingResources.Names.Common_Name, FieldType: FieldTypes.Text, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Name { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Common_Key, FieldType: FieldTypes.Key, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public string Key { get; set; }
+        public LagoVistaKey Key { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public string Icon { get; set; } = "icon-fo-maintenance-3";
+        public LagoVistaIcon Icon { get; set; } = "icon-fo-maintenance-3";
 
         [FormField(LabelResource: ManufacturingResources.Names.Common_Color, FieldType: FieldTypes.Color, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Color { get; set; } = "#000000";

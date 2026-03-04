@@ -19,11 +19,14 @@ namespace LagoVista.Manufacturing.Models
 
     public class CircuitBoard : MfgModelBase, IFormDescriptor, ISummaryFactory
     {
+        public CircuitBoard()
+        {
+            Icon = "icon-fo-landing-page";
+        }
+
         [FormField(LabelResource: ManufacturingResources.Names.Pcb_Sku, IsRequired:true, FieldType: FieldTypes.Text, ResourceType: typeof(ManufacturingResources))]
         public string Sku { get; set; }
 
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
-        public string Icon { get; set; } = "icon-fo-landing-page";
 
         [FormField(LabelResource: ManufacturingResources.Names.Pcb_Revisions, ChildListDisplayMember: "Revision", OpenByDefault:true, FieldType: FieldTypes.ChildListInline, FactoryUrl: "/api/mfg/pcb/revision/factory", 
                 ResourceType: typeof(ManufacturingResources))]

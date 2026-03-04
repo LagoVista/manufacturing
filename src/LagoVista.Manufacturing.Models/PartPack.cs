@@ -17,10 +17,10 @@ namespace LagoVista.Manufacturing.Models
             ListUIUrl: "/mfg/partpacks", EditUIUrl: "/mfg/partpack/{id}", CreateUIUrl: "/mfg/partpack/add")]
     public class PartPack : MfgModelBase, IValidateable, IFormDescriptor, ISummaryFactory, IIDEntity
     {
-
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
-        public string Icon { get; set; } = "icon-fo-folders";
-
+        public PartPack()
+        {
+            Icon = "icon-fo-folders";
+        }
 
         public AutoFeederSummary CreateSummary()
         {

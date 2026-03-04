@@ -61,17 +61,17 @@ namespace LagoVista.Manufacturing.Models
             Id = Guid.NewGuid().ToId();
         }
 
-        public String Id { get; set; }
+        public NormalizedId32 Id { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Common_Name, FieldType: FieldTypes.Text, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
 
         public string Name { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Common_Key, FieldType: FieldTypes.Key, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public string Key { get; set; }
+        public LagoVistaKey Key { get; set; }
 
         [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
-        public string Icon { get; set; } = "icon-ae-camera";
+        public LagoVistaIcon Icon { get; set; } = "icon-ae-camera";
 
         [FormField(LabelResource: ManufacturingResources.Names.MachineCamera_DeviceId, FieldType: FieldTypes.Text, IsUserEditable: false, ResourceType: typeof(ManufacturingResources))]
         public EntityHeader CameraDevice { get; set; }
