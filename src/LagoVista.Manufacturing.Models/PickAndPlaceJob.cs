@@ -78,9 +78,6 @@ namespace LagoVista.Manufacturing.Models
     public class PickAndPlaceJob : MfgModelBase, IValidateable, IFormDescriptor, ISummaryFactory, IIDEntity
     {
 
-        [FormField(LabelResource: ManufacturingResources.Names.Common_Icon, FieldType: FieldTypes.Icon, ResourceType: typeof(ManufacturingResources))]
-        public string Icon { get; set; } = "icon-ae-control-panel";
-
         public PickAndPlaceJobSummary CreateSummary()
         {
             return new PickAndPlaceJobSummary()

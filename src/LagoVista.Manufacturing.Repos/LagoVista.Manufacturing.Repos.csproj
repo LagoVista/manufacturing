@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="LagoVista.CloudStorage" Version="3.0.3099.1426" />
+    <PackageReference Include="LagoVista.CloudStorage" Version="3.0.3228.1908" />
    </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LagoVista.Manufacturing.Models\LagoVista.Manufacturing.Models.csproj" />

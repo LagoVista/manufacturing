@@ -7,6 +7,7 @@ using LagoVista.Manufacturing.Interfaces.Managers;
 using LagoVista.Manufacturing.Interfaces.Services;
 using LagoVista.Manufacturing.Managers;
 using LagoVista.Manufacturing.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace LagoVista.Manufacturing
 {

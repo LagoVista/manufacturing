@@ -53,7 +53,7 @@ namespace LagoVista.Manufacturing.Managers
 
         public async Task<StripFeeder> CreateFromTemplateAsync(string templateId, EntityHeader org, EntityHeader user)
         {
-            var timeStamp = DateTime.UtcNow.ToJSONString();
+            var timeStamp = UtcTimestamp.Now;
 
             var template = await _stripFeederTemplateRepo.GetStripFeederTemplateAsync(templateId);
             await AuthorizeAsync(template, AuthorizeActions.Read, user, org);

@@ -2,9 +2,13 @@
 // ContentHash: eb4ffc86817dc042df642b417f6b52f0bec4505df5aee429c63ef8fdb841ede5
 // IndexVersion: 2
 // --- END CODE INDEX META ---
-using LagoVista.Manufacturing.Interfaces.Repos;
-using LagoVista.Manufacturing.Repo.Repos;
 using LagoVista.Core.Interfaces;
+using LagoVista.Core.PlatformSupport;
+using LagoVista.Manufacturing.Interfaces.Repos;
+using LagoVista.Manufacturing.Models;
+using LagoVista.Manufacturing.Repo.Repos;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace LagoVista.Manufacturing.Repos
 {
@@ -30,6 +34,20 @@ namespace LagoVista.Manufacturing.Repos
             services.AddTransient<IPcbMillingProjectRepo, PcbMillingProjectRepo>();
             services.AddTransient<IGCodeProjectRepo, GCodeProjectRepo>();
             services.AddTransient<IAssemblyInstructionRepo, AssemblyInstructionRepo>();
+        }
+    }
+}
+
+
+namespace LagoVista.DependencyInjection
+{
+    public static class ManufacturingModule
+    {
+        public static void AddManufacturingModule(this IServiceCollection services, IConfigurationRoot configRoot, ILogger logger)
+        {
+            LagoVista.Manufacturing.Repos.Startup.ConfigureServices(services);
+            LagoVista.Manufacturing.Startup.ConfigureServices(services);
+            services.AddMetaDataHelper<CircuitBoard>();
         }
     }
 }
