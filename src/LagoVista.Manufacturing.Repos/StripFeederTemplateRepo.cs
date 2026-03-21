@@ -8,24 +8,16 @@ using LagoVista.Core.Models.UIMetaData;
 using LagoVista.IoT.Logging.Loggers;
 using LagoVista.Manufacturing.Interfaces.Repos;
 using LagoVista.Manufacturing.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace LagoVista.Manufacturing.Repos
 {
     public class StripFeederTemplateRepo : DocumentDBRepoBase<StripFeederTemplate>, IStripFeederTemplateRepo
     {
-        private bool _shouldConsolidateCollections;
-
         public StripFeederTemplateRepo(IManufacturingRepoSettings settings, IAdminLogger logger, ICacheProvider cacheProvider, IDependencyManager dependencyMgr) :
             base(settings.ManufacturingDocDbStorage.Uri, settings.ManufacturingDocDbStorage.AccessKey, settings.ManufacturingDocDbStorage.ResourceName, logger, cacheProvider, dependencyMgr)
         {
-            _shouldConsolidateCollections = settings.ShouldConsolidateCollections;
         }
-
-        protected override bool ShouldConsolidateCollections => _shouldConsolidateCollections;
 
         public Task AddStripFeederTemplateAsync(StripFeederTemplate stripFeederTemplate)
         {

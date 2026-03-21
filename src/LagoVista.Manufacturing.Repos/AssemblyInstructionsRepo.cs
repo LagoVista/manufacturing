@@ -15,15 +15,10 @@ namespace LagoVista.Manufacturing.Repo.Repos
 {
     public class AssemblyInstructionRepo : DocumentDBRepoBase<AssemblyInstruction>, IAssemblyInstructionRepo
     {
-        private bool _shouldConsolidateCollections;
-
         public AssemblyInstructionRepo(IManufacturingRepoSettings settings, IAdminLogger logger, ICacheProvider cacheProvider, IDependencyManager dependencyMgr) :
             base(settings.ManufacturingDocDbStorage.Uri, settings.ManufacturingDocDbStorage.AccessKey, settings.ManufacturingDocDbStorage.ResourceName, logger, cacheProvider, dependencyMgr)
         {
-            _shouldConsolidateCollections = settings.ShouldConsolidateCollections;
         }
-
-        protected override bool ShouldConsolidateCollections => _shouldConsolidateCollections;
 
         public Task AddAssemblyInstructionAsync(AssemblyInstruction assemblyInstruction)
         {

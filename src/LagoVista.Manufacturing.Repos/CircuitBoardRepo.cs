@@ -15,15 +15,10 @@ namespace LagoVista.Manufacturing.Repo.Repos
 {
     public class CircuitBoardRepo : DocumentDBRepoBase<CircuitBoard>, ICircuitBoardRepo
     {
-        private bool _shouldConsolidateCollections;
-
         public CircuitBoardRepo(IManufacturingRepoSettings settings, IAdminLogger logger, ICacheProvider cacheProvider, IDependencyManager dependencyMgr) :
             base(settings.ManufacturingDocDbStorage.Uri, settings.ManufacturingDocDbStorage.AccessKey, settings.ManufacturingDocDbStorage.ResourceName, logger, cacheProvider, dependencyMgr)
         {
-            _shouldConsolidateCollections = settings.ShouldConsolidateCollections;
         }
-
-        protected override bool ShouldConsolidateCollections => _shouldConsolidateCollections;
 
         public Task AddCircuitBoardAsync(CircuitBoard CircuitBoard)
         {

@@ -15,15 +15,10 @@ namespace LagoVista.Manufacturing.Repo.Repos
 {
     public class PcbMillingProjectRepo : DocumentDBRepoBase<PcbMillingProject>, IPcbMillingProjectRepo
     {
-        private bool _shouldConsolidateCollections;
-
         public PcbMillingProjectRepo(IManufacturingRepoSettings settings, IAdminLogger logger, ICacheProvider cacheProvider, IDependencyManager dependencyMgr) :
             base(settings.ManufacturingDocDbStorage.Uri, settings.ManufacturingDocDbStorage.AccessKey, settings.ManufacturingDocDbStorage.ResourceName, logger, cacheProvider, dependencyMgr)
         {
-            _shouldConsolidateCollections = settings.ShouldConsolidateCollections;
         }
-
-        protected override bool ShouldConsolidateCollections => _shouldConsolidateCollections;
 
         public Task AddPcbMillingProjectAsync(PcbMillingProject PcbMillingProject)
         {

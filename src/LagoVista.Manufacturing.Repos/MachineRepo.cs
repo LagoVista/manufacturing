@@ -18,15 +18,10 @@ namespace LagoVista.Manufacturing.Repo.Repos
 {
     public class MachineRepo : DocumentDBRepoBase<Machine>, IMachineRepo
     {
-        private bool _shouldConsolidateCollections;
-
         public MachineRepo(IManufacturingRepoSettings settings, IAdminLogger logger, ICacheProvider cacheProvider, IDependencyManager dependencyMgr) :
             base(settings.ManufacturingDocDbStorage.Uri, settings.ManufacturingDocDbStorage.AccessKey, settings.ManufacturingDocDbStorage.ResourceName, logger, cacheProvider, dependencyMgr)
         {
-            _shouldConsolidateCollections = settings.ShouldConsolidateCollections;
         }
-
-        protected override bool ShouldConsolidateCollections => _shouldConsolidateCollections;
 
         public Task AddMachineAsync(Machine machine)
         {

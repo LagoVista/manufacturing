@@ -17,15 +17,10 @@ namespace LagoVista.Manufacturing.Repos
 {
     public class PickAndPlaceJobRunRepo : DocumentDBRepoBase<PickAndPlaceJobRun>, IPickAndPlaceJobRunRepo
     {
-        private bool _shouldConsolidateCollections;
-
         public PickAndPlaceJobRunRepo(IManufacturingRepoSettings settings, IAdminLogger logger, ICacheProvider cacheProvider, IDependencyManager dependencyMgr) :
             base(settings.ManufacturingDocDbStorage.Uri, settings.ManufacturingDocDbStorage.AccessKey, settings.ManufacturingDocDbStorage.ResourceName, logger, cacheProvider, dependencyMgr)
         {
-            _shouldConsolidateCollections = settings.ShouldConsolidateCollections;
         }
-
-        protected override bool ShouldConsolidateCollections => _shouldConsolidateCollections;
 
         public Task AddJobRunAsync(PickAndPlaceJobRun jobRun)
         {

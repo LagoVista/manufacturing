@@ -6,9 +6,9 @@
     <FileVersion>1.2.211.1114</FileVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="LagoVista.UserAdmin" Version="3.0.3228.1908" />
-    <PackageReference Include="LagoVista.PDFServices" Version="3.0.3228.1908" />
-   <PackageReference Include="LagoVista.MediaServices" Version="3.0.3228.1908" />
+    <PackageReference Include="LagoVista.UserAdmin" Version="3.0.3230.1347" />
+    <PackageReference Include="LagoVista.PDFServices" Version="3.0.3230.1347" />
+   <PackageReference Include="LagoVista.MediaServices" Version="3.0.3230.1347" />
    <PackageReference Include="QRCoder" Version="1.7.0" />
   </ItemGroup>
   <ItemGroup>

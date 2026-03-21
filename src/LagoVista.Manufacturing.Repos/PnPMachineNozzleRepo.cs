@@ -15,15 +15,10 @@ namespace LagoVista.Manufacturing.Repo.Repos
 {
     public class PnPMachineNozzleTipRepo : DocumentDBRepoBase<PnPMachineNozzleTip>, IPnpMachineNozzleTipReo
     {
-        private bool _shouldConsolidateCollections;
-
         public PnPMachineNozzleTipRepo(IManufacturingRepoSettings settings, IAdminLogger logger, ICacheProvider cacheProvider, IDependencyManager dependencyMgr) :
             base(settings.ManufacturingDocDbStorage.Uri, settings.ManufacturingDocDbStorage.AccessKey, settings.ManufacturingDocDbStorage.ResourceName, logger, cacheProvider, dependencyMgr)
         {
-            _shouldConsolidateCollections = settings.ShouldConsolidateCollections;
         }
-
-        protected override bool ShouldConsolidateCollections => _shouldConsolidateCollections;
 
         public Task AddPnPMachineNozzleTipAsync(PnPMachineNozzleTip pnPMachineNozzleTip)
         {

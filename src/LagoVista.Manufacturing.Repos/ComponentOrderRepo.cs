@@ -14,15 +14,10 @@ namespace LagoVista.Manufacturing.Repos
 {
     public class ComponentOrderRepo : DocumentDBRepoBase<ComponentOrder>, IComponentOrderRepo
     {
-        private bool _shouldConsolidateCollections;
-
         public ComponentOrderRepo(IManufacturingRepoSettings settings, IAdminLogger logger, ICacheProvider cacheProvider, IDependencyManager dependencyMgr) :
             base(settings.ManufacturingDocDbStorage.Uri, settings.ManufacturingDocDbStorage.AccessKey, settings.ManufacturingDocDbStorage.ResourceName, logger, cacheProvider, dependencyMgr)
         {
-            _shouldConsolidateCollections = settings.ShouldConsolidateCollections;
         }
-
-        protected override bool ShouldConsolidateCollections => _shouldConsolidateCollections;
 
         public Task AddComponentOrderAsync(ComponentOrder componentOrder)
         {

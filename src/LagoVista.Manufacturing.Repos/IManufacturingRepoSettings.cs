@@ -10,7 +10,5 @@ namespace LagoVista.Manufacturing.Repos
     {
         IConnectionSettings ManufacturingDocDbStorage { get; }
         IConnectionSettings ManufacturingTableStorage { get; }
-
-        bool ShouldConsolidateCollections { get; }
     }
 }
