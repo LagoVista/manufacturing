@@ -4,6 +4,7 @@
 // --- END CODE INDEX META ---
 using LagoVista.Core.Interfaces;
 using LagoVista.Core.PlatformSupport;
+using LagoVista.Manufacturing.Interfaces;
 using LagoVista.Manufacturing.Interfaces.Repos;
 using LagoVista.Manufacturing.Models;
 using LagoVista.Manufacturing.Repo.Repos;
@@ -35,6 +36,7 @@ namespace LagoVista.Manufacturing.Repos
             services.AddTransient<IGCodeProjectRepo, GCodeProjectRepo>();
             services.AddTransient<IAssemblyInstructionRepo, AssemblyInstructionRepo>();
             services.AddSingleton<IManufacturingRepoSettings, ManufacturingRepoSettings>();
+            services.AddSingleton<IManufacturingSettings, ManufacturingSettings>();
         }
     }
 }
