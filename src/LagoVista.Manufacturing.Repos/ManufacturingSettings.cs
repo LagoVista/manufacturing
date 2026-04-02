@@ -12,8 +12,8 @@ namespace LagoVista.Manufacturing.Repos
         public ManufacturingSettings(IConfiguration configuration)
         {
             var digiKeySection = configuration.GetSection("DigiKey");
-            DigiKeyClientId = digiKeySection["ClientId"];
-            DigiKeyClientSecret = digiKeySection["ClientSecret"];
+            DigiKeyClientId = digiKeySection.Require("ClientId");
+            DigiKeyClientSecret = digiKeySection.Require("ClientSecret");
         }
     }
 }
