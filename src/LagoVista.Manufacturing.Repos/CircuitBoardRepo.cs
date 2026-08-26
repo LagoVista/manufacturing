@@ -3,21 +3,22 @@
 // IndexVersion: 2
 // --- END CODE INDEX META ---
 using LagoVista.CloudStorage.DocumentDB;
+using LagoVista.CloudStorage.Interfaces;
 using LagoVista.Core.Interfaces;
 using LagoVista.Core.Models.UIMetaData;
+using LagoVista.IoT.Logging.Loggers;
 using LagoVista.Manufacturing.Interfaces.Repos;
 using LagoVista.Manufacturing.Models;
-using LagoVista.IoT.Logging.Loggers;
-using System.Threading.Tasks;
 using LagoVista.Manufacturing.Repos;
+using System.Threading.Tasks;
 
 namespace LagoVista.Manufacturing.Repo.Repos
 {
     public class CircuitBoardRepo : DocumentDBRepoBase<CircuitBoard>, ICircuitBoardRepo
     {
-        public CircuitBoardRepo(IManufacturingRepoSettings settings, IAdminLogger logger, ICacheProvider cacheProvider, IDependencyManager dependencyMgr) :
-            base(settings.ManufacturingDocDbStorage.Uri, settings.ManufacturingDocDbStorage.AccessKey, settings.ManufacturingDocDbStorage.ResourceName, logger, cacheProvider, dependencyMgr)
-        {
+        public CircuitBoardRepo(IDocumentCloudCachedServices services) :
+            base(services)
+        { 
         }
 
         public Task AddCircuitBoardAsync(CircuitBoard CircuitBoard)

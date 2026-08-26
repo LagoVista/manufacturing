@@ -3,6 +3,7 @@
 // IndexVersion: 2
 // --- END CODE INDEX META ---
 using LagoVista.CloudStorage.DocumentDB;
+using LagoVista.CloudStorage.Interfaces;
 using LagoVista.Core.Interfaces;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.IoT.Logging.Loggers;
@@ -14,8 +15,8 @@ namespace LagoVista.Manufacturing.Repos
 {
     internal class AutoFeederTemplateRepo : DocumentDBRepoBase<AutoFeederTemplate>, IAutoFeederTemplateRepo
     {
-        public AutoFeederTemplateRepo(IManufacturingRepoSettings settings, IAdminLogger logger, ICacheProvider cacheProvider, IDependencyManager dependencyMgr) :
-            base(settings.ManufacturingDocDbStorage.Uri, settings.ManufacturingDocDbStorage.AccessKey, settings.ManufacturingDocDbStorage.ResourceName, logger, cacheProvider, dependencyMgr)
+        public AutoFeederTemplateRepo(IDocumentCloudCachedServices services) :
+            base(services)
         {
         }
 

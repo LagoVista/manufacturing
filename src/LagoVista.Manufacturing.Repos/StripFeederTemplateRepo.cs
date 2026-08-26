@@ -3,6 +3,7 @@
 // IndexVersion: 2
 // --- END CODE INDEX META ---
 using LagoVista.CloudStorage.DocumentDB;
+using LagoVista.CloudStorage.Interfaces;
 using LagoVista.Core.Interfaces;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.IoT.Logging.Loggers;
@@ -14,8 +15,7 @@ namespace LagoVista.Manufacturing.Repos
 {
     public class StripFeederTemplateRepo : DocumentDBRepoBase<StripFeederTemplate>, IStripFeederTemplateRepo
     {
-        public StripFeederTemplateRepo(IManufacturingRepoSettings settings, IAdminLogger logger, ICacheProvider cacheProvider, IDependencyManager dependencyMgr) :
-            base(settings.ManufacturingDocDbStorage.Uri, settings.ManufacturingDocDbStorage.AccessKey, settings.ManufacturingDocDbStorage.ResourceName, logger, cacheProvider, dependencyMgr)
+        public StripFeederTemplateRepo(IDocumentCloudCachedServices services) : base(services)
         {
         }
 
