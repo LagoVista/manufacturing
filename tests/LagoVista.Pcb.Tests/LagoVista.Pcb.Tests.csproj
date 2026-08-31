@@ -1,19 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="LagoVista.Core.TestBase" Version="3.0.3230.1347" />
+    <PackageReference Include="LagoVista.Core.TestBase" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\LagoVista.Manufacturing.Models\LagoVista.Manufacturing.Models.csproj" />
     <ProjectReference Include="..\..\src\LagoVista.PCB.Eagle\LagoVista.PCB.Eagle.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <None Update="mobo-top.pos">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -34,5 +30,4 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
 </Project>

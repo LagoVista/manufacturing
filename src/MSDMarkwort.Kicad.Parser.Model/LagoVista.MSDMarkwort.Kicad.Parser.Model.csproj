@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <ImplicitUsings>Disable</ImplicitUsings>
@@ -19,10 +18,9 @@
   </ItemGroup>
   <ItemGroup>
     <!-- For GitHub -->
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MSDMarkwort.Kicad.Parser.Base\LagoVista.MSDMarkwort.Kicad.Parser.Base.csproj" />
   </ItemGroup>
-
 </Project>

@@ -1,18 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="LagoVista.Core" Version="3.0.3230.1347" />
+    <PackageReference Include="LagoVista.Core" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\LagoVista.GCode\LagoVista.GCode.csproj" />
     <ProjectReference Include="..\MSDMarkwort.Kicad.Parser.PcbNew\LagoVista.MSDMarkwort.Kicad.Parser.PcbNew.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Update="T4ResourceGenerator.cs">
       <DependentUpon>T4ResourceGenerator.tt</DependentUpon>
@@ -20,22 +16,18 @@
       <AutoGen>True</AutoGen>
     </Compile>
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Update="Resources\PcbResources.resx">
       <Generator></Generator>
     </EmbeddedResource>
   </ItemGroup>
-
   <ItemGroup>
     <None Update="T4ResourceGenerator.tt">
       <LastGenOutput>T4ResourceGenerator.cs</LastGenOutput>
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>
   </ItemGroup>
-
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
-
 </Project>

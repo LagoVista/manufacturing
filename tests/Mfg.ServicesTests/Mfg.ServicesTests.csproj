@@ -1,16 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="LagoVista.Core.TestBase" Version="3.0.3230.1347" />
+    <PackageReference Include="LagoVista.Core.TestBase" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\LagoVista.Manufacturing\LagoVista.Manufacturing.csproj" />
   </ItemGroup>
-
 </Project>

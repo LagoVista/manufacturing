@@ -1,18 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows7.0</TargetFramework>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Remove="ViewModels\Obsolete\**" />
     <EmbeddedResource Remove="ViewModels\Obsolete\**" />
     <None Remove="ViewModels\Obsolete\**" />
     <Page Remove="ViewModels\Obsolete\**" />
   </ItemGroup>
-
   <ItemGroup>
     <None Remove="Imgs\AddFavorite1.png" />
     <None Remove="Imgs\AddFavorite2.png" />
@@ -68,21 +65,18 @@
     <None Remove="Resources\DSEG14Classic-Regular.ttf" />
     <None Remove="Resources\GrblErrors.txt" />
   </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="DirectShowLib.Standard" Version="2.1.0" />
-    <PackageReference Include="Emgu.CV" Version="4.5.5.4823" />
-    <PackageReference Include="Emgu.CV.runtime.windows" Version="4.5.5.4823" />
-    <PackageReference Include="Emgu.CV.UI" Version="4.5.5.4823" />
-    <PackageReference Include="font-awesome" Version="4.7.0" />
-    <PackageReference Include="HelixToolkit.Core.Wpf" Version="2.22.0" />
-    <PackageReference Include="Meziantou.WpfFontAwesome" Version="5.15.4" />
-    <PackageReference Include="SharpDX.XInput" Version="4.2.0" />
-    <PackageReference Include="System.IO.Ports" Version="9.0.0" />
-    <PackageReference Include="LagoVista.Core" Version="3.0.3230.1347" />
-
+    <PackageReference Include="DirectShowLib.Standard" />
+    <PackageReference Include="Emgu.CV" />
+    <PackageReference Include="Emgu.CV.runtime.windows" />
+    <PackageReference Include="Emgu.CV.UI" />
+    <PackageReference Include="font-awesome" />
+    <PackageReference Include="HelixToolkit.Core.Wpf" />
+    <PackageReference Include="Meziantou.WpfFontAwesome" />
+    <PackageReference Include="SharpDX.XInput" />
+    <PackageReference Include="System.IO.Ports" />
+    <PackageReference Include="LagoVista.Core" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\crossplatform\src\LagoVista.Xplat.WPF\LagoVista.XPlat.WPF.csproj" />
     <ProjectReference Include="..\FontAwesome.WPF\FontAwesome.WPF.csproj" />
@@ -90,7 +84,6 @@
     <ProjectReference Include="..\LagoVista.PCB.Eagle\LagoVista.PCB.Eagle.csproj" />
     <ProjectReference Include="..\LagoVista.PickAndPlace\LagoVista.PickAndPlace.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Resource Include="Imgs\AddFavorite1.png" />
     <Resource Include="Imgs\AddFavorite2.png" />
@@ -153,8 +146,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-
-
   <ItemGroup>
     <Compile Update="Properties\Settings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
@@ -162,7 +153,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
   </ItemGroup>
-
   <ItemGroup>
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -180,5 +170,4 @@
   <ItemGroup>
     <Folder Include="ViewModels\" />
   </ItemGroup>
-
 </Project>
