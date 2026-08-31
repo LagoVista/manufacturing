@@ -9,15 +9,15 @@
     <PackageVersion Include="Emgu.CV.UI" Version="4.5.5.4823" />
     <PackageVersion Include="font-awesome" Version="4.7.0" />
     <PackageVersion Include="HelixToolkit.Core.Wpf" Version="2.22.0" />
-    <PackageVersion Include="LagoVista.CloudStorage" Version="6.0.1" />
-    <PackageVersion Include="LagoVista.Core" Version="6.0.10" />
-    <PackageVersion Include="LagoVista.Core.Configuration" Version="6.0.10" />
-    <PackageVersion Include="LagoVista.Core.TestBase" Version="6.0.10" />
-    <PackageVersion Include="LagoVista.IoT.Web.Common" Version="6.0.1" />
-    <PackageVersion Include="LagoVista.MediaServices" Version="6.0.0" />
-    <PackageVersion Include="LagoVista.PDFServices" Version="6.0.10" />
-    <PackageVersion Include="LagoVista.UserAdmin" Version="6.0.1" />
-    <PackageVersion Include="LagoVista.UserAdmin.Models" Version="6.0.1" />
+    <PackageVersion Include="LagoVista.CloudStorage" Version="6.0.3" />
+    <PackageVersion Include="LagoVista.Core" Version="6.0.11" />
+    <PackageVersion Include="LagoVista.Core.Configuration" Version="6.0.11" />
+    <PackageVersion Include="LagoVista.Core.TestBase" Version="6.0.11" />
+    <PackageVersion Include="LagoVista.IoT.Web.Common" Version="6.0.2" />
+    <PackageVersion Include="LagoVista.MediaServices" Version="6.0.1" />
+    <PackageVersion Include="LagoVista.PDFServices" Version="6.0.11" />
+    <PackageVersion Include="LagoVista.UserAdmin" Version="6.0.2" />
+    <PackageVersion Include="LagoVista.UserAdmin.Models" Version="6.0.2" />
     <PackageVersion Include="Meziantou.WpfFontAwesome" Version="5.15.4" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
     <PackageVersion Include="QRCoder" Version="1.7.0" />
