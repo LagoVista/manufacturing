@@ -19,7 +19,7 @@ namespace LagoVista.Manufacturing.Models
             ManufacturingResources.Names.InventoryLocation_Description, EntityDescriptionAttribute.EntityTypes.Manufacturing, ResourceType: typeof(ManufacturingResources),
             Icon: "icon-pz-searching-2", Cloneable: true,
             SaveUrl: "/api/mfg/inventory/location", GetUrl: "/api/mfg/inventory/location/{id}", GetListUrl: "/api/mfg/inventory/locations", FactoryUrl: "/api/mfg/inventory/location/factory",
-            DeleteUrl: "/api/mfg/inventory/location/{id}", ListUIUrl: "/mfg/inventorylocations", EditUIUrl: "/mfg/inventorylocation/{id}", CreateUIUrl: "/mfg/inventorylocation/add")]
+            DeleteUrl: "/api/mfg/inventory/location/{id}", ListUIUrl: "/mfg/locations", EditUIUrl: "/mfg/location/{id}", CreateUIUrl: "/mfg/location/add")]
 
     public class InventoryLocation : MfgModelBase, IFormDescriptor, IValidateable, ISummaryFactory
     {
@@ -146,7 +146,7 @@ namespace LagoVista.Manufacturing.Models
               ManufacturingResources.Names.InventoryLocation_Description, EntityDescriptionAttribute.EntityTypes.Manufacturing, ResourceType: typeof(ManufacturingResources),
               Icon: "icon-pz-searching-2", Cloneable: true,
               SaveUrl: "/api/mfg/inventory/location", GetUrl: "/api/mfg/inventory/location/{id}", GetListUrl: "/api/mfg/inventory/locations", FactoryUrl: "/api/mfg/inventory/location/factory",
-              DeleteUrl: "/api/mfg/inventory/location/{id}", ListUIUrl: "/mfg/inventorylocations", EditUIUrl: "/mfg/inventorylocation/{id}", CreateUIUrl: "/mfg/inventorylocation/add")]
+              DeleteUrl: "/api/mfg/inventory/location/{id}", ListUIUrl: "/mfg/locations", EditUIUrl: "/mfg/location/{id}", CreateUIUrl: "/mfg/location/add")]
 
     public class InventoryLocationSummary : SummaryData
     {
