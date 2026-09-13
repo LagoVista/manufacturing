@@ -15,7 +15,7 @@ namespace LagoVista.Manufacturing.Models
               ManufacturingResources.Names.AutoFeederTemplate_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources),
               Icon: "icon-pz-searching-2", Cloneable: true,
               SaveUrl: "/api/mfg/autofeeder/template", GetUrl: "/api/mfg/autoFeeder/template/{id}", GetListUrl: "/api/mfg/autofeeder/templates", FactoryUrl: "/api/mfg/autofeeder/template/factory",
-              DeleteUrl: "/api/mfg/autofeeder/{id}", ListUIUrl: "/mfg/autoFeedertemplatess", EditUIUrl: "/mfg/autofeeder/template/{id}", CreateUIUrl: "/mfg/autofeeder/template/add")]
+              DeleteUrl: "/api/mfg/autofeeder/{id}", ListUIUrl: "/mfg/autofeedertemplates", EditUIUrl: "/mfg/autofeeder/template/{id}", CreateUIUrl: "/mfg/autofeeder/template/add")]
     public class AutoFeederTemplate : MfgModelBase, ISummaryFactory, IFormDescriptor
     {
         public AutoFeederTemplate()
@@ -138,7 +138,7 @@ namespace LagoVista.Manufacturing.Models
           ManufacturingResources.Names.AutoFeederTemplate_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources),
           Icon: "icon-pz-searching-2", Cloneable: true,
           SaveUrl: "/api/mfg/autofeeder/template", GetUrl: "/api/mfg/autoFeeder/template/{id}", GetListUrl: "/api/mfg/autofeeder/templates", FactoryUrl: "/api/mfg/autofeeder/template/factory",
-          DeleteUrl: "/api/mfg/autofeeder/{id}", ListUIUrl: "/mfg/autoFeedertemplatess", EditUIUrl: "/mfg/autofeeder/template/{id}", CreateUIUrl: "/mfg/autofeeder/template/add")]
+          DeleteUrl: "/api/mfg/autofeeder/{id}", ListUIUrl: "/mfg/autofeedertemplates", EditUIUrl: "/mfg/autofeeder/template/{id}", CreateUIUrl: "/mfg/autofeeder/template/add")]
     public class AutoFeederTemplateSummary : SummaryData
     {
     }

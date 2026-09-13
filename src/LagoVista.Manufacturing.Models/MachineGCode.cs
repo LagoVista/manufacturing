@@ -17,7 +17,7 @@ namespace LagoVista.Manufacturing.Models
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.GCodeMapping_Title, ManufacturingResources.Names.GCode_Description,
         ManufacturingResources.Names.GCode_Description, EntityDescriptionAttribute.EntityTypes.Manufacturing, ResourceType: typeof(ManufacturingResources),
         Icon: "icon-fo-gallery-1", Cloneable: true, 
-        CreateUIUrl: "/mfg/gcodemapping/add", ListUIUrl: "/mfg/gcodemappings", EditUIUrl: "/mfg/gcodemapping/{id}",
+        CreateUIUrl: "/mfg/gcode/add", ListUIUrl: "/mfg/gcode", EditUIUrl: "/mfg/gcode/{id}",
         GetListUrl:"/api/mfg/gcodemappings", GetUrl: "/api/mfg/gcodemapping/{id}", SaveUrl: "/api/mfg/gcodemapping",  DeleteUrl: "/api/mfg/gcodemapping/{id}", FactoryUrl: "/api/mfg/gcodemapping/factory")]
     public class GCodeMapping : MfgModelBase, IFormDescriptor, IFormDescriptorCol2, ISummaryFactory, IIconEntity
     {

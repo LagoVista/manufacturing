@@ -32,7 +32,7 @@ namespace LagoVista.Manufacturing.Models
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.ComponentOrder_Title, ManufacturingResources.Names.ComponentOrder_Description,
     ManufacturingResources.Names.ComponentOrder_Description, EntityDescriptionAttribute.EntityTypes.Manufacturing, ResourceType: typeof(ManufacturingResources), Icon: "icon-pz-product-1", Cloneable: true,
         SaveUrl: "/api/mfg/order", GetUrl: "/api/mfg/order/{id}", GetListUrl: "/api/mfg/orders", FactoryUrl: "/api/mfg/order/factory", DeleteUrl: "/api/mfg/order/{id}",
-        ListUIUrl: "/mfg/orders", EditUIUrl: "/mfg/orders/{id}", CreateUIUrl: "/mfg/orders/add")]
+        ListUIUrl: "/mfg/orders", EditUIUrl: "/mfg/order/{id}", CreateUIUrl: "/mfg/order/add")]
     public class ComponentOrder : MfgModelBase, ISummaryFactory, IFormDescriptor, IFormDescriptorCol2, IFormDescriptorBottom, IFormConditionalFields, IFormAdditionalActions
     {
 
@@ -176,7 +176,7 @@ namespace LagoVista.Manufacturing.Models
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.ComponentOrders_Title, ManufacturingResources.Names.ComponentOrder_Description,
     ManufacturingResources.Names.ComponentOrder_Description, EntityDescriptionAttribute.EntityTypes.CoreIoTModel, ResourceType: typeof(ManufacturingResources), Icon: "icon-ae-core-1", Cloneable: true,
         SaveUrl: "/api/mfg/order", GetUrl: "/api/mfg/order/{id}", GetListUrl: "/api/mfg/orders", FactoryUrl: "/api/mfg/order/factory", DeleteUrl: "/api/mfg/order/{id}",
-        ListUIUrl: "/mfg/orders", EditUIUrl: "/mfg/orders/{id}", CreateUIUrl: "/mfg/orders/add")]
+        ListUIUrl: "/mfg/orders", EditUIUrl: "/mfg/order/{id}", CreateUIUrl: "/mfg/order/add")]
     public class ComponentOrderSummary : SummaryData
     {
         public decimal Total { get; set; }

@@ -16,7 +16,7 @@ namespace LagoVista.Manufacturing.Models
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.StripFeederTemplate_Title, ManufacturingResources.Names.StripFeederTemplate_Description,
                  ManufacturingResources.Names.StripFeederTemplate_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-fo-left", Cloneable: true,
                  SaveUrl: "/api/mfg/stripfeeder/template", GetUrl: "/api/mfg/stripfeeder/template/{id}", GetListUrl: "/api/mfg/stripfeeder/templates", FactoryUrl: "/api/mfg/stripfeeder/template/factory",
-                 DeleteUrl: "/api/mfg/stripfeeder/template/{id}", ListUIUrl: "/mfg/stripfeedertemplatess", EditUIUrl: "/mfg/stripfeeder/template/{id}", CreateUIUrl: "/mfg/stripfeeder/template/add")]
+                 DeleteUrl: "/api/mfg/stripfeeder/template/{id}", ListUIUrl: "/mfg/stripfeedertemplates", EditUIUrl: "/mfg/stripfeeder/template/{id}", CreateUIUrl: "/mfg/stripfeeder/template/add")]
     public class StripFeederTemplate : MfgModelBase, ISummaryFactory, IFormDescriptor
     {
         public StripFeederTemplate()
@@ -159,7 +159,7 @@ namespace LagoVista.Manufacturing.Models
     [EntityDescription(ManufacutringDomain.Manufacturing, ManufacturingResources.Names.StripFeederTemplates_Title, ManufacturingResources.Names.StripFeederTemplate_Description,
                  ManufacturingResources.Names.StripFeederTemplate_Description, EntityDescriptionAttribute.EntityTypes.CircuitBoards, ResourceType: typeof(ManufacturingResources), Icon: "icon-fo-left", Cloneable: true,
                  SaveUrl: "/api/mfg/stripfeeder/template", GetUrl: "/api/mfg/stripfeeder/template/{id}", GetListUrl: "/api/mfg/stripfeeder/templates", FactoryUrl: "/api/mfg/stripfeeder/template/factory",
-                 DeleteUrl: "/api/mfg/stripfeeder/template/{id}", ListUIUrl: "/mfg/stripfeedertemplatess", EditUIUrl: "/mfg/stripfeeder/template/{id}", CreateUIUrl: "/mfg/stripfeeder/template/add")]
+                 DeleteUrl: "/api/mfg/stripfeeder/template/{id}", ListUIUrl: "/mfg/stripfeedertemplates", EditUIUrl: "/mfg/stripfeeder/template/{id}", CreateUIUrl: "/mfg/stripfeeder/template/add")]
     public class StripFeederTemplateSummary : SummaryData
     {
     }
