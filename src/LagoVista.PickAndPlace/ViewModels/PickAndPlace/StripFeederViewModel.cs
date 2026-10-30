@@ -530,7 +530,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var errorX = expected.X - actual.X;
             var errorY = expected.Y - actual.Y;
             var correction = new Point2D<double>(errorX * ratio, errorY * ratio);
-            var result = point + correction;
+            var result = LagoVista.Manufacturing.Models.FeederPositionCorrection.Apply(actual, expected, ratio, point);
 
             Machine.DebugWriteLine($"  EXTRAPOLATE: Ratio: {ratio} ErrX:{errorX} ErrY:{errorY} Correction: {correction}  Point: {point} Result: {result}");
 
