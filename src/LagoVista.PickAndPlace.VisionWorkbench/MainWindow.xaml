@@ -103,6 +103,26 @@
                             <TextBlock Text="Canny low threshold" Margin="0,8,0,2"/>
                             <Slider Minimum="0" Maximum="255" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding Profile.CannyLowThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="{Binding CannyText}"/>
+                            <TextBlock Text="CIRCLE DETECTION (HOUGH)" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8"/>
+                            <TextBlock Text="Pixels per mm (calibration)" Margin="0,4,0,3"/>
+                            <TextBox Text="{Binding Profile.PixelsPerMM, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBlock Text="Minimum radius (mm)" Margin="0,10,0,3"/>
+                            <TextBox Text="{Binding Profile.HoughCirclesMinRadius, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBlock Text="Maximum radius (mm)" Margin="0,10,0,3"/>
+                            <TextBox Text="{Binding Profile.HoughCirclesMaxRadius, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBlock Text="Minimum center spacing (mm)" Margin="0,10,0,3"/>
+                            <TextBox Text="{Binding Profile.HoughCirclesMinDistance, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBlock Text="Hough DP (inverse resolution ratio)" Margin="0,10,0,3"/>
+                            <TextBox Text="{Binding Profile.HoughCirclesDP, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBlock Text="Hough Param1 (edge threshold)" Margin="0,10,0,3"/>
+                            <Slider Minimum="1" Maximum="300" TickFrequency="1" Value="{Binding Profile.HoughCirclesParam1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="{Binding Profile.HoughCirclesParam1, StringFormat=F0}" Margin="0,0,0,5"/>
+                            <TextBlock Text="Hough Param2 (vote threshold)" Margin="0,10,0,3"/>
+                            <Slider Minimum="1" Maximum="600" TickFrequency="1" Value="{Binding Profile.HoughCirclesParam2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="{Binding Profile.HoughCirclesParam2, StringFormat=F0}" Margin="0,0,0,5"/>
+                            <TextBlock Text="DETECTED CIRCLES (image pixels)" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8"/>
+                            <TextBlock Text="{Binding CircleSummary}" Foreground="#B8C6D7" Margin="0,0,0,6"/>
+                            <ListBox ItemsSource="{Binding CircleMeasurements}" MaxHeight="180" Background="#101722" Foreground="#E8EDF5" BorderBrush="#546785" />
                             <TextBlock Text="CAMERA / LIGHTING (saved only; offline)" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8" TextWrapping="Wrap"/>
                             <TextBlock Text="Exposure" Margin="0,5,0,2"/>
                             <TextBox Text="{Binding Profile.Exposure, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
