@@ -353,22 +353,23 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         var pixels = new byte[width * height];
         gray.CopyPixels(pixels, width, 0);
         int dark = 0, bright = 0, whiteCount = 0;
-        int threshold = (int)ThresholdValue;
+        var activeProfile = _inspectionProfile ?? Profile;
+        int threshold = (int)(activeProfile.PrimaryThreshold / 100.0 * 255.0);
         for (int i = 0; i < pixels.Length; i++)
         {
             var value = pixels[i];
             if (value <= 2) dark++;
             if (value >= 253) bright++;
             byte outputPixel;
-            if (Profile.ApplyThreshold)
+            if (activeProfile.ApplyThreshold)
             {
                 bool white = value >= threshold;
-                if (Profile.Invert) white = !white;
+                if (activeProfile.Invert) white = !white;
                 outputPixel = (byte)(white ? 255 : 0);
             }
             else
             {
-                outputPixel = Profile.Invert ? (byte)(255 - value) : value;
+                outputPixel = activeProfile.Invert ? (byte)(255 - value) : value;
             }
             pixels[i] = outputPixel;
             if (outputPixel == 255) whiteCount++;
@@ -380,7 +381,6 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         var measurementStatus = "No detectors selected";
         try
         {
-            var activeProfile = _inspectionProfile ?? Profile;
             var detection = _detector.Detect(OriginalImage, activeProfile);
             DetectionOverlay = DrawOverlay(width, height, detection);
             CircleMeasurements.Clear();
