@@ -275,7 +275,8 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
             try
             {
                 ShowImageTest(test);
-                var circles = _detector.Detect(OriginalImage!, Profile).Circles;
+                var imageSize = $"{OriginalImage!.PixelWidth}×{OriginalImage.PixelHeight}";
+                var circles = _detector.Detect(OriginalImage, Profile).Circles;
                 var sequence = TapeHoleSequence.Evaluate(
                     circles.Select(circle => new TapeGeometry.Point(circle.X, circle.Y)).ToArray(),
                     TapeHolePitchMm, Profile.PixelsPerMM);
@@ -284,13 +285,15 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
                     bool okay = circles.Count == 3 && sequence.Valid && sequence.Accepted.Count == 3 &&
                         sequence.Geometry is not null &&
                         Math.Abs(sequence.Geometry.PitchPixels - 202.03) <= 8.0;
-                    test.Result = okay ? "PASS (3 holes / pitch)" :
-                        $"FAIL ({circles.Count} found, {sequence.Accepted.Count} accepted)";
+                    test.Result = (okay ? "PASS" : "FAIL") +
+                        $" | {imageSize} | circles {circles.Count}/3 | accepted {sequence.Accepted.Count}/3" +
+                        (sequence.Geometry is null ? " | pitch unavailable" :
+                            $" | pitch {sequence.Geometry.PitchPixels:F1}px (target ~202px)");
                     if (okay) passed++; else failed++;
                 }
                 else
                 {
-                    test.Result = $"OBSERVED ({circles.Count} circles, {sequence.Accepted.Count} accepted)";
+                    test.Result = $"OBSERVED | {imageSize} | circles {circles.Count} | accepted {sequence.Accepted.Count} | exploratory";
                     explored++;
                 }
             }
