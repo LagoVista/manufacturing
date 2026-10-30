@@ -95,6 +95,12 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
     private double _tapeHolePitchMm = 4.0;
     private double _pickupAlongMm;
     private double _pickupCrossMm = 3.5;
+    private double _componentPitchMm = 4.0;
+    public double ComponentPitchMm
+    {
+        get => _componentPitchMm;
+        set { if (!double.IsFinite(value) || value <= 0) return; _componentPitchMm = value; Notify(); ProcessImage(); }
+    }
     private string _pickupSummary = "Waiting for a validated tape-hole row.";
     public double PickupAlongMm
     {
@@ -385,7 +391,7 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         encoder.Save(stream);
     }
 
-    private static BitmapSource DrawOverlay(int width, int height, VisionDetectionResult detection, IReadOnlyList<TapeGeometry.Point>? expected, FeederPickupGeometry.Result? pickup = null)
+    private static BitmapSource DrawOverlay(int width, int height, VisionDetectionResult detection, IReadOnlyList<TapeGeometry.Point>? expected, FeederPickupGeometry.Result? pickup = null, IReadOnlyList<TapeGeometry.Point>? pickupPoints = null, TapeGeometry.Point? lastHole = null)
     {
         var visual = new DrawingVisual();
         using (var dc = visual.RenderOpen())
@@ -410,13 +416,17 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
             if (pickup is not null)
             {
                 var axisPen = new Pen(Brushes.Cyan, 1.5) { DashStyle = DashStyles.Dash };
+                var end = lastHole ?? pickup.NextHole;
                 dc.DrawLine(axisPen, new Point(pickup.ReferenceHole.X, pickup.ReferenceHole.Y),
-                    new Point(pickup.NextHole.X, pickup.NextHole.Y));
+                    new Point(end.X, end.Y));
                 var targetPen = new Pen(Brushes.Magenta, 2);
-                var center = new Point(pickup.Pickup.X, pickup.Pickup.Y);
-                dc.DrawEllipse(null, targetPen, center, 7, 7);
-                dc.DrawLine(targetPen, new Point(center.X - 12, center.Y), new Point(center.X + 12, center.Y));
-                dc.DrawLine(targetPen, new Point(center.X, center.Y - 12), new Point(center.X, center.Y + 12));
+                foreach (var target in pickupPoints ?? new[] { pickup.Pickup })
+                {
+                    var center = new Point(target.X, target.Y);
+                    dc.DrawEllipse(null, targetPen, center, 7, 7);
+                    dc.DrawLine(targetPen, new Point(center.X - 12, center.Y), new Point(center.X + 12, center.Y));
+                    dc.DrawLine(targetPen, new Point(center.X, center.Y - 12), new Point(center.X, center.Y + 12));
+                }
             }
             foreach (var r in detection.Rectangles)
             {
@@ -486,13 +496,24 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
             var geometry = sequence.Valid ? sequence.Geometry : null;
             var prediction = FeederPickupGeometry.Predict(geometry, PickupAlongMm, PickupCrossMm,
                 _inspectionProfile is null ? TapeHolePitchMm : FeederVisionSuite.HolePitchMm);
-            PickupSummary = prediction is null
-                ? "No reliable row; pickup prediction withheld."
-                : $"Top hole ({prediction.ReferenceHole.X:F1}, {prediction.ReferenceHole.Y:F1}) px • Next hole ({prediction.NextHole.X:F1}, {prediction.NextHole.Y:F1}) px • Proposed pickup ({prediction.Pickup.X:F1}, {prediction.Pickup.Y:F1}) px • Image coordinates only";
-            if (prediction is not null)
+            PickupSummary = "No reliable row; pickup prediction withheld.";
+            if (prediction is not null && geometry is not null)
+            {
+                var points = new List<TapeGeometry.Point>();
+                // Preview only the measured span; don't extrapolate without feeder configuration.
+                var lengthMm = (geometry.Count - 1) * geometry.PitchPixels / geometry.PixelsPerMm;
+                for (double along = PickupAlongMm; along <= lengthMm + 0.001 && points.Count < 24; along += ComponentPitchMm)
+                {
+                    if (along < -0.001) continue;
+                    var candidate = FeederPickupGeometry.Predict(geometry, along, PickupCrossMm,
+                        _inspectionProfile is null ? TapeHolePitchMm : FeederVisionSuite.HolePitchMm);
+                    if (candidate is not null) points.Add(candidate.Pickup);
+                }
+                PickupSummary = $"Hole axis: ({geometry.Start.X:F1}, {geometry.Start.Y:F1}) to ({geometry.End.X:F1}, {geometry.End.Y:F1}) px • {points.Count} preview pickup(s) at {ComponentPitchMm:F2} mm spacing • image coordinates only";
                 DetectionOverlay = DrawOverlay(width, height, detection,
                     _selectedTest is not null && _annotations.TryGetValue(_selectedTest.FileName, out var marks) ? marks : null,
-                    prediction);
+                    prediction, points, geometry.End);
+            }
             TapeGeometrySummary = sequence.Reason +
                 $" • Accepted {sequence.Accepted.Count} / {detection.Circles.Count} • Rejected {sequence.Rejected}" +
                 (sequence.Missing > 0 ? $" • Possible missing: {sequence.Missing}" : "") +
