@@ -1,0 +1,70 @@
+<Window x:Class="LagoVista.PickAndPlace.VisionWorkbench.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Pick &amp; Place — Vision Workbench" Height="820" Width="1290"
+        MinHeight="620" MinWidth="900" Background="#171C24" Foreground="#E8EDF5"
+        AllowDrop="True" Drop="Window_Drop" DragOver="Window_DragOver">
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="13,8"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Background" Value="#32435E"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#546785"/>
+        </Style>
+    </Window.Resources>
+    <DockPanel Margin="20">
+        <StackPanel DockPanel.Dock="Top">
+            <TextBlock FontSize="25" FontWeight="SemiBold" Text="Vision Workbench"/>
+            <TextBlock Foreground="#A8B5C6" Margin="0,4,0,14"
+                       Text="Open or drop an image. Compare original pixels with grayscale and threshold processing."/>
+            <WrapPanel Margin="0,0,0,14">
+                <Button Content="Open image..." Click="OpenImage_Click"/>
+                <Button Content="Save processed..." Click="SaveProcessed_Click"/>
+                <Button Content="Fit view" Click="FitView_Click"/>
+                <CheckBox Content="Invert threshold" VerticalAlignment="Center" Margin="16,0,12,0"
+                          IsChecked="{Binding InvertThreshold, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}"/>
+                <TextBlock Text="Threshold" VerticalAlignment="Center" Margin="8,0,8,0"/>
+                <Slider x:Name="ThresholdSlider" Width="190" Minimum="0" Maximum="255"
+                        Value="128" TickFrequency="1" IsSnapToTickEnabled="True"
+                        ValueChanged="Threshold_Changed" VerticalAlignment="Center"/>
+                <TextBlock x:Name="ThresholdLabel" Text="128" Width="34" Margin="10,0,0,0"
+                           VerticalAlignment="Center"/>
+            </WrapPanel>
+        </StackPanel>
+        <Border DockPanel.Dock="Bottom" BorderBrush="#344154" BorderThickness="0,1,0,0"
+                Padding="0,12,0,0" Margin="0,12,0,0">
+            <TextBlock x:Name="StatusText" Text="Ready — open an image or drag one into this window."
+                       Foreground="#B8C6D7" TextWrapping="Wrap"/>
+        </Border>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" BorderBrush="#43516A" BorderThickness="1" CornerRadius="6"
+                    Background="#0D1118">
+                <DockPanel>
+                    <TextBlock Text="ORIGINAL" FontWeight="SemiBold" Foreground="#B4C7DA"
+                               Margin="12" DockPanel.Dock="Top"/>
+                    <ScrollViewer x:Name="OriginalScroll" HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Auto">
+                        <Image x:Name="OriginalImage" Stretch="Uniform"/>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+            <Border Grid.Column="2" BorderBrush="#43516A" BorderThickness="1" CornerRadius="6"
+                    Background="#0D1118">
+                <DockPanel>
+                    <TextBlock Text="PROCESSED — GRAYSCALE / THRESHOLD" FontWeight="SemiBold"
+                               Foreground="#B4C7DA" Margin="12" DockPanel.Dock="Top"/>
+                    <ScrollViewer x:Name="ProcessedScroll" HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Auto">
+                        <Image x:Name="ProcessedImage" Stretch="Uniform"/>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </DockPanel>
+</Window>
