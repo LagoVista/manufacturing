@@ -28,19 +28,16 @@
                 <Button Content="Open image..." Click="OpenImage_Click"/>
                 <Button Content="Save processed..." Click="SaveProcessed_Click"/>
                 <Button Content="Fit view" Click="FitView_Click"/>
-                <CheckBox Content="Invert threshold" VerticalAlignment="Center" Margin="16,0,12,0"
-                          IsChecked="{Binding InvertThreshold, RelativeSource={RelativeSource AncestorType=Window}, Mode=TwoWay}"/>
+                <CheckBox Content="Invert threshold" VerticalAlignment="Center" Margin="16,0,12,0" IsChecked="{Binding Profile.Invert, Mode=TwoWay}"/>
                 <TextBlock Text="Threshold" VerticalAlignment="Center" Margin="8,0,8,0"/>
-                <Slider x:Name="ThresholdSlider" Width="190" Minimum="0" Maximum="255"
-                        Value="128" TickFrequency="1" IsSnapToTickEnabled="True"
-                        ValueChanged="Threshold_Changed" VerticalAlignment="Center"/>
-                <TextBlock x:Name="ThresholdLabel" Text="128" Width="34" Margin="10,0,0,0"
+                <Slider Width="190" Minimum="0" Maximum="255" Value="{Binding ThresholdValue, Mode=TwoWay}" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding ThresholdValue, StringFormat=F0}" Width="34" Margin="10,0,0,0"
                            VerticalAlignment="Center"/>
             </WrapPanel>
         </StackPanel>
         <Border DockPanel.Dock="Bottom" BorderBrush="#344154" BorderThickness="0,1,0,0"
                 Padding="0,12,0,0" Margin="0,12,0,0">
-            <TextBlock x:Name="StatusText" Text="Ready — open an image or drag one into this window."
+            <TextBlock Text="{Binding Status}"
                        Foreground="#B8C6D7" TextWrapping="Wrap"/>
         </Border>
         <Grid>
@@ -57,7 +54,7 @@
                                Margin="12" DockPanel.Dock="Top"/>
                     <ScrollViewer x:Name="OriginalScroll" HorizontalScrollBarVisibility="Auto"
                                   VerticalScrollBarVisibility="Auto">
-                        <Image x:Name="OriginalImage" Stretch="Uniform"/>
+                        <Image Source="{Binding OriginalImage}" Stretch="Uniform"/>
                     </ScrollViewer>
                 </DockPanel>
             </Border>
@@ -68,7 +65,7 @@
                                Foreground="#B4C7DA" Margin="12" DockPanel.Dock="Top"/>
                     <ScrollViewer x:Name="ProcessedScroll" HorizontalScrollBarVisibility="Auto"
                                   VerticalScrollBarVisibility="Auto">
-                        <Image x:Name="ProcessedImage" Stretch="Uniform"/>
+                        <Image Source="{Binding ProcessedImage}" Stretch="Uniform"/>
                     </ScrollViewer>
                 </DockPanel>
             </Border>
@@ -83,38 +80,38 @@
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
                             <TextBlock Text="Profile name" Margin="0,4,0,3"/>
-                            <TextBox x:Name="ProfileName" TextChanged="ProfileText_Changed"/>
+                            <TextBox Text="{Binding Profile.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="Profile key" Margin="0,10,0,3"/>
-                            <TextBox x:Name="ProfileKey" TextChanged="ProfileText_Changed"/>
+                            <TextBox Text="{Binding Profile.Key, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="PREPROCESSING" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8"/>
-                            <CheckBox x:Name="ApplyThresholdCheck" Content="Apply threshold" Margin="0,0,0,8" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
-                            <CheckBox x:Name="InvertCheck" Content="Invert" Margin="0,0,0,8" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
-                            <CheckBox x:Name="ApplyMaskCheck" Content="Apply mask" Margin="0,0,0,8" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
-                            <CheckBox x:Name="BlurCheck" Content="Use blurred image" Margin="0,0,0,8" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
+                            <CheckBox Content="Apply threshold" Margin="0,0,0,8" IsChecked="{Binding Profile.ApplyThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox Content="Invert" Margin="0,0,0,8" IsChecked="{Binding Profile.Invert, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox Content="Apply mask" Margin="0,0,0,8" IsChecked="{Binding Profile.ApplyMask, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox Content="Use blurred image" Margin="0,0,0,8" IsChecked="{Binding Profile.UseBlurredImage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="Primary threshold (profile 0–100)" Margin="0,8,0,2"/>
-                            <Slider x:Name="PrimaryThresholdSlider" Minimum="0" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="ProfileSlider_Changed"/>
-                            <TextBlock x:Name="PrimaryThresholdValue" Margin="0,0,0,6"/>
+                            <Slider Minimum="0" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding Profile.PrimaryThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="{Binding ThresholdText}" Margin="0,0,0,6"/>
                             <TextBlock Text="Gaussian kernel size" Margin="0,4,0,2"/>
-                            <Slider x:Name="KernelSlider" Minimum="1" Maximum="19" TickFrequency="2" IsSnapToTickEnabled="True" ValueChanged="ProfileSlider_Changed"/>
-                            <TextBlock x:Name="KernelValue" Margin="0,0,0,6"/>
+                            <Slider Minimum="1" Maximum="19" TickFrequency="2" IsSnapToTickEnabled="True" Value="{Binding Profile.GausianKernellSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="{Binding KernelText}" Margin="0,0,0,6"/>
                             <TextBlock Text="DETECTION" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,15,0,8"/>
-                            <CheckBox x:Name="FindCirclesCheck" Content="Find circles" Margin="0,0,0,8" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
-                            <CheckBox x:Name="FindRectanglesCheck" Content="Find rectangles" Margin="0,0,0,8" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
-                            <CheckBox x:Name="FindLinesCheck" Content="Find lines" Margin="0,0,0,8" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
-                            <CheckBox x:Name="FindCornersCheck" Content="Find corners" Margin="0,0,0,8" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
-                            <CheckBox x:Name="CannyCheck" Content="Use Canny edge detection" Margin="0,0,0,8" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
+                            <CheckBox Content="Find circles" Margin="0,0,0,8" IsChecked="{Binding Profile.FindCircles, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox Content="Find rectangles" Margin="0,0,0,8" IsChecked="{Binding Profile.FindRectangles, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox Content="Find lines" Margin="0,0,0,8" IsChecked="{Binding Profile.FindLines, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox Content="Find corners" Margin="0,0,0,8" IsChecked="{Binding Profile.FindCorners, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox Content="Use Canny edge detection" Margin="0,0,0,8" IsChecked="{Binding Profile.UseCannyEdgeDetection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="Canny low threshold" Margin="0,8,0,2"/>
-                            <Slider x:Name="CannySlider" Minimum="0" Maximum="255" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="ProfileSlider_Changed"/>
-                            <TextBlock x:Name="CannyValue"/>
+                            <Slider Minimum="0" Maximum="255" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding Profile.CannyLowThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="{Binding CannyText}"/>
                             <TextBlock Text="CAMERA / LIGHTING (saved only; offline)" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8" TextWrapping="Wrap"/>
                             <TextBlock Text="Exposure" Margin="0,5,0,2"/>
-                            <TextBox x:Name="ExposureBox" LostFocus="CameraValue_LostFocus"/>
+                            <TextBox Text="{Binding Profile.Exposure, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="Brightness" Margin="0,8,0,2"/>
-                            <TextBox x:Name="BrightnessBox" LostFocus="CameraValue_LostFocus"/>
+                            <TextBox Text="{Binding Profile.Brightness, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="Contrast" Margin="0,8,0,2"/>
-                            <TextBox x:Name="ContrastBox" LostFocus="CameraValue_LostFocus"/>
-                            <CheckBox x:Name="LightOnCheck" Content="Light on" Margin="0,12,0,6" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
-                            <TextBlock x:Name="ProfileStatus" Text="Local profile (unsaved)" Foreground="#A8B5C6" TextWrapping="Wrap" Margin="0,15,0,8"/>
+                            <TextBox Text="{Binding Profile.Contrast, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox Content="Light on" Margin="0,12,0,6" IsChecked="{Binding Profile.LightOn, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="{Binding ProfileStatus}" Text="Local profile (unsaved)" Foreground="#A8B5C6" TextWrapping="Wrap" Margin="0,15,0,8"/>
                         </StackPanel>
                     </ScrollViewer>
                 </DockPanel>
