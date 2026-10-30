@@ -135,10 +135,19 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
             var value = pixels[i];
             if (value <= 2) dark++;
             if (value >= 253) bright++;
-            bool white = !Profile.ApplyThreshold || value >= threshold;
-            if (Profile.Invert) white = !white;
-            pixels[i] = (byte)(white ? 255 : 0);
-            if (white) whiteCount++;
+            byte output;
+            if (Profile.ApplyThreshold)
+            {
+                bool white = value >= threshold;
+                if (Profile.Invert) white = !white;
+                output = (byte)(white ? 255 : 0);
+            }
+            else
+            {
+                output = Profile.Invert ? (byte)(255 - value) : value;
+            }
+            pixels[i] = output;
+            if (output == 255) whiteCount++;
         }
         var output = BitmapSource.Create(width, height, gray.DpiX, gray.DpiY, PixelFormats.Gray8, null, pixels, width);
         output.Freeze();
