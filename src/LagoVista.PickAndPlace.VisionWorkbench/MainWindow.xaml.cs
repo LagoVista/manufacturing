@@ -1,6 +1,7 @@
 using Microsoft.Win32;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using LagoVista.PickAndPlace.VisionWorkbench.ViewModels;
 
 namespace LagoVista.PickAndPlace.VisionWorkbench;
@@ -14,6 +15,16 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = _vm;
+        Loaded += (_, _) => TryAction(_vm.RestoreLastImage, "Unable to restore last image");
+    }
+
+    private void RecentImage_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is RecentImageEntry item)
+        {
+            TryAction(() => _vm.LoadImage(item.Path), "Unable to open recent image");
+            if (sender is ComboBox combo) combo.SelectedIndex = -1;
+        }
     }
 
     private void OpenImage_Click(object sender, RoutedEventArgs e)
