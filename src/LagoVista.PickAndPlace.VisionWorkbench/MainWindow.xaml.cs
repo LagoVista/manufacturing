@@ -49,7 +49,7 @@ public partial class MainWindow : Window
             InvertCheck.IsChecked = _profile.Invert;
             ApplyMaskCheck.IsChecked = _profile.ApplyMask;
             BlurCheck.IsChecked = _profile.UseBlurredImage;
-            PrimaryThresholdSlider.Value = Math.Min(100, _profile.PrimaryThreshold);
+            PrimaryThresholdSlider.Value = Math.Min((byte)100, _profile.PrimaryThreshold);
             KernelSlider.Value = Math.Clamp(_profile.GausianKernellSize | 1, 1, 19);
             FindCirclesCheck.IsChecked = _profile.FindCircles;
             FindRectanglesCheck.IsChecked = _profile.FindRectangles;
