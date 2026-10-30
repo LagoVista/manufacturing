@@ -11,4 +11,7 @@
       <PackageReference Include="Emgu.CV" />
     <PackageReference Include="Emgu.CV.runtime.windows" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="TestImages\\Feeder1\\*.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
