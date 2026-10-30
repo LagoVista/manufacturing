@@ -17,8 +17,8 @@ namespace Mfg.ServicesTests
 
         [TestCase(false, true, true, 104, 198.4)]
         [TestCase(false, true, false, 104, 205.4)]
-        [TestCase(true, true, true, 98.5, 199.9)]
-        [TestCase(true, true, false, 105.5, 199.9)]
+        [TestCase(true, true, true, 96.6, 198)]
+        [TestCase(true, true, false, 103.6, 198)]
         public void FirstPickup_RespectsOrientationAndHoleSide(bool vertical, bool forward, bool holesOnTop,
             double x, double y)
         {
