@@ -32,6 +32,24 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
     private string _status = "Ready — open an image or drag one into this window.";
     private string _profileStatus = "New local profile";
     private bool _changed;
+    private double _tapeHolePitchMm = 4.0;
+    private string _tapeGeometrySummary = "Detect at least two consecutive tape holes.";
+    public double TapeHolePitchMm
+    {
+        get => _tapeHolePitchMm;
+        set
+        {
+            if (!double.IsFinite(value) || value <= 0) return;
+            _tapeHolePitchMm = value;
+            Notify();
+            ProcessImage();
+        }
+    }
+    public string TapeGeometrySummary
+    {
+        get => _tapeGeometrySummary;
+        private set { _tapeGeometrySummary = value; Notify(); }
+    }
     public ObservableCollection<RecentImageEntry> RecentImages { get; } = new();
     private static readonly string RecentImagesFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "LagoVista", "VisionWorkbench", "recent-images.json");
     private const int MaxRecentImages = 12;
@@ -247,6 +265,11 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
                 CircleMeasurements.Add($"#{i + 1}: X={c.X:F1}  Y={c.Y:F1}  R={c.Radius:F1}");
             }
             CircleSummary = $"{detection.Circles.Count} circle(s) found";
+            var geometry = TapeGeometry.Analyze(
+                detection.Circles.Select(c => new TapeGeometry.Point(c.X, c.Y)).ToArray(), TapeHolePitchMm);
+            TapeGeometrySummary = geometry is null
+                ? "Detect at least two consecutive tape holes."
+                : $"{geometry.Count} holes • {geometry.PitchPixels:F2} px/hole • {geometry.PixelsPerMm:F2} px/mm (estimated) • Tilt {geometry.AngleFromVerticalDegrees:+0.00;-0.00;0.00}° from image vertical • Spacing variation {geometry.PitchVariationPixels:F2} px • Max line error {geometry.MaxLineErrorPixels:F2} px";
             measurementStatus = $"{detection.Circles.Count} circles • {detection.Rectangles.Count} rectangles";
         }
         catch (Exception ex)
@@ -254,6 +277,7 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
             DetectionOverlay = null;
             CircleMeasurements.Clear();
             CircleSummary = "Detection failed";
+            TapeGeometrySummary = "Detection failed; no tape geometry available.";
             measurementStatus = $"Detection unavailable: {ex.GetType().Name}: {ex.Message}";
         }
         Status = $"{Path.GetFileName(_imagePath)} • {width}×{height} • Threshold {threshold} • White {100 * whiteCount / count:F1}% • Near-black input {100 * dark / count:F1}% • Near-white input {100 * bright / count:F1}% • {measurementStatus}";
