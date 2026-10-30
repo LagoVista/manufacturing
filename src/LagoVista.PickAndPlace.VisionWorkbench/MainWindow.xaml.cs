@@ -1,5 +1,6 @@
 using Microsoft.Win32;
 using System.IO;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using LagoVista.PickAndPlace.VisionWorkbench.ViewModels;
@@ -10,12 +11,57 @@ namespace LagoVista.PickAndPlace.VisionWorkbench;
 public partial class MainWindow : Window
 {
     private readonly VisionWorkbenchViewModel _vm = new();
+    private static readonly string WindowPreferencesPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "LagoVista", "VisionWorkbench", "window.json");
+
+    private sealed record WindowPreferences(double Left, double Top, double Width, double Height, bool Maximized);
 
     public MainWindow()
     {
         InitializeComponent();
         DataContext = _vm;
+        RestoreWindowPreferences();
+        Closing += (_, _) => SaveWindowPreferences();
         Loaded += (_, _) => TryAction(_vm.RestoreLastImage, "Unable to restore last image");
+    }
+
+    private void RestoreWindowPreferences()
+    {
+        try
+        {
+            if (!File.Exists(WindowPreferencesPath)) return;
+            var saved = JsonSerializer.Deserialize<WindowPreferences>(File.ReadAllText(WindowPreferencesPath));
+            if (saved is null || !double.IsFinite(saved.Width) || !double.IsFinite(saved.Height) ||
+                !double.IsFinite(saved.Left) || !double.IsFinite(saved.Top)) return;
+
+            var width = Math.Max(MinWidth, saved.Width);
+            var height = Math.Max(MinHeight, saved.Height);
+            // Avoid reopening an inaccessible window after monitor changes or DPI changes.
+            var desktop = SystemParameters.WorkArea;
+            if (desktop.Width <= 0 || desktop.Height <= 0) return;
+            Width = Math.Min(width, desktop.Width);
+            Height = Math.Min(height, desktop.Height);
+            Left = Math.Clamp(saved.Left, desktop.Left, desktop.Right - Width);
+            Top = Math.Clamp(saved.Top, desktop.Top, desktop.Bottom - Height);
+            if (saved.Maximized) WindowState = WindowState.Maximized;
+        }
+        catch (Exception) { /* Invalid local preferences must not prevent launching. */ }
+    }
+
+    private void SaveWindowPreferences()
+    {
+        try
+        {
+            var bounds = RestoreBounds;
+            var snapshot = new WindowPreferences(bounds.Left, bounds.Top, bounds.Width, bounds.Height,
+                WindowState == WindowState.Maximized);
+            Directory.CreateDirectory(Path.GetDirectoryName(WindowPreferencesPath)!);
+            var temp = WindowPreferencesPath + ".tmp";
+            File.WriteAllText(temp, JsonSerializer.Serialize(snapshot));
+            File.Move(temp, WindowPreferencesPath, true);
+        }
+        catch (Exception) { /* Window state persistence is best-effort. */ }
     }
 
     private void RecentImage_SelectionChanged(object sender, SelectionChangedEventArgs e)
