@@ -9,6 +9,13 @@ namespace LagoVista.Manufacturing.Models
     /// </summary>
     public static class StripFeederPickupCalculator
     {
+        // Matches LagoVista.PickAndPlace.PointMathExtensions without a UI-project dependency.
+        private static Point2D<double> AddWithConditionalSwap(Point2D<double> origin,
+            bool swap, Point2D<double> offset)
+            => swap
+                ? new Point2D<double>(origin.X + offset.Y, origin.Y - offset.X)
+                : origin + offset;
+
         public static Point2D<double> Calculate(
             Point2D<double> feederOrigin,
             Point2D<double> firstTapeHoleOffset,
@@ -24,10 +31,10 @@ namespace LagoVista.Manufacturing.Models
             var across = packageYOffsetMm ??
                 (holesOnBothSides ? tapeWidthMm / 2 - 1.8 : tapeWidthMm / 2 - 0.5);
 
-            var firstHole = feederOrigin.AddWithConditionalSwap(isVertical, lastTapeHoleOffset);
-            var lastHole = feederOrigin.AddWithConditionalSwap(isVertical, firstTapeHoleOffset);
+            var firstHole = AddWithConditionalSwap(feederOrigin, isVertical, lastTapeHoleOffset);
+            var lastHole = AddWithConditionalSwap(feederOrigin, isVertical, firstTapeHoleOffset);
             var actualDelta = new Point2D<double>(lastHole.Y - firstHole.Y, lastHole.X - firstHole.X);
-            var position = feederOrigin.AddWithConditionalSwap(isVertical,
+            var position = AddWithConditionalSwap(feederOrigin, isVertical,
                 feedForward ? firstTapeHoleOffset : lastTapeHoleOffset);
 
             if (isVertical)
