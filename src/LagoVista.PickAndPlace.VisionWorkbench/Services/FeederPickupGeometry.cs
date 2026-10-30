@@ -32,12 +32,12 @@ public static class FeederPickupGeometry
             new Point2D<double>(0, 0),
             new Point2D<double>(0, 0),
             new Point2D<double>(spanMm, 0),
-            isVertical: false, holesOnTop: true, feedForward: true,
+            isVertical: false, holesOnTop: false, feedForward: true,
             partIndex: 1, tapePitchMm: nominalHolePitchMm, tapeWidthMm: 8,
             packageXOffsetMm: alongMm, packageYOffsetMm: crossMm,
             holesOnBothSides: false);
 
-        // Local -Y is to image-left of the fitted downward tape axis.
+        // Local +Y is to image-left of the fitted downward tape axis.
         TapeGeometry.Point ToImage(double along, double across) =>
             new(geometry.Start.X + (ux * along - uy * across) * pxPerMm,
                 geometry.Start.Y + (uy * along + ux * across) * pxPerMm);
