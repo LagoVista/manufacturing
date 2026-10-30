@@ -42,6 +42,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="12"/>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="360"/>
             </Grid.ColumnDefinitions>
             <Border Grid.Column="0" BorderBrush="#43516A" BorderThickness="1" CornerRadius="6"
                     Background="#0D1118">
@@ -62,6 +63,53 @@
                     <ScrollViewer x:Name="ProcessedScroll" HorizontalScrollBarVisibility="Auto"
                                   VerticalScrollBarVisibility="Auto">
                         <Image x:Name="ProcessedImage" Stretch="Uniform"/>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+            <Border Grid.Column="3" Margin="14,0,0,0" BorderBrush="#43516A" BorderThickness="1" CornerRadius="6" Background="#202937">
+                <DockPanel Margin="12">
+                    <TextBlock DockPanel.Dock="Top" Text="VISION PROFILE" Foreground="#B4C7DA" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
+                        <Button Content="New" Click="NewProfile_Click"/>
+                        <Button Content="Open..." Click="OpenProfile_Click"/>
+                        <Button Content="Save" Click="SaveProfile_Click"/>
+                    </StackPanel>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <TextBlock Text="Profile name" Margin="0,4,0,3"/>
+                            <TextBox x:Name="ProfileName" TextChanged="ProfileText_Changed"/>
+                            <TextBlock Text="Profile key" Margin="0,10,0,3"/>
+                            <TextBox x:Name="ProfileKey" TextChanged="ProfileText_Changed"/>
+                            <TextBlock Text="PREPROCESSING" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8"/>
+                            <CheckBox x:Name="ApplyThresholdCheck" Content="Apply threshold" Margin="0,0,0,8" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
+                            <CheckBox x:Name="InvertCheck" Content="Invert" Margin="0,0,0,8" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
+                            <CheckBox x:Name="ApplyMaskCheck" Content="Apply mask" Margin="0,0,0,8" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
+                            <CheckBox x:Name="BlurCheck" Content="Use blurred image" Margin="0,0,0,8" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
+                            <TextBlock Text="Primary threshold (profile 0–100)" Margin="0,8,0,2"/>
+                            <Slider x:Name="PrimaryThresholdSlider" Minimum="0" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="ProfileSlider_Changed"/>
+                            <TextBlock x:Name="PrimaryThresholdValue" Margin="0,0,0,6"/>
+                            <TextBlock Text="Gaussian kernel size" Margin="0,4,0,2"/>
+                            <Slider x:Name="KernelSlider" Minimum="1" Maximum="19" TickFrequency="2" IsSnapToTickEnabled="True" ValueChanged="ProfileSlider_Changed"/>
+                            <TextBlock x:Name="KernelValue" Margin="0,0,0,6"/>
+                            <TextBlock Text="DETECTION" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,15,0,8"/>
+                            <CheckBox x:Name="FindCirclesCheck" Content="Find circles" Margin="0,0,0,8" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
+                            <CheckBox x:Name="FindRectanglesCheck" Content="Find rectangles" Margin="0,0,0,8" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
+                            <CheckBox x:Name="FindLinesCheck" Content="Find lines" Margin="0,0,0,8" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
+                            <CheckBox x:Name="FindCornersCheck" Content="Find corners" Margin="0,0,0,8" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
+                            <CheckBox x:Name="CannyCheck" Content="Use Canny edge detection" Margin="0,0,0,8" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
+                            <TextBlock Text="Canny low threshold" Margin="0,8,0,2"/>
+                            <Slider x:Name="CannySlider" Minimum="0" Maximum="255" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="ProfileSlider_Changed"/>
+                            <TextBlock x:Name="CannyValue"/>
+                            <TextBlock Text="CAMERA / LIGHTING (saved only; offline)" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8" TextWrapping="Wrap"/>
+                            <TextBlock Text="Exposure" Margin="0,5,0,2"/>
+                            <TextBox x:Name="ExposureBox" LostFocus="CameraValue_LostFocus"/>
+                            <TextBlock Text="Brightness" Margin="0,8,0,2"/>
+                            <TextBox x:Name="BrightnessBox" LostFocus="CameraValue_LostFocus"/>
+                            <TextBlock Text="Contrast" Margin="0,8,0,2"/>
+                            <TextBox x:Name="ContrastBox" LostFocus="CameraValue_LostFocus"/>
+                            <CheckBox x:Name="LightOnCheck" Content="Light on" Margin="0,12,0,6" Checked="ProfileSetting_Changed" Unchecked="ProfileSetting_Changed"/>
+                            <TextBlock x:Name="ProfileStatus" Text="Local profile (unsaved)" Foreground="#A8B5C6" TextWrapping="Wrap" Margin="0,15,0,8"/>
+                        </StackPanel>
                     </ScrollViewer>
                 </DockPanel>
             </Border>
