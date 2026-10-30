@@ -12,6 +12,12 @@
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderBrush" Value="#546785"/>
         </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#101722"/>
+            <Setter Property="Foreground" Value="#E8EDF5"/>
+            <Setter Property="BorderBrush" Value="#546785"/>
+            <Setter Property="Padding" Value="6,4"/>
+        </Style>
     </Window.Resources>
     <DockPanel Margin="20">
         <StackPanel DockPanel.Dock="Top">
