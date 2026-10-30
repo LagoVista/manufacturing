@@ -26,6 +26,7 @@
                        Text="Open or drop an image. Compare original pixels with grayscale and threshold processing."/>
             <WrapPanel Margin="0,0,0,14">
                 <Button Content="Open image..." Click="OpenImage_Click"/>
+                <ComboBox Width="250" Margin="0,0,8,0" ItemsSource="{Binding RecentImages}" DisplayMemberPath="DisplayName" SelectionChanged="RecentImage_SelectionChanged" ToolTip="Recently opened images" Background="#263449" Foreground="White"/>
                 <Button Content="Save processed..." Click="SaveProcessed_Click"/>
                 <Button Content="Fit view" Click="FitView_Click"/>
                 <CheckBox Content="Invert threshold" VerticalAlignment="Center" Margin="16,0,12,0" IsChecked="{Binding Profile.Invert, Mode=TwoWay}"/>
