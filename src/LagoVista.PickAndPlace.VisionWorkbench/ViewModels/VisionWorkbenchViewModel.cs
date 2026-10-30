@@ -315,15 +315,17 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
                 CircleMeasurements.Add($"#{i + 1}: X={c.X:F1}  Y={c.Y:F1}  R={c.Radius:F1}");
             }
             CircleSummary = $"{detection.Circles.Count} circle(s) found";
-            var geometry = TapeGeometry.Analyze(
-                detection.Circles.Select(c => new TapeGeometry.Point(c.X, c.Y)).ToArray(), TapeHolePitchMm);
-            // Preliminary consistency check only; no authoritative calibration or machine writes.
-            var plausible = geometry is not null && geometry.Count >= 3
-                && geometry.PitchVariationPixels <= geometry.PitchPixels * 0.02
-                && geometry.MaxLineErrorPixels <= 2.0;
-            TapeGeometrySummary = geometry is null
-                ? "Detect at least two consecutive tape holes."
-                : (plausible ? "Consistent row (preliminary) • " : "Unverified hole sequence • ") + $"{geometry.Count} holes • {geometry.PitchPixels:F2} px/hole • {geometry.PixelsPerMm:F2} px/mm (estimated) • Tilt {geometry.AngleFromVerticalDegrees:+0.00;-0.00;0.00}° from image vertical • Spacing variation {geometry.PitchVariationPixels:F2} px • Max line error {geometry.MaxLineErrorPixels:F2} px";
+            var sequence = TapeHoleSequence.Evaluate(
+                detection.Circles.Select(c => new TapeGeometry.Point(c.X, c.Y)).ToArray(),
+                TapeHolePitchMm, Profile.PixelsPerMM);
+            var geometry = sequence.Geometry;
+            TapeGeometrySummary = sequence.Reason +
+                $" • Accepted {sequence.Accepted.Count} / {detection.Circles.Count} • Rejected {sequence.Rejected}" +
+                (sequence.Missing > 0 ? $" • Possible missing: {sequence.Missing}" : "") +
+                (geometry is null ? " • Calibration withheld" :
+                    $" • {geometry.PitchPixels:F2} px/hole • {geometry.PixelsPerMm:F2} px/mm (estimated)" +
+                    $" • Tilt {geometry.AngleFromVerticalDegrees:+0.00;-0.00;0.00}°" +
+                    $" • Spacing variation {geometry.PitchVariationPixels:F2} px • Max line error {geometry.MaxLineErrorPixels:F2} px");
             measurementStatus = $"{detection.Circles.Count} circles • {detection.Rectangles.Count} rectangles";
         }
         catch (Exception ex)
