@@ -29,6 +29,7 @@
                 <ComboBox Width="250" Margin="0,0,8,0" ItemsSource="{Binding RecentImages}" DisplayMemberPath="DisplayName" SelectionChanged="RecentImage_SelectionChanged" ToolTip="Recently opened images" Background="#263449" Foreground="White"/>
                 <Button Content="Save processed..." Click="SaveProcessed_Click"/>
                 <Button Content="Fit view" Click="FitView_Click"/>
+                <Button Content="Run image tests ▶▶" Click="RunImageTests_Click"/>
                 <CheckBox Content="Invert threshold" VerticalAlignment="Center" Margin="16,0,12,0" IsChecked="{Binding Profile.Invert, Mode=TwoWay}"/>
                 <TextBlock Text="Threshold" VerticalAlignment="Center" Margin="8,0,8,0"/>
                 <Slider Width="190" Minimum="0" Maximum="255" Value="{Binding ThresholdValue, Mode=TwoWay}" VerticalAlignment="Center"/>
@@ -80,6 +81,10 @@
                     </StackPanel>
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <StackPanel>
+                            <TextBlock Text="IMAGE TESTS" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,4,0,8"/>
+                            <TextBlock Text="{Binding TestRunStatus}" Foreground="#B8C6D7" TextWrapping="Wrap" Margin="0,0,0,5"/>
+                            <ListBox ItemsSource="{Binding ImageTests}" SelectionChanged="ImageTest_SelectionChanged" DisplayMemberPath="Summary" Height="130" Background="#101722" Foreground="#E8EDF5" BorderBrush="#546785"/>
+                            <TextBlock Text="Canonical checks three accepted holes. Generated variants report observations only." Foreground="#E6B56C" TextWrapping="Wrap" FontSize="11" Margin="0,5,0,12"/>
                             <TextBlock Text="Profile name" Margin="0,4,0,3"/>
                             <TextBox Text="{Binding Profile.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="Profile key" Margin="0,10,0,3"/>
