@@ -124,6 +124,11 @@
                             <TextBlock Text="DETECTED CIRCLES (image pixels)" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8"/>
                             <TextBlock Text="{Binding CircleSummary}" Foreground="#B8C6D7" Margin="0,0,0,6"/>
                             <ListBox ItemsSource="{Binding CircleMeasurements}" MaxHeight="180" Background="#101722" Foreground="#E8EDF5" BorderBrush="#546785" />
+                            <TextBlock Text="TAPE GEOMETRY (READ ONLY)" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8"/>
+                            <TextBlock Text="Nominal consecutive hole pitch (mm)" Margin="0,4,0,3"/>
+                            <TextBox Text="{Binding TapeHolePitchMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBlock Text="{Binding TapeGeometrySummary}" Foreground="#B8C6D7" TextWrapping="Wrap" Margin="0,10,0,6"/>
+                            <TextBlock Text="Assumes detected holes are consecutive and ordered along the tape. Verify before using calibration." FontSize="11" Foreground="#E6B56C" TextWrapping="Wrap" Margin="0,4,0,8"/>
                             <TextBlock Text="CAMERA / LIGHTING (saved only; offline)" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8" TextWrapping="Wrap"/>
                             <TextBlock Text="Exposure" Margin="0,5,0,2"/>
                             <TextBox Text="{Binding Profile.Exposure, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
