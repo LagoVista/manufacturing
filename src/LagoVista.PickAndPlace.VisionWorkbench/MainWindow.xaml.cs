@@ -127,8 +127,8 @@ public partial class MainWindow : Window
 
     private void FitView_Click(object sender, RoutedEventArgs e)
     {
-        OriginalScroll.ScrollToHome();
-        ProcessedScroll.ScrollToHome();
+        OriginalImageHost.InvalidateMeasure();
+        ProcessedImageHost.InvalidateMeasure();
     }
 
     private void Window_DragOver(object sender, DragEventArgs e)
