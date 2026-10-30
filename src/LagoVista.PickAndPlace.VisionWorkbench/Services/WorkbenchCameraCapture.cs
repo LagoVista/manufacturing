@@ -1,6 +1,7 @@
 using DirectShowLib;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
+using Emgu.CV.Util;
 using System.Windows.Media.Imaging;
 
 namespace LagoVista.PickAndPlace.VisionWorkbench.Services;
@@ -44,8 +45,9 @@ public sealed class WorkbenchCameraCapture : IDisposable
                     using var frame = _capture?.QueryFrame();
                     if (frame is not null && !frame.IsEmpty)
                     {
-                        var bytes = CvInvoke.Imencode(".png", frame);
-                        using var stream = new MemoryStream(bytes);
+                        using var buffer = new VectorOfByte();
+                        CvInvoke.Imencode(".png", frame, buffer);
+                        using var stream = new MemoryStream(buffer.ToArray());
                         var image = new BitmapImage();
                         image.BeginInit();
                         image.CacheOption = BitmapCacheOption.OnLoad;
