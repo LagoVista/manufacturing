@@ -16,6 +16,17 @@ public sealed record RecentImageEntry(string Path)
     public string DisplayName => System.IO.Path.GetFileName(Path);
 }
 
+public sealed class ImageTestCase : INotifyPropertyChanged
+{
+    public event PropertyChangedEventHandler? PropertyChanged;
+    public string Name { get; init; } = "";
+    public string FileName { get; init; } = "";
+    public bool IsCanonical { get; init; }
+    private string _result = "Not run";
+    public string Result { get => _result; set { _result = value; PropertyChanged?.Invoke(this, new(nameof(Summary))); } }
+    public string Summary => $"{Name}: {Result}";
+}
+
 /// <summary>Workbench state and offline image processing. Does not access machine hardware.</summary>
 public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
 {
@@ -32,6 +43,17 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
     private string _status = "Ready — open an image or drag one into this window.";
     private string _profileStatus = "New local profile";
     private bool _changed;
+    public ObservableCollection<ImageTestCase> ImageTests { get; } = new()
+    {
+        new() { Name = "000 Canonical", FileName = "Feeder1-000-Canonical.png", IsCanonical = true },
+        new() { Name = "010 Low light", FileName = "Feeder1-010-LowLight.png" },
+        new() { Name = "020 High exposure", FileName = "Feeder1-020-HighExposure.png" },
+        new() { Name = "030 Rotated", FileName = "Feeder1-030-Rotated.png" },
+        new() { Name = "040 Extra circle", FileName = "Feeder1-040-ExtraCircle.png" }
+    };
+    private string _testRunStatus = "Not run. Press Run image tests.";
+    public string TestRunStatus { get => _testRunStatus; private set { _testRunStatus = value; Notify(); } }
+    private static readonly string TestImageFolder = Path.Combine(AppContext.BaseDirectory, "TestImages", "Feeder1");
     private double _tapeHolePitchMm = 4.0;
     private string _tapeGeometrySummary = "Detect at least two consecutive tape holes.";
     public double TapeHolePitchMm
@@ -233,6 +255,48 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         }
         catch (IOException) { /* Image loading works even if the MRU cannot be saved. */ }
         catch (UnauthorizedAccessException) { /* Settings storage is optional. */ }
+    }
+
+    public void ShowImageTest(ImageTestCase test)
+    {
+        var path = Path.Combine(TestImageFolder, test.FileName);
+        if (!File.Exists(path)) throw new FileNotFoundException("Test image missing from output folder.", path);
+        LoadImage(path);
+    }
+
+    public async Task RunImageTestsAsync()
+    {
+        int passed = 0, failed = 0, explored = 0;
+        foreach (var test in ImageTests)
+        {
+            test.Result = "Running...";
+            TestRunStatus = $"Testing {test.Name}...";
+            await Task.Yield();
+            try
+            {
+                ShowImageTest(test);
+                var circles = _detector.Detect(OriginalImage!, Profile).Circles;
+                var sequence = TapeHoleSequence.Evaluate(
+                    circles.Select(circle => new TapeGeometry.Point(circle.X, circle.Y)).ToArray(),
+                    TapeHolePitchMm, Profile.PixelsPerMM);
+                if (test.IsCanonical)
+                {
+                    bool okay = circles.Count == 3 && sequence.Valid && sequence.Accepted.Count == 3 &&
+                        sequence.Geometry is not null &&
+                        Math.Abs(sequence.Geometry.PitchPixels - 202.03) <= 8.0;
+                    test.Result = okay ? "PASS (3 holes / pitch)" :
+                        $"FAIL ({circles.Count} found, {sequence.Accepted.Count} accepted)";
+                    if (okay) passed++; else failed++;
+                }
+                else
+                {
+                    test.Result = $"OBSERVED ({circles.Count} circles, {sequence.Accepted.Count} accepted)";
+                    explored++;
+                }
+            }
+            catch (Exception ex) { test.Result = $"ERROR ({ex.Message})"; failed++; }
+        }
+        TestRunStatus = $"Canonical: {passed} passed / {failed} failed • Exploratory: {explored} observed. Select a row to inspect.";
     }
 
     public void SaveProcessedImage(string path)
