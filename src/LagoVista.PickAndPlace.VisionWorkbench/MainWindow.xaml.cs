@@ -73,6 +73,20 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void RunImageTests_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button) button.IsEnabled = false;
+        try { await _vm.RunImageTestsAsync(); }
+        catch (Exception ex) { MessageBox.Show(this, ex.Message, "Image tests", MessageBoxButton.OK, MessageBoxImage.Error); }
+        finally { if (sender is Button button) button.IsEnabled = true; }
+    }
+
+    private void ImageTest_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is ImageTestCase test)
+            TryAction(() => _vm.ShowImageTest(test), "Unable to open test image");
+    }
+
     private void OpenImage_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new OpenFileDialog
