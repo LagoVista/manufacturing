@@ -133,6 +133,13 @@
                             <TextBox Text="{Binding TapeHolePitchMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
                             <TextBlock Text="{Binding TapeGeometrySummary}" Foreground="#B8C6D7" TextWrapping="Wrap" Margin="0,10,0,6"/>
                             <TextBlock Text="Assumes detected holes are consecutive and ordered along the tape. Verify before using calibration." FontSize="11" Foreground="#E6B56C" TextWrapping="Wrap" Margin="0,4,0,8"/>
+                            <TextBlock Text="FEEDER PICKUP PREDICTION (OFFLINE)" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8"/>
+                            <TextBlock Text="Along tape from top hole (mm, positive downward)" TextWrapping="Wrap" Margin="0,5,0,3"/>
+                            <TextBox Text="{Binding PickupAlongMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBlock Text="Across tape (mm, positive image-left)" TextWrapping="Wrap" Margin="0,8,0,3"/>
+                            <TextBox Text="{Binding PickupCrossMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBlock Text="{Binding PickupSummary}" TextWrapping="Wrap" Foreground="#B8C6D7" Margin="0,10,0,5"/>
+                            <TextBlock Text="Cyan = predicted next hole; magenta = proposed pickup. No machine movement or saved offsets." TextWrapping="Wrap" Foreground="#E6B56C" FontSize="11" Margin="0,5,0,8"/>
                             <TextBlock Text="CAMERA / LIGHTING (saved only; offline)" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8" TextWrapping="Wrap"/>
                             <TextBlock Text="Exposure" Margin="0,5,0,2"/>
                             <TextBox Text="{Binding Profile.Exposure, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
