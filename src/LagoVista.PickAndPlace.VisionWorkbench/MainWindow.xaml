@@ -161,7 +161,7 @@
                              HorizontalContentAlignment="Stretch" Padding="8">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <TextBox Text="{Binding Summary}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" Foreground="#E8EDF5" Margin="2,5"/>
+                                <TextBox Text="{Binding Summary, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" Foreground="#E8EDF5" Margin="2,5"/>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
