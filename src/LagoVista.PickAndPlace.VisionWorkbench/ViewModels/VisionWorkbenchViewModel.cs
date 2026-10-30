@@ -1,6 +1,7 @@
 using LagoVista.PickAndPlace.Models;
 using LagoVista.PickAndPlace.VisionWorkbench.Services;
 using System.Windows;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -52,6 +53,9 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
     public BitmapSource? OriginalImage { get => _originalImage; private set { _originalImage = value; Notify(); } }
     public BitmapSource? ProcessedImage { get => _processedImage; private set { _processedImage = value; Notify(); } }
     public BitmapSource? DetectionOverlay { get => _detectionOverlay; private set { _detectionOverlay = value; Notify(); } }
+    public ObservableCollection<string> CircleMeasurements { get; } = new();
+    private string _circleSummary = "No circle measurements yet";
+    public string CircleSummary { get => _circleSummary; private set { _circleSummary = value; Notify(); } }
     public string Status { get => _status; private set { _status = value; Notify(); } }
     public string ProfileStatus { get => _profileStatus; private set { _profileStatus = value; Notify(); } }
     public string ThresholdText => $"{Profile.PrimaryThreshold} / 100";
@@ -189,11 +193,20 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         {
             var detection = _detector.Detect(OriginalImage, Profile);
             DetectionOverlay = DrawOverlay(width, height, detection);
+            CircleMeasurements.Clear();
+            for (int i = 0; i < detection.Circles.Count; i++)
+            {
+                var c = detection.Circles[i];
+                CircleMeasurements.Add($"#{i + 1}: X={c.X:F1}  Y={c.Y:F1}  R={c.Radius:F1}");
+            }
+            CircleSummary = $"{detection.Circles.Count} circle(s) found";
             measurementStatus = $"{detection.Circles.Count} circles • {detection.Rectangles.Count} rectangles";
         }
         catch (Exception ex)
         {
             DetectionOverlay = null;
+            CircleMeasurements.Clear();
+            CircleSummary = "Detection failed";
             measurementStatus = $"Detection unavailable: {ex.GetType().Name}: {ex.Message}";
         }
         Status = $"{Path.GetFileName(_imagePath)} • {width}×{height} • Threshold {threshold} • White {100 * whiteCount / count:F1}% • Near-black input {100 * dark / count:F1}% • Near-white input {100 * bright / count:F1}% • {measurementStatus}";
