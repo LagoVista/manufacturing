@@ -54,10 +54,10 @@
                 <DockPanel>
                     <TextBlock Text="ORIGINAL" FontWeight="SemiBold" Foreground="#B4C7DA"
                                Margin="12" DockPanel.Dock="Top"/>
-                    <ScrollViewer x:Name="OriginalScroll" HorizontalScrollBarVisibility="Auto"
-                                  VerticalScrollBarVisibility="Auto">
-                        <Image Source="{Binding OriginalImage}" Stretch="Uniform"/>
-                    </ScrollViewer>
+                    <Grid x:Name="OriginalImageHost" ClipToBounds="True">
+                        <Image Source="{Binding OriginalImage}" Stretch="Uniform"
+                               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                    </Grid>
                 </DockPanel>
             </Border>
             <Border Grid.Column="2" BorderBrush="#43516A" BorderThickness="1" CornerRadius="6"
@@ -65,10 +65,13 @@
                 <DockPanel>
                     <TextBlock Text="PROCESSED — GRAYSCALE / THRESHOLD" FontWeight="SemiBold"
                                Foreground="#B4C7DA" Margin="12" DockPanel.Dock="Top"/>
-                    <ScrollViewer x:Name="ProcessedScroll" HorizontalScrollBarVisibility="Auto"
-                                  VerticalScrollBarVisibility="Auto">
-                        <Grid><Image Source="{Binding ProcessedImage}" Stretch="Uniform"/><Image Source="{Binding DetectionOverlay}" Stretch="Uniform" IsHitTestVisible="False"/></Grid>
-                    </ScrollViewer>
+                    <Grid x:Name="ProcessedImageHost" ClipToBounds="True">
+                        <Image Source="{Binding ProcessedImage}" Stretch="Uniform"
+                               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                        <Image Source="{Binding DetectionOverlay}" Stretch="Uniform"
+                               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                               IsHitTestVisible="False"/>
+                    </Grid>
                 </DockPanel>
             </Border>
             <Border Grid.Column="3" Margin="14,0,0,0" BorderBrush="#43516A" BorderThickness="1" CornerRadius="6" Background="#202937">
