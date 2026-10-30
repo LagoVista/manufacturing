@@ -65,7 +65,7 @@
                                Foreground="#B4C7DA" Margin="12" DockPanel.Dock="Top"/>
                     <ScrollViewer x:Name="ProcessedScroll" HorizontalScrollBarVisibility="Auto"
                                   VerticalScrollBarVisibility="Auto">
-                        <Image Source="{Binding ProcessedImage}" Stretch="Uniform"/>
+                        <Grid><Image Source="{Binding ProcessedImage}" Stretch="Uniform"/><Image Source="{Binding DetectionOverlay}" Stretch="Uniform" IsHitTestVisible="False"/></Grid>
                     </ScrollViewer>
                 </DockPanel>
             </Border>
