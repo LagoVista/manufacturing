@@ -43,14 +43,14 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
     private string _status = "Ready — open an image or drag one into this window.";
     private string _profileStatus = "New local profile";
     private bool _changed;
-    public ObservableCollection<ImageTestCase> ImageTests { get; } = new()
-    {
-        new() { Name = "000 Canonical", FileName = "Feeder1-000-Canonical.png", IsCanonical = true },
-        new() { Name = "010 Low light", FileName = "Feeder1-010-LowLight.png" },
-        new() { Name = "020 High exposure", FileName = "Feeder1-020-HighExposure.png" },
-        new() { Name = "030 Rotated", FileName = "Feeder1-030-Rotated.png" },
-        new() { Name = "040 Extra circle", FileName = "Feeder1-040-ExtraCircle.png" }
-    };
+    public ObservableCollection<ImageTestCase> ImageTests { get; } = new(
+        FeederVisionSuite.Scenarios.Select(scenario => new ImageTestCase
+        {
+            Name = scenario.Name, FileName = scenario.FileName,
+            IsCanonical = scenario.ExpectedCircles.HasValue
+        }));
+    private VisionProfile? _inspectionProfile;
+    public string TestProfileLabel => $"Test suite {FeederVisionSuite.Version} • profile controlled by code, not working profile";
     private string _testRunStatus = "Not run. Press Run image tests.";
     public string TestRunStatus { get => _testRunStatus; private set { _testRunStatus = value; Notify(); } }
     private static readonly string TestImageFolder = Path.Combine(AppContext.BaseDirectory, "TestImages", "Feeder1");
@@ -170,6 +170,12 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
 
     public void LoadImage(string path)
     {
+        _inspectionProfile = null;
+        LoadImageCore(path);
+    }
+
+    private void LoadImageCore(string path)
+    {
         var image = new BitmapImage();
         image.BeginInit();
         image.CacheOption = BitmapCacheOption.OnLoad;
@@ -261,7 +267,8 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
     {
         var path = Path.Combine(TestImageFolder, test.FileName);
         if (!File.Exists(path)) throw new FileNotFoundException("Test image missing from output folder.", path);
-        LoadImage(path);
+        _inspectionProfile = FeederVisionSuite.CreateProfile();
+        LoadImageCore(path);
     }
 
     public async Task RunImageTestsAsync()
@@ -276,15 +283,15 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
             {
                 ShowImageTest(test);
                 var imageSize = $"{OriginalImage!.PixelWidth}×{OriginalImage.PixelHeight}";
-                var circles = _detector.Detect(OriginalImage, Profile).Circles;
+                var circles = _detector.Detect(OriginalImage, FeederVisionSuite.CreateProfile()).Circles;
                 var sequence = TapeHoleSequence.Evaluate(
                     circles.Select(circle => new TapeGeometry.Point(circle.X, circle.Y)).ToArray(),
-                    TapeHolePitchMm, Profile.PixelsPerMM);
+                    FeederVisionSuite.HolePitchMm, FeederVisionSuite.CreateProfile().PixelsPerMM);
                 if (test.IsCanonical)
                 {
                     bool okay = circles.Count == 3 && sequence.Valid && sequence.Accepted.Count == 3 &&
                         sequence.Geometry is not null &&
-                        Math.Abs(sequence.Geometry.PitchPixels - 202.03) <= 8.0;
+                        Math.Abs(sequence.Geometry.PitchPixels - FeederVisionSuite.CanonicalExpectedSpacingPx) <= FeederVisionSuite.CanonicalSpacingTolerancePx;
                     test.Result = (okay ? "PASS" : "FAIL") +
                         $" | {imageSize} | circles {circles.Count}/3 | accepted {sequence.Accepted.Count}/3" +
                         (sequence.Geometry is null ? " | pitch unavailable" :
@@ -373,7 +380,8 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         var measurementStatus = "No detectors selected";
         try
         {
-            var detection = _detector.Detect(OriginalImage, Profile);
+            var activeProfile = _inspectionProfile ?? Profile;
+            var detection = _detector.Detect(OriginalImage, activeProfile);
             DetectionOverlay = DrawOverlay(width, height, detection);
             CircleMeasurements.Clear();
             for (int i = 0; i < detection.Circles.Count; i++)
@@ -384,7 +392,8 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
             CircleSummary = $"{detection.Circles.Count} circle(s) found";
             var sequence = TapeHoleSequence.Evaluate(
                 detection.Circles.Select(c => new TapeGeometry.Point(c.X, c.Y)).ToArray(),
-                TapeHolePitchMm, Profile.PixelsPerMM);
+                _inspectionProfile is null ? TapeHolePitchMm : FeederVisionSuite.HolePitchMm,
+                activeProfile.PixelsPerMM);
             var geometry = sequence.Geometry;
             TapeGeometrySummary = sequence.Reason +
                 $" • Accepted {sequence.Accepted.Count} / {detection.Circles.Count} • Rejected {sequence.Rejected}" +
