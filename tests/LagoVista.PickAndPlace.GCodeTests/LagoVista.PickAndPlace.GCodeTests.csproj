@@ -10,5 +10,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\LagoVista.Manufacturing\LagoVista.Manufacturing.csproj" />
+    <ProjectReference Include="..\..\src\LagoVista.PickAndPlace\LagoVista.PickAndPlace.csproj" />
   </ItemGroup>
 </Project>
