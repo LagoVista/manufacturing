@@ -32,7 +32,8 @@ public sealed class VisionDetectionService
         encoder.Frames.Add(BitmapFrame.Create(source));
         using var stream = new MemoryStream();
         encoder.Save(stream);
-        using var color = CvInvoke.Imdecode(stream.ToArray(), ImreadModes.Color);
+        using var color = new Mat();
+        CvInvoke.Imdecode(stream.ToArray(), ImreadModes.Color, color);
         using var gray = new Mat();
         CvInvoke.CvtColor(color, gray, ColorConversion.Bgr2Gray);
         using var work = new Mat();
