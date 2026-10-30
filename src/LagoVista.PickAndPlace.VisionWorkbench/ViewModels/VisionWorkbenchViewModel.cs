@@ -38,6 +38,30 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
     private BitmapSource? _processedImage;
     private BitmapSource? _detectionOverlay;
     private readonly VisionDetectionService _detector = new();
+    private string _cameraStatus = "Camera idle";
+    public ObservableCollection<CameraDeviceInfo> CameraDevices { get; } = new();
+    private CameraDeviceInfo? _selectedCamera;
+    public CameraDeviceInfo? SelectedCamera { get => _selectedCamera; set { _selectedCamera = value; Notify(); } }
+    public string CameraStatus { get => _cameraStatus; private set { _cameraStatus = value; Notify(); } }
+    public void SetCameraDevices(IEnumerable<CameraDeviceInfo> devices)
+    {
+        CameraDevices.Clear();
+        foreach (var device in devices) CameraDevices.Add(device);
+        SelectedCamera ??= CameraDevices.FirstOrDefault();
+        CameraStatus = CameraDevices.Count == 0 ? "No cameras found" : $"{CameraDevices.Count} camera(s) found";
+    }
+    public void ApplyCameraFrame(BitmapSource frame)
+    {
+        _inspectionProfile = null;
+        _selectedTest = null;
+        _imagePath = SelectedCamera?.Name ?? "Live camera";
+        OriginalImage = frame;
+        ProcessImage();
+        CameraStatus = $"Live: {_imagePath} • {frame.PixelWidth}×{frame.PixelHeight}";
+    }
+    public void SetCameraError(string message) => CameraStatus = "Camera error: " + message;
+    public void SetCameraStopped() => CameraStatus = "Camera stopped";
+
     private string? _imagePath;
     private string? _profilePath;
     private string _status = "Ready — open an image or drag one into this window.";
