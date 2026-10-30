@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using LagoVista.PickAndPlace.VisionWorkbench.ViewModels;
+using LagoVista.PickAndPlace.VisionWorkbench.Services;
 
 namespace LagoVista.PickAndPlace.VisionWorkbench;
 
@@ -12,6 +13,7 @@ namespace LagoVista.PickAndPlace.VisionWorkbench;
 public partial class MainWindow : Window
 {
     private readonly VisionWorkbenchViewModel _vm = new();
+    private readonly WorkbenchCameraCapture _cameraCapture = new();
     private static readonly string WindowPreferencesPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "LagoVista", "VisionWorkbench", "window.json");
@@ -23,8 +25,12 @@ public partial class MainWindow : Window
         InitializeComponent();
         DataContext = _vm;
         RestoreWindowPreferences();
-        Closing += (_, _) => SaveWindowPreferences();
-        Loaded += (_, _) => TryAction(_vm.RestoreLastImage, "Unable to restore last image");
+        Closing += (_, _) => { _cameraCapture.Dispose(); SaveWindowPreferences(); };
+        Loaded += (_, _) =>
+        {
+            TryAction(_vm.RestoreLastImage, "Unable to restore last image");
+            RefreshCameras();
+        };
     }
 
     private void RestoreWindowPreferences()
@@ -144,6 +150,32 @@ public partial class MainWindow : Window
             InitialDirectory = _vm.ProfilePath is null ? null : Path.GetDirectoryName(_vm.ProfilePath)
         };
         if (dialog.ShowDialog(this) == true) TryAction(() => _vm.SaveProfile(dialog.FileName), "Unable to save profile");
+    }
+
+    private void RefreshCameras_Click(object sender, RoutedEventArgs e) => RefreshCameras();
+
+    private void RefreshCameras()
+    {
+        TryAction(() => _vm.SetCameraDevices(_cameraCapture.Enumerate()), "Unable to enumerate cameras");
+    }
+
+    private void StartCamera_Click(object sender, RoutedEventArgs e)
+    {
+        if (_vm.SelectedCamera is null)
+        {
+            MessageBox.Show(this, "Select a camera first.", "Camera", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        TryAction(() => _cameraCapture.Start(_vm.SelectedCamera,
+            frame => Dispatcher.BeginInvoke(() => _vm.ApplyCameraFrame(frame)),
+            error => Dispatcher.BeginInvoke(() => _vm.SetCameraError(error))), "Unable to start camera");
+    }
+
+    private void StopCamera_Click(object sender, RoutedEventArgs e)
+    {
+        _cameraCapture.Stop();
+        _vm.SetCameraStopped();
     }
 
     private void FitView_Click(object sender, RoutedEventArgs e)
