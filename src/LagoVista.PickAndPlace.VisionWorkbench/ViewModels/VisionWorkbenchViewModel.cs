@@ -93,6 +93,20 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
     public string TestRunStatus { get => _testRunStatus; private set { _testRunStatus = value; Notify(); } }
     private static readonly string TestImageFolder = Path.Combine(AppContext.BaseDirectory, "TestImages", "Feeder1");
     private double _tapeHolePitchMm = 4.0;
+    private double _pickupAlongMm;
+    private double _pickupCrossMm = 3.5;
+    private string _pickupSummary = "Waiting for a validated tape-hole row.";
+    public double PickupAlongMm
+    {
+        get => _pickupAlongMm;
+        set { if (!double.IsFinite(value)) return; _pickupAlongMm = value; Notify(); ProcessImage(); }
+    }
+    public double PickupCrossMm
+    {
+        get => _pickupCrossMm;
+        set { if (!double.IsFinite(value)) return; _pickupCrossMm = value; Notify(); ProcessImage(); }
+    }
+    public string PickupSummary { get => _pickupSummary; private set { _pickupSummary = value; Notify(); } }
     private string _tapeGeometrySummary = "Detect at least two consecutive tape holes.";
     public double TapeHolePitchMm
     {
@@ -371,7 +385,7 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         encoder.Save(stream);
     }
 
-    private static BitmapSource DrawOverlay(int width, int height, VisionDetectionResult detection, IReadOnlyList<TapeGeometry.Point>? expected)
+    private static BitmapSource DrawOverlay(int width, int height, VisionDetectionResult detection, IReadOnlyList<TapeGeometry.Point>? expected, FeederPickupGeometry.Result? pickup = null)
     {
         var visual = new DrawingVisual();
         using (var dc = visual.RenderOpen())
@@ -392,6 +406,17 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
                     dc.DrawLine(markerPen, new Point(p.X - 9, p.Y - 9), new Point(p.X + 9, p.Y + 9));
                     dc.DrawLine(markerPen, new Point(p.X - 9, p.Y + 9), new Point(p.X + 9, p.Y - 9));
                 }
+            }
+            if (pickup is not null)
+            {
+                var axisPen = new Pen(Brushes.Cyan, 1.5) { DashStyle = DashStyles.Dash };
+                dc.DrawLine(axisPen, new Point(pickup.ReferenceHole.X, pickup.ReferenceHole.Y),
+                    new Point(pickup.NextHole.X, pickup.NextHole.Y));
+                var targetPen = new Pen(Brushes.Magenta, 2);
+                var center = new Point(pickup.Pickup.X, pickup.Pickup.Y);
+                dc.DrawEllipse(null, targetPen, center, 7, 7);
+                dc.DrawLine(targetPen, new Point(center.X - 12, center.Y), new Point(center.X + 12, center.Y));
+                dc.DrawLine(targetPen, new Point(center.X, center.Y - 12), new Point(center.X, center.Y + 12));
             }
             foreach (var r in detection.Rectangles)
             {
@@ -458,7 +483,16 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
                 detection.Circles.Select(c => new TapeGeometry.Point(c.X, c.Y)).ToArray(),
                 _inspectionProfile is null ? TapeHolePitchMm : FeederVisionSuite.HolePitchMm,
                 activeProfile.PixelsPerMM);
-            var geometry = sequence.Geometry;
+            var geometry = sequence.Valid ? sequence.Geometry : null;
+            var prediction = FeederPickupGeometry.Predict(geometry, PickupAlongMm, PickupCrossMm,
+                _inspectionProfile is null ? TapeHolePitchMm : FeederVisionSuite.HolePitchMm);
+            PickupSummary = prediction is null
+                ? "No reliable row; pickup prediction withheld."
+                : $"Top hole ({prediction.ReferenceHole.X:F1}, {prediction.ReferenceHole.Y:F1}) px • Next hole ({prediction.NextHole.X:F1}, {prediction.NextHole.Y:F1}) px • Proposed pickup ({prediction.Pickup.X:F1}, {prediction.Pickup.Y:F1}) px • Image coordinates only";
+            if (prediction is not null)
+                DetectionOverlay = DrawOverlay(width, height, detection,
+                    _selectedTest is not null && _annotations.TryGetValue(_selectedTest.FileName, out var marks) ? marks : null,
+                    prediction);
             TapeGeometrySummary = sequence.Reason +
                 $" • Accepted {sequence.Accepted.Count} / {detection.Circles.Count} • Rejected {sequence.Rejected}" +
                 (sequence.Missing > 0 ? $" • Possible missing: {sequence.Missing}" : "") +
@@ -474,6 +508,7 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
             CircleMeasurements.Clear();
             CircleSummary = "Detection failed";
             TapeGeometrySummary = "Detection failed; no tape geometry available.";
+            PickupSummary = "Detection failed; pickup prediction unavailable.";
             measurementStatus = $"Detection unavailable: {ex.GetType().Name}: {ex.Message}";
         }
         Status = $"{Path.GetFileName(_imagePath)} • {width}×{height} • Threshold {threshold} • White {100 * whiteCount / count:F1}% • Near-black input {100 * dark / count:F1}% • Near-white input {100 * bright / count:F1}% • {measurementStatus}";
