@@ -43,6 +43,7 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
             _tapeHolePitchMm = value;
             Notify();
             ProcessImage();
+            SaveSession();
         }
     }
     public string TapeGeometrySummary
@@ -53,6 +54,8 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
     public ObservableCollection<RecentImageEntry> RecentImages { get; } = new();
     private static readonly string RecentImagesFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "LagoVista", "VisionWorkbench", "recent-images.json");
     private const int MaxRecentImages = 12;
+    private static readonly string SessionFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "LagoVista", "VisionWorkbench", "last-session.json");
+    private sealed record WorkbenchSession(VisionProfile Profile, double TapeHolePitchMm, string? ProfilePath, bool WasEdited);
 
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true, PropertyNameCaseInsensitive = true };
     private static VisionProfile NewProfile() => new() { Name = "New experiment", Key = VisionProfile.VisionProfile_Custom, Id = Guid.NewGuid().ToString("N") };
@@ -71,6 +74,7 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
             Notify(nameof(KernelText));
             Notify(nameof(CannyText));
             ProcessImage();
+            SaveSession();
         }
     }
 
@@ -78,6 +82,7 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
     {
         _profile.PropertyChanged += ProfileChanged;
         LoadRecentImages();
+        RestoreSession();
     }
 
     public BitmapSource? OriginalImage { get => _originalImage; private set { _originalImage = value; Notify(); } }
@@ -106,6 +111,7 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         Notify(nameof(KernelText));
         Notify(nameof(CannyText));
         ProcessImage();
+        SaveSession();
     }
 
     public void CreateProfile()
@@ -114,6 +120,7 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         Profile = NewProfile();
         _changed = false;
         ProfileStatus = "New local profile";
+        SaveSession();
     }
 
     public void LoadProfile(string path)
@@ -124,6 +131,7 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         Profile = value;
         _changed = false;
         ProfileStatus = Path.GetFileName(path);
+        SaveSession();
     }
 
     public string? ProfilePath => _profilePath;
@@ -135,6 +143,7 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         _profilePath = path;
         _changed = false;
         ProfileStatus = "Saved: " + path;
+        SaveSession();
     }
 
     public void LoadImage(string path)
@@ -149,6 +158,47 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         OriginalImage = image;
         ProcessImage();
         RememberImage(path);
+    }
+
+    private void RestoreSession()
+    {
+        try
+        {
+            if (!File.Exists(SessionFile)) return;
+            var session = JsonSerializer.Deserialize<WorkbenchSession>(File.ReadAllText(SessionFile), JsonOptions);
+            if (session?.Profile is null) return;
+            if (double.IsFinite(session.TapeHolePitchMm) && session.TapeHolePitchMm > 0)
+            {
+                _tapeHolePitchMm = session.TapeHolePitchMm;
+                Notify(nameof(TapeHolePitchMm));
+            }
+            _profilePath = session.ProfilePath;
+            Profile = session.Profile;
+            _changed = session.WasEdited;
+            ProfileStatus = _changed
+                ? "Restored working profile • Edited (not saved)"
+                : _profilePath is null ? "Restored local working profile" : "Restored: " + Path.GetFileName(_profilePath);
+        }
+        catch (Exception)
+        {
+            // Invalid user-local session must never prevent launching the workbench.
+        }
+    }
+
+    private void SaveSession()
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(SessionFile)!);
+            var snapshot = new WorkbenchSession(Profile, TapeHolePitchMm, _profilePath, _changed);
+            var temp = SessionFile + ".tmp";
+            File.WriteAllText(temp, JsonSerializer.Serialize(snapshot, JsonOptions));
+            File.Move(temp, SessionFile, true);
+        }
+        catch (Exception)
+        {
+            // Persistence of experimental UI state is best-effort; never block detection.
+        }
     }
 
     private void LoadRecentImages()
@@ -267,9 +317,13 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
             CircleSummary = $"{detection.Circles.Count} circle(s) found";
             var geometry = TapeGeometry.Analyze(
                 detection.Circles.Select(c => new TapeGeometry.Point(c.X, c.Y)).ToArray(), TapeHolePitchMm);
+            // Preliminary consistency check only; no authoritative calibration or machine writes.
+            var plausible = geometry is not null && geometry.Count >= 3
+                && geometry.PitchVariationPixels <= geometry.PitchPixels * 0.02
+                && geometry.MaxLineErrorPixels <= 2.0;
             TapeGeometrySummary = geometry is null
                 ? "Detect at least two consecutive tape holes."
-                : $"{geometry.Count} holes • {geometry.PitchPixels:F2} px/hole • {geometry.PixelsPerMm:F2} px/mm (estimated) • Tilt {geometry.AngleFromVerticalDegrees:+0.00;-0.00;0.00}° from image vertical • Spacing variation {geometry.PitchVariationPixels:F2} px • Max line error {geometry.MaxLineErrorPixels:F2} px";
+                : (plausible ? "Consistent row (preliminary) • " : "Unverified hole sequence • ") + $"{geometry.Count} holes • {geometry.PitchPixels:F2} px/hole • {geometry.PixelsPerMm:F2} px/mm (estimated) • Tilt {geometry.AngleFromVerticalDegrees:+0.00;-0.00;0.00}° from image vertical • Spacing variation {geometry.PitchVariationPixels:F2} px • Max line error {geometry.MaxLineErrorPixels:F2} px";
             measurementStatus = $"{detection.Circles.Count} circles • {detection.Rectangles.Count} rectangles";
         }
         catch (Exception ex)
