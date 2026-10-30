@@ -78,7 +78,7 @@ public partial class MainWindow : Window
         if (sender is Button button) button.IsEnabled = false;
         try { await _vm.RunImageTestsAsync(); }
         catch (Exception ex) { MessageBox.Show(this, ex.Message, "Image tests", MessageBoxButton.OK, MessageBoxImage.Error); }
-        finally { if (sender is Button button) button.IsEnabled = true; }
+        finally { if (sender is Button runButton) runButton.IsEnabled = true; }
     }
 
     private void ImageTest_SelectionChanged(object sender, SelectionChangedEventArgs e)
