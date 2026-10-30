@@ -438,85 +438,23 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             Machine.DebugWriteLine($"  RESOLVE LOCATION {CurrentPartIndex}, FEED LOCATION: {Current.FeedDirection.Value}");
 
-            var tapeSize = TapeSize.ToDouble();
-            var tapePitch = CurrentComponentPackage.CustomTapePitch ?? TapePitch.ToDouble();
-            var feederIsVertical = Current.Orientation.Value == FeederOrientations.Vertical;
-
-            var tapeLength = (CurrentRow.LastTapeHoleOffset.X - CurrentRow.FirstTapeHoleOffset.X) + 2;
-            var expectedDetlaX = Convert.ToInt16(Math.Floor(tapeLength / 4)) * 4;
-            var expectedDeltaY = 0;
-            var expectedDelta = new Point2D<double>(expectedDetlaX, expectedDeltaY);
-
-            var partOffsetInTapeFromReferenceHole = ((CurrentPartIndex - 1) * tapePitch);
-            partOffsetInTapeFromReferenceHole += (CurrentComponentPackage.XOffsetFromReferenceHole ?? 2.0);
-
             if (CurrentComponentPackage == null)
-            {
                 return InvokeResult<Point2D<double>>.FromError("No component package, can not move to part.");
-            }
 
-            var feedForward = Current.FeedDirection.Value == FeedDirections.Forward;
+            var pickLocation = LagoVista.Manufacturing.Models.StripFeederPickupCalculator.Calculate(
+                feederOrigin,
+                CurrentRow.FirstTapeHoleOffset,
+                CurrentRow.LastTapeHoleOffset,
+                Current.Orientation.Value == FeederOrientations.Vertical,
+                Current.TapeHolesOnTop,
+                Current.FeedDirection.Value == FeedDirections.Forward,
+                CurrentPartIndex,
+                CurrentComponentPackage.CustomTapePitch ?? TapePitch.ToDouble(),
+                TapeSize.ToDouble(),
+                CurrentComponentPackage.XOffsetFromReferenceHole,
+                CurrentComponentPackage.YOffsetFromReferenceHole,
+                CurrentComponentPackage.HolesOnBothSideOfTape);
 
-            var yOffsetFromHole = CurrentComponentPackage.YOffsetFromReferenceHole.HasValue ?
-                    CurrentComponentPackage.YOffsetFromReferenceHole.Value :
-                    CurrentComponentPackage.HolesOnBothSideOfTape ? (tapeSize / 2) - 1.8 : (tapeSize / 2) - 0.5;
-
-            var firstHole = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.LastTapeHoleOffset);
-            var lastHole = feederOrigin.AddWithConditionalSwap(feederIsVertical, CurrentRow.FirstTapeHoleOffset);
-            var actualDelta = new Point2D<double>(lastHole.Y - firstHole.Y, lastHole.X - firstHole.X);
-
-            Machine.DebugWriteLine("----------------------------");
-
-            /* 1) Set to reference hole, based on the feeder feeding forward or reverse, forward is first hole
-             *    not forwad (reverse is last hole) */
-            var pickLocation = feederOrigin.AddWithConditionalSwap(feederIsVertical, Current.FeedDirection.Value == FeedDirections.Forward ?
-                CurrentRow.FirstTapeHoleOffset : CurrentRow.LastTapeHoleOffset);
-
-            if (feederIsVertical)
-            {
-                if (Current.TapeHolesOnTop)
-                    pickLocation.SubtractFromX(yOffsetFromHole);
-                else
-                    pickLocation.AddToX(yOffsetFromHole);
-            }
-            else
-            {
-                if (Current.TapeHolesOnTop)
-                    pickLocation.SubtractFromY(yOffsetFromHole);
-                else
-                    pickLocation.AddToY(yOffsetFromHole);
-            }
-
-            if (Current.FeedDirection.Value == FeedDirections.Forward)
-            {
-                if (feederIsVertical)
-                {
-                    pickLocation.SubtractFromY(partOffsetInTapeFromReferenceHole);
-                }
-                else
-                {
-                    pickLocation.AddToX(partOffsetInTapeFromReferenceHole);
-                }
-            }
-            else
-            {
-                if (feederIsVertical)
-                {
-                    pickLocation.AddToY(partOffsetInTapeFromReferenceHole);
-                }
-                else
-                {
-                    pickLocation.SubtractFromX(partOffsetInTapeFromReferenceHole);
-                }
-            }
-
-
-            var ratioInTape = partOffsetInTapeFromReferenceHole / expectedDetlaX;
-            if (Current.FeedDirection.Value == FeedDirections.Backwards)
-                ratioInTape = 1.0 - ratioInTape;
-
-            pickLocation = Extrapolate(actualDelta, expectedDelta, ratioInTape, pickLocation);
-            
             Machine.DebugWriteLine($"  PICK LOCATION {pickLocation}");
             Machine.DebugWriteLine("----------------------------");
 
