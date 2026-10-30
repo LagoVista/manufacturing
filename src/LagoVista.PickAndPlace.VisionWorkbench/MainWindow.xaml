@@ -29,6 +29,12 @@
                 <ComboBox Width="250" Margin="0,0,8,0" ItemsSource="{Binding RecentImages}" DisplayMemberPath="DisplayName" SelectionChanged="RecentImage_SelectionChanged" ToolTip="Recently opened images" Background="#263449" Foreground="White"/>
                 <Button Content="Save processed..." Click="SaveProcessed_Click"/>
                 <Button Content="Fit view" Click="FitView_Click"/>
+                <TextBlock Text="Camera" VerticalAlignment="Center" Margin="16,0,6,0"/>
+                <ComboBox Width="250" Margin="0,0,8,0" ItemsSource="{Binding CameraDevices}" SelectedItem="{Binding SelectedCamera}" Background="#263449" Foreground="White"/>
+                <Button Content="Refresh cameras" Click="RefreshCameras_Click"/>
+                <Button Content="Start live" Click="StartCamera_Click"/>
+                <Button Content="Stop" Click="StopCamera_Click"/>
+                <TextBlock Text="{Binding CameraStatus}" VerticalAlignment="Center" Foreground="#9DB5D9" Margin="8,0,0,0"/>
                 <CheckBox Content="Invert threshold" VerticalAlignment="Center" Margin="16,0,12,0" IsChecked="{Binding Profile.Invert, Mode=TwoWay}"/>
                 <TextBlock Text="Threshold" VerticalAlignment="Center" Margin="8,0,8,0"/>
                 <Slider Width="190" Minimum="0" Maximum="255" Value="{Binding ThresholdValue, Mode=TwoWay}" VerticalAlignment="Center"/>
