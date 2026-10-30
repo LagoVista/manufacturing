@@ -50,6 +50,41 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
             IsCanonical = scenario.ExpectedCircles.HasValue
         }));
     private VisionProfile? _inspectionProfile;
+    private readonly Dictionary<string, List<TapeGeometry.Point>> _annotations = new();
+    private ImageTestCase? _selectedTest;
+    private string _annotationsStatus = "Select a test, then click three hole centers in the ORIGINAL image to annotate ground truth.";
+    public string AnnotationsStatus { get => _annotationsStatus; private set { _annotationsStatus = value; Notify(); } }
+    public string AllTestResults => BuildTestReport();
+    public string BuildTestReport()
+    {
+        var profile = FeederVisionSuite.CreateProfile();
+        var lines = new List<string>
+        {
+            $"Suite: {FeederVisionSuite.Version}",
+            $"Profile: {profile.Name} ({profile.Id})",
+            $"Hough: DP={profile.HoughCirclesDP}, P1={profile.HoughCirclesParam1}, P2={profile.HoughCirclesParam2}, radii={profile.HoughCirclesMinRadius}-{profile.HoughCirclesMaxRadius}mm, minDist={profile.HoughCirclesMinDistance}mm, ppm={profile.PixelsPerMM}, pitch={FeederVisionSuite.HolePitchMm}mm",
+            $"Summary: {TestRunStatus}"
+        };
+        lines.AddRange(ImageTests.Select(t => t.Summary));
+        return string.Join(Environment.NewLine, lines);
+    }
+    public void AnnotateSelectedHole(double x, double y)
+    {
+        if (_selectedTest is null) return;
+        if (!_annotations.TryGetValue(_selectedTest.FileName, out var points))
+            _annotations[_selectedTest.FileName] = points = new List<TapeGeometry.Point>();
+        if (points.Count >= 3) points.Clear();
+        points.Add(new TapeGeometry.Point(x, y));
+        AnnotationsStatus = $"{_selectedTest.Name}: {points.Count}/3 expected centers marked (provisional, in-memory)";
+        ProcessImage();
+    }
+    public void ClearAnnotations()
+    {
+        if (_selectedTest is null) return;
+        _annotations.Remove(_selectedTest.FileName);
+        AnnotationsStatus = $"{_selectedTest.Name}: annotations cleared";
+        ProcessImage();
+    }
     public string TestProfileLabel => $"Test suite {FeederVisionSuite.Version} • profile controlled by code, not working profile";
     private string _testRunStatus = "Not run. Press Run image tests.";
     public string TestRunStatus { get => _testRunStatus; private set { _testRunStatus = value; Notify(); } }
@@ -171,6 +206,7 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
     public void LoadImage(string path)
     {
         _inspectionProfile = null;
+        _selectedTest = null;
         LoadImageCore(path);
     }
 
@@ -267,8 +303,10 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
     {
         var path = Path.Combine(TestImageFolder, test.FileName);
         if (!File.Exists(path)) throw new FileNotFoundException("Test image missing from output folder.", path);
+        _selectedTest = test;
         _inspectionProfile = FeederVisionSuite.CreateProfile();
         LoadImageCore(path);
+        AnnotationsStatus = $"{test.Name}: click three hole centers in ORIGINAL image to annotate ground truth.";
     }
 
     public async Task RunImageTestsAsync()
@@ -287,6 +325,15 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
                 var sequence = TapeHoleSequence.Evaluate(
                     circles.Select(circle => new TapeGeometry.Point(circle.X, circle.Y)).ToArray(),
                     FeederVisionSuite.HolePitchMm, FeederVisionSuite.CreateProfile().PixelsPerMM);
+                var errorReport = "";
+                if (_annotations.TryGetValue(test.FileName, out var expectedCenters) && expectedCenters.Count == 3 && sequence.Accepted.Count >= 3)
+                {
+                    var actual = sequence.Accepted.OrderBy(point => point.Y).ToArray();
+                    var expected = expectedCenters.OrderBy(point => point.Y).ToArray();
+                    var distances = Enumerable.Range(0, 3).Select(i =>
+                        Math.Sqrt(Math.Pow(actual[i].X - expected[i].X, 2) + Math.Pow(actual[i].Y - expected[i].Y, 2))).ToArray();
+                    errorReport = $" | annotated center error avg {distances.Average():F1}px max {distances.Max():F1}px (provisional)";
+                }
                 if (test.IsCanonical)
                 {
                     bool okay = circles.Count == 3 && sequence.Valid && sequence.Accepted.Count == 3 &&
@@ -296,16 +343,19 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
                         $" | {imageSize} | circles {circles.Count}/3 | accepted {sequence.Accepted.Count}/3" +
                         (sequence.Geometry is null ? " | pitch unavailable" :
                             $" | pitch {sequence.Geometry.PitchPixels:F1}px (target ~202px)");
+                    test.Result += errorReport;
                     if (okay) passed++; else failed++;
                 }
                 else
                 {
                     test.Result = $"OBSERVED | {imageSize} | circles {circles.Count} | accepted {sequence.Accepted.Count} | exploratory";
+                    test.Result += errorReport;
                     explored++;
                 }
             }
             catch (Exception ex) { test.Result = $"ERROR ({ex.Message})"; failed++; }
         }
+        Notify(nameof(AllTestResults));
         TestRunStatus = $"Canonical: {passed} passed / {failed} failed • Exploratory: {explored} observed. Select a row to inspect.";
     }
 
@@ -318,7 +368,7 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         encoder.Save(stream);
     }
 
-    private static BitmapSource DrawOverlay(int width, int height, VisionDetectionResult detection)
+    private static BitmapSource DrawOverlay(int width, int height, VisionDetectionResult detection, IReadOnlyList<TapeGeometry.Point>? expected)
     {
         var visual = new DrawingVisual();
         using (var dc = visual.RenderOpen())
@@ -330,6 +380,15 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
                 dc.DrawEllipse(null, circlePen, new Point(c.X, c.Y), c.Radius, c.Radius);
                 dc.DrawLine(circlePen, new Point(c.X - 5, c.Y), new Point(c.X + 5, c.Y));
                 dc.DrawLine(circlePen, new Point(c.X, c.Y - 5), new Point(c.X, c.Y + 5));
+            }
+            if (expected is not null)
+            {
+                var markerPen = new Pen(Brushes.DeepSkyBlue, 2);
+                foreach (var p in expected)
+                {
+                    dc.DrawLine(markerPen, new Point(p.X - 9, p.Y - 9), new Point(p.X + 9, p.Y + 9));
+                    dc.DrawLine(markerPen, new Point(p.X - 9, p.Y + 9), new Point(p.X + 9, p.Y - 9));
+                }
             }
             foreach (var r in detection.Rectangles)
             {
@@ -382,7 +441,9 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         try
         {
             var detection = _detector.Detect(OriginalImage, activeProfile);
-            DetectionOverlay = DrawOverlay(width, height, detection);
+            DetectionOverlay = DrawOverlay(width, height, detection,
+                _selectedTest is not null && _annotations.TryGetValue(_selectedTest.FileName, out var expected)
+                    ? expected : null);
             CircleMeasurements.Clear();
             for (int i = 0; i < detection.Circles.Count; i++)
             {
