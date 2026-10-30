@@ -1,4 +1,7 @@
 using LagoVista.PickAndPlace.Models;
+using LagoVista.PickAndPlace.VisionWorkbench.Services;
+using System.Windows;
+using System.Windows.Media;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -17,6 +20,8 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
     private VisionProfile _profile = NewProfile();
     private BitmapSource? _originalImage;
     private BitmapSource? _processedImage;
+    private BitmapSource? _detectionOverlay;
+    private readonly VisionDetectionService _detector = new();
     private string? _imagePath;
     private string? _profilePath;
     private string _status = "Ready — open an image or drag one into this window.";
@@ -47,6 +52,7 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
 
     public BitmapSource? OriginalImage { get => _originalImage; private set { _originalImage = value; Notify(); } }
     public BitmapSource? ProcessedImage { get => _processedImage; private set { _processedImage = value; Notify(); } }
+    public BitmapSource? DetectionOverlay { get => _detectionOverlay; private set { _detectionOverlay = value; Notify(); } }
     public string Status { get => _status; private set { _status = value; Notify(); } }
     public string ProfileStatus { get => _profileStatus; private set { _profileStatus = value; Notify(); } }
     public string ThresholdText => $"{Profile.PrimaryThreshold} / 100";
@@ -120,6 +126,32 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         encoder.Save(stream);
     }
 
+    private static BitmapSource DrawOverlay(int width, int height, VisionDetectionResult detection)
+    {
+        var visual = new DrawingVisual();
+        using (var dc = visual.RenderOpen())
+        {
+            var circlePen = new Pen(Brushes.LimeGreen, 2);
+            var rectanglePen = new Pen(Brushes.Orange, 2);
+            foreach (var c in detection.Circles)
+            {
+                dc.DrawEllipse(null, circlePen, new Point(c.X, c.Y), c.Radius, c.Radius);
+                dc.DrawLine(circlePen, new Point(c.X - 5, c.Y), new Point(c.X + 5, c.Y));
+                dc.DrawLine(circlePen, new Point(c.X, c.Y - 5), new Point(c.X, c.Y + 5));
+            }
+            foreach (var r in detection.Rectangles)
+            {
+                dc.PushTransform(new RotateTransform(r.Angle, r.X, r.Y));
+                dc.DrawRectangle(null, rectanglePen, new Rect(r.X - r.Width / 2, r.Y - r.Height / 2, r.Width, r.Height));
+                dc.Pop();
+            }
+        }
+        var bitmap = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
+        bitmap.Render(visual);
+        bitmap.Freeze();
+        return bitmap;
+    }
+
     private void ProcessImage()
     {
         if (OriginalImage is null) return;
@@ -153,6 +185,18 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         output.Freeze();
         ProcessedImage = output;
         double count = pixels.Length;
-        Status = $"{Path.GetFileName(_imagePath)} • {width}×{height} • Threshold {threshold} • White {100 * whiteCount / count:F1}% • Near-black input {100 * dark / count:F1}% • Near-white input {100 * bright / count:F1}%";
+        var measurementStatus = "No detectors selected";
+        try
+        {
+            var detection = _detector.Detect(OriginalImage, Profile);
+            DetectionOverlay = DrawOverlay(width, height, detection);
+            measurementStatus = $"{detection.Circles.Count} circles • {detection.Rectangles.Count} rectangles";
+        }
+        catch (Exception ex)
+        {
+            DetectionOverlay = null;
+            measurementStatus = $"Detection unavailable: {ex.GetType().Name}: {ex.Message}";
+        }
+        Status = $"{Path.GetFileName(_imagePath)} • {width}×{height} • Threshold {threshold} • White {100 * whiteCount / count:F1}% • Near-black input {100 * dark / count:F1}% • Near-white input {100 * bright / count:F1}% • {measurementStatus}";
     }
 }
