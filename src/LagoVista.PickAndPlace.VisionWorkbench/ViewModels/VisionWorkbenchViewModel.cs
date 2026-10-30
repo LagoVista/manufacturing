@@ -11,6 +11,11 @@ using System.Windows.Media.Imaging;
 
 namespace LagoVista.PickAndPlace.VisionWorkbench.ViewModels;
 
+public sealed record RecentImageEntry(string Path)
+{
+    public string DisplayName => System.IO.Path.GetFileName(Path);
+}
+
 /// <summary>Workbench state and offline image processing. Does not access machine hardware.</summary>
 public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
 {
@@ -27,6 +32,9 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
     private string _status = "Ready — open an image or drag one into this window.";
     private string _profileStatus = "New local profile";
     private bool _changed;
+    public ObservableCollection<RecentImageEntry> RecentImages { get; } = new();
+    private static readonly string RecentImagesFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "LagoVista", "VisionWorkbench", "recent-images.json");
+    private const int MaxRecentImages = 12;
 
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true, PropertyNameCaseInsensitive = true };
     private static VisionProfile NewProfile() => new() { Name = "New experiment", Key = VisionProfile.VisionProfile_Custom, Id = Guid.NewGuid().ToString("N") };
@@ -48,7 +56,11 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         }
     }
 
-    public VisionWorkbenchViewModel() => _profile.PropertyChanged += ProfileChanged;
+    public VisionWorkbenchViewModel()
+    {
+        _profile.PropertyChanged += ProfileChanged;
+        LoadRecentImages();
+    }
 
     public BitmapSource? OriginalImage { get => _originalImage; private set { _originalImage = value; Notify(); } }
     public BitmapSource? ProcessedImage { get => _processedImage; private set { _processedImage = value; Notify(); } }
@@ -118,6 +130,41 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         _imagePath = path;
         OriginalImage = image;
         ProcessImage();
+        RememberImage(path);
+    }
+
+    private void LoadRecentImages()
+    {
+        try
+        {
+            if (!File.Exists(RecentImagesFile)) return;
+            var saved = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(RecentImagesFile)) ?? new();
+            foreach (var path in saved.Where(File.Exists).Distinct(StringComparer.OrdinalIgnoreCase).Take(MaxRecentImages))
+                RecentImages.Add(new RecentImageEntry(path));
+        }
+        catch (Exception) { /* Corrupt local history must not prevent launching the workbench. */ }
+    }
+
+    public void RestoreLastImage()
+    {
+        if (RecentImages.Count > 0)
+            LoadImage(RecentImages[0].Path);
+    }
+
+    private void RememberImage(string imagePath)
+    {
+        var fullPath = Path.GetFullPath(imagePath);
+        var old = RecentImages.FirstOrDefault(item => string.Equals(item.Path, fullPath, StringComparison.OrdinalIgnoreCase));
+        if (old is not null) RecentImages.Remove(old);
+        RecentImages.Insert(0, new RecentImageEntry(fullPath));
+        while (RecentImages.Count > MaxRecentImages) RecentImages.RemoveAt(RecentImages.Count - 1);
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(RecentImagesFile)!);
+            File.WriteAllText(RecentImagesFile, JsonSerializer.Serialize(RecentImages.Select(item => item.Path).ToArray(), JsonOptions));
+        }
+        catch (IOException) { /* Image loading works even if the MRU cannot be saved. */ }
+        catch (UnauthorizedAccessException) { /* Settings storage is optional. */ }
     }
 
     public void SaveProcessedImage(string path)
