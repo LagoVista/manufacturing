@@ -66,6 +66,9 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
             $"Summary: {TestRunStatus}"
         };
         lines.AddRange(ImageTests.Select(t => t.Summary));
+        foreach (var item in _annotations.OrderBy(kv => kv.Key))
+            lines.Add($"Provisional annotation {item.Key}: " +
+                string.Join("; ", item.Value.OrderBy(p => p.Y).Select(p => $"({p.X:F1},{p.Y:F1})")));
         return string.Join(Environment.NewLine, lines);
     }
     public void AnnotateSelectedHole(double x, double y)
