@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using LagoVista.PickAndPlace.VisionWorkbench.ViewModels;
 
 namespace LagoVista.PickAndPlace.VisionWorkbench;
@@ -80,6 +81,26 @@ public partial class MainWindow : Window
         try { await _vm.RunImageTestsAsync(); }
         catch (Exception ex) { MessageBox.Show(this, ex.Message, "Image tests", MessageBoxButton.OK, MessageBoxImage.Error); }
         finally { if (runButton != null) runButton.IsEnabled = true; }
+    }
+
+    private void CopyAllResults_Click(object sender, RoutedEventArgs e) => Clipboard.SetText(_vm.BuildTestReport());
+
+    private void ClearMarks_Click(object sender, RoutedEventArgs e) => _vm.ClearAnnotations();
+
+    private void OriginalPreview_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (_vm.OriginalImage is null) return;
+        var image = OriginalPreview;
+        var source = _vm.OriginalImage;
+        var scale = Math.Min(image.ActualWidth / source.PixelWidth, image.ActualHeight / source.PixelHeight);
+        if (scale <= 0) return;
+        var left = (image.ActualWidth - source.PixelWidth * scale) / 2;
+        var top = (image.ActualHeight - source.PixelHeight * scale) / 2;
+        var point = e.GetPosition(image);
+        var x = (point.X - left) / scale;
+        var y = (point.Y - top) / scale;
+        if (x >= 0 && x < source.PixelWidth && y >= 0 && y < source.PixelHeight)
+            _vm.AnnotateSelectedHole(x, y);
     }
 
     private void ImageTest_SelectionChanged(object sender, SelectionChangedEventArgs e)
