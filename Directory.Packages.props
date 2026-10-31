@@ -24,8 +24,8 @@
     <PackageVersion Include="LagoVista.MediaServices" Version="7.0.31" />
     <PackageVersion Include="LagoVista.MediaServices.Models" Version="7.0.31" />
     <PackageVersion Include="LagoVista.PDFServices" Version="7.0.54" />
-    <PackageVersion Include="LagoVista.UserAdmin" Version="7.0.27" />
-    <PackageVersion Include="LagoVista.UserAdmin.Models" Version="7.0.27" />
+    <PackageVersion Include="LagoVista.UserAdmin" Version="7.0.34" />
+    <PackageVersion Include="LagoVista.UserAdmin.Models" Version="7.0.34" />
     <PackageVersion Include="Meziantou.WpfFontAwesome" Version="5.15.4" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
