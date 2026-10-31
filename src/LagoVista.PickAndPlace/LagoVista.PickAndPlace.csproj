@@ -14,6 +14,7 @@
     <PackageReference Include="Emgu.CV.runtime.windows" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\LagoVista.Client.Core\LagoVista.Client.Core.csproj" />
     <ProjectReference Include="..\LagoVista.GCode\LagoVista.GCode.csproj" />
     <ProjectReference Include="..\LagoVista.Manufacturing\LagoVista.Manufacturing.csproj" />
     <ProjectReference Include="..\LagoVista.PCB.Eagle\LagoVista.PCB.Eagle.csproj" />

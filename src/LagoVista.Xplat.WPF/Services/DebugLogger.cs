@@ -62,5 +62,15 @@ namespace LagoVista.XPlat.WPF.Services
         {
             throw new NotImplementedException();
         }
+
+        public void WriteJson<T>(string name, T data)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void WriteJson(string name, string json)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
