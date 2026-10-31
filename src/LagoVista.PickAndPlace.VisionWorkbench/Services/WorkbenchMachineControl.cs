@@ -6,6 +6,7 @@ namespace LagoVista.PickAndPlace.VisionWorkbench.Services;
 
 public sealed class WorkbenchMachineControl : IDisposable
 {
+    private bool _settingsLoadedFromPlatform;
     public LagoVista.PickAndPlace.Machine Machine { get; } = new();
 
     public event EventHandler? StateChanged;
@@ -30,6 +31,7 @@ public sealed class WorkbenchMachineControl : IDisposable
             throw new InvalidOperationException("Disconnect before loading different machine settings.");
 
         Machine.Settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        _settingsLoadedFromPlatform = true;
         StateChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -40,13 +42,16 @@ public sealed class WorkbenchMachineControl : IDisposable
     {
         if (Machine.Connected) return;
 
-        Machine.Settings = new LagoVista.Manufacturing.Models.Machine
+        if (!_settingsLoadedFromPlatform)
         {
-            Name = "Vision Workbench",
-            FirmwareType = firmwareType,
-            ConnectionType = ConnectionTypes.Serial_Port,
-            FastFeedRate = 10000
-        };
+            Machine.Settings = new LagoVista.Manufacturing.Models.Machine
+            {
+                Name = "Vision Workbench",
+                FirmwareType = firmwareType,
+                ConnectionType = ConnectionTypes.Serial_Port,
+                FastFeedRate = 10000
+            };
+        }
 
         await Machine.InitAsync();
         await Machine.ConnectAsync(new SerialPort(portName, baudRate));
