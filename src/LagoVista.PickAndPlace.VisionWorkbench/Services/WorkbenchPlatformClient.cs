@@ -20,7 +20,7 @@ public sealed class WorkbenchPlatformClient
     private IAppConfig? _appConfig;
 
     public bool IsAuthenticated => _authManager?.IsAuthenticated == true;
-    public string UserLabel => _authManager?.User?.Email ?? _authManager?.User?.Name ?? "Signed in";
+    public string UserLabel => _authManager?.User?.Name ?? "Signed in";
 
     public async Task InitializeAsync()
     {
