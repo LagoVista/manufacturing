@@ -1,4 +1,5 @@
 using LagoVista.PickAndPlace.Models;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.VisionWorkbench.Services;
 using System.Windows;
 using System.Collections.ObjectModel;
@@ -34,6 +35,35 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
     private void Notify([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
     private VisionProfile _profile = NewProfile();
+    public ObservableCollection<string> SerialPorts { get; } = new();
+    private string? _selectedSerialPort;
+    public string? SelectedSerialPort { get => _selectedSerialPort; set { _selectedSerialPort = value; Notify(); } }
+    private int _serialBaudRate = 115200;
+    public int SerialBaudRate { get => _serialBaudRate; set { if (value > 0) { _serialBaudRate = value; Notify(); } } }
+    public IReadOnlyList<FirmwareTypes> FirmwareTypesAvailable { get; } = Enum.GetValues<FirmwareTypes>();
+    private FirmwareTypes _selectedFirmwareType = FirmwareTypes.LagoVista_PnP;
+    public FirmwareTypes SelectedFirmwareType { get => _selectedFirmwareType; set { _selectedFirmwareType = value; Notify(); } }
+    private double _jogStepMm = 1.0;
+    public double JogStepMm { get => _jogStepMm; set { if (double.IsFinite(value) && value > 0 && value <= 25) { _jogStepMm = value; Notify(); } } }
+    private string _machineStatus = "Machine disconnected";
+    public string MachineStatus { get => _machineStatus; private set { _machineStatus = value; Notify(); } }
+    private string _machinePosition = "X --  Y --";
+    public string MachinePosition { get => _machinePosition; private set { _machinePosition = value; Notify(); } }
+
+    public void SetSerialPorts(IEnumerable<string> ports)
+    {
+        var previous = SelectedSerialPort;
+        SerialPorts.Clear();
+        foreach (var port in ports) SerialPorts.Add(port);
+        SelectedSerialPort = previous is not null && SerialPorts.Contains(previous) ? previous : SerialPorts.FirstOrDefault();
+    }
+
+    public void UpdateMachineState(bool connected, string? status, double x, double y)
+    {
+        MachineStatus = connected ? $"Connected • {status ?? "Manual"}" : "Machine disconnected";
+        MachinePosition = connected ? $"X {x:F3}  Y {y:F3}" : "X --  Y --";
+    }
+
     private BitmapSource? _originalImage;
     private BitmapSource? _processedImage;
     private BitmapSource? _detectionOverlay;
