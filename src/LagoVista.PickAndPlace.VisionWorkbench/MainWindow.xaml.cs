@@ -7,6 +7,7 @@ using System.Windows.Input;
 using LagoVista.PickAndPlace.VisionWorkbench.ViewModels;
 using LagoVista.PickAndPlace.VisionWorkbench.Services;
 using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.Models;
 
 namespace LagoVista.PickAndPlace.VisionWorkbench;
 

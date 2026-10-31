@@ -1,4 +1,5 @@
 using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.Models;
 using System.ComponentModel;
 using System.IO.Ports;
 
