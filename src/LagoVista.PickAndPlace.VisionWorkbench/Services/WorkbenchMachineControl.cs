@@ -43,15 +43,7 @@ public sealed class WorkbenchMachineControl : IDisposable
         if (Machine.Connected) return;
 
         if (!_settingsLoadedFromPlatform)
-        {
-            Machine.Settings = new LagoVista.Manufacturing.Models.Machine
-            {
-                Name = "Vision Workbench",
-                FirmwareType = firmwareType,
-                ConnectionType = ConnectionTypes.Serial_Port,
-                FastFeedRate = 10000
-            };
-        }
+            throw new InvalidOperationException("Sign in and load the machine configuration from the platform before connecting.");
 
         await Machine.InitAsync();
         await Machine.ConnectAsync(new SerialPort(portName, baudRate));
