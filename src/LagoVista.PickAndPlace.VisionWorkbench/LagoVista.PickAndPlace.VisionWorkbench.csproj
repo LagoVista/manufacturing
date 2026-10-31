@@ -8,9 +8,11 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\LagoVista.Manufacturing.Models\LagoVista.Manufacturing.Models.csproj" />
+    <ProjectReference Include="..\LagoVista.PickAndPlace\LagoVista.PickAndPlace.csproj" />
       <PackageReference Include="DirectShowLib.Standard" />
       <PackageReference Include="Emgu.CV" />
     <PackageReference Include="Emgu.CV.runtime.windows" />
+    <PackageReference Include="System.IO.Ports" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="TestImages\\Feeder1\\*.png" CopyToOutputDirectory="PreserveNewest" />
