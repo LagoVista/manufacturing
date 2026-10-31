@@ -168,7 +168,7 @@
                             <TextBox Text="{Binding ComponentPitchMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
                             <TextBlock Text="{Binding PickupSummary}" TextWrapping="Wrap" Foreground="#B8C6D7" Margin="0,10,0,5"/>
                             <TextBlock Text="Cyan = fitted hole axis; magenta = legacy shared-calculator preview. Image frame assumes horizontal, forward feed, holes on lower side; inspect alignment before trusting positions. No machine movement." TextWrapping="Wrap" Foreground="#E6B56C" FontSize="11" Margin="0,5,0,8"/>
-                            <TextBlock Text="CAMERA / LIGHTING (saved only; offline)" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8" TextWrapping="Wrap"/>
+                            <TextBlock Text="CAMERA / TOP LIGHT" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8" TextWrapping="Wrap"/>
                             <TextBlock Text="Exposure" Margin="0,5,0,2"/>
                             <TextBox Text="{Binding Profile.Exposure, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="Brightness" Margin="0,8,0,2"/>
@@ -176,6 +176,18 @@
                             <TextBlock Text="Contrast" Margin="0,8,0,2"/>
                             <TextBox Text="{Binding Profile.Contrast, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             <CheckBox Content="Light on" Margin="0,12,0,6" IsChecked="{Binding Profile.LightOn, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="Power" Margin="0,8,0,2"/>
+                            <TextBox Text="{Binding Profile.LightPower, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="Red" Margin="0,8,0,2"/>
+                            <TextBox Text="{Binding Profile.LightRed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="Green" Margin="0,8,0,2"/>
+                            <TextBox Text="{Binding Profile.LightGreen, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="Blue" Margin="0,8,0,2"/>
+                            <TextBox Text="{Binding Profile.LightBlue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <Button Content="Apply top light" Click="ApplyTopLight_Click"/>
+                                <Button Content="Top light off" Click="TopLightOff_Click"/>
+                            </StackPanel>
                             <TextBlock Text="{Binding ProfileStatus}" Foreground="#A8B5C6" TextWrapping="Wrap" Margin="0,15,0,8"/>
                         </StackPanel>
                     </ScrollViewer>
