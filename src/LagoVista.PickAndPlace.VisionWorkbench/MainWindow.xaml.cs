@@ -18,6 +18,7 @@ public partial class MainWindow : Window
     private readonly WorkbenchMachineControl _machineControl = new();
     private readonly WorkbenchPlatformClient _platformClient = new();
     private VisionProfile? _topCameraProfile;
+    private bool _suppressPlatformMachineSelection;
     private static readonly string WindowPreferencesPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "LagoVista", "VisionWorkbench", "window.json");
@@ -201,26 +202,45 @@ public partial class MainWindow : Window
     private async Task RefreshPlatformMachinesAsync()
     {
         var machines = await _platformClient.GetMachinesAsync();
-        _vm.SetPlatformMachines(machines);
-        var restored = false;
+        _suppressPlatformMachineSelection = true;
         try
         {
+            _vm.SetPlatformMachines(machines);
+
             if (File.Exists(LastMachinePath))
             {
                 var lastId = File.ReadAllText(LastMachinePath).Trim();
                 var previous = machines.FirstOrDefault(machine => machine.Id == lastId);
                 if (previous is not null)
-                {
                     _vm.SelectedPlatformMachine = previous;
-                    await LoadPlatformMachineAsync(previous.Id);
-                    restored = true;
-                }
             }
         }
         catch (IOException) { /* Local preferences must not prevent machine listing. */ }
         catch (UnauthorizedAccessException) { /* Local preferences are optional. */ }
-        if (!restored)
+        finally
+        {
+            _suppressPlatformMachineSelection = false;
+        }
+
+        if (_vm.SelectedPlatformMachine is not null)
+            await LoadPlatformMachineAsync(_vm.SelectedPlatformMachine.Id);
+        else
             _vm.SetPlatformStatus($"{_platformClient.UserLabel} • {machines.Count} machine(s)");
+    }
+
+    private async void PlatformMachine_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_suppressPlatformMachineSelection || _vm.SelectedPlatformMachine is null)
+            return;
+
+        try
+        {
+            await LoadPlatformMachineAsync(_vm.SelectedPlatformMachine.Id);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "Unable to load machine", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     private async void LoadPlatformMachine_Click(object sender, RoutedEventArgs e)
@@ -249,6 +269,9 @@ public partial class MainWindow : Window
         var topCamera = settings.Cameras.FirstOrDefault(camera => camera.CameraType?.Value == CameraTypes.Position);
         _topCameraProfile = topCamera?.CurrentVisionProfile
             ?? topCamera?.VisionProfiles.FirstOrDefault(profile => profile.Key == VisionProfile.VisionProfile_Defauilt);
+
+        if (_topCameraProfile is not null)
+            _vm.LoadMachineVisionProfile(_topCameraProfile);
 
         if (topCamera is not null && topCamera.CameraDevice is not null)
         {
