@@ -53,7 +53,7 @@ public sealed class WorkbenchMachineControl : IDisposable
 
     public void Jog(double xMm, double yMm)
     {
-        if (!Machine.Connected || Machine.Mode != LagoVista.PickAndPlace.Models.OperatingMode.Manual)
+        if (!Machine.Connected || Machine.Mode != OperatingMode.Manual)
             throw new InvalidOperationException("Machine must be connected and in Manual mode before jogging.");
 
         Machine.GotoPoint(xMm, yMm, rapidMove: true, relativeMove: true);
