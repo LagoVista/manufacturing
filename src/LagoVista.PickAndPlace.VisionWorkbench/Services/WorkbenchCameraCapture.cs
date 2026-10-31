@@ -2,6 +2,7 @@ using DirectShowLib;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Util;
+using LagoVista.Manufacturing.Models;
 using System.IO;
 using System.Windows.Media.Imaging;
 
