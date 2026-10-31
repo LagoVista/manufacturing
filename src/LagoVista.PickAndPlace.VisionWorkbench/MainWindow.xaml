@@ -35,6 +35,22 @@
                 <Button Content="Start live" Click="StartCamera_Click"/>
                 <Button Content="Stop" Click="StopCamera_Click"/>
                 <TextBlock Text="{Binding CameraStatus}" VerticalAlignment="Center" Foreground="#9DB5D9" Margin="8,0,0,0"/>
+                <Separator Width="1" Height="26" Margin="14,0,14,0" Background="#546785"/>
+                <TextBlock Text="Machine" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                <ComboBox Width="95" Margin="0,0,6,0" ItemsSource="{Binding SerialPorts}" SelectedItem="{Binding SelectedSerialPort}" Background="#263449" Foreground="White"/>
+                <TextBox Width="72" Margin="0,0,6,0" Text="{Binding SerialBaudRate, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" ToolTip="Baud rate"/>
+                <ComboBox Width="155" Margin="0,0,6,0" ItemsSource="{Binding FirmwareTypesAvailable}" SelectedItem="{Binding SelectedFirmwareType}" Background="#263449" Foreground="White"/>
+                <Button Content="Ports" Click="RefreshPorts_Click"/>
+                <Button Content="Connect" Click="ConnectMachine_Click"/>
+                <Button Content="Disconnect" Click="DisconnectMachine_Click"/>
+                <TextBlock Text="{Binding MachinePosition}" VerticalAlignment="Center" Margin="10,0,8,0" Foreground="#B4C7DA"/>
+                <TextBox Width="52" Margin="0,0,6,0" Text="{Binding JogStepMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" ToolTip="Jog step in mm"/>
+                <Button Content="← X" Click="JogXMinus_Click"/>
+                <Button Content="X →" Click="JogXPlus_Click"/>
+                <Button Content="↓ Y" Click="JogYMinus_Click"/>
+                <Button Content="Y ↑" Click="JogYPlus_Click"/>
+                <Button Content="E-STOP" Click="EmergencyStop_Click" Background="#7A2630" BorderBrush="#B34B57"/>
+                <TextBlock Text="{Binding MachineStatus}" VerticalAlignment="Center" Foreground="#9DB5D9" Margin="8,0,0,0"/>
                 <CheckBox Content="Invert threshold" VerticalAlignment="Center" Margin="16,0,12,0" IsChecked="{Binding Profile.Invert, Mode=TwoWay}"/>
                 <TextBlock Text="Threshold" VerticalAlignment="Center" Margin="8,0,8,0"/>
                 <Slider Width="190" Minimum="0" Maximum="255" Value="{Binding ThresholdValue, Mode=TwoWay}" VerticalAlignment="Center"/>
