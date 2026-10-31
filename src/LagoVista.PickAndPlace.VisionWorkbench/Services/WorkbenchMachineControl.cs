@@ -67,7 +67,9 @@ public sealed class WorkbenchMachineControl : IDisposable
         if (!Machine.Connected || Machine.Mode != OperatingMode.Manual)
             throw new InvalidOperationException("Machine must be connected and in Manual mode before jogging.");
 
-        Machine.GotoPoint(xMm, yMm, rapidMove: true, relativeMove: true);
+        Machine.SetRelativeMode();
+        Machine.SendCommand($"G0 X{xMm} Y{yMm} F{InitialFastFeedRate}");
+        Machine.SetAbsoluteMode();
     }
 
     public void EmergencyStop() => Machine.EmergencyStop();
