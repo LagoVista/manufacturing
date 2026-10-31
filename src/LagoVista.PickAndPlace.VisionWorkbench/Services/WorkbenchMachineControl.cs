@@ -72,6 +72,27 @@ public sealed class WorkbenchMachineControl : IDisposable
         Machine.SetAbsoluteMode();
     }
 
+    public void ApplyTopLight(VisionProfile profile)
+    {
+        if (!Machine.Connected)
+            throw new InvalidOperationException("Connect the machine before controlling the top light.");
+
+        Machine.ConfigureTopLight(
+            profile.LightOn,
+            profile.LightPower,
+            profile.LightRed,
+            profile.LightGreen,
+            profile.LightBlue);
+    }
+
+    public void TurnOffTopLight()
+    {
+        if (!Machine.Connected)
+            return;
+
+        Machine.ConfigureTopLight(false, 0, 0, 0, 0);
+    }
+
     public void EmergencyStop() => Machine.EmergencyStop();
 
     public void Dispose()
