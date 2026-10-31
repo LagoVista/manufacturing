@@ -281,6 +281,19 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         SaveSession();
     }
 
+    public void LoadMachineVisionProfile(VisionProfile profile)
+    {
+        var clone = JsonSerializer.Deserialize<VisionProfile>(
+            JsonSerializer.Serialize(profile, JsonOptions), JsonOptions)
+            ?? throw new InvalidDataException("Could not clone machine VisionProfile.");
+
+        _profilePath = null;
+        Profile = clone;
+        _changed = false;
+        ProfileStatus = $"Loaded from machine: {profile.Name}";
+        SaveSession();
+    }
+
     public string? ProfilePath => _profilePath;
     public bool HasUnsavedChanges => _changed;
 
