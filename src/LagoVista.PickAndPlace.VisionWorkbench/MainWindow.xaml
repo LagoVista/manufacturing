@@ -37,7 +37,7 @@
                 <TextBlock Text="{Binding CameraStatus}" VerticalAlignment="Center" Foreground="#9DB5D9" Margin="8,0,0,0"/>
                 <Separator Width="1" Height="26" Margin="14,0,14,0" Background="#546785"/>
                 <Button Content="Sign in" Click="SignIn_Click"/>
-                <ComboBox Width="180" Margin="0,0,6,0" ItemsSource="{Binding PlatformMachines}" SelectedItem="{Binding SelectedPlatformMachine}" DisplayMemberPath="Name" Background="#263449" Foreground="White"/>
+                <ComboBox Width="180" Margin="0,0,6,0" ItemsSource="{Binding PlatformMachines}" SelectedItem="{Binding SelectedPlatformMachine}" DisplayMemberPath="Name" SelectionChanged="PlatformMachine_SelectionChanged" Background="#263449" Foreground="White"/>
                 <Button Content="Load machine" Click="LoadPlatformMachine_Click"/>
                 <TextBlock Text="{Binding PlatformStatus}" VerticalAlignment="Center" Foreground="#9DB5D9" Margin="4,0,14,0"/>
                 <TextBlock Text="Machine" VerticalAlignment="Center" Margin="0,0,6,0"/>
