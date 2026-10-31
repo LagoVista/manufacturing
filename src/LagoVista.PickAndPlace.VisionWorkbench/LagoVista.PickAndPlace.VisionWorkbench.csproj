@@ -9,7 +9,6 @@
   <ItemGroup>
     <ProjectReference Include="..\LagoVista.Manufacturing.Models\LagoVista.Manufacturing.Models.csproj" />
     <ProjectReference Include="..\LagoVista.PickAndPlace\LagoVista.PickAndPlace.csproj" />
-    <ProjectReference Include="..\..\..\..\crossplatform\src\LagoVista.Xplat.WPF\LagoVista.XPlat.WPF.csproj" />
       <PackageReference Include="DirectShowLib.Standard" />
       <PackageReference Include="Emgu.CV" />
     <PackageReference Include="Emgu.CV.runtime.windows" />
