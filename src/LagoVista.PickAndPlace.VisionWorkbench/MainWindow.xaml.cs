@@ -339,6 +339,13 @@ public partial class MainWindow : Window
         UpdateMachineState();
     }
 
+    private void ApplyTopLight_Click(object sender, RoutedEventArgs e)
+        => TryAction(() => _machineControl.ApplyTopLight(_vm.Profile), "Unable to configure top light");
+
+    private void TopLightOff_Click(object sender, RoutedEventArgs e)
+        => TryAction(_machineControl.TurnOffTopLight, "Unable to turn off top light");
+
+
     private void RefreshCameras_Click(object sender, RoutedEventArgs e) => RefreshCameras();
 
     private void RefreshCameras()
