@@ -215,7 +215,8 @@ public partial class MainWindow : Window
         }
         catch (IOException) { /* Local preferences must not prevent machine listing. */ }
         catch (UnauthorizedAccessException) { /* Local preferences are optional. */ }
-        _vm.SetPlatformStatus($"{_platformClient.UserLabel} • {machines.Count} machine(s)");
+        if (_machineControl.Machine.Settings?.Name is null || !File.Exists(LastMachinePath))
+            _vm.SetPlatformStatus($"{_platformClient.UserLabel} • {machines.Count} machine(s)");
     }
 
     private async void LoadPlatformMachine_Click(object sender, RoutedEventArgs e)
