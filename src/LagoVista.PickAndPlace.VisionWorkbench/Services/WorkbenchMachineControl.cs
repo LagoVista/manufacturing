@@ -6,6 +6,7 @@ namespace LagoVista.PickAndPlace.VisionWorkbench.Services;
 
 public sealed class WorkbenchMachineControl : IDisposable
 {
+    private const int InitialFastFeedRate = 2500;
     private bool _settingsLoadedFromPlatform;
     public LagoVista.PickAndPlace.Machine Machine { get; } = new();
 
@@ -31,6 +32,8 @@ public sealed class WorkbenchMachineControl : IDisposable
             throw new InvalidOperationException("Disconnect before loading different machine settings.");
 
         Machine.Settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        if (Machine.Settings.FastFeedRate <= 0 || Machine.Settings.FastFeedRate > InitialFastFeedRate)
+            Machine.Settings.FastFeedRate = InitialFastFeedRate;
         _settingsLoadedFromPlatform = true;
         StateChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -43,15 +46,7 @@ public sealed class WorkbenchMachineControl : IDisposable
         if (Machine.Connected) return;
 
         if (!_settingsLoadedFromPlatform)
-        {
-            Machine.Settings = new LagoVista.Manufacturing.Models.Machine
-            {
-                Name = "Vision Workbench",
-                FirmwareType = firmwareType,
-                ConnectionType = ConnectionTypes.Serial_Port,
-                FastFeedRate = 10000
-            };
-        }
+            throw new InvalidOperationException("Sign in and load the machine configuration from the platform before connecting.");
 
         await Machine.InitAsync();
         await Machine.ConnectAsync(new SerialPort(portName, baudRate));
@@ -70,7 +65,23 @@ public sealed class WorkbenchMachineControl : IDisposable
         if (!Machine.Connected || Machine.Mode != OperatingMode.Manual)
             throw new InvalidOperationException("Machine must be connected and in Manual mode before jogging.");
 
-        Machine.GotoPoint(xMm, yMm, rapidMove: true, relativeMove: true);
+        Machine.SetRelativeMode();
+        Machine.SendCommand($"G0 X{xMm} Y{yMm} F{InitialFastFeedRate}");
+        Machine.SetAbsoluteMode();
+    }
+
+    public void ApplyTopLight(VisionProfile profile)
+    {
+        if (!Machine.Connected)
+            throw new InvalidOperationException("Connect the machine before controlling the top light.");
+
+        Machine.ConfigureTopLight(profile.LightOn, profile.LightPower, profile.LightRed, profile.LightGreen, profile.LightBlue);
+    }
+
+    public void TurnOffTopLight()
+    {
+        if (Machine.Connected)
+            Machine.ConfigureTopLight(false, 0, 0, 0, 0);
     }
 
     public void EmergencyStop() => Machine.EmergencyStop();
