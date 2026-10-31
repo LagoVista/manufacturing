@@ -4,6 +4,7 @@ using LagoVista.Core.Interfaces;
 using LagoVista.Core.IOC;
 using LagoVista.Core.Models;
 using LagoVista.Core.PlatformSupport;
+using LagoVista.Core.WPF.PlatformSupport;
 using System.Windows;
 
 namespace LagoVista.PickAndPlace.VisionWorkbench;
