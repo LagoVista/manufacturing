@@ -6,6 +6,7 @@ using LagoVista.Core.IOC;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Core.PlatformSupport;
+using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using LagoVista.UserAdmin.Interfaces;
 using LagoVista.UserAdmin.Models.Users;
