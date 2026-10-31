@@ -7,6 +7,7 @@ namespace LagoVista.PickAndPlace.VisionWorkbench.Services;
 public sealed class WorkbenchMachineControl : IDisposable
 {
     private bool _settingsLoadedFromPlatform;
+    private const int InitialFastFeedRate = 2500;
     public LagoVista.PickAndPlace.Machine Machine { get; } = new();
 
     public event EventHandler? StateChanged;
@@ -31,6 +32,10 @@ public sealed class WorkbenchMachineControl : IDisposable
             throw new InvalidOperationException("Disconnect before loading different machine settings.");
 
         Machine.Settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        // Workbench-only conservative motion limit; do not persist to platform.
+        Machine.Settings.FastFeedRate = Math.Min(
+            Machine.Settings.FastFeedRate > 0 ? Machine.Settings.FastFeedRate : InitialFastFeedRate,
+            InitialFastFeedRate);
         _settingsLoadedFromPlatform = true;
         StateChanged?.Invoke(this, EventArgs.Empty);
     }
