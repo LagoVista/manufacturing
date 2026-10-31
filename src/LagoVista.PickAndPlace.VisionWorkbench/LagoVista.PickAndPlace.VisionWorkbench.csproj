@@ -18,4 +18,16 @@
   <ItemGroup>
     <Content Include="TestImages\\Feeder1\\*.png" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="Resources\GrblAlarmCodes.txt" />
+    <None Remove="Resources\GrblErrors.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\GrblAlarmCodes.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\GrblErrors.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>

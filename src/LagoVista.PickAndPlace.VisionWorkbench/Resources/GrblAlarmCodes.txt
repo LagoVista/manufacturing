@@ -1,0 +1,9 @@
+﻿1	Hard limit triggered. Position Lost.
+2	Soft limit alarm, position kept. Unlock is Safe.
+3	Reset while in motion. Position lost.
+4	Probe fail. Probe not in expected initial state.
+5	Probe fail. Probe did not contact the work.
+6	Homing fail. The active homing cycle was reset.
+7	Homing fail. Door opened during homing cycle.
+8	Homing fail. Pull off failed to clear limit switch.
+9	Homing fail. Pull off failed to clear limit switch.
