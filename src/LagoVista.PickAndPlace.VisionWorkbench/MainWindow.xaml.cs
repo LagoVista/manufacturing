@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using LagoVista.PickAndPlace.VisionWorkbench.ViewModels;
 using LagoVista.PickAndPlace.VisionWorkbench.Services;
+using LagoVista.Manufacturing.Models;
 
 namespace LagoVista.PickAndPlace.VisionWorkbench;
 
@@ -16,9 +17,15 @@ public partial class MainWindow : Window
     private readonly WorkbenchCameraCapture _cameraCapture = new();
     private readonly WorkbenchMachineControl _machineControl = new();
     private readonly WorkbenchPlatformClient _platformClient = new();
+    private VisionProfile? _topCameraProfile;
+    private bool _suppressPlatformMachineSelection;
     private static readonly string WindowPreferencesPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "LagoVista", "VisionWorkbench", "window.json");
+
+    private static readonly string LastMachinePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "LagoVista", "VisionWorkbench", "last-machine.txt");
 
     private sealed record WindowPreferences(double Left, double Top, double Width, double Height, bool Maximized);
 
@@ -195,8 +202,45 @@ public partial class MainWindow : Window
     private async Task RefreshPlatformMachinesAsync()
     {
         var machines = await _platformClient.GetMachinesAsync();
-        _vm.SetPlatformMachines(machines);
-        _vm.SetPlatformStatus($"{_platformClient.UserLabel} • {machines.Count} machine(s)");
+        _suppressPlatformMachineSelection = true;
+        try
+        {
+            _vm.SetPlatformMachines(machines);
+
+            if (File.Exists(LastMachinePath))
+            {
+                var lastId = File.ReadAllText(LastMachinePath).Trim();
+                var previous = machines.FirstOrDefault(machine => machine.Id == lastId);
+                if (previous is not null)
+                    _vm.SelectedPlatformMachine = previous;
+            }
+        }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
+        finally
+        {
+            _suppressPlatformMachineSelection = false;
+        }
+
+        if (_vm.SelectedPlatformMachine is not null)
+            await LoadPlatformMachineAsync(_vm.SelectedPlatformMachine.Id);
+        else
+            _vm.SetPlatformStatus($"{_platformClient.UserLabel} • {machines.Count} machine(s)");
+    }
+
+    private async void PlatformMachine_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_suppressPlatformMachineSelection || _vm.SelectedPlatformMachine is null)
+            return;
+
+        try
+        {
+            await LoadPlatformMachineAsync(_vm.SelectedPlatformMachine.Id);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "Unable to load machine", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     private async void LoadPlatformMachine_Click(object sender, RoutedEventArgs e)
@@ -209,23 +253,52 @@ public partial class MainWindow : Window
 
         try
         {
-            var settings = await _platformClient.LoadMachineAsync(_vm.SelectedPlatformMachine.Id);
-            _machineControl.LoadSettings(settings);
-
-            if (settings.CurrentSerialPort is not null)
-            {
-                _vm.SelectedSerialPort = settings.CurrentSerialPort.Name;
-                _vm.SerialBaudRate = settings.CurrentSerialPort.BaudRate;
-            }
-
-            _vm.SelectedFirmwareType = settings.FirmwareType;
-            _vm.SetPlatformStatus($"{_platformClient.UserLabel} • loaded {settings.Name}");
-            UpdateMachineState();
+            await LoadPlatformMachineAsync(_vm.SelectedPlatformMachine.Id);
         }
         catch (Exception ex)
         {
             MessageBox.Show(this, ex.Message, "Unable to load machine", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+    }
+
+    private async Task LoadPlatformMachineAsync(string machineId)
+    {
+        var settings = await _platformClient.LoadMachineAsync(machineId);
+        _machineControl.LoadSettings(settings);
+
+        var topCamera = settings.Cameras.FirstOrDefault(camera => camera.CameraType?.Value == CameraTypes.Position);
+        _topCameraProfile = topCamera?.CurrentVisionProfile
+            ?? topCamera?.VisionProfiles.FirstOrDefault(profile => profile.Key == VisionProfile.VisionProfile_Defauilt);
+
+        if (_topCameraProfile is not null)
+            _vm.LoadMachineVisionProfile(_topCameraProfile);
+
+        if (topCamera is not null && topCamera.CameraDevice is not null)
+        {
+            RefreshCameras();
+            var configuredDevice = _vm.CameraDevices.FirstOrDefault(camera =>
+                String.Equals(camera.DevicePath, topCamera.CameraDevice.Id, StringComparison.OrdinalIgnoreCase));
+            if (configuredDevice is not null)
+                _vm.SelectedCamera = configuredDevice;
+        }
+
+        if (settings.CurrentSerialPort is not null)
+        {
+            _vm.SelectedSerialPort = settings.CurrentSerialPort.Name;
+            _vm.SerialBaudRate = settings.CurrentSerialPort.BaudRate;
+        }
+
+        _vm.SelectedFirmwareType = settings.FirmwareType;
+        _vm.SetPlatformStatus($"{_platformClient.UserLabel} • loaded {settings.Name}");
+        UpdateMachineState();
+
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(LastMachinePath)!);
+            File.WriteAllText(LastMachinePath, machineId);
+        }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
     }
 
     private void RefreshPorts_Click(object sender, RoutedEventArgs e) => RefreshPorts();
@@ -289,6 +362,13 @@ public partial class MainWindow : Window
         UpdateMachineState();
     }
 
+    private void ApplyTopLight_Click(object sender, RoutedEventArgs e)
+        => TryAction(() => _machineControl.ApplyTopLight(_vm.Profile), "Unable to configure top light");
+
+    private void TopLightOff_Click(object sender, RoutedEventArgs e)
+        => TryAction(_machineControl.TurnOffTopLight, "Unable to turn off top light");
+
+
     private void RefreshCameras_Click(object sender, RoutedEventArgs e) => RefreshCameras();
 
     private void RefreshCameras()
@@ -304,7 +384,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        TryAction(() => _cameraCapture.Start(_vm.SelectedCamera,
+        TryAction(() => _cameraCapture.Start(_vm.SelectedCamera, _vm.Profile,
             frame => Dispatcher.BeginInvoke(() => _vm.ApplyCameraFrame(frame)),
             error => Dispatcher.BeginInvoke(() => _vm.SetCameraError(error))), "Unable to start camera");
     }
