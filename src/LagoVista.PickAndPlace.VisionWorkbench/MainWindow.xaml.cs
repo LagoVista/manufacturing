@@ -14,6 +14,7 @@ public partial class MainWindow : Window
 {
     private readonly VisionWorkbenchViewModel _vm = new();
     private readonly WorkbenchCameraCapture _cameraCapture = new();
+    private readonly WorkbenchMachineControl _machineControl = new();
     private static readonly string WindowPreferencesPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "LagoVista", "VisionWorkbench", "window.json");
@@ -25,11 +26,14 @@ public partial class MainWindow : Window
         InitializeComponent();
         DataContext = _vm;
         RestoreWindowPreferences();
-        Closing += (_, _) => { _cameraCapture.Dispose(); SaveWindowPreferences(); };
+        _machineControl.StateChanged += (_, _) => Dispatcher.BeginInvoke(UpdateMachineState);
+        Closing += (_, _) => { _cameraCapture.Dispose(); _machineControl.Dispose(); SaveWindowPreferences(); };
         Loaded += (_, _) =>
         {
             TryAction(_vm.RestoreLastImage, "Unable to restore last image");
             RefreshCameras();
+            RefreshPorts();
+            UpdateMachineState();
         };
     }
 
@@ -150,6 +154,68 @@ public partial class MainWindow : Window
             InitialDirectory = _vm.ProfilePath is null ? null : Path.GetDirectoryName(_vm.ProfilePath)
         };
         if (dialog.ShowDialog(this) == true) TryAction(() => _vm.SaveProfile(dialog.FileName), "Unable to save profile");
+    }
+
+
+    private void RefreshPorts_Click(object sender, RoutedEventArgs e) => RefreshPorts();
+
+    private void RefreshPorts()
+    {
+        TryAction(() => _vm.SetSerialPorts(_machineControl.EnumeratePorts()), "Unable to enumerate serial ports");
+    }
+
+    private async void ConnectMachine_Click(object sender, RoutedEventArgs e)
+    {
+        if (String.IsNullOrWhiteSpace(_vm.SelectedSerialPort))
+        {
+            MessageBox.Show(this, "Select a serial port first.", "Machine", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        try
+        {
+            await _machineControl.ConnectAsync(_vm.SelectedSerialPort, _vm.SerialBaudRate, _vm.SelectedFirmwareType);
+            UpdateMachineState();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "Unable to connect machine", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private async void DisconnectMachine_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await _machineControl.DisconnectAsync();
+            UpdateMachineState();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "Unable to disconnect machine", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void UpdateMachineState()
+    {
+        var machine = _machineControl.Machine;
+        _vm.UpdateMachineState(machine.Connected, machine.Status, machine.MachinePosition.X, machine.MachinePosition.Y);
+    }
+
+    private void JogXMinus_Click(object sender, RoutedEventArgs e) => Jog(-_vm.JogStepMm, 0);
+    private void JogXPlus_Click(object sender, RoutedEventArgs e) => Jog(_vm.JogStepMm, 0);
+    private void JogYMinus_Click(object sender, RoutedEventArgs e) => Jog(0, -_vm.JogStepMm);
+    private void JogYPlus_Click(object sender, RoutedEventArgs e) => Jog(0, _vm.JogStepMm);
+
+    private void Jog(double x, double y)
+    {
+        TryAction(() => _machineControl.Jog(x, y), "Unable to jog machine");
+    }
+
+    private void EmergencyStop_Click(object sender, RoutedEventArgs e)
+    {
+        _machineControl.EmergencyStop();
+        UpdateMachineState();
     }
 
     private void RefreshCameras_Click(object sender, RoutedEventArgs e) => RefreshCameras();
