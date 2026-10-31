@@ -84,6 +84,20 @@ public sealed class WorkbenchMachineControl : IDisposable
             Machine.ConfigureTopLight(false, 0, 0, 0, 0);
     }
 
+    public void ApplyBottomLight(VisionProfile profile)
+    {
+        if (!Machine.Connected)
+            throw new InvalidOperationException("Connect the machine before controlling the bottom light.");
+
+        Machine.ConfigureBottomLight(profile.LightOn, profile.LightPower, profile.LightRed, profile.LightGreen, profile.LightBlue);
+    }
+
+    public void TurnOffBottomLight()
+    {
+        if (Machine.Connected)
+            Machine.ConfigureBottomLight(false, 0, 0, 0, 0);
+    }
+
     public void EmergencyStop() => Machine.EmergencyStop();
 
     public void Dispose()
