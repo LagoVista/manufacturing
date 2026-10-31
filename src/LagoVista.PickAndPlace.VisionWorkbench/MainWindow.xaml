@@ -283,6 +283,10 @@
                                 <Button Content="Apply top light" Click="ApplyTopLight_Click"/>
                                 <Button Content="Top light off" Click="TopLightOff_Click"/>
                             </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <Button Content="Apply bottom light" Click="ApplyBottomLight_Click"/>
+                                <Button Content="Bottom light off" Click="BottomLightOff_Click"/>
+                            </StackPanel>
                             <TextBlock Text="{Binding ProfileStatus}" Foreground="#A8B5C6" TextWrapping="Wrap" Margin="0,15,0,8"/>
                         </StackPanel>
                     </ScrollViewer>
