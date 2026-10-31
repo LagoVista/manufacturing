@@ -24,6 +24,15 @@ public sealed class WorkbenchMachineControl : IDisposable
             StateChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    public void LoadSettings(LagoVista.Manufacturing.Models.Machine settings)
+    {
+        if (Machine.Connected)
+            throw new InvalidOperationException("Disconnect before loading different machine settings.");
+
+        Machine.Settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        StateChanged?.Invoke(this, EventArgs.Empty);
+    }
+
     public IReadOnlyList<string> EnumeratePorts()
         => SerialPort.GetPortNames().OrderBy(name => name, StringComparer.OrdinalIgnoreCase).ToArray();
 
