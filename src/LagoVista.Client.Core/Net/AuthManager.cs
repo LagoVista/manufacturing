@@ -14,13 +14,11 @@ namespace LagoVista.Client.Core.Net
         private const string AUTH_MGR_SETTINGS = "AUTHSETTINGS.JSON";
         readonly IStorageService _storage;
         readonly IDeviceInfo _deviceInfo;
-        readonly IViewModelNavigation _vmNavigation;
 
-        public AuthManager(IStorageService storage, IDeviceInfo deviceInfo, IViewModelNavigation vmNavigation)
+        public AuthManager(IStorageService storage, IDeviceInfo deviceInfo)
         {
             _deviceInfo = deviceInfo;
             _storage = storage;
-            _vmNavigation = vmNavigation;
         }
 
         public string AccessToken { get; set; }
@@ -79,7 +77,6 @@ namespace LagoVista.Client.Core.Net
             User = null;
             Roles = new List<EntityHeader>();
             await _storage.ClearAllAsync();
-            await _vmNavigation.SetAsNewRootAsync<LoginViewModel>();
         }
 
         public Task PersistAsync()
