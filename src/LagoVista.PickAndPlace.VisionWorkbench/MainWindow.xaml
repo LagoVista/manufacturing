@@ -175,15 +175,38 @@
                             <TextBox Text="{Binding Profile.Brightness, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="Contrast" Margin="0,8,0,2"/>
                             <TextBox Text="{Binding Profile.Contrast, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="Focus" Margin="0,8,0,2"/>
+                            <TextBox Text="{Binding Profile.Focus, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
                             <CheckBox Content="Light on" Margin="0,12,0,6" IsChecked="{Binding Profile.LightOn, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
                             <TextBlock Text="Power" Margin="0,8,0,2"/>
-                            <TextBox Text="{Binding Profile.LightPower, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Right" Width="34" Text="{Binding Profile.LightPower}" VerticalAlignment="Center"/>
+                                <Slider Minimum="0" Maximum="255" TickFrequency="1" IsSnapToTickEnabled="True"
+                                        Value="{Binding Profile.LightPower, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            </DockPanel>
+
                             <TextBlock Text="Red" Margin="0,8,0,2"/>
-                            <TextBox Text="{Binding Profile.LightRed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Right" Width="34" Text="{Binding Profile.LightRed}" VerticalAlignment="Center"/>
+                                <Slider Minimum="0" Maximum="255" TickFrequency="1" IsSnapToTickEnabled="True"
+                                        Value="{Binding Profile.LightRed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            </DockPanel>
+
                             <TextBlock Text="Green" Margin="0,8,0,2"/>
-                            <TextBox Text="{Binding Profile.LightGreen, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Right" Width="34" Text="{Binding Profile.LightGreen}" VerticalAlignment="Center"/>
+                                <Slider Minimum="0" Maximum="255" TickFrequency="1" IsSnapToTickEnabled="True"
+                                        Value="{Binding Profile.LightGreen, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            </DockPanel>
+
                             <TextBlock Text="Blue" Margin="0,8,0,2"/>
-                            <TextBox Text="{Binding Profile.LightBlue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Right" Width="34" Text="{Binding Profile.LightBlue}" VerticalAlignment="Center"/>
+                                <Slider Minimum="0" Maximum="255" TickFrequency="1" IsSnapToTickEnabled="True"
+                                        Value="{Binding Profile.LightBlue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            </DockPanel>
                             <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                                 <Button Content="Apply top light" Click="ApplyTopLight_Click"/>
                                 <Button Content="Top light off" Click="TopLightOff_Click"/>
