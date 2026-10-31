@@ -200,6 +200,7 @@ public partial class MainWindow : Window
     {
         var machines = await _platformClient.GetMachinesAsync();
         _vm.SetPlatformMachines(machines);
+        var restored = false;
         try
         {
             if (File.Exists(LastMachinePath))
@@ -210,12 +211,13 @@ public partial class MainWindow : Window
                 {
                     _vm.SelectedPlatformMachine = previous;
                     await LoadPlatformMachineAsync(previous.Id);
+                    restored = true;
                 }
             }
         }
         catch (IOException) { /* Local preferences must not prevent machine listing. */ }
         catch (UnauthorizedAccessException) { /* Local preferences are optional. */ }
-        if (_machineControl.Machine.Settings?.Name is null || !File.Exists(LastMachinePath))
+        if (!restored)
             _vm.SetPlatformStatus($"{_platformClient.UserLabel} • {machines.Count} machine(s)");
     }
 
