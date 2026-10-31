@@ -12,6 +12,17 @@
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderBrush" Value="#546785"/>
         </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#263449"/>
+            <Setter Property="Foreground" Value="#E8EDF5"/>
+            <Setter Property="BorderBrush" Value="#546785"/>
+            <Setter Property="Padding" Value="6,3"/>
+        </Style>
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="#263449"/>
+            <Setter Property="Foreground" Value="#E8EDF5"/>
+            <Setter Property="Padding" Value="6,4"/>
+        </Style>
         <Style TargetType="TextBox">
             <Setter Property="Background" Value="#101722"/>
             <Setter Property="Foreground" Value="#E8EDF5"/>
