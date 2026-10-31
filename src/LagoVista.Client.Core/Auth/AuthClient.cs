@@ -7,7 +7,6 @@ using System.Net.Http;
 using Newtonsoft.Json;
 using LagoVista.Core.Authentication.Models;
 using LagoVista.Core.IOC;
-using Newtonsoft.Json.Serialization;
 using LagoVista.Core.Validation;
 using LagoVista.UserAdmin.Models.Auth;
 using LagoVista.UserAdmin.Interfaces;
@@ -34,7 +33,7 @@ namespace LagoVista.Client.Core.Auth
                 {
                     var resultContent = await response.Content.ReadAsStringAsync();
                     var serializerSettings = new JsonSerializerSettings();
-                    serializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                    serializerSettings.Converters.Add(new LagoVistaKeyJsonConverter());
                     var authResponse = JsonConvert.DeserializeObject<InvokeResult<AuthResponse>>(resultContent, serializerSettings);
 
                     return authResponse;                    
