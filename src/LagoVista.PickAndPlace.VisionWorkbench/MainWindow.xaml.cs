@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using LagoVista.PickAndPlace.VisionWorkbench.ViewModels;
 using LagoVista.PickAndPlace.VisionWorkbench.Services;
+using LagoVista.Manufacturing.Models;
 
 namespace LagoVista.PickAndPlace.VisionWorkbench;
 
@@ -16,6 +17,7 @@ public partial class MainWindow : Window
     private readonly WorkbenchCameraCapture _cameraCapture = new();
     private readonly WorkbenchMachineControl _machineControl = new();
     private readonly WorkbenchPlatformClient _platformClient = new();
+    private VisionProfile? _topCameraProfile;
     private static readonly string WindowPreferencesPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "LagoVista", "VisionWorkbench", "window.json");
@@ -244,6 +246,19 @@ public partial class MainWindow : Window
         var settings = await _platformClient.LoadMachineAsync(machineId);
         _machineControl.LoadSettings(settings);
 
+        var topCamera = settings.Cameras.FirstOrDefault(camera => camera.CameraType?.Value == CameraTypes.Position);
+        _topCameraProfile = topCamera?.CurrentVisionProfile
+            ?? topCamera?.VisionProfiles.FirstOrDefault(profile => profile.Key == VisionProfile.VisionProfile_Defauilt);
+
+        if (topCamera is not null && topCamera.CameraDevice is not null)
+        {
+            RefreshCameras();
+            var configuredDevice = _vm.CameraDevices.FirstOrDefault(camera =>
+                String.Equals(camera.DevicePath, topCamera.CameraDevice.Id, StringComparison.OrdinalIgnoreCase));
+            if (configuredDevice is not null)
+                _vm.SelectedCamera = configuredDevice;
+        }
+
         if (settings.CurrentSerialPort is not null)
         {
             _vm.SelectedSerialPort = settings.CurrentSerialPort.Name;
@@ -339,7 +354,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        TryAction(() => _cameraCapture.Start(_vm.SelectedCamera,
+        TryAction(() => _cameraCapture.Start(_vm.SelectedCamera, _topCameraProfile,
             frame => Dispatcher.BeginInvoke(() => _vm.ApplyCameraFrame(frame)),
             error => Dispatcher.BeginInvoke(() => _vm.SetCameraError(error))), "Unable to start camera");
     }
