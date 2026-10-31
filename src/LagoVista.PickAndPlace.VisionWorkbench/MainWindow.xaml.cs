@@ -15,6 +15,7 @@ public partial class MainWindow : Window
     private readonly VisionWorkbenchViewModel _vm = new();
     private readonly WorkbenchCameraCapture _cameraCapture = new();
     private readonly WorkbenchMachineControl _machineControl = new();
+    private readonly WorkbenchPlatformClient _platformClient = new();
     private static readonly string WindowPreferencesPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "LagoVista", "VisionWorkbench", "window.json");
@@ -28,12 +29,13 @@ public partial class MainWindow : Window
         RestoreWindowPreferences();
         _machineControl.StateChanged += (_, _) => Dispatcher.BeginInvoke(UpdateMachineState);
         Closing += (_, _) => { _cameraCapture.Dispose(); _machineControl.Dispose(); SaveWindowPreferences(); };
-        Loaded += (_, _) =>
+        Loaded += async (_, _) =>
         {
             TryAction(_vm.RestoreLastImage, "Unable to restore last image");
             RefreshCameras();
             RefreshPorts();
             UpdateMachineState();
+            await InitializePlatformAsync();
         };
     }
 
