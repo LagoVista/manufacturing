@@ -35,6 +35,19 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
     private void Notify([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
     private VisionProfile _profile = NewProfile();
+    public ObservableCollection<MachineSummary> PlatformMachines { get; } = new();
+    private MachineSummary? _selectedPlatformMachine;
+    public MachineSummary? SelectedPlatformMachine { get => _selectedPlatformMachine; set { _selectedPlatformMachine = value; Notify(); } }
+    private string _platformStatus = "Not signed in";
+    public string PlatformStatus { get => _platformStatus; private set { _platformStatus = value; Notify(); } }
+    public void SetPlatformStatus(string value) => PlatformStatus = value;
+    public void SetPlatformMachines(IEnumerable<MachineSummary> machines)
+    {
+        PlatformMachines.Clear();
+        foreach (var machine in machines) PlatformMachines.Add(machine);
+        SelectedPlatformMachine ??= PlatformMachines.FirstOrDefault();
+    }
+
     public ObservableCollection<string> SerialPorts { get; } = new();
     private string? _selectedSerialPort;
     public string? SelectedSerialPort { get => _selectedSerialPort; set { _selectedSerialPort = value; Notify(); } }
