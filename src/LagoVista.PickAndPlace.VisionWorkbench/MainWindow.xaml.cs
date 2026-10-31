@@ -159,6 +159,75 @@ public partial class MainWindow : Window
     }
 
 
+
+    private async Task InitializePlatformAsync()
+    {
+        try
+        {
+            await _platformClient.InitializeAsync();
+            if (_platformClient.IsAuthenticated)
+            {
+                _vm.SetPlatformStatus(_platformClient.UserLabel);
+                await RefreshPlatformMachinesAsync();
+            }
+            else
+            {
+                _vm.SetPlatformStatus("Not signed in");
+            }
+        }
+        catch (Exception ex)
+        {
+            _vm.SetPlatformStatus("Platform unavailable");
+            MessageBox.Show(this, ex.Message, "Platform initialization", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private async void SignIn_Click(object sender, RoutedEventArgs e)
+    {
+        var login = new LoginWindow(_platformClient) { Owner = this };
+        if (login.ShowDialog() == true)
+        {
+            _vm.SetPlatformStatus(_platformClient.UserLabel);
+            await RefreshPlatformMachinesAsync();
+        }
+    }
+
+    private async Task RefreshPlatformMachinesAsync()
+    {
+        var machines = await _platformClient.GetMachinesAsync();
+        _vm.SetPlatformMachines(machines);
+        _vm.SetPlatformStatus($"{_platformClient.UserLabel} • {machines.Count} machine(s)");
+    }
+
+    private async void LoadPlatformMachine_Click(object sender, RoutedEventArgs e)
+    {
+        if (_vm.SelectedPlatformMachine is null)
+        {
+            MessageBox.Show(this, "Select a machine first.", "Platform machine", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        try
+        {
+            var settings = await _platformClient.LoadMachineAsync(_vm.SelectedPlatformMachine.Id);
+            _machineControl.LoadSettings(settings);
+
+            if (settings.CurrentSerialPort is not null)
+            {
+                _vm.SelectedSerialPort = settings.CurrentSerialPort.Name;
+                _vm.SerialBaudRate = settings.CurrentSerialPort.BaudRate;
+            }
+
+            _vm.SelectedFirmwareType = settings.FirmwareType;
+            _vm.SetPlatformStatus($"{_platformClient.UserLabel} • loaded {settings.Name}");
+            UpdateMachineState();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "Unable to load machine", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
     private void RefreshPorts_Click(object sender, RoutedEventArgs e) => RefreshPorts();
 
     private void RefreshPorts()
