@@ -369,6 +369,12 @@ public partial class MainWindow : Window
     private void TopLightOff_Click(object sender, RoutedEventArgs e)
         => TryAction(_machineControl.TurnOffTopLight, "Unable to turn off top light");
 
+    private void ApplyBottomLight_Click(object sender, RoutedEventArgs e)
+        => TryAction(() => _machineControl.ApplyBottomLight(_vm.Profile), "Unable to configure bottom light");
+
+    private void BottomLightOff_Click(object sender, RoutedEventArgs e)
+        => TryAction(_machineControl.TurnOffBottomLight, "Unable to turn off bottom light");
+
 
     private void RefreshCameras_Click(object sender, RoutedEventArgs e) => RefreshCameras();
 
