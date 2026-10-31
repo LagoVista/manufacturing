@@ -20,6 +20,10 @@ public partial class MainWindow : Window
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "LagoVista", "VisionWorkbench", "window.json");
 
+    private static readonly string LastMachinePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "LagoVista", "VisionWorkbench", "last-machine.txt");
+
     private sealed record WindowPreferences(double Left, double Top, double Width, double Height, bool Maximized);
 
     public MainWindow()
@@ -196,6 +200,21 @@ public partial class MainWindow : Window
     {
         var machines = await _platformClient.GetMachinesAsync();
         _vm.SetPlatformMachines(machines);
+        try
+        {
+            if (File.Exists(LastMachinePath))
+            {
+                var lastId = File.ReadAllText(LastMachinePath).Trim();
+                var previous = machines.FirstOrDefault(machine => machine.Id == lastId);
+                if (previous is not null)
+                {
+                    _vm.SelectedPlatformMachine = previous;
+                    await LoadPlatformMachineAsync(previous.Id);
+                }
+            }
+        }
+        catch (IOException) { /* Local preferences must not prevent machine listing. */ }
+        catch (UnauthorizedAccessException) { /* Local preferences are optional. */ }
         _vm.SetPlatformStatus($"{_platformClient.UserLabel} • {machines.Count} machine(s)");
     }
 
@@ -209,23 +228,36 @@ public partial class MainWindow : Window
 
         try
         {
-            var settings = await _platformClient.LoadMachineAsync(_vm.SelectedPlatformMachine.Id);
-            _machineControl.LoadSettings(settings);
-
-            if (settings.CurrentSerialPort is not null)
-            {
-                _vm.SelectedSerialPort = settings.CurrentSerialPort.Name;
-                _vm.SerialBaudRate = settings.CurrentSerialPort.BaudRate;
-            }
-
-            _vm.SelectedFirmwareType = settings.FirmwareType;
-            _vm.SetPlatformStatus($"{_platformClient.UserLabel} • loaded {settings.Name}");
-            UpdateMachineState();
+            await LoadPlatformMachineAsync(_vm.SelectedPlatformMachine.Id);
         }
         catch (Exception ex)
         {
             MessageBox.Show(this, ex.Message, "Unable to load machine", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+    }
+
+    private async Task LoadPlatformMachineAsync(string machineId)
+    {
+        var settings = await _platformClient.LoadMachineAsync(machineId);
+        _machineControl.LoadSettings(settings);
+
+        if (settings.CurrentSerialPort is not null)
+        {
+            _vm.SelectedSerialPort = settings.CurrentSerialPort.Name;
+            _vm.SerialBaudRate = settings.CurrentSerialPort.BaudRate;
+        }
+
+        _vm.SelectedFirmwareType = settings.FirmwareType;
+        _vm.SetPlatformStatus($"{_platformClient.UserLabel} • loaded {settings.Name}");
+        UpdateMachineState();
+
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(LastMachinePath)!);
+            File.WriteAllText(LastMachinePath, machineId);
+        }
+        catch (IOException) { /* Remembering the machine is best-effort. */ }
+        catch (UnauthorizedAccessException) { /* Remembering the machine is best-effort. */ }
     }
 
     private void RefreshPorts_Click(object sender, RoutedEventArgs e) => RefreshPorts();
