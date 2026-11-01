@@ -274,10 +274,6 @@
 
         </Grid>
 
-        <Grid Grid.Row="5">            </StackPanel>
-
-        </Grid>
-
         <Grid Grid.Row="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="800"/>
