@@ -33,9 +33,10 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         {
             var profile = camera.CurrentVisionProfile;
 
+            _foundLines.Clear();
             if (profile.FindLines)
             {
-                var lines = CvInvoke.HoughLinesP(input.Image, profile.HoughLinesRHO, profile.HoughLinesTheta * (Math.PI / 180), profile.HoughLinesThreshold, profile.HoughLinesMinLineLength / camera.EffectivePixelsPerMM, profile.HoughLinesMaxLineGap);
+                var lines = CvInvoke.HoughLinesP(input.Image, profile.HoughLinesRHO, profile.HoughLinesTheta, profile.HoughLinesThreshold, profile.HoughLinesMinLineLength, profile.HoughLinesMaxLineGap);
                 foreach (var line in lines)
                 {
                     _foundLines.Add(new MVLocatedLine()
@@ -46,7 +47,6 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 }
             }
 
-            _foundLines.Clear();
         }
 
         public void Reset()
