@@ -59,6 +59,30 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
 
         [TestCase(false)]
         [TestCase(true)]
+        public void RepeatedOriginCalibrationPreservesCorrectedPosition(bool vertical)
+        {
+            var mountingHole = StagingPlateUtils.ResolveStagePlateWorkSpaceLocation(_plate, "10", "G");
+            var mountingOffset = new Point2D<double>(5, 8);
+            var originOffset = new Point2D<double>(2, -1);
+            var uncorrectedOrigin = mountingHole.SubtractWithConditionalSwap(vertical, mountingOffset);
+            var measuredOrigin = new Point2D<double>(uncorrectedOrigin.X + 3.25, uncorrectedOrigin.Y - 2.5);
+
+            // The production SetLocation correction uses the existing offset plus
+            // the difference between the measured and currently calculated origin.
+            for (var attempt = 0; attempt < 3; attempt++)
+            {
+                var calculatedOrigin = uncorrectedOrigin + originOffset;
+                originOffset = originOffset + measuredOrigin - calculatedOrigin;
+                Assert.That(originOffset.X, Is.EqualTo(3.25).Within(1e-9));
+                Assert.That(originOffset.Y, Is.EqualTo(-2.5).Within(1e-9));
+                var resolved = uncorrectedOrigin + originOffset;
+                Assert.That(resolved.X, Is.EqualTo(measuredOrigin.X).Within(1e-9));
+                Assert.That(resolved.Y, Is.EqualTo(measuredOrigin.Y).Within(1e-9));
+            }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
         public void ResolveEveryFeederOriginOnRotatedPlate(bool vertical)
         {
             const double angle = 3.0 * Math.PI / 180.0;
