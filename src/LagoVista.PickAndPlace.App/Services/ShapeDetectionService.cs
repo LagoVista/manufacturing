@@ -127,7 +127,7 @@ namespace LagoVista.PickAndPlace.App.Services
                             using (var mask = new Image<Gray, byte>(size))
                             {
                                 CvInvoke.Circle(mask, new System.Drawing.Point() { X = size.Width / 2, Y = size.Height / 2 },
-                                Convert.ToInt32(camera.CurrentVisionProfile.TargetImageRadius * camera.CurrentVisionProfile.PixelsPerMM),
+                                Convert.ToInt32(camera.CurrentVisionProfile.TargetImageRadius * camera.EffectivePixelsPerMM),
                                  new Bgr(System.Drawing.Color.White).MCvScalar,
                                     -1, LineType.AntiAlias);
                                 CvInvoke.BitwiseAnd(img, img, masked, mask);

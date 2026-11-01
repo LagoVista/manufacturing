@@ -208,28 +208,32 @@ namespace LagoVista.PickAndPlace.App.Services
             {
                 if (_capture != null)
                 {
-                    if (_lastBrightness != Profile.Brightness)
+                    var brightness = Camera.EffectiveBrightness;
+                    if (_lastBrightness != brightness)
                     {
-                        _capture.Set(Emgu.CV.CvEnum.CapProp.Brightness, Profile.Brightness);
-                        _lastBrightness = Profile.Brightness;
+                        _capture.Set(Emgu.CV.CvEnum.CapProp.Brightness, brightness);
+                        _lastBrightness = brightness;
                     }
 
-                    if (_lastFocus != Profile.Focus)
+                    var focus = Camera.EffectiveFocus;
+                    if (_lastFocus != focus)
                     {
-                        _capture.Set(Emgu.CV.CvEnum.CapProp.Focus, Profile.Focus);
-                        _lastFocus = Profile.Focus;
+                        _capture.Set(Emgu.CV.CvEnum.CapProp.Focus, focus);
+                        _lastFocus = focus;
                     }
 
-                    if (_lastTopContrast != Profile.Contrast)
+                    var contrast = Camera.EffectiveContrast;
+                    if (_lastTopContrast != contrast)
                     {
-                        _capture.Set(Emgu.CV.CvEnum.CapProp.Contrast, Profile.Contrast);
-                        _lastTopContrast = Profile.Contrast;
+                        _capture.Set(Emgu.CV.CvEnum.CapProp.Contrast, contrast);
+                        _lastTopContrast = contrast;
                     }
 
-                    if (_lastExposure != Profile.Exposure)
+                    var exposure = Camera.EffectiveExposure;
+                    if (_lastExposure != exposure)
                     {
-                        _capture.Set(Emgu.CV.CvEnum.CapProp.Exposure, Profile.Exposure);
-                        _lastExposure = Profile.Exposure;
+                        _capture.Set(Emgu.CV.CvEnum.CapProp.Exposure, exposure);
+                        _lastExposure = exposure;
                     }
 
                     using (var originalFrame = _capture.QueryFrame())

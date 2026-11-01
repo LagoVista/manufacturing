@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LagoVista.Manufacturing.Models\LagoVista.Manufacturing.Models.csproj" />
+    <ProjectReference Include="..\LagoVista.PickAndPlace\LagoVista.PickAndPlace.csproj" />
+    <ProjectReference Include="..\LagoVista.Xplat.WPF\LagoVista.XPlat.WPF.csproj" />
+      <PackageReference Include="DirectShowLib.Standard" />
+      <PackageReference Include="Emgu.CV" />
+    <PackageReference Include="Emgu.CV.runtime.windows" />
+    <PackageReference Include="System.IO.Ports" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="TestImages\\Feeder1\\*.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Resources\GrblAlarmCodes.txt" />
+    <None Remove="Resources\GrblErrors.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\GrblAlarmCodes.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\GrblErrors.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+</Project>

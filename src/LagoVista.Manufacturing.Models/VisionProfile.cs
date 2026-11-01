@@ -135,20 +135,27 @@ namespace LagoVista.PickAndPlace.Models
             set => Set(ref _showCrosshairs, value);
         }
 
-        /* 1-3*/
-        private double _brightness = 50;
-        public double Brightness
+        /* Null means inherit the camera baseline. */
+        private double? _brightness;
+        public double? Brightness
         {
             get { return _brightness; }
-            set { _brightness = Math.Round(value, 1); RaisePropertyChanged(); }
+            set
+            {
+                _brightness = value.HasValue ? Math.Round(value.Value, 1) : (double?)null;
+                RaisePropertyChanged();
+            }
         }
 
-        /* 0-100*/
-        private double _contrast = 50;
-        public double Contrast
+        private double? _contrast;
+        public double? Contrast
         {
             get { return _contrast; }
-            set { _contrast = Math.Round(value, 1); RaisePropertyChanged(); }
+            set
+            {
+                _contrast = value.HasValue ? Math.Round(value.Value, 1) : (double?)null;
+                RaisePropertyChanged();
+            }
         }
 
         private double _targetImageRadius = 2;
@@ -158,11 +165,15 @@ namespace LagoVista.PickAndPlace.Models
             set { _targetImageRadius = Math.Round(value, 1); RaisePropertyChanged(); }
         }
 
-        private double _focus = 50;
-        public double Focus
+        private double? _focus;
+        public double? Focus
         {
             get { return _focus; }
-            set { _focus = Math.Round(value, 1); RaisePropertyChanged(); }
+            set
+            {
+                _focus = value.HasValue ? Math.Round(value.Value, 1) : (double?)null;
+                RaisePropertyChanged();
+            }
         }
 
         private bool _invert;
@@ -173,11 +184,15 @@ namespace LagoVista.PickAndPlace.Models
         }
 
 
-        private double _exposure = 0;
-        public double Exposure
+        private double? _exposure;
+        public double? Exposure
         {
             get { return _exposure; }
-            set { _exposure = Math.Round(value, 1); RaisePropertyChanged(); }
+            set
+            {
+                _exposure = value.HasValue ? Math.Round(value.Value, 1) : (double?)null;
+                RaisePropertyChanged();
+            }
         }
 
         private bool _findRectangles;
@@ -269,11 +284,11 @@ namespace LagoVista.PickAndPlace.Models
         }
         
 
-        double _pixelsPerMM = 50;
-        public double PixelsPerMM
+        double? _pixelsPerMM;
+        public double? PixelsPerMM
         {
             get { return _pixelsPerMM; }
-            set { Set(ref _pixelsPerMM, Math.Round(value, 1)); }
+            set { Set(ref _pixelsPerMM, value.HasValue ? Math.Round(value.Value, 1) : (double?)null); }
         }
 
         private double _contourMaxArea = 800;
@@ -511,29 +526,29 @@ namespace LagoVista.PickAndPlace.Models
             set { Set(ref _lightOn, value); }
         }
 
-        private byte _red = 0xFF;
-        public byte LightRed
+        private byte? _red;
+        public byte? LightRed
         {
             get { return _red; }
             set { Set(ref _red, value); }
         }
 
-        private byte _green = 0xFF;
-        public byte LightGreen
+        private byte? _green;
+        public byte? LightGreen
         {
             get { return _green; }
             set { Set(ref _green, value); }
         }
 
-        private byte _blue = 0xFF;
-        public byte LightBlue
+        private byte? _blue;
+        public byte? LightBlue
         {
             get { return _blue; }
             set { Set(ref _blue, value); }
         }
 
-        private byte _power = 0xFF;
-        public byte LightPower
+        private byte? _power;
+        public byte? LightPower
         {
             get { return _power; }
             set { Set(ref _power, value); }

@@ -78,7 +78,6 @@
     <PackageReference Include="LagoVista.Core" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\crossplatform\src\LagoVista.Xplat.WPF\LagoVista.XPlat.WPF.csproj" />
     <ProjectReference Include="..\FontAwesome.WPF\FontAwesome.WPF.csproj" />
     <ProjectReference Include="..\LagoVista.GCode\LagoVista.GCode.csproj" />
     <ProjectReference Include="..\LagoVista.PCB.Eagle\LagoVista.PCB.Eagle.csproj" />

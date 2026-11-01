@@ -137,6 +137,69 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.MachineCamera_ImageSize, FieldType: FieldTypes.Point2DSize, ResourceType: typeof(ManufacturingResources))]
         public Point2D<double> ImageSize { get; set; } = new Point2D<double>(480, 480);
 
+        private double _brightness = 50;
+        public double Brightness
+        {
+            get => _brightness;
+            set => Set(ref _brightness, Math.Round(value, 1));
+        }
+
+        private double _contrast = 50;
+        public double Contrast
+        {
+            get => _contrast;
+            set => Set(ref _contrast, Math.Round(value, 1));
+        }
+
+        private double _exposure;
+        public double Exposure
+        {
+            get => _exposure;
+            set => Set(ref _exposure, Math.Round(value, 1));
+        }
+
+        private byte _lightPower = 0xFF;
+        public byte LightPower
+        {
+            get => _lightPower;
+            set => Set(ref _lightPower, value);
+        }
+
+        private double _focus = 50;
+        public double Focus
+        {
+            get => _focus;
+            set => Set(ref _focus, Math.Round(value, 1));
+        }
+
+        private byte _lightRed = 0xFF;
+        public byte LightRed
+        {
+            get => _lightRed;
+            set => Set(ref _lightRed, value);
+        }
+
+        private byte _lightGreen = 0xFF;
+        public byte LightGreen
+        {
+            get => _lightGreen;
+            set => Set(ref _lightGreen, value);
+        }
+
+        private byte _lightBlue = 0xFF;
+        public byte LightBlue
+        {
+            get => _lightBlue;
+            set => Set(ref _lightBlue, value);
+        }
+
+        private double _pixelsPerMM = 50;
+        public double PixelsPerMM
+        {
+            get => _pixelsPerMM;
+            set => Set(ref _pixelsPerMM, Math.Round(value, 1));
+        }
+
         public ObservableCollection<VisionProfile> VisionProfiles { get; set; } = new ObservableCollection<VisionProfile>();
 
         VisionProfile _currentVisionProfile;
@@ -145,6 +208,33 @@ namespace LagoVista.Manufacturing.Models
             get => _currentVisionProfile;
             set => Set(ref _currentVisionProfile, value);
         }
+
+        [JsonIgnore]
+        public double EffectiveBrightness => CurrentVisionProfile?.Brightness ?? Brightness;
+
+        [JsonIgnore]
+        public double EffectiveContrast => CurrentVisionProfile?.Contrast ?? Contrast;
+
+        [JsonIgnore]
+        public double EffectiveExposure => CurrentVisionProfile?.Exposure ?? Exposure;
+
+        [JsonIgnore]
+        public byte EffectiveLightPower => CurrentVisionProfile?.LightPower ?? LightPower;
+
+        [JsonIgnore]
+        public double EffectiveFocus => CurrentVisionProfile?.Focus ?? Focus;
+
+        [JsonIgnore]
+        public byte EffectiveLightRed => CurrentVisionProfile?.LightRed ?? LightRed;
+
+        [JsonIgnore]
+        public byte EffectiveLightGreen => CurrentVisionProfile?.LightGreen ?? LightGreen;
+
+        [JsonIgnore]
+        public byte EffectiveLightBlue => CurrentVisionProfile?.LightBlue ?? LightBlue;
+
+        [JsonIgnore]
+        public double EffectivePixelsPerMM => CurrentVisionProfile?.PixelsPerMM ?? PixelsPerMM;
 
         [JsonIgnore]
         public VisionProfileSource ProfileSource { get; set; }

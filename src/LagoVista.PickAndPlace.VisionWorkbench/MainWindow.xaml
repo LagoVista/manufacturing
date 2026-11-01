@@ -1,0 +1,318 @@
+<Window x:Class="LagoVista.PickAndPlace.VisionWorkbench.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Pick &amp; Place — Vision Workbench" Height="1050" Width="2650"
+        MinHeight="620" MinWidth="1200" Background="#171C24" Foreground="#E8EDF5"
+        AllowDrop="True" Drop="Window_Drop" DragOver="Window_DragOver">
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="13,8"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Background" Value="#32435E"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#546785"/>
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#263449"/>
+            <Setter Property="Foreground" Value="#E8EDF5"/>
+            <Setter Property="BorderBrush" Value="#546785"/>
+            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Border x:Name="OuterBorder"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="24"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ContentPresenter Grid.Column="0"
+                                                      Margin="{TemplateBinding Padding}"
+                                                      VerticalAlignment="Center"
+                                                      Content="{TemplateBinding SelectionBoxItem}"
+                                                      ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                      ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                                      TextElement.Foreground="{TemplateBinding Foreground}"/>
+                                    <TextBlock Grid.Column="1"
+                                               Text="⌄"
+                                               Foreground="{TemplateBinding Foreground}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               IsHitTestVisible="False"/>
+                                </Grid>
+                            </Border>
+                            <ToggleButton Background="Transparent"
+                                          BorderThickness="0"
+                                          Focusable="False"
+                                          IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                          ClickMode="Press"/>
+                            <Popup x:Name="PART_Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Fade">
+                                <Border Background="#202B3B"
+                                        BorderBrush="#7A8CA8"
+                                        BorderThickness="1"
+                                        MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}">
+                                    <ScrollViewer Margin="1" SnapsToDevicePixels="True">
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="OuterBorder" Property="Opacity" Value="0.55"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                <Setter TargetName="OuterBorder" Property="BorderBrush" Value="#8FB7E8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="#263449"/>
+            <Setter Property="Foreground" Value="#E8EDF5"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#3B4D69"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#32435E"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#101722"/>
+            <Setter Property="Foreground" Value="#E8EDF5"/>
+            <Setter Property="BorderBrush" Value="#546785"/>
+            <Setter Property="Padding" Value="6,4"/>
+        </Style>
+    </Window.Resources>
+    <DockPanel Margin="20">
+        <StackPanel DockPanel.Dock="Top">
+            <TextBlock FontSize="25" FontWeight="SemiBold" Text="Vision Workbench"/>
+            <TextBlock Foreground="#A8B5C6" Margin="0,4,0,14"
+                       Text="Open or drop an image. Compare original pixels with grayscale and threshold processing."/>
+            <WrapPanel Margin="0,0,0,14">
+                <Button Content="Open image..." Click="OpenImage_Click"/>
+                <ComboBox Width="250" Margin="0,0,8,0" ItemsSource="{Binding RecentImages}" DisplayMemberPath="DisplayName" SelectionChanged="RecentImage_SelectionChanged" ToolTip="Recently opened images" Background="#263449" Foreground="White"/>
+                <Button Content="Save processed..." Click="SaveProcessed_Click"/>
+                <Button Content="Fit view" Click="FitView_Click"/>
+                <TextBlock Text="Camera" VerticalAlignment="Center" Margin="16,0,6,0"/>
+                <ComboBox Width="250" Margin="0,0,8,0" ItemsSource="{Binding CameraDevices}" SelectedItem="{Binding SelectedCamera}" Background="#263449" Foreground="White"/>
+                <Button Content="Refresh cameras" Click="RefreshCameras_Click"/>
+                <Button Content="Start live" Click="StartCamera_Click"/>
+                <Button Content="Stop" Click="StopCamera_Click"/>
+                <TextBlock Text="{Binding CameraStatus}" VerticalAlignment="Center" Foreground="#9DB5D9" Margin="8,0,0,0"/>
+                <Separator Width="1" Height="26" Margin="14,0,14,0" Background="#546785"/>
+                <Button Content="Sign in" Click="SignIn_Click"/>
+                <ComboBox Width="180" Margin="0,0,6,0" ItemsSource="{Binding PlatformMachines}" SelectedItem="{Binding SelectedPlatformMachine}" DisplayMemberPath="Name" SelectionChanged="PlatformMachine_SelectionChanged" Background="#263449" Foreground="White"/>
+                <Button Content="Load machine" Click="LoadPlatformMachine_Click"/>
+                <TextBlock Text="{Binding PlatformStatus}" VerticalAlignment="Center" Foreground="#9DB5D9" Margin="4,0,14,0"/>
+                <TextBlock Text="Machine" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                <ComboBox Width="95" Margin="0,0,6,0" ItemsSource="{Binding SerialPorts}" SelectedItem="{Binding SelectedSerialPort}" Background="#263449" Foreground="White"/>
+                <TextBox Width="72" Margin="0,0,6,0" Text="{Binding SerialBaudRate, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" ToolTip="Baud rate"/>
+                <ComboBox Width="155" Margin="0,0,6,0" ItemsSource="{Binding FirmwareTypesAvailable}" SelectedItem="{Binding SelectedFirmwareType}" Background="#263449" Foreground="White"/>
+                <Button Content="Ports" Click="RefreshPorts_Click"/>
+                <Button Content="Connect" Click="ConnectMachine_Click"/>
+                <Button Content="Disconnect" Click="DisconnectMachine_Click"/>
+                <TextBlock Text="{Binding MachinePosition}" VerticalAlignment="Center" Margin="10,0,8,0" Foreground="#B4C7DA"/>
+                <TextBox Width="52" Margin="0,0,6,0" Text="{Binding JogStepMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" ToolTip="Jog step in mm"/>
+                <Button Content="← X" Click="JogXMinus_Click"/>
+                <Button Content="X →" Click="JogXPlus_Click"/>
+                <Button Content="↓ Y" Click="JogYMinus_Click"/>
+                <Button Content="Y ↑" Click="JogYPlus_Click"/>
+                <Button Content="E-STOP" Click="EmergencyStop_Click" Background="#7A2630" BorderBrush="#B34B57"/>
+                <TextBlock Text="{Binding MachineStatus}" VerticalAlignment="Center" Foreground="#9DB5D9" Margin="8,0,0,0"/>
+                <CheckBox Content="Invert threshold" VerticalAlignment="Center" Margin="16,0,12,0" IsChecked="{Binding Profile.Invert, Mode=TwoWay}"/>
+                <TextBlock Text="Threshold" VerticalAlignment="Center" Margin="8,0,8,0"/>
+                <Slider Width="190" Minimum="0" Maximum="255" Value="{Binding ThresholdValue, Mode=TwoWay}" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding ThresholdValue, StringFormat=F0}" Width="34" Margin="10,0,0,0"
+                           VerticalAlignment="Center"/>
+            </WrapPanel>
+        </StackPanel>
+        <Border DockPanel.Dock="Bottom" BorderBrush="#344154" BorderThickness="0,1,0,0"
+                Padding="0,12,0,0" Margin="0,12,0,0">
+            <TextBlock Text="{Binding Status}"
+                       Foreground="#B8C6D7" TextWrapping="Wrap"/>
+        </Border>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="360"/>
+                <ColumnDefinition Width="900"/>
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" BorderBrush="#43516A" BorderThickness="1" CornerRadius="6"
+                    Background="#0D1118">
+                <DockPanel>
+                    <TextBlock Text="ORIGINAL" FontWeight="SemiBold" Foreground="#B4C7DA"
+                               Margin="12" DockPanel.Dock="Top"/>
+                    <Grid x:Name="OriginalImageHost" ClipToBounds="True">
+                        <Image x:Name="OriginalPreview" MouseLeftButtonDown="OriginalPreview_MouseLeftButtonDown" Source="{Binding OriginalImage}" Stretch="Uniform"
+                               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                    </Grid>
+                </DockPanel>
+            </Border>
+            <Border Grid.Column="2" BorderBrush="#43516A" BorderThickness="1" CornerRadius="6"
+                    Background="#0D1118">
+                <DockPanel>
+                    <TextBlock Text="PROCESSED — GRAYSCALE / THRESHOLD" FontWeight="SemiBold"
+                               Foreground="#B4C7DA" Margin="12" DockPanel.Dock="Top"/>
+                    <Grid x:Name="ProcessedImageHost" ClipToBounds="True">
+                        <Image Source="{Binding ProcessedImage}" Stretch="Uniform"
+                               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                        <Image Source="{Binding DetectionOverlay}" Stretch="Uniform"
+                               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                               IsHitTestVisible="False"/>
+                    </Grid>
+                </DockPanel>
+            </Border>
+            <Border Grid.Column="3" Margin="14,0,0,0" BorderBrush="#43516A" BorderThickness="1" CornerRadius="6" Background="#202937">
+                <DockPanel Margin="12">
+                    <TextBlock DockPanel.Dock="Top" Text="VISION PROFILE" Foreground="#B4C7DA" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
+                        <Button Content="New" Click="NewProfile_Click"/>
+                        <Button Content="Open..." Click="OpenProfile_Click"/>
+                        <Button Content="Save" Click="SaveProfile_Click"/>
+                    </StackPanel>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <TextBlock Text="Profile name" Margin="0,4,0,3"/>
+                            <TextBox Text="{Binding Profile.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="Profile key" Margin="0,10,0,3"/>
+                            <TextBox Text="{Binding Profile.Key, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="PREPROCESSING" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8"/>
+                            <CheckBox Content="Apply threshold" Margin="0,0,0,8" IsChecked="{Binding Profile.ApplyThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox Content="Invert" Margin="0,0,0,8" IsChecked="{Binding Profile.Invert, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox Content="Apply mask" Margin="0,0,0,8" IsChecked="{Binding Profile.ApplyMask, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox Content="Use blurred image" Margin="0,0,0,8" IsChecked="{Binding Profile.UseBlurredImage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="Primary threshold (profile 0–100)" Margin="0,8,0,2"/>
+                            <Slider Minimum="0" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding Profile.PrimaryThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="{Binding ThresholdText}" Margin="0,0,0,6"/>
+                            <TextBlock Text="Gaussian kernel size" Margin="0,4,0,2"/>
+                            <Slider Minimum="1" Maximum="19" TickFrequency="2" IsSnapToTickEnabled="True" Value="{Binding Profile.GausianKernellSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="{Binding KernelText}" Margin="0,0,0,6"/>
+                            <TextBlock Text="DETECTION" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,15,0,8"/>
+                            <CheckBox Content="Find circles" Margin="0,0,0,8" IsChecked="{Binding Profile.FindCircles, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox Content="Find rectangles" Margin="0,0,0,8" IsChecked="{Binding Profile.FindRectangles, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox Content="Find lines" Margin="0,0,0,8" IsChecked="{Binding Profile.FindLines, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox Content="Find corners" Margin="0,0,0,8" IsChecked="{Binding Profile.FindCorners, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox Content="Use Canny edge detection" Margin="0,0,0,8" IsChecked="{Binding Profile.UseCannyEdgeDetection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="Canny low threshold" Margin="0,8,0,2"/>
+                            <Slider Minimum="0" Maximum="255" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding Profile.CannyLowThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="{Binding CannyText}"/>
+                            <TextBlock Text="CIRCLE DETECTION (HOUGH)" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8"/>
+                            <TextBlock Text="Pixels per mm (calibration)" Margin="0,4,0,3"/>
+                            <TextBox Text="{Binding Profile.PixelsPerMM, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBlock Text="Minimum radius (mm)" Margin="0,10,0,3"/>
+                            <TextBox Text="{Binding Profile.HoughCirclesMinRadius, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBlock Text="Maximum radius (mm)" Margin="0,10,0,3"/>
+                            <TextBox Text="{Binding Profile.HoughCirclesMaxRadius, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBlock Text="Minimum center spacing (mm)" Margin="0,10,0,3"/>
+                            <TextBox Text="{Binding Profile.HoughCirclesMinDistance, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBlock Text="Hough DP (inverse resolution ratio)" Margin="0,10,0,3"/>
+                            <TextBox Text="{Binding Profile.HoughCirclesDP, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBlock Text="Hough Param1 (edge threshold)" Margin="0,10,0,3"/>
+                            <Slider Minimum="1" Maximum="300" TickFrequency="1" Value="{Binding Profile.HoughCirclesParam1, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="{Binding Profile.HoughCirclesParam1, StringFormat=F0}" Margin="0,0,0,5"/>
+                            <TextBlock Text="Hough Param2 (vote threshold)" Margin="0,10,0,3"/>
+                            <Slider Minimum="1" Maximum="600" TickFrequency="1" Value="{Binding Profile.HoughCirclesParam2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="{Binding Profile.HoughCirclesParam2, StringFormat=F0}" Margin="0,0,0,5"/>
+                            <TextBlock Text="DETECTED CIRCLES (image pixels)" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8"/>
+                            <TextBlock Text="{Binding CircleSummary}" Foreground="#B8C6D7" Margin="0,0,0,6"/>
+                            <ListBox ItemsSource="{Binding CircleMeasurements}" MaxHeight="180" Background="#101722" Foreground="#E8EDF5" BorderBrush="#546785" />
+                            <TextBlock Text="TAPE GEOMETRY (READ ONLY)" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8"/>
+                            <TextBlock Text="Nominal consecutive hole pitch (mm)" Margin="0,4,0,3"/>
+                            <TextBox Text="{Binding TapeHolePitchMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBlock Text="{Binding TapeGeometrySummary}" Foreground="#B8C6D7" TextWrapping="Wrap" Margin="0,10,0,6"/>
+                            <TextBlock Text="Assumes detected holes are consecutive and ordered along the tape. Verify before using calibration." FontSize="11" Foreground="#E6B56C" TextWrapping="Wrap" Margin="0,4,0,8"/>
+                            <TextBlock Text="FEEDER PICKUP PREDICTION (OFFLINE)" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8"/>
+                            <TextBlock Text="Along tape from top hole (mm, positive downward)" TextWrapping="Wrap" Margin="0,5,0,3"/>
+                            <TextBox Text="{Binding PickupAlongMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBlock Text="Across tape (mm, positive image-left)" TextWrapping="Wrap" Margin="0,8,0,3"/>
+                            <TextBox Text="{Binding PickupCrossMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBlock Text="Component pocket pitch (mm)" Margin="0,8,0,3"/>
+                            <TextBox Text="{Binding ComponentPitchMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBlock Text="{Binding PickupSummary}" TextWrapping="Wrap" Foreground="#B8C6D7" Margin="0,10,0,5"/>
+                            <TextBlock Text="Cyan = fitted hole axis; magenta = legacy shared-calculator preview. Image frame assumes horizontal, forward feed, holes on lower side; inspect alignment before trusting positions. No machine movement." TextWrapping="Wrap" Foreground="#E6B56C" FontSize="11" Margin="0,5,0,8"/>
+                            <TextBlock Text="CAMERA / TOP LIGHT" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8" TextWrapping="Wrap"/>
+                            <TextBlock Text="Exposure" Margin="0,5,0,2"/>
+                            <TextBox Text="{Binding Profile.Exposure, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="Brightness" Margin="0,8,0,2"/>
+                            <TextBox Text="{Binding Profile.Brightness, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="Contrast" Margin="0,8,0,2"/>
+                            <TextBox Text="{Binding Profile.Contrast, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="Focus" Margin="0,8,0,2"/>
+                            <TextBox Text="{Binding Profile.Focus, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox Content="Light on" Margin="0,12,0,6" IsChecked="{Binding Profile.LightOn, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="Power" Margin="0,8,0,2"/>
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Right" Width="34" Text="{Binding Profile.LightPower}" VerticalAlignment="Center"/>
+                                <Slider Minimum="0" Maximum="255" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding Profile.LightPower, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            </DockPanel>
+                            <TextBlock Text="Red" Margin="0,8,0,2"/>
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Right" Width="34" Text="{Binding Profile.LightRed}" VerticalAlignment="Center"/>
+                                <Slider Minimum="0" Maximum="255" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding Profile.LightRed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            </DockPanel>
+                            <TextBlock Text="Green" Margin="0,8,0,2"/>
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Right" Width="34" Text="{Binding Profile.LightGreen}" VerticalAlignment="Center"/>
+                                <Slider Minimum="0" Maximum="255" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding Profile.LightGreen, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            </DockPanel>
+                            <TextBlock Text="Blue" Margin="0,8,0,2"/>
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Right" Width="34" Text="{Binding Profile.LightBlue}" VerticalAlignment="Center"/>
+                                <Slider Minimum="0" Maximum="255" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding Profile.LightBlue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            </DockPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <Button Content="Apply top light" Click="ApplyTopLight_Click"/>
+                                <Button Content="Top light off" Click="TopLightOff_Click"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <Button Content="Apply bottom light" Click="ApplyBottomLight_Click"/>
+                                <Button Content="Bottom light off" Click="BottomLightOff_Click"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding ProfileStatus}" Foreground="#A8B5C6" TextWrapping="Wrap" Margin="0,15,0,8"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+            <Border Grid.Column="4" Margin="14,0,0,0" BorderBrush="#43516A" BorderThickness="1" CornerRadius="6" Background="#202937">
+                <DockPanel Margin="14">
+                    <TextBlock DockPanel.Dock="Top" Text="VISION TEST RESULTS" FontSize="17" FontWeight="SemiBold" Foreground="#B4C7DA" Margin="0,0,0,12"/>
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+                        <StackPanel Orientation="Horizontal"><Button Content="Run image tests ▶▶" Click="RunImageTests_Click"/><Button Content="Copy all results" Click="CopyAllResults_Click"/><Button Content="Clear marks" Click="ClearMarks_Click"/></StackPanel>
+                        <TextBlock Text="{Binding AnnotationsStatus}" TextWrapping="Wrap" Foreground="#B4C7DA" Margin="0,8,0,0"/>
+                        <TextBlock Text="{Binding TestProfileLabel}" Foreground="#9DB5D9" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                        <TextBlock Text="{Binding TestRunStatus}" Foreground="#B8C6D7" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                    </StackPanel>
+                    <TextBlock DockPanel.Dock="Bottom" Text="Select a scenario to load its image and inspect the green detection overlays. Tests use a version-controlled profile, independent of your working settings. Canonical checks three holes; generated variants remain exploratory." Foreground="#E6B56C" TextWrapping="Wrap" Margin="0,12,0,0"/>
+                    <ListBox ItemsSource="{Binding ImageTests}" SelectionChanged="ImageTest_SelectionChanged"
+                             Background="#101722" Foreground="#E8EDF5" BorderBrush="#546785" FontSize="15"
+                             HorizontalContentAlignment="Stretch" Padding="8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBox Text="{Binding Summary, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" Foreground="#E8EDF5" Margin="2,5"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </DockPanel>
+</Window>
