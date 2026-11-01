@@ -224,11 +224,11 @@ namespace LagoVista.PickAndPlace
 
                 if (camera.CameraType.Value == CameraTypes.Position)
                 {
-                    ConfigureTopLight(camera.CurrentVisionProfile.LightOn, camera.EffectiveLightPower, camera.EffectiveLightRed, camera.EffectiveLightBlue, camera.EffectiveLightGreen);
+                    ConfigureTopLight(camera.CurrentVisionProfile.LightOn, camera.EffectiveLightPower, camera.EffectiveLightRed, camera.EffectiveLightGreen, camera.EffectiveLightBlue);
                 }
                 else if (camera.CameraType.Value == CameraTypes.PartInspection)
                 {
-                    ConfigureBottomLight(camera.CurrentVisionProfile.LightOn, camera.EffectiveLightPower, camera.EffectiveLightRed, camera.EffectiveLightBlue, camera.EffectiveLightGreen);
+                    ConfigureBottomLight(camera.CurrentVisionProfile.LightOn, camera.EffectiveLightPower, camera.EffectiveLightRed, camera.EffectiveLightGreen, camera.EffectiveLightBlue);
                 }
             }
         }
@@ -274,11 +274,11 @@ namespace LagoVista.PickAndPlace
 
                 if (camera.CameraType.Value == CameraTypes.Position)
                 {
-                    ConfigureTopLight(camera.CurrentVisionProfile.LightOn, camera.EffectiveLightPower, camera.EffectiveLightRed, camera.EffectiveLightBlue, camera.EffectiveLightGreen);
+                    ConfigureTopLight(camera.CurrentVisionProfile.LightOn, camera.EffectiveLightPower, camera.EffectiveLightRed, camera.EffectiveLightGreen, camera.EffectiveLightBlue);
                 }
                 else if(camera.CameraType.Value == CameraTypes.PartInspection)
                 {
-                    ConfigureBottomLight(camera.CurrentVisionProfile.LightOn, camera.EffectiveLightPower, camera.EffectiveLightRed, camera.EffectiveLightBlue, camera.EffectiveLightGreen);
+                    ConfigureBottomLight(camera.CurrentVisionProfile.LightOn, camera.EffectiveLightPower, camera.EffectiveLightRed, camera.EffectiveLightGreen, camera.EffectiveLightBlue);
                 }
             }
         }
