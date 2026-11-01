@@ -82,6 +82,7 @@
     <ProjectReference Include="..\LagoVista.GCode\LagoVista.GCode.csproj" />
     <ProjectReference Include="..\LagoVista.PCB.Eagle\LagoVista.PCB.Eagle.csproj" />
     <ProjectReference Include="..\LagoVista.PickAndPlace\LagoVista.PickAndPlace.csproj" />
+    <ProjectReference Include="..\LagoVista.Xplat.WPF\LagoVista.XPlat.WPF.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Imgs\AddFavorite1.png" />
