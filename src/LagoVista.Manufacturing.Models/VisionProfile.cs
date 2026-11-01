@@ -165,11 +165,15 @@ namespace LagoVista.PickAndPlace.Models
             set { _targetImageRadius = Math.Round(value, 1); RaisePropertyChanged(); }
         }
 
-        private double _focus = 50;
-        public double Focus
+        private double? _focus;
+        public double? Focus
         {
             get { return _focus; }
-            set { _focus = Math.Round(value, 1); RaisePropertyChanged(); }
+            set
+            {
+                _focus = value.HasValue ? Math.Round(value.Value, 1) : (double?)null;
+                RaisePropertyChanged();
+            }
         }
 
         private bool _invert;
@@ -280,11 +284,11 @@ namespace LagoVista.PickAndPlace.Models
         }
         
 
-        double _pixelsPerMM = 50;
-        public double PixelsPerMM
+        double? _pixelsPerMM;
+        public double? PixelsPerMM
         {
             get { return _pixelsPerMM; }
-            set { Set(ref _pixelsPerMM, Math.Round(value, 1)); }
+            set { Set(ref _pixelsPerMM, value.HasValue ? Math.Round(value.Value, 1) : (double?)null); }
         }
 
         private double _contourMaxArea = 800;
@@ -522,22 +526,22 @@ namespace LagoVista.PickAndPlace.Models
             set { Set(ref _lightOn, value); }
         }
 
-        private byte _red = 0xFF;
-        public byte LightRed
+        private byte? _red;
+        public byte? LightRed
         {
             get { return _red; }
             set { Set(ref _red, value); }
         }
 
-        private byte _green = 0xFF;
-        public byte LightGreen
+        private byte? _green;
+        public byte? LightGreen
         {
             get { return _green; }
             set { Set(ref _green, value); }
         }
 
-        private byte _blue = 0xFF;
-        public byte LightBlue
+        private byte? _blue;
+        public byte? LightBlue
         {
             get { return _blue; }
             set { Set(ref _blue, value); }

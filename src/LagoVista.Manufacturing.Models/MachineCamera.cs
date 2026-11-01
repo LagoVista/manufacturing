@@ -165,6 +165,41 @@ namespace LagoVista.Manufacturing.Models
             set => Set(ref _lightPower, value);
         }
 
+        private double _focus = 50;
+        public double Focus
+        {
+            get => _focus;
+            set => Set(ref _focus, Math.Round(value, 1));
+        }
+
+        private byte _lightRed = 0xFF;
+        public byte LightRed
+        {
+            get => _lightRed;
+            set => Set(ref _lightRed, value);
+        }
+
+        private byte _lightGreen = 0xFF;
+        public byte LightGreen
+        {
+            get => _lightGreen;
+            set => Set(ref _lightGreen, value);
+        }
+
+        private byte _lightBlue = 0xFF;
+        public byte LightBlue
+        {
+            get => _lightBlue;
+            set => Set(ref _lightBlue, value);
+        }
+
+        private double _pixelsPerMM = 50;
+        public double PixelsPerMM
+        {
+            get => _pixelsPerMM;
+            set => Set(ref _pixelsPerMM, Math.Round(value, 1));
+        }
+
         public ObservableCollection<VisionProfile> VisionProfiles { get; set; } = new ObservableCollection<VisionProfile>();
 
         VisionProfile _currentVisionProfile;
@@ -185,6 +220,21 @@ namespace LagoVista.Manufacturing.Models
 
         [JsonIgnore]
         public byte EffectiveLightPower => CurrentVisionProfile?.LightPower ?? LightPower;
+
+        [JsonIgnore]
+        public double EffectiveFocus => CurrentVisionProfile?.Focus ?? Focus;
+
+        [JsonIgnore]
+        public byte EffectiveLightRed => CurrentVisionProfile?.LightRed ?? LightRed;
+
+        [JsonIgnore]
+        public byte EffectiveLightGreen => CurrentVisionProfile?.LightGreen ?? LightGreen;
+
+        [JsonIgnore]
+        public byte EffectiveLightBlue => CurrentVisionProfile?.LightBlue ?? LightBlue;
+
+        [JsonIgnore]
+        public double EffectivePixelsPerMM => CurrentVisionProfile?.PixelsPerMM ?? PixelsPerMM;
 
         [JsonIgnore]
         public VisionProfileSource ProfileSource { get; set; }

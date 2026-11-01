@@ -215,10 +215,11 @@ namespace LagoVista.PickAndPlace.App.Services
                         _lastBrightness = brightness;
                     }
 
-                    if (_lastFocus != Profile.Focus)
+                    var focus = Camera.EffectiveFocus;
+                    if (_lastFocus != focus)
                     {
-                        _capture.Set(Emgu.CV.CvEnum.CapProp.Focus, Profile.Focus);
-                        _lastFocus = Profile.Focus;
+                        _capture.Set(Emgu.CV.CvEnum.CapProp.Focus, focus);
+                        _lastFocus = focus;
                     }
 
                     var contrast = Camera.EffectiveContrast;

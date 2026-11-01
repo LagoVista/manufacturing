@@ -42,7 +42,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         {
             if (MeasuredMM.HasValue && MeasuredMM.Value > 0)
             {
-                Camera.CurrentVisionProfile.PixelsPerMM = 200 / MeasuredMM.Value;
+                Camera.PixelsPerMM = 200 / MeasuredMM.Value;
             }
         }
 
@@ -166,12 +166,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                     if (Camera.CameraType.Value == CameraTypes.Position)
                     {
                         Machine.ConfigureTopLight(Camera.CurrentVisionProfile.LightOn, Camera.EffectiveLightPower,
-                            Camera.CurrentVisionProfile.LightRed, Camera.CurrentVisionProfile.LightGreen, Camera.CurrentVisionProfile.LightBlue);
+                            Camera.EffectiveLightRed, Camera.EffectiveLightGreen, Camera.EffectiveLightBlue);
                     }
                     else if (Camera.CameraType.Value == CameraTypes.PartInspection)
                     {
                         Machine.ConfigureBottomLight(Camera.CurrentVisionProfile.LightOn, Camera.EffectiveLightPower,
-                            Camera.CurrentVisionProfile.LightRed, Camera.CurrentVisionProfile.LightGreen, Camera.CurrentVisionProfile.LightBlue);
+                            Camera.EffectiveLightRed, Camera.EffectiveLightGreen, Camera.EffectiveLightBlue);
                     }
 
                     Camera.CurrentVisionProfile.PropertyChanged -= CurrentVisionProfile_PropertyChanged;
@@ -193,11 +193,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
                 if (Camera.CameraType.Value == CameraTypes.Position)
                 {
-                    Machine.ConfigureTopLight(Camera.CurrentVisionProfile.LightOn, Camera.EffectiveLightPower, Camera.CurrentVisionProfile.LightRed, Camera.CurrentVisionProfile.LightGreen, Camera.CurrentVisionProfile.LightBlue);
+                    Machine.ConfigureTopLight(Camera.CurrentVisionProfile.LightOn, Camera.EffectiveLightPower, Camera.EffectiveLightRed, Camera.EffectiveLightGreen, Camera.EffectiveLightBlue);
                 }
                 else if (Camera.CameraType.Value == CameraTypes.PartInspection)
                 {
-                    Machine.ConfigureBottomLight(Camera.CurrentVisionProfile.LightOn, Camera.EffectiveLightPower, Camera.CurrentVisionProfile.LightRed, Camera.CurrentVisionProfile.LightGreen, Camera.CurrentVisionProfile.LightBlue);
+                    Machine.ConfigureBottomLight(Camera.CurrentVisionProfile.LightOn, Camera.EffectiveLightPower, Camera.EffectiveLightRed, Camera.EffectiveLightGreen, Camera.EffectiveLightBlue);
                 }
             }
         }
@@ -247,6 +247,20 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
              
                 RaisePropertyChanged(nameof(SelectedProfile));
                 RaisePropertyChanged(nameof(Profile));
+            }
+            else if (e.PropertyName == nameof(Camera.LightPower) ||
+                     e.PropertyName == nameof(Camera.LightRed) ||
+                     e.PropertyName == nameof(Camera.LightGreen) ||
+                     e.PropertyName == nameof(Camera.LightBlue))
+            {
+                if (Camera.CameraType.Value == CameraTypes.Position)
+                {
+                    Machine.ConfigureTopLight(Camera.CurrentVisionProfile.LightOn, Camera.EffectiveLightPower, Camera.EffectiveLightRed, Camera.EffectiveLightGreen, Camera.EffectiveLightBlue);
+                }
+                else if (Camera.CameraType.Value == CameraTypes.PartInspection)
+                {
+                    Machine.ConfigureBottomLight(Camera.CurrentVisionProfile.LightOn, Camera.EffectiveLightPower, Camera.EffectiveLightRed, Camera.EffectiveLightGreen, Camera.EffectiveLightBlue);
+                }
             }
         }
 
