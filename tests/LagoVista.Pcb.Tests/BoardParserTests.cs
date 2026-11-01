@@ -117,7 +117,7 @@ namespace LagoVista.Pcb.Tests
 
             Console.WriteLine(color);
 
-            Assert.That("#FF123456" == color.ToString());
+            Assert.That("#FF123456" == color.ToString("F.Cu"));
         }
     }
 }
