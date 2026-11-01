@@ -43,7 +43,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 () => SelectedMachineCamera != null &&
                       SelectedMachineCamera.CameraType?.Value == CameraTypes.Position &&
                       Machine.PositionImageCaptureService != null &&
-                      !MachineConfiguration.KnownCalibrationPoint.IsOrigin());
+                      !MachineConfiguration.MachineFiducial.IsOrigin());
 
 
             MoveToStagingPlateReferenceHole1LocationCommand = CreatedMachineConnectedCommand(() =>
@@ -87,29 +87,29 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 return;
             }
 
-            if (MachineConfiguration.KnownCalibrationPoint.IsOrigin())
+            if (MachineConfiguration.MachineFiducial.IsOrigin())
             {
                 Machine.AddStatusMessage(StatusMessageTypes.Warning,
-                    "Capture the Known Location for the Vision Reference Target before running Camera Auto-Tune.");
+                    "Set the Machine Fiducial before running Camera Auto-Tune.");
                 return;
             }
 
             Machine.SetVisionProfile(
                 CameraTypes.Position,
-                VisionProfile.VisionProfile_KnownLocation);
+                VisionProfile.VisionProfile_MachineFiducual);
 
             Machine.AddStatusMessage(StatusMessageTypes.Info,
-                "Camera Auto-Tune moving to Vision Reference Target.");
+                "Camera Auto-Tune moving to Machine Fiducial.");
 
             Machine.SendSafeMoveHeight();
             await Machine.MoveToCameraAsync();
-            Machine.GotoPoint(MachineConfiguration.KnownCalibrationPoint);
+            Machine.GotoPoint(MachineConfiguration.MachineFiducial);
 
             var moveResult = await Machine.SpinUntilIdleAsync(10000);
             if (!moveResult.Successful)
             {
                 Machine.AddStatusMessage(StatusMessageTypes.Warning,
-                    $"Could not reach the Vision Reference Target: {moveResult.ErrorMessage}");
+                    $"Could not reach the Machine Fiducial: {moveResult.ErrorMessage}");
                 return;
             }
 

@@ -259,7 +259,7 @@
                     </Button>
                 </StackPanel>
                 <TextBlock TextWrapping="Wrap" Style="{StaticResource content}"
-                           Text="Vision Reference Target: Auto-Tune moves the position camera to the Known Location, waits for motion to complete, normalizes exposure, and persists the camera baseline." />
+                           Text="Machine Fiducial: Auto-Tune moves the position camera to the black/white machine fiducial, waits for motion to complete, normalizes exposure, and persists the camera baseline." />
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                     <TextBlock Style="{StaticResource content}" VerticalAlignment="Center" Margin="0,0,16,0">
                         <TextBlock.Text>

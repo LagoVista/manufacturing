@@ -350,8 +350,9 @@ namespace LagoVista.PickAndPlace.App.Services
 
         private static (double Dark, double White) MeasureReferenceLevels(Image<Gray, byte> image)
         {
-            // The machine reference target contains large dark and white fields around
-            // a metal center. Sample a fixed outer annulus and ignore the center.
+            // The machine fiducial has a dark field, bright ring/cross, and metal center.
+            // Sample the outer region, ignore the center, and use distribution tails so
+            // small XY error does not require exact ring placement.
             const int stride = 8;
             var samples = new List<byte>();
 
@@ -383,7 +384,7 @@ namespace LagoVista.PickAndPlace.App.Services
             samples.Sort();
             return (
                 Percentile(samples, 0.20),
-                Percentile(samples, 0.80));
+                Percentile(samples, 0.95));
         }
 
         private static double Percentile(IReadOnlyList<byte> sortedValues, double percentile)
