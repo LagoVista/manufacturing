@@ -38,9 +38,10 @@ namespace LagoVista.PickAndPlace.App.Services
         private const double AutoTuneExposureMaximum = 10.0;
         private const double AutoTuneInitialStep = 1.0;
         private const double AutoTuneMinimumStep = 0.1;
-        private const double AutoTuneDarkTarget = 32.0;
-        private const double AutoTuneDarkTolerance = 4.0;
-        private const double AutoTuneWhiteCeiling = 245.0;
+        private const double AutoTuneDarkTarget = 64.0;
+        private const double AutoTuneDarkTolerance = 8.0;
+        private const double AutoTuneWhiteMinimum = 225.0;
+        private const double AutoTuneWhiteCeiling = 248.0;
         private const int AutoTuneSettleFrames = 4;
         private const int AutoTuneSampleFrames = 10;
         private const int AutoTuneMaximumIterations = 24;
@@ -223,9 +224,10 @@ namespace LagoVista.PickAndPlace.App.Services
         {
             var originalExposure = Camera.Exposure;
             var candidate = Math.Max(AutoTuneExposureMinimum,
-                Math.Min(AutoTuneExposureMaximum, originalExposure));
+                Math.Min(AutoTuneExposureMaximum, Camera.EffectiveExposure));
             var step = AutoTuneInitialStep;
             var previousDirection = 0;
+            (double Dark, double White, double DarkRange, double WhiteRange)? lastSample = null;
 
             Machine.AddStatusMessage(StatusMessageTypes.Info,
                 $"Camera Auto-Tune started at exposure {candidate:F1}.");
@@ -233,16 +235,19 @@ namespace LagoVista.PickAndPlace.App.Services
             for (var iteration = 0; iteration < AutoTuneMaximumIterations; iteration++)
             {
                 var sample = await MeasureReferenceTargetAsync(candidate);
+                lastSample = sample;
                 Machine.DebugWriteLine(
                     $"[AutoTuneExposure] exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}, darkRange={sample.DarkRange:F1}, whiteRange={sample.WhiteRange:F1}");
 
-                var darkInRange =
-                    sample.Dark >= AutoTuneDarkTarget - AutoTuneDarkTolerance &&
-                    sample.Dark <= AutoTuneDarkTarget + AutoTuneDarkTolerance;
-                var whiteSafe = sample.White < AutoTuneWhiteCeiling;
+                var darkLow = AutoTuneDarkTarget - AutoTuneDarkTolerance;
+                var darkHigh = AutoTuneDarkTarget + AutoTuneDarkTolerance;
+                var darkInRange = sample.Dark >= darkLow && sample.Dark <= darkHigh;
+                var whiteInRange =
+                    sample.White >= AutoTuneWhiteMinimum &&
+                    sample.White <= AutoTuneWhiteCeiling;
                 var stable = sample.DarkRange <= 6.0 && sample.WhiteRange <= 10.0;
 
-                if (darkInRange && whiteSafe && stable)
+                if (darkInRange && whiteInRange && stable)
                 {
                     Camera.Exposure = candidate;
                     _lastExposure = candidate;
@@ -251,16 +256,25 @@ namespace LagoVista.PickAndPlace.App.Services
                     return InvokeResult.Success;
                 }
 
-                if (sample.Dark < AutoTuneDarkTarget - AutoTuneDarkTolerance &&
-                    !whiteSafe)
+                if (darkInRange && whiteInRange && !stable)
+                    continue;
+
+                if (sample.Dark < darkLow && sample.White > AutoTuneWhiteCeiling)
                 {
                     RestoreExposure(originalExposure);
                     return InvokeResult.FromError(
-                        $"Camera Auto-Tune could not reach the dark target without clipping white. Dark={sample.Dark:F1}, white={sample.White:F1}.");
+                        $"Camera Auto-Tune cannot increase exposure without clipping white. Exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}.");
+                }
+
+                if (sample.Dark > darkHigh && sample.White < AutoTuneWhiteMinimum)
+                {
+                    RestoreExposure(originalExposure);
+                    return InvokeResult.FromError(
+                        $"Camera Auto-Tune cannot decrease exposure without dimming white further. Exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}.");
                 }
 
                 var direction =
-                    !whiteSafe || sample.Dark > AutoTuneDarkTarget + AutoTuneDarkTolerance
+                    sample.White > AutoTuneWhiteCeiling || sample.Dark > darkHigh
                         ? -1
                         : 1;
 
@@ -280,8 +294,15 @@ namespace LagoVista.PickAndPlace.App.Services
             }
 
             RestoreExposure(originalExposure);
+            if (lastSample.HasValue)
+            {
+                var sample = lastSample.Value;
+                return InvokeResult.FromError(
+                    $"Camera Auto-Tune did not converge after {AutoTuneMaximumIterations} adjustments. Last exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}, darkRange={sample.DarkRange:F1}, whiteRange={sample.WhiteRange:F1}.");
+            }
+
             return InvokeResult.FromError(
-                $"Camera Auto-Tune did not converge within {AutoTuneMaximumIterations} exposure adjustments.");
+                $"Camera Auto-Tune did not capture a usable Machine Fiducial sample.");
         }
 
         private void RestoreExposure(double exposure)
@@ -350,28 +371,29 @@ namespace LagoVista.PickAndPlace.App.Services
 
         private static (double Dark, double White) MeasureReferenceLevels(Image<Gray, byte> image)
         {
-            // The machine fiducial has a dark field, bright ring/cross, and metal center.
-            // Sample the outer region, ignore the center, and use distribution tails so
-            // small XY error does not require exact ring placement.
+            // The Machine Fiducial is a centered circular target with a dark field,
+            // bright ring/cross, and metal center. Restrict sampling to an annulus inside
+            // the fiducial so the black machine background cannot dominate the dark sample.
             const int stride = 8;
             var samples = new List<byte>();
 
-            var minX = image.Width / 10;
-            var maxX = image.Width * 9 / 10;
-            var minY = image.Height / 10;
-            var maxY = image.Height * 9 / 10;
+            var centerX = image.Width / 2.0;
+            var centerY = image.Height / 2.0;
+            var radiusScale = Math.Min(image.Width, image.Height);
+            var innerRadius = radiusScale * 0.15;
+            var outerRadius = radiusScale * 0.35;
+            var innerRadiusSquared = innerRadius * innerRadius;
+            var outerRadiusSquared = outerRadius * outerRadius;
 
-            var centerMinX = image.Width * 35 / 100;
-            var centerMaxX = image.Width * 65 / 100;
-            var centerMinY = image.Height * 35 / 100;
-            var centerMaxY = image.Height * 65 / 100;
-
-            for (var y = minY; y < maxY; y += stride)
+            for (var y = 0; y < image.Height; y += stride)
             {
-                for (var x = minX; x < maxX; x += stride)
+                var deltaY = y - centerY;
+                for (var x = 0; x < image.Width; x += stride)
                 {
-                    if (x >= centerMinX && x <= centerMaxX &&
-                        y >= centerMinY && y <= centerMaxY)
+                    var deltaX = x - centerX;
+                    var radiusSquared = (deltaX * deltaX) + (deltaY * deltaY);
+                    if (radiusSquared < innerRadiusSquared ||
+                        radiusSquared > outerRadiusSquared)
                         continue;
 
                     samples.Add(image.Data[y, x, 0]);
