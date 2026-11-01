@@ -237,6 +237,7 @@
                     <DataGridTextColumn IsReadOnly="true" Header="Location" Binding="{Binding AbsolutePosition}" />
                     <DataGridTextColumn Header="Pixels per MM" Binding="{Binding PixelsPerMM}" />
                     <DataGridTextColumn Header="Focus Height" Binding="{Binding FocusHeight}" />
+                    <DataGridTextColumn Header="Exposure" Binding="{Binding Exposure}" />
                 </DataGrid.Columns>
             </DataGrid>
             <StackPanel Grid.Column="1" Visibility="{Binding SelectedMachineCamera, Converter={StaticResource NoTNullToVisibilityConverter}}">
@@ -257,7 +258,23 @@
                         </Button.Content>
                     </Button>
                 </StackPanel>
+                <TextBlock TextWrapping="Wrap" Width="600" Style="{StaticResource content}"
+                           Text="Vision Reference Target: move the position camera to the Known Location, then Auto-Tune will normalize the persisted camera exposure baseline." />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <TextBlock Style="{StaticResource content}" VerticalAlignment="Center" Margin="0,0,16,0">
+                        <TextBlock.Text>
+                            <Binding Path="SelectedMachineCamera.Exposure" StringFormat="Exposure: {0:F1}" />
+                        </TextBlock.Text>
+                    </TextBlock>
+                    <Button Style="{StaticResource CommandButton}"
+                            Command="{Binding AutoTuneCameraExposureCommand}"
+                            Content="Auto Tune Exposure" />
+                </StackPanel>
             </StackPanel>
+
+        </Grid>
+
+        <Grid Grid.Row="5">            </StackPanel>
 
         </Grid>
 

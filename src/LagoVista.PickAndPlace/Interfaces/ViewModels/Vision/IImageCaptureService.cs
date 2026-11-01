@@ -3,8 +3,10 @@
 // IndexVersion: 2
 // --- END CODE INDEX META ---
 using LagoVista.Core.Commanding;
+using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Models;
+using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
 {
@@ -16,6 +18,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
         RelayCommand StartCaptureCommand { get; }
         RelayCommand StopCaptureCommand { get; }
         RelayCommand CenterFoundItemCommand { get; }
+
+        Task<InvokeResult> AutoTuneExposureAsync();
 
         void StartCapture();
 

@@ -8,6 +8,7 @@ using Emgu.CV.Structure;
 using LagoVista.Core;
 using LagoVista.Core.Commanding;
 using LagoVista.Core.Models;
+using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using LagoVista.Manufacturing.Models.Resources;
 using LagoVista.PickAndPlace.Interfaces;
@@ -17,6 +18,7 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
 using LagoVista.PickAndPlace.ViewModels;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,6 +34,19 @@ namespace LagoVista.PickAndPlace.App.Services
         private double _lastFocus = -9999;
         private double _lastExposure = -9999;
         private double _lastTopContrast = -9999;
+        private const double AutoTuneExposureMinimum = -10.0;
+        private const double AutoTuneExposureMaximum = 10.0;
+        private const double AutoTuneInitialStep = 1.0;
+        private const double AutoTuneMinimumStep = 0.1;
+        private const double AutoTuneDarkTarget = 32.0;
+        private const double AutoTuneDarkTolerance = 4.0;
+        private const double AutoTuneWhiteCeiling = 245.0;
+        private const int AutoTuneSettleFrames = 4;
+        private const int AutoTuneSampleFrames = 10;
+        private const int AutoTuneMaximumIterations = 24;
+
+        private bool _autoTuneExposureRequested;
+        private TaskCompletionSource<InvokeResult> _autoTuneExposureCompletion;
         VideoCapture _capture;
 
         private object _captureLocker = new object();
@@ -174,11 +189,213 @@ namespace LagoVista.PickAndPlace.App.Services
             }
         }
 
+        public Task<InvokeResult> AutoTuneExposureAsync()
+        {
+            if (_capture == null || !_running)
+                return Task.FromResult(InvokeResult.FromError("Camera capture must be running before Auto-Tune can start."));
+
+            if (_autoTuneExposureCompletion != null)
+                return Task.FromResult(InvokeResult.FromError("Camera Auto-Tune is already running."));
+
+            _autoTuneExposureCompletion = new TaskCompletionSource<InvokeResult>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            _autoTuneExposureRequested = true;
+            return _autoTuneExposureCompletion.Task;
+        }
+
+        private async Task<InvokeResult> RunAutoTuneExposureAsync()
+        {
+            var originalExposure = Camera.Exposure;
+            var candidate = Math.Max(AutoTuneExposureMinimum,
+                Math.Min(AutoTuneExposureMaximum, originalExposure));
+            var step = AutoTuneInitialStep;
+            var previousDirection = 0;
+
+            Machine.AddStatusMessage(StatusMessageTypes.Info,
+                $"Camera Auto-Tune started at exposure {candidate:F1}.");
+
+            for (var iteration = 0; iteration < AutoTuneMaximumIterations; iteration++)
+            {
+                var sample = await MeasureReferenceTargetAsync(candidate);
+                Machine.DebugWriteLine(
+                    $"[AutoTuneExposure] exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}, darkRange={sample.DarkRange:F1}, whiteRange={sample.WhiteRange:F1}");
+
+                var darkInRange =
+                    sample.Dark >= AutoTuneDarkTarget - AutoTuneDarkTolerance &&
+                    sample.Dark <= AutoTuneDarkTarget + AutoTuneDarkTolerance;
+                var whiteSafe = sample.White < AutoTuneWhiteCeiling;
+                var stable = sample.DarkRange <= 6.0 && sample.WhiteRange <= 10.0;
+
+                if (darkInRange && whiteSafe && stable)
+                {
+                    Camera.Exposure = candidate;
+                    _lastExposure = candidate;
+                    Machine.AddStatusMessage(StatusMessageTypes.Info,
+                        $"Camera Auto-Tune completed. Exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}.");
+                    return InvokeResult.Success;
+                }
+
+                if (sample.Dark < AutoTuneDarkTarget - AutoTuneDarkTolerance &&
+                    !whiteSafe)
+                {
+                    RestoreExposure(originalExposure);
+                    return InvokeResult.FromError(
+                        $"Camera Auto-Tune could not reach the dark target without clipping white. Dark={sample.Dark:F1}, white={sample.White:F1}.");
+                }
+
+                var direction =
+                    !whiteSafe || sample.Dark > AutoTuneDarkTarget + AutoTuneDarkTolerance
+                        ? -1
+                        : 1;
+
+                if (previousDirection != 0 && direction != previousDirection)
+                    step = Math.Max(AutoTuneMinimumStep, step / 2.0);
+
+                previousDirection = direction;
+                var next = Math.Round(
+                    Math.Max(AutoTuneExposureMinimum,
+                        Math.Min(AutoTuneExposureMaximum, candidate + (direction * step))),
+                    1);
+
+                if (next == candidate)
+                    break;
+
+                candidate = next;
+            }
+
+            RestoreExposure(originalExposure);
+            return InvokeResult.FromError(
+                $"Camera Auto-Tune did not converge within {AutoTuneMaximumIterations} exposure adjustments.");
+        }
+
+        private void RestoreExposure(double exposure)
+        {
+            Camera.Exposure = exposure;
+            _capture.Set(Emgu.CV.CvEnum.CapProp.Exposure, exposure);
+            _lastExposure = exposure;
+        }
+
+        private async Task<(double Dark, double White, double DarkRange, double WhiteRange)> MeasureReferenceTargetAsync(double exposure)
+        {
+            _capture.Set(Emgu.CV.CvEnum.CapProp.Exposure, exposure);
+            _lastExposure = exposure;
+
+            for (var idx = 0; idx < AutoTuneSettleFrames; idx++)
+            {
+                using (var settleFrame = _capture.QueryFrame())
+                {
+                }
+
+                await Task.Delay(50);
+            }
+
+            var darkSamples = new List<double>();
+            var whiteSamples = new List<double>();
+
+            for (var idx = 0; idx < AutoTuneSampleFrames; idx++)
+            {
+                using (var originalFrame = _capture.QueryFrame())
+                {
+                    if (originalFrame == null)
+                        continue;
+
+                    using (var img = originalFrame.ToImage<Bgr, byte>())
+                    {
+                        img.ROI = new System.Drawing.Rectangle()
+                        {
+                            X = (img.Size.Width - img.Size.Height) / 2,
+                            Width = img.Size.Height,
+                            Y = 0,
+                            Height = img.Size.Height
+                        };
+
+                        using (var cropped = img.Copy())
+                        using (var gray = cropped.Convert<Gray, byte>())
+                        {
+                            var levels = MeasureReferenceLevels(gray);
+                            darkSamples.Add(levels.Dark);
+                            whiteSamples.Add(levels.White);
+                        }
+                    }
+                }
+
+                await Task.Delay(50);
+            }
+
+            if (darkSamples.Count < AutoTuneSampleFrames / 2)
+                throw new InvalidOperationException("Camera Auto-Tune could not capture enough reference frames.");
+
+            return (
+                Median(darkSamples),
+                Median(whiteSamples),
+                darkSamples.Max() - darkSamples.Min(),
+                whiteSamples.Max() - whiteSamples.Min());
+        }
+
+        private static (double Dark, double White) MeasureReferenceLevels(Image<Gray, byte> image)
+        {
+            // The machine reference target contains large dark and white fields around
+            // a metal center. Sample a fixed outer annulus and ignore the center.
+            const int stride = 8;
+            var samples = new List<byte>();
+
+            var minX = image.Width / 10;
+            var maxX = image.Width * 9 / 10;
+            var minY = image.Height / 10;
+            var maxY = image.Height * 9 / 10;
+
+            var centerMinX = image.Width * 35 / 100;
+            var centerMaxX = image.Width * 65 / 100;
+            var centerMinY = image.Height * 35 / 100;
+            var centerMaxY = image.Height * 65 / 100;
+
+            for (var y = minY; y < maxY; y += stride)
+            {
+                for (var x = minX; x < maxX; x += stride)
+                {
+                    if (x >= centerMinX && x <= centerMaxX &&
+                        y >= centerMinY && y <= centerMaxY)
+                        continue;
+
+                    samples.Add(image.Data[y, x, 0]);
+                }
+            }
+
+            if (samples.Count == 0)
+                throw new InvalidOperationException("Camera Auto-Tune reference sampling region was empty.");
+
+            samples.Sort();
+            return (
+                Percentile(samples, 0.20),
+                Percentile(samples, 0.80));
+        }
+
+        private static double Percentile(IReadOnlyList<byte> sortedValues, double percentile)
+        {
+            var index = (int)Math.Round((sortedValues.Count - 1) * percentile);
+            return sortedValues[Math.Max(0, Math.Min(sortedValues.Count - 1, index))];
+        }
+
+        private static double Median(List<double> values)
+        {
+            values.Sort();
+            var middle = values.Count / 2;
+            if (values.Count % 2 == 0)
+                return (values[middle - 1] + values[middle]) / 2.0;
+
+            return values[middle];
+        }
+
         public void StopCapture()
         {
             try
             {
                 _running = false;
+
+                _autoTuneExposureRequested = false;
+                _autoTuneExposureCompletion?.TrySetResult(
+                    InvokeResult.FromError("Camera capture stopped before Auto-Tune completed."));
+                _autoTuneExposureCompletion = null;
 
                 lock (_captureLocker)
                 {
@@ -208,6 +425,28 @@ namespace LagoVista.PickAndPlace.App.Services
             {
                 if (_capture != null)
                 {
+                    if (_autoTuneExposureRequested)
+                    {
+                        var completion = _autoTuneExposureCompletion;
+                        _autoTuneExposureRequested = false;
+
+                        try
+                        {
+                            completion?.TrySetResult(await RunAutoTuneExposureAsync());
+                        }
+                        catch (Exception ex)
+                        {
+                            completion?.TrySetResult(
+                                InvokeResult.FromError($"Camera Auto-Tune failed: {ex.Message}"));
+                        }
+                        finally
+                        {
+                            _autoTuneExposureCompletion = null;
+                        }
+
+                        continue;
+                    }
+
                     var brightness = Camera.EffectiveBrightness;
                     if (_lastBrightness != brightness)
                     {

@@ -6,6 +6,7 @@ using LagoVista.Core.Commanding;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Models;
+using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels.Machine
 {
@@ -37,6 +38,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 SelectedMachineCamera.FocusHeight = Machine.MachinePosition.Z;
             }, () => SelectedMachineCamera != null);
 
+            AutoTuneCameraExposureCommand = CreatedMachineConnectedSettingsCommand(
+                async () => await AutoTuneCameraExposureAsync(),
+                () => SelectedMachineCamera != null &&
+                      SelectedMachineCamera.CameraType?.Value == CameraTypes.Position &&
+                      Machine.PositionImageCaptureService != null);
+
 
             MoveToStagingPlateReferenceHole1LocationCommand = CreatedMachineConnectedCommand(() =>
             {
@@ -60,6 +67,53 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         }
 
 
+
+        private async Task AutoTuneCameraExposureAsync()
+        {
+            if (SelectedMachineCamera == null ||
+                SelectedMachineCamera.CameraType?.Value != CameraTypes.Position ||
+                Machine.PositionImageCaptureService == null)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                    "Select the position camera before running Camera Auto-Tune.");
+                return;
+            }
+
+            if (Machine.PositionImageCaptureService.Camera?.Id != SelectedMachineCamera.Id)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                    "The selected position camera is not the active capture camera.");
+                return;
+            }
+
+            Machine.SetVisionProfile(
+                CameraTypes.Position,
+                VisionProfile.VisionProfile_KnownLocation);
+
+            var result = await Machine.PositionImageCaptureService.AutoTuneExposureAsync();
+            if (!result.Successful)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning, result.ErrorMessage);
+                return;
+            }
+
+            // This is the first global camera-level calibration migration step.
+            // Camera-owned profiles now inherit the calibrated exposure baseline.
+            foreach (var profile in SelectedMachineCamera.VisionProfiles)
+                profile.Exposure = null;
+
+            var saveResult = await MachineRepo.SaveCurrentMachineAsync();
+            if (saveResult.Successful)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Info,
+                    $"Saved camera exposure baseline {SelectedMachineCamera.Exposure:F1}.");
+            }
+            else
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                    $"Camera exposure tuned but could not be saved: {saveResult.ErrorMessage}");
+            }
+        }
 
         protected void MoveToSelectedCamera()
         {
@@ -121,6 +175,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         
         
         public RelayCommand SetCameraLocationCommand { get; }
+        public RelayCommand AutoTuneCameraExposureCommand { get; }
         public RelayCommand SetMachineFiducialCommand { get; }
         public RelayCommand MoveToMachineFiducialCommand { get; }
 

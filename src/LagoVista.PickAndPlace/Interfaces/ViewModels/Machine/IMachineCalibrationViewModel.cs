@@ -29,6 +29,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
 
 
         RelayCommand SetCameraLocationCommand { get; }
+        RelayCommand AutoTuneCameraExposureCommand { get; }
         RelayCommand MoveToCameraLocationCommand { get; }
 
 
