@@ -41,11 +41,11 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         [Test]
         public void ResolveCols()
         {
-            var x = StagingPlateUtils.RowToY(_plate, "1");
+            var x = StagingPlateUtils.ColToX(_plate, "1");
             Console.WriteLine(x);
             Assert.That(x.Equals(1 * 30 / 2));
 
-            x = StagingPlateUtils.RowToY(_plate, "10");
+            x = StagingPlateUtils.ColToX(_plate, "10");
             Console.WriteLine(x);
             Assert.That(x.Equals(10 * 30 / 2));
         }
@@ -59,18 +59,68 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(location.Y.Equals(30));
         }
 
-        [Test]
-        public void ResolveWorkSpaceLocation()
+        [TestCase(0.0, 1.0)]
+        [TestCase(3.0, 1.0)]
+        [TestCase(-4.5, 1.0)]
+        [TestCase(12.0, 1.002)]
+        [TestCase(-7.0, 0.998)]
+        public void ResolveAllMountingHolesFromTwoReferences(double rotationDegrees, double scale)
         {
-            var col = EntityHeader.Create("10", "10", "10");
-            var row = EntityHeader.Create("B", "B", "B");
-            
-            Console.WriteLine("Reference Hole: " +  _plate.ReferenceHoleLocation1);
-            Console.WriteLine("Target Point  : " + StagingPlateUtils.ResolveStagePlateLocation(_plate, col, row));            
-            Console.WriteLine("Reference On Plate:  " + StagingPlateUtils.ResolveStagePlateLocation(_plate, _plate.ReferenceHoleColumn1, _plate.ReferenceHoleRow1));
+            // A1 and S24 are 23 columns and 18 rows apart on the 15 mm grid.
+            _plate.ReferenceHoleColumn1 = EntityHeader.Create("1", "1", "1");
+            _plate.ReferenceHoleRow1 = EntityHeader.Create("A", "A", "A");
+            _plate.ReferenceHoleColumn2 = EntityHeader.Create("24", "24", "24");
+            _plate.ReferenceHoleRow2 = EntityHeader.Create("S", "S", "S");
 
-            var location = StagingPlateUtils.ResolveStagePlateWorkSpakeLocation(_plate, col, row);
-            Console.WriteLine("Final Location: " + location);
+            var radians = rotationDegrees * Math.PI / 180.0;
+            var cosine = Math.Cos(radians) * scale;
+            var sine = Math.Sin(radians) * scale;
+
+            // Independent known physical transform used only to generate test measurements.
+            Func<double, double, Core.Models.Drawing.Point2D<double>> measured = (x, y) =>
+                new Core.Models.Drawing.Point2D<double>(
+                    100 + cosine * x - sine * y,
+                    80 + sine * x + cosine * y);
+
+            _plate.ReferenceHoleLocation1 = measured(15, 15);
+            _plate.ReferenceHoleLocation2 = measured(360, 285);
+
+            double maximumError = 0;
+            for (var rowIndex = 0; rowIndex < 19; rowIndex++)
+            {
+                var row = ((char)('A' + rowIndex)).ToString();
+                for (var column = 1; column <= 24; column++)
+                {
+                    var expected = measured(column * 15, (rowIndex + 1) * 15);
+                    var actual = StagingPlateUtils.ResolveStagePlateWorkSpaceLocation(
+                        _plate, column.ToString(), row);
+
+                    var error = Math.Sqrt(Math.Pow(actual.X - expected.X, 2) +
+                                          Math.Pow(actual.Y - expected.Y, 2));
+                    maximumError = Math.Max(maximumError, error);
+
+                    Assert.That(error, Is.LessThan(0.00000001),
+                        $"Hole {row}{column} at {rotationDegrees} degrees, scale {scale}");
+                }
+            }
+
+            TestContext.WriteLine($"Verified 456 holes at {rotationDegrees} degrees, scale {scale}. Maximum error: {maximumError} mm.");
+        }
+
+        [Test]
+        public void ReferenceHoleOrderDoesNotMatter()
+        {
+            _plate.ReferenceHoleColumn1 = EntityHeader.Create("24", "24", "24");
+            _plate.ReferenceHoleRow1 = EntityHeader.Create("S", "S", "S");
+            _plate.ReferenceHoleColumn2 = EntityHeader.Create("1", "1", "1");
+            _plate.ReferenceHoleRow2 = EntityHeader.Create("A", "A", "A");
+
+            _plate.ReferenceHoleLocation1 = new Core.Models.Drawing.Point2D<double>(460, 365);
+            _plate.ReferenceHoleLocation2 = new Core.Models.Drawing.Point2D<double>(115, 95);
+
+            var location = StagingPlateUtils.ResolveStagePlateWorkSpaceLocation(_plate, "10", "G");
+            Assert.That(location.X, Is.EqualTo(250).Within(0.00000001));
+            Assert.That(location.Y, Is.EqualTo(185).Within(0.00000001));
         }
     }
 }
