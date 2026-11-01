@@ -91,7 +91,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 await Machine.SpinUntilIdleAsync();
                 Machine.DebugWriteLine($"[MachineVisionOrigin] - Moved into position {_originSW.Elapsed.TotalMilliseconds}ms");
 
-                if (!Machine.AreSettingsLocked && Machine.PositionImageCaptureService != null)
+                if (Machine.PositionImageCaptureService != null)
                 {
                     var autoTuneResult = await Machine.PositionImageCaptureService.AutoTuneExposureAsync();
                     if (autoTuneResult.Successful)
