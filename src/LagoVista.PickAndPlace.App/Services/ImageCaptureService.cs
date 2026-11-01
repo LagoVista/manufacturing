@@ -64,6 +64,14 @@ namespace LagoVista.PickAndPlace.App.Services
 
         protected override void MachineChanged(IMachine machine)
         {
+            BindCamera(machine);
+        }
+
+        private void BindCamera(IMachine machine)
+        {
+            if (Camera != null)
+                Camera.PropertyChanged -= Camera_PropertyChanged;
+
             Camera = machine.Settings.Cameras.FirstOrDefault(c => c.CameraType.Value == CameraType);
             if (Camera != null)
             {
@@ -545,7 +553,13 @@ namespace LagoVista.PickAndPlace.App.Services
         public CameraTypes CameraType
         {
             get => _cameraType;
-            set => Set(ref _cameraType, value);
+            set
+            {
+                Set(ref _cameraType, value);
+
+                if (Machine != null)
+                    BindCamera(Machine);
+            }
         }
 
         MachineCamera _camera;
