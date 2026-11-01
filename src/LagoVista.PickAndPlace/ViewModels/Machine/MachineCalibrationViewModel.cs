@@ -30,7 +30,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             MoveToKnownLocationCommand = CreatedMachineConnectedCommand(() => {
                 Machine.GotoPoint(MachineConfiguration.KnownCalibrationPoint);
                 Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_KnownLocation    );
-            }, () => !MachineConfiguration.KnownCalibrationPoint.IsOrigin());
+            });
 
             MoveToCameraLocationCommand = CreatedMachineConnectedCommand(MoveToSelectedCamera, () => SelectedMachineCamera != null && SelectedMachineCamera.AbsolutePosition != null);
             SetCameraLocationCommand = CreatedMachineConnectedSettingsCommand(() => {
@@ -42,8 +42,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 async () => await AutoTuneCameraExposureAsync(),
                 () => SelectedMachineCamera != null &&
                       SelectedMachineCamera.CameraType?.Value == CameraTypes.Position &&
-                      Machine.PositionImageCaptureService != null &&
-                      !MachineConfiguration.KnownCalibrationPoint.IsOrigin());
+                      Machine.PositionImageCaptureService != null);
 
 
             MoveToStagingPlateReferenceHole1LocationCommand = CreatedMachineConnectedCommand(() =>
@@ -84,13 +83,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             {
                 Machine.AddStatusMessage(StatusMessageTypes.Warning,
                     "The selected position camera is not the active capture camera.");
-                return;
-            }
-
-            if (MachineConfiguration.KnownCalibrationPoint.IsOrigin())
-            {
-                Machine.AddStatusMessage(StatusMessageTypes.Warning,
-                    "Capture the Known Location for the Vision Reference Target before running Camera Auto-Tune.");
                 return;
             }
 
