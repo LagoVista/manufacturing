@@ -37,7 +37,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             MoveToKnownLocationCommand = CreatedMachineConnectedCommand(() => {
                 Machine.GotoPoint(MachineConfiguration.KnownCalibrationPoint);
                 Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_KnownLocation);
-                });
+                }, () => !MachineConfiguration.KnownCalibrationPoint.IsOrigin());
 
             SetDefaultOriginCommand = CreatedMachineConnectedSettingsCommand(() => Current.DefaultOriginPosition = Machine.MachinePosition.Z, () => Current != null);
             SetIdleVacuumCommand = CreatedMachineConnectedSettingsCommand(() => SetVacuum(VacuumState.Idle), () => Current != null);
