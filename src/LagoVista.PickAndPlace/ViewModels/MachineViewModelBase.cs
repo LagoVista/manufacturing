@@ -55,7 +55,9 @@ namespace LagoVista.PickAndPlace.ViewModels
         {
             if (e.PropertyName == nameof(Machine.WasMachinOriginCalibrated) ||
                 e.PropertyName == nameof(Machine.IsLocating) ||
-                e.PropertyName == nameof(Machine.WasMachineHomed))
+                e.PropertyName == nameof(Machine.WasMachineHomed) ||
+                e.PropertyName == nameof(Machine.PositionImageCaptureService) ||
+                e.PropertyName == nameof(Machine.PartInspectionCaptureService))
             {
                 RaiseCanExecuteChanged();
             }
