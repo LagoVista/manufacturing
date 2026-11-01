@@ -77,7 +77,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 Y = size.Height / 2
             };
 
-            var scaledRadius = profile.TargetImageRadius * camera.CurrentVisionProfile.PixelsPerMM;
+            var scaledRadius = profile.TargetImageRadius * camera.EffectivePixelsPerMM;
 
             Line(destImage, 0, center.Y, center.X - (int)scaledRadius, center.Y, System.Drawing.Color.Yellow);
             Line(destImage, center.X + (int)scaledRadius, center.Y, size.Width, center.Y, System.Drawing.Color.Yellow);

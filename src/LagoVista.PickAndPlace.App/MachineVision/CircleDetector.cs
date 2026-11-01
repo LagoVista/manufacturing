@@ -35,11 +35,11 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             var profile = camera.CurrentVisionProfile;
             var center = size.Center();
 
-            var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.CurrentVisionProfile.PixelsPerMM);
+            var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.EffectivePixelsPerMM);
             var search = new CircleF(new System.Drawing.PointF(center.X, center.Y), scaledTarget);
 
-            var circles = CvInvoke.HoughCircles(input.Image, HoughModes.Gradient, profile.HoughCirclesDP, profile.HoughCirclesMinDistance * camera.CurrentVisionProfile.PixelsPerMM, profile.HoughCirclesParam1, profile.HoughCirclesParam2,
-                Convert.ToInt32(profile.HoughCirclesMinRadius * camera.CurrentVisionProfile.PixelsPerMM), Convert.ToInt32(profile.HoughCirclesMaxRadius * camera.CurrentVisionProfile.PixelsPerMM));
+            var circles = CvInvoke.HoughCircles(input.Image, HoughModes.Gradient, profile.HoughCirclesDP, profile.HoughCirclesMinDistance * camera.EffectivePixelsPerMM, profile.HoughCirclesParam1, profile.HoughCirclesParam2,
+                Convert.ToInt32(profile.HoughCirclesMinRadius * camera.EffectivePixelsPerMM), Convert.ToInt32(profile.HoughCirclesMaxRadius * camera.EffectivePixelsPerMM));
 
             foreach (var circle in circles)
             {
@@ -54,7 +54,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     }
                     else
                     {
-                        var foundCircle = new MVLocatedCircle(camera.CameraType.Value, center, profile.PixelsPerMM, profile.ErrorToleranceMM, profile.StabilizationCount);
+                        var foundCircle = new MVLocatedCircle(camera.CameraType.Value, center, camera.EffectivePixelsPerMM, profile.ErrorToleranceMM, profile.StabilizationCount);
                         foundCircle.Add(circle.Center, circle.Radius);
                         foundCircle.Iteration = _iteration;
                         _foundCircles.Add(foundCircle);

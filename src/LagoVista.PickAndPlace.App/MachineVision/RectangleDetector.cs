@@ -60,7 +60,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             using (var contours = new VectorOfVectorOfPoint())
             {
                 var center = size.Center();
-                var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.CurrentVisionProfile.PixelsPerMM);
+                var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.EffectivePixelsPerMM);
                 var searchBounds = new CircleF(new System.Drawing.PointF(center.X, center.Y), scaledTarget);
 
                 var retrType = RetrType.List;
@@ -134,7 +134,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                                             }
                                             else
                                             {
-                                                var foundRect = new MVLocatedRectangle(camera.CameraType.Value, center, profile.PixelsPerMM, profile.ErrorToleranceMM, profile.StabilizationCount);
+                                                var foundRect = new MVLocatedRectangle(camera.CameraType.Value, center, camera.EffectivePixelsPerMM, profile.ErrorToleranceMM, profile.StabilizationCount);
                                                 foundRect.Iteration = _iteration;
                                                 foundRect.Add(rect);
                                                 _locatorViewModel.RectLocated(foundRect);
