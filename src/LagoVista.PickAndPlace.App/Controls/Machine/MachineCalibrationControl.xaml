@@ -105,7 +105,7 @@
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="800"/>
+                <ColumnDefinition Width="1200"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <DataGrid ItemsSource="{Binding  MachineConfiguration.StagingPlates}" SelectedItem="{Binding SelectedStagingPlate}" AutoGenerateColumns="false" CanUserAddRows="false">
@@ -192,7 +192,7 @@
 
         <Grid Grid.Row="2" Grid.ColumnSpan="4">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="800"/>
+                <ColumnDefinition Width="1200"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <DataGrid Grid.Row="1" ItemsSource="{Binding  MachineConfiguration.FeederRails}" CanUserAddRows="false" AutoGenerateColumns="false" SelectedItem="{Binding SelectedFeederRail}">
@@ -226,7 +226,7 @@
 
         <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="800"/>
+                <ColumnDefinition Width="1200"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <DataGrid Grid.Row="1" ItemsSource="{Binding  MachineConfiguration.Cameras}"  AutoGenerateColumns="False" CanUserAddRows="false" SelectedItem="{Binding SelectedMachineCamera}">
@@ -258,7 +258,7 @@
                         </Button.Content>
                     </Button>
                 </StackPanel>
-                <TextBlock TextWrapping="Wrap" Width="600" Style="{StaticResource content}"
+                <TextBlock TextWrapping="Wrap" Style="{StaticResource content}"
                            Text="Vision Reference Target: Auto-Tune moves the position camera to the Known Location, waits for motion to complete, normalizes exposure, and persists the camera baseline." />
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                     <TextBlock Style="{StaticResource content}" VerticalAlignment="Center" Margin="0,0,16,0">
@@ -276,7 +276,7 @@
 
         <Grid Grid.Row="5">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="800"/>
+                <ColumnDefinition Width="1200"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <DataGrid Grid.Row="1" ItemsSource="{Binding MachineConfiguration.Nozzles}" CanUserAddRows="false" SelectedItem="{Binding SelectedNozzleTip}" AutoGenerateColumns="false">

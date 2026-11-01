@@ -10,7 +10,7 @@ namespace LagoVista.PickAndPlace
 {
     public static class StringExtensions
     {
-        public const string NotSelectedId = "-1";
+        public const string NotSelectedId = "00000000000000000000000000000000";
 
         public static bool HasValidId(this string id)
         {

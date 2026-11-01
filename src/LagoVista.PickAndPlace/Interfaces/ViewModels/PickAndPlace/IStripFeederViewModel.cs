@@ -23,7 +23,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         StripFeeder Current { get; set; }
         StripFeederRow CurrentRow { get; set; }
         ObservableCollection<MachineStagingPlate> StagingPlates { get; }
-        ObservableCollection<StripFeederTemplate> Templates { get; }
+        ObservableCollection<StripFeederTemplateSummary> Templates { get; }
 
         ObservableCollection<StripFeeder> Feeders { get; }
 

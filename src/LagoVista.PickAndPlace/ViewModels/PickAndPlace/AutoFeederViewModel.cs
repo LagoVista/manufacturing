@@ -215,12 +215,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         private async Task LoadTemplates()
         {
-            var result = await _restClient.GetListResponseAsync<AutoFeederTemplate>("/api/mfg/autofeeder/templates");
+            var result = await _restClient.GetListResponseAsync<AutoFeederTemplateSummary>("/api/mfg/autofeeder/templates");
             if (result.Successful)
             {
                 var feeders = result.Model.ToList();
-                feeders.Insert(0, new AutoFeederTemplate() { Id = StringExtensions.NotSelectedId, Name = "-select feeder template-" });
-                Templates = new ObservableCollection<AutoFeederTemplate>(feeders);
+                feeders.Insert(0, new AutoFeederTemplateSummary() { Id = StringExtensions.NotSelectedId, Name = "-select feeder template-" });
+                Templates = new ObservableCollection<AutoFeederTemplateSummary>(feeders);
             }
 
             SelectedTemplateId = StringExtensions.NotSelectedId;
@@ -558,8 +558,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public override double? PickHeight => _current?.PickHeight;
 
-        ObservableCollection<AutoFeederTemplate> _templates;
-        public ObservableCollection<AutoFeederTemplate> Templates 
+        ObservableCollection<AutoFeederTemplateSummary> _templates;
+        public ObservableCollection<AutoFeederTemplateSummary> Templates 
         {
             get => _templates;
             private set => Set(ref _templates, value);
