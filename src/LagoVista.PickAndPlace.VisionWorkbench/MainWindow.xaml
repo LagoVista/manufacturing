@@ -250,43 +250,45 @@
                             <TextBlock Text="{Binding PickupSummary}" TextWrapping="Wrap" Foreground="#B8C6D7" Margin="0,10,0,5"/>
                             <TextBlock Text="Cyan = fitted hole axis; magenta = legacy shared-calculator preview. Image frame assumes horizontal, forward feed, holes on lower side; inspect alignment before trusting positions. No machine movement." TextWrapping="Wrap" Foreground="#E6B56C" FontSize="11" Margin="0,5,0,8"/>
                             <TextBlock Text="CAMERA / TOP LIGHT" Foreground="#9DB5D9" FontWeight="Bold" Margin="0,20,0,8" TextWrapping="Wrap"/>
+                            <TextBlock Text="Camera baseline values. A non-null profile override still wins during capture; Light On remains profile-owned."
+                                       Foreground="#A8B5C6" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8"/>
                             <TextBlock Text="Exposure" Margin="0,5,0,2"/>
-                            <TextBox Text="{Binding Profile.Exposure, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBox Text="{Binding Camera.Exposure, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="Brightness" Margin="0,8,0,2"/>
-                            <TextBox Text="{Binding Profile.Brightness, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBox Text="{Binding Camera.Brightness, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="Contrast" Margin="0,8,0,2"/>
-                            <TextBox Text="{Binding Profile.Contrast, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBox Text="{Binding Camera.Contrast, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             <TextBlock Text="Focus" Margin="0,8,0,2"/>
-                            <TextBox Text="{Binding Profile.Focus, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBox Text="{Binding Camera.Focus, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
-                            <CheckBox Content="Light on" Margin="0,12,0,6" IsChecked="{Binding Profile.LightOn, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            <CheckBox Content="Light on (profile)" Margin="0,12,0,6" IsChecked="{Binding Profile.LightOn, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                             <TextBlock Text="Power" Margin="0,8,0,2"/>
                             <DockPanel>
-                                <TextBlock DockPanel.Dock="Right" Width="34" Text="{Binding Profile.LightPower}" VerticalAlignment="Center"/>
+                                <TextBlock DockPanel.Dock="Right" Width="34" Text="{Binding Camera.LightPower}" VerticalAlignment="Center"/>
                                 <Slider Minimum="0" Maximum="255" TickFrequency="1" IsSnapToTickEnabled="True"
-                                        Value="{Binding Profile.LightPower, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        Value="{Binding Camera.LightPower, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             </DockPanel>
 
                             <TextBlock Text="Red" Margin="0,8,0,2"/>
                             <DockPanel>
-                                <TextBlock DockPanel.Dock="Right" Width="34" Text="{Binding Profile.LightRed}" VerticalAlignment="Center"/>
+                                <TextBlock DockPanel.Dock="Right" Width="34" Text="{Binding Camera.LightRed}" VerticalAlignment="Center"/>
                                 <Slider Minimum="0" Maximum="255" TickFrequency="1" IsSnapToTickEnabled="True"
-                                        Value="{Binding Profile.LightRed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        Value="{Binding Camera.LightRed, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             </DockPanel>
 
                             <TextBlock Text="Green" Margin="0,8,0,2"/>
                             <DockPanel>
-                                <TextBlock DockPanel.Dock="Right" Width="34" Text="{Binding Profile.LightGreen}" VerticalAlignment="Center"/>
+                                <TextBlock DockPanel.Dock="Right" Width="34" Text="{Binding Camera.LightGreen}" VerticalAlignment="Center"/>
                                 <Slider Minimum="0" Maximum="255" TickFrequency="1" IsSnapToTickEnabled="True"
-                                        Value="{Binding Profile.LightGreen, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        Value="{Binding Camera.LightGreen, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             </DockPanel>
 
                             <TextBlock Text="Blue" Margin="0,8,0,2"/>
                             <DockPanel>
-                                <TextBlock DockPanel.Dock="Right" Width="34" Text="{Binding Profile.LightBlue}" VerticalAlignment="Center"/>
+                                <TextBlock DockPanel.Dock="Right" Width="34" Text="{Binding Camera.LightBlue}" VerticalAlignment="Center"/>
                                 <Slider Minimum="0" Maximum="255" TickFrequency="1" IsSnapToTickEnabled="True"
-                                        Value="{Binding Profile.LightBlue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                        Value="{Binding Camera.LightBlue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                             </DockPanel>
                             <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                                 <Button Content="Apply top light" Click="ApplyTopLight_Click"/>

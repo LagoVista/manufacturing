@@ -7,9 +7,6 @@ namespace LagoVista.PickAndPlace.VisionWorkbench.Services;
 
 public sealed class WorkbenchMachineControl : IDisposable
 {
-    private const int InitialFastFeedRate = 2500;
-    private bool _settingsLoadedFromPlatform;
-    private const int InitialFastFeedRate = 2500;
     public LagoVista.PickAndPlace.Machine Machine { get; } = new();
 
     public event EventHandler? StateChanged;
@@ -74,17 +71,17 @@ public sealed class WorkbenchMachineControl : IDisposable
         Machine.SetAbsoluteMode();
     }
 
-    public void ApplyTopLight(VisionProfile profile)
+    public void ApplyTopLight(MachineCamera camera, VisionProfile profile)
     {
         if (!Machine.Connected)
             throw new InvalidOperationException("Connect the machine before controlling the top light.");
 
         Machine.ConfigureTopLight(
             profile.LightOn,
-            profile.LightPower,
-            profile.LightRed,
-            profile.LightGreen,
-            profile.LightBlue);
+            profile.LightPower ?? camera.LightPower,
+            profile.LightRed ?? camera.LightRed,
+            profile.LightGreen ?? camera.LightGreen,
+            profile.LightBlue ?? camera.LightBlue);
     }
 
     public void TurnOffTopLight()
@@ -93,6 +90,27 @@ public sealed class WorkbenchMachineControl : IDisposable
             return;
 
         Machine.ConfigureTopLight(false, 0, 0, 0, 0);
+    }
+
+    public void ApplyBottomLight(MachineCamera camera, VisionProfile profile)
+    {
+        if (!Machine.Connected)
+            throw new InvalidOperationException("Connect the machine before controlling the bottom light.");
+
+        Machine.ConfigureBottomLight(
+            profile.LightOn,
+            profile.LightPower ?? camera.LightPower,
+            profile.LightRed ?? camera.LightRed,
+            profile.LightGreen ?? camera.LightGreen,
+            profile.LightBlue ?? camera.LightBlue);
+    }
+
+    public void TurnOffBottomLight()
+    {
+        if (!Machine.Connected)
+            return;
+
+        Machine.ConfigureBottomLight(false, 0, 0, 0, 0);
     }
 
     public void EmergencyStop() => Machine.EmergencyStop();

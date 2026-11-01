@@ -26,7 +26,7 @@ public sealed class WorkbenchCameraCapture : IDisposable
             .Select((device, index) => new CameraDeviceInfo(device.Name, device.DevicePath, index))
             .ToArray();
 
-    public void Start(CameraDeviceInfo device, VisionProfile? profile, Action<BitmapSource> onFrame, Action<string>? onError = null)
+    public void Start(CameraDeviceInfo device, MachineCamera camera, VisionProfile profile, Action<BitmapSource> onFrame, Action<string>? onError = null)
     {
         Stop();
         _capture = new VideoCapture(device.Index);
@@ -40,13 +40,10 @@ public sealed class WorkbenchCameraCapture : IDisposable
         _capture.Set(CapProp.FrameWidth, 1920);
         _capture.Set(CapProp.FrameHeight, 1920);
         _capture.Set(CapProp.AutoExposure, 0);
-        if (profile is not null)
-        {
-            _capture.Set(CapProp.Brightness, profile.Brightness);
-            _capture.Set(CapProp.Focus, profile.Focus);
-            _capture.Set(CapProp.Contrast, profile.Contrast);
-            _capture.Set(CapProp.Exposure, profile.Exposure);
-        }
+        _capture.Set(CapProp.Brightness, profile.Brightness ?? camera.Brightness);
+        _capture.Set(CapProp.Focus, profile.Focus ?? camera.Focus);
+        _capture.Set(CapProp.Contrast, profile.Contrast ?? camera.Contrast);
+        _capture.Set(CapProp.Exposure, profile.Exposure ?? camera.Exposure);
 
         _cts = new CancellationTokenSource();
         var token = _cts.Token;

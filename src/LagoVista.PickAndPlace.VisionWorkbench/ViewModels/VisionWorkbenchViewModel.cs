@@ -207,6 +207,22 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true, PropertyNameCaseInsensitive = true };
     private static VisionProfile NewProfile() => new() { Name = "New experiment", Key = VisionProfile.VisionProfile_Custom, Id = Guid.NewGuid().ToString("N") };
 
+    private MachineCamera _camera = new();
+    public MachineCamera Camera
+    {
+        get => _camera;
+        private set
+        {
+            _camera = value;
+            Notify();
+        }
+    }
+
+    public void LoadMachineCamera(MachineCamera camera)
+    {
+        Camera = camera ?? throw new ArgumentNullException(nameof(camera));
+    }
+
     public VisionProfile Profile
     {
         get => _profile;

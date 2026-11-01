@@ -18,7 +18,6 @@ public partial class MainWindow : Window
     private readonly WorkbenchCameraCapture _cameraCapture = new();
     private readonly WorkbenchMachineControl _machineControl = new();
     private readonly WorkbenchPlatformClient _platformClient = new();
-    private VisionProfile? _topCameraProfile;
     private bool _suppressPlatformMachineSelection;
     private static readonly string WindowPreferencesPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -268,11 +267,14 @@ public partial class MainWindow : Window
         _machineControl.LoadSettings(settings);
 
         var topCamera = settings.Cameras.FirstOrDefault(camera => camera.CameraType?.Value == CameraTypes.Position);
-        _topCameraProfile = topCamera?.CurrentVisionProfile
+        var topCameraProfile = topCamera?.CurrentVisionProfile
             ?? topCamera?.VisionProfiles.FirstOrDefault(profile => profile.Key == VisionProfile.VisionProfile_Defauilt);
 
-        if (_topCameraProfile is not null)
-            _vm.LoadMachineVisionProfile(_topCameraProfile);
+        if (topCamera is not null)
+            _vm.LoadMachineCamera(topCamera);
+
+        if (topCameraProfile is not null)
+            _vm.LoadMachineVisionProfile(topCameraProfile);
 
         if (topCamera is not null && topCamera.CameraDevice is not null)
         {
@@ -364,13 +366,13 @@ public partial class MainWindow : Window
     }
 
     private void ApplyTopLight_Click(object sender, RoutedEventArgs e)
-        => TryAction(() => _machineControl.ApplyTopLight(_vm.Profile), "Unable to configure top light");
+        => TryAction(() => _machineControl.ApplyTopLight(_vm.Camera, _vm.Profile), "Unable to configure top light");
 
     private void TopLightOff_Click(object sender, RoutedEventArgs e)
         => TryAction(_machineControl.TurnOffTopLight, "Unable to turn off top light");
 
     private void ApplyBottomLight_Click(object sender, RoutedEventArgs e)
-        => TryAction(() => _machineControl.ApplyBottomLight(_vm.Profile), "Unable to configure bottom light");
+        => TryAction(() => _machineControl.ApplyBottomLight(_vm.Camera, _vm.Profile), "Unable to configure bottom light");
 
     private void BottomLightOff_Click(object sender, RoutedEventArgs e)
         => TryAction(_machineControl.TurnOffBottomLight, "Unable to turn off bottom light");
@@ -391,7 +393,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        TryAction(() => _cameraCapture.Start(_vm.SelectedCamera, _vm.Profile,
+        TryAction(() => _cameraCapture.Start(_vm.SelectedCamera, _vm.Camera, _vm.Profile,
             frame => Dispatcher.BeginInvoke(() => _vm.ApplyCameraFrame(frame)),
             error => Dispatcher.BeginInvoke(() => _vm.SetCameraError(error))), "Unable to start camera");
     }
