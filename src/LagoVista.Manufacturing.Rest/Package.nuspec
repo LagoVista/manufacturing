@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <package>
   <metadata>
     <id>LagoVista.Manufacturing.Rest</id>
@@ -17,7 +17,7 @@
     <dependencies>
       <group targetFramework="net9.0">
         <dependency id="LagoVista.IoT.Web.Common" version="7.0.64" />
-        <dependency id="LagoVista.Manufacturing" version="7.0.8" />
+        <dependency id="LagoVista.Manufacturing" version="7.0.9" />
       </group>
     </dependencies>
   </metadata>

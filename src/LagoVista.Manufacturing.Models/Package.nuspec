@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <package>
   <metadata>
     <id>LagoVista.Manufacturing.Models</id>
@@ -16,7 +16,7 @@
     <repository url="https://www.github.com/lagovista" type="git" branch="master"></repository>
     <dependencies>
       <group targetFramework="netstandard2.1">
-        <dependency id="LagoVista.PCB.Eagle" version="7.0.8" />
+        <dependency id="LagoVista.PCB.Eagle" version="7.0.9" />
         <dependency id="LagoVista.UserAdmin.Models" version="7.0.36" />
       </group>
     </dependencies>
