@@ -20,6 +20,7 @@ namespace LagoVista.Pcb.Tests
         {
         }
 
+        [Category("Integration")]
         [Test]
         public void ParseEagle()
         {
@@ -34,6 +35,7 @@ namespace LagoVista.Pcb.Tests
             }
         }
 
+        [Category("Integration")]
         [Test]
         public void ParseRelayBoardEagle()
         {
@@ -51,6 +53,7 @@ namespace LagoVista.Pcb.Tests
         }
 
 
+        [Category("Integration")]
         [Test]
         public void FindResistors()
         {
@@ -80,6 +83,7 @@ namespace LagoVista.Pcb.Tests
             }
         }
 
+        [Category("Integration")]
         [Test]
         public void ParseKicad()
         {
