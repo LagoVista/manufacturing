@@ -48,20 +48,21 @@ namespace LagoVista.Manufacturing.Util
 
             var expected = secondPointOffset - referenceOffset;
             var actual = plate.ReferenceHoleLocation2 - plate.ReferenceHoleLocation1;
-            var delta = expected - actual;
-            var x = (holeLocation.X - referenceOffset.X);
-            var y = (holeLocation.Y - referenceOffset.Y);
+            var lengthSquared = expected.X * expected.X + expected.Y * expected.Y;
+            if (lengthSquared == 0)
+                throw new ArgumentException("The staging plate reference holes must be different.");
 
-            var ratioX = x / actual.X;
-            var ratioY = y / actual.Y;
+            // Two measured reference holes determine translation, rotation and uniform scale.
+            var cosScaled = (expected.X * actual.X + expected.Y * actual.Y) / lengthSquared;
+            var sinScaled = (expected.X * actual.Y - expected.Y * actual.X) / lengthSquared;
 
-            x -= ratioX * delta.X;
-            y -= ratioX * delta.Y;
+            var x = holeLocation.X - referenceOffset.X;
+            var y = holeLocation.Y - referenceOffset.Y;
 
             return new Point2D<double>()
             {
-                X = x + plate.ReferenceHoleLocation1.X,
-                Y = y + plate.ReferenceHoleLocation1.Y
+                X = plate.ReferenceHoleLocation1.X + cosScaled * x - sinScaled * y,
+                Y = plate.ReferenceHoleLocation1.Y + sinScaled * x + cosScaled * y
             };
         }
     }
