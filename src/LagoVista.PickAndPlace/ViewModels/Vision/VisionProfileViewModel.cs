@@ -165,12 +165,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
                     if (Camera.CameraType.Value == CameraTypes.Position)
                     {
-                        Machine.ConfigureTopLight(Camera.CurrentVisionProfile.LightOn, Camera.CurrentVisionProfile.LightPower,
+                        Machine.ConfigureTopLight(Camera.CurrentVisionProfile.LightOn, Camera.EffectiveLightPower,
                             Camera.CurrentVisionProfile.LightRed, Camera.CurrentVisionProfile.LightGreen, Camera.CurrentVisionProfile.LightBlue);
                     }
                     else if (Camera.CameraType.Value == CameraTypes.PartInspection)
                     {
-                        Machine.ConfigureBottomLight(Camera.CurrentVisionProfile.LightOn, Camera.CurrentVisionProfile.LightPower,
+                        Machine.ConfigureBottomLight(Camera.CurrentVisionProfile.LightOn, Camera.EffectiveLightPower,
                             Camera.CurrentVisionProfile.LightRed, Camera.CurrentVisionProfile.LightGreen, Camera.CurrentVisionProfile.LightBlue);
                     }
 
@@ -193,11 +193,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
                 if (Camera.CameraType.Value == CameraTypes.Position)
                 {
-                    Machine.ConfigureTopLight(Camera.CurrentVisionProfile.LightOn, Camera.CurrentVisionProfile.LightPower, Camera.CurrentVisionProfile.LightRed, Camera.CurrentVisionProfile.LightGreen, Camera.CurrentVisionProfile.LightBlue);
+                    Machine.ConfigureTopLight(Camera.CurrentVisionProfile.LightOn, Camera.EffectiveLightPower, Camera.CurrentVisionProfile.LightRed, Camera.CurrentVisionProfile.LightGreen, Camera.CurrentVisionProfile.LightBlue);
                 }
                 else if (Camera.CameraType.Value == CameraTypes.PartInspection)
                 {
-                    Machine.ConfigureBottomLight(Camera.CurrentVisionProfile.LightOn, Camera.CurrentVisionProfile.LightPower, Camera.CurrentVisionProfile.LightRed, Camera.CurrentVisionProfile.LightGreen, Camera.CurrentVisionProfile.LightBlue);
+                    Machine.ConfigureBottomLight(Camera.CurrentVisionProfile.LightOn, Camera.EffectiveLightPower, Camera.CurrentVisionProfile.LightRed, Camera.CurrentVisionProfile.LightGreen, Camera.CurrentVisionProfile.LightBlue);
                 }
             }
         }

@@ -135,20 +135,27 @@ namespace LagoVista.PickAndPlace.Models
             set => Set(ref _showCrosshairs, value);
         }
 
-        /* 1-3*/
-        private double _brightness = 50;
-        public double Brightness
+        /* Null means inherit the camera baseline. */
+        private double? _brightness;
+        public double? Brightness
         {
             get { return _brightness; }
-            set { _brightness = Math.Round(value, 1); RaisePropertyChanged(); }
+            set
+            {
+                _brightness = value.HasValue ? Math.Round(value.Value, 1) : (double?)null;
+                RaisePropertyChanged();
+            }
         }
 
-        /* 0-100*/
-        private double _contrast = 50;
-        public double Contrast
+        private double? _contrast;
+        public double? Contrast
         {
             get { return _contrast; }
-            set { _contrast = Math.Round(value, 1); RaisePropertyChanged(); }
+            set
+            {
+                _contrast = value.HasValue ? Math.Round(value.Value, 1) : (double?)null;
+                RaisePropertyChanged();
+            }
         }
 
         private double _targetImageRadius = 2;
@@ -173,11 +180,15 @@ namespace LagoVista.PickAndPlace.Models
         }
 
 
-        private double _exposure = 0;
-        public double Exposure
+        private double? _exposure;
+        public double? Exposure
         {
             get { return _exposure; }
-            set { _exposure = Math.Round(value, 1); RaisePropertyChanged(); }
+            set
+            {
+                _exposure = value.HasValue ? Math.Round(value.Value, 1) : (double?)null;
+                RaisePropertyChanged();
+            }
         }
 
         private bool _findRectangles;
@@ -532,8 +543,8 @@ namespace LagoVista.PickAndPlace.Models
             set { Set(ref _blue, value); }
         }
 
-        private byte _power = 0xFF;
-        public byte LightPower
+        private byte? _power;
+        public byte? LightPower
         {
             get { return _power; }
             set { Set(ref _power, value); }
