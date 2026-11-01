@@ -9,6 +9,7 @@ public sealed class WorkbenchMachineControl : IDisposable
 {
     private const int InitialFastFeedRate = 2500;
     private bool _settingsLoadedFromPlatform;
+    private const int InitialFastFeedRate = 2500;
     public LagoVista.PickAndPlace.Machine Machine { get; } = new();
 
     public event EventHandler? StateChanged;
@@ -33,8 +34,10 @@ public sealed class WorkbenchMachineControl : IDisposable
             throw new InvalidOperationException("Disconnect before loading different machine settings.");
 
         Machine.Settings = settings ?? throw new ArgumentNullException(nameof(settings));
-        if (Machine.Settings.FastFeedRate <= 0 || Machine.Settings.FastFeedRate > InitialFastFeedRate)
-            Machine.Settings.FastFeedRate = InitialFastFeedRate;
+        // Workbench-only conservative motion limit; do not persist to platform.
+        Machine.Settings.FastFeedRate = Math.Min(
+            Machine.Settings.FastFeedRate > 0 ? Machine.Settings.FastFeedRate : InitialFastFeedRate,
+            InitialFastFeedRate);
         _settingsLoadedFromPlatform = true;
         StateChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -76,27 +79,20 @@ public sealed class WorkbenchMachineControl : IDisposable
         if (!Machine.Connected)
             throw new InvalidOperationException("Connect the machine before controlling the top light.");
 
-        Machine.ConfigureTopLight(profile.LightOn, profile.LightPower, profile.LightRed, profile.LightGreen, profile.LightBlue);
+        Machine.ConfigureTopLight(
+            profile.LightOn,
+            profile.LightPower,
+            profile.LightRed,
+            profile.LightGreen,
+            profile.LightBlue);
     }
 
     public void TurnOffTopLight()
     {
-        if (Machine.Connected)
-            Machine.ConfigureTopLight(false, 0, 0, 0, 0);
-    }
-
-    public void ApplyBottomLight(VisionProfile profile)
-    {
         if (!Machine.Connected)
-            throw new InvalidOperationException("Connect the machine before controlling the bottom light.");
+            return;
 
-        Machine.ConfigureBottomLight(profile.LightOn, profile.LightPower, profile.LightRed, profile.LightGreen, profile.LightBlue);
-    }
-
-    public void TurnOffBottomLight()
-    {
-        if (Machine.Connected)
-            Machine.ConfigureBottomLight(false, 0, 0, 0, 0);
+        Machine.ConfigureTopLight(false, 0, 0, 0, 0);
     }
 
     public void EmergencyStop() => Machine.EmergencyStop();
