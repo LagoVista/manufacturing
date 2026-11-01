@@ -254,6 +254,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
 
 
+        private static Point2D<double> ResolveFeederOrigin(Point2D<double> mountingHole, StripFeeder feeder)
+        {
+            var vertical = feeder.Orientation.Value == FeederOrientations.Vertical;
+            return mountingHole.SubtractWithConditionalSwap(vertical, feeder.MountingHoleOffset) + feeder.OriginOffset;
+        }
+
         private void SetLocation(StripFeederSetTypes setType)
         {
             var stagePlate = MachineConfiguration.StagingPlates.Single(sp => sp.Id == Current.StagingPlate.Id);
@@ -271,12 +277,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             var feederIsVertical = Current.Orientation.Value == FeederOrientations.Vertical;
-            var feederOrigin = stagePlateReferenceLocation.SubtractWithConditionalSwap(feederIsVertical, Current.MountingHoleOffset) + Current.OriginOffset;
+            var feederOrigin = ResolveFeederOrigin(stagePlateReferenceLocation, Current);
 
             switch (setType)
             {
                 case StripFeederSetTypes.FeederOrigin:
-                    Current.OriginOffset = (Machine.MachinePosition.ToPoint2D() - feederOrigin).Round(2);
+                    Current.OriginOffset = (Current.OriginOffset + Machine.MachinePosition.ToPoint2D() - feederOrigin).Round(2);
                     break;
                 case StripFeederSetTypes.FirstFeederRowReferenceHole:
                     {
@@ -327,7 +333,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return InvokeResult<Point2D<double>>.Create(stagePlateReferenceLocation);
             }
 
-            var feederOrigin = stagePlateReferenceLocation.SubtractWithConditionalSwap(feederIsVertical, Current.MountingHoleOffset) + Current.OriginOffset;
+            var feederOrigin = ResolveFeederOrigin(stagePlateReferenceLocation, Current);
             if (moveType == StripFeederLocationTypes.FeederOrigin)
             {
                 Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_FeederOrigin);
