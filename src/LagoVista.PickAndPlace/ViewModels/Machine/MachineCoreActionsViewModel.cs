@@ -89,7 +89,39 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 await Machine.MoveToCameraAsync();
                 Machine.GotoPoint(MachineConfiguration.MachineFiducial);
                 await Machine.SpinUntilIdleAsync();
-                Machine.DebugWriteLine($"[MachineVisionOrigin] - Moved into position {_originSW.Elapsed.TotalMilliseconds}ms"); 
+                Machine.DebugWriteLine($"[MachineVisionOrigin] - Moved into position {_originSW.Elapsed.TotalMilliseconds}ms");
+
+                if (!Machine.AreSettingsLocked && Machine.PositionImageCaptureService != null)
+                {
+                    var autoTuneResult = await Machine.PositionImageCaptureService.AutoTuneExposureAsync();
+                    if (autoTuneResult.Successful)
+                    {
+                        var camera = Machine.PositionImageCaptureService.Camera;
+                        foreach (var profile in camera.VisionProfiles)
+                            profile.Exposure = null;
+
+                        var saveResult = await MachineRepo.SaveCurrentMachineAsync();
+                        if (saveResult.Successful)
+                        {
+                            Machine.AddStatusMessage(
+                                Manufacturing.Models.StatusMessageTypes.Info,
+                                $"Camera exposure calibrated to {camera.Exposure:F1}.");
+                        }
+                        else
+                        {
+                            Machine.AddStatusMessage(
+                                Manufacturing.Models.StatusMessageTypes.Warning,
+                                $"Camera exposure calibrated but could not be saved: {saveResult.ErrorMessage}");
+                        }
+                    }
+                    else
+                    {
+                        Machine.AddStatusMessage(
+                            Manufacturing.Models.StatusMessageTypes.Warning,
+                            $"Camera exposure Auto-Tune skipped during origin calibration: {autoTuneResult.ErrorMessage}");
+                    }
+                }
+
                 _locatorViewModel.RegisterCircleLocatedHandler(this);
             }
         }
