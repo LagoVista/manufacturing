@@ -189,18 +189,26 @@ namespace LagoVista.PickAndPlace.App.Services
             }
         }
 
-        public Task<InvokeResult> AutoTuneExposureAsync()
+        public async Task<InvokeResult> AutoTuneExposureAsync()
         {
-            if (_capture == null || !_running)
-                return Task.FromResult(InvokeResult.FromError("Camera capture must be running before Auto-Tune can start."));
-
             if (_autoTuneExposureCompletion != null)
-                return Task.FromResult(InvokeResult.FromError("Camera Auto-Tune is already running."));
+                return InvokeResult.FromError("Camera Auto-Tune is already running.");
+
+            if (_capture == null || !_running)
+            {
+                StartCapture();
+
+                for (var attempt = 0; attempt < 30 && (_capture == null || !_running); attempt++)
+                    await Task.Delay(100);
+
+                if (_capture == null || !_running)
+                    return InvokeResult.FromError("Camera capture could not be started for Auto-Tune.");
+            }
 
             _autoTuneExposureCompletion = new TaskCompletionSource<InvokeResult>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
             _autoTuneExposureRequested = true;
-            return _autoTuneExposureCompletion.Task;
+            return await _autoTuneExposureCompletion.Task;
         }
 
         private async Task<InvokeResult> RunAutoTuneExposureAsync()

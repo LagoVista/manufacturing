@@ -42,7 +42,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 async () => await AutoTuneCameraExposureAsync(),
                 () => SelectedMachineCamera != null &&
                       SelectedMachineCamera.CameraType?.Value == CameraTypes.Position &&
-                      Machine.PositionImageCaptureService != null);
+                      Machine.PositionImageCaptureService != null &&
+                      !MachineConfiguration.KnownCalibrationPoint.IsOrigin());
 
 
             MoveToStagingPlateReferenceHole1LocationCommand = CreatedMachineConnectedCommand(() =>
@@ -86,9 +87,31 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 return;
             }
 
+            if (MachineConfiguration.KnownCalibrationPoint.IsOrigin())
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                    "Capture the Known Location for the Vision Reference Target before running Camera Auto-Tune.");
+                return;
+            }
+
             Machine.SetVisionProfile(
                 CameraTypes.Position,
                 VisionProfile.VisionProfile_KnownLocation);
+
+            Machine.AddStatusMessage(StatusMessageTypes.Info,
+                "Camera Auto-Tune moving to Vision Reference Target.");
+
+            Machine.SendSafeMoveHeight();
+            await Machine.MoveToCameraAsync();
+            Machine.GotoPoint(MachineConfiguration.KnownCalibrationPoint);
+
+            var moveResult = await Machine.SpinUntilIdleAsync(10000);
+            if (!moveResult.Successful)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                    $"Could not reach the Vision Reference Target: {moveResult.ErrorMessage}");
+                return;
+            }
 
             var result = await Machine.PositionImageCaptureService.AutoTuneExposureAsync();
             if (!result.Successful)

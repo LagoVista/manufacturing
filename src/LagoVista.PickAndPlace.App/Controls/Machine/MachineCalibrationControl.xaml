@@ -259,7 +259,7 @@
                     </Button>
                 </StackPanel>
                 <TextBlock TextWrapping="Wrap" Width="600" Style="{StaticResource content}"
-                           Text="Vision Reference Target: move the position camera to the Known Location, then Auto-Tune will normalize the persisted camera exposure baseline." />
+                           Text="Vision Reference Target: Auto-Tune moves the position camera to the Known Location, waits for motion to complete, normalizes exposure, and persists the camera baseline." />
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                     <TextBlock Style="{StaticResource content}" VerticalAlignment="Center" Margin="0,0,16,0">
                         <TextBlock.Text>
@@ -268,7 +268,7 @@
                     </TextBlock>
                     <Button Style="{StaticResource CommandButton}"
                             Command="{Binding AutoTuneCameraExposureCommand}"
-                            Content="Auto Tune Exposure" />
+                            Content="Move + Auto Tune Exposure" />
                 </StackPanel>
             </StackPanel>
 
