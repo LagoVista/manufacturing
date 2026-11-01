@@ -36,7 +36,14 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             _foundLines.Clear();
             if (profile.FindLines)
             {
-                var lines = CvInvoke.HoughLinesP(input.Image, profile.HoughLinesRHO, profile.HoughLinesTheta, profile.HoughLinesThreshold, profile.HoughLinesMinLineLength, profile.HoughLinesMaxLineGap);
+                // HoughLinesP expects an edge map, not a grayscale intensity image.
+                // Reuse the same Canny parameters as the existing contour detector.
+                using (var edges = new Mat())
+                {
+                    CvInvoke.Canny(input.Image, edges, profile.CannyLowThreshold, profile.CannyHighThreshold,
+                        profile.CannyApetureSize, profile.CannyGradient);
+                    var lines = CvInvoke.HoughLinesP(edges, profile.HoughLinesRHO, profile.HoughLinesTheta,
+                        profile.HoughLinesThreshold, profile.HoughLinesMinLineLength, profile.HoughLinesMaxLineGap);
                 foreach (var line in lines)
                 {
                     _foundLines.Add(new MVLocatedLine()
@@ -44,6 +51,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                         Start = new Point2D<double>(line.P1.X, line.P1.Y),
                         End = new Point2D<double>(line.P2.X, line.P2.Y),
                     });
+                }
                 }
             }
 
