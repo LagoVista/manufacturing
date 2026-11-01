@@ -48,6 +48,17 @@ namespace LagoVista.PickAndPlace.App.Services
             if (camera.CurrentVisionProfile.ShowCrossHairs) _imageHelper.DrawCrossHairs(img, camera, size);
             if (camera.CurrentVisionProfile.Show200PixelSquare) _imageHelper.ShowCalibrationSquare(img, size);
 
+            if (camera.CurrentVisionProfile.FindLines)
+            {
+                foreach (var line in _lineDetector.FoundLines)
+                {
+                    CvInvoke.Line(img.Image,
+                        new Point((int)Math.Round(line.Start.X), (int)Math.Round(line.Start.Y)),
+                        new Point((int)Math.Round(line.End.X), (int)Math.Round(line.End.Y)),
+                        new MCvScalar(0, 255, 0), 2);
+                }
+            }
+
             foreach (var foundCircle in _circleDetector.FoundCircles)
             {
                 _imageHelper.Circle(img, camera.CurrentVisionProfile.ZoomLevel, foundCircle, size);
@@ -215,6 +226,7 @@ namespace LagoVista.PickAndPlace.App.Services
             _circleDetector.FoundCircles.Clear();
             _rectangleDetector.FoundRectangles.Clear();
             _cornerDetector.FoundCorners.Clear();
+            _lineDetector.Reset();
         }
     }
 }
