@@ -2,6 +2,7 @@
 // ContentHash: fef864a76d94dd339d33c45ed487d5fa92c9efe7f4ba6c6829e27b53d6eea28d
 // IndexVersion: 2
 // --- END CODE INDEX META ---
+using LagoVista.Core;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,7 +11,7 @@ namespace LagoVista.PickAndPlace
 {
     public static class StringExtensions
     {
-        public const string NotSelectedId = "-1";
+        public const string NotSelectedId = "00000000000000000000000000000000";
 
         public static bool HasValidId(this string id)
         {

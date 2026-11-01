@@ -3,6 +3,7 @@
 // IndexVersion: 2
 // --- END CODE INDEX META ---
 using LagoVista.Client.Core;
+using LagoVista.Core;
 using LagoVista.Core.Commanding;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
@@ -68,7 +69,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 ComponentCategories = new ObservableCollection<EntityHeader>(componentCategories.Model.Select(c => EntityHeader.Create(c.Id, c.Key, c.Name)));
                 ComponentCategories.Insert(0, new EntityHeader() { Id = StringExtensions.NotSelectedId, Key = StringExtensions.NotSelectedId, Text = "-select component category-" });
                 Components = new ObservableCollection<ComponentSummary>();
-                Components.Insert(0, new ComponentSummary() { Id = StringExtensions.NotSelectedId, Key = StringExtensions.NotSelectedId, Name = "-select component category first-" });
+                Components.Insert(0, new ComponentSummary() { Id = Guid.Empty.ToId(), Key = StringExtensions.NotSelectedId, Name = "-select component category first-" });
                 SelectedCategoryKey = StringExtensions.NotSelectedId;
                 SelectedComponentSummaryId = StringExtensions.NotSelectedId;
             }

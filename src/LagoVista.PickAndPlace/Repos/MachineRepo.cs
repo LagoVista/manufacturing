@@ -196,7 +196,10 @@ namespace LagoVista.PickAndPlace.Repos
                 }
                 else if (CurrentMachine.Settings.ConnectionType == Manufacturing.Models.ConnectionTypes.Serial_Port)
                 {
-                    var port1 = new SerialPort(CurrentMachine.Settings.CurrentSerialPort.Name, CurrentMachine.Settings.CurrentSerialPort.BaudRate);
+                    var port1 = new SerialPort(CurrentMachine.Settings.CurrentSerialPort.Name, CurrentMachine.Settings.CurrentSerialPort.BaudRate)
+                    {
+                        DtrEnable = true
+                    };
                     CurrentMachine.Connect(port1);
                 }
                 else

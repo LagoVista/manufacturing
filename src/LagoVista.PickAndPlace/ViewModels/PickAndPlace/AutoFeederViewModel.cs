@@ -6,6 +6,7 @@ using Emgu.CV.DepthAI;
 using Emgu.CV.Stitching;
 using Emgu.CV.XImgproc;
 using LagoVista.Client.Core;
+using LagoVista.Core;
 using LagoVista.Core.Commanding;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
@@ -215,15 +216,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         private async Task LoadTemplates()
         {
-            var result = await _restClient.GetListResponseAsync<AutoFeederTemplate>("/api/mfg/autofeeder/templates");
+            var result = await _restClient.GetListResponseAsync<AutoFeederTemplateSummary>("/api/mfg/autofeeder/templates");
             if (result.Successful)
             {
                 var feeders = result.Model.ToList();
-                feeders.Insert(0, new AutoFeederTemplate() { Id = StringExtensions.NotSelectedId, Name = "-select feeder template-" });
-                Templates = new ObservableCollection<AutoFeederTemplate>(feeders);
+                feeders.Insert(0, new AutoFeederTemplateSummary() { Id = Guid.Empty.ToId(), Name = "-select feeder template-" });
+                Templates = new ObservableCollection<AutoFeederTemplateSummary>(feeders);
             }
 
-            SelectedTemplateId = StringExtensions.NotSelectedId;
+            SelectedTemplateId = Guid.Empty.ToId();
         }
 
         protected async override void MachineChanged(IMachine machine)
@@ -513,7 +514,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             set => Set(ref _currentPhotonFeeder, value);
         }
 
-        private string _selectedTemplateId = StringExtensions.NotSelectedId;
+        private string _selectedTemplateId = Guid.Empty.ToId();
         public string SelectedTemplateId
         {
             get => _selectedTemplateId;
@@ -558,8 +559,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public override double? PickHeight => _current?.PickHeight;
 
-        ObservableCollection<AutoFeederTemplate> _templates;
-        public ObservableCollection<AutoFeederTemplate> Templates 
+        ObservableCollection<AutoFeederTemplateSummary> _templates;
+        public ObservableCollection<AutoFeederTemplateSummary> Templates 
         {
             get => _templates;
             private set => Set(ref _templates, value);

@@ -18,7 +18,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         ObservableCollection<AutoFeeder> Feeders { get; }
 
         string SelectedTemplateId { get; set; }
-        ObservableCollection<AutoFeederTemplate> Templates { get;  }
+        ObservableCollection<AutoFeederTemplateSummary> Templates { get;  }
 
         AutoFeeder Current { get; set; }
 

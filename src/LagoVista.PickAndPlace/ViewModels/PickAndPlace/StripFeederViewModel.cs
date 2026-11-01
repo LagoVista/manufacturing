@@ -3,6 +3,7 @@
 // IndexVersion: 2
 // --- END CODE INDEX META ---
 using LagoVista.Client.Core;
+using LagoVista.Core;
 using LagoVista.Core.Commanding;
 using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
@@ -102,15 +103,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         private async Task LoadTemplates()
         {
-            var result = await _restClient.GetListResponseAsync<StripFeederTemplate>("/api/mfg/stripfeeder/templates");
+            var result = await _restClient.GetListResponseAsync<StripFeederTemplateSummary>("/api/mfg/stripfeeder/templates");
             if (result.Successful)
             {
                 var feeders = result.Model.ToList();
-                feeders.Insert(0, new StripFeederTemplate() { Id = "-1", Name = "-select feeder template-" });
-                Templates = new ObservableCollection<StripFeederTemplate>(feeders);
+                feeders.Insert(0, new StripFeederTemplateSummary() { Id = Guid.Empty.ToId(), Name = "-select feeder template-" });
+                Templates = new ObservableCollection<StripFeederTemplateSummary>(feeders);
             }
 
-            SelectedTemplateId = StringExtensions.NotSelectedId;
+            SelectedTemplateId = Guid.Empty.ToId(); //StringExtensions.NotSelectedId;
         }
 
         protected async override void MachineChanged(IMachine machine)
@@ -496,7 +497,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             set => Set(ref _availablePartsInFeederRow, value);
         }
 
-        private string _selectedTemplateId = StringExtensions.NotSelectedId;
+        private string _selectedTemplateId = Guid.Empty.ToId();
         public string SelectedTemplateId
         {
             get => _selectedTemplateId;
@@ -507,8 +508,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        ObservableCollection<StripFeederTemplate> _templates;
-        public ObservableCollection<StripFeederTemplate> Templates
+        ObservableCollection<StripFeederTemplateSummary> _templates;
+        public ObservableCollection<StripFeederTemplateSummary> Templates
         {
             get => _templates;
             private set => Set(ref _templates, value);
