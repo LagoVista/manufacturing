@@ -351,25 +351,40 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     }
 
                     // Both observations succeeded: replace the existing two-point
-                    // transform atomically, then persist through the existing machine repo.
-                    plate.ReferenceHoleLocation1 = first.Result;
-                    plate.ReferenceHoleLocation2 = second.Result;
-                    var saved = await MachineRepo.SaveCurrentMachineAsync();
-                    if (!saved.Successful)
+                    // transform together and roll back both values if persistence fails.
+                    try
                     {
-                        plate.ReferenceHoleLocation1 = old1;
-                        plate.ReferenceHoleLocation2 = old2;
-                        Machine.AddStatusMessage(StatusMessageTypes.Warning,
-                            $"Staging plate {plate.Name} measured but could not be saved: {saved.ErrorMessage}");
-                        continue;
-                    }
+                        plate.ReferenceHoleLocation1 = first.Result;
+                        plate.ReferenceHoleLocation2 = second.Result;
+                        var saved = await MachineRepo.SaveCurrentMachineAsync();
+                        if (!saved.Successful)
+                        {
+                            Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                                $"Staging plate {plate.Name} measured but could not be saved: {saved.ErrorMessage}");
+                            continue;
+                        }
 
-                    plate.IsCalibrated = true;
-                    var message = $"Staging plate {plate.Name} calibrated and saved: " +
-                        $"{hole1}=({first.Result.X:F3}, {first.Result.Y:F3}), " +
-                        $"{hole2}=({second.Result.X:F3}, {second.Result.Y:F3}).";
-                    Machine.AddStatusMessage(StatusMessageTypes.Info, message);
-                    Machine.DebugWriteLine($"[StagingPlateCalibration] SUCCESS {message}");
+                        plate.IsCalibrated = true;
+                        var message = $"Staging plate {plate.Name} calibrated and saved: " +
+                            $"{hole1}=({first.Result.X:F3}, {first.Result.Y:F3}), " +
+                            $"{hole2}=({second.Result.X:F3}, {second.Result.Y:F3}).";
+                        Machine.AddStatusMessage(StatusMessageTypes.Info, message);
+                        Machine.DebugWriteLine($"[StagingPlateCalibration] SUCCESS {message}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                            $"Could not save staging plate {plate.Name}: {ex.Message}");
+                        Machine.DebugWriteLine($"[StagingPlateCalibration] Save failed: {ex}");
+                    }
+                    finally
+                    {
+                        if (!plate.IsCalibrated)
+                        {
+                            plate.ReferenceHoleLocation1 = old1;
+                            plate.ReferenceHoleLocation2 = old2;
+                        }
+                    }
                 }
             }
             catch (Exception ex)
