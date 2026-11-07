@@ -62,19 +62,19 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     if (!HasReferenceHoles(plate))
                     {
                         machine.AddStatusMessage(StatusMessageTypes.Warning,
-                            $"Skipping staging plate {plate.Name}: configure two distinct reference holes with starting coordinates.");
+                            $"Skipping staging plate {plate.Name}: configure two distinct reference holes and the machine fiducial grid position.");
                         continue;
                     }
 
                     var firstName = plate.ReferenceHoleRow1.Id + plate.ReferenceHoleColumn1.Id;
                     var secondName = plate.ReferenceHoleRow2.Id + plate.ReferenceHoleColumn2.Id;
 
-                    // Both moves use the same existing row/column resolver as the
-                    // staging-plate navigation UI. Resolve before saving either result.
-                    var firstTarget = StagingPlateUtils.ResolveStagePlateWorkSpaceLocation(
-                        plate, plate.ReferenceHoleColumn1.Id, plate.ReferenceHoleRow1.Id);
-                    var secondTarget = StagingPlateUtils.ResolveStagePlateWorkSpaceLocation(
-                        plate, plate.ReferenceHoleColumn2.Id, plate.ReferenceHoleRow2.Id);
+                    // Start from the known machine fiducial grid position, not from
+                    // potentially stale reference-hole coordinates from an older calibration.
+                    var firstTarget = StagingPlateUtils.ResolveStagePlateApproximateWorkSpaceLocation(
+                        plate, machine.Settings.MachineFiducial,
+                        plate.FiducialColumn.Id, plate.FiducialRow.Id,
+                        plate.ReferenceHoleColumn1.Id, plate.ReferenceHoleRow1.Id);
 
                     machine.AddStatusMessage(StatusMessageTypes.Info,
                         $"Calibrating staging plate {plate.Name}: {firstName}, then {secondName}.");
@@ -88,6 +88,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         continue;
                     }
 
+                    // Use the newly measured first reference hole to approach the second.
+                    // Translation is corrected here; the second measurement establishes rotation.
+                    var secondTarget = StagingPlateUtils.ResolveStagePlateApproximateWorkSpaceLocation(
+                        plate, first.Result,
+                        plate.ReferenceHoleColumn1.Id, plate.ReferenceHoleRow1.Id,
+                        plate.ReferenceHoleColumn2.Id, plate.ReferenceHoleRow2.Id);
                     var second = await CenterReferenceHoleAsync(machine, plate, secondName, secondTarget);
                     if (!second.Successful)
                     {
@@ -151,16 +157,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private static bool HasReferenceHoles(MachineStagingPlate plate)
         {
-            return plate.ReferenceHoleRow1?.Id != null &&
+            return plate.FiducialRow?.Id != null &&
+                   plate.FiducialColumn?.Id != null &&
+                   plate.ReferenceHoleRow1?.Id != null &&
                    plate.ReferenceHoleColumn1?.Id != null &&
                    plate.ReferenceHoleRow2?.Id != null &&
                    plate.ReferenceHoleColumn2?.Id != null &&
-                   plate.ReferenceHoleLocation1 != null &&
-                   plate.ReferenceHoleLocation2 != null &&
                    !(plate.ReferenceHoleRow1.Id == plate.ReferenceHoleRow2.Id &&
-                     plate.ReferenceHoleColumn1.Id == plate.ReferenceHoleColumn2.Id) &&
-                   !(plate.ReferenceHoleLocation1.X == 0 && plate.ReferenceHoleLocation1.Y == 0) &&
-                   !(plate.ReferenceHoleLocation2.X == 0 && plate.ReferenceHoleLocation2.Y == 0);
+                     plate.ReferenceHoleColumn1.Id == plate.ReferenceHoleColumn2.Id);
         }
 
         private async Task<InvokeResult<Point2D<double>>> CenterReferenceHoleAsync(
