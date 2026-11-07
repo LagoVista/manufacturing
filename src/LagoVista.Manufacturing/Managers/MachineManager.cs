@@ -10,6 +10,7 @@ using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Interfaces.Managers;
 using LagoVista.Manufacturing.Interfaces.Repos;
 using LagoVista.Manufacturing.Models;
+using LagoVista.Manufacturing.Util;
 using LagoVista.IoT.Logging.Loggers;
 using System;
 using static LagoVista.Core.Models.AuthorizeResult;
@@ -94,6 +95,21 @@ namespace LagoVista.Manufacturing.Managers
         {
             await AuthorizeAsync(machine, AuthorizeActions.Update, user, org);
             ValidationCheck(machine, Actions.Update);
+
+            // Changing the selected reference row or column must not leave an old
+            // hole's machine XY attached to the newly selected hole. Project the
+            // new location using the previous persisted two-point alignment.
+            var previous = await _machineRepo.GetMachineAsync(machine.Id);
+            if (previous?.StagingPlates != null && machine.StagingPlates != null)
+            {
+                foreach (var plate in machine.StagingPlates)
+                {
+                    var previousPlate = previous.StagingPlates.FirstOrDefault(item => item.Id == plate.Id);
+                    if (previousPlate != null)
+                        StagingPlateUtils.RebaseChangedReferenceHoles(previousPlate, plate);
+                }
+            }
+
             await _machineRepo.UpdateMachineAsync(machine);
 
             return InvokeResult.Success;
