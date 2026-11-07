@@ -400,6 +400,8 @@ namespace LagoVista.PickAndPlace
                         break;
                 }
 
+                // Keep the UI state consistent with the hardware command issued above.
+                _topLightOn = value;
                 RaisePropertyChanged();
             }
         }
