@@ -157,6 +157,12 @@ namespace LagoVista.PickAndPlace.App.Services
                     return;
                 }
 
+                // A new capture device does not inherit the previous device's settings.
+                // Force the first frame to apply the active profile's effective camera values.
+                _lastBrightness = -9999;
+                _lastFocus = -9999;
+                _lastExposure = -9999;
+                _lastTopContrast = -9999;
 
                 if (Camera.CameraType.Value == CameraTypes.Position)
                 {
