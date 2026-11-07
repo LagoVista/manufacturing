@@ -181,7 +181,7 @@
                         <Label Content="Minimum Line Length - "/>
                         <Label Content="{Binding Profile.HoughLinesMinLineLength, FallbackValue=3}" />
                     </StackPanel>
-                    <Slider Value="{Binding Path=Profile.HoughLinesMinLineLength, Mode=TwoWay}" ToolTip="{Binding HoughLinesMinLineHelp}" />
+                    <Slider Value="{Binding Path=Profile.HoughLinesMinLineLength, Mode=TwoWay}" ToolTip="{Binding HoughLinesMinLineHelp}" Maximum="100" />
                     <StackPanel Orientation="Horizontal">
                         <Label Content="Minimum Line Gap - "/>
                         <Label Content="{Binding Profile.HoughLinesMaxLineGap, FallbackValue=3}" />

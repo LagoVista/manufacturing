@@ -28,8 +28,8 @@
             <ComboBox  x:Name="StagingPlateCols" DisplayMemberPath="Text" SelectedValuePath="Id" ></ComboBox>
             
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button x:Name="SavebButto" Click="SavebButto_Click" Style="{StaticResource CommandButton}">Save</Button>
-                <Button x:Name="CancelButton" Click="CancelButton_Click" Style="{StaticResource CommandButton}">Cancel</Button>
+                <Button Width="120" x:Name="SavebButto" Click="SavebButto_Click" Style="{StaticResource CommandButton}">Save</Button>
+                <Button Width="120" x:Name="CancelButton" Click="CancelButton_Click" Style="{StaticResource CommandButton}">Cancel</Button>
             </StackPanel>
             <Label x:Name="ErrorMessage" Visibility="Collapsed" Foreground="Red"></Label>
         </StackPanel>

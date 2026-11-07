@@ -35,7 +35,7 @@ namespace LagoVista.PickAndPlace.App
         
             ViewModel.Cameras.Add(new MachineCamera()
             {
-                Id = "-1",
+                Id = StringExtensions.NotSelectedId,
                 Name = "none",
             });
 
@@ -43,7 +43,7 @@ namespace LagoVista.PickAndPlace.App
             {
                 ViewModel.Cameras.Add(new MachineCamera()
                 {
-                    Id = camera.DevicePath,
+                    Id = Guid.NewGuid().ToId(),
                     Name = camera.Name,
                 });
             }

@@ -58,7 +58,7 @@ namespace LagoVista.PickAndPlace.App
             UserName.Text = "kevinw@slsys.net";
 
             await _authManager.LoadAsync();
-            if(_authManager.IsAuthenticated )
+            if(_authManager.IsAuthenticated)
             {
                 if(_authManager.AccessTokenExpirationUTC.ToDateTime() < DateTime.UtcNow )
                 {
