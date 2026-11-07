@@ -120,10 +120,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 return;
             }
 
-            // This is the first global camera-level calibration migration step.
-            // Camera-owned profiles now inherit the calibrated exposure baseline.
+            // The Machine Fiducial inherits the calibrated camera baseline.
+            // Preserve other profile overrides for their own lighting conditions.
             foreach (var profile in SelectedMachineCamera.VisionProfiles)
-                profile.Exposure = null;
+            {
+                if (profile.Key == VisionProfile.VisionProfile_MachineFiducual)
+                    profile.Exposure = null;
+            }
 
             var saveResult = await MachineRepo.SaveCurrentMachineAsync();
             if (saveResult.Successful)
