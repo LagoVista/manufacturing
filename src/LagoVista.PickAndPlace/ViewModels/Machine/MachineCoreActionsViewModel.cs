@@ -6,6 +6,7 @@ using LagoVista.Core.Commanding;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
+using LagoVista.Manufacturing.Util;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
@@ -331,14 +332,22 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     var hole2 = $"{plate.ReferenceHoleRow2.Id}{plate.ReferenceHoleColumn2.Id}";
                     var old1 = plate.ReferenceHoleLocation1;
                     var old2 = plate.ReferenceHoleLocation2;
+
+                    // Resolve the selected row/column through the production two-point
+                    // transform, not by assuming the raw stored XY is the move target.
+                    // Keep both targets fixed until the two new measurements are saved.
+                    var target1 = StagingPlateUtils.ResolveStagePlateWorkSpaceLocation(
+                        plate, plate.ReferenceHoleColumn1.Id, plate.ReferenceHoleRow1.Id);
+                    var target2 = StagingPlateUtils.ResolveStagePlateWorkSpaceLocation(
+                        plate, plate.ReferenceHoleColumn2.Id, plate.ReferenceHoleRow2.Id);
                     Machine.AddStatusMessage(StatusMessageTypes.Info,
                         $"Calibrating staging plate {plate.Name} using {hole1} and {hole2}.");
                     Machine.DebugWriteLine(
-                        $"[StagingPlateCalibration] {plate.Name} starting. {hole1}={old1}; {hole2}={old2}");
+                        $"[StagingPlateCalibration] {plate.Name} targets: {hole1}={target1}; {hole2}={target2}");
 
                     Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_StagingPlateHole);
 
-                    var first = await LocateStagingHoleAsync(plate, hole1, old1);
+                    var first = await LocateStagingHoleAsync(plate, hole1, target1);
                     if (!first.Successful)
                     {
                         Machine.AddStatusMessage(StatusMessageTypes.Warning,
@@ -346,7 +355,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         continue;
                     }
 
-                    var second = await LocateStagingHoleAsync(plate, hole2, old2);
+                    var second = await LocateStagingHoleAsync(plate, hole2, target2);
                     if (!second.Successful)
                     {
                         Machine.AddStatusMessage(StatusMessageTypes.Warning,
