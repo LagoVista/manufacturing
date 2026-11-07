@@ -32,6 +32,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             _machineManager = machineManager ?? throw new ArgumentNullException(nameof(machineManager));
         }
 
+        [McpEndpoint("manufacturing-machine-get", Description = "Get machine configuration, staging plates and feeder mounts.", FamilyId = "manufacturing")]
         [HttpGet("/api/mfg/machine/{id}")]
         public async Task<DetailResponse<Machine>> GetMachine(string id)
         {
@@ -112,12 +113,14 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return _machineManager.UpdateMachineAsync(Machine, OrgEntityHeader, UserEntityHeader);
         }
 
+        [McpEndpoint("manufacturing-machines-list", Description = "List pick-and-place machines available to the current organization.", FamilyId = "manufacturing")]
         [HttpGet("/api/mfg/machines")]
         public Task<ListResponse<MachineSummary>> GetMachinesForOrgAsyc()
         {
             return _machineManager.GetMachineSummariesAsync(GetListRequestFromHeader(), OrgEntityHeader, UserEntityHeader);
         }
 
+        [McpEndpoint("manufacturing-job-testfit", Description = "Test-fit a circuit board revision against currently mounted feeders without executing machine motion.", FamilyId = "manufacturing")]
         [HttpPost("/api/mfg/machine/{machineid}/revision/testfit")]
         public Task<InvokeResult<PcbJobTestFit>> TestFitRevision(string machineid, [FromBody] CircuitBoardRevision revision)
         {

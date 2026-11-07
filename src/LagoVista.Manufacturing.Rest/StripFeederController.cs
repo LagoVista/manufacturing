@@ -36,6 +36,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             _machineManager = machineManager;
         }
 
+        [McpEndpoint("manufacturing-strip-feeder-get", Description = "Get a strip feeder and its component-assigned rows.", FamilyId = "manufacturing")]
         [HttpGet("/api/mfg/stripfeeder/{id}")]
         public async Task<DetailResponse<StripFeeder>> GetStripFeeder(string id, bool loadcomponent = false)
         {
@@ -107,6 +108,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return _mgr.GetStripFeedersSummariesAsync(GetListRequestFromHeader(), OrgEntityHeader, UserEntityHeader);
         }
 
+        [McpEndpoint("manufacturing-machine-strip-feeders-list", Description = "List strip feeder rows installed on a machine, with optional loaded component details.", FamilyId = "manufacturing")]
         [HttpGet("/api/mfg/machine/{machineid}/stripfeeders")]
         public Task<ListResponse<StripFeeder>> GetStripFeedersForMachine(string machineid, bool loadcomponents)
         {

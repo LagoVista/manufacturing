@@ -30,6 +30,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             _mgr = mgr;
         }
 
+        [McpEndpoint("manufacturing-component-package-get", Description = "Get the physical package including dimensions, tape geometry, and machine pick configuration.", FamilyId = "manufacturing")]
         [HttpGet("/api/mfg/component/package/{id}")]
         public async Task<DetailResponse<ComponentPackage>> GetComponentPackage(string id)
         {
@@ -77,6 +78,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
         /// ComponentPackage - Get for Current Org
         /// </summary>
         /// <returns></returns>
+        [McpEndpoint("manufacturing-component-packages-list", Description = "List available component packages to verify PCB footprint compatibility.", FamilyId = "manufacturing")]
         [HttpGet("/api/mfg/component/packages")]
         public Task<ListResponse<ComponentPackageSummary>> GetEquomentForOrg()
         {

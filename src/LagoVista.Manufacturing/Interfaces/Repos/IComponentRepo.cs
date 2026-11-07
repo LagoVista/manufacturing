@@ -15,6 +15,8 @@ namespace LagoVista.Manufacturing.Interfaces.Repos
         Task<ListResponse<ComponentSummary>> GetComponentSummariesAsync(string id, ListRequest listRequest);
 
         Task<ListResponse<ComponentSummary>> GetComponentSummariesByTypeAsync(string id, string componentType, ListRequest listRequest);
+        Task<ListResponse<ComponentSummary>> SearchComponentSummariesAsync(string orgId, ListRequest listRequest,
+            string componentType, string componentPackageId, string value, string searchText, bool inStockOnly, bool includePublic);
         Task<Component> GetComponentAsync(string id);
         Task DeleteComponentAsync(string id);
     }

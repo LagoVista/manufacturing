@@ -7,6 +7,7 @@ using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Interfaces.Managers;
 using LagoVista.Manufacturing.Models;
 using LagoVista.IoT.Logging.Loggers;
+using LagoVista.IoT.Web.Common.Attributes;
 using LagoVista.IoT.Web.Common.Controllers;
 using LagoVista.UserAdmin.Models.Users;
 using Microsoft.AspNetCore.Authorization;
@@ -31,6 +32,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             _serialNumberManager = serialNumberManager ?? throw new ArgumentNullException(nameof(serialNumberManager));
         }
 
+        [McpEndpoint("manufacturing-job-get", Description = "Get a pick-and-place job including its full board revision, component mapping and part-placement groups.", FamilyId = "manufacturing")]
         [HttpGet("/api/mfg/pnpjob/{id}")]
         public async Task<DetailResponse<PickAndPlaceJob>> GetPickAndPlaceJob(string id)
         {
@@ -58,6 +60,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return _pnpJobManager.AddPickAndPlaceJobAsync(PickAndPlaceJob, OrgEntityHeader, UserEntityHeader);
         }
 
+        [McpEndpoint("manufacturing-job-update", Description = "Update a pick-and-place job using the complete model returned by manufacturing-job-get, preserving all unrelated fields and placements.", FamilyId = "manufacturing")]
         [HttpPut("/api/mfg/pnpjob")]
         public Task<InvokeResult> UpdatePickAndPlaceJob([FromBody] PickAndPlaceJob PickAndPlaceJob)
         {
@@ -65,6 +68,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return _pnpJobManager.UpdatePickAndPlaceJobAsync(PickAndPlaceJob, OrgEntityHeader, UserEntityHeader);
         }
 
+        [McpEndpoint("manufacturing-jobs-list", Description = "List existing pick-and-place jobs for the current organization.", FamilyId = "manufacturing")]
         [HttpGet("/api/mfg/pnpjobs")]
         public Task<ListResponse<PickAndPlaceJobSummary>> GetPnPJobs()
         {

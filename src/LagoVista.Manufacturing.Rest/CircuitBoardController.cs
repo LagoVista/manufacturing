@@ -32,6 +32,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             _pnpJobManager = pnpJobManager ?? throw new ArgumentNullException(nameof(pnpJobManager));
         }
 
+        [McpEndpoint("manufacturing-board-get", Description = "Get one PCB with imported revisions and design-component placements.", FamilyId = "manufacturing")]
         [HttpGet("/api/mfg/pcb/{id}")]
         public async Task<DetailResponse<CircuitBoard>> GetCircuitBoard(string id)
         {
@@ -78,10 +79,20 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return _mgr.UpdateCircuitBoardAsync(CircuitBoard, OrgEntityHeader, UserEntityHeader);
         }
 
+        [McpEndpoint("manufacturing-boards-list", Description = "List circuit boards available to the current organization.", FamilyId = "manufacturing")]
         [HttpGet("/api/mfg/pcbs")]
         public Task<ListResponse<CircuitBoardSummary>> GetEquomentForOrg()
         {
             return _mgr.GetCircuitBoardsSummariesAsync(GetListRequestFromHeader(), OrgEntityHeader, UserEntityHeader);
+        }
+
+        // Preserve the legacy GET route for existing clients, but expose a POST for MCP:
+        // creating a persisted job is a mutation, never a read-only operation.
+        [McpEndpoint("manufacturing-job-create-from-revision", Description = "Create a persisted pick-and-place job for a PCB revision. Returns the new job id; inspect and map parts before machine execution.", FamilyId = "manufacturing")]
+        [HttpPost("/api/mfg/pcb/{id}/revision/{revid}/job")]
+        public Task<InvokeResult<string>> CreatePNPJobFromRevision(string id, string revid, string name = null)
+        {
+            return CreatePNPJob(id, revid, name);
         }
 
         [HttpGet("/api/mfg/pcb/{id}/revision/{revid}/job")]

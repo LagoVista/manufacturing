@@ -36,6 +36,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             _pckMgr = pckMgr ?? throw new ArgumentNullException(nameof(pckMgr));
         }
 
+        [McpEndpoint("manufacturing-component-get", Description = "Get a component with its inventory attributes and optional full component package. Uses the current organization's authorization.", FamilyId = "manufacturing")]
         [HttpGet("/api/mfg/component/{id}")]
         public async Task<DetailResponse<Component>> GetComponent(string id, bool loadcomponent = false)
         {
@@ -119,10 +120,20 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return _mgr.UpdateComponentAsync(component, OrgEntityHeader, UserEntityHeader);
         }
 
+        [McpEndpoint("manufacturing-components-list", Description = "Search components by type key, package id, nominal value, search text, and stock. Set includePublic=false for organization-owned inventory; pageIndex/pageSize control pagination. Nominal value matching is case-insensitive but does not infer electrical substitutions.", FamilyId = "manufacturing")]
         [HttpGet("/api/mfg/components")]
-        public Task<ListResponse<ComponentSummary>> GetComponentsForOrg(string componentType)
+        public Task<ListResponse<ComponentSummary>> GetComponentsForOrg(string componentType = null, string componentPackageId = null,
+            string value = null, string searchText = null, bool inStockOnly = false, bool includePublic = true,
+            int? pageIndex = null, int? pageSize = null)
         {
-            return _mgr.GetComponentsSummariesAsync(GetListRequestFromHeader(), componentType, OrgEntityHeader, UserEntityHeader);
+            var listRequest = GetListRequestFromHeader();
+            if (pageIndex.HasValue)
+                listRequest.PageIndex = Math.Max(1, pageIndex.Value);
+            if (pageSize.HasValue)
+                listRequest.PageSize = Math.Max(1, Math.Min(100, pageSize.Value));
+
+            return _mgr.GetComponentsSummariesAsync(listRequest, componentType, OrgEntityHeader, UserEntityHeader,
+                componentPackageId, value, searchText, inStockOnly, includePublic);
         }
 
 

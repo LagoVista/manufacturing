@@ -31,6 +31,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             _machineManager = machineManager;
         }
 
+        [McpEndpoint("manufacturing-auto-feeder-get", Description = "Get an auto feeder with its component assignment and optional loaded component record.", FamilyId = "manufacturing")]
         [HttpGet("/api/mfg/autofeeder/{id}")]
         public async Task<DetailResponse<AutoFeeder>> GetFeeder(string id, bool loadcomponent = false)
         {
@@ -87,6 +88,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return _mgr.GetFeedersSummariesAsync(GetListRequestFromHeader(), OrgEntityHeader, UserEntityHeader);
         }
 
+        [McpEndpoint("manufacturing-machine-auto-feeders-list", Description = "List auto feeders installed on a machine, with optional loaded component details.", FamilyId = "manufacturing")]
         [HttpGet("/api/mfg/machine/{machineid}/autofeeders")]
         public Task<ListResponse<AutoFeeder>> GetFeedersForMachine(string machineid, bool loadcomponents)
         {

@@ -139,6 +139,9 @@ namespace LagoVista.Manufacturing.Models
                 Name = Name,
                 Key = Key,
                 PartNumber = PartNumber,
+                ManufacturePartNumber = ManufacturePartNumber,
+                ComponentPackageId = ComponentPackage?.Id,
+                Polarized = Polarized,
                 Supplier = Supplier,
                 SupplierPartNumber = SupplierPartNumber,
                 Package = ComponentPackage?.Text,
@@ -228,6 +231,9 @@ namespace LagoVista.Manufacturing.Models
     public class ComponentSummary : SummaryData
     {
         public string PartNumber { get; set; }
+        public string ManufacturePartNumber { get; set; }
+        public string ComponentPackageId { get; set; }
+        public bool Polarized { get; set; }
         public string Supplier { get; set; }
         public string SupplierPartNumber { get; set; }
         public decimal QuantityOnOrder { get; set; }
