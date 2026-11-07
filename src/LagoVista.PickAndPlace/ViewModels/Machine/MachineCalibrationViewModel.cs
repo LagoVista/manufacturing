@@ -15,8 +15,16 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public MachineCalibrationViewModel(IMachineRepo machineRepo) : base(machineRepo)
         {
 
-            SetStagingPlateReferenceHole1LocationCommand = CreatedMachineConnectedSettingsCommand(() => SelectedStagingPlate.ReferenceHoleLocation1 = Machine.MachinePosition.ToPoint2D(), () => SelectedStagingPlate != null);
-            SetStagingPlateReferenceHole2LocationCommand = CreatedMachineConnectedSettingsCommand(() => SelectedStagingPlate.ReferenceHoleLocation2 = Machine.MachinePosition.ToPoint2D(), () => SelectedStagingPlate != null);
+            SetStagingPlateReferenceHole1LocationCommand = CreatedMachineConnectedSettingsCommand(() =>
+            {
+                SelectedStagingPlate.ReferenceHoleLocation1 = Machine.MachinePosition.ToPoint2D();
+                SelectedStagingPlate.IsCalibrated = false;
+            }, () => SelectedStagingPlate != null);
+            SetStagingPlateReferenceHole2LocationCommand = CreatedMachineConnectedSettingsCommand(() =>
+            {
+                SelectedStagingPlate.ReferenceHoleLocation2 = Machine.MachinePosition.ToPoint2D();
+                SelectedStagingPlate.IsCalibrated = false;
+            }, () => SelectedStagingPlate != null);
             SetFirstAutoFeederOriginCommand = CreatedMachineConnectedSettingsCommand(() => SelectedFeederRail.FirstFeederOrigin = Machine.MachinePosition.ToPoint2D(), () => SelectedFeederRail != null);
 
             SetMachineFiducialCommand = CreateCommand(() => MachineConfiguration.MachineFiducial = Machine.MachinePosition.ToPoint2D());
