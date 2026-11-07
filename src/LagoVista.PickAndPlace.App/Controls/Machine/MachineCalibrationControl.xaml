@@ -111,6 +111,24 @@
             <DataGrid ItemsSource="{Binding  MachineConfiguration.StagingPlates}" SelectedItem="{Binding SelectedStagingPlate}" AutoGenerateColumns="false" CanUserAddRows="false">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="120" />
+                    <DataGridTemplateColumn Header="Calibrated" Width="95" IsReadOnly="true">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="✓" Foreground="LimeGreen" FontSize="22" TextAlignment="Center" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsCalibrated}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                     <DataGridTextColumn IsReadOnly="true" Header="Hole Spacing" Binding="{Binding HoleSpacing}" />
                     <DataGridTextColumn IsReadOnly="true" Header="Size" Binding="{Binding Size}" />
                     <DataGridTextColumn IsReadOnly="true" Header="Hole 1 Row" Binding="{Binding ReferenceHoleRow1}" />
