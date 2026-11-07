@@ -491,6 +491,9 @@ namespace LagoVista.PickAndPlace.App.Services
                         }
                         finally
                         {
+                            // Exposure sampling bypasses the normal shape detector. Discard
+                            // pre-tune circle history so origin centering uses fresh frames.
+                            _shapeDetectorService.Reset();
                             _autoTuneExposureCompletion = null;
                         }
 
