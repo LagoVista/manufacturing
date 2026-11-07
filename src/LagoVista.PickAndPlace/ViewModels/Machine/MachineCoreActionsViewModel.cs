@@ -239,6 +239,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private async Task<InvokeResult<Point2D<double>>> LocateStagingHoleAsync(
             MachineStagingPlate plate, string holeName, Point2D<double> approximateLocation)
         {
+            Machine.AddStatusMessage(StatusMessageTypes.Info,
+                $"Staging plate {plate.Name}: moving to {holeName} near X={approximateLocation.X:F2}, Y={approximateLocation.Y:F2}.");
             Machine.SendSafeMoveHeight();
             await Machine.MoveToCameraAsync();
             Machine.GotoPoint(approximateLocation);
@@ -283,6 +285,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         return InvokeResult<Point2D<double>>.FromError(
                             $"Could not read machine position for {holeName}: {position.ErrorMessage}");
 
+                    Machine.AddStatusMessage(StatusMessageTypes.Info,
+                        $"Staging plate {plate.Name}: {holeName} centered at X={position.Result.X:F3}, Y={position.Result.Y:F3}.");
                     Machine.DebugWriteLine(
                         $"[StagingPlateCalibration] {plate.Name} {holeName} centered at X={position.Result.X:F3}, Y={position.Result.Y:F3}");
                     return position;
