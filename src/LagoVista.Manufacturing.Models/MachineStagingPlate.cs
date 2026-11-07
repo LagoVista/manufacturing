@@ -24,6 +24,16 @@ namespace LagoVista.Manufacturing.Models
 
         public string Id { get; set; } = Guid.NewGuid().ToId();
 
+        // Session-only confirmation: cleared on machine reload, set only after
+        // both reference holes have been located and the new alignment saved.
+        private bool _isCalibrated;
+        [Newtonsoft.Json.JsonIgnore]
+        public bool IsCalibrated
+        {
+            get => _isCalibrated;
+            set => Set(ref _isCalibrated, value);
+        }
+
         [FormField(LabelResource: ManufacturingResources.Names.Common_Name, FieldType: FieldTypes.Text, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Name { get; set; }
 
