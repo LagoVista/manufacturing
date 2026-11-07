@@ -104,6 +104,11 @@ namespace LagoVista.PickAndPlace.App.Services
             }
         }
 
+        public void ResetDetections()
+        {
+            _shapeDetectorService.Reset();
+        }
+
         private void CenterFoundItem()
         {
             if (Profile?.Key == VisionProfile.VisionProfile_StagingPlateHole)
