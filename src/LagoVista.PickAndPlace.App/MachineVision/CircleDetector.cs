@@ -41,25 +41,42 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             var circles = CvInvoke.HoughCircles(input.Image, HoughModes.Gradient, profile.HoughCirclesDP, profile.HoughCirclesMinDistance * camera.EffectivePixelsPerMM, profile.HoughCirclesParam1, profile.HoughCirclesParam2,
                 Convert.ToInt32(profile.HoughCirclesMinRadius * camera.EffectivePixelsPerMM), Convert.ToInt32(profile.HoughCirclesMaxRadius * camera.EffectivePixelsPerMM));
 
-            foreach (var circle in circles)
+            var stagingPlateHole = profile.Key == VisionProfile.VisionProfile_StagingPlateHole;
+            var candidates = circles.Where(circle => search.WithinRadius(circle));
+
+            if (stagingPlateHole)
             {
-                if (search.WithinRadius(circle))
+                // The staging-plate profile expects one hole. Keep one continuous track
+                // instead of switching between multiple Hough candidates each frame.
+                var current = _foundCircles.FirstOrDefault();
+                var expectedX = current == null ? center.X : current.CenterPixels.X;
+                var expectedY = current == null ? center.Y : current.CenterPixels.Y;
+                candidates = candidates
+                    .OrderBy(circle => Math.Pow(circle.Center.X - expectedX, 2) +
+                                       Math.Pow(circle.Center.Y - expectedY, 2))
+                    .Take(1);
+            }
+
+            foreach (var circle in candidates)
+            {
+                // Give the same staging-plate hole room for small Hough center jitter.
+                // Large jumps must establish a new track after the stale one expires.
+                var previous = _foundCircles.FindPrevious(circle, stagingPlateHole ? 20 : 10);
+                if (previous != null)
                 {
-                    var previous = _foundCircles.FindPrevious(circle, 10);
-                    if (previous != null)
-                    {
-                        previous.Iteration = _iteration;
-                        previous.Add(circle.Center, circle.Radius);
-                        _locatorViewModel.CircleLocated(previous);                        
-                    }
-                    else
-                    {
-                        var foundCircle = new MVLocatedCircle(camera.CameraType.Value, center, camera.EffectivePixelsPerMM, profile.ErrorToleranceMM, profile.StabilizationCount);
-                        foundCircle.Add(circle.Center, circle.Radius);
-                        foundCircle.Iteration = _iteration;
-                        _foundCircles.Add(foundCircle);
-                        _locatorViewModel.CircleLocated(foundCircle);
-                    }
+                    previous.Iteration = _iteration;
+                    previous.Add(circle.Center, circle.Radius);
+                    _locatorViewModel.CircleLocated(previous);
+                }
+                else if (!stagingPlateHole || _foundCircles.Count == 0)
+                {
+                    var foundCircle = new MVLocatedCircle(
+                        camera.CameraType.Value, center, camera.EffectivePixelsPerMM,
+                        profile.ErrorToleranceMM, profile.StabilizationCount, stagingPlateHole);
+                    foundCircle.Add(circle.Center, circle.Radius);
+                    foundCircle.Iteration = _iteration;
+                    _foundCircles.Add(foundCircle);
+                    _locatorViewModel.CircleLocated(foundCircle);
                 }
             }
 
