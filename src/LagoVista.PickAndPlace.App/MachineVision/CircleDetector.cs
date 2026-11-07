@@ -124,24 +124,24 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                         if (moments.M00 <= 0)
                             continue;
 
-                            var radius = Math.Sqrt(moments.M00 / Math.PI);
-                            if (radius < minimumRadius || radius > maximumRadius)
-                                continue;
+                        var radius = Math.Sqrt(moments.M00 / Math.PI);
+                        if (radius < minimumRadius || radius > maximumRadius)
+                            continue;
 
-                            var candidate = new CircleF(
-                                new System.Drawing.PointF((float)(moments.M10 / moments.M00),
-                                    (float)(moments.M01 / moments.M00)), (float)radius);
-                            if (!search.WithinRadius(candidate))
-                                continue;
+                        var candidate = new CircleF(
+                            new System.Drawing.PointF((float)(moments.M10 / moments.M00),
+                                (float)(moments.M01 / moments.M00)), (float)radius);
+                        if (!search.WithinRadius(candidate))
+                            continue;
 
-                            var dx = candidate.Center.X - expectedX;
-                            var dy = candidate.Center.Y - expectedY;
-                            var distanceSquared = dx * dx + dy * dy;
-                            if (distanceSquared < bestDistanceSquared)
-                            {
-                                bestDistanceSquared = distanceSquared;
-                                best = candidate;
-                            }
+                        var dx = candidate.Center.X - expectedX;
+                        var dy = candidate.Center.Y - expectedY;
+                        var distanceSquared = dx * dx + dy * dy;
+                        if (distanceSquared < bestDistanceSquared)
+                        {
+                            bestDistanceSquared = distanceSquared;
+                            best = candidate;
+                        }
                     }
                 }
 
