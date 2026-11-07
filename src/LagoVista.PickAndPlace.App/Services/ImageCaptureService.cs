@@ -304,7 +304,7 @@ namespace LagoVista.PickAndPlace.App.Services
             {
                 var sample = lastSample.Value;
                 return InvokeResult.FromError(
-                    $"Camera Auto-Tune did not converge after {AutoTuneMaximumIterations} adjustments. Last exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}, darkRange={sample.DarkRange:F1}, whiteRange={sample.WhiteRange:F1}.");
+                    $"Camera Auto-Tune did not converge after {AutoTuneMaximumIterations} sampling attempts. Last exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}, darkRange={sample.DarkRange:F1}, whiteRange={sample.WhiteRange:F1}.");
             }
 
             return InvokeResult.FromError(
@@ -355,6 +355,11 @@ namespace LagoVista.PickAndPlace.App.Services
                         using (var cropped = img.Copy())
                         using (var gray = cropped.Convert<Gray, byte>())
                         {
+                            // Auto-Tune owns frame capture while the normal preview loop is paused.
+                            // Show a sampled frame so the camera view does not appear frozen.
+                            if (idx == 0)
+                                CaptureImage = Emgu.CV.WPF.BitmapSourceConvert.ToBitmapSource(cropped.ToUMat());
+
                             var levels = MeasureReferenceLevels(gray);
                             darkSamples.Add(levels.Dark);
                             whiteSamples.Add(levels.White);
