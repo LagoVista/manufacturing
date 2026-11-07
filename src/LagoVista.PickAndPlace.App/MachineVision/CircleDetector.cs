@@ -107,10 +107,10 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 // already-thresholded staging-plate profiles. Never modify the input.
                 CvInvoke.Threshold(input.Image, binary, 0, 255,
                     ThresholdType.Binary | ThresholdType.Otsu);
-                // Staging-plate holes can be light-on-dark or dark-on-light.
-                // Retrieve nested contours as well: External discards a dark hole
-                // inside the bright circular area left by Apply Mask.
-                CvInvoke.FindContours(binary, contours, null, RetrType.List,
+                // Preserve the validated single external contour used for
+                // staging-plate centroid detection; nested contours can select
+                // the surrounding material instead of the drilled hole.
+                CvInvoke.FindContours(binary, contours, null, RetrType.External,
                     ChainApproxMethod.ChainApproxSimple);
 
                 CircleF? best = null;
