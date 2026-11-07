@@ -76,6 +76,10 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlate_Origin_Origin_Approx, HelpResource: ManufacturingResources.Names.MachineStagingPlate_Origin_Help, FieldType: FieldTypes.Point2D, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
         public Point2D<double> Origin { get; set; }
 
+        // Temporary defaults for the grid position of the machine fiducial.
+        // These are independent of the reference-hole positions measured during calibration.
+        public EntityHeader FiducialRow { get; set; } = EntityHeader.Create("F", "F", "F");
+        public EntityHeader FiducialColumn { get; set; } = EntityHeader.Create("13", "13", "13");
 
         Point2D<double> _referenceHoleLocation1 = new Point2D<double>();
         [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlate_ReferenceHoleLocation1, HelpResource: ManufacturingResources.Names.MachineStagingPlate_ReferenceHoleLocation_Help, FieldType: FieldTypes.Point2D, IsRequired: false, ResourceType: typeof(ManufacturingResources))]
