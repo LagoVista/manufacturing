@@ -98,6 +98,19 @@ namespace LagoVista.Manufacturing.Util
             return new Point2D<double>(ColToX(plate, colId), RowToY(plate, rowId));
         }
 
+        /// <summary>
+        /// Approximate a hole's workspace XY from a known grid anchor, without using
+        /// the previous two-point staging-plate calibration.
+        /// </summary>
+        public static Point2D<double> ResolveStagePlateApproximateWorkSpaceLocation(
+            MachineStagingPlate plate, Point2D<double> anchorLocation,
+            string anchorColId, string anchorRowId, string colId, string rowId)
+        {
+            return new Point2D<double>(
+                anchorLocation.X + ColToX(plate, colId) - ColToX(plate, anchorColId),
+                anchorLocation.Y + RowToY(plate, rowId) - RowToY(plate, anchorRowId));
+        }
+
         public static Point2D<double> ResolveStagePlateWorkSpakeLocation(MachineStagingPlate plate, EntityHeader col, EntityHeader row)
         {
             return ResolveStagePlateWorkSpaceLocation(plate, col.Id, row.Id);
