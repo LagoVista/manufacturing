@@ -107,9 +107,6 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 // already-thresholded staging-plate profiles. Never modify the input.
                 CvInvoke.Threshold(input.Image, binary, 0, 255,
                     ThresholdType.Binary | ThresholdType.Otsu);
-                // Preserve the validated single external contour used for
-                // staging-plate centroid detection; nested contours can select
-                // the surrounding material instead of the drilled hole.
                 CvInvoke.FindContours(binary, contours, null, RetrType.External,
                     ChainApproxMethod.ChainApproxSimple);
 
@@ -118,28 +115,30 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 for (var i = 0; i < contours.Size; i++)
                 {
                     using (var contour = contours[i])
-                    using (var moments = CvInvoke.Moments(contour))
                     {
-                        if (moments.M00 <= 0)
-                            continue;
-
-                        var radius = Math.Sqrt(moments.M00 / Math.PI);
-                        if (radius < minimumRadius || radius > maximumRadius)
-                            continue;
-
-                        var candidate = new CircleF(
-                            new System.Drawing.PointF((float)(moments.M10 / moments.M00),
-                                (float)(moments.M01 / moments.M00)), (float)radius);
-                        if (!search.WithinRadius(candidate))
-                            continue;
-
-                        var dx = candidate.Center.X - expectedX;
-                        var dy = candidate.Center.Y - expectedY;
-                        var distanceSquared = dx * dx + dy * dy;
-                        if (distanceSquared < bestDistanceSquared)
+                        using (var moments = CvInvoke.Moments(contour))
                         {
-                            bestDistanceSquared = distanceSquared;
-                            best = candidate;
+                            if (moments.M00 <= 0)
+                                continue;
+
+                            var radius = Math.Sqrt(moments.M00 / Math.PI);
+                            if (radius < minimumRadius || radius > maximumRadius)
+                                continue;
+
+                            var candidate = new CircleF(
+                                new System.Drawing.PointF((float)(moments.M10 / moments.M00),
+                                    (float)(moments.M01 / moments.M00)), (float)radius);
+                            if (!search.WithinRadius(candidate))
+                                continue;
+
+                            var dx = candidate.Center.X - expectedX;
+                            var dy = candidate.Center.Y - expectedY;
+                            var distanceSquared = dx * dx + dy * dy;
+                            if (distanceSquared < bestDistanceSquared)
+                            {
+                                bestDistanceSquared = distanceSquared;
+                                best = candidate;
+                            }
                         }
                     }
                 }
