@@ -242,6 +242,45 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void DefaultMachineFiducialGridPositionIsF13()
+        {
+            Assert.That(_plate.FiducialRow.Id, Is.EqualTo("F"));
+            Assert.That(_plate.FiducialColumn.Id, Is.EqualTo("13"));
+        }
+
+        [Test]
+        public void FirstReferenceApproachUsesFiducialNotPreviousReferenceCoordinates()
+        {
+            // At 15 mm pitch, C3 is 10 columns left and 3 rows below F13.
+            var fiducial = new Core.Models.Drawing.Point2D<double>(300, 200);
+            _plate.ReferenceHoleLocation1 = new Core.Models.Drawing.Point2D<double>(100, 100);
+            _plate.ReferenceHoleLocation2 = new Core.Models.Drawing.Point2D<double>(400, 400);
+
+            var target = StagingPlateUtils.ResolveStagePlateApproximateWorkSpaceLocation(
+                _plate, fiducial, _plate.FiducialColumn.Id, _plate.FiducialRow.Id, "3", "C");
+            Assert.That(target.X, Is.EqualTo(150).Within(0.000001));
+            Assert.That(target.Y, Is.EqualTo(155).Within(0.000001));
+
+            // A stale or invalid previous alignment must not move the approach target.
+            _plate.ReferenceHoleLocation1 = new Core.Models.Drawing.Point2D<double>(999, 999);
+            var unchanged = StagingPlateUtils.ResolveStagePlateApproximateWorkSpaceLocation(
+                _plate, fiducial, _plate.FiducialColumn.Id, _plate.FiducialRow.Id, "3", "C");
+            Assert.That(unchanged.X, Is.EqualTo(target.X));
+            Assert.That(unchanged.Y, Is.EqualTo(target.Y));
+        }
+
+        [Test]
+        public void SecondReferenceApproachUsesTheNewlyMeasuredFirstHole()
+        {
+            var measuredC3 = new Core.Models.Drawing.Point2D<double>(151, 156);
+            var target = StagingPlateUtils.ResolveStagePlateApproximateWorkSpaceLocation(
+                _plate, measuredC3, "3", "C", "23", "O");
+
+            Assert.That(target.X, Is.EqualTo(451).Within(0.000001));
+            Assert.That(target.Y, Is.EqualTo(336).Within(0.000001));
+        }
+
+        [Test]
         public void ReferenceHoleOrderDoesNotMatter()
         {
             _plate.ReferenceHoleColumn1 = EntityHeader.Create("24", "24", "24");
