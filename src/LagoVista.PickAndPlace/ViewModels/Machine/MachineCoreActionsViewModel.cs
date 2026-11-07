@@ -121,6 +121,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     }
                     else
                     {
+                        Machine.DebugWriteLine(
+                            $"[MachineVisionOrigin] Camera exposure Auto-Tune failed: {autoTuneResult.ErrorMessage}");
                         Machine.AddStatusMessage(
                             Manufacturing.Models.StatusMessageTypes.Warning,
                             $"Camera exposure Auto-Tune skipped during origin calibration: {autoTuneResult.ErrorMessage}");
