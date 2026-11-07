@@ -108,6 +108,140 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void ChangingReferenceFromA3ToC3KeepsPreviousAlignment()
+        {
+            var previous = new MachineStagingPlate
+            {
+                HoleSpacing = 30,
+                ReferenceHoleColumn1 = EntityHeader.Create("3", "3", "3"),
+                ReferenceHoleRow1 = EntityHeader.Create("A", "A", "A"),
+                ReferenceHoleLocation1 = new Core.Models.Drawing.Point2D<double>(13.8, 118),
+                ReferenceHoleColumn2 = EntityHeader.Create("23", "23", "23"),
+                ReferenceHoleRow2 = EntityHeader.Create("Q", "Q", "Q"),
+                ReferenceHoleLocation2 = new Core.Models.Drawing.Point2D<double>(316.5, 354.3)
+            };
+            var expectedC3 = StagingPlateUtils.ResolveStagePlateWorkSpaceLocation(previous, "3", "C");
+            var expectedO3 = StagingPlateUtils.ResolveStagePlateWorkSpaceLocation(previous, "3", "O");
+
+            var updated = new MachineStagingPlate
+            {
+                HoleSpacing = 30,
+                ReferenceHoleColumn1 = EntityHeader.Create("3", "3", "3"),
+                ReferenceHoleRow1 = EntityHeader.Create("C", "C", "C"),
+                // Form still has the old A3 XY when only its row changes.
+                ReferenceHoleLocation1 = new Core.Models.Drawing.Point2D<double>(13.8, 118),
+                ReferenceHoleColumn2 = EntityHeader.Create("23", "23", "23"),
+                ReferenceHoleRow2 = EntityHeader.Create("Q", "Q", "Q"),
+                ReferenceHoleLocation2 = new Core.Models.Drawing.Point2D<double>(316.5, 354.3)
+            };
+
+            StagingPlateUtils.RebaseChangedReferenceHoles(previous, updated);
+
+            Assert.That(updated.ReferenceHoleLocation1.X, Is.EqualTo(expectedC3.X).Within(0.000001));
+            Assert.That(updated.ReferenceHoleLocation1.Y, Is.EqualTo(expectedC3.Y).Within(0.000001));
+            Assert.That(updated.ReferenceHoleLocation2.X, Is.EqualTo(316.5));
+            Assert.That(updated.ReferenceHoleLocation2.Y, Is.EqualTo(354.3));
+
+            // Switching the reference is a reparameterization, not a recalibration.
+            var actualO3 = StagingPlateUtils.ResolveStagePlateWorkSpaceLocation(updated, "3", "O");
+            Assert.That(actualO3.X, Is.EqualTo(expectedO3.X).Within(0.000001));
+            Assert.That(actualO3.Y, Is.EqualTo(expectedO3.Y).Within(0.000001));
+        }
+
+        [Test]
+        public void ChangingBothReferencesProjectsBothFromOriginalAlignment()
+        {
+            var previous = new MachineStagingPlate
+            {
+                HoleSpacing = 30,
+                ReferenceHoleColumn1 = EntityHeader.Create("3", "3", "3"),
+                ReferenceHoleRow1 = EntityHeader.Create("A", "A", "A"),
+                ReferenceHoleLocation1 = new Core.Models.Drawing.Point2D<double>(13.8, 118),
+                ReferenceHoleColumn2 = EntityHeader.Create("23", "23", "23"),
+                ReferenceHoleRow2 = EntityHeader.Create("Q", "Q", "Q"),
+                ReferenceHoleLocation2 = new Core.Models.Drawing.Point2D<double>(316.5, 354.3)
+            };
+            var expectedC3 = StagingPlateUtils.ResolveStagePlateWorkSpaceLocation(previous, "3", "C");
+            var expectedP23 = StagingPlateUtils.ResolveStagePlateWorkSpaceLocation(previous, "23", "P");
+
+            var updated = new MachineStagingPlate
+            {
+                HoleSpacing = 30,
+                ReferenceHoleColumn1 = EntityHeader.Create("3", "3", "3"),
+                ReferenceHoleRow1 = EntityHeader.Create("C", "C", "C"),
+                ReferenceHoleLocation1 = new Core.Models.Drawing.Point2D<double>(13.8, 118),
+                ReferenceHoleColumn2 = EntityHeader.Create("23", "23", "23"),
+                ReferenceHoleRow2 = EntityHeader.Create("P", "P", "P"),
+                ReferenceHoleLocation2 = new Core.Models.Drawing.Point2D<double>(316.5, 354.3)
+            };
+            StagingPlateUtils.RebaseChangedReferenceHoles(previous, updated);
+
+            Assert.That(updated.ReferenceHoleLocation1.X, Is.EqualTo(expectedC3.X).Within(0.000001));
+            Assert.That(updated.ReferenceHoleLocation1.Y, Is.EqualTo(expectedC3.Y).Within(0.000001));
+            Assert.That(updated.ReferenceHoleLocation2.X, Is.EqualTo(expectedP23.X).Within(0.000001));
+            Assert.That(updated.ReferenceHoleLocation2.Y, Is.EqualTo(expectedP23.Y).Within(0.000001));
+        }
+
+        [Test]
+        public void ExplicitlyMeasuredReferenceCoordinatesAreNotOverwritten()
+        {
+            var previous = new MachineStagingPlate
+            {
+                HoleSpacing = 30,
+                ReferenceHoleColumn1 = EntityHeader.Create("3", "3", "3"),
+                ReferenceHoleRow1 = EntityHeader.Create("A", "A", "A"),
+                ReferenceHoleLocation1 = new Core.Models.Drawing.Point2D<double>(13.8, 118),
+                ReferenceHoleColumn2 = EntityHeader.Create("23", "23", "23"),
+                ReferenceHoleRow2 = EntityHeader.Create("Q", "Q", "Q"),
+                ReferenceHoleLocation2 = new Core.Models.Drawing.Point2D<double>(316.5, 354.3)
+            };
+            var updated = new MachineStagingPlate
+            {
+                HoleSpacing = 30,
+                ReferenceHoleColumn1 = EntityHeader.Create("3", "3", "3"),
+                ReferenceHoleRow1 = EntityHeader.Create("C", "C", "C"),
+                ReferenceHoleLocation1 = new Core.Models.Drawing.Point2D<double>(14.06, 148.28),
+                ReferenceHoleColumn2 = EntityHeader.Create("23", "23", "23"),
+                ReferenceHoleRow2 = EntityHeader.Create("Q", "Q", "Q"),
+                ReferenceHoleLocation2 = new Core.Models.Drawing.Point2D<double>(316.5, 354.3)
+            };
+            StagingPlateUtils.RebaseChangedReferenceHoles(previous, updated);
+
+            Assert.That(updated.ReferenceHoleLocation1.X, Is.EqualTo(14.06));
+            Assert.That(updated.ReferenceHoleLocation1.Y, Is.EqualTo(148.28));
+        }
+
+        [Test]
+        public void RecalibrationOfUnchangedReferencesKeepsNewMeasurements()
+        {
+            var previous = new MachineStagingPlate
+            {
+                HoleSpacing = 30,
+                ReferenceHoleColumn1 = EntityHeader.Create("3", "3", "3"),
+                ReferenceHoleRow1 = EntityHeader.Create("C", "C", "C"),
+                ReferenceHoleLocation1 = new Core.Models.Drawing.Point2D<double>(14.06, 148.28),
+                ReferenceHoleColumn2 = EntityHeader.Create("23", "23", "23"),
+                ReferenceHoleRow2 = EntityHeader.Create("Q", "Q", "Q"),
+                ReferenceHoleLocation2 = new Core.Models.Drawing.Point2D<double>(316.5, 353.9)
+            };
+            var updated = new MachineStagingPlate
+            {
+                HoleSpacing = 30,
+                ReferenceHoleColumn1 = EntityHeader.Create("3", "3", "3"),
+                ReferenceHoleRow1 = EntityHeader.Create("C", "C", "C"),
+                ReferenceHoleLocation1 = new Core.Models.Drawing.Point2D<double>(14.16, 148.18),
+                ReferenceHoleColumn2 = EntityHeader.Create("23", "23", "23"),
+                ReferenceHoleRow2 = EntityHeader.Create("Q", "Q", "Q"),
+                ReferenceHoleLocation2 = new Core.Models.Drawing.Point2D<double>(316.4, 353.9)
+            };
+            StagingPlateUtils.RebaseChangedReferenceHoles(previous, updated);
+
+            Assert.That(updated.ReferenceHoleLocation1.X, Is.EqualTo(14.16));
+            Assert.That(updated.ReferenceHoleLocation1.Y, Is.EqualTo(148.18));
+            Assert.That(updated.ReferenceHoleLocation2.X, Is.EqualTo(316.4));
+        }
+
+        [Test]
         public void ReferenceHoleOrderDoesNotMatter()
         {
             _plate.ReferenceHoleColumn1 = EntityHeader.Create("24", "24", "24");
