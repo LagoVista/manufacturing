@@ -97,8 +97,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     if (autoTuneResult.Successful)
                     {
                         var camera = Machine.PositionImageCaptureService.Camera;
+                        // Only the Machine Fiducial inherits the newly calibrated camera baseline.
+                        // Other profiles may require a different exposure for their lighting.
                         foreach (var profile in camera.VisionProfiles)
-                            profile.Exposure = null;
+                        {
+                            if (profile.Key == VisionProfile.VisionProfile_MachineFiducual)
+                                profile.Exposure = null;
+                        }
 
                         var saveResult = await MachineRepo.SaveCurrentMachineAsync();
                         if (saveResult.Successful)
