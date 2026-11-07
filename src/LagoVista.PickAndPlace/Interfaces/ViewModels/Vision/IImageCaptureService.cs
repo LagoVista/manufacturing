@@ -21,6 +21,9 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
 
         Task<InvokeResult> AutoTuneExposureAsync();
 
+        // Start each new physical reference hole with fresh detector history.
+        void ResetDetections();
+
         void StartCapture();
 
         void StopCapture();
