@@ -150,7 +150,6 @@ namespace LagoVista.PickAndPlace.App.Services
                         using (var blurredGray = new Image<Gray, byte>(gray.Size))
                         using (var thresholdGray = new Image<Gray, byte>(gray.Size))
                         using (var inverted = new Image<Gray, byte>(gray.Size))
-                        using (var stagingMasked = new Image<Gray, byte>(gray.Size))
                         {
                             var input = gray;
 
@@ -175,26 +174,6 @@ namespace LagoVista.PickAndPlace.App.Services
 
                                 CvInvoke.GaussianBlur(input, blurredGray, new Size(camera.CurrentVisionProfile.GausianKernellSize,camera.CurrentVisionProfile.GausianKernellSize), camera.CurrentVisionProfile.GaussianSigma);
                                 input = blurredGray;
-                            }
-
-                            // The circular mask is applied before inversion above. Invert
-                            // turns its black exterior white, so a dark staging-plate hole
-                            // on bright material cannot become a white hole on black.
-                            // Keep the validated centroid detector unchanged; simply
-                            // restore the masked exterior to black after preprocessing.
-                            if (camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_StagingPlateHole &&
-                                camera.CurrentVisionProfile.ApplyMask &&
-                                camera.CurrentVisionProfile.Invert)
-                            {
-                                using (var finalMask = new Image<Gray, byte>(gray.Size))
-                                {
-                                    CvInvoke.Circle(finalMask,
-                                        new System.Drawing.Point(size.Width / 2, size.Height / 2),
-                                        Convert.ToInt32(camera.CurrentVisionProfile.TargetImageRadius * camera.EffectivePixelsPerMM),
-                                        new MCvScalar(255), -1, LineType.AntiAlias);
-                                    CvInvoke.BitwiseAnd(input, input, stagingMasked, finalMask);
-                                    input = stagingMasked;
-                                }
                             }
 
                             var output = camera.CurrentVisionProfile.ShowOriginalImage ? raw : (IInputOutputArray)input;
