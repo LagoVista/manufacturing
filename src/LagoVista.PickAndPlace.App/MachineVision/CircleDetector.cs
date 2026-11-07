@@ -118,9 +118,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 for (var i = 0; i < contours.Size; i++)
                 {
                     using (var contour = contours[i])
+                    using (var moments = CvInvoke.Moments(contour))
                     {
-                        // CvInvoke.Moments returns MCvMoments (a value type).
-                        var moments = CvInvoke.Moments(contour);
                         if (moments.M00 <= 0)
                             continue;
 
