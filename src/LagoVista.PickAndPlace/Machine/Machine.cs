@@ -242,8 +242,23 @@ namespace LagoVista.PickAndPlace
             }
             else
             { 
-                if(profileName == camera.CurrentVisionProfile.Key)
+                if (profileName == camera.CurrentVisionProfile?.Key)
                 {
+                    // Re-selecting a profile must also restore its physical lighting.
+                    // Manual light controls can change hardware without changing the
+                    // active vision profile, so skipping this leaves state out of sync.
+                    camera.ProfileSource = VisionProfileSource.Camera;
+                    camera.ProfileSourceId = null;
+                    if (camera.CameraType.Value == CameraTypes.Position)
+                    {
+                        ConfigureTopLight(camera.CurrentVisionProfile.LightOn, camera.EffectiveLightPower,
+                            camera.EffectiveLightRed, camera.EffectiveLightGreen, camera.EffectiveLightBlue);
+                    }
+                    else if (camera.CameraType.Value == CameraTypes.PartInspection)
+                    {
+                        ConfigureBottomLight(camera.CurrentVisionProfile.LightOn, camera.EffectiveLightPower,
+                            camera.EffectiveLightRed, camera.EffectiveLightGreen, camera.EffectiveLightBlue);
+                    }
                     return;
                 }
 
