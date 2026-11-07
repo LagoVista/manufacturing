@@ -98,12 +98,33 @@ namespace LagoVista.PickAndPlace.App.Services
         {
             if(e.PropertyName == nameof(Camera.CurrentVisionProfile))
             {
+                // A new vision profile may be looking for an entirely different circle.
+                _shapeDetectorService.Reset();
                 RaisePropertyChanged(nameof(Profile));
             }
         }
 
         private void CenterFoundItem()
         {
+            if (Profile?.Key == VisionProfile.VisionProfile_StagingPlateHole)
+            {
+                var stableHole = _shapeDetectorService.FoundCircles
+                    .Where(circle => circle.Stabilized && circle.PositionStable)
+                    .OrderBy(circle => Math.Pow(circle.OffsetPixels.X, 2) +
+                                       Math.Pow(circle.OffsetPixels.Y, 2))
+                    .FirstOrDefault();
+
+                if (stableHole == null)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                        "Staging-plate hole is not stable yet. Wait for the detection crosshairs to settle before centering.");
+                    return;
+                }
+
+                Machine.GotoPoint(stableHole.OffsetMM, relativeMove: true);
+                return;
+            }
+
             var firstCircle = _shapeDetectorService.FoundCircles.FirstOrDefault();
             if (firstCircle != null)
             {
