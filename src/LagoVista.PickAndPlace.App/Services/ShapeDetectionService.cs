@@ -150,6 +150,7 @@ namespace LagoVista.PickAndPlace.App.Services
                         using (var blurredGray = new Image<Gray, byte>(gray.Size))
                         using (var thresholdGray = new Image<Gray, byte>(gray.Size))
                         using (var inverted = new Image<Gray, byte>(gray.Size))
+                        using (var invertedMasked = new Image<Gray, byte>(gray.Size))
                         {
                             var input = gray;
 
@@ -174,6 +175,23 @@ namespace LagoVista.PickAndPlace.App.Services
 
                                 CvInvoke.GaussianBlur(input, blurredGray, new Size(camera.CurrentVisionProfile.GausianKernellSize,camera.CurrentVisionProfile.GausianKernellSize), camera.CurrentVisionProfile.GaussianSigma);
                                 input = blurredGray;
+                            }
+
+                            // ApplyMask runs before Invert above. Inverting also turns the
+                            // masked-out (black) exterior white, which causes external-contour
+                            // detection to select the mask background instead of the hole.
+                            // Restore a black exterior after all image processing, without
+                            // changing the proven centroid detector or the mask-off path.
+                            if (camera.CurrentVisionProfile.ApplyMask && camera.CurrentVisionProfile.Invert)
+                            {
+                                using (var finalMask = new Image<Gray, byte>(size))
+                                {
+                                    CvInvoke.Circle(finalMask, new Point(size.Width / 2, size.Height / 2),
+                                        Convert.ToInt32(camera.CurrentVisionProfile.TargetImageRadius * camera.EffectivePixelsPerMM),
+                                        new MCvScalar(255), -1, LineType.AntiAlias);
+                                    CvInvoke.BitwiseAnd(input, input, invertedMasked, finalMask);
+                                    input = invertedMasked;
+                                }
                             }
 
                             var output = camera.CurrentVisionProfile.ShowOriginalImage ? raw : (IInputOutputArray)input;
