@@ -107,7 +107,10 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 // already-thresholded staging-plate profiles. Never modify the input.
                 CvInvoke.Threshold(input.Image, binary, 0, 255,
                     ThresholdType.Binary | ThresholdType.Otsu);
-                CvInvoke.FindContours(binary, contours, null, RetrType.External,
+                // Staging-plate holes can be light-on-dark or dark-on-light.
+                // Retrieve nested contours as well: External discards a dark hole
+                // inside the bright circular area left by Apply Mask.
+                CvInvoke.FindContours(binary, contours, null, RetrType.List,
                     ChainApproxMethod.ChainApproxSimple);
 
                 CircleF? best = null;
@@ -116,10 +119,10 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 {
                     using (var contour = contours[i])
                     {
-                        using (var moments = CvInvoke.Moments(contour))
-                        {
-                            if (moments.M00 <= 0)
-                                continue;
+                        // CvInvoke.Moments returns MCvMoments (a value type).
+                        var moments = CvInvoke.Moments(contour);
+                        if (moments.M00 <= 0)
+                            continue;
 
                             var radius = Math.Sqrt(moments.M00 / Math.PI);
                             if (radius < minimumRadius || radius > maximumRadius)
@@ -139,7 +142,6 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                                 bestDistanceSquared = distanceSquared;
                                 best = candidate;
                             }
-                        }
                     }
                 }
 
