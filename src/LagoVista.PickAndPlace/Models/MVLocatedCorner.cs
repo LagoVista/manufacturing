@@ -1,3 +1,4 @@
+using LagoVista.Core.Models;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Manufacturing.Models;
 using System;
@@ -11,7 +12,7 @@ namespace LagoVista.PickAndPlace.Models
     /// unstable locations before the existing camera Jog button moves.
     /// Pixel offsets use the same X / -Y sign convention as MVLocatedCircle.
     /// </summary>
-    public class MVLocatedCorner
+    public class MVLocatedCorner : ModelBase
     {
         private const int HistorySize = 7;
         private readonly Queue<Point2D<double>> _samples = new Queue<Point2D<double>>();
@@ -108,6 +109,12 @@ namespace LagoVista.PickAndPlace.Models
             var ys = _samples.Select(point => point.Y).OrderBy(value => value).ToArray();
             Position = new Point2D<double>(xs[xs.Length / 2], ys[ys.Length / 2]);
             FoundCount++;
+            RaisePropertyChanged(nameof(Summary));
+            RaisePropertyChanged(nameof(Position));
+            RaisePropertyChanged(nameof(OffsetMM));
+            RaisePropertyChanged(nameof(PositionStable));
+            RaisePropertyChanged(nameof(Stabilized));
+            RaisePropertyChanged(nameof(Centered));
         }
 
         public void Reset()
@@ -116,6 +123,10 @@ namespace LagoVista.PickAndPlace.Models
             FoundCount = 0;
             Position = null;
             UsesStartBarScale = false;
+            RaisePropertyChanged(nameof(Summary));
+            RaisePropertyChanged(nameof(PositionStable));
+            RaisePropertyChanged(nameof(Stabilized));
+            RaisePropertyChanged(nameof(Centered));
         }
     }
 }
