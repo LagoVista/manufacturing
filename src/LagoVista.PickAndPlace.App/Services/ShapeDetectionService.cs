@@ -146,12 +146,15 @@ namespace LagoVista.PickAndPlace.App.Services
                 else
                 {
                     var detail = _cornerDetector.LatestStatus ?? String.Empty;
-                    var message = detail.StartsWith("WHITE CORNER AMBIGUOUS",
-                        StringComparison.Ordinal)
-                        ? "MULTIPLE WHITE CORNERS: REDUCE RADIUS"
-                        : "NO WHITE L CORNER: CHECK THRESHOLD/RADIUS";
-                    DrawFeederCornerLabel(img.Image, size, message, 0,
-                        new MCvScalar(0, 180, 255));
+                    var ambiguous = detail.StartsWith("WHITE CORNER AMBIGUOUS",
+                        StringComparison.Ordinal);
+                    var warning = new MCvScalar(0, 180, 255);
+                    DrawFeederCornerLabel(img.Image, size,
+                        ambiguous ? "MULTIPLE CORNERS" : "CORNER NOT FOUND",
+                        0, warning, true);
+                    DrawFeederCornerLabel(img.Image, size,
+                        ambiguous ? "REDUCE SEARCH RADIUS" : "CHECK THRESHOLD / RADIUS",
+                        1, warning);
                 }
                 return;
             }
