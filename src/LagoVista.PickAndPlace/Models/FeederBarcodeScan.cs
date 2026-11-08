@@ -31,7 +31,9 @@ namespace LagoVista.PickAndPlace.Models
         public int CaptureCount { get; private set; }
         public bool HasVerifiedStart => _startCenterMm.HasValue;
         public double PixelsPerUnit => _pixelsPerUnit;
-        public double PixelsPerMmFromStart => HasVerifiedStart
+        // Available as soon as the start width is measured, before its
+        // world-coordinate anchor has been assigned.
+        public double PixelsPerMmFromStart => _pixelsPerUnit > 0
             ? _pixelsPerUnit / FeederBarcodeSignal.BaseWidthMm : 0;
         public int ObservedBars => _bars.Count;
         public bool IsComplete { get; private set; }
