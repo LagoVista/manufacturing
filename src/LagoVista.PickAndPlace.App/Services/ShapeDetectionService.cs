@@ -221,6 +221,8 @@ namespace LagoVista.PickAndPlace.App.Services
 
             var img = source.Image;
             _feederBarcodeVertical = feederBarcodeVertical;
+            var feederBarcodeMode = camera.CurrentVisionProfile.Key ==
+                VisionProfile.VisionProfile_FeederOrigin;
 
             try
             {
@@ -243,7 +245,10 @@ namespace LagoVista.PickAndPlace.App.Services
                     using (var masked = new Image<Bgr, byte>(size))
                     {
 
-                        if (camera.CurrentVisionProfile.ApplyMask)
+                        // The circular mask used for holes can truncate a long
+                        // feeder barcode. Leave the entire camera image available
+                        // to the independent rectangular barcode sampler.
+                        if (camera.CurrentVisionProfile.ApplyMask && !feederBarcodeMode)
                         {
                             using (var mask = new Image<Gray, byte>(size))
                             {
@@ -292,7 +297,7 @@ namespace LagoVista.PickAndPlace.App.Services
                             // detection to select the mask background instead of the hole.
                             // Restore a black exterior after all image processing, without
                             // changing the proven centroid detector or the mask-off path.
-                            if (camera.CurrentVisionProfile.ApplyMask && camera.CurrentVisionProfile.Invert)
+                            if (camera.CurrentVisionProfile.ApplyMask && camera.CurrentVisionProfile.Invert && !feederBarcodeMode)
                             {
                                 using (var finalMask = new Image<Gray, byte>(size))
                                 {
@@ -306,7 +311,7 @@ namespace LagoVista.PickAndPlace.App.Services
 
                             // Prototype feeder-marker measurements use raw grayscale so
                             // profile invert/mask settings do not reverse the black-on-white bars.
-                            _feederBarcode = camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_FeederOrigin
+                            _feederBarcode = feederBarcodeMode
                                 ? FeederBarcodeDetector.FindBars(gray, camera.EffectivePixelsPerMM,
                                     camera.CurrentVisionProfile.ApplyThreshold
                                         ? (byte)Math.Round(camera.CurrentVisionProfile.PrimaryThreshold / 100.0 * 255)
