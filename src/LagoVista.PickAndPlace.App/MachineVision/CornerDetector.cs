@@ -19,6 +19,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             new ObservableCollection<MVLocatedCorner>();
         private readonly ILocatorViewModel _locatorViewModel;
         private int _iteration;
+        private string _latestStatus = String.Empty;
+        public string LatestStatus => _latestStatus;
 
         public CornerDetector(ILocatorViewModel locatorViewModel)
         {
@@ -59,8 +61,10 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     if (!white.Found)
                     {
                         Reset();
+                        _latestStatus = white.Status;
                         return;
                     }
+                    _latestStatus = white.Status;
 
                     // Prefer the known 2.5 mm start reference when the camera
                     // currently sees enough barcode bars to verify it. Near
@@ -144,6 +148,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
         public void Reset()
         {
+            _latestStatus = String.Empty;
             foreach (var corner in _locatedCorners)
                 corner.Reset();
             _locatedCorners.Clear();
