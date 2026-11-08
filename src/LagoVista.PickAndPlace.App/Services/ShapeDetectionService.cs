@@ -32,6 +32,7 @@ namespace LagoVista.PickAndPlace.App.Services
         ILineDetector<IInputOutputArray> _lineDetector;
         FeederBarcodeDetector.Observation _feederBarcode;
         bool? _feederBarcodeVertical;
+        private readonly FeederBarcodeTemporalMonitor _feederBarcodeTemporal = new FeederBarcodeTemporalMonitor();
 
         public byte[] LatestFeederBarcodeSignal => _feederBarcode?.Signal;
 
@@ -323,7 +324,7 @@ namespace LagoVista.PickAndPlace.App.Services
                                     camera.CurrentVisionProfile.ApplyThreshold
                                         ? (byte)Math.Round(camera.CurrentVisionProfile.PrimaryThreshold / 100.0 * 255)
                                         : (byte)128,
-                                    feederBarcodeVertical)
+                                    feederBarcodeVertical, _feederBarcodeTemporal)
                                 : null;
 
                             var output = camera.CurrentVisionProfile.ShowOriginalImage ? raw : (IInputOutputArray)input;
@@ -375,6 +376,7 @@ namespace LagoVista.PickAndPlace.App.Services
         {
             _feederBarcode = null;
             _feederBarcodeVertical = null;
+            _feederBarcodeTemporal.Reset();
             _circleDetector.FoundCircles.Clear();
             _rectangleDetector.FoundRectangles.Clear();
             _cornerDetector.FoundCorners.Clear();
