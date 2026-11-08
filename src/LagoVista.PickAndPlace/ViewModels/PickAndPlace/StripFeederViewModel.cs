@@ -72,7 +72,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             SetLastFeederReferenceHoleCommand = CreatedMachineConnectedSettingsCommand(() => SetLocation(StripFeederSetTypes.LastFeederRowReferenceHole), () => CurrentRow != null);
 
             GoToFeederOriginCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.FeederOrigin), () => Current != null);
-            FrameFeederBarcodeCommand = CreatedMachineConnectedCommand(FrameFeederBarcode, () => Current != null);
+            FrameFeederBarcodeCommand = CreatedMachineConnectedCommand(FrameFeederBarcode,
+                () => Current != null && !_barcodeScanInProgress);
             ScanFeederBarcodeCommand = CreatedMachineConnectedCommand(ScanFeederBarcode,
                 () => Current != null && !_barcodeScanInProgress);
             GoToFeederReferenceHoleCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.FeederReferenceHole), () => Current != null);
@@ -198,6 +199,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         // centered in the image; frame the barcode with more of its length visible.
         private void FrameFeederBarcode()
         {
+            if (_barcodeScanInProgress)
+                return;
+
             var capture = Machine?.PositionImageCaptureService;
             if (capture?.Camera == null || capture.CaptureFrameSize.Width <= 0 ||
                 capture.CaptureFrameSize.Height <= 0)
@@ -319,6 +323,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     if (!frame.Successful)
                     {
                         FeederBarcodeScanStatus = $"Scan stopped: {frame.ErrorMessage}";
+                        break;
+                    }
+
+                    // A feeder can be changed or its orientation edited while
+                    // waiting for video/motion. Never move based on stale context.
+                    if (!Machine.Connected || Current != feeder ||
+                        (feeder.Orientation.Value == FeederOrientations.Vertical) != vertical)
+                    {
+                        FeederBarcodeScanStatus = "Scan stopped: feeder selection, orientation or machine connection changed.";
                         break;
                     }
 
