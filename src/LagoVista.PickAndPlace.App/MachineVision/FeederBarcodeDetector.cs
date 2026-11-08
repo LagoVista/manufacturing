@@ -36,9 +36,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             var signal = FeederBarcodeSignal.SampleCenterBand(
                 image.Width, image.Height, vertical, (x, y) => data[y, x, 0], threshold);
             var calibration = FeederBarcodeSignal.ReadFromStart(signal, pixelsPerMm, threshold);
-            if (calibration.Bars.Count == 0)
-                return null;
-
+            // Preserve the raw center-band signal even in frames without a
+            // complete bounded bar; overlapping scans still need a fresh sample.
             return new Observation
             {
                 Vertical = vertical,
@@ -101,7 +100,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     ? new MCvScalar(0, 255, 0)
                     : new MCvScalar(0, 180, 255);
                 // Use the *relative*, self-calibrated bar width when available.
-                // Before START is verified, show raw mm only, never a false ID.
+                // Before START is verified, show raw pixels rather than
+                // millimeters calculated from an untrusted camera scale.
                 var units = verified
                     ? (bar.EndPixel - bar.StartPixel) / observation.Calibration.PixelsPerUnit
                     : 0;
@@ -109,7 +109,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     ? "START 5x"
                     : verified && bar.Value.HasValue
                         ? $"{number - 1}: {units:F1}x [{bar.Value.Value}]"
-                        : $"{number}: {bar.WidthMm:F2}mm [?]";
+                        : $"{number}: {bar.EndPixel - bar.StartPixel}px [?]";
 
                 if (observation.Vertical)
                 {
