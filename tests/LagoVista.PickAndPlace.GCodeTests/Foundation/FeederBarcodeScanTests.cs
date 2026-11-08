@@ -30,7 +30,10 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
 
         private static byte[] Frame(byte[] entireMarker, int offset)
         {
-            return entireMarker.Skip(offset).Take(850).ToArray();
+            // The physical camera keeps the same frame size even after
+            // the end of the printed label has moved into view.
+            var frame = entireMarker.Skip(offset).Take(850).ToArray();
+            return frame.Concat(Enumerable.Repeat((byte)255, 850 - frame.Length)).ToArray();
         }
 
         [TestCase(40)]
@@ -75,6 +78,74 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(scan.IsComplete, Is.True, scan.Status);
             Assert.That(scan.FeederId, Is.EqualTo(0x1B1B));
             Assert.That(scan.ObservedBars, Is.EqualTo(11));
+        }
+
+        [Test]
+        public void ScannerKeepsStartScaleAfterStartLeavesLiveView()
+        {
+            var marker = MakePrintedMarker(PrintedWidths);
+            var scan = new FeederBarcodeScan();
+            scan.AddCapture(Frame(marker, 0), 0, 45);
+            Assert.That(scan.HasVerifiedStart, Is.True, scan.Status);
+
+            scan.AddCapture(Frame(marker, 480), 4.8, 250);
+            Assert.That(scan.HasVerifiedStart, Is.True, scan.Status);
+            Assert.That(scan.PixelsPerUnit, Is.EqualTo(50).Within(0.0001));
+            Assert.That(scan.ObservedBars, Is.EqualTo(7));
+            Assert.That(scan.LastOverlapCount, Is.GreaterThanOrEqualTo(2));
+        }
+
+        [Test]
+        public void OverlappingFramesCorrectReportedMachinePositionDrift()
+        {
+            var marker = MakePrintedMarker(PrintedWidths);
+            var scan = new FeederBarcodeScan();
+            scan.AddCapture(Frame(marker, 0), 0, 100);
+
+            // The pixels are those from true 4.8/9.6 mm advances, but the
+            // reported machine positions have 0.65/-0.45 mm error. The
+            // old 0.28 mm exact-coordinate deduplication produced 15+ bars.
+            scan.AddCapture(Frame(marker, 480), 5.45, 100);
+            Assert.That(scan.LastOverlapCount, Is.GreaterThanOrEqualTo(2), scan.Status);
+            Assert.That(scan.LastRegistrationCorrectionMm, Is.EqualTo(-0.65).Within(0.02));
+            scan.AddCapture(Frame(marker, 960), 9.15, 100);
+
+            Assert.That(scan.IsComplete, Is.True, scan.Status);
+            Assert.That(scan.ObservedBars, Is.EqualTo(11));
+            Assert.That(scan.FeederId, Is.EqualTo(0x1B1B));
+        }
+
+        [Test]
+        public void SmallerThreeMillimeterStepsPreserveOverlapToFinalEndMarker()
+        {
+            var marker = MakePrintedMarker(PrintedWidths);
+            var scan = new FeederBarcodeScan();
+            for (var step = 0; step <= 4; step++)
+            {
+                scan.AddCapture(Frame(marker, step * 300), step * 3.0, 45);
+                Assert.That(scan.Status, Does.Not.Contain("OVERLAP NOT VERIFIED"));
+            }
+
+            Assert.That(scan.IsComplete, Is.True, scan.Status);
+            Assert.That(scan.ObservedBars, Is.EqualTo(11));
+            Assert.That(scan.FeederId, Is.EqualTo(0x1B1B));
+        }
+
+        [Test]
+        public void MissingOverlapIsRejectedRatherThanDoubleCounting()
+        {
+            var marker = MakePrintedMarker(PrintedWidths);
+            var scan = new FeederBarcodeScan();
+            scan.AddCapture(Frame(marker, 0), 0, 100);
+            var beforeCount = scan.ObservedBars;
+
+            // Jumping close to the end does not provide a valid two-bar overlap.
+            scan.AddCapture(Frame(marker, 1300), 13, 100);
+
+            Assert.That(scan.ObservedBars, Is.EqualTo(beforeCount));
+            Assert.That(scan.IsComplete, Is.False);
+            Assert.That(scan.Status, Does.Contain("OVERLAP NOT VERIFIED"));
+            Assert.That(scan.HasVerifiedStart, Is.True);
         }
 
         [Test]
