@@ -41,6 +41,8 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             var scan = new FeederBarcodeScan();
             scan.AddCapture(Frame(marker, 0), 0, nominalPixelsPerMm);
             Assert.That(scan.HasVerifiedStart, Is.True, scan.Status);
+            Assert.That(scan.PixelsPerMmFromStart, Is.EqualTo(100).Within(0.0001));
+            Assert.That(scan.ObservedBars, Is.EqualTo(4), "The first frame must anchor real machine coordinates.");
             Assert.That(scan.IsComplete, Is.False, "The first camera view should not contain the whole marker.");
 
             // Machine advances 4.8 mm per capture; camera signal shifts 480 px.
