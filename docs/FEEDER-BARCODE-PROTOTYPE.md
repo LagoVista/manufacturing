@@ -4,7 +4,7 @@
 
 - **Vertical strip feeder:** place the marker at the **top-left**; read the long axis **top to bottom**.
 - **Horizontal strip feeder:** place the marker at the **bottom-left**; read the long axis **left to right**.
-- The reference is the **leading edge of the first black bar**, placed at the feeder reference corner (target placement approximately 0.1 mm). Do not treat the printed label's white margin as the origin.
+- For the current vertical feeder white-corner pilot, the **upper-left white cut corner** is the optical feeder-origin reference. The first black barcode START bar is a separate internal decoding/scale reference. Do not interchange the two points.
 
 ## White cut corner: existing Feeder Origin vision workflow
 
@@ -45,7 +45,7 @@ button remains the explicit place where the operator saves an offset.
 ## Accuracy chain
 
 1. Resolve the approximate feeder position from the calibrated staging plate mounting hole (initial tolerance approximately 2 mm).
-2. Locate the first bar; refine the feeder origin to approximately 0.5 mm or better.
+2. Locate the white cut corner using the Feeder Origin profile and the existing second Play camera jog; measure the residual before saving any feeder-origin offset.
 3. Use existing StripFeederViewModel first-hole geometry to approach and center the first tape hole.
 4. Use feeder length and tape pitch to approach and center the last tape hole.
 5. Use the two measured tape holes and existing StripFeederPickupCalculator/FeederPositionCorrection to compute pickup locations.
