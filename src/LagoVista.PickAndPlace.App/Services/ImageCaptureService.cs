@@ -688,8 +688,19 @@ namespace LagoVista.PickAndPlace.App.Services
                                                 var threshold = Profile.ApplyThreshold
                                                     ? (byte)Math.Round(Profile.PrimaryThreshold * 255 / 100.0)
                                                     : (byte)128;
-                                                cornerRequest.TrySetResult(FeederWhiteCornerFinder.Find(
-                                                    resized.Width, resized.Height, SampleGray, threshold, radius));
+                                                var corner = FeederWhiteCornerFinder.Find(
+                                                    resized.Width, resized.Height, SampleGray, threshold, radius);
+                                                if (corner.Found)
+                                                {
+                                                    // Use the optically calibrated 5x START
+                                                    // (2.5 mm), not nominal camera pixels/mm,
+                                                    // before offering any machine correction.
+                                                    var opticalScale = FeederWhiteCornerFinder.MeasureStartScale(
+                                                        resized.Width, resized.Height, SampleGray,
+                                                        threshold, corner, Camera.EffectivePixelsPerMM);
+                                                    corner = corner.WithOpticalScale(opticalScale);
+                                                }
+                                                cornerRequest.TrySetResult(corner);
                                             }
                                             catch (Exception ex)
                                             {
