@@ -218,6 +218,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             // configuration (the position camera may capture at a higher resolution).
             var pixels = feederVertical ? capture.CaptureFrameSize.Height : capture.CaptureFrameSize.Width;
             var shiftMm = pixels * 0.30 / pixelsPerMm;
+            // Avoid an unexpected long machine move when the camera size or
+            // pixels/mm configuration is wrong. This button is only for framing.
+            if (double.IsNaN(shiftMm) || double.IsInfinity(shiftMm) ||
+                shiftMm <= 0 || shiftMm > 12)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                    $"Barcode framing shift {shiftMm:F2} mm is outside the expected 0-12 mm range; check camera calibration.");
+                return;
+            }
+
             // MVLocatedCircle.OffsetMM uses +X and -Y for pixel-to-machine conversion.
             // Move the camera along the marker so its leading bar is 20% into the view.
             var framed = feederVertical
