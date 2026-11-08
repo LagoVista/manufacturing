@@ -67,10 +67,10 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 else
                     CvInvoke.Line(output, new Point(guide, center - 15),
                         new Point(guide, center + 35), color, 2);
-                CvInvoke.PutText(output, "Start target",
-                    vertical ? new Point(Math.Min(imageSize.Width - 105, center + 40), Math.Max(14, guide - 8))
-                             : new Point(Math.Min(imageSize.Width - 105, guide + 8), Math.Max(14, center - 25)),
-                    Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.35, color, 1);
+                DrawReadableText(output, "START",
+                    vertical ? new Point(Math.Min(imageSize.Width - 120, center + 40), Math.Max(24, guide - 8))
+                             : new Point(Math.Min(imageSize.Width - 120, guide + 8), Math.Max(24, center - 25)),
+                    color, 0.85);
             }
 
             if (observation == null)
@@ -88,41 +88,62 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     new Rectangle(0, observation.CrossPixel,
                         imageSize.Width - 1, 10), scanColor, 1);
 
+            var number = 0;
             foreach (var bar in observation.Bars)
             {
+                number++;
                 var center = (bar.StartPixel + bar.EndPixel) / 2;
                 var color = bar.Value.HasValue
                     ? new MCvScalar(0, 255, 0)
                     : new MCvScalar(0, 180, 255);
+                // Shorten the text so it remains readable when the camera
+                // preview is scaled down in the Windows application.
                 var label = bar.Value.HasValue
-                    ? $"{bar.WidthMm:F2}mm [{bar.Value.Value}]"
-                    : $"{bar.WidthMm:F2}mm [?]";
+                    ? $"{number}: {bar.WidthMm:F2} [{bar.Value.Value}]"
+                    : $"{number}: {bar.WidthMm:F2} [?]";
 
                 if (observation.Vertical)
                 {
                     CvInvoke.Line(output, new Point(observation.CrossPixel - 10, center),
                         new Point(observation.CrossPixel + 10, center), color, 2);
-                    var x = Math.Max(3, Math.Min(imageSize.Width - 115, observation.CrossPixel + 15));
-                    CvInvoke.PutText(output, label,
-                        new Point(x, Math.Max(15, Math.Min(imageSize.Height - 4, center))),
-                        Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.38, color, 1);
+                    var x = Math.Max(3, Math.Min(imageSize.Width - 176, observation.CrossPixel + 23));
+                    DrawReadableText(output, label,
+                        new Point(x, Math.Max(22, Math.Min(imageSize.Height - 7, center))),
+                        color, 0.82);
                 }
                 else
                 {
                     CvInvoke.Line(output, new Point(center, observation.CrossPixel - 10),
                         new Point(center, observation.CrossPixel + 10), color, 2);
-                    CvInvoke.PutText(output, label,
-                        new Point(Math.Max(3, Math.Min(imageSize.Width - 115, center - 20)),
-                                  Math.Max(15, observation.CrossPixel - 16)),
-                        Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.38, color, 1);
+                    // Horizontal bars can be close together: use stacked labels
+                    // below the center band rather than overlapping them along X.
+                    var y = observation.CrossPixel + 42 + (number - 1) * 28;
+                    if (y + 6 < imageSize.Height)
+                        DrawReadableText(output, label, new Point(12, y), color, 0.82);
                 }
             }
 
-            CvInvoke.PutText(output,
-                $"Feeder bars: {observation.Bars.Count} ({(observation.Vertical ? "vertical" : "horizontal")})",
-                new Point(8, imageSize.Height - 12),
-                Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.48,
-                new MCvScalar(0, 255, 0), 1);
+            DrawReadableText(output,
+                $"BARS: {observation.Bars.Count}",
+                new Point(8, imageSize.Height - 43),
+                new MCvScalar(255, 255, 255), 0.78);
+            DrawReadableText(output,
+                "GREEN = MATCH   ORANGE = ?",
+                new Point(8, imageSize.Height - 13),
+                new MCvScalar(255, 255, 255), 0.68);
+        }
+
+        // Labels are overlays only; the binary sampling band and decoded widths
+        // are unchanged. The dark outline keeps large characters legible over
+        // both the bright printed strip and the black camera background.
+        private static void DrawReadableText(IInputOutputArray output, string text,
+            Point position, MCvScalar color, double scale)
+        {
+            CvInvoke.PutText(output, text, position,
+                Emgu.CV.CvEnum.FontFace.HersheySimplex, scale,
+                new MCvScalar(0, 0, 0), 5);
+            CvInvoke.PutText(output, text, position,
+                Emgu.CV.CvEnum.FontFace.HersheySimplex, scale, color, 2);
         }
     }
 }
