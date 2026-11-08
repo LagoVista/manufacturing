@@ -66,6 +66,29 @@ namespace LagoVista.PickAndPlace.App.Services
                 var corner = _cornerDetector.FoundCorners.FirstOrDefault();
                 if (corner?.Position != null)
                 {
+                    // Draw exactly the two line segments accepted by
+                    // FeederWhiteCornerFinder. Their extrapolated intersection
+                    // is the orange/green crosshair; the physical cut tip may
+                    // be slightly rounded and need not contain a white pixel.
+                    if (corner.TopEdgeStart != null && corner.TopEdgeEnd != null)
+                    {
+                        CvInvoke.Line(img.Image,
+                            new Point((int)Math.Round(corner.TopEdgeStart.X),
+                                (int)Math.Round(corner.TopEdgeStart.Y)),
+                            new Point((int)Math.Round(corner.TopEdgeEnd.X),
+                                (int)Math.Round(corner.TopEdgeEnd.Y)),
+                            new MCvScalar(255, 230, 0), 2);
+                    }
+                    if (corner.LeftEdgeStart != null && corner.LeftEdgeEnd != null)
+                    {
+                        CvInvoke.Line(img.Image,
+                            new Point((int)Math.Round(corner.LeftEdgeStart.X),
+                                (int)Math.Round(corner.LeftEdgeStart.Y)),
+                            new Point((int)Math.Round(corner.LeftEdgeEnd.X),
+                                (int)Math.Round(corner.LeftEdgeEnd.Y)),
+                            new MCvScalar(255, 0, 255), 2);
+                    }
+
                     var point = new Point((int)Math.Round(corner.Position.X),
                         (int)Math.Round(corner.Position.Y));
                     var color = corner.PositionStable
