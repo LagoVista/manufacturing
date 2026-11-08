@@ -526,10 +526,19 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
 
 
-        private static Point2D<double> ResolveFeederOrigin(Point2D<double> mountingHole, StripFeeder feeder)
+        // Calculated position from the staging-plate row/column and mounting
+        // geometry. Use for the first optical corner approach, not for
+        // calibrated pick locations.
+        private static Point2D<double> ResolveCalculatedFeederOrigin(Point2D<double> mountingHole,
+            StripFeeder feeder)
         {
             var vertical = feeder.Orientation.Value == FeederOrientations.Vertical;
-            return mountingHole.SubtractWithConditionalSwap(vertical, feeder.MountingHoleOffset) + feeder.OriginOffset;
+            return mountingHole.SubtractWithConditionalSwap(vertical, feeder.MountingHoleOffset);
+        }
+
+        private static Point2D<double> ResolveFeederOrigin(Point2D<double> mountingHole, StripFeeder feeder)
+        {
+            return ResolveCalculatedFeederOrigin(mountingHole, feeder) + feeder.OriginOffset;
         }
 
         private void SetLocation(StripFeederSetTypes setType)
@@ -613,9 +622,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 // staging-plate row/column and mounting-hole geometry. The
                 // measured OriginOffset remains for calibrated picking and
                 // SetFeederOrigin, but must NOT bias the initial corner search.
-                var vertical = Current.Orientation.Value == FeederOrientations.Vertical;
-                var calculated = stagePlateReferenceLocation.SubtractWithConditionalSwap(
-                    vertical, Current.MountingHoleOffset);
+                var calculated = ResolveCalculatedFeederOrigin(stagePlateReferenceLocation, Current);
                 return InvokeResult<Point2D<double>>.Create(calculated);
             }
 
