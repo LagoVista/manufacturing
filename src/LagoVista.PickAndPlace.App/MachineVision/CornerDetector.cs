@@ -71,7 +71,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                         128, white, nominalScale);
                     var useStartScale = measuredScale > 0;
                     Track(white.X, white.Y, camera, size,
-                        useStartScale ? measuredScale : nominalScale, useStartScale);
+                        useStartScale ? measuredScale : nominalScale,
+                        useStartScale, white);
                 }
                 return;
             }
@@ -121,7 +122,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         }
 
         private void Track(int x, int y, MachineCamera camera,
-            System.Drawing.Size size, double scale, bool usesStartScale)
+            System.Drawing.Size size, double scale, bool usesStartScale,
+            FeederWhiteCornerObservation fittedEdges = null)
         {
             var tracked = _locatedCorners.FirstOrDefault();
             if (tracked == null)
@@ -134,6 +136,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             tracked.Add(x, y, size.Width, size.Height, scale,
                 camera.CurrentVisionProfile.ErrorToleranceMM,
                 camera.CurrentVisionProfile.StabilizationCount, usesStartScale);
+            tracked.SetFittedEdges(fittedEdges);
             _locatorViewModel.CornerLocated(tracked);
         }
 
