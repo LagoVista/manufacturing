@@ -30,6 +30,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand SetFeederOriginCommand { get; }
 
         RelayCommand GoToFeederOriginCommand { get; }
+        RelayCommand FrameFeederBarcodeCommand { get; }
         RelayCommand GoToFeederReferenceHoleCommand { get; }
 
         RelayCommand SetFirstFeederReferenceHoleCommand { get; }
