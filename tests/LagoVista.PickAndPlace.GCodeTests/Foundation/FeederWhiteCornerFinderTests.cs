@@ -170,6 +170,21 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void TwoSimilarWhiteLabelCornersRequireACloserSearchRadius()
+        {
+            var pixels = PrintedWhiteLabel();
+            // A second comparably sized label in the search region must
+            // never be silently mistaken for the selected feeder.
+            for (var y = 105; y < 390; y++)
+                for (var x = 100; x < 260; x++)
+                    pixels[y * Size + x] = 255;
+
+            var result = Find(pixels);
+            Assert.That(result.Found, Is.False, result.Status);
+            Assert.That(result.Status, Does.Contain("AMBIGUOUS"));
+        }
+
+        [Test]
         public void VeryShortTopEdgeMustNotBeAcceptedAsFeederCorner()
         {
             var pixels = new byte[Size * Size];
