@@ -57,8 +57,16 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             var result = Find(pixels);
 
             Assert.That(result.Found, Is.True, result.Status);
-            Assert.That(result.X, Is.EqualTo(288));
-            Assert.That(result.Y, Is.EqualTo(280));
+            // The top starts at X=288 and the left edge only reaches
+            // X=280 below the rough tip. The mathematical two-line
+            // intersection is (280,280), not the first bright pixel.
+            Assert.That(result.X, Is.EqualTo(280).Within(2), result.Status);
+            Assert.That(result.Y, Is.EqualTo(280).Within(2), result.Status);
+            Assert.That(result.TopEdgeSamples, Is.GreaterThan(75));
+            Assert.That(result.LeftEdgeSamples, Is.GreaterThan(100));
+            Assert.That(result.EdgeFitErrorPixels, Is.LessThan(2.3));
+            Assert.That(result.TopEdgeStart, Is.Not.Null);
+            Assert.That(result.LeftEdgeEnd, Is.Not.Null);
             Assert.That(result.ComponentAreaPixels, Is.GreaterThan(1000));
             Assert.That(result.X, Is.Not.EqualTo(308));
             Assert.That(result.Y, Is.Not.EqualTo(333));
@@ -114,6 +122,82 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void BrightTextAndGlareAboveLabelMustNotWinCornerSelection()
+        {
+            var pixels = PrintedWhiteLabel();
+
+            // These represent the bright printed markings and scattered
+            // reflective fragments on the right side of the actual camera
+            // screenshot. Their Y values begin well ABOVE the label, which
+            // caused the old "first top white component" implementation
+            // to select the wrong target.
+            for (var block = 0; block < 5; block++)
+            {
+                var x0 = 462 + (block % 2) * 32;
+                var y0 = 105 + block * 47;
+                for (var y = y0; y < y0 + 35; y++)
+                    for (var x = x0; x < x0 + 24; x++)
+                        if ((x + 3 * y) % 11 != 0)
+                            pixels[y * Size + x] = 255;
+            }
+
+            var result = Find(pixels);
+            Assert.That(result.Found, Is.True, result.Status);
+            Assert.That(result.X, Is.EqualTo(280).Within(2), result.Status);
+            Assert.That(result.Y, Is.EqualTo(280).Within(2), result.Status);
+        }
+
+        [Test]
+        public void SlantedStraightWhiteEdgesAreExtrapolatedBackToTheirIntersection()
+        {
+            var pixels = new byte[Size * Size];
+            for (var y = 0; y < Size; y++)
+            {
+                for (var x = 0; x < Size; x++)
+                {
+                    var top = 280 + (int)Math.Round((x - 280) * 0.05);
+                    var left = 280 + (int)Math.Round((y - 280) * 0.025);
+                    if (y >= top && x >= left && x < 440)
+                        pixels[y * Size + x] = 255;
+                }
+            }
+
+            var result = Find(pixels);
+            Assert.That(result.Found, Is.True, result.Status);
+            Assert.That(result.X, Is.EqualTo(280).Within(3), result.Status);
+            Assert.That(result.Y, Is.EqualTo(280).Within(3), result.Status);
+            Assert.That(result.EdgeFitErrorPixels, Is.LessThan(2.3));
+        }
+
+        [Test]
+        public void VeryShortTopEdgeMustNotBeAcceptedAsFeederCorner()
+        {
+            var pixels = new byte[Size * Size];
+            // Tall reflected white line with no substantial top edge.
+            for (var y = 235; y < 480; y++)
+                for (var x = 290; x < 306; x++)
+                    pixels[y * Size + x] = 255;
+
+            var result = Find(pixels);
+            Assert.That(result.Found, Is.False, result.Status);
+            Assert.That(result.Status, Does.Contain("NOT FOUND"));
+        }
+
+        [Test]
+        public void WithOpticalScalePreservesFittedEdgesForOverlay()
+        {
+            var observation = Find(PrintedWhiteLabel());
+            var calibrated = observation.WithOpticalScale(100.0);
+
+            Assert.That(calibrated.OpticalPixelsPerMm, Is.EqualTo(100.0));
+            Assert.That(calibrated.X, Is.EqualTo(observation.X));
+            Assert.That(calibrated.Y, Is.EqualTo(observation.Y));
+            Assert.That(calibrated.TopEdgeStart, Is.Not.Null);
+            Assert.That(calibrated.LeftEdgeEnd, Is.Not.Null);
+            Assert.That(calibrated.TopEdgeSamples, Is.EqualTo(observation.TopEdgeSamples));
+        }
+
+        [Test]
         public void NoWhiteCornerCannotAuthorizeJog()
         {
             var result = Find(PrintedWhiteLabel(false));
@@ -145,8 +229,8 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
 
             var result = Find(pixels, threshold: 180);
             Assert.That(result.Found, Is.True, result.Status);
-            Assert.That(result.X, Is.EqualTo(288));
-            Assert.That(result.Y, Is.EqualTo(280));
+            Assert.That(result.X, Is.EqualTo(280).Within(2), result.Status);
+            Assert.That(result.Y, Is.EqualTo(280).Within(2), result.Status);
             Assert.That(pixels[280 * Size + 288], Is.EqualTo(206));
         }
     }
