@@ -125,7 +125,7 @@ namespace LagoVista.PickAndPlace.Models
                 }
             }
 
-            return error < WidthToleranceUnits ? (int?)best : null;
+            return error < FeederBarcodeSignal.DataWidthToleranceUnits ? (int?)best : null;
         }
 
         /// <summary>
