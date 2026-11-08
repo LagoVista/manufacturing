@@ -31,8 +31,12 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                 for (var x = 308; x < 428; x++)
                     pixels[y * Size + x] = 0;
 
-            // A smaller data bar to ensure the white region stays L-shaped.
+            // Two smaller complete data bars verify that START is really
+            // five units, not an unrelated dark rectangle.
             for (var y = 500; y < 535; y++)
+                for (var x = 308; x < 428; x++)
+                    pixels[y * Size + x] = 0;
+            for (var y = 560; y < 606; y++)
                 for (var x = 308; x < 428; x++)
                     pixels[y * Size + x] = 0;
 
@@ -58,6 +62,39 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(result.ComponentAreaPixels, Is.GreaterThan(1000));
             Assert.That(result.X, Is.Not.EqualTo(308));
             Assert.That(result.Y, Is.Not.EqualTo(333));
+        }
+
+        [Test]
+        public void UsesVerifiedFiveUnitStartForActualOpticalScale()
+        {
+            var pixels = PrintedWhiteLabel();
+            byte Gray(int x, int y) => pixels[y * Size + x];
+
+            var corner = Find(pixels);
+            Assert.That(corner.Found, Is.True, corner.Status);
+            var actualScale = FeederWhiteCornerFinder.MeasureStartScale(
+                Size, Size, Gray, 128, corner, nominalPixelsPerMm: 40);
+
+            // 142 px / 2.5 mm, independent of the nominal 40 px/mm.
+            Assert.That(actualScale, Is.EqualTo(56.8).Within(0.0001));
+            Assert.That(actualScale, Is.Not.EqualTo(40));
+        }
+
+        [Test]
+        public void NoVerifiedStartLeavesJogScaleUnavailable()
+        {
+            var pixels = PrintedWhiteLabel();
+            // Remove both data bars. A long dark rectangle alone is not a
+            // trustworthy physical scale reference.
+            for (var y = 500; y < 606; y++)
+                for (var x = 308; x < 428; x++)
+                    pixels[y * Size + x] = 255;
+            byte Gray(int x, int y) => pixels[y * Size + x];
+
+            var corner = Find(pixels);
+            Assert.That(corner.Found, Is.True, corner.Status);
+            Assert.That(FeederWhiteCornerFinder.MeasureStartScale(
+                Size, Size, Gray, 128, corner, nominalPixelsPerMm: 40), Is.Zero);
         }
 
         [Test]
