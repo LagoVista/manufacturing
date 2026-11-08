@@ -248,16 +248,22 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             // MVLocatedCircle.OffsetMM uses +X and -Y for pixel-to-machine conversion.
-            // Move the camera along the marker so its leading bar is ~35% into the view.
+            // Vertical feeder origin is the top-left corner of the FIRST BLACK bar.
+            // Its marker is 2 mm wide; frame 1 mm to the right to put the fixed
+            // 10-pixel barcode sampling band near the middle of the printed strip.
+            // Keep the existing along-marker shift and horizontal framing unchanged.
+            const double verticalBarcodeCenterOffsetMm = 1.0;
             var framed = feederVertical
-                ? new Point2D<double>(origin.Result.X, origin.Result.Y - shiftMm)
+                ? new Point2D<double>(origin.Result.X + verticalBarcodeCenterOffsetMm, origin.Result.Y - shiftMm)
                 : new Point2D<double>(origin.Result.X + shiftMm, origin.Result.Y);
 
             Machine.SendSafeMoveHeight();
             Machine.GotoPoint(framed);
             Machine.AddStatusMessage(StatusMessageTypes.Info,
                 $"Framing {(feederVertical ? "vertical" : "horizontal")} feeder barcode: " +
-                $"camera offset {shiftMm:F2} mm along marker (target start at 35% of image).");
+                $"camera offset {shiftMm:F2} mm along marker" +
+                (feederVertical ? $", +{verticalBarcodeCenterOffsetMm:F2} mm X to barcode center" : "") +
+                " (target start at 35% of image).");
         }
 
 
