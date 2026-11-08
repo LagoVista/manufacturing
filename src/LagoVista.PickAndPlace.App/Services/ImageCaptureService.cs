@@ -151,6 +151,58 @@ namespace LagoVista.PickAndPlace.App.Services
 
         private void CenterFoundItem()
         {
+            if (Profile?.Key == VisionProfile.VisionProfile_FeederOrigin)
+            {
+                // Existing second Play button: only a stable white cut corner
+                // from the selected Feeder Origin profile authorizes a jog.
+                if (!Machine.Connected || Machine.Mode != OperatingMode.Manual ||
+                    !Machine.WasMachineHomed)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                        "White corner jog requires a homed machine in Manual mode.");
+                    return;
+                }
+
+                var corner = _shapeDetectorService.FoundCorners
+                    .Where(item => item.PositionStable && item.Stabilized)
+                    .OrderBy(item => Math.Abs(item.OffsetMM.X) + Math.Abs(item.OffsetMM.Y))
+                    .FirstOrDefault();
+                if (corner == null)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                        "White corner is not stable. Tune the Feeder Origin vision profile " +
+                        "until the corner marker stays green before jogging.");
+                    return;
+                }
+
+                var correction = corner.OffsetMM;
+                if (Math.Abs(correction.X) > 2.5 || Math.Abs(correction.Y) > 2.5)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                        $"White corner correction X={correction.X:F2}, Y={correction.Y:F2} mm " +
+                        "exceeds the 2.5 mm per-axis jog limit.");
+                    return;
+                }
+
+                var current = Machine.MachinePosition;
+                var targetX = current.X + correction.X;
+                var targetY = current.Y + correction.Y;
+                if (targetX < 0 || targetY < 0 ||
+                    targetX > Machine.Settings.WorkAreaSize.X ||
+                    targetY > Machine.Settings.WorkAreaSize.Y)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                        "White corner jog would move outside the configured work area.");
+                    return;
+                }
+
+                Machine.SendSafeMoveHeight();
+                Machine.GotoPoint(correction, relativeMove: true);
+                // Do not reuse the old location after initiating motion.
+                _shapeDetectorService.Reset();
+                return;
+            }
+
             if (Profile?.Key == VisionProfile.VisionProfile_StagingPlateHole)
             {
                 var stableHole = _shapeDetectorService.FoundCircles
