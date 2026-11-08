@@ -192,9 +192,10 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         [Test]
         public void StartBarMustBeEarlyEnoughInFrameToCalibrate()
         {
-            var image = MakeLine(new[] { 125, 25, 38 }, gap: 15, margin: 460);
+            var image = Enumerable.Repeat((byte)255, 600)
+                .Concat(MakeLine(new[] { 125, 25, 38 }, gap: 15, margin: 20)).ToArray();
             var result = FeederBarcodeSignal.ReadFromStart(image, pixelsPerMm: 50);
-            // First bar begins at 460 pixels in a 723-pixel frame.
+            // First bar begins past the midpoint of this long frame.
             Assert.That(result.HasVerifiedStart, Is.False);
         }
 
