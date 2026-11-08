@@ -45,7 +45,7 @@ namespace LagoVista.PickAndPlace.Models
         {
             if (getPixel == null)
                 throw new ArgumentNullException(nameof(getPixel));
-            if (width < 10 || height < 10)
+            if (width < 20 || height < 20)
                 throw new ArgumentOutOfRangeException(nameof(width), "Frame must fit the ten-pixel band.");
 
             const int bandWidth = 10;
