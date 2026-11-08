@@ -29,14 +29,16 @@ The proposed eleven-bar marker uses one **5-unit start bar**, eight four-level d
 
 The 10-pixel band and XOR transitions are unchanged. `FeederBarcodeSignal.ReadFromStart` validates the first fully visible black bar as a plausible 5x start, then checks that the **next two** measured bars fit the known width classes. The pixel scale is `startBarPixels / 5`; classification compares later bars to **1, 1.5, 2 and 2.5 units**, without relying on exact camera pixels/mm.
 
-A clipped/missing/malformed start leaves the result explicitly **START NOT VERIFIED**, with raw widths only and no trusted symbol values. The old `vertical_barcode_01.png` is a useful legacy regression, **not a calibrated 5x marker**. This first pass does not stitch captures, calculate feeder IDs, validate checksum, or change feeder coordinates.
+A clipped/missing/malformed start leaves the result explicitly **START NOT VERIFIED**, with raw widths only and no trusted symbol values. The old `vertical_barcode_01.png` is a useful legacy regression, **not a calibrated 5x marker**. The single-frame `ReadFromStart` method reports partially visible bar symbols; the separate `FeederBarcodeScan` combines captured frames into a validated 11-bar identity without changing feeder coordinates.
 
-## Proposed next iteration (not yet implemented)
+## Full 11-bar reader (implemented, hardware validation pending)
 
-- Print and photograph the new 5x-start eleven-bar format; confirm recognition of the start and independent camera scaling.
-- Assign/check the eight data bars (16-bit identity), two-bit check symbol, and 0.5x end framing bar.
-- A single camera view may contain only part of the strip. Combine **overlapping measurements in calibrated machine coordinates** rather than stitching large images.
-- Verify full identity and checksum before accepting a measured origin or persisting calibration.
+- **Frame Barcode**, confirm the live overlay reports **START OK**, then explicitly click **Scan Barcode**. This takes up to five fresh captures, advancing less than half a camera frame along the selected feeder's known orientation. Each move waits for machine idle; cumulative advance is capped at 18 mm and must remain inside the configured work area. No background autonomous scanning.
+- **FeederBarcodeScan** uses the same fixed 10-pixel median/XOR samples. The start bar calibrates symbol widths in pixels. Later frames can lack the start bar entirely; fully bounded bars are projected into machine coordinates using the measured camera location and the start-derived pixel scale, then overlapping observations are deduplicated. No panorama stitching, shape search or second detector.
+- The **current 20 x 2 mm test sheet** has a 2.5 mm long start bar and eight symbols 0,1,2,3,0,1,2,3 (ID `0x1B1B`). Although its original check bar was marked *provisional*, its printed symbol 1 also matches the explicitly chosen **CRC-2** for this ID: polynomial x²+x+1, initial register 3, 16 data bits MSB-first, no reflection/final XOR. The final 0.5x bar must be present and gaps must be consistent. Two check bits are modest error detection, not proof of authenticity.
+- This first machine-coordinate stitching implementation assumes the test sheet's **known physical 2.5 mm start length** when converting the optical pixel scale to millimeters for overlapping moves. Relative bar decoding itself tolerates other marker sizes, but moving between images of differently scaled prints will require passing their actual start length, or independently calibrating motion scale.
+- On a complete valid read the UI shows **BARCODE VERIFIED: ID 1B1B, 11 bars, CRC-2 OK**. On failure it shows the missing bar count or specific gap/check/end error. **Do not treat 0x1B1B as a production-unique feeder identity:** every copy of this test sheet has that same ID.
+- The scanner only reports a provisional decoded identity. It **does not** persist a feeder ID, update origin/tape-hole geometry, calibrate physical machine coordinates, or perform pickup. Those links remain future work after on-machine proof.
 
 ## Two separate vision profiles
 
@@ -52,6 +54,6 @@ A clipped/missing/malformed start leaves the result explicitly **START NOT VERIF
 - `ShapeDetectionService` annotates visible bars **only** in the new `feederbarcode` profile. The existing `feederorigin` profile remains available for precise corner alignment.
 - A **Frame Barcode** button explicitly moves the camera **along the barcode** to place the expected first bar at roughly 35% of the camera view: toward the top on vertical feeders, left on horizontal feeders. It uses the **actual captured frame size** and calibrated pixels/mm. The original **Go to Feeder Origin** retains its existing centering behavior.
 - An orange/yellow 35% framing guide is shown for the selected orientation; it is a visual target, **not an automatically detected edge**.
-- No automatic multi-frame sweep, source-of-truth calibration writes, or pickup operations have been added. The Frame Barcode button is the only new motion and is explicitly user-triggered.
+- A separate **Scan Barcode** button now triggers bounded overlapping machine moves and fresh image samples; **Frame Barcode** remains the explicit framing move. Neither action writes calibration settings or triggers pickup.
 
 A regression test reads the committed `tests/LagoVista.PickAndPlace.GCodeTests/TestImages/FeederBarcode/vertical_barcode_01.png` and asserts the sampling stays inside the ten-pixel band. Start by checking repeated width measurements at fixed machine position, then scan overlapping camera positions, decode the full marker, and finally connect the decoded start bar to existing tape-hole centering.
