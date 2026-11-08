@@ -115,6 +115,11 @@
                             </StackPanel>
                         </Grid>
 
+                        <Button Style="{StaticResource CommandButton}" Content="Frame Barcode"
+                                Command="{Binding FrameFeederBarcodeCommand}" Width="160" Margin="10,6,0,6"
+                                HorizontalAlignment="Left"
+                                ToolTip="Move the position camera so the barcode first bar is near the top (vertical feeder) or left (horizontal feeder). Does not save feeder calibration." />
+
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Tape Holes on Top (when feeder is horizontal)" Style="{StaticResource label}"></TextBlock>
                             <CheckBox IsChecked="{Binding Current.TapeHolesOnTop}" />
