@@ -13,9 +13,21 @@ with the physical feeder reference. This point is **not** the top-left of the
 black barcode START block. The normal Feeder Origin vision profile now feeds
 the existing `CornerDetector` with raw grayscale pixels, where
 `FeederWhiteCornerFinder` uses its threshold and `TargetImageRadius`
-settings to select the high-contrast white cut corner. The live camera overlay
-shows the detected crosshair and **STABLE** (green) or **ACQUIRING** (orange);
-the regular vision objects list shows pixel position and XY offsets.
+settings to find connected WHITE regions. It now rejects bright text/noise
+that cannot produce **both** a sufficiently long horizontal TOP edge and a
+vertical LEFT edge. It fits straight lines to edge samples **away from the
+rough cut tip** and reports their mathematical intersection. The live camera
+overlay shows both fitted edge segments, the intersection crosshair, raw edge
+support lengths and residual fit error; **STABLE** is green and **ACQUIRING**
+is orange. The regular vision objects list shows pixel position and XY offsets.
+
+The Feeder Origin profile's **Corner** (Harris) and **Line** (Hough) sliders
+are **not** part of this known-L-shape algorithm. To tune it, use
+`TargetImageRadius`, threshold (`ApplyThreshold` /
+`PrimaryThreshold`), focus, exposure and lighting. The specific screenshot
+with the right-hand bright markings produced a fitted intersection near
+`(104, 215)` pixels across grayscale thresholds 100–200 in an offline
+screenshot test; this is **not yet** a live-machine accuracy claim.
 
 The workflow reuses the UI that already existed:
 
