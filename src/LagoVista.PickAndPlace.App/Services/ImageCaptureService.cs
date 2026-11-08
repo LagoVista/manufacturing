@@ -175,28 +175,12 @@ namespace LagoVista.PickAndPlace.App.Services
                     return;
                 }
 
-                // The 2.5 mm printed START bar establishes the optical
-                // pixels/mm scale. The camera profile may have a different
-                // nominal scale: using that fallback for physical motion can
-                // over-jog by the ratio between those scales.
-                if (!corner.UsesStartBarScale)
-                {
-                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
-                        $"White corner is stable, but only CAMERA SCALE " +
-                        $"{corner.PixelsPerMm:F1} px/mm is available. " +
-                        "Wait for START SCALE before pressing Play to jog.");
-                    return;
-                }
-
+                // Use the already-stable camera observation, whether its
+                // scale came from the START bar or the camera profile.
+                // Record the scale source for real-machine diagnostics instead
+                // of blocking the proven manual Play workflow on a hypothesis.
                 var correction = corner.OffsetMM;
-                if (corner.Centered)
-                {
-                    Machine.AddStatusMessage(StatusMessageTypes.Info,
-                        $"White corner already centered: X={correction.X:+0.00;-0.00;0.00}, " +
-                        $"Y={correction.Y:+0.00;-0.00;0.00} mm at " +
-                        $"{corner.PixelsPerMm:F1} px/mm START SCALE. No jog needed.");
-                    return;
-                }
+                var scaleSource = corner.UsesStartBarScale ? "START SCALE" : "CAMERA SCALE";
 
                 // The calculated row/column approach can legitimately be
                 // several millimeters away. Keep a single operator-triggered
@@ -224,7 +208,7 @@ namespace LagoVista.PickAndPlace.App.Services
                 }
 
                 Machine.AddStatusMessage(StatusMessageTypes.Info,
-                    $"White corner jog START SCALE {corner.PixelsPerMm:F1} px/mm: " +
+                    $"White corner jog {scaleSource} {corner.PixelsPerMm:F1} px/mm: " +
                     $"X={correction.X:+0.00;-0.00;0.00}, " +
                     $"Y={correction.Y:+0.00;-0.00;0.00} mm; " +
                     $"from ({current.X:F2},{current.Y:F2}) " +
