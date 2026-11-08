@@ -36,6 +36,41 @@ namespace LagoVista.PickAndPlace.Models
         public static readonly double[] PrototypeWidthsMm = { 0.4, 0.8, 1.2, 1.6 };
 
         /// <summary>
+        /// Read exactly ten pixels just beyond the frame center, across the
+        /// narrow axis of a known-orientation marker. Return a binary 1D signal
+        /// along the bar-code direction. No image-wide search or OpenCV.
+        /// </summary>
+        public static byte[] SampleCenterBand(int width, int height, bool vertical,
+            Func<int, int, byte> getPixel, byte threshold = 128)
+        {
+            if (getPixel == null)
+                throw new ArgumentNullException(nameof(getPixel));
+            if (width < 10 || height < 10)
+                throw new ArgumentOutOfRangeException(nameof(width), "Frame must fit the ten-pixel band.");
+
+            const int bandWidth = 10;
+            var length = vertical ? height : width;
+            var bandStart = (vertical ? width : height) / 2;
+            var signal = new byte[length];
+
+            for (var along = 0; along < length; along++)
+            {
+                var brightCount = 0;
+                for (var cross = bandStart; cross < bandStart + bandWidth; cross++)
+                {
+                    var x = vertical ? cross : along;
+                    var y = vertical ? along : cross;
+                    if (getPixel(x, y) >= threshold)
+                        brightCount++;
+                }
+
+                signal[along] = brightCount >= 6 ? (byte)255 : (byte)0;
+            }
+
+            return signal;
+        }
+
+        /// <summary>
         /// Extract bounded black runs. A run touching either image edge is
         /// deliberately excluded because its width cannot be measured reliably.
         /// </summary>
@@ -66,19 +101,21 @@ namespace LagoVista.PickAndPlace.Models
                 bright[i] = (left && middle) || (left && right) || (middle && right);
             }
 
-            var start = -1;
-            for (var i = 0; i <= bright.Length; i++)
+            // XOR adjacent binary samples to find transitions, then measure
+            // only fully observed black runs between two white regions.
+            // The first or last run is ignored if clipped by the image edge.
+            var wasBlack = !bright[0];
+            var start = wasBlack ? 0 : -1;
+            for (var i = 1; i < bright.Length; i++)
             {
-                var dark = i < bright.Length && !bright[i];
-                if (dark)
+                var black = !bright[i];
+                if (black ^ wasBlack)
                 {
-                    if (start < 0)
+                    if (black)
+                    {
                         start = i;
-                }
-                else if (start >= 0)
-                {
-                    // Only measure black bars bounded by white on both sides.
-                    if (start > 0 && i < bright.Length && bright[start - 1] && bright[i])
+                    }
+                    else if (start > 0)
                     {
                         var width = (i - start) / pixelsPerMm;
                         if (width >= 0.18 && width <= 3.2)
@@ -95,16 +132,20 @@ namespace LagoVista.PickAndPlace.Models
                                 }
                             }
 
-                            // Record the raw width even when it does not fit one of
-                            // the four known classes (e.g., a future framing bar).
+                            // Normalized physical widths are classified against
+                            // the four prototype widths; framing bars can remain
+                            // unclassified while retaining their raw measurement.
                             if (closest > 0.14)
                                 value = null;
 
                             result.Add(new FeederBarcodeBar(start, i, pixelsPerMm, value));
                         }
+
+                        start = -1;
                     }
-                    start = -1;
                 }
+
+                wasBlack = black;
             }
 
             return result;
