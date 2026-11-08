@@ -20,11 +20,16 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             public int CrossPixel { get; set; }
             public IReadOnlyList<FeederBarcodeBar> Bars { get; set; }
             public FeederBarcodeCalibratedRead Calibration { get; set; }
+            public FeederBarcodeCalibratedRead RawCalibration { get; set; }
+            public string DiagnosticText { get; set; }
+            public int MedianFrames { get; set; }
+            public bool DisplayHeld { get; set; }
             public byte[] Signal { get; set; }
         }
 
         public static Observation FindBars(Image<Gray, byte> image, double pixelsPerMm,
-            byte threshold, bool? expectedVertical = null)
+            byte threshold, bool? expectedVertical = null,
+            FeederBarcodeTemporalMonitor temporalMonitor = null)
         {
             // The selected feeder tells us the orientation. Never hunt elsewhere
             // in the frame or infer another orientation from unrelated noise.
@@ -35,15 +40,21 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             var data = image.Data;
             var signal = FeederBarcodeSignal.SampleCenterBand(
                 image.Width, image.Height, vertical, (x, y) => data[y, x, 0], threshold);
-            var calibration = FeederBarcodeSignal.ReadFromStart(signal, pixelsPerMm, threshold);
-            // Preserve the raw center-band signal even in frames without a
-            // complete bounded bar; overlapping scans still need a fresh sample.
+            var raw = FeederBarcodeSignal.ReadFromStart(signal, pixelsPerMm, threshold);
+            var temporal = temporalMonitor?.Observe(signal, pixelsPerMm, threshold, raw);
+            var displayed = temporal?.DisplayRead ?? raw;
+            // The scan captures the unchanged raw binary signal, never the
+            // temporal median or any held values used by the live overlay.
             return new Observation
             {
                 Vertical = vertical,
                 CrossPixel = (vertical ? image.Width : image.Height) / 2,
-                Bars = calibration.Bars,
-                Calibration = calibration,
+                Bars = displayed.Bars,
+                Calibration = displayed,
+                RawCalibration = raw,
+                MedianFrames = temporal?.MedianWindowFrames ?? 0,
+                DisplayHeld = temporal?.UsingHold == true,
+                DiagnosticText = temporal?.Diagnostics,
                 Signal = signal
             };
         }
@@ -91,6 +102,11 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     new Rectangle(0, observation.CrossPixel,
                         imageSize.Width - 1, 10), scanColor, 1);
 
+            var first = observation.Bars.Count > 0 ? observation.Bars[0] : null;
+            var next = observation.Bars.Count > 1 ? observation.Bars[1] : null;
+            var hasCandidateStart = first != null && next != null &&
+                first.EndPixel - first.StartPixel >
+                    1.8 * (next.EndPixel - next.StartPixel);
             var number = 0;
             foreach (var bar in observation.Bars)
             {
@@ -98,26 +114,31 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 var center = (bar.StartPixel + bar.EndPixel) / 2;
                 var verified = observation.Calibration?.HasVerifiedStart == true;
                 var startBar = verified && number == 1;
+                var possibleStart = number == 1 && (verified || hasCandidateStart);
                 var color = startBar || (verified && bar.Value.HasValue)
                     ? new MCvScalar(0, 255, 0)
                     : new MCvScalar(0, 180, 255);
-                // Use the *relative*, self-calibrated bar width when available.
-                // Before START is verified, show raw pixels rather than
-                // millimeters calculated from an untrusted camera scale.
-                var units = verified
-                    ? (bar.EndPixel - bar.StartPixel) / observation.Calibration.PixelsPerUnit
+                var widthPx = bar.EndPixel - bar.StartPixel;
+                var candidatePxPerUnit = first != null
+                    ? (first.EndPixel - first.StartPixel) / FeederBarcodeSignal.StartBarUnits
                     : 0;
-                var label = startBar
-                    ? "START 5x"
+                var units = candidatePxPerUnit > 0 ? widthPx / candidatePxPerUnit : 0;
+                // Include the pixel measurement in BOTH modes so 63px and
+                // 1.2x can never look like competing measurement sources.
+                // Unverified relative widths remain provisional (~).
+                var label = possibleStart
+                    ? startBar ? $"START 5x ({widthPx}px)" : $"START? ({widthPx}px)"
                     : verified && bar.Value.HasValue
-                        ? $"{number - 1}: {units:F1}x [{bar.Value.Value}]"
-                        : $"{number}: {bar.EndPixel - bar.StartPixel}px [?]";
+                        ? $"{number - 1}: {units:F1}x[{bar.Value.Value}] ({widthPx}px)"
+                        : hasCandidateStart
+                            ? $"{number - 1}: ~{units:F2}x [?] ({widthPx}px)"
+                            : $"{number}: {widthPx}px [?]";
 
                 if (observation.Vertical)
                 {
                     CvInvoke.Line(output, new Point(observation.CrossPixel - 10, center),
                         new Point(observation.CrossPixel + 10, center), color, 2);
-                    var x = Math.Max(3, Math.Min(imageSize.Width - 176, observation.CrossPixel + 23));
+                    var x = Math.Max(3, Math.Min(imageSize.Width - 260, observation.CrossPixel + 23));
                     DrawReadableText(output, label,
                         new Point(x, Math.Max(22, Math.Min(imageSize.Height - 7, center))),
                         color, 0.82);
@@ -136,11 +157,19 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
             var calibrated = observation.Calibration?.HasVerifiedStart == true;
             var status = calibrated
-                ? $"START OK {observation.Calibration.PixelsPerUnit:F1}px/unit"
+                ? observation.DisplayHeld
+                    ? $"START DISPLAY HOLD {observation.Calibration.PixelsPerUnit:F1}px/unit"
+                    : $"START OK {observation.Calibration.PixelsPerUnit:F1}px/unit"
                 : "LIVE FRAME: START NOT VERIFIED";
+            if (!String.IsNullOrEmpty(observation.DiagnosticText))
+                DrawReadableText(output, observation.DiagnosticText,
+                    new Point(8, imageSize.Height - 76),
+                    new MCvScalar(255, 255, 255), 0.54);
             DrawReadableText(output, status,
                 new Point(8, imageSize.Height - 43),
-                calibrated ? new MCvScalar(0, 255, 0) : new MCvScalar(0, 180, 255), 0.78);
+                calibrated && !observation.DisplayHeld
+                    ? new MCvScalar(0, 255, 0)
+                    : new MCvScalar(0, 180, 255), 0.78);
             DrawReadableText(output, $"BARS: {observation.Bars.Count}",
                 new Point(8, imageSize.Height - 13),
                 new MCvScalar(255, 255, 255), 0.68);
