@@ -22,7 +22,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             public IReadOnlyList<FeederBarcodeBar> Bars { get; set; }
         }
 
-        public static Observation FindBars(Image<Gray, byte> image, double pixelsPerMm, byte threshold)
+        public static Observation FindBars(Image<Gray, byte> image, double pixelsPerMm, byte threshold, bool? expectedVertical = null)
         {
             if (image == null || pixelsPerMm <= 0)
                 return null;
@@ -30,15 +30,20 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             var data = image.Data;
             Observation best = null;
             double bestScore = 0;
-            foreach (var vertical in new[] { true, false })
+            // When the feeder is selected its orientation is authoritative.
+            // Retain auto-detection only for standalone camera preview without a feeder.
+            var axes = expectedVertical.HasValue
+                ? new[] { expectedVertical.Value }
+                : new[] { true, false };
+            foreach (var vertical in axes)
             {
                 var axisLength = vertical ? image.Height : image.Width;
                 var crossLength = vertical ? image.Width : image.Height;
                 // We know the camera is already near the expected feeder corner.
                 // Prefer scan lines near the image center without requiring exact
                 // transverse alignment of the narrow printed strip.
-                var crossStart = Math.Max(3, crossLength / 2 - 210);
-                var crossEnd = Math.Min(crossLength - 3, crossLength / 2 + 210);
+                var crossStart = 3;
+                var crossEnd = crossLength - 3;
                 for (var cross = crossStart; cross < crossEnd; cross += 6)
                 {
                     var intensity = new byte[axisLength];
@@ -75,8 +80,29 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             return best;
         }
 
-        public static void Draw(IInputOutputArray output, Observation observation, Size imageSize)
+        public static void Draw(IInputOutputArray output, Observation observation, Size imageSize, bool? expectedVertical = null)
         {
+            // A framing target, not the machine origin or a detected feature.
+            // The start of a vertical marker should be in the upper part of
+            // the image; for horizontal markers it belongs near the left edge.
+            if (expectedVertical.HasValue)
+            {
+                var vertical = expectedVertical.Value;
+                var axisPixels = vertical ? imageSize.Height : imageSize.Width;
+                var guide = (int)Math.Round(axisPixels * 0.20);
+                var color = new MCvScalar(0, 210, 255);
+                if (vertical)
+                    CvInvoke.Line(output, new Point(4, guide),
+                        new Point(Math.Min(48, imageSize.Width - 1), guide), color, 2);
+                else
+                    CvInvoke.Line(output, new Point(guide, 4),
+                        new Point(guide, Math.Min(48, imageSize.Height - 1)), color, 2);
+                CvInvoke.PutText(output, "Start-bar target",
+                    vertical ? new Point(8, Math.Max(14, guide - 8))
+                             : new Point(Math.Min(imageSize.Width - 145, guide + 9), 20),
+                    Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.35, color, 1);
+            }
+
             if (observation == null)
                 return;
 
