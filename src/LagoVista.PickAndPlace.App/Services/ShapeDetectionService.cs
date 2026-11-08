@@ -60,11 +60,14 @@ namespace LagoVista.PickAndPlace.App.Services
             }
 
             var stagingHole = camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_StagingPlateHole;
+            var circleNumber = 0;
             foreach (var foundCircle in _circleDetector.FoundCircles)
             {
                 _imageHelper.Circle(img, camera.CurrentVisionProfile.ZoomLevel, foundCircle, size);
                 if (stagingHole)
                     DrawStagingHoleOutline(img, foundCircle);
+                else if (camera.CurrentVisionProfile.FindCircles)
+                    DrawCircleCandidateAnnotation(img, camera, foundCircle, size, ++circleNumber);
             }
             if (stagingHole && camera.CurrentVisionProfile.FindCircles)
                 DrawStagingHoleMeasurements(img, camera, size);
@@ -99,6 +102,50 @@ namespace LagoVista.PickAndPlace.App.Services
                       : new MCvScalar(0, 0, 255);
 
             CvInvoke.Circle(image.Image, center, radius, color, 2, LineType.AntiAlias);
+        }
+
+        // Other circle-detection profiles may show several candidates in a single frame.
+        // Attach measurements to each visible crosshair rather than a shared unlabelled list.
+        private static void DrawCircleCandidateAnnotation(
+            IMVImage<IInputOutputArray> image, MachineCamera camera,
+            MVLocatedCircle circle, Size size, int number)
+        {
+            if (camera.EffectivePixelsPerMM <= 0 || size.Width < 260 || size.Height < 50)
+                return;
+
+            var scale = camera.EffectivePixelsPerMM;
+            var center = new Point((int)Math.Round(circle.CenterPixels.X), (int)Math.Round(circle.CenterPixels.Y));
+            var radius = Math.Max(1, (int)Math.Round(circle.RadiusPixels));
+            var color = circle.Centered ? new MCvScalar(0, 255, 0)
+                      : circle.PositionStable ? new MCvScalar(0, 255, 255)
+                      : new MCvScalar(0, 0, 255);
+
+            CvInvoke.Circle(image.Image, center, radius, color, 2, LineType.AntiAlias);
+
+            const int labelWidth = 245;
+            var labelX = center.X + radius + 8;
+            if (labelX + labelWidth > size.Width)
+                labelX = center.X - radius - labelWidth - 8;
+            labelX = Math.Max(6, Math.Min(labelX, size.Width - labelWidth - 3));
+            var labelY = Math.Max(19, Math.Min(center.Y, size.Height - 25));
+
+            var offsetX = circle.OffsetPixels.X / scale;
+            var offsetY = -circle.OffsetPixels.Y / scale;
+            var diameter = circle.RadiusPixels * 2 / scale;
+            var status = !circle.Stabilized ? "TRACKING"
+                       : circle.Centered ? "CENTERED"
+                       : circle.PositionStable ? "STABLE" : "DETECTED";
+
+            CvInvoke.Rectangle(image.Image, new Rectangle(labelX - 3, labelY - 15, labelWidth, 38),
+                new MCvScalar(0, 0, 0), -1);
+            CvInvoke.PutText(image.Image,
+                $"#{number} X {offsetX:+0.00;-0.00;0.00} Y {offsetY:+0.00;-0.00;0.00} mm",
+                new Point(labelX, labelY),
+                FontFace.HersheySimplex, 0.38, new MCvScalar(255, 255, 255), 1, LineType.AntiAlias);
+            CvInvoke.PutText(image.Image,
+                $"D {diameter:0.00} mm  {status}  N={circle.FoundCount}",
+                new Point(labelX, labelY + 17),
+                FontFace.HersheySimplex, 0.38, new MCvScalar(255, 255, 255), 1, LineType.AntiAlias);
         }
 
         private void DrawStagingHoleMeasurements(IMVImage<IInputOutputArray> image, MachineCamera camera, Size size)
