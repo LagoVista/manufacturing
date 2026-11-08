@@ -57,22 +57,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private string _barcodeScanStatus = "Frame Barcode, then select Scan Barcode.";
         private string _barcodeScanDetails = String.Empty;
         private bool _barcodeScanVerified;
-        private bool _whiteCornerInProgress;
-        private string _feederWhiteCornerStatus =
-            "Select the feeder staging-plate row/column, then locate the white cut corner.";
-        private FeederWhiteCornerObservation _locatedWhiteCorner;
-        private Point2D<double> _locatedWhiteCornerMachinePosition;
-        private StripFeeder _locatedWhiteCornerFeeder;
-
-        public string FeederWhiteCornerStatus
-        {
-            get => _feederWhiteCornerStatus;
-            private set => Set(ref _feederWhiteCornerStatus, value);
-        }
-
-        public bool FeederWhiteCornerJogReady =>
-            _locatedWhiteCorner?.Found == true && !_whiteCornerInProgress &&
-            !_barcodeScanInProgress && Current == _locatedWhiteCornerFeeder;
 
         public string FeederBarcodeScanStatus
         {
@@ -103,13 +87,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             GoToFeederOriginCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.FeederOrigin), () => Current != null);
             FrameFeederBarcodeCommand = CreatedMachineConnectedCommand(FrameFeederBarcode,
-                () => Current != null && !_barcodeScanInProgress && !_whiteCornerInProgress);
+                () => Current != null && !_barcodeScanInProgress);
             ScanFeederBarcodeCommand = CreatedMachineConnectedCommand(ScanFeederBarcode,
-                () => Current != null && !_barcodeScanInProgress && !_whiteCornerInProgress);
-            LocateFeederWhiteCornerCommand = CreatedMachineConnectedCommand(LocateFeederWhiteCorner,
-                () => Current != null && !_barcodeScanInProgress && !_whiteCornerInProgress);
-            JogToFeederWhiteCornerCommand = CreatedMachineConnectedCommand(JogToFeederWhiteCorner,
-                () => FeederWhiteCornerJogReady);
+                () => Current != null && !_barcodeScanInProgress);
             GoToFeederReferenceHoleCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.FeederReferenceHole), () => Current != null);
 
             GoToFirstFeederReferenceHoleCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.FirstFeederRowReferenceHole), () => CurrentRow != null);
@@ -228,284 +208,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Machine.GotoPoint(result.Result);
         }
 
-        // First test is deliberately two operator-triggered steps:
-        // (1) resolve staging plate row/column and locate the WHITE cut edge;
-        // (2) review the reported correction and explicitly authorize a jog.
-        // No feeder origin offsets are updated or persisted.
-        private async void LocateFeederWhiteCorner()
-        {
-            if (_whiteCornerInProgress || _barcodeScanInProgress || Current == null)
-                return;
-
-            _whiteCornerInProgress = true;
-            _locatedWhiteCorner = null;
-            _locatedWhiteCornerFeeder = null;
-            _locatedWhiteCornerMachinePosition = null;
-            RaisePropertyChanged(nameof(FeederWhiteCornerJogReady));
-            RaiseCanExecuteChanged();
-            var feeder = Current;
-            try
-            {
-                if (feeder.Orientation.Value != FeederOrientations.Vertical)
-                {
-                    FeederWhiteCornerStatus =
-                        "White cut-corner optical location currently supports vertical feeders only.";
-                    return;
-                }
-
-                var capture = Machine?.PositionImageCaptureService;
-                if (capture?.Camera == null ||
-                    capture.Camera.CameraType.Value != CameraTypes.Position)
-                {
-                    FeederWhiteCornerStatus = "Start the position camera before locating the white corner.";
-                    return;
-                }
-                if (!Machine.Connected || Machine.Mode != OperatingMode.Manual ||
-                    !Machine.WasMachineHomed)
-                {
-                    FeederWhiteCornerStatus =
-                        "White corner location requires a connected, homed machine in Manual mode.";
-                    return;
-                }
-
-                // Reuse the existing staging plate / row / column / mounting
-                // hole transformation. Do NOT calculate feeder geometry again.
-                var predicted = FindLocation(StripFeederLocationTypes.FeederOrigin);
-                if (!predicted.Successful)
-                {
-                    FeederWhiteCornerStatus = predicted.ErrorMessage;
-                    return;
-                }
-
-                var target = predicted.Result;
-                if (target.X < 0 || target.Y < 0 ||
-                    target.X > Machine.Settings.WorkAreaSize.X ||
-                    target.Y > Machine.Settings.WorkAreaSize.Y)
-                {
-                    FeederWhiteCornerStatus = "Calculated feeder origin is outside the configured work area.";
-                    return;
-                }
-
-                FeederWhiteCornerStatus =
-                    $"Staging-plate reference row {feeder.ReferenceHoleRow}, column {feeder.ReferenceHoleColumn}. " +
-                    $"Moving to calculated feeder origin X={target.X:F2}, Y={target.Y:F2}.";
-                Machine.SendSafeMoveHeight();
-                Machine.GotoPoint(target);
-                var idle = await Machine.SpinUntilIdleAsync(15000);
-                if (!idle.Successful)
-                {
-                    FeederWhiteCornerStatus = $"Could not settle at calculated origin: {idle.ErrorMessage}";
-                    return;
-                }
-
-                // A short stationary median rejects occasional threshold
-                // noise before the operator is offered the Jog button.
-                await Task.Delay(180);
-                var samples = new FeederWhiteCornerObservation[5];
-                for (var i = 0; i < samples.Length; i++)
-                {
-                    if (!Machine.Connected || Current != feeder ||
-                        capture.Profile?.Key != VisionProfile.VisionProfile_FeederOrigin)
-                    {
-                        FeederWhiteCornerStatus = "Corner location stopped: camera profile, feeder or connection changed.";
-                        return;
-                    }
-                    var frame = await capture.CaptureFeederWhiteCornerAsync();
-                    if (!frame.Successful)
-                    {
-                        FeederWhiteCornerStatus = frame.ErrorMessage;
-                        return;
-                    }
-                    if (!frame.Result.Found)
-                    {
-                        FeederWhiteCornerStatus = frame.Result.Status;
-                        return;
-                    }
-                    samples[i] = frame.Result;
-                    if (i < samples.Length - 1)
-                        await Task.Delay(80);
-                }
-
-                // Use barcode START as an actual optical millimeter reference.
-                // Nominal camera pixels/mm is not reliable enough for this jog.
-                var verifiedScales = samples.Select(sample => sample.OpticalPixelsPerMm)
-                    .Where(value => value > 0).OrderBy(value => value).ToArray();
-                if (verifiedScales.Length < 3)
-                {
-                    FeederWhiteCornerStatus =
-                        "White corner found, but 5x START scale was not verified in three frames. No jog offered.";
-                    return;
-                }
-                var scale = verifiedScales[verifiedScales.Length / 2];
-                if (verifiedScales.Last() - verifiedScales.First() > scale * 0.08)
-                {
-                    FeederWhiteCornerStatus =
-                        "5x START optical scale is inconsistent across captures. No jog offered.";
-                    return;
-                }
-                var pixelTolerance = Math.Max(4, scale * 0.15);
-                if (samples.Max(sample => sample.X) - samples.Min(sample => sample.X) > pixelTolerance ||
-                    samples.Max(sample => sample.Y) - samples.Min(sample => sample.Y) > pixelTolerance)
-                {
-                    FeederWhiteCornerStatus = "White corner is not stable across five fresh frames; no jog offered.";
-                    return;
-                }
-
-                var chosen = samples[2];
-                var x = samples.Select(sample => sample.X).OrderBy(value => value).ElementAt(2);
-                var y = samples.Select(sample => sample.Y).OrderBy(value => value).ElementAt(2);
-                var correctionX = (x - chosen.FrameWidth / 2.0) / scale;
-                var correctionY = -(y - chosen.FrameHeight / 2.0) / scale;
-                if (Math.Abs(correctionX) > 2.5 || Math.Abs(correctionY) > 2.5)
-                {
-                    FeederWhiteCornerStatus =
-                        $"Detected white corner is outside the 2.5 mm correction limit " +
-                        $"(X={correctionX:+0.00;-0.00;0.00}, Y={correctionY:+0.00;-0.00;0.00} mm). No jog offered.";
-                    return;
-                }
-
-                var position = await Machine.GetCurrentLocationAsync(5000);
-                if (!position.Successful)
-                {
-                    FeederWhiteCornerStatus = position.ErrorMessage;
-                    return;
-                }
-
-                _locatedWhiteCorner = new FeederWhiteCornerObservation(true, x, y,
-                    chosen.FrameWidth, chosen.FrameHeight, chosen.ComponentAreaPixels,
-                    chosen.Status, scale);
-                _locatedWhiteCornerMachinePosition = position.Result;
-                _locatedWhiteCornerFeeder = feeder;
-                FeederWhiteCornerStatus =
-                    $"WHITE CORNER FOUND at pixel ({x},{y}); 5x scale {scale:F1} px/mm; " +
-                    $"proposed jog X={correctionX:+0.00;-0.00;0.00}, Y={correctionY:+0.00;-0.00;0.00} mm. " +
-                    "Check the camera image, then press Jog to White Corner. Nothing has been saved.";
-            }
-            catch (Exception ex)
-            {
-                FeederWhiteCornerStatus = $"White corner location failed: {ex.Message}";
-                Machine?.AddStatusMessage(StatusMessageTypes.Warning, FeederWhiteCornerStatus);
-            }
-            finally
-            {
-                _whiteCornerInProgress = false;
-                RaisePropertyChanged(nameof(FeederWhiteCornerJogReady));
-                RaiseCanExecuteChanged();
-            }
-        }
-
-        private async void JogToFeederWhiteCorner()
-        {
-            if (!FeederWhiteCornerJogReady || _whiteCornerInProgress)
-                return;
-
-            _whiteCornerInProgress = true;
-            var detected = _locatedWhiteCorner;
-            var savedPosition = _locatedWhiteCornerMachinePosition;
-            var feeder = _locatedWhiteCornerFeeder;
-            _locatedWhiteCorner = null; // One observation authorizes only one jog.
-            RaisePropertyChanged(nameof(FeederWhiteCornerJogReady));
-            RaiseCanExecuteChanged();
-            try
-            {
-                if (!Machine.Connected || Machine.Mode != OperatingMode.Manual ||
-                    Current != feeder ||
-                    Machine.PositionImageCaptureService?.Profile?.Key !=
-                        VisionProfile.VisionProfile_FeederOrigin)
-                {
-                    FeederWhiteCornerStatus = "Jog canceled: feeder, machine mode or camera profile changed.";
-                    return;
-                }
-
-                var actual = await Machine.GetCurrentLocationAsync(5000);
-                if (!actual.Successful)
-                {
-                    FeederWhiteCornerStatus = actual.ErrorMessage;
-                    return;
-                }
-                if (Math.Abs(actual.Result.X - savedPosition.X) > 0.15 ||
-                    Math.Abs(actual.Result.Y - savedPosition.Y) > 0.15)
-                {
-                    FeederWhiteCornerStatus = "Jog canceled: camera moved since the corner was measured. Locate it again.";
-                    return;
-                }
-
-                var scale = detected.OpticalPixelsPerMm;
-                if (scale <= 0 || double.IsNaN(scale) || double.IsInfinity(scale))
-                {
-                    FeederWhiteCornerStatus = "Jog canceled: start-bar optical scale unavailable.";
-                    return;
-                }
-                var deltaX = (detected.X - detected.FrameWidth / 2.0) / scale;
-                var deltaY = -(detected.Y - detected.FrameHeight / 2.0) / scale;
-                if (Math.Abs(deltaX) > 2.5 || Math.Abs(deltaY) > 2.5)
-                {
-                    FeederWhiteCornerStatus = "Jog canceled: correction exceeds 2.5 mm per axis.";
-                    return;
-                }
-
-                var target = new Point2D<double>(actual.Result.X + deltaX,
-                    actual.Result.Y + deltaY);
-                if (target.X < 0 || target.Y < 0 ||
-                    target.X > Machine.Settings.WorkAreaSize.X ||
-                    target.Y > Machine.Settings.WorkAreaSize.Y)
-                {
-                    FeederWhiteCornerStatus = "Jog canceled: corrected location is outside the work area.";
-                    return;
-                }
-
-                Machine.SendSafeMoveHeight();
-                Machine.GotoPoint(target);
-                var idle = await Machine.SpinUntilIdleAsync(15000);
-                if (!idle.Successful)
-                {
-                    FeederWhiteCornerStatus =
-                        $"White corner jog did not settle: {idle.ErrorMessage}";
-                    return;
-                }
-
-                // Measure residual here without returning to the original
-                // calculated origin. A fresh capture does not move the machine.
-                await Task.Delay(180);
-                var check = await Machine.PositionImageCaptureService.CaptureFeederWhiteCornerAsync();
-                if (check.Successful && check.Result.Found &&
-                    check.Result.OpticalPixelsPerMm > 0)
-                {
-                    var residual = check.Result;
-                    var remainderX = (residual.X - residual.FrameWidth / 2.0) /
-                        residual.OpticalPixelsPerMm;
-                    var remainderY = -(residual.Y - residual.FrameHeight / 2.0) /
-                        residual.OpticalPixelsPerMm;
-                    FeederWhiteCornerStatus =
-                        $"JOG COMPLETE. Residual X={remainderX:+0.00;-0.00;0.00}, " +
-                        $"Y={remainderY:+0.00;-0.00;0.00} mm from white corner. " +
-                        "No feeder-origin offsets saved.";
-                }
-                else
-                {
-                    FeederWhiteCornerStatus =
-                        $"Jogged to white cut corner: X={target.X:F2}, Y={target.Y:F2}. " +
-                        "Post-jog corner not verified; no feeder-origin offsets saved.";
-                }
-            }
-            catch (Exception ex)
-            {
-                FeederWhiteCornerStatus = $"White corner jog failed: {ex.Message}";
-                Machine?.AddStatusMessage(StatusMessageTypes.Warning, FeederWhiteCornerStatus);
-            }
-            finally
-            {
-                _whiteCornerInProgress = false;
-                RaiseCanExecuteChanged();
-            }
-        }
-
         // This is a camera preview move, not a feeder-origin calibration.
         // Preserve GoToFeederOriginCommand for callers that need the true origin
         // centered in the image; frame the barcode with more of its length visible.
         private void FrameFeederBarcode()
         {
-            if (_barcodeScanInProgress || _whiteCornerInProgress)
+            if (_barcodeScanInProgress)
                 return;
 
             var capture = Machine?.PositionImageCaptureService;
@@ -577,7 +285,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         // No feeder coordinates, identity or calibration settings are persisted.
         private async void ScanFeederBarcode()
         {
-            if (_barcodeScanInProgress || _whiteCornerInProgress || Current == null)
+            if (_barcodeScanInProgress || Current == null)
                 return;
 
             _barcodeScanInProgress = true;
@@ -1068,12 +776,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _isEditing = true;
                 Set(ref _current, value);
                 FeederBarcodeScanStatus = "Frame Barcode, then select Scan Barcode.";
-                _locatedWhiteCorner = null;
-                _locatedWhiteCornerMachinePosition = null;
-                _locatedWhiteCornerFeeder = null;
-                FeederWhiteCornerStatus =
-                    "Select the feeder staging-plate row/column, then locate the white cut corner.";
-                RaisePropertyChanged(nameof(FeederWhiteCornerJogReady));
                 FeederBarcodeScanDetails = String.Empty;
                 FeederBarcodeScanVerified = false;
                 if (value != null)
@@ -1195,8 +897,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand GoToFeederOriginCommand { get; }
         public RelayCommand FrameFeederBarcodeCommand { get; }
         public RelayCommand ScanFeederBarcodeCommand { get; }
-        public RelayCommand LocateFeederWhiteCornerCommand { get; }
-        public RelayCommand JogToFeederWhiteCornerCommand { get; }
         public RelayCommand GoToFeederReferenceHoleCommand { get; }
 
 
