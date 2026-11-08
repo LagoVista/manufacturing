@@ -29,6 +29,9 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
 
         Task<InvokeResult> AutoTuneExposureAsync();
 
+        // Returns one fresh processed 10-pixel-band barcode signal.
+        Task<InvokeResult<byte[]>> CaptureFeederBarcodeSignalAsync();
+
         // Start each new physical reference hole with fresh detector history.
         void ResetDetections();
 
