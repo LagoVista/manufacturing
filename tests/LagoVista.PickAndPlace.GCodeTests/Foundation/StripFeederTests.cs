@@ -27,6 +27,35 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             };
         }
 
+        [TestCase(false, 230.0, 182.0)]
+        [TestCase(true, 227.0, 195.0)]
+        public void CalculatedOriginNavigationMustIgnoreSavedOriginOffset(
+            bool vertical, double expectedX, double expectedY)
+        {
+            var mountingHole = StagingPlateUtils.ResolveStagePlateWorkSpaceLocation(_plate, "10", "G");
+            var feeder = new StripFeeder
+            {
+                Orientation = EntityHeader<FeederOrientations>.Create(vertical
+                    ? FeederOrientations.Vertical : FeederOrientations.Horizontal),
+                MountingHoleOffset = new Point2D<double>(5, 8),
+                OriginOffset = new Point2D<double>(12.5, -7.25)
+            };
+
+            // Exercise the same private production resolver used specifically
+            // by FindLocation(FeederOrigin), not a copied formula in the test.
+            var method = typeof(LagoVista.PickAndPlace.ViewModels.PickAndPlace.StripFeederViewModel)
+                .GetMethod("ResolveCalculatedFeederOrigin",
+                    System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.Static);
+            Assert.That(method, Is.Not.Null);
+            var calculated = (Point2D<double>)method.Invoke(null,
+                new object[] { mountingHole, feeder });
+
+            Assert.That(calculated.X, Is.EqualTo(expectedX).Within(1e-9));
+            Assert.That(calculated.Y, Is.EqualTo(expectedY).Within(1e-9));
+            Assert.That(calculated.X, Is.Not.EqualTo(expectedX + feeder.OriginOffset.X));
+        }
+
         // Uses the production staging-plate resolver and production feeder orientation math.
         // The asserted positions are hand-computed from a 15 mm pitch grid.
         [TestCase("1", "A", false, 5.0, 8.0, 0.0, 0.0, 95.0, 92.0)]
