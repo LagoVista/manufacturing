@@ -297,7 +297,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 capture.FeederBarcodeVertical = vertical;
                 var scan = new FeederBarcodeScan();
                 var totalMovedMm = 0.0;
-                const int maxCaptures = 5;
+                const int maxCaptures = 7;
                 const double maximumTotalMoveMm = 18.0;
 
                 for (var captureNumber = 1; captureNumber <= maxCaptures; captureNumber++)
@@ -350,17 +350,17 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         return;
                     }
                     if (!scan.HasVerifiedStart || scan.ObservedBars >= 11 ||
-                        scan.Status.StartsWith("OVERLAP MISMATCH", StringComparison.Ordinal))
+                        scan.Status.StartsWith("OVERLAP", StringComparison.Ordinal))
                         break;
 
                     if (captureNumber == maxCaptures)
                         break;
 
-                    // Advance less than half a frame to ensure substantial
-                    // overlap. Use START-derived optical scale, never the
-                    // potentially inaccurate camera profile pixels/mm.
+                    // Advance a short distance to keep at least two common
+                    // bars between frames. The overlap registration checks
+                    // this rather than trusting machine mm for deduplication.
                     var frameMm = frame.Result.Length / scan.PixelsPerMmFromStart;
-                    var stepMm = Math.Min(6.0, frameMm * 0.42);
+                    var stepMm = Math.Min(3.0, frameMm * 0.25);
                     if (double.IsNaN(stepMm) || double.IsInfinity(stepMm) ||
                         stepMm < 0.5 || totalMovedMm + stepMm > maximumTotalMoveMm)
                     {
