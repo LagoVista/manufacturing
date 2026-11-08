@@ -21,8 +21,12 @@ namespace LagoVista.PickAndPlace.Models
         private const double StartBarWidthMm = 2.5; // physical scale only for combining machine coordinates
         private const double MaximumMarkerLengthMm = 20.0;
         private const double DuplicateCenterToleranceMm = 0.28;
-        private const double DuplicateWidthToleranceUnits = 0.35;
+        private const double DuplicateWidthToleranceUnits = 0.32;
         private const double WidthToleranceUnits = 0.20;
+        // Machine positions are a coarse registration hint. Require two
+        // matching bars before accepting a later frame, and refine its offset.
+        private const int MinimumMatchingBars = 2;
+        private const double MaximumRegistrationCorrectionMm = 1.5;
         private readonly List<MeasuredBar> _bars = new List<MeasuredBar>();
         private double? _startCenterMm;
         private double _pixelsPerUnit;
@@ -36,6 +40,8 @@ namespace LagoVista.PickAndPlace.Models
         public double PixelsPerMmFromStart => _pixelsPerUnit > 0
             ? _pixelsPerUnit / FeederBarcodeSignal.BaseWidthMm : 0;
         public int ObservedBars => _bars.Count;
+        public int LastOverlapCount { get; private set; }
+        public double LastRegistrationCorrectionMm { get; private set; }
         public bool IsComplete { get; private set; }
         public int? FeederId { get; private set; }
         public string Status { get; private set; } = "Frame the first bar, then capture.";
@@ -80,30 +86,133 @@ namespace LagoVista.PickAndPlace.Models
                     new double[0], usePhysicalWidthFilter: false);
             }
 
+            var incoming = new List<MeasuredBar>();
             foreach (var bar in detected)
             {
                 var center = ToWorldCenter(machineAxisMm, signal.Length,
                     (bar.StartPixel + bar.EndPixel) / 2.0);
-                // The entire printed reference is 20 mm long including margins.
-                // Do not admit unrelated machine/background features.
-                if (center < _startCenterMm.Value - StartBarWidthMm / 2 - 0.25 ||
-                    center > _startCenterMm.Value - StartBarWidthMm / 2 + MaximumMarkerLengthMm)
+                // Do not admit unrelated machine/background features beyond
+                // the 20 mm prototype marker.
+                if (center < _startCenterMm.Value - StartBarWidthMm / 2 - 0.25 -
+                        MaximumRegistrationCorrectionMm ||
+                    center > _startCenterMm.Value - StartBarWidthMm / 2 +
+                        MaximumMarkerLengthMm + MaximumRegistrationCorrectionMm)
                     continue;
 
-                var units = (bar.EndPixel - bar.StartPixel) / _pixelsPerUnit;
+                incoming.Add(new MeasuredBar
+                {
+                    CenterMm = center,
+                    WidthUnits = (bar.EndPixel - bar.StartPixel) / _pixelsPerUnit
+                });
+            }
+
+            if (_bars.Count == 0)
+            {
+                _bars.AddRange(incoming);
+                Validate();
+                return;
+            }
+
+            // A camera move may be slightly different from its requested
+            // machine distance, and the optical start scale may not equal the
+            // actual machine mm scale. Register overlapping bar centers before
+            // deduplicating. One repeated width is not sufficient because the
+            // 0/1/2/3 pattern deliberately repeats.
+            if (!TryRegisterOverlap(incoming, out var correctionMm, out var overlapCount))
+            {
+                Status = $"OVERLAP NOT VERIFIED: no two matching bars at capture {CaptureCount}. " +
+                    $"Retained {_bars.Count}/{TotalBars} unique bars; restart scan with smaller steps.";
+                return;
+            }
+
+            LastRegistrationCorrectionMm = correctionMm;
+            LastOverlapCount = overlapCount;
+            var additions = new List<MeasuredBar>();
+            foreach (var bar in incoming)
+            {
+                bar.CenterMm += correctionMm;
+                if (bar.CenterMm < _startCenterMm.Value - StartBarWidthMm / 2 - 0.25 ||
+                    bar.CenterMm > _startCenterMm.Value - StartBarWidthMm / 2 + MaximumMarkerLengthMm)
+                    continue;
+
                 var previous = _bars.FirstOrDefault(candidate =>
-                    Math.Abs(candidate.CenterMm - center) < DuplicateCenterToleranceMm);
+                    Math.Abs(candidate.CenterMm - bar.CenterMm) < DuplicateCenterToleranceMm);
                 if (previous != null)
                 {
-                    if (Math.Abs(previous.WidthUnits - units) > DuplicateWidthToleranceUnits)
+                    if (Math.Abs(previous.WidthUnits - bar.WidthUnits) > DuplicateWidthToleranceUnits)
+                    {
                         _overlapConflict = true;
+                        break;
+                    }
                     continue;
                 }
 
-                _bars.Add(new MeasuredBar { CenterMm = center, WidthUnits = units });
+                additions.Add(bar);
             }
 
+            if (!_overlapConflict)
+                _bars.AddRange(additions);
+
             Validate();
+            Status += $" (overlap {overlapCount}, registration {correctionMm:+0.00;-0.00;0.00} mm)";
+        }
+
+        private bool TryRegisterOverlap(IReadOnlyList<MeasuredBar> incoming,
+            out double bestCorrectionMm, out int bestMatchCount)
+        {
+            bestCorrectionMm = 0;
+            bestMatchCount = 0;
+            var bestError = double.MaxValue;
+
+            foreach (var sample in incoming)
+            {
+                foreach (var known in _bars)
+                {
+                    if (Math.Abs(sample.WidthUnits - known.WidthUnits) >
+                        DuplicateWidthToleranceUnits)
+                        continue;
+
+                    var correction = known.CenterMm - sample.CenterMm;
+                    if (Math.Abs(correction) > MaximumRegistrationCorrectionMm)
+                        continue;
+
+                    var used = new HashSet<MeasuredBar>();
+                    var matches = 0;
+                    var error = 0.0;
+                    foreach (var candidate in incoming)
+                    {
+                        var match = _bars
+                            .Where(item => !used.Contains(item) &&
+                                Math.Abs(item.WidthUnits - candidate.WidthUnits) <=
+                                    DuplicateWidthToleranceUnits &&
+                                Math.Abs(item.CenterMm - candidate.CenterMm - correction) <
+                                    DuplicateCenterToleranceMm)
+                            .OrderBy(item => Math.Abs(item.CenterMm -
+                                candidate.CenterMm - correction))
+                            .FirstOrDefault();
+                        if (match == null)
+                            continue;
+
+                        used.Add(match);
+                        matches++;
+                        error += Math.Abs(match.CenterMm - candidate.CenterMm - correction);
+                    }
+
+                    // Prefer the strongest actual overlap, breaking ties by
+                    // residual and smallest correction. The best correction is
+                    // applied only after two independent matches are found.
+                    var score = error + Math.Abs(correction) * 0.001;
+                    if (matches > bestMatchCount ||
+                        (matches == bestMatchCount && score < bestError))
+                    {
+                        bestMatchCount = matches;
+                        bestCorrectionMm = correction;
+                        bestError = score;
+                    }
+                }
+            }
+
+            return bestMatchCount >= MinimumMatchingBars;
         }
 
         private double ToWorldCenter(double machineAxisMm, int framePixels, double pixelCenter)
