@@ -32,6 +32,10 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
         // Returns one fresh processed 10-pixel-band barcode signal.
         Task<InvokeResult<byte[]>> CaptureFeederBarcodeSignalAsync();
 
+        // Locate the WHITE cut-label corner in a fresh position-camera frame.
+        // Does not move the machine or change feeder calibration.
+        Task<InvokeResult<FeederWhiteCornerObservation>> CaptureFeederWhiteCornerAsync();
+
         // Start each new physical reference hole with fresh detector history.
         void ResetDetections();
 
