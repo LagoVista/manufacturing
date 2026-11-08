@@ -6,6 +6,19 @@
 - **Horizontal strip feeder:** place the marker at the **bottom-left**; read the long axis **left to right**.
 - The reference is the **leading edge of the first black bar**, placed at the feeder reference corner (target placement approximately 0.1 mm). Do not treat the printed label's white margin as the origin.
 
+## White cut-corner optical origin pilot (vertical feeders)
+
+The next physical fiducial is the **upper-left WHITE cut edge** of the printed label (the corner circled in the machine photograph), **not** the top-left of the 5x BLACK START bar. A known white quiet zone separates those two points. The cut edge can be aligned mechanically with the actual feeder's reference corner; only after a repeatable camera trial should we update the permanent feeder-origin convention.
+
+The strip feeder editor now offers a deliberately gated, non-persisting proof:
+
+1. Select the feeder, its staging plate, and its existing **reference-hole row and column**. Click **Locate White Corner**. This reuses `StripFeederViewModel.FindLocation(FeederOrigin)`, including the existing staging-plate and mounting-hole transformation, sets the Feeder Origin profile, moves to that calculated position and waits for motion to settle.
+2. A fresh grayscale position-camera frame is sampled (respecting the camera's mirror settings). A deterministic bounded binary/connected-white-region search locates the **upper-left exposed white edge**, rather than looking for a generic Harris corner or the first black barcode bar. Five stationary frames establish whether the location is repeatable.
+3. The existing 5-unit black START bar, just inside the label, must also be optically verified in at least three frames. Its known 2.5 mm length establishes **physical pixels/mm** for the jog. The camera's nominal EffectivePixelsPerMM is intentionally not used to turn pixel offsets into machine motion.
+4. The editor displays the measured image corner and proposed XY correction. **Jog to White Corner** is a separate explicit operator action, allowed once per stable observation. It checks the profile, selection, Manual mode, unchanged machine position, work-area boundaries and a maximum 2.5 mm correction per axis. The pixel-to-machine sign convention matches existing `MVLocatedCircle.OffsetMM`: +X and -Y. It never writes OriginOffset or other feeder calibration. Re-run Locate after the jog to inspect residual error.
+
+This pilot is **vertical feeders only**. It does not interpret the barcode itself as a new row or column, search the entire machine, or implicitly jog/persist while scanning. If the white corner or optical scale is ambiguous or unstable, it reports a reason and does not enable Jog.
+
 ## Accuracy chain
 
 1. Resolve the approximate feeder position from the calibrated staging plate mounting hole (initial tolerance approximately 2 mm).
