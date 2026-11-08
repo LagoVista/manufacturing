@@ -23,11 +23,18 @@ The initial print is a **20 x 2 mm** black-on-white 11-bar prototype. The four b
 
 The physical first-bar-to-origin placement must be measured independently of that white margin. Avoid baking the prototype's 1.7 mm margin into feeder geometry.
 
+## Calibrated 5x start-bar decoder (implemented; requires a new printed marker)
+
+The proposed eleven-bar marker uses one **5-unit start bar**, eight four-level data bars, a four-level check bar and one **0.5-unit end bar**. One base unit is **0.50 mm**, so the physical start bar is **2.50 mm**, the data widths are **0.50, 0.75, 1.00 and 1.25 mm**, and the end bar is **0.25 mm**. Keep the gaps between bars narrow and consistent, and print the marker at actual size.
+
+The 10-pixel band and XOR transitions are unchanged. `FeederBarcodeSignal.ReadFromStart` validates the first fully visible black bar as a plausible 5x start, then checks that the **next two** measured bars fit the known width classes. The pixel scale is `startBarPixels / 5`; classification compares later bars to **1, 1.5, 2 and 2.5 units**, without relying on exact camera pixels/mm.
+
+A clipped/missing/malformed start leaves the result explicitly **START NOT VERIFIED**, with raw widths only and no trusted symbol values. The old `vertical_barcode_01.png` is a useful legacy regression, **not a calibrated 5x marker**. This first pass does not stitch captures, calculate feeder IDs, validate checksum, or change feeder coordinates.
+
 ## Proposed next iteration (not yet implemented)
 
-- Eleven bars: distinct start bar, eight four-level data bars (16-bit identity), two-bit checksum bar, distinct end bar.
-- Candidate four data widths: 0.50 / 0.75 / 1.00 / 1.25 mm, with small fixed gaps.
-- Candidate start/end framing: 5x and 0.5x the 0.5 mm width; verify with printed samples first.
+- Print and photograph the new 5x-start eleven-bar format; confirm recognition of the start and independent camera scaling.
+- Assign/check the eight data bars (16-bit identity), two-bit check symbol, and 0.5x end framing bar.
 - A single camera view may contain only part of the strip. Combine **overlapping measurements in calibrated machine coordinates** rather than stitching large images.
 - Verify full identity and checksum before accepting a measured origin or persisting calibration.
 
@@ -39,8 +46,8 @@ The physical first-bar-to-origin placement must be measured independently of tha
 
 ## First implementation
 
-- `FeederBarcodeSignal.FindBars` detects bounded black runs, measures width in mm, and classifies the four prototype widths.
-- `FeederBarcodeDetector` reads **only one fixed 10-pixel-wide band starting at image center**, along the **known feeder orientation** (right of center for vertical, below center for horizontal). It majority-votes the ten binary pixels at each position and XORs adjacent positions to find black/white transitions. No scanning other regions, orientation guessing, Hough/contour detection, or scoring multiple candidates. `FeederBarcodeSignal` normalizes widths using calibrated pixels/mm and classifies the four prototype widths.
+- `FeederBarcodeSignal.FindBars` remains the original prototype-width detector for existing test coverage. Live `feederbarcode` now uses `ReadFromStart`, which requires a verified start before producing four-level symbols.
+- `FeederBarcodeDetector` reads **only one fixed 10-pixel-wide band starting at image center**, along the **known feeder orientation** (right of center for vertical, below center for horizontal). It majority-votes the ten binary pixels at each position and XORs adjacent positions to find black/white transitions. No scanning other regions, orientation guessing, Hough/contour detection, or scoring multiple candidates. New-marker width classes are derived from the 5x start's pixel width; physical pixels/mm remains available only for rough plausibility and XY positioning.
 - The barcode vision mode bypasses the **circular hole-detection mask**; the other vision modes retain their existing preprocessing. OpenCV is still used to capture and display the image, but barcode detection itself uses C# pixel comparisons and run lengths.
 - `ShapeDetectionService` annotates visible bars **only** in the new `feederbarcode` profile. The existing `feederorigin` profile remains available for precise corner alignment.
 - A **Frame Barcode** button explicitly moves the camera **along the barcode** to place the expected first bar at roughly 35% of the camera view: toward the top on vertical feeders, left on horizontal feeders. It uses the **actual captured frame size** and calibrated pixels/mm. The original **Go to Feeder Origin** retains its existing centering behavior.
