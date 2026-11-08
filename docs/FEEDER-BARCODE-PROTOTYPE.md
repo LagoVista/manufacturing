@@ -34,7 +34,8 @@ The physical first-bar-to-origin placement must be measured independently of tha
 ## First implementation
 
 - `FeederBarcodeSignal.FindBars` detects bounded black runs, measures width in mm, and classifies the four prototype widths.
-- `FeederBarcodeDetector` searches scanlines **only along the selected feeder's known orientation**, or both axes in standalone preview, and annotates the matching bars.
+- `FeederBarcodeDetector` searches scanlines **only along the selected feeder's known orientation**, or both axes in standalone preview. It samples a narrow **9-pixel rectangular band** by majority vote, producing a pure binary one-dimensional signal and annotating matching bar widths.
+- The barcode vision mode bypasses the **circular hole-detection mask**; the other vision modes retain their existing preprocessing. OpenCV is still used to capture and display the image, but barcode detection itself uses C# pixel comparisons and run lengths.
 - `ShapeDetectionService` annotates visible bars in the existing `feederorigin` vision profile.
 - A **Frame Barcode** button explicitly moves the camera **along the barcode** to place the expected first bar at roughly 20% of the camera view: toward the top on vertical feeders, left on horizontal feeders. It uses the **actual captured frame size** and calibrated pixels/mm. The original **Go to Feeder Origin** retains its existing centering behavior.
 - An orange/yellow 20% framing guide is shown for the selected orientation; it is a visual target, **not an automatically detected edge**.
