@@ -36,9 +36,15 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
 
                 // Validate raw transitions on the actual camera capture, not an
                 // invented all-white synthetic label. Clip-edge runs are ignored.
-                var bars = FeederBarcodeSignal.FindBars(signal, 95.2);
-                Assert.That(bars.Count, Is.GreaterThanOrEqualTo(4),
-                    "Real vertical barcode should contain multiple fully visible bars.");
+                // Feeder-origin profile uses roughly 50 px/mm. The first
+                // six fully bounded bars in the committed camera image are
+                // 01, 10, 00, 11, 10, 01 (four distinguishable widths).
+                var bars = FeederBarcodeSignal.FindBars(signal, 50);
+                Assert.That(bars.Count, Is.GreaterThanOrEqualTo(6),
+                    "Real vertical barcode should contain six fully visible data bars.");
+                Assert.That(bars.Take(6).Select(bar => bar.Value).ToArray(),
+                    Is.EqualTo(new int?[] { 1, 2, 0, 3, 2, 1 }),
+                    "The actual camera pattern must decode deterministically.");
                 Assert.That(bars.All(bar => bar.StartPixel > 0 &&
                     bar.EndPixel < image.Height), Is.True);
             }
