@@ -16,10 +16,12 @@ namespace LagoVista.PickAndPlace.Models
         public int FrameWidth { get; }
         public int FrameHeight { get; }
         public int ComponentAreaPixels { get; }
+        public double OpticalPixelsPerMm { get; }
         public string Status { get; }
 
         public FeederWhiteCornerObservation(bool found, int x, int y,
-            int frameWidth, int frameHeight, int componentAreaPixels, string status)
+            int frameWidth, int frameHeight, int componentAreaPixels, string status,
+            double opticalPixelsPerMm = 0)
         {
             Found = found;
             X = x;
@@ -28,7 +30,12 @@ namespace LagoVista.PickAndPlace.Models
             FrameHeight = frameHeight;
             ComponentAreaPixels = componentAreaPixels;
             Status = status;
+            OpticalPixelsPerMm = opticalPixelsPerMm;
         }
+
+        public FeederWhiteCornerObservation WithOpticalScale(double pixelsPerMm) =>
+            new FeederWhiteCornerObservation(Found, X, Y, FrameWidth,
+                FrameHeight, ComponentAreaPixels, Status, pixelsPerMm);
     }
 
     /// <summary>
@@ -38,6 +45,59 @@ namespace LagoVista.PickAndPlace.Models
     /// </summary>
     public static class FeederWhiteCornerFinder
     {
+        /// <summary>
+        /// Measure the 5-unit START on the SAME printed label, to convert the
+        /// optical corner offset to physical millimeters. This is essential:
+        /// the camera's nominal pixels/mm is not trusted for a machine jog.
+        /// Returns zero (jog disabled) if START is not verified.
+        /// </summary>
+        public static double MeasureStartScale(int width, int height,
+            Func<int, int, byte> sampleGray, byte threshold,
+            FeederWhiteCornerObservation corner, double nominalPixelsPerMm)
+        {
+            if (sampleGray == null)
+                throw new ArgumentNullException(nameof(sampleGray));
+            if (corner == null || !corner.Found || nominalPixelsPerMm <= 0 ||
+                double.IsNaN(nominalPixelsPerMm) || double.IsInfinity(nominalPixelsPerMm))
+                return 0;
+
+            // Start slightly ABOVE the white quiet zone. The exterior may be
+            // black; FindBars deliberately ignores its clipped initial run.
+            var firstY = Math.Max(0, corner.Y - Math.Max(12,
+                (int)Math.Round(nominalPixelsPerMm * 0.25)));
+            var length = Math.Min(1150, height - firstY);
+            if (length < 250)
+                return 0;
+
+            // The label is 2 mm wide and the black barcode bars sit inside
+            // it. Try a few positions within its interior to accommodate
+            // normal cutting and mounting variation; no image-wide hunt.
+            foreach (var fraction in new[] { 0.8, 1.0, 1.2 })
+            {
+                var startX = corner.X + (int)Math.Round(nominalPixelsPerMm * fraction);
+                if (startX <= 0 || startX + 10 >= width)
+                    continue;
+
+                var signal = new byte[length];
+                for (var y = 0; y < length; y++)
+                {
+                    var bright = 0;
+                    for (var x = startX; x < startX + 10; x++)
+                        if (sampleGray(x, firstY + y) >= threshold)
+                            bright++;
+                    signal[y] = bright >= 6 ? (byte)255 : (byte)0;
+                }
+
+                var read = FeederBarcodeSignal.ReadFromStart(signal,
+                    nominalPixelsPerMm, threshold);
+                if (read.HasVerifiedStart)
+                    return read.PixelsPerMmFromStart;
+            }
+
+            return 0;
+        }
+
+
         public static FeederWhiteCornerObservation Find(int width, int height,
             Func<int, int, byte> sampleGray, byte whiteThreshold,
             int searchRadiusPixels)
