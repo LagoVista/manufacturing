@@ -162,6 +162,37 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                 Is.EqualTo(new int?[] { 0, 1, 2, 3 }));
         }
 
+        [TestCase(20)]
+        [TestCase(100)]
+        [TestCase(500)]
+        public void FiveXStartIgnoresIncorrectCameraPixelsPerMm(double reportedPixelsPerMm)
+        {
+            // Same physical marker under wildly different nominal camera
+            // calibrations: the start bar must never be removed by mm gates.
+            var image = MakeLine(new[] { 125, 25, 38, 50, 63 }, gap: 15);
+            var result = FeederBarcodeSignal.ReadFromStart(image, reportedPixelsPerMm);
+
+            Assert.That(result.HasVerifiedStart, Is.True, result.Status);
+            Assert.That(result.Bars.Count, Is.EqualTo(5));
+            Assert.That(result.PixelsPerUnit, Is.EqualTo(25).Within(0.0001));
+            Assert.That(result.Bars.Skip(1).Select(bar => bar.Value).ToArray(),
+                Is.EqualTo(new int?[] { 0, 1, 2, 3 }));
+        }
+
+        [Test]
+        public void FiveXStartWorksAtDifferentPrintedMarkerScale()
+        {
+            // Pixel widths for the same 5:1/1.5/2/2.5 proportions at
+            // another print or camera scale, without changing the decoder.
+            var image = MakeLine(new[] { 90, 18, 27, 36, 45 }, gap: 12);
+            var result = FeederBarcodeSignal.ReadFromStart(image, pixelsPerMm: 200);
+
+            Assert.That(result.HasVerifiedStart, Is.True, result.Status);
+            Assert.That(result.PixelsPerUnit, Is.EqualTo(18).Within(0.0001));
+            Assert.That(result.Bars.Skip(1).Select(bar => bar.Value).ToArray(),
+                Is.EqualTo(new int?[] { 0, 1, 2, 3 }));
+        }
+
         [Test]
         public void IncompleteStartBarMustNotCalibrateUsingFirstVisibleDataBar()
         {
