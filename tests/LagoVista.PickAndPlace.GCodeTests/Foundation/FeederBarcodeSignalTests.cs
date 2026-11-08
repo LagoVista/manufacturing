@@ -75,6 +75,20 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void FourWidthsStayDistinctWithScreenshotSizedGaps()
+        {
+            // Representative screen-space widths measured from the real machine
+            // image. The frame's display scale is only a test fixture; use the
+            // calibrated camera pixels/mm for live physical measurements.
+            var input = MakeLine(new[] { 38, 55, 24, 74, 55, 38 }, gap: 16);
+            var bars = FeederBarcodeSignal.FindBars(input, 50);
+
+            Assert.That(bars.Count, Is.EqualTo(6));
+            Assert.That(bars.Select(bar => bar.Value).ToArray(),
+                Is.EqualTo(new int?[] { 1, 2, 0, 3, 2, 1 }));
+        }
+
+        [Test]
         public void InvalidPixelsPerMillimeterIsRejected()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() =>
