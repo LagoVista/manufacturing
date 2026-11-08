@@ -121,7 +121,7 @@
                                     ToolTip="Frame the START bar. Does not update feeder calibration." />
                             <Button Style="{StaticResource CommandButton}" Content="Scan Barcode"
                                     Command="{Binding ScanFeederBarcodeCommand}" Width="160"
-                                    ToolTip="Read up to five overlapping camera positions along the barcode. Moves only along the feeder within an 18 mm limit, without saving calibration or identity." />
+                                    ToolTip="Read up to seven overlapping camera positions along the barcode. Requires two matching bars per overlap; moves within an 18 mm limit and does not save calibration or identity." />
                         </StackPanel>
                         <TextBlock Margin="10,0,10,8" TextWrapping="Wrap"
                                    Style="{StaticResource content}"
