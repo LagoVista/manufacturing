@@ -52,8 +52,8 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         public void BarsClippedByImageEdgesAreNotMeasured()
         {
             var input = MakeLine(new[] { 40, 80, 120 });
-            for (var i = 0; i < 25; i++) input[i] = 0;
-            for (var i = input.Length - 25; i < input.Length; i++) input[i] = 0;
+            for (var i = 0; i < 10; i++) input[i] = 0;
+            for (var i = input.Length - 10; i < input.Length; i++) input[i] = 0;
 
             var bars = FeederBarcodeSignal.FindBars(input, 100);
 
