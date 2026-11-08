@@ -50,7 +50,12 @@ namespace LagoVista.PickAndPlace.App.Services
         {
             if (camera.CurrentVisionProfile.ShowCrossHairs) _imageHelper.DrawCrossHairs(img, camera, size);
             if (camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_FeederOrigin)
+            {
+                // Do not overlay unrelated circle/line/rectangle detections on the
+                // barcode view. Only show its fixed sampling band and measured runs.
                 FeederBarcodeDetector.Draw(img.Image, _feederBarcode, size, _feederBarcodeVertical);
+                return;
+            }
             if (camera.CurrentVisionProfile.Show200PixelSquare) _imageHelper.ShowCalibrationSquare(img, size);
 
             if (camera.CurrentVisionProfile.FindLines)
@@ -321,7 +326,7 @@ namespace LagoVista.PickAndPlace.App.Services
 
                             var output = camera.CurrentVisionProfile.ShowOriginalImage ? raw : (IInputOutputArray)input;
 
-                            if (camera.CurrentVisionProfile.PerformShapeDetection)
+                            if (camera.CurrentVisionProfile.PerformShapeDetection && !feederBarcodeMode)
                                 FindShapes(new MVImage<IInputOutputArray>( input), output, camera, size);
 
                             if(camera.CurrentVisionProfile.ShowRectLocatorImage)
