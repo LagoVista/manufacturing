@@ -89,6 +89,53 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void VerticalCenterBandUsesOnlyTenPixelsAndXorTransitions()
+        {
+            const int width = 80, height = 400;
+            var blackRanges = new[] { (25, 65), (100, 180), (215, 335) };
+            Func<int, int, byte> pixel = (x, y) =>
+            {
+                // A different, distracting pattern occupies most of the frame.
+                // It must never influence the deterministic center-band read.
+                if (x < width / 2 || x >= width / 2 + 10)
+                    return y % 7 == 0 ? (byte)255 : (byte)0;
+
+                foreach (var range in blackRanges)
+                    if (y >= range.Item1 && y < range.Item2)
+                        return (byte)0;
+
+                return (byte)255;
+            };
+
+            var binary = FeederBarcodeSignal.SampleCenterBand(width, height, true, pixel);
+            var bars = FeederBarcodeSignal.FindBars(binary, 100);
+            Assert.That(binary.All(value => value == 0 || value == 255), Is.True);
+            Assert.That(bars.Count, Is.EqualTo(3));
+            Assert.That(bars.Select(bar => bar.StartPixel), Is.EqualTo(new[] { 25, 100, 215 }));
+            Assert.That(bars.Select(bar => bar.EndPixel), Is.EqualTo(new[] { 65, 180, 335 }));
+            Assert.That(bars.Select(bar => bar.Value).ToArray(),
+                Is.EqualTo(new int?[] { 0, 1, 2 }));
+        }
+
+        [Test]
+        public void HorizontalCenterBandReadsLeftToRight()
+        {
+            const int width = 400, height = 80;
+            Func<int, int, byte> pixel = (x, y) =>
+            {
+                if (y < height / 2 || y >= height / 2 + 10)
+                    return (byte)0;
+                return (x >= 25 && x < 65) || (x >= 100 && x < 180)
+                    ? (byte)0 : (byte)255;
+            };
+            var binary = FeederBarcodeSignal.SampleCenterBand(width, height, false, pixel);
+            var bars = FeederBarcodeSignal.FindBars(binary, 100);
+            Assert.That(bars.Count, Is.EqualTo(2));
+            Assert.That(bars.Select(bar => bar.Value).ToArray(),
+                Is.EqualTo(new int?[] { 0, 1 }));
+        }
+
+        [Test]
         public void InvalidPixelsPerMillimeterIsRejected()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() =>
