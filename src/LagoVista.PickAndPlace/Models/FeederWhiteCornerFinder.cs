@@ -87,10 +87,6 @@ namespace LagoVista.PickAndPlace.Models
                 var maxY = 0;
                 // Find the local left edge at the TOP, not the leftmost
                 // pixel anywhere down the strip (printed cuts may slant).
-                var rowMinimumX = new int[roiHeight];
-                for (var i = 0; i < rowMinimumX.Length; i++)
-                    rowMinimumX[i] = int.MaxValue;
-
                 while (head < tail)
                 {
                     var idx = queue[head++];
@@ -101,8 +97,6 @@ namespace LagoVista.PickAndPlace.Models
                     maxX = Math.Max(maxX, x);
                     minY = Math.Min(minY, y);
                     maxY = Math.Max(maxY, y);
-                    rowMinimumX[y] = Math.Min(rowMinimumX[y], x);
-
                     if (x > 0) Add(idx - 1);
                     if (x + 1 < roiWidth) Add(idx + 1);
                     if (y > 0) Add(idx - roiWidth);
@@ -123,15 +117,27 @@ namespace LagoVista.PickAndPlace.Models
                     minY <= 4 || minX <= 4)
                     continue;
 
-                var topXs = new List<int>();
-                for (var y = minY; y < Math.Min(roiHeight, minY + 6); y++)
-                    if (rowMinimumX[y] != int.MaxValue)
-                        topXs.Add(rowMinimumX[y]);
-                if (topXs.Count < 3)
-                    continue;
+                // Reuse the finished flood-fill queue. Avoid allocating a
+                // full-height row table for every isolated noise pixel.
+                var topRowMinX = new int[6];
+                for (var row = 0; row < topRowMinX.Length; row++)
+                    topRowMinX[row] = int.MaxValue;
+                for (var i = 0; i < tail; i++)
+                {
+                    var y = queue[i] / roiWidth;
+                    var relativeRow = y - minY;
+                    if (relativeRow >= 0 && relativeRow < topRowMinX.Length)
+                        topRowMinX[relativeRow] = Math.Min(
+                            topRowMinX[relativeRow], queue[i] % roiWidth);
+                }
 
-                topXs.Sort();
-                var xPixel = left + topXs[topXs.Count / 2];
+                var topXs = topRowMinX
+                    .Where(value => value != int.MaxValue)
+                    .OrderBy(value => value)
+                    .ToArray();
+                if (topXs.Length < 3)
+                    continue;
+                var xPixel = left + topXs[topXs.Length / 2];
                 var yPixel = top + minY;
                 // Both boundaries must be a BLACK -> WHITE transition.
                 // This avoids treating a white interior patch as an origin.
