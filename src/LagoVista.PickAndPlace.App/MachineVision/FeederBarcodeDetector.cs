@@ -20,6 +20,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             public int CrossPixel { get; set; }
             public IReadOnlyList<FeederBarcodeBar> Bars { get; set; }
             public FeederBarcodeCalibratedRead Calibration { get; set; }
+            public byte[] Signal { get; set; }
         }
 
         public static Observation FindBars(Image<Gray, byte> image, double pixelsPerMm,
@@ -43,7 +44,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 Vertical = vertical,
                 CrossPixel = (vertical ? image.Width : image.Height) / 2,
                 Bars = calibration.Bars,
-                Calibration = calibration
+                Calibration = calibration,
+                Signal = signal
             };
         }
 
