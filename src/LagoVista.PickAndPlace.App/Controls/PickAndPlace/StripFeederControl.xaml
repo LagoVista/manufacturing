@@ -46,6 +46,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto" />
                         <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="20*" />
@@ -115,24 +116,43 @@
                             </StackPanel>
                         </Grid>
 
-                        <StackPanel Orientation="Horizontal" Margin="10,6,0,2">
-                            <Button Style="{StaticResource CommandButton}" Content="Frame Barcode"
-                                    Command="{Binding FrameFeederBarcodeCommand}" Width="160" Margin="0,0,8,0"
-                                    ToolTip="Frame the START bar. Does not update feeder calibration." />
-                            <Button Style="{StaticResource CommandButton}" Content="Scan Barcode"
-                                    Command="{Binding ScanFeederBarcodeCommand}" Width="160"
-                                    ToolTip="Read up to seven overlapping camera positions along the barcode. Requires two matching bars per overlap; moves within an 18 mm limit and does not save calibration or identity." />
-                        </StackPanel>
-                        <TextBlock Margin="10,0,10,8" TextWrapping="Wrap"
-                                   Style="{StaticResource content}"
-                                   Text="{Binding FeederBarcodeScanStatus}" />
-
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Tape Holes on Top (when feeder is horizontal)" Style="{StaticResource label}"></TextBlock>
                             <CheckBox IsChecked="{Binding Current.TapeHolesOnTop}" />
                         </StackPanel>
                     </StackPanel>
-                    
+
+                    <!-- The barcode controls and result need the entire form width,
+                         not the narrow third configuration column. -->
+                    <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Margin="10,8,10,10">
+                        <WrapPanel Margin="0,0,0,8">
+                            <Button Style="{StaticResource CommandButton}" Content="Frame Barcode"
+                                    Command="{Binding FrameFeederBarcodeCommand}" Width="160" Margin="0,0,10,6"
+                                    ToolTip="Frame the START bar. Does not update feeder calibration." />
+                            <Button Style="{StaticResource CommandButton}" Content="Scan Barcode"
+                                    Command="{Binding ScanFeederBarcodeCommand}" Width="160" Margin="0,0,0,6"
+                                    ToolTip="Read up to seven overlapping camera positions along the barcode. Requires two matching bars per overlap; moves within an 18 mm limit and does not save calibration or identity." />
+                        </WrapPanel>
+                        <Border BorderThickness="1" BorderBrush="#606060" CornerRadius="4" Padding="10,8">
+                            <StackPanel>
+                                <TextBlock Text="{Binding FeederBarcodeScanStatus}" TextWrapping="Wrap"
+                                           FontSize="16" FontWeight="SemiBold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource content}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding FeederBarcodeScanVerified}" Value="True">
+                                                    <Setter Property="Foreground" Value="#82DCA3" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock Text="{Binding FeederBarcodeScanDetails}"
+                                           TextWrapping="Wrap" Margin="0,4,0,0"
+                                           Opacity="0.85" Style="{StaticResource content}" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
                 </Grid>
 
 
