@@ -204,8 +204,34 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             var result = FindLocation(locationType);
-            if (result.Successful)
-                Machine.GotoPoint(result.Result);
+            if (!result.Successful)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning, result.ErrorMessage);
+                return;
+            }
+
+            if (locationType == StripFeederLocationTypes.FeederOrigin)
+            {
+                // Reuse the existing camera corner detector and the second
+                // Play (CenterFoundItem) command. The Feeder Origin profile
+                // controls search radius, threshold and camera settings.
+                var profile = Machine.PositionImageCaptureService?.Profile;
+                if (profile != null && profile.Key == VisionProfile.VisionProfile_FeederOrigin)
+                {
+                    profile.PerformShapeDetection = true;
+                    profile.FindCorners = true;
+                    profile.FindCircles = false;
+                    profile.FindRectangles = false;
+                    profile.FindLines = false;
+                    profile.ShowCrossHairs = true;
+                }
+                Machine.SendSafeMoveHeight();
+                Machine.AddStatusMessage(StatusMessageTypes.Info,
+                    $"Moving to CALCULATED feeder origin for row {Current.ReferenceHoleRow}, " +
+                    $"column {Current.ReferenceHoleColumn} (saved OriginOffset ignored).");
+            }
+
+            Machine.GotoPoint(result.Result);
         }
 
         // This is a camera preview move, not a feeder-origin calibration.
@@ -583,7 +609,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if (moveType == StripFeederLocationTypes.FeederOrigin)
             {
                 Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_FeederOrigin);
-                return InvokeResult<Point2D<double>>.Create(feederOrigin);
+                // This navigation command intentionally uses only the selected
+                // staging-plate row/column and mounting-hole geometry. The
+                // measured OriginOffset remains for calibrated picking and
+                // SetFeederOrigin, but must NOT bias the initial corner search.
+                var vertical = Current.Orientation.Value == FeederOrientations.Vertical;
+                var calculated = stagePlateReferenceLocation.SubtractWithConditionalSwap(
+                    vertical, Current.MountingHoleOffset);
+                return InvokeResult<Point2D<double>>.Create(calculated);
             }
 
             // rest of methods are looking at a feeder row or part within a row...make sure we have one.
