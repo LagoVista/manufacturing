@@ -58,6 +58,26 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void OverlappingScanAcceptsRealCameraFirstSymbolWidthBias()
+        {
+            var widths = PrintedWidths.ToArray();
+            // The narrowest symbol in the real camera image is approximately
+            // 1.21x the start-derived unit instead of its nominal 1.0x.
+            widths[1] = 61;
+            widths[5] = 61;
+
+            var marker = MakePrintedMarker(widths);
+            var scan = new FeederBarcodeScan();
+            scan.AddCapture(Frame(marker, 0), 0, 50);
+            scan.AddCapture(Frame(marker, 480), 4.8, 50);
+            scan.AddCapture(Frame(marker, 960), 9.6, 50);
+
+            Assert.That(scan.IsComplete, Is.True, scan.Status);
+            Assert.That(scan.FeederId, Is.EqualTo(0x1B1B));
+            Assert.That(scan.ObservedBars, Is.EqualTo(11));
+        }
+
+        [Test]
         public void IncompleteMarkerMustNeverProduceIdentity()
         {
             var marker = MakePrintedMarker(PrintedWidths);
