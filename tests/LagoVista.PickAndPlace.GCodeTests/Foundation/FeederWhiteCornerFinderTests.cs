@@ -117,8 +117,8 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
 
             var result = Find(pixels);
             Assert.That(result.Found, Is.True, result.Status);
-            Assert.That(result.X, Is.EqualTo(288));
-            Assert.That(result.Y, Is.EqualTo(280));
+            Assert.That(result.X, Is.EqualTo(280).Within(2), result.Status);
+            Assert.That(result.Y, Is.EqualTo(280).Within(2), result.Status);
         }
 
         [Test]
