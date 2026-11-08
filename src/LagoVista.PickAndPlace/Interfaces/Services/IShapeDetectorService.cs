@@ -14,7 +14,7 @@ namespace LagoVista.PickAndPlace.Interfaces.Services
 {
     public interface IShapeDetectorService<T> where T : class, IDisposable
     {
-        T PerformShapeDetection(IMVImage<T> image, MachineCamera camera, Size size);
+        T PerformShapeDetection(IMVImage<T> image, MachineCamera camera, Size size, bool? feederBarcodeVertical = null);
 
         IEnumerable<MVLocatedCircle> FoundCircles { get; }
         IEnumerable<MVLocatedRectangle> FoundRectangles { get; }
