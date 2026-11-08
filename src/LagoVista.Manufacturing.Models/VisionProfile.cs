@@ -48,6 +48,7 @@ namespace LagoVista.PickAndPlace.Models
                     EntityHeader.Create(VisionProfile_TapeHoleClearTape, VisionProfile_TapeHoleClearTape, ManufacturingResources.VisionProfile_TapeHoleClearTape),
                     EntityHeader.Create(VisionProfile_TapeHoleWhiteTape, VisionProfile_TapeHoleWhiteTape, ManufacturingResources.VisionProfile_TapeHoleWhiteTape),
                     EntityHeader.Create(VisionProfile_TapeHoleWhiteTape, VisionProfile_FeederOrigin, ManufacturingResources.VisionProfile_FeederOrigin),
+                    EntityHeader.Create(VisionProfile_FeederBarcode, VisionProfile_FeederBarcode, ManufacturingResources.VisionProfile_FeederBarcode),
                     EntityHeader.Create(VisionProfile_PartInWhiteTape, VisionProfile_PartInWhiteTape, ManufacturingResources.VisionProfile_PartInWhiteTape),
                     EntityHeader.Create(VisionProfile_PartInBlackTape, VisionProfile_PartInBlackTape, ManufacturingResources.VisionProfile_PartInBlackTape),
                     EntityHeader.Create(VisionProfile_PartInClearTape, VisionProfile_PartInClearTape, ManufacturingResources.VisionProfile_PartInClearTape),
@@ -73,6 +74,7 @@ namespace LagoVista.PickAndPlace.Models
         public const string VisionProfile_FeederFiducial = "feederfiducial";
         public const string VisionProfile_StagingPlateHole = "stagingplatehole";
         public const string VisionProfile_FeederOrigin = "feederorigin";
+        public const string VisionProfile_FeederBarcode = "feederbarcode";
         public const string VisionProfile_PartInWhiteTape = "partinwhitetape";
         public const string VisionProfile_PartInBlackTape = "partinblacktape";
         public const string VisionProfile_PartInClearTape = "partincleartape";
