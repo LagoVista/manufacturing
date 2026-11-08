@@ -193,6 +193,38 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                 Is.EqualTo(new int?[] { 0, 1, 2, 3 }));
         }
 
+        [TestCase(61, 84, 107, 129)]
+        [TestCase(60, 83, 106, 128)]
+        public void RecordedCameraWidthJitterMustNotFlipStartVerification(
+            int firstDataPixels, int secondDataPixels, int thirdDataPixels, int fourthDataPixels)
+        {
+            // Matches the raw measurements on the real machine video:
+            // START 5.06 mm, bars 1.22/1.68/2.14/2.58 mm at nominal 50 px/mm.
+            // The narrowest data bar is about 1.21 units after optical calibration,
+            // just beyond the old <0.20-unit cutoff.
+            var image = MakeLine(
+                new[] { 253, firstDataPixels, secondDataPixels, thirdDataPixels, fourthDataPixels },
+                gap: 21, margin: 30);
+            var read = FeederBarcodeSignal.ReadFromStart(image, pixelsPerMm: 50);
+
+            Assert.That(read.HasVerifiedStart, Is.True, read.Status);
+            Assert.That(read.PixelsPerUnit, Is.EqualTo(50.6).Within(0.0001));
+            Assert.That(read.Bars.Skip(1).Select(b => b.Value).ToArray(),
+                Is.EqualTo(new int?[] { 0, 1, 2, 3 }));
+        }
+
+        [Test]
+        public void AmbiguousMidpointDataWidthStillRejectsStartVerification()
+        {
+            // At 100 px/unit, 125 px lies exactly halfway between
+            // symbol classes 1.0 and 1.5. Do not silently choose either.
+            var image = MakeLine(new[] { 500, 125, 151 }, gap: 25);
+            var read = FeederBarcodeSignal.ReadFromStart(image, pixelsPerMm: 50);
+
+            Assert.That(read.HasVerifiedStart, Is.False);
+            Assert.That(read.Status, Does.Contain("following bar widths disagree"));
+        }
+
         [Test]
         public void IncompleteStartBarMustNotCalibrateUsingFirstVisibleDataBar()
         {
