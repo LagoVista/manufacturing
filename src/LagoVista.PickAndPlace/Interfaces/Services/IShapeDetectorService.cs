@@ -16,6 +16,9 @@ namespace LagoVista.PickAndPlace.Interfaces.Services
     {
         T PerformShapeDetection(IMVImage<T> image, MachineCamera camera, Size size, bool? feederBarcodeVertical = null);
 
+        // Sampled from the same processed frame as the barcode overlay.
+        byte[] LatestFeederBarcodeSignal { get; }
+
         IEnumerable<MVLocatedCircle> FoundCircles { get; }
         IEnumerable<MVLocatedRectangle> FoundRectangles { get; }
         IEnumerable<MVLocatedCorner> FoundCorners { get; }
