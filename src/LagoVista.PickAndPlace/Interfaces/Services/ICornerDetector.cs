@@ -16,5 +16,7 @@ namespace LagoVista.PickAndPlace.Interfaces.Services
         void FindCorners(IMVImage<T> input, MachineCamera camera, System.Drawing.Size size);
         void Reset();
         ObservableCollection<MVLocatedCorner> FoundCorners { get; }
+        // Diagnostic reason when a Feeder Origin corner cannot be located.
+        string LatestStatus { get; }
     }
 }
