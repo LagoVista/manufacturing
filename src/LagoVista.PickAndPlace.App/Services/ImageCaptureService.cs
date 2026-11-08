@@ -176,11 +176,16 @@ namespace LagoVista.PickAndPlace.App.Services
                 }
 
                 var correction = corner.OffsetMM;
-                if (Math.Abs(correction.X) > 2.5 || Math.Abs(correction.Y) > 2.5)
+                // The calculated row/column approach can legitimately be
+                // several millimeters away. Keep a single operator-triggered
+                // correction; use work-area and homing checks as before.
+                const double maxCornerJogMm = 10.0;
+                if (Math.Abs(correction.X) > maxCornerJogMm ||
+                    Math.Abs(correction.Y) > maxCornerJogMm)
                 {
                     Machine.AddStatusMessage(StatusMessageTypes.Warning,
                         $"White corner correction X={correction.X:F2}, Y={correction.Y:F2} mm " +
-                        "exceeds the 2.5 mm per-axis jog limit.");
+                        $"exceeds the {maxCornerJogMm:F0} mm per-axis jog limit.");
                     return;
                 }
 
