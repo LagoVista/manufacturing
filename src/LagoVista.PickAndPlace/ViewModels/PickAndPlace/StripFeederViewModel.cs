@@ -253,14 +253,17 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             var feederVertical = Current.Orientation.Value == FeederOrientations.Vertical;
             capture.FeederBarcodeVertical = feederVertical;
-            // Resolve the actual feeder origin using the existing geometry and
-            // feeder-origin profile, then switch to the separate barcode profile.
-            var origin = FindLocation(StripFeederLocationTypes.FeederOrigin);
-            if (!origin.Successful)
+            // FindLocation(FeederOrigin) intentionally returns the uncorrected
+            // row/column approach, so the white-corner detector can locate the
+            // real feeder. Barcode framing is different: after Set Feeder Origin
+            // we must start from that calibrated position, including OriginOffset.
+            var calculatedOrigin = FindLocation(StripFeederLocationTypes.FeederOrigin);
+            if (!calculatedOrigin.Successful)
             {
-                Machine.AddStatusMessage(StatusMessageTypes.Warning, origin.ErrorMessage);
+                Machine.AddStatusMessage(StatusMessageTypes.Warning, calculatedOrigin.ErrorMessage);
                 return;
             }
+            var calibratedOrigin = calculatedOrigin.Result + Current.OriginOffset;
 
             Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_FeederBarcode);
             var pixelsPerMm = capture.Camera.EffectivePixelsPerMM;
@@ -287,15 +290,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return;
             }
 
-            // MVLocatedCircle.OffsetMM uses +X and -Y for pixel-to-machine conversion.
-            // Vertical feeder origin is the top-left corner of the FIRST BLACK bar.
-            // Its marker is 2 mm wide; frame 1 mm to the right to put the fixed
-            // 10-pixel barcode sampling band near the middle of the printed strip.
-            // Keep the existing along-marker shift and horizontal framing unchanged.
+            // The calibrated feeder origin is the upper-left WHITE cut corner
+            // after Set Feeder Origin. For a vertical label, shift 1 mm right
+            // to put the 10-pixel barcode sampling band near the middle of
+            // the 2 mm-wide printed strip. Keep the existing along-marker
+            // framing shift and horizontal geometry unchanged.
             const double verticalBarcodeCenterOffsetMm = 1.0;
             var framed = feederVertical
-                ? new Point2D<double>(origin.Result.X + verticalBarcodeCenterOffsetMm, origin.Result.Y - shiftMm)
-                : new Point2D<double>(origin.Result.X + shiftMm, origin.Result.Y);
+                ? new Point2D<double>(calibratedOrigin.X + verticalBarcodeCenterOffsetMm, calibratedOrigin.Y - shiftMm)
+                : new Point2D<double>(calibratedOrigin.X + shiftMm, calibratedOrigin.Y);
 
             Machine.SendSafeMoveHeight();
             Machine.GotoPoint(framed);
@@ -303,7 +306,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 $"Framing {(feederVertical ? "vertical" : "horizontal")} feeder barcode: " +
                 $"camera offset {shiftMm:F2} mm along marker" +
                 (feederVertical ? $", +{verticalBarcodeCenterOffsetMm:F2} mm X to barcode center" : "") +
-                " (target start at 35% of image).");
+                $"; calibrated origin correction X={Current.OriginOffset.X:+0.00;-0.00;0.00}, " +
+                $"Y={Current.OriginOffset.Y:+0.00;-0.00;0.00} mm.");
         }
 
 
