@@ -27,6 +27,24 @@ namespace LagoVista.PickAndPlace.Models
         public int Iteration { get; set; }
         public bool UsesStartBarScale { get; private set; }
         public double PixelsPerMm => _pixelsPerMm;
+        public Point2D<double> TopEdgeStart { get; private set; }
+        public Point2D<double> TopEdgeEnd { get; private set; }
+        public Point2D<double> LeftEdgeStart { get; private set; }
+        public Point2D<double> LeftEdgeEnd { get; private set; }
+        public string EdgeSummary { get; private set; } = String.Empty;
+
+        public void SetFittedEdges(FeederWhiteCornerObservation observation)
+        {
+            TopEdgeStart = observation?.TopEdgeStart;
+            TopEdgeEnd = observation?.TopEdgeEnd;
+            LeftEdgeStart = observation?.LeftEdgeStart;
+            LeftEdgeEnd = observation?.LeftEdgeEnd;
+            EdgeSummary = observation == null || !observation.Found
+                ? String.Empty
+                : $"TOP {observation.TopEdgeSamples}px LEFT {observation.LeftEdgeSamples}px " +
+                  $"RMS {observation.EdgeFitErrorPixels:F2}px";
+            RaisePropertyChanged(nameof(Summary));
+        }
 
         public Point2D<double> OffsetPixels => Position == null || _imageCenter == null
             ? new Point2D<double>(0, 0)
@@ -61,7 +79,8 @@ namespace LagoVista.PickAndPlace.Models
             : $"WHITE CORNER ({Position.X:F0},{Position.Y:F0}) " +
               $"X {OffsetMM.X:+0.00;-0.00;0.00} / Y {OffsetMM.Y:+0.00;-0.00;0.00} mm " +
               $"{(PositionStable ? "STABLE" : "ACQUIRING")} " +
-              $"{(UsesStartBarScale ? "START SCALE" : "CAMERA SCALE")}";
+              $"{(UsesStartBarScale ? "START SCALE" : "CAMERA SCALE")} " +
+              EdgeSummary;
 
         public void Add(int x, int y, int imageWidth, int imageHeight,
             double pixelsPerMm, double toleranceMm, int stabilizationCount,
@@ -123,6 +142,7 @@ namespace LagoVista.PickAndPlace.Models
             FoundCount = 0;
             Position = null;
             UsesStartBarScale = false;
+            SetFittedEdges(null);
             RaisePropertyChanged(nameof(Summary));
             RaisePropertyChanged(nameof(PositionStable));
             RaisePropertyChanged(nameof(Stabilized));
