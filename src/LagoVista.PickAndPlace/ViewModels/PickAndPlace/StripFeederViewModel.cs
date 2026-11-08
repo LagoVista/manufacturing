@@ -217,7 +217,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             // The shape detector uses the actual captured frame, not the Camera.ImageSize
             // configuration (the position camera may capture at a higher resolution).
             var pixels = feederVertical ? capture.CaptureFrameSize.Height : capture.CaptureFrameSize.Width;
-            var shiftMm = pixels * 0.30 / pixelsPerMm;
+            // Leave more room above/left of the expected start bar; the prior
+            // 20% framing clipped the marker on the real feeder photograph.
+            var shiftMm = pixels * 0.15 / pixelsPerMm;
             // Avoid an unexpected long machine move when the camera size or
             // pixels/mm configuration is wrong. This button is only for framing.
             if (double.IsNaN(shiftMm) || double.IsInfinity(shiftMm) ||
@@ -229,7 +231,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
 
             // MVLocatedCircle.OffsetMM uses +X and -Y for pixel-to-machine conversion.
-            // Move the camera along the marker so its leading bar is 20% into the view.
+            // Move the camera along the marker so its leading bar is ~35% into the view.
             var framed = feederVertical
                 ? new Point2D<double>(origin.Result.X, origin.Result.Y - shiftMm)
                 : new Point2D<double>(origin.Result.X + shiftMm, origin.Result.Y);
@@ -238,7 +240,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             Machine.GotoPoint(framed);
             Machine.AddStatusMessage(StatusMessageTypes.Info,
                 $"Framing {(feederVertical ? "vertical" : "horizontal")} feeder barcode: " +
-                $"camera offset {shiftMm:F2} mm along marker (target start at 20% of image).");
+                $"camera offset {shiftMm:F2} mm along marker (target start at 35% of image).");
         }
 
 
