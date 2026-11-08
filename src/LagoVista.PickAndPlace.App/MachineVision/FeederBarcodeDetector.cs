@@ -50,13 +50,13 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         public static void Draw(IInputOutputArray output, Observation observation, Size imageSize, bool? expectedVertical = null)
         {
             // A framing target, not the machine origin or a detected feature.
-            // The start of a vertical marker should be in the upper part of
+            // The start of a vertical marker should be fully visible in the upper part of
             // the image; for horizontal markers it belongs near the left edge.
             if (expectedVertical.HasValue)
             {
                 var vertical = expectedVertical.Value;
                 var axisPixels = vertical ? imageSize.Height : imageSize.Width;
-                var guide = (int)Math.Round(axisPixels * 0.20);
+                var guide = (int)Math.Round(axisPixels * 0.35);
                 var color = new MCvScalar(0, 210, 255);
                 if (vertical)
                     CvInvoke.Line(output, new Point(4, guide),
