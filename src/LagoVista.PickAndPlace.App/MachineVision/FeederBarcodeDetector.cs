@@ -19,6 +19,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             public bool Vertical { get; set; }
             public int CrossPixel { get; set; }
             public IReadOnlyList<FeederBarcodeBar> Bars { get; set; }
+            public FeederBarcodeCalibratedRead Calibration { get; set; }
         }
 
         public static Observation FindBars(Image<Gray, byte> image, double pixelsPerMm,
@@ -33,17 +34,16 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             var data = image.Data;
             var signal = FeederBarcodeSignal.SampleCenterBand(
                 image.Width, image.Height, vertical, (x, y) => data[y, x, 0], threshold);
-            var bars = FeederBarcodeSignal.FindBars(signal, pixelsPerMm,
-                FeederBarcodeSignal.PrototypeWidthsMm, threshold);
-
-            if (bars.Count < 2)
+            var calibration = FeederBarcodeSignal.ReadFromStart(signal, pixelsPerMm, threshold);
+            if (calibration.Bars.Count == 0)
                 return null;
 
             return new Observation
             {
                 Vertical = vertical,
                 CrossPixel = (vertical ? image.Width : image.Height) / 2,
-                Bars = bars
+                Bars = calibration.Bars,
+                Calibration = calibration
             };
         }
 
@@ -93,14 +93,21 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             {
                 number++;
                 var center = (bar.StartPixel + bar.EndPixel) / 2;
-                var color = bar.Value.HasValue
+                var verified = observation.Calibration?.HasVerifiedStart == true;
+                var startBar = verified && number == 1;
+                var color = startBar || (verified && bar.Value.HasValue)
                     ? new MCvScalar(0, 255, 0)
                     : new MCvScalar(0, 180, 255);
-                // Shorten the text so it remains readable when the camera
-                // preview is scaled down in the Windows application.
-                var label = bar.Value.HasValue
-                    ? $"{number}: {bar.WidthMm:F2} [{bar.Value.Value}]"
-                    : $"{number}: {bar.WidthMm:F2} [?]";
+                // Use the *relative*, self-calibrated bar width when available.
+                // Before START is verified, show raw mm only, never a false ID.
+                var units = verified
+                    ? (bar.EndPixel - bar.StartPixel) / observation.Calibration.PixelsPerUnit
+                    : 0;
+                var label = startBar
+                    ? "START 5x"
+                    : verified && bar.Value.HasValue
+                        ? $"{number - 1}: {units:F1}x [{bar.Value.Value}]"
+                        : $"{number}: {bar.WidthMm:F2}mm [?]";
 
                 if (observation.Vertical)
                 {
@@ -123,12 +130,14 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 }
             }
 
-            DrawReadableText(output,
-                $"BARS: {observation.Bars.Count}",
+            var calibrated = observation.Calibration?.HasVerifiedStart == true;
+            var status = calibrated
+                ? $"START OK {observation.Calibration.PixelsPerMmFromStart:F1}px/mm"
+                : "START NOT VERIFIED";
+            DrawReadableText(output, status,
                 new Point(8, imageSize.Height - 43),
-                new MCvScalar(255, 255, 255), 0.78);
-            DrawReadableText(output,
-                "GREEN = MATCH   ORANGE = ?",
+                calibrated ? new MCvScalar(0, 255, 0) : new MCvScalar(0, 180, 255), 0.78);
+            DrawReadableText(output, $"BARS: {observation.Bars.Count}",
                 new Point(8, imageSize.Height - 13),
                 new MCvScalar(255, 255, 255), 0.68);
         }
