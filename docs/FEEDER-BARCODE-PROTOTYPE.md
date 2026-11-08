@@ -49,10 +49,18 @@ The workflow reuses the UI that already existed:
 The corner detector uses the verified 5x black START bar as an optical
 pixels/mm reference when enough of the marker is visible; otherwise it
 identifies the scale as **CAMERA SCALE** and relies on the position camera's
-configured pixels/mm. Do not assume this fallback is calibrated to the
-barcode's printed physical scale. No operation in this workflow writes
-`OriginOffset` or changes barcode scanning. The existing **Set Feeder Origin**
-button remains the explicit place where the operator saves an offset.
+configured pixels/mm **for display only**. The second Play button now **requires
+START SCALE** before any feeder-corner jog: the nominal camera scale may differ
+by nearly a factor of two from the 2.5 mm reference, causing an overshoot.
+The camera overlay exposes the source and numerical pixels/mm, while a machine
+status message records the optical scale, commanded relative X/Y correction,
+and before/after target coordinates. After every jog, the tracker intentionally
+reacquires five stable frames and may briefly show orange. Pressing Play at a
+stable, already-centered corner reports a no-op.
+
+No operation in this workflow writes `OriginOffset` or changes barcode
+scanning. The existing **Set Feeder Origin** button remains the explicit place
+where the operator saves an offset.
 
 ## Accuracy chain
 
