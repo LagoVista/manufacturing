@@ -273,7 +273,8 @@ namespace LagoVista.PickAndPlace.Models
             var ordered = _bars.OrderBy(bar => bar.CenterMm).ToList();
             if (ordered.Count < TotalBars)
             {
-                Status = $"READING: {ordered.Count}/{TotalBars} complete bars across {CaptureCount} capture(s).";
+                Status = $"START LOCKED {_pixelsPerUnit:F1} px/unit; READING: " +
+                    $"{ordered.Count}/{TotalBars} unique bars across {CaptureCount} capture(s).";
                 return;
             }
             if (ordered.Count != TotalBars)
