@@ -59,10 +59,15 @@ namespace LagoVista.PickAndPlace.App.Services
                 }
             }
 
+            var stagingHole = camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_StagingPlateHole;
             foreach (var foundCircle in _circleDetector.FoundCircles)
             {
                 _imageHelper.Circle(img, camera.CurrentVisionProfile.ZoomLevel, foundCircle, size);
+                if (stagingHole)
+                    DrawStagingHoleOutline(img, foundCircle);
             }
+            if (stagingHole && camera.CurrentVisionProfile.FindCircles)
+                DrawStagingHoleMeasurements(img, camera, size);
 
             
             if (camera.CurrentVisionProfile.LocateByPads)
@@ -81,6 +86,58 @@ namespace LagoVista.PickAndPlace.App.Services
                 }
              
             }
+        }
+
+        // Diagnostic annotations are applied only to the displayed staging-hole image.
+        // They do not affect the input used by the circle detector or its calibration result.
+        private static void DrawStagingHoleOutline(IMVImage<IInputOutputArray> image, MVLocatedCircle circle)
+        {
+            var center = new Point((int)Math.Round(circle.CenterPixels.X), (int)Math.Round(circle.CenterPixels.Y));
+            var radius = Math.Max(1, (int)Math.Round(circle.RadiusPixels));
+            var color = circle.Centered ? new MCvScalar(0, 255, 0)
+                      : circle.PositionStable ? new MCvScalar(0, 255, 255)
+                      : new MCvScalar(0, 0, 255);
+
+            CvInvoke.Circle(image.Image, center, radius, color, 2, LineType.AntiAlias);
+        }
+
+        private void DrawStagingHoleMeasurements(IMVImage<IInputOutputArray> image, MachineCamera camera, Size size)
+        {
+            var tracked = _circleDetector.FoundCircles
+                .OrderBy(circle => circle.OffsetPixels.X * circle.OffsetPixels.X +
+                                   circle.OffsetPixels.Y * circle.OffsetPixels.Y)
+                .FirstOrDefault();
+
+            var status = tracked == null ? "NO HOLE DETECTED"
+                       : tracked.Centered ? "CENTERED"
+                       : tracked.PositionStable ? "STABLE - CORRECTION NEEDED"
+                       : "TRACKING";
+
+            // Keep the text readable on both the raw and thresholded camera views.
+            var width = Math.Min(size.Width - 8, 460);
+            if (width <= 0 || size.Height < 48)
+                return;
+
+            CvInvoke.Rectangle(image.Image, new Rectangle(4, 4, width, 44),
+                new MCvScalar(0, 0, 0), -1);
+
+            string measurement;
+            if (tracked != null && camera.EffectivePixelsPerMM > 0)
+            {
+                var scale = camera.EffectivePixelsPerMM;
+                // Match the sign convention used by MVLocatedCircle.OffsetMM.
+                var offsetX = tracked.OffsetPixels.X / scale;
+                var offsetY = -tracked.OffsetPixels.Y / scale;
+                var diameter = tracked.RadiusPixels * 2 / scale;
+                measurement = $"X {offsetX:+0.00;-0.00;0.00}  Y {offsetY:+0.00;-0.00;0.00} mm  D {diameter:0.00} mm";
+            }
+            else
+                measurement = "Offset / diameter unavailable";
+
+            CvInvoke.PutText(image.Image, status, new Point(10, 20),
+                FontFace.HersheySimplex, 0.43, new MCvScalar(255, 255, 255), 1, LineType.AntiAlias);
+            CvInvoke.PutText(image.Image, measurement, new Point(10, 40),
+                FontFace.HersheySimplex, 0.42, new MCvScalar(255, 255, 255), 1, LineType.AntiAlias);
         }
 
         private void FindShapes(IMVImage<IInputOutputArray> input, IInputOutputArray output, MachineCamera camera, System.Drawing.Size size)
