@@ -1213,6 +1213,8 @@ namespace LagoVista.Manufacturing.Models.Resources
         public static string VisionProfile_Custom { get { return GetResourceString("VisionProfile_Custom"); } }
 //Resources:ManufacturingResources:VisionProfile_Defauilt
         public static string VisionProfile_Defauilt { get { return GetResourceString("VisionProfile_Defauilt"); } }
+//Resources:ManufacturingResources:VisionProfile_FeederBarcode
+        public static string VisionProfile_FeederBarcode { get { return GetResourceString("VisionProfile_FeederBarcode"); } }
 //Resources:ManufacturingResources:VisionProfile_FeederFiducial
         public static string VisionProfile_FeederFiducial { get { return GetResourceString("VisionProfile_FeederFiducial"); } }
 //Resources:ManufacturingResources:VisionProfile_FeederOrigin
@@ -1839,6 +1841,7 @@ namespace LagoVista.Manufacturing.Models.Resources
             public const string VisionProfile_CountourRetrievealMode_Select = "VisionProfile_CountourRetrievealMode_Select";
             public const string VisionProfile_Custom = "VisionProfile_Custom";
             public const string VisionProfile_Defauilt = "VisionProfile_Defauilt";
+            public const string VisionProfile_FeederBarcode = "VisionProfile_FeederBarcode";
             public const string VisionProfile_FeederFiducial = "VisionProfile_FeederFiducial";
             public const string VisionProfile_FeederOrigin = "VisionProfile_FeederOrigin";
             public const string VisionProfile_KnownLocation = "VisionProfile_KnownLocation";
