@@ -175,7 +175,29 @@ namespace LagoVista.PickAndPlace.App.Services
                     return;
                 }
 
+                // The 2.5 mm printed START bar establishes the optical
+                // pixels/mm scale. The camera profile may have a different
+                // nominal scale: using that fallback for physical motion can
+                // over-jog by the ratio between those scales.
+                if (!corner.UsesStartBarScale)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                        $"White corner is stable, but only CAMERA SCALE " +
+                        $"{corner.PixelsPerMm:F1} px/mm is available. " +
+                        "Wait for START SCALE before pressing Play to jog.");
+                    return;
+                }
+
                 var correction = corner.OffsetMM;
+                if (corner.Centered)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Info,
+                        $"White corner already centered: X={correction.X:+0.00;-0.00;0.00}, " +
+                        $"Y={correction.Y:+0.00;-0.00;0.00} mm at " +
+                        $"{corner.PixelsPerMm:F1} px/mm START SCALE. No jog needed.");
+                    return;
+                }
+
                 // The calculated row/column approach can legitimately be
                 // several millimeters away. Keep a single operator-triggered
                 // correction; use work-area and homing checks as before.
@@ -201,6 +223,12 @@ namespace LagoVista.PickAndPlace.App.Services
                     return;
                 }
 
+                Machine.AddStatusMessage(StatusMessageTypes.Info,
+                    $"White corner jog START SCALE {corner.PixelsPerMm:F1} px/mm: " +
+                    $"X={correction.X:+0.00;-0.00;0.00}, " +
+                    $"Y={correction.Y:+0.00;-0.00;0.00} mm; " +
+                    $"from ({current.X:F2},{current.Y:F2}) " +
+                    $"to ({targetX:F2},{targetY:F2}).");
                 Machine.SendSafeMoveHeight();
                 Machine.GotoPoint(correction, relativeMove: true);
                 // Do not reuse the old location after initiating motion.
