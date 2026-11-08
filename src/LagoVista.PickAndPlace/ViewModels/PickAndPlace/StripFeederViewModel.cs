@@ -55,11 +55,25 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private bool _isEditing;
         private bool _barcodeScanInProgress;
         private string _barcodeScanStatus = "Frame Barcode, then select Scan Barcode.";
+        private string _barcodeScanDetails = String.Empty;
+        private bool _barcodeScanVerified;
 
         public string FeederBarcodeScanStatus
         {
             get => _barcodeScanStatus;
             private set => Set(ref _barcodeScanStatus, value);
+        }
+
+        public string FeederBarcodeScanDetails
+        {
+            get => _barcodeScanDetails;
+            private set => Set(ref _barcodeScanDetails, value);
+        }
+
+        public bool FeederBarcodeScanVerified
+        {
+            get => _barcodeScanVerified;
+            private set => Set(ref _barcodeScanVerified, value);
         }
 
         public StripFeederViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorVM, IRestClient restClient, IMachineUtilitiesViewModel machineUtilitiesViewModel) : base(machineRepo, restClient, locatorVM, machineUtilitiesViewModel)
@@ -275,6 +289,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return;
 
             _barcodeScanInProgress = true;
+            FeederBarcodeScanVerified = false;
+            FeederBarcodeScanDetails = String.Empty;
+            FeederBarcodeScanStatus = "Scanning barcode...";
             var feeder = Current;
             try
             {
@@ -343,12 +360,21 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
                     var machineAxisMm = vertical ? -location.Result.Y : location.Result.X;
                     scan.AddCapture(frame.Result, machineAxisMm, capture.Camera.EffectivePixelsPerMM);
-                    FeederBarcodeScanStatus = scan.Status;
                     if (scan.IsComplete)
                     {
+                        // Keep the full diagnostic in machine history but show a
+                        // readable two-line summary in the constrained editor.
+                        FeederBarcodeScanStatus =
+                            $"BARCODE VERIFIED: ID {scan.FeederId.Value:X4}  |  11/11 bars  |  CRC-2 OK";
+                        FeederBarcodeScanDetails =
+                            $"{scan.CaptureCount} captures  |  {scan.LastOverlapCount} matching bars  |  " +
+                            $"alignment {scan.LastRegistrationCorrectionMm:+0.00;-0.00;0.00} mm";
+                        FeederBarcodeScanVerified = true;
                         Machine.AddStatusMessage(StatusMessageTypes.Info, scan.Status);
                         return;
                     }
+
+                    FeederBarcodeScanStatus = scan.Status;
                     if (!scan.HasVerifiedStart || scan.ObservedBars >= 11 ||
                         scan.Status.StartsWith("OVERLAP", StringComparison.Ordinal))
                         break;
@@ -750,6 +776,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _isEditing = true;
                 Set(ref _current, value);
                 FeederBarcodeScanStatus = "Frame Barcode, then select Scan Barcode.";
+                FeederBarcodeScanDetails = String.Empty;
+                FeederBarcodeScanVerified = false;
                 if (value != null)
                 {
                     _tapeSize = _current.TapeSize;
