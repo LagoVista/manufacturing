@@ -4,7 +4,6 @@ using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 
 namespace LagoVista.PickAndPlace.App.MachineVision
 {
@@ -15,9 +14,6 @@ namespace LagoVista.PickAndPlace.App.MachineVision
     /// </summary>
     internal static class FeederBarcodeDetector
     {
-        // The only "mask" needed for decoding is a narrow rectangle across
-        // the black/white bars. No contours, Hough lines, or circular ROI.
-        private const int SamplingHalfWidth = 4; // 9 image pixels
         internal sealed class Observation
         {
             public bool Vertical { get; set; }
@@ -25,71 +21,30 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             public IReadOnlyList<FeederBarcodeBar> Bars { get; set; }
         }
 
-        public static Observation FindBars(Image<Gray, byte> image, double pixelsPerMm, byte threshold, bool? expectedVertical = null)
+        public static Observation FindBars(Image<Gray, byte> image, double pixelsPerMm,
+            byte threshold, bool? expectedVertical = null)
         {
-            if (image == null || pixelsPerMm <= 0)
+            // The selected feeder tells us the orientation. Never hunt elsewhere
+            // in the frame or infer another orientation from unrelated noise.
+            if (image == null || pixelsPerMm <= 0 || !expectedVertical.HasValue)
                 return null;
 
+            var vertical = expectedVertical.Value;
             var data = image.Data;
-            Observation best = null;
-            double bestScore = 0;
-            // When the feeder is selected its orientation is authoritative.
-            // Retain auto-detection only for standalone camera preview without a feeder.
-            var axes = expectedVertical.HasValue
-                ? new[] { expectedVertical.Value }
-                : new[] { true, false };
-            foreach (var vertical in axes)
+            var signal = FeederBarcodeSignal.SampleCenterBand(
+                image.Width, image.Height, vertical, (x, y) => data[y, x, 0], threshold);
+            var bars = FeederBarcodeSignal.FindBars(signal, pixelsPerMm,
+                FeederBarcodeSignal.PrototypeWidthsMm, threshold);
+
+            if (bars.Count < 2)
+                return null;
+
+            return new Observation
             {
-                var axisLength = vertical ? image.Height : image.Width;
-                var crossLength = vertical ? image.Width : image.Height;
-                // We know the camera is already near the expected feeder corner.
-                // Prefer scan lines near the image center without requiring exact
-                // transverse alignment of the narrow printed strip.
-                var crossStart = SamplingHalfWidth;
-                var crossEnd = crossLength - SamplingHalfWidth;
-                for (var cross = crossStart; cross < crossEnd; cross += 6)
-                {
-                    var intensity = new byte[axisLength];
-                    for (var i = 0; i < axisLength; i++)
-                    {
-                        // Binary vote over a 9-pixel-wide rectangular sampling band.
-                        // This rejects single-pixel camera noise and avoids blending
-                        // dark bars with bright pixels near the tape edge.
-                        var bright = 0;
-                        for (var offset = -SamplingHalfWidth; offset <= SamplingHalfWidth; offset++)
-                        {
-                            var value = vertical
-                                ? data[i, cross + offset, 0]
-                                : data[cross + offset, i, 0];
-                            if (value >= threshold)
-                                bright++;
-                        }
-
-                        intensity[i] = bright > SamplingHalfWidth ? (byte)255 : (byte)0;
-                    }
-
-                    var bars = FeederBarcodeSignal.FindBars(intensity, pixelsPerMm,
-                        FeederBarcodeSignal.PrototypeWidthsMm, threshold);
-                    if (bars.Count < 2)
-                        continue;
-
-                    var classified = bars.Count(bar => bar.Value.HasValue);
-                    var score = classified * 12 + bars.Count * 3 -
-                                Math.Abs(cross - crossLength / 2.0) / 60.0;
-                    if (score > bestScore)
-                    {
-                        bestScore = score;
-                        best = new Observation
-                        {
-                            Vertical = vertical,
-                            CrossPixel = cross,
-                            Bars = bars
-                        };
-                    }
-                }
-            }
-
-            return best;
+                Vertical = vertical,
+                CrossPixel = (vertical ? image.Width : image.Height) / 2,
+                Bars = bars
+            };
         }
 
         public static void Draw(IInputOutputArray output, Observation observation, Size imageSize, bool? expectedVertical = null)
@@ -118,17 +73,17 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             if (observation == null)
                 return;
 
-            // Outline the actual rectangular pixels used by the decoder.
-            // This is display-only: raw image bytes drive classification.
+            // This is the ONLY sampled region: ten pixels to the right
+            // of center for vertical feeders, or below center for horizontal.
             var scanColor = new MCvScalar(0, 180, 0);
             if (observation.Vertical)
                 CvInvoke.Rectangle(output,
-                    new Rectangle(observation.CrossPixel - SamplingHalfWidth, 0,
-                        SamplingHalfWidth * 2 + 1, imageSize.Height - 1), scanColor, 1);
+                    new Rectangle(observation.CrossPixel, 0,
+                        10, imageSize.Height - 1), scanColor, 1);
             else
                 CvInvoke.Rectangle(output,
-                    new Rectangle(0, observation.CrossPixel - SamplingHalfWidth,
-                        imageSize.Width - 1, SamplingHalfWidth * 2 + 1), scanColor, 1);
+                    new Rectangle(0, observation.CrossPixel,
+                        imageSize.Width - 1, 10), scanColor, 1);
 
             foreach (var bar in observation.Bars)
             {
