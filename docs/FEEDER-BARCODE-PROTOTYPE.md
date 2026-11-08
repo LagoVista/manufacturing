@@ -34,8 +34,10 @@ The physical first-bar-to-origin placement must be measured independently of tha
 ## First implementation
 
 - `FeederBarcodeSignal.FindBars` detects bounded black runs, measures width in mm, and classifies the four prototype widths.
-- `FeederBarcodeDetector` searches vertical/horizontal scanlines through the live position camera image.
+- `FeederBarcodeDetector` searches scanlines **only along the selected feeder's known orientation**, or both axes in standalone preview, and annotates the matching bars.
 - `ShapeDetectionService` annotates visible bars in the existing `feederorigin` vision profile.
-- No automatic camera sweep, source-of-truth updates, feeder moves, or pickup operations have been added.
+- A **Frame Barcode** button explicitly moves the camera **along the barcode** to place the expected first bar at roughly 20% of the camera view: toward the top on vertical feeders, left on horizontal feeders. It uses the **actual captured frame size** and calibrated pixels/mm. The original **Go to Feeder Origin** retains its existing centering behavior.
+- An orange/yellow 20% framing guide is shown for the selected orientation; it is a visual target, **not an automatically detected edge**.
+- No automatic multi-frame sweep, source-of-truth calibration writes, or pickup operations have been added. The Frame Barcode button is the only new motion and is explicitly user-triggered.
 
 Start by checking repeated width measurements at fixed machine position, then scan overlapping camera positions, decode the full marker, and finally connect the decoded start bar to existing tape-hole centering.
