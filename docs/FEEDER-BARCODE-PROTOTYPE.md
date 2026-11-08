@@ -31,12 +31,18 @@ The physical first-bar-to-origin placement must be measured independently of tha
 - A single camera view may contain only part of the strip. Combine **overlapping measurements in calibrated machine coordinates** rather than stitching large images.
 - Verify full identity and checksum before accepting a measured origin or persisting calibration.
 
+## Two separate vision profiles
+
+- **Feeder Origin** (`feederorigin`): precisely position the camera at the first marker bar's reference corner using the current crosshairs and **Set Feeder Origin** action. For vertical feeders this is the marker's top-left corner; for horizontal feeders it is the bottom-left reference corner defined by the placement convention. This profile no longer decodes the barcode.
+- **Feeder Barcode** (`feederbarcode`): uses the fixed 10-pixel, known-orientation, binary/XOR decoder. **Frame Barcode** selects this profile after finding the configured feeder origin and repositions for a longer barcode view. It does not update the feeder's origin or tape-hole geometry.
+- The barcode profile appears in the existing vision-profile selector. On first selection it copies feeder-origin settings (exposure, focus, threshold, pixels/mm, etc.) and is thereafter an **independent** camera profile. Existing profile settings are left untouched.
+
 ## First implementation
 
 - `FeederBarcodeSignal.FindBars` detects bounded black runs, measures width in mm, and classifies the four prototype widths.
 - `FeederBarcodeDetector` reads **only one fixed 10-pixel-wide band starting at image center**, along the **known feeder orientation** (right of center for vertical, below center for horizontal). It majority-votes the ten binary pixels at each position and XORs adjacent positions to find black/white transitions. No scanning other regions, orientation guessing, Hough/contour detection, or scoring multiple candidates. `FeederBarcodeSignal` normalizes widths using calibrated pixels/mm and classifies the four prototype widths.
 - The barcode vision mode bypasses the **circular hole-detection mask**; the other vision modes retain their existing preprocessing. OpenCV is still used to capture and display the image, but barcode detection itself uses C# pixel comparisons and run lengths.
-- `ShapeDetectionService` annotates visible bars in the existing `feederorigin` vision profile.
+- `ShapeDetectionService` annotates visible bars **only** in the new `feederbarcode` profile. The existing `feederorigin` profile remains available for precise corner alignment.
 - A **Frame Barcode** button explicitly moves the camera **along the barcode** to place the expected first bar at roughly 35% of the camera view: toward the top on vertical feeders, left on horizontal feeders. It uses the **actual captured frame size** and calibrated pixels/mm. The original **Go to Feeder Origin** retains its existing centering behavior.
 - An orange/yellow 35% framing guide is shown for the selected orientation; it is a visual target, **not an automatically detected edge**.
 - No automatic multi-frame sweep, source-of-truth calibration writes, or pickup operations have been added. The Frame Barcode button is the only new motion and is explicitly user-triggered.
