@@ -566,7 +566,7 @@ namespace LagoVista.PickAndPlace.App.Services
                                     //using (var resized = cropped.Resize(Profile.ZoomLevel, Emgu.CV.CvEnum.Inter.LinearExact))
                                     using (var resized = cropped.Resize(1, Emgu.CV.CvEnum.Inter.LinearExact))
                                     {                                        
-                                        if (Profile.PerformShapeDetection)
+                                        if (Profile.PerformShapeDetection || Profile.Key == VisionProfile.VisionProfile_FeederOrigin)
                                         {
                                             using (var results = _shapeDetectorService.PerformShapeDetection(new MVImage<Image<Bgr, byte>>(resized), Camera, resized.Size))
                                             {
