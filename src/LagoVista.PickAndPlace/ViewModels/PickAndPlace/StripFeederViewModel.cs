@@ -197,20 +197,23 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return;
             }
 
+            var feederVertical = Current.Orientation.Value == FeederOrientations.Vertical;
+            capture.FeederBarcodeVertical = feederVertical;
+            // Resolve the actual feeder origin using the existing geometry and
+            // feeder-origin profile, then switch to the separate barcode profile.
+            var origin = FindLocation(StripFeederLocationTypes.FeederOrigin);
+            if (!origin.Successful)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning, origin.ErrorMessage);
+                return;
+            }
+
+            Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_FeederBarcode);
             var pixelsPerMm = capture.Camera.EffectivePixelsPerMM;
             if (pixelsPerMm <= 0 || double.IsNaN(pixelsPerMm) || double.IsInfinity(pixelsPerMm))
             {
                 Machine.AddStatusMessage(StatusMessageTypes.Warning,
                     "Cannot frame barcode: calibrate position-camera pixels per mm.");
-                return;
-            }
-
-            var feederVertical = Current.Orientation.Value == FeederOrientations.Vertical;
-            capture.FeederBarcodeVertical = feederVertical;
-            var origin = FindLocation(StripFeederLocationTypes.FeederOrigin);
-            if (!origin.Successful)
-            {
-                Machine.AddStatusMessage(StatusMessageTypes.Warning, origin.ErrorMessage);
                 return;
             }
 
