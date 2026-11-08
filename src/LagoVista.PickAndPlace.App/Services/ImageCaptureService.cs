@@ -30,6 +30,10 @@ namespace LagoVista.PickAndPlace.App.Services
     public class ImageCaptureService : MachineViewModelBase, IImageCaptureService
     {
         private bool _running;
+
+        public System.Drawing.Size CaptureFrameSize { get; private set; }
+
+        public bool? FeederBarcodeVertical { get; set; }
         private double _lastBrightness = -9999;
         private double _lastFocus = -9999;
         private double _lastExposure = -9999;
@@ -565,10 +569,11 @@ namespace LagoVista.PickAndPlace.App.Services
                                 {
                                     //using (var resized = cropped.Resize(Profile.ZoomLevel, Emgu.CV.CvEnum.Inter.LinearExact))
                                     using (var resized = cropped.Resize(1, Emgu.CV.CvEnum.Inter.LinearExact))
-                                    {                                        
+                                    {
+                                        CaptureFrameSize = resized.Size;                                        
                                         if (Profile.PerformShapeDetection || Profile.Key == VisionProfile.VisionProfile_FeederOrigin)
                                         {
-                                            using (var results = _shapeDetectorService.PerformShapeDetection(new MVImage<Image<Bgr, byte>>(resized), Camera, resized.Size))
+                                            using (var results = _shapeDetectorService.PerformShapeDetection(new MVImage<Image<Bgr, byte>>(resized), Camera, resized.Size, FeederBarcodeVertical))
                                             {
                                                 if (results == null)
                                                     CaptureImage = new BitmapImage(new Uri("pack://application:,,/Imgs/ComputerBugFunny.jpg"));
