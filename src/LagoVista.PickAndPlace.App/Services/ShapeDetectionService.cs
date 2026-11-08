@@ -33,6 +33,8 @@ namespace LagoVista.PickAndPlace.App.Services
         FeederBarcodeDetector.Observation _feederBarcode;
         bool? _feederBarcodeVertical;
 
+        public byte[] LatestFeederBarcodeSignal => _feederBarcode?.Signal;
+
         public ShapeDetectionService(IMachineRepo machineRepo,
             IImageHelper<IInputOutputArray> imageHelper, IRectangleDetector<IInputOutputArray> rectLocator,
             ICircleDetector<IInputOutputArray> circleLocator, ICornerDetector<IInputOutputArray> cornerDetector,
