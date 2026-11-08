@@ -13,6 +13,7 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.Services;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Models;
+using LagoVista.PickAndPlace.App.MachineVision;
 using System.Drawing;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +30,7 @@ namespace LagoVista.PickAndPlace.App.Services
         ICircleDetector<IInputOutputArray> _circleDetector;
         ICornerDetector<IInputOutputArray> _cornerDetector;
         ILineDetector<IInputOutputArray> _lineDetector;
+        FeederBarcodeDetector.Observation _feederBarcode;
 
         public ShapeDetectionService(IMachineRepo machineRepo,
             IImageHelper<IInputOutputArray> imageHelper, IRectangleDetector<IInputOutputArray> rectLocator,
@@ -46,6 +48,8 @@ namespace LagoVista.PickAndPlace.App.Services
         private void RenderOutput(IMVImage<IInputOutputArray> img, MachineCamera camera, System.Drawing.Size size)
         {
             if (camera.CurrentVisionProfile.ShowCrossHairs) _imageHelper.DrawCrossHairs(img, camera, size);
+            if (camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_FeederOrigin)
+                FeederBarcodeDetector.Draw(img.Image, _feederBarcode, size);
             if (camera.CurrentVisionProfile.Show200PixelSquare) _imageHelper.ShowCalibrationSquare(img, size);
 
             if (camera.CurrentVisionProfile.FindLines)
@@ -298,6 +302,15 @@ namespace LagoVista.PickAndPlace.App.Services
                                 }
                             }
 
+                            // Prototype feeder-marker measurements use raw grayscale so
+                            // profile invert/mask settings do not reverse the black-on-white bars.
+                            _feederBarcode = camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_FeederOrigin
+                                ? FeederBarcodeDetector.FindBars(gray, camera.EffectivePixelsPerMM,
+                                    camera.CurrentVisionProfile.ApplyThreshold
+                                        ? (byte)Math.Round(camera.CurrentVisionProfile.PrimaryThreshold / 100.0 * 255)
+                                        : (byte)128)
+                                : null;
+
                             var output = camera.CurrentVisionProfile.ShowOriginalImage ? raw : (IInputOutputArray)input;
 
                             if (camera.CurrentVisionProfile.PerformShapeDetection)
@@ -345,6 +358,7 @@ namespace LagoVista.PickAndPlace.App.Services
 
         public void Reset()
         {
+            _feederBarcode = null;
             _circleDetector.FoundCircles.Clear();
             _rectangleDetector.FoundRectangles.Clear();
             _cornerDetector.FoundCorners.Clear();
