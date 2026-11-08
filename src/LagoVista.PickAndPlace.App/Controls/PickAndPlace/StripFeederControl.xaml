@@ -125,6 +125,20 @@
                     <!-- The barcode controls and result need the entire form width,
                          not the narrow third configuration column. -->
                     <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Margin="10,8,10,10">
+                        <TextBlock Text="Feeder origin - white cut corner"
+                                   Style="{StaticResource label}" Margin="0,0,0,5" />
+                        <WrapPanel Margin="0,0,0,5">
+                            <Button Style="{StaticResource CommandButton}" Content="Locate White Corner"
+                                    Command="{Binding LocateFeederWhiteCornerCommand}" Width="190"
+                                    Margin="0,0,10,6"
+                                    ToolTip="Use the selected staging-plate row and column, move to calculated feeder origin, and measure the top-left white cut corner. Does not save calibration." />
+                            <Button Style="{StaticResource CommandButton}" Content="Jog to White Corner"
+                                    Command="{Binding JogToFeederWhiteCornerCommand}"
+                                    IsEnabled="{Binding FeederWhiteCornerJogReady}" Width="190" Margin="0,0,0,6"
+                                    ToolTip="After reviewing the measured offset, explicitly jog to the detected white corner. One bounded move; no feeder-origin offsets saved." />
+                        </WrapPanel>
+                        <TextBlock Text="{Binding FeederWhiteCornerStatus}" TextWrapping="Wrap"
+                                   Style="{StaticResource content}" Margin="0,0,0,14" />
                         <WrapPanel Margin="0,0,0,8">
                             <Button Style="{StaticResource CommandButton}" Content="Frame Barcode"
                                     Command="{Binding FrameFeederBarcodeCommand}" Width="160" Margin="0,0,10,6"
