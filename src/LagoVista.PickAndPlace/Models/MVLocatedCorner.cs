@@ -76,6 +76,16 @@ namespace LagoVista.PickAndPlace.Models
             var sample = new Point2D<double>(x, y);
             if (_samples.Count > 0)
             {
+                // Never combine camera-calibrated and start-calibrated
+                // measurements in one stable history. An optical-scale
+                // change must reacquire stability before a physical jog.
+                if (UsesStartBarScale != usesStartBarScale ||
+                    Math.Abs(_pixelsPerMm - pixelsPerMm) >
+                        Math.Max(1.0, _pixelsPerMm * 0.05))
+                    Reset();
+            }
+            if (_samples.Count > 0)
+            {
                 var previous = _samples.Last();
                 // A substantially different corner is a new candidate;
                 // never jog based on history from a previous location.
