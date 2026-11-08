@@ -263,7 +263,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Machine.AddStatusMessage(StatusMessageTypes.Warning, calculatedOrigin.ErrorMessage);
                 return;
             }
-            var calibratedOrigin = calculatedOrigin.Result + Current.OriginOffset;
+            var calibratedOrigin = ResolveCalibratedFeederOrigin(calculatedOrigin.Result, Current);
 
             Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_FeederBarcode);
             var pixelsPerMm = capture.Camera.EffectivePixelsPerMM;
@@ -540,9 +540,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             return mountingHole.SubtractWithConditionalSwap(vertical, feeder.MountingHoleOffset);
         }
 
+        private static Point2D<double> ResolveCalibratedFeederOrigin(Point2D<double> calculatedOrigin,
+            StripFeeder feeder)
+        {
+            return calculatedOrigin + feeder.OriginOffset;
+        }
+
         private static Point2D<double> ResolveFeederOrigin(Point2D<double> mountingHole, StripFeeder feeder)
         {
-            return ResolveCalculatedFeederOrigin(mountingHole, feeder) + feeder.OriginOffset;
+            return ResolveCalibratedFeederOrigin(
+                ResolveCalculatedFeederOrigin(mountingHole, feeder), feeder);
         }
 
         private void SetLocation(StripFeederSetTypes setType)
