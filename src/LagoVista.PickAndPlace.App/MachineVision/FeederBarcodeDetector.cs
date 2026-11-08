@@ -68,7 +68,9 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 else
                     CvInvoke.Line(output, new Point(guide, center - 15),
                         new Point(guide, center + 35), color, 2);
-                DrawReadableText(output, "START",
+                // This is a framing guide, NOT a detected START bar.
+                // Keep the label distinct from the verified "START 5x" annotation.
+                DrawReadableText(output, "FRAME",
                     vertical ? new Point(Math.Min(imageSize.Width - 120, center + 40), Math.Max(24, guide - 8))
                              : new Point(Math.Min(imageSize.Width - 120, guide + 8), Math.Max(24, center - 25)),
                     color, 0.85);
