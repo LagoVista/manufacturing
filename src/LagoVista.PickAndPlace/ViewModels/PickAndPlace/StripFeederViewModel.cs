@@ -457,10 +457,36 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Machine.SendSafeMoveHeight();
                 Machine.GotoPoint(target);
                 var idle = await Machine.SpinUntilIdleAsync(15000);
-                FeederWhiteCornerStatus = idle.Successful
-                    ? $"Jogged to white cut corner: X={target.X:F2}, Y={target.Y:F2}. " +
-                      "No feeder-offset changes saved. Use Locate again to check residual."
-                    : $"White corner jog did not settle: {idle.ErrorMessage}";
+                if (!idle.Successful)
+                {
+                    FeederWhiteCornerStatus =
+                        $"White corner jog did not settle: {idle.ErrorMessage}";
+                    return;
+                }
+
+                // Measure residual here without returning to the original
+                // calculated origin. A fresh capture does not move the machine.
+                await Task.Delay(180);
+                var check = await Machine.PositionImageCaptureService.CaptureFeederWhiteCornerAsync();
+                if (check.Successful && check.Result.Found &&
+                    check.Result.OpticalPixelsPerMm > 0)
+                {
+                    var residual = check.Result;
+                    var remainderX = (residual.X - residual.FrameWidth / 2.0) /
+                        residual.OpticalPixelsPerMm;
+                    var remainderY = -(residual.Y - residual.FrameHeight / 2.0) /
+                        residual.OpticalPixelsPerMm;
+                    FeederWhiteCornerStatus =
+                        $"JOG COMPLETE. Residual X={remainderX:+0.00;-0.00;0.00}, " +
+                        $"Y={remainderY:+0.00;-0.00;0.00} mm from white corner. " +
+                        "No feeder-origin offsets saved.";
+                }
+                else
+                {
+                    FeederWhiteCornerStatus =
+                        $"Jogged to white cut corner: X={target.X:F2}, Y={target.Y:F2}. " +
+                        "Post-jog corner not verified; no feeder-origin offsets saved.";
+                }
             }
             catch (Exception ex)
             {
