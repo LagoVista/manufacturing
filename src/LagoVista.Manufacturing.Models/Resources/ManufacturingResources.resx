@@ -1433,6 +1433,9 @@
   <data name="VisionProfile_FeederOrigin" xml:space="preserve">
     <value>Feeder Origin</value>
   </data>
+  <data name="VisionProfile_FeederBarcode" xml:space="preserve">
+    <value>Feeder Barcode</value>
+  </data>
   <data name="StripFeeder_TapeHolesOnTop" xml:space="preserve">
     <value>Tape Holes on Top</value>
   </data>
