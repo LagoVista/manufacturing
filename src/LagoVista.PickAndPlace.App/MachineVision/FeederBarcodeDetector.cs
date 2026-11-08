@@ -15,6 +15,9 @@ namespace LagoVista.PickAndPlace.App.MachineVision
     /// </summary>
     internal static class FeederBarcodeDetector
     {
+        // The only "mask" needed for decoding is a narrow rectangle across
+        // the black/white bars. No contours, Hough lines, or circular ROI.
+        private const int SamplingHalfWidth = 4; // 9 image pixels
         internal sealed class Observation
         {
             public bool Vertical { get; set; }
@@ -42,18 +45,27 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 // We know the camera is already near the expected feeder corner.
                 // Prefer scan lines near the image center without requiring exact
                 // transverse alignment of the narrow printed strip.
-                var crossStart = 3;
-                var crossEnd = crossLength - 3;
+                var crossStart = SamplingHalfWidth;
+                var crossEnd = crossLength - SamplingHalfWidth;
                 for (var cross = crossStart; cross < crossEnd; cross += 6)
                 {
                     var intensity = new byte[axisLength];
                     for (var i = 0; i < axisLength; i++)
                     {
-                        // Average a three-pixel-wide line to suppress isolated noise.
-                        var sum = vertical
-                            ? data[i, cross - 1, 0] + data[i, cross, 0] + data[i, cross + 1, 0]
-                            : data[cross - 1, i, 0] + data[cross, i, 0] + data[cross + 1, i, 0];
-                        intensity[i] = (byte)(sum / 3);
+                        // Binary vote over a 9-pixel-wide rectangular sampling band.
+                        // This rejects single-pixel camera noise and avoids blending
+                        // dark bars with bright pixels near the tape edge.
+                        var bright = 0;
+                        for (var offset = -SamplingHalfWidth; offset <= SamplingHalfWidth; offset++)
+                        {
+                            var value = vertical
+                                ? data[i, cross + offset, 0]
+                                : data[cross + offset, i, 0];
+                            if (value >= threshold)
+                                bright++;
+                        }
+
+                        intensity[i] = bright > SamplingHalfWidth ? (byte)255 : (byte)0;
                     }
 
                     var bars = FeederBarcodeSignal.FindBars(intensity, pixelsPerMm,
@@ -106,13 +118,17 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             if (observation == null)
                 return;
 
+            // Outline the actual rectangular pixels used by the decoder.
+            // This is display-only: raw image bytes drive classification.
             var scanColor = new MCvScalar(0, 180, 0);
             if (observation.Vertical)
-                CvInvoke.Line(output, new Point(observation.CrossPixel, 0),
-                    new Point(observation.CrossPixel, imageSize.Height - 1), scanColor, 1);
+                CvInvoke.Rectangle(output,
+                    new Rectangle(observation.CrossPixel - SamplingHalfWidth, 0,
+                        SamplingHalfWidth * 2 + 1, imageSize.Height - 1), scanColor, 1);
             else
-                CvInvoke.Line(output, new Point(0, observation.CrossPixel),
-                    new Point(imageSize.Width - 1, observation.CrossPixel), scanColor, 1);
+                CvInvoke.Rectangle(output,
+                    new Rectangle(0, observation.CrossPixel - SamplingHalfWidth,
+                        imageSize.Width - 1, SamplingHalfWidth * 2 + 1), scanColor, 1);
 
             foreach (var bar in observation.Bars)
             {
