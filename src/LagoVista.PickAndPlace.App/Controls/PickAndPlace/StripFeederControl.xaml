@@ -99,7 +99,7 @@
                                     <Image Source="/imgs/SetTarget.png"/>
                                 </Button.Content>
                             </Button>
-                            <Button  Grid.Row="1" Grid.Column="1" BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToFeederOriginCommand}"  ToolTip="Go to feeder origin" Width="64" Height="64"  >
+                            <Button  Grid.Row="1" Grid.Column="1" BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToFeederOriginCommand}"  ToolTip="Go to CALCULATED feeder origin from staging-plate row and column, ignoring the saved origin offset; activates Feeder Origin corner detection" Width="64" Height="64"  >
                                 <Button.Content>
                                     <Image Source="/imgs/MoveToTarget.png"/>
                                 </Button.Content>
