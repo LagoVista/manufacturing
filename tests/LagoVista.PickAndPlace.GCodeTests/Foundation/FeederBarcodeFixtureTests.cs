@@ -47,6 +47,13 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                     "The actual camera pattern must decode deterministically.");
                 Assert.That(bars.All(bar => bar.StartPixel > 0 &&
                     bar.EndPixel < image.Height), Is.True);
+
+                // This capture was made from the original prototype sticker:
+                // its first bar is not the dedicated 5x start. Do not treat
+                // it as the scale reference for a new-format marker.
+                var calibrated = FeederBarcodeSignal.ReadFromStart(signal, 50);
+                Assert.That(calibrated.HasVerifiedStart, Is.False,
+                    "A legacy barcode must not be silently accepted as a verified 5x start.");
             }
         }
     }
