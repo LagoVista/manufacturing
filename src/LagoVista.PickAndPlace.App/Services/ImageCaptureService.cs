@@ -56,6 +56,7 @@ namespace LagoVista.PickAndPlace.App.Services
 
         private object _captureLocker = new object();
         private TaskCompletionSource<byte[]> _pendingBarcodeFrame;
+        private TaskCompletionSource<FeederWhiteCornerObservation> _pendingFeederCorner;
 
         IShapeDetectorService<Image<Bgr, byte>> _shapeDetectorService;
         CameraTypes _cameraType;
@@ -147,6 +148,50 @@ namespace LagoVista.PickAndPlace.App.Services
             return sample == null
                 ? InvokeResult<byte[]>.FromError("Camera capture stopped during feeder barcode scan.")
                 : InvokeResult<byte[]>.Create(sample);
+        }
+
+        public async Task<InvokeResult<FeederWhiteCornerObservation>> CaptureFeederWhiteCornerAsync()
+        {
+            if (!_running || _capture == null || Camera?.CameraType?.Value != CameraTypes.Position ||
+                Profile?.Key != VisionProfile.VisionProfile_FeederOrigin)
+                return InvokeResult<FeederWhiteCornerObservation>.FromError(
+                    "Start the position camera and select the Feeder Origin vision profile.");
+
+            TaskCompletionSource<FeederWhiteCornerObservation> request;
+            lock (_captureLocker)
+            {
+                if (_pendingFeederCorner != null)
+                    return InvokeResult<FeederWhiteCornerObservation>.FromError(
+                        "A white-corner camera frame is already being requested.");
+                request = new TaskCompletionSource<FeederWhiteCornerObservation>(
+                    TaskCreationOptions.RunContinuationsAsynchronously);
+                _pendingFeederCorner = request;
+            }
+
+            if (await Task.WhenAny(request.Task, Task.Delay(2500)) != request.Task)
+            {
+                lock (_captureLocker)
+                {
+                    if (_pendingFeederCorner == request)
+                        _pendingFeederCorner = null;
+                }
+                return InvokeResult<FeederWhiteCornerObservation>.FromError(
+                    "Timed out capturing a fresh feeder-origin camera frame.");
+            }
+
+            try
+            {
+                var observation = await request.Task;
+                return observation == null
+                    ? InvokeResult<FeederWhiteCornerObservation>.FromError(
+                        "Camera capture stopped during white-corner detection.")
+                    : InvokeResult<FeederWhiteCornerObservation>.Create(observation);
+            }
+            catch (Exception ex)
+            {
+                return InvokeResult<FeederWhiteCornerObservation>.FromError(
+                    $"White-corner detection failed: {ex.Message}");
+            }
         }
 
         private void CenterFoundItem()
@@ -517,6 +562,8 @@ namespace LagoVista.PickAndPlace.App.Services
                 {
                     _pendingBarcodeFrame?.TrySetResult(null);
                     _pendingBarcodeFrame = null;
+                    _pendingFeederCorner?.TrySetResult(null);
+                    _pendingFeederCorner = null;
                     if (_capture != null)
                     {
                         _capture.Stop();
@@ -608,7 +655,48 @@ namespace LagoVista.PickAndPlace.App.Services
                                     //using (var resized = cropped.Resize(Profile.ZoomLevel, Emgu.CV.CvEnum.Inter.LinearExact))
                                     using (var resized = cropped.Resize(1, Emgu.CV.CvEnum.Inter.LinearExact))
                                     {
-                                        CaptureFrameSize = resized.Size;                                        
+                                        CaptureFrameSize = resized.Size;
+                                        TaskCompletionSource<FeederWhiteCornerObservation> cornerRequest = null;
+                                        lock (_captureLocker)
+                                        {
+                                            cornerRequest = _pendingFeederCorner;
+                                            _pendingFeederCorner = null;
+                                        }
+                                        if (cornerRequest != null)
+                                        {
+                                            try
+                                            {
+                                                if (Profile?.Key != VisionProfile.VisionProfile_FeederOrigin)
+                                                    throw new InvalidOperationException(
+                                                        "Feeder Origin profile changed during white-corner capture.");
+
+                                                // Use the same mirror orientation as the existing
+                                                // ShapeDetectionService and MVLocatedCircle offsets,
+                                                // but sample ORIGINAL BGR pixels before overlays/masks.
+                                                var frame = resized.Data;
+                                                byte SampleGray(int x, int y)
+                                                {
+                                                    var px = Camera.MirrorXAxis ? resized.Width - 1 - x : x;
+                                                    var py = Camera.MirrorYAxis ? resized.Height - 1 - y : y;
+                                                    return (byte)((29 * frame[py, px, 0] +
+                                                        150 * frame[py, px, 1] +
+                                                        77 * frame[py, px, 2] + 128) >> 8);
+                                                }
+                                                var radius = Math.Min(resized.Width, resized.Height) / 3;
+                                                radius = Math.Min(radius, Math.Max(260,
+                                                    (int)Math.Round(Camera.EffectivePixelsPerMM * 4)));
+                                                var threshold = Profile.ApplyThreshold
+                                                    ? (byte)Math.Round(Profile.PrimaryThreshold * 255 / 100.0)
+                                                    : (byte)128;
+                                                cornerRequest.TrySetResult(FeederWhiteCornerFinder.Find(
+                                                    resized.Width, resized.Height, SampleGray, threshold, radius));
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                cornerRequest.TrySetException(ex);
+                                            }
+                                        }
+
                                         if (Profile.PerformShapeDetection || Profile.Key == VisionProfile.VisionProfile_FeederBarcode)
                                         {
                                             using (var results = _shapeDetectorService.PerformShapeDetection(new MVImage<Image<Bgr, byte>>(resized), Camera, resized.Size, FeederBarcodeVertical))
