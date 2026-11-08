@@ -99,9 +99,24 @@ namespace LagoVista.PickAndPlace.App.Services
                         new Point(point.X + 18, point.Y), color, 1);
                     CvInvoke.Line(img.Image, new Point(point.X, point.Y - 18),
                         new Point(point.X, point.Y + 18), color, 1);
-                    CvInvoke.PutText(img.Image, corner.Summary,
-                        new Point(6, Math.Max(22, size.Height - 20)),
-                        FontFace.HersheySimplex, 0.55, color, 2);
+                    // Keep the live camera diagnostics readable instead
+                    // of clipping one long line of corner, scale and edge data.
+                    var headline = $"WHITE CORNER ({point.X},{point.Y}) " +
+                        (corner.PositionStable ? "STABLE" : "ACQUIRING");
+                    var offsets = corner.OffsetMM;
+                    var measurements = $"X {offsets.X:+0.00;-0.00;0.00}  " +
+                        $"Y {offsets.Y:+0.00;-0.00;0.00} mm  " +
+                        (corner.UsesStartBarScale ? "START SCALE" : "CAMERA SCALE");
+                    CvInvoke.PutText(img.Image, headline,
+                        new Point(6, Math.Max(22, size.Height - 67)),
+                        FontFace.HersheySimplex, 0.49, color, 1, LineType.AntiAlias);
+                    CvInvoke.PutText(img.Image, measurements,
+                        new Point(6, Math.Max(22, size.Height - 43)),
+                        FontFace.HersheySimplex, 0.42, color, 1, LineType.AntiAlias);
+                    if (!String.IsNullOrEmpty(corner.EdgeSummary))
+                        CvInvoke.PutText(img.Image, corner.EdgeSummary,
+                            new Point(6, Math.Max(22, size.Height - 19)),
+                            FontFace.HersheySimplex, 0.42, color, 1, LineType.AntiAlias);
                 }
                 else
                 {
