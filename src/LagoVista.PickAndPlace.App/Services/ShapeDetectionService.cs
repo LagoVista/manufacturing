@@ -49,10 +49,10 @@ namespace LagoVista.PickAndPlace.App.Services
         private void RenderOutput(IMVImage<IInputOutputArray> img, MachineCamera camera, System.Drawing.Size size)
         {
             if (camera.CurrentVisionProfile.ShowCrossHairs) _imageHelper.DrawCrossHairs(img, camera, size);
-            if (camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_FeederOrigin)
+            if (camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_FeederBarcode)
             {
-                // Do not overlay unrelated circle/line/rectangle detections on the
-                // barcode view. Only show its fixed sampling band and measured runs.
+                // Barcode decoding is separate from Feeder Origin corner alignment.
+                // Only show the fixed sampling band and measured barcode runs.
                 FeederBarcodeDetector.Draw(img.Image, _feederBarcode, size, _feederBarcodeVertical);
                 return;
             }
@@ -227,7 +227,7 @@ namespace LagoVista.PickAndPlace.App.Services
             var img = source.Image;
             _feederBarcodeVertical = feederBarcodeVertical;
             var feederBarcodeMode = camera.CurrentVisionProfile.Key ==
-                VisionProfile.VisionProfile_FeederOrigin;
+                VisionProfile.VisionProfile_FeederBarcode;
 
             try
             {
