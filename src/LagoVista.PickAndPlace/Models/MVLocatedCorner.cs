@@ -56,6 +56,29 @@ namespace LagoVista.PickAndPlace.Models
             : new Point2D<double>(OffsetPixels.X / _pixelsPerMm,
                 -OffsetPixels.Y / _pixelsPerMm);
 
+        /// <summary>
+        /// One operator-authorized approach step. Preserve the direction of
+        /// the optical correction but cap its TOTAL XY travel; subsequent
+        /// steps require a newly stabilized camera observation.
+        /// </summary>
+        public Point2D<double> GetBoundedJog(double maximumDistanceMm)
+        {
+            if (maximumDistanceMm <= 0 || double.IsNaN(maximumDistanceMm) ||
+                double.IsInfinity(maximumDistanceMm))
+                throw new ArgumentOutOfRangeException(nameof(maximumDistanceMm));
+            if (!PositionStable)
+                throw new InvalidOperationException(
+                    "A stabilized white corner is required before a jog.");
+
+            var offset = OffsetMM;
+            var length = Math.Sqrt(offset.X * offset.X + offset.Y * offset.Y);
+            if (length <= maximumDistanceMm)
+                return offset;
+
+            var ratio = maximumDistanceMm / length;
+            return new Point2D<double>(offset.X * ratio, offset.Y * ratio);
+        }
+
         public bool Stabilized => _samples.Count >= _requiredSamples;
 
         public bool PositionStable
