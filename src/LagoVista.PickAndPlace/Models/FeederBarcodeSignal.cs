@@ -24,6 +24,28 @@ namespace LagoVista.PickAndPlace.Models
     }
 
     /// <summary>
+    /// Read of the 5x-start-bar format. Physical widths are retained for display,
+    /// while decoding uses the start bar's measured pixels, not camera pixels/mm.
+    /// </summary>
+    public sealed class FeederBarcodeCalibratedRead
+    {
+        public bool HasVerifiedStart { get; }
+        public double PixelsPerUnit { get; }
+        public double PixelsPerMmFromStart => HasVerifiedStart ? PixelsPerUnit / 0.5 : 0;
+        public string Status { get; }
+        public IReadOnlyList<FeederBarcodeBar> Bars { get; }
+
+        public FeederBarcodeCalibratedRead(bool hasVerifiedStart, double pixelsPerUnit,
+            string status, IReadOnlyList<FeederBarcodeBar> bars)
+        {
+            HasVerifiedStart = hasVerifiedStart;
+            PixelsPerUnit = pixelsPerUnit;
+            Status = status;
+            Bars = bars;
+        }
+    }
+
+    /// <summary>
     /// First-pass one-dimensional measurement of black bars on a white strip.
     /// This does not assign a feeder identity or alter feeder geometry.
     /// A caller can combine measurements from overlapping camera positions later.
@@ -34,6 +56,88 @@ namespace LagoVista.PickAndPlace.Models
         // Keep these separate from the proposed start/check/end encoding:
         // we must validate the printed marker before defining the final format.
         public static readonly double[] PrototypeWidthsMm = { 0.4, 0.8, 1.2, 1.6 };
+
+        // Proposed eleven-bar marker:
+        // [5x START] [8 data bars] [2-bit check bar] [0.5x END].
+        // A data bar encodes 00/01/10/11 using widths 1/1.5/2/2.5 units.
+        // Its decoding scale is entirely derived from the known 5-unit start.
+        public const double StartBarUnits = 5.0;
+        public const double EndBarUnits = 0.5;
+        public const double BaseWidthMm = 0.5;
+        public static readonly double[] DataBarUnits = { 1.0, 1.5, 2.0, 2.5 };
+
+        /// <summary>
+        /// Classify a partially observed 11-bar marker only if the beginning
+        /// is actually in the image. The first bounded bar must be approximately
+        /// the expected 5x start, near the beginning of the frame, and followed
+        /// by at least two plausible data bars. The confidence checks prevent a
+        /// mid-marker capture from silently calibrating against a data bar.
+        /// This is only bar recognition: ID/checksum and stitching come later.
+        /// </summary>
+        public static FeederBarcodeCalibratedRead ReadFromStart(
+            byte[] intensity, double pixelsPerMm, byte whiteThreshold = 128)
+        {
+            // Reuse the same threshold/median/XOR boundary detection, but do not
+            // classify using the camera's absolute pixels/mm.
+            var raw = FindBars(intensity, pixelsPerMm, new double[0], whiteThreshold);
+
+            FeederBarcodeCalibratedRead Uncalibrated(string reason) =>
+                new FeederBarcodeCalibratedRead(false, 0, reason, raw);
+
+            if (raw.Count < 3)
+                return Uncalibrated("START NOT VERIFIED: fewer than 3 complete bars");
+
+            var start = raw[0];
+            var startPixels = start.EndPixel - start.StartPixel;
+            if (start.StartPixel > intensity.Length / 2 ||
+                start.WidthMm < 1.65 || start.WidthMm > 3.35)
+                return Uncalibrated("START NOT VERIFIED: first bar is not a 5x marker");
+
+            var pixelsPerUnit = startPixels / StartBarUnits;
+            if (pixelsPerUnit < 2)
+                return Uncalibrated("START NOT VERIFIED: insufficient resolution");
+
+            var decoded = new List<FeederBarcodeBar>
+            {
+                new FeederBarcodeBar(start.StartPixel, start.EndPixel, pixelsPerMm, null)
+            };
+
+            var confirmedDataBars = 0;
+            for (var i = 1; i < raw.Count; i++)
+            {
+                var bar = raw[i];
+                var units = (bar.EndPixel - bar.StartPixel) / pixelsPerUnit;
+                int? value = null;
+                var closest = double.MaxValue;
+                for (var n = 0; n < DataBarUnits.Length; n++)
+                {
+                    var error = Math.Abs(units - DataBarUnits[n]);
+                    if (error < closest)
+                    {
+                        closest = error;
+                        value = n;
+                    }
+                }
+
+                // The four symbols differ by 0.5 units. A <0.20-unit
+                // allowance cannot turn a correctly sized bar into a
+                // neighboring symbol, and rejects seriously blurred edges.
+                if (closest >= 0.20)
+                    value = null;
+                if (value.HasValue)
+                    confirmedDataBars++;
+
+                decoded.Add(new FeederBarcodeBar(bar.StartPixel, bar.EndPixel, pixelsPerMm, value));
+            }
+
+            // The two bars immediately after START must both be valid; accepting
+            // any two bars elsewhere could lock onto a false start in a partial scan.
+            if (!decoded[1].Value.HasValue || !decoded[2].Value.HasValue)
+                return Uncalibrated("START NOT VERIFIED: following bar widths disagree");
+
+            return new FeederBarcodeCalibratedRead(true, pixelsPerUnit,
+                $"START VERIFIED: {pixelsPerUnit:F1} px/unit, {confirmedDataBars} data bars", decoded);
+        }
 
         /// <summary>
         /// Read exactly ten pixels just beyond the frame center, across the
