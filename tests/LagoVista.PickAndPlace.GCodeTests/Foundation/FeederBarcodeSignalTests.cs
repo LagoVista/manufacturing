@@ -136,6 +136,17 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void BarcodeHasIndependentVisionProfileFromFeederOrigin()
+        {
+            var profiles = VisionProfile.DefaultVisionProfiles;
+            var origin = profiles.Single(p => p.Key == VisionProfile.VisionProfile_FeederOrigin);
+            var barcode = profiles.Single(p => p.Key == VisionProfile.VisionProfile_FeederBarcode);
+            Assert.That(origin.Key, Is.Not.EqualTo(barcode.Key));
+            Assert.That(barcode.Id, Is.Not.EqualTo(origin.Id));
+            Assert.That(barcode.Text, Is.EqualTo("Feeder Barcode"));
+        }
+
+        [Test]
         public void InvalidPixelsPerMillimeterIsRejected()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() =>
