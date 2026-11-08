@@ -31,6 +31,14 @@ The 10-pixel band and XOR transitions are unchanged. `FeederBarcodeSignal.ReadFr
 
 A clipped/missing/malformed start leaves the result explicitly **START NOT VERIFIED**, with raw widths only and no trusted symbol values. The old `vertical_barcode_01.png` is a useful legacy regression, **not a calibrated 5x marker**. The single-frame `ReadFromStart` method reports partially visible bar symbols; the separate `FeederBarcodeScan` combines captured frames into a validated 11-bar identity without changing feeder coordinates.
 
+## Live camera preview stability and diagnostics
+
+The orange `255px` and green `START 5x` overlays are two formatting branches of the **same** ten-pixel-band decoder, not two physical detectors. On the actual marker, the first bar measured 253-255 px and the next data bar measured 63 px; at 255 px the normalized first data width is 1.235x (accepted), while at 253 px it is 1.245x (rejected by the <0.24-unit symbol tolerance). A two-pixel threshold-edge change can flip the live start verification.
+
+The live preview now **always shows raw pixel widths alongside relative units** when calibrated. A presentation-only `FeederBarcodeTemporalMonitor` records the last 30 raw frames' first-bar leading/trailing edges and width ranges, and annotates raw verification count (`RAW30`) to help distinguish whole-image movement from edge flicker. It displays a 3- then 5-frame odd-window binary temporal median only while the leading bar stays at the same pixel position. If the median momentarily fails, at most two old verified display frames may be shown with an explicit `DISPLAY HOLD` label; repeated failures revert to unverified. Start disappearance, sizable movement or vision-profile reset clears the history.
+
+**Safety/data distinction:** `FeederBarcodeDetector.Observation.Signal` remains the **unmodified raw binary sample**, and the full 11-bar `FeederBarcodeScan` consumes that raw sample, not the stabilized/held overlay. The monitoring adds no camera search, hardware motion, exposure changes, or persisted feeder calibration.
+
 ## Full 11-bar reader (implemented, hardware validation pending)
 
 - **Frame Barcode**, confirm the live overlay reports **START OK**, then explicitly click **Scan Barcode**. This takes up to seven fresh captures, advancing at most 3 mm (or one quarter of the frame's estimated span) along the selected feeder's known orientation. Each move waits for machine idle; cumulative advance is capped at 18 mm and must remain inside the configured work area. The first view locks the 5x start scale; subsequent views register at least two matching overlapping bars before merging them, rejecting misaligned captures instead of counting duplicate bars. The live preview may say START NOT VERIFIED when that bar has left the current frame; the scan retains its initial calibration. No background autonomous scanning.
