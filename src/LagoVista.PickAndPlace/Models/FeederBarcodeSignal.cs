@@ -77,9 +77,10 @@ namespace LagoVista.PickAndPlace.Models
         public static FeederBarcodeCalibratedRead ReadFromStart(
             byte[] intensity, double pixelsPerMm, byte whiteThreshold = 128)
         {
-            // Reuse the same threshold/median/XOR boundary detection, but do not
-            // classify using the camera's absolute pixels/mm.
-            var raw = FindBars(intensity, pixelsPerMm, new double[0], whiteThreshold);
+            // Read all complete black runs in pixels. Camera pixels/mm is only
+            // provisional display metadata, never a pre-calibration size gate.
+            var raw = FindBars(intensity, pixelsPerMm, new double[0], whiteThreshold,
+                usePhysicalWidthFilter: false);
 
             FeederBarcodeCalibratedRead Uncalibrated(string reason) =>
                 new FeederBarcodeCalibratedRead(false, 0, reason, raw);
@@ -89,9 +90,11 @@ namespace LagoVista.PickAndPlace.Models
 
             var start = raw[0];
             var startPixels = start.EndPixel - start.StartPixel;
-            if (start.StartPixel > intensity.Length / 2 ||
-                start.WidthMm < 1.65 || start.WidthMm > 3.35)
-                return Uncalibrated("START NOT VERIFIED: first bar is not a 5x marker");
+            // A nominal 2.5 mm start may appear much larger/smaller when the
+            // camera profile is uncalibrated or the entire marker is printed at
+            // a different scale. Verify in pixel units against following bars.
+            if (start.StartPixel > intensity.Length / 2)
+                return Uncalibrated("START NOT VERIFIED: first bar begins too far into frame");
 
             var pixelsPerUnit = startPixels / StartBarUnits;
             if (pixelsPerUnit < 2)
@@ -182,7 +185,8 @@ namespace LagoVista.PickAndPlace.Models
             byte[] intensity,
             double pixelsPerMm,
             IReadOnlyList<double> widthsMm = null,
-            byte whiteThreshold = 128)
+            byte whiteThreshold = 128,
+            bool usePhysicalWidthFilter = true)
         {
             if (intensity == null)
                 throw new ArgumentNullException(nameof(intensity));
@@ -222,7 +226,10 @@ namespace LagoVista.PickAndPlace.Models
                     else if (start > 0)
                     {
                         var width = (i - start) / pixelsPerMm;
-                        if (width >= 0.18 && width <= 3.2)
+                        // Legacy prototype measurement may retain the original
+                        // physical plausibility gate. Calibrated decoding must
+                        // keep this run regardless of untrusted camera scale.
+                        if (!usePhysicalWidthFilter || (width >= 0.18 && width <= 3.2))
                         {
                             int? value = null;
                             var closest = double.MaxValue;
