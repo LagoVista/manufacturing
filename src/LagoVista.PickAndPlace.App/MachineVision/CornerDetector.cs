@@ -1,7 +1,3 @@
-// --- BEGIN CODE INDEX META (do not edit) ---
-// ContentHash: bea698690c50f27634f2629c2f2cd8deb142d3e27327fdbb54a31efd0d0a15ef
-// IndexVersion: 2
-// --- END CODE INDEX META ---
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using Emgu.CV;
@@ -9,19 +5,19 @@ using LagoVista.Core.Models.Drawing;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Models;
 using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Interfaces.Services;
 using LagoVista.PickAndPlace.Interfaces;
-using System.Collections.ObjectModel;
 
 namespace LagoVista.PickAndPlace.App.MachineVision
 {
     public class CornerDetector : ICornerDetector<IInputOutputArray>
     {
-        public ObservableCollection<MVLocatedCorner> _locatedCorners = new ObservableCollection<MVLocatedCorner>();
+        private readonly ObservableCollection<MVLocatedCorner> _locatedCorners =
+            new ObservableCollection<MVLocatedCorner>();
         private readonly ILocatorViewModel _locatorViewModel;
-
         private int _iteration;
 
         public CornerDetector(ILocatorViewModel locatorViewModel)
@@ -29,69 +25,124 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             _locatorViewModel = locatorViewModel;
         }
 
-        public void FindCorners(IMVImage<IInputOutputArray> blurredGray, MachineCamera camera, System.Drawing.Size size)
+        public void FindCorners(IMVImage<IInputOutputArray> grayscale,
+            MachineCamera camera, System.Drawing.Size size)
         {
             _iteration++;
-
             var profile = camera.CurrentVisionProfile;
-
-            var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.EffectivePixelsPerMM);
-
-            var center = new Point2D<int>()
+            var nominalScale = camera.EffectivePixelsPerMM;
+            if (nominalScale <= 0 || double.IsNaN(nominalScale) ||
+                double.IsInfinity(nominalScale))
             {
-                X = size.Width / 2,
-                Y = size.Height / 2
-            };
+                Reset();
+                return;
+            }
 
-            using (var cornerDest = new Image<Gray, float>(size))
-            using (var matNormalized = new Image<Gray, float>(size))
-            using (var matScaled = new Image<Gray, float>(size))
+            if (profile.Key == VisionProfile.VisionProfile_FeederOrigin)
             {
-                cornerDest.SetZero();
-
-                int max = -1;
-                int x = -1, y = -1;
-
-                CvInvoke.CornerHarris(blurredGray.Image, cornerDest, profile.HarrisCornerBlockSize, profile.HarrisCornerAperture, profile.HarrisCornerK, BorderType.Default);
-
-                CvInvoke.Normalize(cornerDest, matNormalized, 0, 255, NormType.MinMax, DepthType.Cv32F);
-                CvInvoke.ConvertScaleAbs(matNormalized, matScaled, 10, 5);
-
-                var minX = size.Width / 2 - scaledTarget;
-                var maxX = size.Width / 2 + scaledTarget;
-                var minY = size.Height / 2 - scaledTarget;
-                var maxY = size.Height / 2 + scaledTarget;
-
-                /* Go through all the returned points and find the one with the highest intensity.  This will be our corner */
-                for (int j = minX; j < maxX; j++)
+                // This profile means the upper-left WHITE cut corner, not the
+                // black START bar. Use its existing threshold/search-radius
+                // controls. Image is the raw grayscale camera frame after
+                // the configured camera mirrors have been applied.
+                var threshold = profile.ApplyThreshold
+                    ? (byte)Math.Round(profile.PrimaryThreshold / 100.0 * 255)
+                    : (byte)128;
+                using (var binary = new Image<Gray, byte>(size))
                 {
-                    for (int i = minY; i < maxY; i++)
+                    CvInvoke.Threshold(grayscale.Image, binary, threshold,
+                        255, ThresholdType.Binary);
+
+                    var radius = Math.Max(20,
+                        (int)Math.Round(profile.TargetImageRadius * nominalScale));
+                    var white = FeederWhiteCornerFinder.Find(size.Width, size.Height,
+                        (x, y) => binary.Data[y, x, 0], 128, radius);
+                    if (!white.Found)
                     {
-                        var value = (int)matNormalized.Data[i, j, 0];
-                        if (value > max)
+                        Reset();
+                        return;
+                    }
+
+                    // Prefer the known 2.5 mm start reference when the camera
+                    // currently sees enough barcode bars to verify it. Near
+                    // the cut corner it may not, in which case retain the
+                    // position camera's calibrated scale and report that fact.
+                    var measuredScale = FeederWhiteCornerFinder.MeasureStartScale(
+                        size.Width, size.Height, (x, y) => binary.Data[y, x, 0],
+                        128, white, nominalScale);
+                    var useStartScale = measuredScale > 0;
+                    Track(white.X, white.Y, camera, size,
+                        useStartScale ? measuredScale : nominalScale, useStartScale);
+                }
+                return;
+            }
+
+            // Preserve the normal Harris detector for non-feeder profiles.
+            using (var corners = new Image<Gray, float>(size))
+            using (var normalized = new Image<Gray, float>(size))
+            {
+                CvInvoke.CornerHarris(grayscale.Image, corners,
+                    profile.HarrisCornerBlockSize, profile.HarrisCornerAperture,
+                    profile.HarrisCornerK, BorderType.Default);
+                CvInvoke.Normalize(corners, normalized, 0, 255,
+                    NormType.MinMax, DepthType.Cv32F);
+
+                var r = Math.Max(8, (int)Math.Round(
+                    profile.TargetImageRadius * nominalScale));
+                var minX = Math.Max(0, size.Width / 2 - r);
+                var maxX = Math.Min(size.Width, size.Width / 2 + r + 1);
+                var minY = Math.Max(0, size.Height / 2 - r);
+                var maxY = Math.Min(size.Height, size.Height / 2 + r + 1);
+                var best = -1.0;
+                var foundX = -1;
+                var foundY = -1;
+
+                for (var y = minY; y < maxY; y++)
+                {
+                    for (var x = minX; x < maxX; x++)
+                    {
+                        var response = normalized.Data[y, x, 0];
+                        if (response > best)
                         {
-                            x = j;
-                            y = i;
-                            max = value;
+                            best = response;
+                            foundX = x;
+                            foundY = y;
                         }
                     }
                 }
 
-                var offset = new Point2D<double>(center.X - x, center.Y - y);
-                var locatedCorner = new MVLocatedCorner()
+                if (foundX < 0 || best < profile.HarrisCornerThreshold)
                 {
-                    Camera = camera.CameraType.Value,
-                    FoundCount = 1                    
-                };
+                    Reset();
+                    return;
+                }
 
-                _locatorViewModel.CornerLocated(locatedCorner);
+                Track(foundX, foundY, camera, size, nominalScale, false);
             }
         }
 
-        public ObservableCollection<MVLocatedCorner> FoundCorners { get => _locatedCorners; }
-    
+        private void Track(int x, int y, MachineCamera camera,
+            System.Drawing.Size size, double scale, bool usesStartScale)
+        {
+            var tracked = _locatedCorners.FirstOrDefault();
+            if (tracked == null)
+            {
+                tracked = new MVLocatedCorner { Camera = camera.CameraType.Value };
+                _locatedCorners.Add(tracked);
+            }
+
+            tracked.Iteration = _iteration;
+            tracked.Add(x, y, size.Width, size.Height, scale,
+                camera.CurrentVisionProfile.ErrorToleranceMM,
+                camera.CurrentVisionProfile.StabilizationCount, usesStartScale);
+            _locatorViewModel.CornerLocated(tracked);
+        }
+
+        public ObservableCollection<MVLocatedCorner> FoundCorners => _locatedCorners;
+
         public void Reset()
         {
+            foreach (var corner in _locatedCorners)
+                corner.Reset();
             _locatedCorners.Clear();
         }
     }
