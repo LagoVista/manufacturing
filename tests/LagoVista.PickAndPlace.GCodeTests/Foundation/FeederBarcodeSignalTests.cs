@@ -147,6 +147,58 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void FiveXStartCalibratesFourWidthsDespiteImperfectCameraScale()
+        {
+            // Printed widths at 50 px/mm: 5-unit start = 125 px;
+            // data = 1, 1.5, 2, 2.5 units; 0.5 unit = 25 px.
+            var image = MakeLine(new[] { 125, 25, 38, 50, 63 }, gap: 15);
+            // The camera profile is deliberately 16% off the actual pixel scale.
+            var result = FeederBarcodeSignal.ReadFromStart(image, pixelsPerMm: 42);
+            Assert.That(result.HasVerifiedStart, Is.True, result.Status);
+            Assert.That(result.PixelsPerUnit, Is.EqualTo(25).Within(0.0001));
+            Assert.That(result.PixelsPerMmFromStart, Is.EqualTo(50).Within(0.0001));
+            Assert.That(result.Bars.Count, Is.EqualTo(5));
+            Assert.That(result.Bars.Skip(1).Select(bar => bar.Value).ToArray(),
+                Is.EqualTo(new int?[] { 0, 1, 2, 3 }));
+        }
+
+        [Test]
+        public void IncompleteStartBarMustNotCalibrateUsingFirstVisibleDataBar()
+        {
+            var complete = MakeLine(new[] { 125, 25, 38, 50 }, gap: 15);
+            // Clip the 125-pixel start bar at the image boundary.
+            var clipped = complete.Skip(50).ToArray();
+            var result = FeederBarcodeSignal.ReadFromStart(clipped, pixelsPerMm: 50);
+            Assert.That(result.HasVerifiedStart, Is.False);
+        }
+
+        [Test]
+        public void LargerFirstDataBarIsNotMistakenForFiveXStart()
+        {
+            var middleOfMarker = MakeLine(new[] { 63, 25, 50, 38 }, gap: 15);
+            var result = FeederBarcodeSignal.ReadFromStart(middleOfMarker, pixelsPerMm: 50);
+            Assert.That(result.HasVerifiedStart, Is.False);
+        }
+
+        [Test]
+        public void IncorrectFollowingWidthRejectsStartCalibration()
+        {
+            var image = MakeLine(new[] { 125, 93, 50, 38 }, gap: 15);
+            var result = FeederBarcodeSignal.ReadFromStart(image, pixelsPerMm: 50);
+            Assert.That(result.HasVerifiedStart, Is.False);
+            Assert.That(result.Status, Does.Contain("NOT VERIFIED"));
+        }
+
+        [Test]
+        public void StartBarMustBeEarlyEnoughInFrameToCalibrate()
+        {
+            var image = MakeLine(new[] { 125, 25, 38 }, gap: 15, margin: 460);
+            var result = FeederBarcodeSignal.ReadFromStart(image, pixelsPerMm: 50);
+            // First bar begins at 460 pixels in a 723-pixel frame.
+            Assert.That(result.HasVerifiedStart, Is.False);
+        }
+
+        [Test]
         public void InvalidPixelsPerMillimeterIsRejected()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() =>
