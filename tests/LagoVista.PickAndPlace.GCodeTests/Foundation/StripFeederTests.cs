@@ -56,6 +56,38 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(calculated.X, Is.Not.EqualTo(expectedX + feeder.OriginOffset.X));
         }
 
+        [TestCase(false, 230.0, 182.0)]
+        [TestCase(true, 227.0, 195.0)]
+        public void FrameBarcodeUsesSavedCalibratedOriginWhileInitialApproachDoesNot(
+            bool vertical, double calculatedX, double calculatedY)
+        {
+            var mountingHole = StagingPlateUtils.ResolveStagePlateWorkSpaceLocation(_plate, "10", "G");
+            var feeder = new StripFeeder
+            {
+                Orientation = EntityHeader<FeederOrientations>.Create(vertical
+                    ? FeederOrientations.Vertical : FeederOrientations.Horizontal),
+                MountingHoleOffset = new Point2D<double>(5, 8),
+                OriginOffset = new Point2D<double>(3.25, -1.75)
+            };
+            var type = typeof(LagoVista.PickAndPlace.ViewModels.PickAndPlace.StripFeederViewModel);
+            var flags = System.Reflection.BindingFlags.NonPublic |
+                        System.Reflection.BindingFlags.Static;
+            var calculatedMethod = type.GetMethod("ResolveCalculatedFeederOrigin", flags);
+            var calibratedMethod = type.GetMethod("ResolveCalibratedFeederOrigin", flags);
+            Assert.That(calculatedMethod, Is.Not.Null);
+            Assert.That(calibratedMethod, Is.Not.Null);
+
+            var approach = (Point2D<double>)calculatedMethod.Invoke(
+                null, new object[] { mountingHole, feeder });
+            var frameOrigin = (Point2D<double>)calibratedMethod.Invoke(
+                null, new object[] { approach, feeder });
+
+            Assert.That(approach.X, Is.EqualTo(calculatedX).Within(1e-9));
+            Assert.That(approach.Y, Is.EqualTo(calculatedY).Within(1e-9));
+            Assert.That(frameOrigin.X, Is.EqualTo(calculatedX + 3.25).Within(1e-9));
+            Assert.That(frameOrigin.Y, Is.EqualTo(calculatedY - 1.75).Within(1e-9));
+        }
+
         // Uses the production staging-plate resolver and production feeder orientation math.
         // The asserted positions are hand-computed from a 15 mm pitch grid.
         [TestCase("1", "A", false, 5.0, 8.0, 0.0, 0.0, 95.0, 92.0)]
