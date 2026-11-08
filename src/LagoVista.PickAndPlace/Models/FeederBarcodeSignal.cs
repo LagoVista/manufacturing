@@ -64,6 +64,10 @@ namespace LagoVista.PickAndPlace.Models
         public const double StartBarUnits = 5.0;
         public const double EndBarUnits = 0.5;
         public const double BaseWidthMm = 0.5;
+        // Each class is separated by 0.5 units. 0.24 keeps a small
+        // rejection region around class midpoints while tolerating the
+        // ~0.21-unit edge bias seen on the printed machine marker.
+        public const double DataWidthToleranceUnits = 0.24;
         public static readonly double[] DataBarUnits = { 1.0, 1.5, 2.0, 2.5 };
 
         /// <summary>
@@ -122,10 +126,9 @@ namespace LagoVista.PickAndPlace.Models
                     }
                 }
 
-                // The four symbols differ by 0.5 units. A <0.20-unit
-                // allowance cannot turn a correctly sized bar into a
-                // neighboring symbol, and rejects seriously blurred edges.
-                if (closest >= 0.20)
+                // Classify against the nearest class, with a narrow
+                // guard band around each 0.25-unit midpoint.
+                if (closest >= DataWidthToleranceUnits)
                     value = null;
                 if (value.HasValue)
                     confirmedDataBars++;
