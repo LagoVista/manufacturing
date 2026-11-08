@@ -55,6 +55,7 @@ namespace LagoVista.PickAndPlace.App.Services
         VideoCapture _capture;
 
         private object _captureLocker = new object();
+        private TaskCompletionSource<byte[]> _pendingBarcodeFrame;
 
         IShapeDetectorService<Image<Bgr, byte>> _shapeDetectorService;
         CameraTypes _cameraType;
@@ -111,6 +112,41 @@ namespace LagoVista.PickAndPlace.App.Services
         public void ResetDetections()
         {
             _shapeDetectorService.Reset();
+        }
+
+        public async Task<InvokeResult<byte[]>> CaptureFeederBarcodeSignalAsync()
+        {
+            if (!_running || _capture == null ||
+                Profile?.Key != VisionProfile.VisionProfile_FeederBarcode ||
+                !FeederBarcodeVertical.HasValue)
+                return InvokeResult<byte[]>.FromError(
+                    "Start the position camera, select Feeder Barcode, and select a feeder orientation.");
+
+            TaskCompletionSource<byte[]> request;
+            lock (_captureLocker)
+            {
+                if (_pendingBarcodeFrame != null)
+                    return InvokeResult<byte[]>.FromError("A barcode frame is already being requested.");
+
+                request = new TaskCompletionSource<byte[]>(TaskCreationOptions.RunContinuationsAsynchronously);
+                _pendingBarcodeFrame = request;
+            }
+
+            var finished = await Task.WhenAny(request.Task, Task.Delay(2500));
+            if (finished != request.Task)
+            {
+                lock (_captureLocker)
+                {
+                    if (_pendingBarcodeFrame == request)
+                        _pendingBarcodeFrame = null;
+                }
+                return InvokeResult<byte[]>.FromError("Timed out capturing a fresh feeder barcode frame.");
+            }
+
+            var sample = await request.Task;
+            return sample == null
+                ? InvokeResult<byte[]>.FromError("Camera capture stopped during feeder barcode scan.")
+                : InvokeResult<byte[]>.Create(sample);
         }
 
         private void CenterFoundItem()
@@ -479,6 +515,8 @@ namespace LagoVista.PickAndPlace.App.Services
 
                 lock (_captureLocker)
                 {
+                    _pendingBarcodeFrame?.TrySetResult(null);
+                    _pendingBarcodeFrame = null;
                     if (_capture != null)
                     {
                         _capture.Stop();
@@ -575,6 +613,21 @@ namespace LagoVista.PickAndPlace.App.Services
                                         {
                                             using (var results = _shapeDetectorService.PerformShapeDetection(new MVImage<Image<Bgr, byte>>(resized), Camera, resized.Size, FeederBarcodeVertical))
                                             {
+                                                if (Profile.Key == VisionProfile.VisionProfile_FeederBarcode && results != null)
+                                                {
+                                                    var signal = _shapeDetectorService.LatestFeederBarcodeSignal;
+                                                    if (signal != null)
+                                                    {
+                                                        TaskCompletionSource<byte[]> pending;
+                                                        lock (_captureLocker)
+                                                        {
+                                                            pending = _pendingBarcodeFrame;
+                                                            _pendingBarcodeFrame = null;
+                                                        }
+                                                        pending?.TrySetResult((byte[])signal.Clone());
+                                                    }
+                                                }
+
                                                 if (results == null)
                                                     CaptureImage = new BitmapImage(new Uri("pack://application:,,/Imgs/ComputerBugFunny.jpg"));
                                                 else
