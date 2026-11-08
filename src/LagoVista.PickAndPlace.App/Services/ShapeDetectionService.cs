@@ -61,6 +61,34 @@ namespace LagoVista.PickAndPlace.App.Services
             }
             if (camera.CurrentVisionProfile.Show200PixelSquare) _imageHelper.ShowCalibrationSquare(img, size);
 
+            if (camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_FeederOrigin)
+            {
+                var corner = _cornerDetector.FoundCorners.FirstOrDefault();
+                if (corner?.Position != null)
+                {
+                    var point = new Point((int)Math.Round(corner.Position.X),
+                        (int)Math.Round(corner.Position.Y));
+                    var color = corner.PositionStable
+                        ? new MCvScalar(0, 255, 0)
+                        : new MCvScalar(0, 180, 255);
+                    CvInvoke.Circle(img.Image, point, 12, color, 2);
+                    CvInvoke.Line(img.Image, new Point(point.X - 18, point.Y),
+                        new Point(point.X + 18, point.Y), color, 1);
+                    CvInvoke.Line(img.Image, new Point(point.X, point.Y - 18),
+                        new Point(point.X, point.Y + 18), color, 1);
+                    CvInvoke.PutText(img.Image, corner.Summary,
+                        new Point(6, Math.Max(22, size.Height - 20)),
+                        FontFace.HersheySimplex, 0.55, color, 2);
+                }
+                else
+                {
+                    CvInvoke.PutText(img.Image, "WHITE CORNER: NOT FOUND",
+                        new Point(6, Math.Max(22, size.Height - 20)),
+                        FontFace.HersheySimplex, 0.55, new MCvScalar(0, 180, 255), 2);
+                }
+                return;
+            }
+
             if (camera.CurrentVisionProfile.FindLines)
             {
                 foreach (var line in _lineDetector.FoundLines)
@@ -330,7 +358,18 @@ namespace LagoVista.PickAndPlace.App.Services
                             var output = camera.CurrentVisionProfile.ShowOriginalImage ? raw : (IInputOutputArray)input;
 
                             if (camera.CurrentVisionProfile.PerformShapeDetection && !feederBarcodeMode)
-                                FindShapes(new MVImage<IInputOutputArray>( input), output, camera, size);
+                            {
+                                // The white cut edge must be measured against
+                                // actual black/white pixels. Do not pass the
+                                // feeder-origin profile's inverted/blurred/masked
+                                // display image to the corner detector.
+                                var cornerInput =
+                                    camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_FeederOrigin
+                                    ? (IInputOutputArray)gray
+                                    : input;
+                                FindShapes(new MVImage<IInputOutputArray>(cornerInput),
+                                    output, camera, size);
+                            }
 
                             if(camera.CurrentVisionProfile.ShowRectLocatorImage)
                             {
