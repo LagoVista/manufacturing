@@ -132,7 +132,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
             var calibrated = observation.Calibration?.HasVerifiedStart == true;
             var status = calibrated
-                ? $"START OK {observation.Calibration.PixelsPerMmFromStart:F1}px/mm"
+                ? $"START OK {observation.Calibration.PixelsPerUnit:F1}px/unit"
                 : "START NOT VERIFIED";
             DrawReadableText(output, status,
                 new Point(8, imageSize.Height - 43),
