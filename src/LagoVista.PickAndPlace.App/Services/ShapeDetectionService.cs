@@ -120,9 +120,15 @@ namespace LagoVista.PickAndPlace.App.Services
                 }
                 else
                 {
-                    CvInvoke.PutText(img.Image, "WHITE CORNER: NOT FOUND",
+                    var detail = _cornerDetector.LatestStatus ?? String.Empty;
+                    var message = detail.StartsWith("WHITE CORNER AMBIGUOUS",
+                        StringComparison.Ordinal)
+                        ? "MULTIPLE WHITE CORNERS: REDUCE RADIUS"
+                        : "NO WHITE L CORNER: CHECK THRESHOLD/RADIUS";
+                    CvInvoke.PutText(img.Image, message,
                         new Point(6, Math.Max(22, size.Height - 20)),
-                        FontFace.HersheySimplex, 0.55, new MCvScalar(0, 180, 255), 2);
+                        FontFace.HersheySimplex, 0.40,
+                        new MCvScalar(0, 180, 255), 1, LineType.AntiAlias);
                 }
                 return;
             }
