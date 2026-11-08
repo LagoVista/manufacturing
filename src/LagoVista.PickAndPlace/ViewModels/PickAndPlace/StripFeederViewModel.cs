@@ -64,6 +64,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             SetLastFeederReferenceHoleCommand = CreatedMachineConnectedSettingsCommand(() => SetLocation(StripFeederSetTypes.LastFeederRowReferenceHole), () => CurrentRow != null);
 
             GoToFeederOriginCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.FeederOrigin), () => Current != null);
+            FrameFeederBarcodeCommand = CreatedMachineConnectedCommand(FrameFeederBarcode, () => Current != null);
             GoToFeederReferenceHoleCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.FeederReferenceHole), () => Current != null);
 
             GoToFirstFeederReferenceHoleCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.FirstFeederRowReferenceHole), () => CurrentRow != null);
@@ -170,11 +171,64 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         private void GoTo(StripFeederLocationTypes locationType)
         {
+            if (locationType == StripFeederLocationTypes.FeederOrigin &&
+                Machine?.PositionImageCaptureService != null)
+            {
+                Machine.PositionImageCaptureService.FeederBarcodeVertical =
+                    Current.Orientation.Value == FeederOrientations.Vertical;
+            }
+
             var result = FindLocation(locationType);
             if (result.Successful)
-            {
                 Machine.GotoPoint(result.Result);
+        }
+
+        // This is a camera preview move, not a feeder-origin calibration.
+        // Preserve GoToFeederOriginCommand for callers that need the true origin
+        // centered in the image; frame the barcode with more of its length visible.
+        private void FrameFeederBarcode()
+        {
+            var capture = Machine?.PositionImageCaptureService;
+            if (capture?.Camera == null || capture.CaptureFrameSize.Width <= 0 ||
+                capture.CaptureFrameSize.Height <= 0)
+            {
+                Machine?.AddStatusMessage(StatusMessageTypes.Warning,
+                    "Start the position camera before framing the feeder barcode.");
+                return;
             }
+
+            var pixelsPerMm = capture.Camera.EffectivePixelsPerMM;
+            if (pixelsPerMm <= 0 || double.IsNaN(pixelsPerMm) || double.IsInfinity(pixelsPerMm))
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                    "Cannot frame barcode: calibrate position-camera pixels per mm.");
+                return;
+            }
+
+            var feederVertical = Current.Orientation.Value == FeederOrientations.Vertical;
+            capture.FeederBarcodeVertical = feederVertical;
+            var origin = FindLocation(StripFeederLocationTypes.FeederOrigin);
+            if (!origin.Successful)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning, origin.ErrorMessage);
+                return;
+            }
+
+            // The shape detector uses the actual captured frame, not the Camera.ImageSize
+            // configuration (the position camera may capture at a higher resolution).
+            var pixels = feederVertical ? capture.CaptureFrameSize.Height : capture.CaptureFrameSize.Width;
+            var shiftMm = pixels * 0.30 / pixelsPerMm;
+            // MVLocatedCircle.OffsetMM uses +X and -Y for pixel-to-machine conversion.
+            // Move the camera along the marker so its leading bar is 20% into the view.
+            var framed = feederVertical
+                ? new Point2D<double>(origin.Result.X, origin.Result.Y - shiftMm)
+                : new Point2D<double>(origin.Result.X + shiftMm, origin.Result.Y);
+
+            Machine.SendSafeMoveHeight();
+            Machine.GotoPoint(framed);
+            Machine.AddStatusMessage(StatusMessageTypes.Info,
+                $"Framing {(feederVertical ? "vertical" : "horizontal")} feeder barcode: " +
+                $"camera offset {shiftMm:F2} mm along marker (target start at 20% of image).");
         }
 
 
@@ -539,6 +593,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 }
 
                 RaisePropertyChanged(nameof(TapeSize));
+                if (Machine?.PositionImageCaptureService != null)
+                    Machine.PositionImageCaptureService.FeederBarcodeVertical =
+                        value == null ? (bool?)null : value.Orientation.Value == FeederOrientations.Vertical;
                 RaiseCanExecuteChanged();
             }
         }
@@ -643,6 +700,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public RelayCommand SetFeederOriginCommand { get; }
         public RelayCommand GoToFeederOriginCommand { get; }
+        public RelayCommand FrameFeederBarcodeCommand { get; }
         public RelayCommand GoToFeederReferenceHoleCommand { get; }
 
 
