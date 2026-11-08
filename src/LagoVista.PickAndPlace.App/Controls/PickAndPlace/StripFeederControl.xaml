@@ -115,10 +115,17 @@
                             </StackPanel>
                         </Grid>
 
-                        <Button Style="{StaticResource CommandButton}" Content="Frame Barcode"
-                                Command="{Binding FrameFeederBarcodeCommand}" Width="160" Margin="10,6,0,6"
-                                HorizontalAlignment="Left"
-                                ToolTip="Move the position camera so the barcode first bar is near the top (vertical feeder) or left (horizontal feeder). Does not save feeder calibration." />
+                        <StackPanel Orientation="Horizontal" Margin="10,6,0,2">
+                            <Button Style="{StaticResource CommandButton}" Content="Frame Barcode"
+                                    Command="{Binding FrameFeederBarcodeCommand}" Width="160" Margin="0,0,8,0"
+                                    ToolTip="Frame the START bar. Does not update feeder calibration." />
+                            <Button Style="{StaticResource CommandButton}" Content="Scan Barcode"
+                                    Command="{Binding ScanFeederBarcodeCommand}" Width="160"
+                                    ToolTip="Read up to five overlapping camera positions along the barcode. Moves only along the feeder within an 18 mm limit, without saving calibration or identity." />
+                        </StackPanel>
+                        <TextBlock Margin="10,0,10,8" TextWrapping="Wrap"
+                                   Style="{StaticResource content}"
+                                   Text="{Binding FeederBarcodeScanStatus}" />
 
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Tape Holes on Top (when feeder is horizontal)" Style="{StaticResource label}"></TextBlock>
