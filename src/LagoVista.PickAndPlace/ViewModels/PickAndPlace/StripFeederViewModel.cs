@@ -246,6 +246,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var feeder = Current;
             try
             {
+                if (feeder.Orientation.Value != FeederOrientations.Vertical)
+                {
+                    FeederWhiteCornerStatus =
+                        "White cut-corner optical location currently supports vertical feeders only.";
+                    return;
+                }
+
                 var capture = Machine?.PositionImageCaptureService;
                 if (capture?.Camera == null ||
                     capture.Camera.CameraType.Value != CameraTypes.Position)
@@ -294,7 +301,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 // A short stationary median rejects occasional threshold
                 // noise before the operator is offered the Jog button.
                 await Task.Delay(180);
-                var samples = new FeederWhiteCornerObservation[3];
+                var samples = new FeederWhiteCornerObservation[5];
                 for (var i = 0; i < samples.Length; i++)
                 {
                     if (!Machine.Connected || Current != feeder ||
@@ -319,23 +326,34 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         await Task.Delay(80);
                 }
 
-                var scale = capture.Camera.EffectivePixelsPerMM;
-                if (scale <= 0 || double.IsNaN(scale) || double.IsInfinity(scale))
+                // Use barcode START as an actual optical millimeter reference.
+                // Nominal camera pixels/mm is not reliable enough for this jog.
+                var verifiedScales = samples.Select(sample => sample.OpticalPixelsPerMm)
+                    .Where(value => value > 0).OrderBy(value => value).ToArray();
+                if (verifiedScales.Length < 3)
                 {
-                    FeederWhiteCornerStatus = "Cannot jog: position camera pixels/mm is not calibrated.";
+                    FeederWhiteCornerStatus =
+                        "White corner found, but 5x START scale was not verified in three frames. No jog offered.";
+                    return;
+                }
+                var scale = verifiedScales[verifiedScales.Length / 2];
+                if (verifiedScales.Last() - verifiedScales.First() > scale * 0.08)
+                {
+                    FeederWhiteCornerStatus =
+                        "5x START optical scale is inconsistent across captures. No jog offered.";
                     return;
                 }
                 var pixelTolerance = Math.Max(4, scale * 0.15);
                 if (samples.Max(sample => sample.X) - samples.Min(sample => sample.X) > pixelTolerance ||
                     samples.Max(sample => sample.Y) - samples.Min(sample => sample.Y) > pixelTolerance)
                 {
-                    FeederWhiteCornerStatus = "White corner is not stable across three fresh frames; no jog offered.";
+                    FeederWhiteCornerStatus = "White corner is not stable across five fresh frames; no jog offered.";
                     return;
                 }
 
-                var chosen = samples[1];
-                var x = samples.Select(sample => sample.X).OrderBy(value => value).ElementAt(1);
-                var y = samples.Select(sample => sample.Y).OrderBy(value => value).ElementAt(1);
+                var chosen = samples[2];
+                var x = samples.Select(sample => sample.X).OrderBy(value => value).ElementAt(2);
+                var y = samples.Select(sample => sample.Y).OrderBy(value => value).ElementAt(2);
                 var correctionX = (x - chosen.FrameWidth / 2.0) / scale;
                 var correctionY = -(y - chosen.FrameHeight / 2.0) / scale;
                 if (Math.Abs(correctionX) > 2.5 || Math.Abs(correctionY) > 2.5)
@@ -354,11 +372,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 }
 
                 _locatedWhiteCorner = new FeederWhiteCornerObservation(true, x, y,
-                    chosen.FrameWidth, chosen.FrameHeight, chosen.ComponentAreaPixels, chosen.Status);
+                    chosen.FrameWidth, chosen.FrameHeight, chosen.ComponentAreaPixels,
+                    chosen.Status, scale);
                 _locatedWhiteCornerMachinePosition = position.Result;
                 _locatedWhiteCornerFeeder = feeder;
                 FeederWhiteCornerStatus =
-                    $"WHITE CORNER FOUND at pixel ({x},{y}); " +
+                    $"WHITE CORNER FOUND at pixel ({x},{y}); 5x scale {scale:F1} px/mm; " +
                     $"proposed jog X={correctionX:+0.00;-0.00;0.00}, Y={correctionY:+0.00;-0.00;0.00} mm. " +
                     "Check the camera image, then press Jog to White Corner. Nothing has been saved.";
             }
@@ -411,10 +430,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     return;
                 }
 
-                var scale = Machine.PositionImageCaptureService.Camera.EffectivePixelsPerMM;
+                var scale = detected.OpticalPixelsPerMm;
                 if (scale <= 0 || double.IsNaN(scale) || double.IsInfinity(scale))
                 {
-                    FeederWhiteCornerStatus = "Jog canceled: invalid camera pixels/mm.";
+                    FeederWhiteCornerStatus = "Jog canceled: start-bar optical scale unavailable.";
                     return;
                 }
                 var deltaX = (detected.X - detected.FrameWidth / 2.0) / scale;
