@@ -58,15 +58,18 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 var axisPixels = vertical ? imageSize.Height : imageSize.Width;
                 var guide = (int)Math.Round(axisPixels * 0.35);
                 var color = new MCvScalar(0, 210, 255);
+                // Keep the target next to the fixed center sampling band,
+                // rather than at the image's outer border.
+                var center = (vertical ? imageSize.Width : imageSize.Height) / 2;
                 if (vertical)
-                    CvInvoke.Line(output, new Point(4, guide),
-                        new Point(Math.Min(48, imageSize.Width - 1), guide), color, 2);
+                    CvInvoke.Line(output, new Point(center - 15, guide),
+                        new Point(center + 35, guide), color, 2);
                 else
-                    CvInvoke.Line(output, new Point(guide, 4),
-                        new Point(guide, Math.Min(48, imageSize.Height - 1)), color, 2);
-                CvInvoke.PutText(output, "Start-bar target",
-                    vertical ? new Point(8, Math.Max(14, guide - 8))
-                             : new Point(Math.Min(imageSize.Width - 145, guide + 9), 20),
+                    CvInvoke.Line(output, new Point(guide, center - 15),
+                        new Point(guide, center + 35), color, 2);
+                CvInvoke.PutText(output, "Start target",
+                    vertical ? new Point(Math.Min(imageSize.Width - 105, center + 40), Math.Max(14, guide - 8))
+                             : new Point(Math.Min(imageSize.Width - 105, guide + 8), Math.Max(14, center - 25)),
                     Emgu.CV.CvEnum.FontFace.HersheySimplex, 0.35, color, 1);
             }
 
