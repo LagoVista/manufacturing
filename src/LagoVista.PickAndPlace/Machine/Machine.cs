@@ -273,7 +273,12 @@ namespace LagoVista.PickAndPlace
                     else
                     {
                         var defaultProfile = camera.VisionProfiles.FirstOrDefault(vp => vp.Key == VisionProfile.VisionProfile_Defauilt);
-                        var newProfile = JsonConvert.DeserializeObject<VisionProfile>(JsonConvert.SerializeObject(defaultProfile));
+                        // Barcode starts from the feeder-origin camera tuning,
+                        // then becomes its own independent, editable profile.
+                        var sourceProfile = profileName == VisionProfile.VisionProfile_FeederBarcode
+                            ? camera.VisionProfiles.FirstOrDefault(vp => vp.Key == VisionProfile.VisionProfile_FeederOrigin) ?? defaultProfile
+                            : defaultProfile;
+                        var newProfile = JsonConvert.DeserializeObject<VisionProfile>(JsonConvert.SerializeObject(sourceProfile));
                         newProfile.Key = ehProfile.Key;
                         newProfile.Id = ehProfile.Id;
                         newProfile.Name = ehProfile.Text;
