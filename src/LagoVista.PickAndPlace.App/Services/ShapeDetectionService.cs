@@ -49,6 +49,32 @@ namespace LagoVista.PickAndPlace.App.Services
             _cornerDetector = cornerDetector ?? throw new ArgumentNullException(nameof(cornerDetector));
         }
 
+        private static void DrawFeederCornerLabel(IInputOutputArray image,
+            System.Drawing.Size size, string message, int line,
+            MCvScalar foreground, bool prominent = false)
+        {
+            if (String.IsNullOrWhiteSpace(message))
+                return;
+
+            // The camera frame is often 1920px wide but is displayed in a
+            // roughly 400px window. Proportional text remains legible after
+            // WPF scales the image down. Keep a dark stroke for white-image
+            // backgrounds, without adding a filled box over the fiducial.
+            var fontScale = Math.Max(0.8, Math.Min(3.4,
+                size.Width / (prominent ? 560.0 : 660.0)));
+            var thickness = Math.Max(2, (int)Math.Round(size.Width / 430.0));
+            var x = Math.Max(8, (int)Math.Round(size.Width * 0.016));
+            var y = Math.Max(30, (int)Math.Round(size.Width * 0.058)) +
+                line * Math.Max(25, (int)Math.Round(size.Width * 0.048));
+            var position = new Point(x, y);
+            CvInvoke.PutText(image, message, position,
+                FontFace.HersheySimplex, fontScale, new MCvScalar(0, 0, 0),
+                thickness + 4, LineType.AntiAlias);
+            CvInvoke.PutText(image, message, position,
+                FontFace.HersheySimplex, fontScale, foreground,
+                thickness, LineType.AntiAlias);
+        }
+
         private void RenderOutput(IMVImage<IInputOutputArray> img, MachineCamera camera, System.Drawing.Size size)
         {
             if (camera.CurrentVisionProfile.ShowCrossHairs) _imageHelper.DrawCrossHairs(img, camera, size);
@@ -99,24 +125,23 @@ namespace LagoVista.PickAndPlace.App.Services
                         new Point(point.X + 18, point.Y), color, 1);
                     CvInvoke.Line(img.Image, new Point(point.X, point.Y - 18),
                         new Point(point.X, point.Y + 18), color, 1);
-                    // Keep the live camera diagnostics readable instead
-                    // of clipping one long line of corner, scale and edge data.
-                    var headline = $"WHITE CORNER ({point.X},{point.Y}) " +
-                        (corner.PositionStable ? "STABLE" : "ACQUIRING");
+                    // The 1920px position-camera image is displayed much
+                    // smaller in WPF. The old fixed font scales (0.42-0.49)
+                    // became practically unreadable. Draw fewer, large lines
+                    // sized to the source frame and put them at the top-left
+                    // away from the camera Play controls at the bottom.
+                    var headline = corner.PositionStable
+                        ? $"CORNER LOCKED ({point.X},{point.Y})"
+                        : $"CORNER ACQUIRING ({point.X},{point.Y})";
                     var offsets = corner.OffsetMM;
                     var measurements = $"X {offsets.X:+0.00;-0.00;0.00}  " +
-                        $"Y {offsets.Y:+0.00;-0.00;0.00} mm  " +
-                        (corner.UsesStartBarScale ? "START SCALE" : "CAMERA SCALE");
-                    CvInvoke.PutText(img.Image, headline,
-                        new Point(6, Math.Max(22, size.Height - 67)),
-                        FontFace.HersheySimplex, 0.49, color, 1, LineType.AntiAlias);
-                    CvInvoke.PutText(img.Image, measurements,
-                        new Point(6, Math.Max(22, size.Height - 43)),
-                        FontFace.HersheySimplex, 0.42, color, 1, LineType.AntiAlias);
-                    if (!String.IsNullOrEmpty(corner.EdgeSummary))
-                        CvInvoke.PutText(img.Image, corner.EdgeSummary,
-                            new Point(6, Math.Max(22, size.Height - 19)),
-                            FontFace.HersheySimplex, 0.42, color, 1, LineType.AntiAlias);
+                        $"Y {offsets.Y:+0.00;-0.00;0.00} mm";
+                    var scale = (corner.UsesStartBarScale ? "START" : "CAMERA") +
+                        $" SCALE {corner.PixelsPerMm:F1} px/mm";
+                    DrawFeederCornerLabel(img.Image, size, headline, 0, color, true);
+                    DrawFeederCornerLabel(img.Image, size, measurements, 1, color);
+                    DrawFeederCornerLabel(img.Image, size, scale, 2, color);
+                    DrawFeederCornerLabel(img.Image, size, corner.EdgeSummary, 3, color);
                 }
                 else
                 {
@@ -125,10 +150,8 @@ namespace LagoVista.PickAndPlace.App.Services
                         StringComparison.Ordinal)
                         ? "MULTIPLE WHITE CORNERS: REDUCE RADIUS"
                         : "NO WHITE L CORNER: CHECK THRESHOLD/RADIUS";
-                    CvInvoke.PutText(img.Image, message,
-                        new Point(6, Math.Max(22, size.Height - 20)),
-                        FontFace.HersheySimplex, 0.40,
-                        new MCvScalar(0, 180, 255), 1, LineType.AntiAlias);
+                    DrawFeederCornerLabel(img.Image, size, message, 0,
+                        new MCvScalar(0, 180, 255));
                 }
                 return;
             }
