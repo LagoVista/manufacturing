@@ -101,6 +101,16 @@
                     </ListView.ItemTemplate>
                 </ListView>
 
+                <ListView ItemsSource="{Binding ShapeDetector.FoundCorners}" BorderBrush="Transparent"
+                          Background="Transparent" Foreground="White">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Summary}" Foreground="White"
+                                       TextWrapping="Wrap" />
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
                 <TextBlock Text="{Binding Profile.ZoomLevel}" />
             </StackPanel>
         </Grid>
