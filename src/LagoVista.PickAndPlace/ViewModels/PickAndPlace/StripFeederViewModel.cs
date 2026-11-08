@@ -53,6 +53,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private readonly IRestClient _restClient;
         private readonly ILocatorViewModel _locatorVM;
         private bool _isEditing;
+        private bool _barcodeScanInProgress;
+        private string _barcodeScanStatus = "Frame Barcode, then select Scan Barcode.";
+
+        public string FeederBarcodeScanStatus
+        {
+            get => _barcodeScanStatus;
+            private set => Set(ref _barcodeScanStatus, value);
+        }
 
         public StripFeederViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorVM, IRestClient restClient, IMachineUtilitiesViewModel machineUtilitiesViewModel) : base(machineRepo, restClient, locatorVM, machineUtilitiesViewModel)
         {
@@ -65,6 +73,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             GoToFeederOriginCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.FeederOrigin), () => Current != null);
             FrameFeederBarcodeCommand = CreatedMachineConnectedCommand(FrameFeederBarcode, () => Current != null);
+            ScanFeederBarcodeCommand = CreatedMachineConnectedCommand(ScanFeederBarcode,
+                () => Current != null && !_barcodeScanInProgress);
             GoToFeederReferenceHoleCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.FeederReferenceHole), () => Current != null);
 
             GoToFirstFeederReferenceHoleCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.FirstFeederRowReferenceHole), () => CurrentRow != null);
@@ -246,6 +256,128 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 $"camera offset {shiftMm:F2} mm along marker (target start at 35% of image).");
         }
 
+
+        // The operator explicitly starts this bounded scan after framing START.
+        // No feeder coordinates, identity or calibration settings are persisted.
+        private async void ScanFeederBarcode()
+        {
+            if (_barcodeScanInProgress || Current == null)
+                return;
+
+            _barcodeScanInProgress = true;
+            var feeder = Current;
+            try
+            {
+                var capture = Machine?.PositionImageCaptureService;
+                if (capture?.Camera == null ||
+                    capture.Profile?.Key != VisionProfile.VisionProfile_FeederBarcode)
+                {
+                    FeederBarcodeScanStatus = "Select Frame Barcode with the position camera running first.";
+                    Machine?.AddStatusMessage(StatusMessageTypes.Warning, FeederBarcodeScanStatus);
+                    return;
+                }
+                if (Machine.Mode != OperatingMode.Manual)
+                {
+                    FeederBarcodeScanStatus = "Barcode scan requires Manual machine mode.";
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning, FeederBarcodeScanStatus);
+                    return;
+                }
+
+                var vertical = feeder.Orientation.Value == FeederOrientations.Vertical;
+                capture.FeederBarcodeVertical = vertical;
+                var scan = new FeederBarcodeScan();
+                var totalMovedMm = 0.0;
+                const int maxCaptures = 5;
+                const double maximumTotalMoveMm = 18.0;
+
+                for (var captureNumber = 1; captureNumber <= maxCaptures; captureNumber++)
+                {
+                    if (!Machine.Connected || Current != feeder)
+                    {
+                        FeederBarcodeScanStatus = "Scan stopped: feeder selection or machine connection changed.";
+                        break;
+                    }
+
+                    var idle = await Machine.SpinUntilIdleAsync(6000);
+                    if (!idle.Successful)
+                    {
+                        FeederBarcodeScanStatus = $"Scan stopped: machine did not become idle ({idle.ErrorMessage}).";
+                        break;
+                    }
+
+                    // Sample only after motion has finished, allowing the live
+                    // camera to settle before requesting a fresh processed frame.
+                    await Task.Delay(180);
+                    var location = await Machine.GetCurrentLocationAsync(5000);
+                    if (!location.Successful)
+                    {
+                        FeederBarcodeScanStatus = $"Scan stopped: machine position unavailable ({location.ErrorMessage}).";
+                        break;
+                    }
+
+                    var frame = await capture.CaptureFeederBarcodeSignalAsync();
+                    if (!frame.Successful)
+                    {
+                        FeederBarcodeScanStatus = $"Scan stopped: {frame.ErrorMessage}";
+                        break;
+                    }
+
+                    var machineAxisMm = vertical ? -location.Result.Y : location.Result.X;
+                    scan.AddCapture(frame.Result, machineAxisMm, capture.Camera.EffectivePixelsPerMM);
+                    FeederBarcodeScanStatus = scan.Status;
+                    if (scan.IsComplete)
+                    {
+                        Machine.AddStatusMessage(StatusMessageTypes.Info, scan.Status);
+                        return;
+                    }
+                    if (!scan.HasVerifiedStart || scan.ObservedBars >= 11 ||
+                        scan.Status.StartsWith("OVERLAP MISMATCH", StringComparison.Ordinal))
+                        break;
+
+                    if (captureNumber == maxCaptures)
+                        break;
+
+                    // Advance less than half a frame to ensure substantial
+                    // overlap. Use START-derived optical scale, never the
+                    // potentially inaccurate camera profile pixels/mm.
+                    var frameMm = frame.Result.Length / scan.PixelsPerMmFromStart;
+                    var stepMm = Math.Min(6.0, frameMm * 0.42);
+                    if (double.IsNaN(stepMm) || double.IsInfinity(stepMm) ||
+                        stepMm < 0.5 || totalMovedMm + stepMm > maximumTotalMoveMm)
+                    {
+                        FeederBarcodeScanStatus = "Scan stopped: next camera move is outside the 18 mm scan limit.";
+                        break;
+                    }
+
+                    var target = vertical
+                        ? new Point2D<double>(location.Result.X, location.Result.Y - stepMm)
+                        : new Point2D<double>(location.Result.X + stepMm, location.Result.Y);
+                    if (target.X < 0 || target.Y < 0 ||
+                        target.X > Machine.Settings.WorkAreaSize.X ||
+                        target.Y > Machine.Settings.WorkAreaSize.Y)
+                    {
+                        FeederBarcodeScanStatus = "Scan stopped: the next position is outside the configured work area.";
+                        break;
+                    }
+
+                    Machine.SendSafeMoveHeight();
+                    Machine.GotoPoint(target);
+                    totalMovedMm += stepMm;
+                }
+
+                Machine.AddStatusMessage(StatusMessageTypes.Warning, FeederBarcodeScanStatus);
+            }
+            catch (Exception ex)
+            {
+                FeederBarcodeScanStatus = $"Barcode scan failed: {ex.Message}";
+                Machine?.AddStatusMessage(StatusMessageTypes.Warning, FeederBarcodeScanStatus);
+            }
+            finally
+            {
+                _barcodeScanInProgress = false;
+                RaiseCanExecuteChanged();
+            }
+        }
 
         public async void RemoveCurrent()
         {
@@ -598,6 +730,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 _isEditing = true;
                 Set(ref _current, value);
+                FeederBarcodeScanStatus = "Frame Barcode, then select Scan Barcode.";
                 if (value != null)
                 {
                     _tapeSize = _current.TapeSize;
@@ -716,6 +849,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand SetFeederOriginCommand { get; }
         public RelayCommand GoToFeederOriginCommand { get; }
         public RelayCommand FrameFeederBarcodeCommand { get; }
+        public RelayCommand ScanFeederBarcodeCommand { get; }
         public RelayCommand GoToFeederReferenceHoleCommand { get; }
 
 
