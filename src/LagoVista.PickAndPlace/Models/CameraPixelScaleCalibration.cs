@@ -1,5 +1,6 @@
 using LagoVista.Manufacturing.Models;
 using System;
+using System.Globalization;
 
 namespace LagoVista.PickAndPlace.Models
 {
@@ -25,6 +26,24 @@ namespace LagoVista.PickAndPlace.Models
 
             pixelsPerMm = calculated;
             return true;
+        }
+
+        // Parse the complete user-entered measurement, not each keystroke as
+        // a double WPF binding. Support both the local decimal separator and
+        // the explicit dot commonly used in machine calibration.
+        public static bool TryCalculateText(string measuredMillimetersText, out double pixelsPerMm)
+        {
+            pixelsPerMm = 0;
+            if (String.IsNullOrWhiteSpace(measuredMillimetersText))
+                return false;
+
+            if (!double.TryParse(measuredMillimetersText, NumberStyles.Float,
+                    CultureInfo.CurrentCulture, out var millimeters) &&
+                !double.TryParse(measuredMillimetersText, NumberStyles.Float,
+                    CultureInfo.InvariantCulture, out millimeters))
+                return false;
+
+            return TryCalculate(millimeters, out pixelsPerMm);
         }
 
         public static void ApplyToProfile(VisionProfile profile, double pixelsPerMm)

@@ -57,7 +57,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             SetCameraPixelsPerMMCommand = new RelayCommand(
                 async () => await SetCameraPixelsPerMMAsync(),
                 () => !_savingCameraPixelsPerMM && SelectedMachineCamera != null &&
-                      CameraPixelScaleCalibration.TryCalculate(CameraMeasuredMM, out _));
+                      CameraPixelScaleCalibration.TryCalculateText(CameraMeasuredMM, out _));
 
 
             MoveToStagingPlateReferenceHole1LocationCommand = CreatedMachineConnectedCommand(() =>
@@ -84,8 +84,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
 
         private bool _savingCameraPixelsPerMM;
-        private double? _cameraMeasuredMM;
-        public double? CameraMeasuredMM
+        // Text-backed input lets the operator type intermediate values such as "2."
+        // without WPF rounding away the decimal point on each keystroke.
+        private string _cameraMeasuredMM;
+        public string CameraMeasuredMM
         {
             get => _cameraMeasuredMM;
             set
@@ -112,7 +114,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private async Task SetCameraPixelsPerMMAsync()
         {
             if (_savingCameraPixelsPerMM || SelectedMachineCamera == null ||
-                !CameraPixelScaleCalibration.TryCalculate(CameraMeasuredMM, out var pixelsPerMm))
+                !CameraPixelScaleCalibration.TryCalculateText(CameraMeasuredMM, out var pixelsPerMm))
                 return;
 
             var camera = SelectedMachineCamera;

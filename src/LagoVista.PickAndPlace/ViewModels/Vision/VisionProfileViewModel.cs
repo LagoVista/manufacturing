@@ -27,7 +27,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         {
             VisionProfiles = new ObservableCollection<EntityHeader>(VisionProfile.DefaultVisionProfiles);
             SetPixelsPerMMCommand = new RelayCommand(SetPixelsPerMM,
-                () => Profile != null && CameraPixelScaleCalibration.TryCalculate(MeasuredMM, out _));
+                () => Profile != null && CameraPixelScaleCalibration.TryCalculateText(MeasuredMM, out _));
             ClearProfilePixelsPerMMCommand = new RelayCommand(ClearProfilePixelsPerMM,
                 () => Profile?.PixelsPerMM.HasValue == true);
             SaveCommand = new RelayCommand(async () => await SaveAsync());
@@ -43,7 +43,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
         void SetPixelsPerMM()
         {
-            if (Profile == null || !CameraPixelScaleCalibration.TryCalculate(MeasuredMM, out var pixelsPerMm))
+            if (Profile == null || !CameraPixelScaleCalibration.TryCalculateText(MeasuredMM, out var pixelsPerMm))
                 return;
 
             // This screen edits the active vision profile, not the camera default.
@@ -370,8 +370,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
         }
 
-        private double? _measuedMM;
-        public double? MeasuredMM
+        // Do not bind the TextBox directly to double?: that normalizes "2."
+        // before the user can finish typing "2.2".
+        private string _measuedMM;
+        public string MeasuredMM
         {
             get => _measuedMM;
             set

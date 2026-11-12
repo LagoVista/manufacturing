@@ -1,6 +1,8 @@
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Models;
 using NUnit.Framework;
+using System.Globalization;
+using System.Threading;
 
 namespace LagoVista.PickAndPlace.GCodeTests.Foundation
 {
@@ -11,6 +13,46 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         {
             Assert.That(CameraPixelScaleCalibration.TryCalculate(2.1, out var scale), Is.True);
             Assert.That(scale, Is.EqualTo(95.2));
+        }
+
+        [Test]
+        public void TextMeasurementAcceptsDecimalPointWithoutRewritingIntermediateInput()
+        {
+            // The TextBox is bound to a string. "2." remains in that string
+            // until the operator types the next digit rather than becoming 2.
+            var measurement = "2.";
+            Assert.That(CameraPixelScaleCalibration.TryCalculateText(measurement, out _), Is.True);
+            Assert.That(measurement, Is.EqualTo("2."));
+            measurement += "2";
+            Assert.That(CameraPixelScaleCalibration.TryCalculateText(measurement, out var result), Is.True);
+            Assert.That(measurement, Is.EqualTo("2.2"));
+            Assert.That(result, Is.EqualTo(90.9));
+        }
+
+        [Test]
+        public void TextMeasurementSupportsLocalCommaOrInvariantDot()
+        {
+            var originalCulture = Thread.CurrentThread.CurrentCulture;
+            try
+            {
+                Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("fr-FR");
+                Assert.That(CameraPixelScaleCalibration.TryCalculateText("2,2", out var commaScale), Is.True);
+                Assert.That(CameraPixelScaleCalibration.TryCalculateText("2.2", out var dotScale), Is.True);
+                Assert.That(commaScale, Is.EqualTo(90.9));
+                Assert.That(dotScale, Is.EqualTo(90.9));
+            }
+            finally
+            {
+                Thread.CurrentThread.CurrentCulture = originalCulture;
+            }
+        }
+
+        [Test]
+        public void TextMeasurementRejectsIncompleteOrInvalidMeasurements()
+        {
+            Assert.That(CameraPixelScaleCalibration.TryCalculateText("", out _), Is.False);
+            Assert.That(CameraPixelScaleCalibration.TryCalculateText("not a number", out _), Is.False);
+            Assert.That(CameraPixelScaleCalibration.TryCalculateText("0", out _), Is.False);
         }
 
         [Test]

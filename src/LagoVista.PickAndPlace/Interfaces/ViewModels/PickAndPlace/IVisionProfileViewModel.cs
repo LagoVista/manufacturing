@@ -21,7 +21,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         string SelectedCameraDevicePath { get; set; }
         ObservableCollection<EntityHeader> CameraList { get; set; }
 
-        double? MeasuredMM { get; set; }
+        string MeasuredMM { get; set; }
         string EffectiveCalibrationSummary { get; }
 
         RelayCommand SetPixelsPerMMCommand { get; }
