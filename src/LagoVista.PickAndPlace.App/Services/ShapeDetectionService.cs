@@ -60,12 +60,15 @@ namespace LagoVista.PickAndPlace.App.Services
             // roughly 400px window. Proportional text remains legible after
             // WPF scales the image down. Keep a dark stroke for white-image
             // backgrounds, without adding a filled box over the fiducial.
-            var fontScale = Math.Max(0.8, Math.Min(3.4,
-                size.Width / (prominent ? 560.0 : 660.0)));
-            var thickness = Math.Max(2, (int)Math.Round(size.Width / 430.0));
+            // Give the first line a little more top clearance after WPF
+            // shrinks the 1920px frame into the camera preview. Slightly
+            // smaller font and increased line spacing avoid clipping.
+            var fontScale = Math.Max(0.72, Math.Min(2.8,
+                size.Width / (prominent ? 680.0 : 760.0)));
+            var thickness = Math.Max(1, (int)Math.Round(size.Width / 620.0));
             var x = Math.Max(8, (int)Math.Round(size.Width * 0.016));
-            var y = Math.Max(30, (int)Math.Round(size.Width * 0.058)) +
-                line * Math.Max(25, (int)Math.Round(size.Width * 0.048));
+            var y = Math.Max(34, (int)Math.Round(size.Width * 0.083)) +
+                line * Math.Max(25, (int)Math.Round(size.Width * 0.052));
             var position = new Point(x, y);
             CvInvoke.PutText(image, message, position,
                 FontFace.HersheySimplex, fontScale, new MCvScalar(0, 0, 0),
