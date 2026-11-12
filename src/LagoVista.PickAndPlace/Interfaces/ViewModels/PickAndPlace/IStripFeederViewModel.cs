@@ -27,6 +27,15 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 
         ObservableCollection<StripFeeder> Feeders { get; }
 
+        ObservableCollection<FeederCalibrationStepDisplay> FeederCalibrationSteps { get; }
+        string FeederCalibrationStatus { get; }
+        string FeederCalibrationMeasurement { get; }
+        string FeederCalibrationActionLabel { get; }
+        RelayCommand FeederCalibrationNextCommand { get; }
+        RelayCommand FeederCalibrationRetryCommand { get; }
+        RelayCommand FeederCalibrationCancelCommand { get; }
+        RelayCommand FeederCalibrationNewRunCommand { get; }
+
         RelayCommand SetFeederOriginCommand { get; }
 
         RelayCommand GoToFeederOriginCommand { get; }
