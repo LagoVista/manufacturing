@@ -10,6 +10,7 @@ using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
+using LagoVista.Manufacturing.Models.Operations;
 using LagoVista.Manufacturing.Util;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
@@ -142,8 +143,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         protected async override void MachineChanged(IMachine machine)
         {
+            ResetFeederCalibration();
             await LoadFeeders();
             base.MachineChanged(machine);
+            ResetFeederCalibration();
+        }
+
+        protected override void OnMachineDisconnected()
+        {
+            ResetFeederCalibration();
+            base.OnMachineDisconnected();
         }
 
         private async void Add()
@@ -155,6 +164,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Current.Machine = MachineConfiguration.ToEntityHeader();
                 Current.Key = Current.Id.Value.ToLower();
                 _isEditing = false;
+                ResetFeederCalibration();
             }
         }
 
@@ -511,6 +521,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         Feeders.Add(Current);
 
                     _isEditing = true;
+                    if (!close)
+                        ResetFeederCalibration();
 
                     if (close)
                     {
@@ -842,6 +854,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (Machine?.PositionImageCaptureService != null)
                     Machine.PositionImageCaptureService.FeederBarcodeVertical =
                         value == null ? (bool?)null : value.Orientation.Value == FeederOrientations.Vertical;
+                ResetFeederCalibration();
                 RaiseCanExecuteChanged();
             }
         }
@@ -890,6 +903,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 RaisePropertyChanged(nameof(CurrentComponent));
                 RaisePropertyChanged(nameof(TapePitch));
                 RaisePropertyChanged(nameof(CurrentComponentPackage));
+                ResetFeederCalibration();
                 RaiseCanExecuteChanged();
             }
         }
