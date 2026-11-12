@@ -26,7 +26,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
         public VisionProfileViewModel(IMachineRepo machineRepo, IRestClient restClient) : base(machineRepo)
         {
             VisionProfiles = new ObservableCollection<EntityHeader>(VisionProfile.DefaultVisionProfiles);
-            SetPixelsPerMMCommand = new RelayCommand(SetPixelsPerMM, () => MeasuredMM.HasValue);
+            SetPixelsPerMMCommand = new RelayCommand(SetPixelsPerMM,
+                () => Profile != null && CameraPixelScaleCalibration.TryCalculate(MeasuredMM, out _));
+            ClearProfilePixelsPerMMCommand = new RelayCommand(ClearProfilePixelsPerMM,
+                () => Profile?.PixelsPerMM.HasValue == true);
             SaveCommand = new RelayCommand(async () => await SaveAsync());
             SetInspectionHeight = new RelayCommand(() =>
             {
@@ -40,10 +43,34 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
 
         void SetPixelsPerMM()
         {
-            if (MeasuredMM.HasValue && MeasuredMM.Value > 0)
-            {
-                Camera.PixelsPerMM = 200 / MeasuredMM.Value;
-            }
+            if (Profile == null || !CameraPixelScaleCalibration.TryCalculate(MeasuredMM, out var pixelsPerMm))
+                return;
+
+            // This screen edits the active vision profile, not the camera default.
+            CameraPixelScaleCalibration.ApplyToProfile(Profile, pixelsPerMm);
+            NotifyCalibrationChanged();
+        }
+
+        void ClearProfilePixelsPerMM()
+        {
+            if (Profile == null)
+                return;
+
+            // Null means inherit the camera's calibrated PixelsPerMM.
+            Profile.PixelsPerMM = null;
+            NotifyCalibrationChanged();
+        }
+
+        public string EffectiveCalibrationSummary => Camera == null || Profile == null
+            ? "Select a camera and vision profile."
+            : $"Effective: {Camera.EffectivePixelsPerMM:F1} px/mm " +
+              (Profile.PixelsPerMM.HasValue ? "(vision profile override)" : "(camera default)");
+
+        private void NotifyCalibrationChanged()
+        {
+            RaisePropertyChanged(nameof(EffectiveCalibrationSummary));
+            SetPixelsPerMMCommand.RaiseCanExecuteChanged();
+            ClearProfilePixelsPerMMCommand.RaiseCanExecuteChanged();
         }
 
         public string PolygonHelp { get { return "http://docs.opencv.org/2.4/doc/tutorials/imgproc/shapedescriptors/bounding_rects_circles/bounding_rects_circles.html?highlight=approxpolydp"; } }
@@ -183,12 +210,22 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                     Camera.CurrentVisionProfile.PropertyChanged += CurrentVisionProfile_PropertyChanged;
                 }
 
+                if (Camera?.CurrentVisionProfile != null)
+                {
+                    // Keep listening even when the user reselects the same profile.
+                    Camera.CurrentVisionProfile.PropertyChanged -= CurrentVisionProfile_PropertyChanged;
+                    Camera.CurrentVisionProfile.PropertyChanged += CurrentVisionProfile_PropertyChanged;
+                }
                 CopyVisionProfileFromDefaultCommand.RaiseCanExecuteChanged();
+                NotifyCalibrationChanged();
             }
         }
 
         private void CurrentVisionProfile_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
+            if (e.PropertyName == nameof(VisionProfile.PixelsPerMM))
+                NotifyCalibrationChanged();
+
             if (e.PropertyName == nameof(VisionProfile.LightRed) ||
                 e.PropertyName == nameof(VisionProfile.LightGreen) ||
                 e.PropertyName == nameof(VisionProfile.LightBlue) ||
@@ -230,6 +267,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                         Camera.CurrentVisionProfile.PropertyChanged += CurrentVisionProfile_PropertyChanged;
                     }
                 }
+
+                NotifyCalibrationChanged();
             }
         }
 
@@ -252,6 +291,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
              
                 RaisePropertyChanged(nameof(SelectedProfile));
                 RaisePropertyChanged(nameof(Profile));
+                NotifyCalibrationChanged();
+            }
+            else if (e.PropertyName == nameof(Camera.PixelsPerMM))
+            {
+                NotifyCalibrationChanged();
             }
             else if (e.PropertyName == nameof(Camera.LightPower) ||
                      e.PropertyName == nameof(Camera.LightRed) ||
@@ -337,6 +381,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             }
         }
 
+        public RelayCommand ClearProfilePixelsPerMMCommand { get; }
         public RelayCommand SetPixelsPerMMCommand { get; }
         public RelayCommand SetInspectionHeight { get; }
         public RelayCommand CopyVisionProfileFromDefaultCommand { get; }

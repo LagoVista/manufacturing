@@ -301,23 +301,32 @@
             </TabItem>
 
             <TabItem Header="Calibration">
-                <StackPanel Margin="4">
-                    <TextBlock Text="Set Pixels per MM" FontSize="20" FontWeight="Bold" />
+                <StackPanel Margin="8">
+                    <TextBlock Text="Vision Profile Pixels per MM" FontSize="20" FontWeight="Bold" />
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,2">
+                        <TextBlock Text="Camera default: " FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding Camera.PixelsPerMM, StringFormat='{}{0:F1} px/mm'}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                        <TextBlock Text="Profile override: " FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding Profile.PixelsPerMM, TargetNullValue='Inherited from camera'}"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding EffectiveCalibrationSummary}" FontWeight="SemiBold" Margin="0,0,0,10"/>
 
-                    <TextBlock Text="{Binding Camera.PixelsPerMM}"/>
+                    <TextBlock Text="1) Show the 200px square in the camera preview"/>
+                    <CheckBox IsChecked="{Binding Profile.Show200PixelSquare, Mode=TwoWay}" Margin="0,4,0,8"/>
 
-                    <Label Content="1) Show 200px Square"  Grid.Row="6" />
-                    <CheckBox IsChecked="{Binding Profile.Show200PixelSquare, Mode=TwoWay}"/>
+                    <TextBlock Text="2) Place a metric ruler at this profile's normal working height" TextWrapping="Wrap"/>
+                    <TextBlock Text="3) Enter the millimeters spanned by the 200px square" Margin="0,8,0,2"/>
+                    <TextBox Text="{Binding MeasuredMM, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
-                    <Label Content="2) Place a metric ruler at the normal pick height of the machine" />
-
-                    <Label Content="3) Measure and enter the number of millimeters" />
-                    <TextBox Text="{Binding MeasuredMM, Mode=TwoWay}" ></TextBox>
-
-                    <Label Content="4) Press Calculate"></Label>
-                    <Button Style="{StaticResource CommandButton}" Command="{Binding SetPixelsPerMMCommand}" >Calculate</Button>
+                    <TextBlock Text="4) Calculate the profile override" Margin="0,8,0,4"/>
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding SetPixelsPerMMCommand}" Content="Calculate for this Profile"/>
+                    <Button Style="{StaticResource CommandButton}" Command="{Binding ClearProfilePixelsPerMMCommand}"
+                            Content="Use Camera Default (Clear Override)" Margin="0,8,0,0"/>
+                    <TextBlock Text="Use Save in the Vision Profile editor to persist changes."
+                               TextWrapping="Wrap" Margin="0,8,0,0"/>
                 </StackPanel>
-
             </TabItem>
             <TabItem Header="Lights">
                 <StackPanel>

@@ -258,7 +258,8 @@
                     <DataGridTextColumn Header="Exposure" Binding="{Binding Exposure}" />
                 </DataGrid.Columns>
             </DataGrid>
-            <StackPanel Grid.Column="1" Visibility="{Binding SelectedMachineCamera, Converter={StaticResource NoTNullToVisibilityConverter}}">
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="12,0,0,0">
+              <StackPanel Visibility="{Binding SelectedMachineCamera, Converter={StaticResource NoTNullToVisibilityConverter}}">
                 <TextBlock Style="{StaticResource header}" Text="{Binding SelectedMachineCamera.Name}"></TextBlock>
                 <TextBlock TextWrapping="Wrap" Width="600" Style="{StaticResource content}" >This is only done with the camera that is fixed.  Move the position camera over the bottom camera, center the position camera lens over the bottom camera and capture the point.</TextBlock>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
@@ -288,7 +289,35 @@
                             Command="{Binding AutoTuneCameraExposureCommand}"
                             Content="Move + Auto Tune Exposure" />
                 </StackPanel>
-            </StackPanel>
+
+                <Separator Margin="0,12,0,10"/>
+                <TextBlock Style="{StaticResource header}" Text="Camera Pixels per MM"/>
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,6">
+                    <TextBlock Text="Camera default: " FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding SelectedMachineCamera.PixelsPerMM, StringFormat='{}{0:F1} px/mm'}"/>
+                </StackPanel>
+                <TextBlock Text="1) Show the 200px square in the selected camera's active vision profile"
+                           TextWrapping="Wrap"/>
+                <CheckBox IsChecked="{Binding SelectedMachineCamera.CurrentVisionProfile.Show200PixelSquare, Mode=TwoWay}"
+                          Content="Show 200px calibration square" Margin="0,4,0,8"/>
+                <TextBlock Text="2) Place a metric ruler at the intended camera calibration height"
+                           TextWrapping="Wrap"/>
+                <TextBlock Text="3) Enter the millimeters spanned by the 200px square"
+                           Margin="0,8,0,2"/>
+                <TextBox Text="{Binding CameraMeasuredMM, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Width="220" HorizontalAlignment="Left" Margin="0,0,0,8"/>
+                <CheckBox IsChecked="{Binding ClearAllVisionProfilePixelOverrides, Mode=TwoWay}"
+                          Margin="0,4,0,8">
+                    <TextBlock Text="Clear calibration overrides for all vision profiles on this camera"
+                               TextWrapping="Wrap"/>
+                </CheckBox>
+                <Button Style="{StaticResource CommandButton}"
+                        Command="{Binding SetCameraPixelsPerMMCommand}"
+                        Content="Calculate and Save Camera Calibration" HorizontalAlignment="Left"/>
+                <TextBlock Text="{Binding CameraCalibrationStatus}" TextWrapping="Wrap"
+                           Margin="0,8,0,8"/>
+              </StackPanel>
+            </ScrollViewer>
 
         </Grid>
 

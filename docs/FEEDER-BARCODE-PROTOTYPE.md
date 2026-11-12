@@ -63,6 +63,20 @@ No operation in this workflow writes `OriginOffset` or changes barcode
 scanning. The existing **Set Feeder Origin** button remains the explicit place
 where the operator saves an offset.
 
+### Calibrating the physical pixels/mm scale
+
+The Vision Profile editor's **Calibration** tab measures the 200px overlay
+and writes `VisionProfile.PixelsPerMM` (nullable). **Use Camera Default**
+clears that one profile override; save the profile using the editor's Save
+command. In **Machine Calibration**, select a camera to measure and save its
+base `MachineCamera.PixelsPerMM`. The optional **Clear calibration overrides
+for all vision profiles on this camera** checkbox sets every profile's
+`PixelsPerMM` to null while saving that camera calibration. With the box
+unchecked, existing profile overrides remain unchanged. Runtime location
+and jogging use the selected profile override if present and otherwise the
+camera base calibration. The START bar still calibrates barcode symbol widths
+independently; it never changes the physical jog scale.
+
 ## Accuracy chain
 
 1. Resolve the approximate feeder position from the calibrated staging plate mounting hole (initial tolerance approximately 2 mm).

@@ -6,6 +6,7 @@ using LagoVista.Core.Commanding;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Models;
+using System;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels.Machine
@@ -53,6 +54,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                       Machine.PositionImageCaptureService != null &&
                       !MachineConfiguration.MachineFiducial.IsOrigin());
 
+            SetCameraPixelsPerMMCommand = new RelayCommand(
+                async () => await SetCameraPixelsPerMMAsync(),
+                () => !_savingCameraPixelsPerMM && SelectedMachineCamera != null &&
+                      CameraPixelScaleCalibration.TryCalculate(CameraMeasuredMM, out _));
+
 
             MoveToStagingPlateReferenceHole1LocationCommand = CreatedMachineConnectedCommand(() =>
             {
@@ -76,6 +82,71 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         }
 
 
+
+        private bool _savingCameraPixelsPerMM;
+        private double? _cameraMeasuredMM;
+        public double? CameraMeasuredMM
+        {
+            get => _cameraMeasuredMM;
+            set
+            {
+                Set(ref _cameraMeasuredMM, value);
+                SetCameraPixelsPerMMCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        private bool _clearAllVisionProfilePixelOverrides;
+        public bool ClearAllVisionProfilePixelOverrides
+        {
+            get => _clearAllVisionProfilePixelOverrides;
+            set => Set(ref _clearAllVisionProfilePixelOverrides, value);
+        }
+
+        private string _cameraCalibrationStatus = "Measure the displayed 200px square to calibrate the selected camera.";
+        public string CameraCalibrationStatus
+        {
+            get => _cameraCalibrationStatus;
+            private set => Set(ref _cameraCalibrationStatus, value);
+        }
+
+        private async Task SetCameraPixelsPerMMAsync()
+        {
+            if (_savingCameraPixelsPerMM || SelectedMachineCamera == null ||
+                !CameraPixelScaleCalibration.TryCalculate(CameraMeasuredMM, out var pixelsPerMm))
+                return;
+
+            var camera = SelectedMachineCamera;
+            var clearOverrides = ClearAllVisionProfilePixelOverrides;
+            _savingCameraPixelsPerMM = true;
+            SetCameraPixelsPerMMCommand.RaiseCanExecuteChanged();
+            try
+            {
+                CameraPixelScaleCalibration.ApplyToCamera(camera, pixelsPerMm, clearOverrides);
+                CameraCalibrationStatus = "Saving camera calibration...";
+                var result = await MachineRepo.SaveCurrentMachineAsync();
+                if (result.Successful)
+                {
+                    CameraCalibrationStatus = $"Saved {camera.Name}: {camera.PixelsPerMM:F1} px/mm" +
+                        (clearOverrides ? "; profile overrides cleared." : "; profile overrides retained.");
+                    Machine?.AddStatusMessage(StatusMessageTypes.Info, CameraCalibrationStatus);
+                }
+                else
+                {
+                    CameraCalibrationStatus = $"Calibration applied locally but save failed: {result.ErrorMessage}";
+                    Machine?.AddStatusMessage(StatusMessageTypes.Warning, CameraCalibrationStatus);
+                }
+            }
+            catch (Exception ex)
+            {
+                CameraCalibrationStatus = $"Could not save camera calibration: {ex.Message}";
+                Machine?.AddStatusMessage(StatusMessageTypes.Warning, CameraCalibrationStatus);
+            }
+            finally
+            {
+                _savingCameraPixelsPerMM = false;
+                SetCameraPixelsPerMMCommand.RaiseCanExecuteChanged();
+            }
+        }
 
         private async Task AutoTuneCameraExposureAsync()
         {
@@ -192,6 +263,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             set
             {
                 Set(ref _selectedMachineCamera, value);
+                CameraMeasuredMM = null;
+                ClearAllVisionProfilePixelOverrides = false;
+                CameraCalibrationStatus = "Measure the displayed 200px square to calibrate the selected camera.";
+                SetCameraPixelsPerMMCommand.RaiseCanExecuteChanged();
                 RaiseCanExecuteChanged();
             }
         }
@@ -209,6 +284,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         
         
         public RelayCommand SetCameraLocationCommand { get; }
+        public RelayCommand SetCameraPixelsPerMMCommand { get; }
         public RelayCommand AutoTuneCameraExposureCommand { get; }
         public RelayCommand SetMachineFiducialCommand { get; }
         public RelayCommand MoveToMachineFiducialCommand { get; }

@@ -32,6 +32,11 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         RelayCommand AutoTuneCameraExposureCommand { get; }
         RelayCommand MoveToCameraLocationCommand { get; }
 
+        double? CameraMeasuredMM { get; set; }
+        bool ClearAllVisionProfilePixelOverrides { get; set; }
+        string CameraCalibrationStatus { get; }
+        RelayCommand SetCameraPixelsPerMMCommand { get; }
+
 
         RelayCommand SetDefaultSafeMoveHeightCommand { get; }
 

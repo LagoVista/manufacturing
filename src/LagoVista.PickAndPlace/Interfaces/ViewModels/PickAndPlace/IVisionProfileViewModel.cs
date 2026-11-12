@@ -22,8 +22,10 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         ObservableCollection<EntityHeader> CameraList { get; set; }
 
         double? MeasuredMM { get; set; }
+        string EffectiveCalibrationSummary { get; }
 
         RelayCommand SetPixelsPerMMCommand { get; }
+        RelayCommand ClearProfilePixelsPerMMCommand { get; }
         RelayCommand SaveCommand { get; }
         RelayCommand CopyVisionProfileFromDefaultCommand { get; }
         RelayCommand SetInspectionHeight { get; }
