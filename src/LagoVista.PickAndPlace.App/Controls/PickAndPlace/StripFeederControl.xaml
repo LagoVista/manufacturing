@@ -156,6 +156,89 @@
                 </Grid>
 
 
+                <!-- The C# operation owns motion and persistence. This panel only
+                     renders its steps and invokes operator-approved actions. -->
+                <Expander Header="Guided Strip Feeder Calibration" IsExpanded="True"
+                          Margin="10,8,10,12">
+                    <Border BorderBrush="#606060" BorderThickness="1" CornerRadius="4" Padding="10">
+                        <StackPanel>
+                            <TextBlock Text="Steps 1–3 are ready; tape-hole and pocket stages follow in later tasks."
+                                       TextWrapping="Wrap" FontSize="12" Opacity="0.85"
+                                       Margin="0,0,0,8"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*" MinWidth="260"/>
+                                    <ColumnDefinition Width="3*" MinWidth="260"/>
+                                </Grid.ColumnDefinitions>
+                                <ItemsControl Grid.Column="0" ItemsSource="{Binding FeederCalibrationSteps}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Margin="0,3,12,5">
+                                                <DockPanel>
+                                                    <TextBlock Text="{Binding Status}" DockPanel.Dock="Right"
+                                                               FontSize="11" Margin="8,0,0,0">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Foreground" Value="#9DA8B7"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Status}" Value="Passed">
+                                                                        <Setter Property="Foreground" Value="#82DCA3"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding Status}" Value="Active">
+                                                                        <Setter Property="Foreground" Value="#80BFFF"/>
+                                                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding Status}" Value="Blocked">
+                                                                        <Setter Property="Foreground" Value="#F2B46E"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                    <TextBlock Text="{Binding Title}" FontSize="13"
+                                                               TextWrapping="Wrap"/>
+                                                </DockPanel>
+                                                <TextBlock Text="{Binding Evidence}" FontSize="11"
+                                                           TextWrapping="Wrap" Opacity="0.8"
+                                                           Margin="0,1,0,0"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                    <TextBlock Text="Current Operation" FontWeight="SemiBold" FontSize="14"/>
+                                    <TextBlock Text="{Binding FeederCalibrationStatus}"
+                                               TextWrapping="Wrap" Margin="0,6,0,6"
+                                               Style="{StaticResource content}"/>
+                                    <TextBlock Text="{Binding FeederCalibrationMeasurement}"
+                                               TextWrapping="Wrap" Margin="0,2,0,10"
+                                               FontSize="12" Opacity="0.9"/>
+                                    <WrapPanel>
+                                        <Button Style="{StaticResource CommandButton}"
+                                                Content="{Binding FeederCalibrationActionLabel}"
+                                                Command="{Binding FeederCalibrationNextCommand}"
+                                                Width="220" Margin="0,0,8,6"/>
+                                        <Button Style="{StaticResource CommandButton}"
+                                                Content="Retry Step"
+                                                Command="{Binding FeederCalibrationRetryCommand}"
+                                                Width="115" Margin="0,0,8,6"/>
+                                        <Button Style="{StaticResource CommandButton}"
+                                                Content="Cancel Operation"
+                                                Command="{Binding FeederCalibrationCancelCommand}"
+                                                Width="155" Margin="0,0,8,6"/>
+                                        <Button Style="{StaticResource CommandButton}"
+                                                Content="New Run"
+                                                Command="{Binding FeederCalibrationNewRunCommand}"
+                                                Width="105" Margin="0,0,8,6"/>
+                                    </WrapPanel>
+                                    <TextBlock FontSize="11" TextWrapping="Wrap" Opacity="0.75"
+                                               Text="Use the existing camera Jog between Move and Verify. Each verification acquires a fresh centered corner. Capture &amp; Save then stores the verified OriginOffset."/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </Expander>
+
                 <TextBlock Text="Rows" Style="{StaticResource header}"></TextBlock>
                 <DataGrid ItemsSource="{Binding Current.Rows}" AutoGenerateColumns="False"  IsReadOnly="true" SelectedItem="{Binding CurrentRow}" CanUserAddRows="false">
                     <DataGrid.Columns>
