@@ -239,6 +239,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var capture = _machine.PositionImageCaptureService;
             _cameraId = capture.Camera.Id.ToString();
             _cameraScale = capture.Camera.EffectivePixelsPerMM;
+            if (_cameraScale <= 0 || Double.IsNaN(_cameraScale) || Double.IsInfinity(_cameraScale))
+                return Block("The position camera has no valid pixels/mm calibration.");
             _calculatedOrigin = new Point2D<double>(point.X, point.Y);
 
             StatusText = $"Moving to calculated origin X={point.X:F2}, Y={point.Y:F2} mm; saved OriginOffset is ignored.";
@@ -426,6 +428,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 request = _pendingCorner;
 
             if (request == null || _disposed || corner == null ||
+                corner.Camera != CameraTypes.Position ||
                 !corner.Stabilized || !corner.PositionStable || !corner.Centered ||
                 _machine.Busy || !_machine.Connected ||
                 _machine.Mode != OperatingMode.Manual)

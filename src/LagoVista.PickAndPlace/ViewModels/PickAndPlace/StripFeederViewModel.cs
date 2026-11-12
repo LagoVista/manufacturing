@@ -285,6 +285,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             ResetFeederCalibration();
         }
 
+        protected override void OnMachineConnected()
+        {
+            base.OnMachineConnected();
+            ResetFeederCalibration();
+        }
+
         protected override void OnMachineDisconnected()
         {
             ResetFeederCalibration();
