@@ -233,14 +233,23 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if (point.X < 0 || point.Y < 0 || point.X > workArea.X || point.Y > workArea.Y)
                 return Block("Calculated origin is outside the configured work area. No move was sent.");
 
-            if (!ReadyForAction(true, false, out reason))
-                return Block(reason);
-
+            // The FeederOrigin resolver selects the camera profile. Capture
+            // the resulting camera identity and effective scale BEFORE testing
+            // whether either has changed. The previous order compared these
+            // values to their uninitialized defaults on the first click.
             var capture = _machine.PositionImageCaptureService;
+            if (capture?.Camera == null)
+                return Block("The position camera is unavailable.");
+            if (capture.Profile?.Key != VisionProfile.VisionProfile_FeederOrigin)
+                return Block("Feeder Origin vision profile did not become active. No move was sent.");
+
             _cameraId = capture.Camera.Id.ToString();
             _cameraScale = capture.Camera.EffectivePixelsPerMM;
             if (_cameraScale <= 0 || Double.IsNaN(_cameraScale) || Double.IsInfinity(_cameraScale))
                 return Block("The position camera has no valid pixels/mm calibration.");
+            if (!ReadyForAction(true, false, out reason))
+                return Block(reason);
+
             _calculatedOrigin = new Point2D<double>(point.X, point.Y);
 
             StatusText = $"Moving to calculated origin X={point.X:F2}, Y={point.Y:F2} mm; saved OriginOffset is ignored.";
