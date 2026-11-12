@@ -19,7 +19,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
     /// handlers until their own Workstream tasks. The C# runner, not the DTO,
     /// owns all physical motion and persistence.
     /// </summary>
-    internal sealed class StripFeederCalibrationRunner : IMachineOperation, ICornerLocatedHandler
+    internal sealed class StripFeederCalibrationRunner : IMachineOperation, ICornerLocatedHandler, ICircleLocatedHandler
     {
         private sealed class CornerProof
         {
@@ -30,11 +30,22 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             public double PixelsPerMm { get; set; }
         }
 
+        private sealed class CircleProof
+        {
+            public Point2D<double> MachinePosition { get; set; }
+            public double OffsetX { get; set; }
+            public double OffsetY { get; set; }
+            public double RadiusMm { get; set; }
+            public double PixelsPerMm { get; set; }
+        }
+
         private readonly IMachine _machine;
         private readonly ILocatorViewModel _locator;
         private readonly StripFeeder _feeder;
         private readonly StripFeederRow _row;
         private readonly Func<InvokeResult<Point2D<double>>> _resolveCalculatedOrigin;
+        private readonly Func<InvokeResult<Point2D<double>>> _resolveFirstTapeHole;
+        private readonly Func<double> _getTapePitch;
         private readonly Func<StripFeeder, Task<InvokeResult>> _saveFeeder;
         private readonly Func<bool> _contextIsCurrent;
         private readonly MachineOperationSession _session;
@@ -48,7 +59,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private readonly double _mountX;
         private readonly double _mountY;
         private TaskCompletionSource<CornerProof> _pendingCorner;
+        private TaskCompletionSource<CircleProof> _pendingCircle;
         private bool _registered;
+        private bool _circleRegistered;
+        private string _approachedHoleStep;
+        private string _tapeProfileKey;
+        private string _tapeCameraId;
+        private double _tapeCameraScale;
+        private Point2D<double> _firstHoleMachinePosition;
+        private Point2D<double> _firstHoleRowOffset;
         private bool _busy;
         private bool _disposed;
         private Point2D<double> _calculatedOrigin;
@@ -72,7 +91,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
              (Current.Status == MachineOperationRunStatus.Running &&
               (Current.ActiveStepKey == "approach-origin" ||
                Current.ActiveStepKey == "center-fiducial" ||
-               Current.ActiveStepKey == "save-origin")));
+               Current.ActiveStepKey == "save-origin" ||
+               Current.ActiveStepKey == "first-tape-hole" ||
+               Current.ActiveStepKey == "last-tape-hole")));
 
         public bool CanRetry => !_disposed && !_busy &&
                                 Current.Status == MachineOperationRunStatus.Blocked;
