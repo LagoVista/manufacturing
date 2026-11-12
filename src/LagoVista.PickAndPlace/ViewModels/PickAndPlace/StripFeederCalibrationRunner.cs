@@ -114,7 +114,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     case "approach-origin": return "Move to calculated origin";
                     case "center-fiducial": return "Verify centered corner";
                     case "save-origin": return "Capture & save origin offset";
-                    default: return "Next calibration phase pending";
+                    case "first-tape-hole": return _approachedHoleStep == "first-tape-hole"
+                        ? "Verify first centered tape hole" : "Move to first tape hole";
+                    case "last-tape-hole": return _approachedHoleStep == "last-tape-hole"
+                        ? "Verify & save first/last holes" : "Move to last tape hole";
+                    default: return "Pocket verification pending";
                 }
             }
         }
@@ -122,6 +126,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public StripFeederCalibrationRunner(IMachine machine, ILocatorViewModel locator,
             StripFeeder feeder, StripFeederRow row,
             Func<InvokeResult<Point2D<double>>> resolveCalculatedOrigin,
+            Func<InvokeResult<Point2D<double>>> resolveFirstTapeHole,
+            Func<double> getTapePitch,
             Func<StripFeeder, Task<InvokeResult>> saveFeeder,
             Func<bool> contextIsCurrent)
         {
@@ -130,6 +136,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _feeder = feeder ?? throw new ArgumentNullException(nameof(feeder));
             _row = row ?? throw new ArgumentNullException(nameof(row));
             _resolveCalculatedOrigin = resolveCalculatedOrigin ?? throw new ArgumentNullException(nameof(resolveCalculatedOrigin));
+            _resolveFirstTapeHole = resolveFirstTapeHole ?? throw new ArgumentNullException(nameof(resolveFirstTapeHole));
+            _getTapePitch = getTapePitch ?? throw new ArgumentNullException(nameof(getTapePitch));
             _saveFeeder = saveFeeder ?? throw new ArgumentNullException(nameof(saveFeeder));
             _contextIsCurrent = contextIsCurrent ?? throw new ArgumentNullException(nameof(contextIsCurrent));
 
@@ -177,6 +185,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         return await VerifyCornerAsync(cancellationToken);
                     case "save-origin":
                         return await CaptureAndSaveOriginAsync(cancellationToken);
+                    case "first-tape-hole":
+                        return await AdvanceTapeHoleAsync(false, cancellationToken);
+                    case "last-tape-hole":
+                        return await AdvanceTapeHoleAsync(true, cancellationToken);
                     default:
                         return Result(false, "Tape-hole and pocket verification will be enabled in subsequent Workstream tasks.");
                 }
@@ -222,6 +234,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             _session.Cancel(DateTimeOffset.UtcNow);
             ReleaseObservation();
+            ReleaseCircleObservation();
             StatusText = "Calibration cancelled. No further moves or saves will be started. A previously queued machine move may still finish.";
             Signal();
             return Task.FromResult(Result(true));
@@ -235,6 +248,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _session.Cancel(DateTimeOffset.UtcNow);
             _disposed = true;
             ReleaseObservation();
+            ReleaseCircleObservation();
             Signal();
         }
 
@@ -418,7 +432,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             });
             _session.CompleteActiveStep("save-origin", now);
             MeasurementText = $"SAVED OriginOffset X {newOffset.X:+0.00;-0.00;0.00}, Y {newOffset.Y:+0.00;-0.00;0.00} mm";
-            StatusText = "Feeder origin saved! Steps 4–7 will follow in the next Workstream tasks. Manual tape-hole tools remain available.";
+            StatusText = "Feeder origin saved. Next: move to the first complete tape hole. Manual camera Jog remains available.";
             Signal();
             return Result(true);
         }
