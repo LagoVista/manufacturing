@@ -1,5 +1,10 @@
 # Guided Strip-Feeder Calibration Operation
 
+**Planning Workstream:** [PnP Guided Calibration Operations](MACHINE-CALIBRATION-OPERATIONS-WORKSTREAM.md)
+(Forge ID: `pnp-guided-calibration-operations`). This document describes
+the feeder's technical steps; the Workstream file is the durable plan and
+session-handoff authority.
+
 Status: design / next implementation slice (2026-11-12). This document is
 not a claim that the seven-step operation is implemented.
 
