@@ -360,7 +360,11 @@ namespace LagoVista.PickAndPlace
                 DebugWriteLine($"[Machine__GetCurrentLocation] {sw.Elapsed.TotalMilliseconds} ms " + (timedOut ? "ERR: TIMED OUT" : String.Empty));
             }
 
-            return InvokeResult<Point2D<double>>.Create(MachinePosition.ToPoint2D());
+            // A timed-out M114 must not be treated as a fresh machine position;
+            // calibration must never commit an offset based on stale coordinates.
+            return timedOut
+                ? InvokeResult<Point2D<double>>.FromError("Timed out reading a fresh M114 machine position.")
+                : InvokeResult<Point2D<double>>.Create(MachinePosition.ToPoint2D());
         }
 
         bool _spinningWhileBusy = false;
