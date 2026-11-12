@@ -162,7 +162,7 @@
                           Margin="10,8,10,12">
                     <Border BorderBrush="#606060" BorderThickness="1" CornerRadius="4" Padding="10">
                         <StackPanel>
-                            <TextBlock Text="Steps 1–3 are ready; tape-hole and pocket stages follow in later tasks."
+                            <TextBlock Text="Guided steps 1–5 are available; pocket verification follows in the next task."
                                        TextWrapping="Wrap" FontSize="12" Opacity="0.85"
                                        Margin="0,0,0,8"/>
                             <Grid>
@@ -217,22 +217,22 @@
                                         <Button Style="{StaticResource CommandButton}"
                                                 Content="{Binding FeederCalibrationActionLabel}"
                                                 Command="{Binding FeederCalibrationNextCommand}"
-                                                Width="220" Margin="0,0,8,6"/>
+                                                FontSize="13" Height="42" Width="220" Margin="0,0,8,6"/>
                                         <Button Style="{StaticResource CommandButton}"
                                                 Content="Retry Step"
                                                 Command="{Binding FeederCalibrationRetryCommand}"
-                                                Width="115" Margin="0,0,8,6"/>
+                                                FontSize="13" Height="42" Width="115" Margin="0,0,8,6"/>
                                         <Button Style="{StaticResource CommandButton}"
                                                 Content="Cancel Operation"
                                                 Command="{Binding FeederCalibrationCancelCommand}"
-                                                Width="155" Margin="0,0,8,6"/>
+                                                FontSize="13" Height="42" Width="155" Margin="0,0,8,6"/>
                                         <Button Style="{StaticResource CommandButton}"
                                                 Content="New Run"
                                                 Command="{Binding FeederCalibrationNewRunCommand}"
-                                                Width="105" Margin="0,0,8,6"/>
+                                                FontSize="13" Height="42" Width="105" Margin="0,0,8,6"/>
                                     </WrapPanel>
                                     <TextBlock FontSize="11" TextWrapping="Wrap" Opacity="0.75"
-                                               Text="Use the existing camera Jog between Move and Verify. Each verification acquires a fresh centered corner. Capture &amp; Save then stores the verified OriginOffset."/>
+                                               Text="Use camera Jog after each approach, then Verify. The feeder origin saves at step 3; first and last tape-hole offsets save together at step 5."/>
                                 </StackPanel>
                             </Grid>
                         </StackPanel>

@@ -14,10 +14,9 @@ using System.Threading.Tasks;
 namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 {
     /// <summary>
-    /// Operator-supervised strip-feeder calibration. Steps 1–3 are executable.
-    /// Steps 4–7 remain visible in the shared definition but have no motion
-    /// handlers until their own Workstream tasks. The C# runner, not the DTO,
-    /// owns all physical motion and persistence.
+    /// Operator-supervised strip feeder calibration. Steps 1–5 are available.
+    /// Steps 6–7 remain visible but await pocket-verification implementation.
+    /// Strongly typed C# handlers, never data-only DTOs, own machine motion.
     /// </summary>
     internal sealed class StripFeederCalibrationRunner : IMachineOperation, ICornerLocatedHandler, ICircleLocatedHandler
     {
