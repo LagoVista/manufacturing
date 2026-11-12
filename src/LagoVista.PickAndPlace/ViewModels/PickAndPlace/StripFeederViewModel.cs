@@ -158,6 +158,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _feederCalibration = new StripFeederCalibrationRunner(
                     machine, _locatorVM, feeder, row,
                     () => FindLocation(StripFeederLocationTypes.FeederOrigin),
+                    () => FindLocation(StripFeederLocationTypes.FirstFeederRowReferenceHole, true),
+                    () => TapePitch?.ToDouble() ?? 0,
                     item => _restClient.PutAsync("/api/mfg/stripfeeder", item),
                     () => ReferenceEquals(Machine, machine) &&
                           ReferenceEquals(Current, feeder) &&
@@ -749,6 +751,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
      
         public InvokeResult<Point2D<double>> FindLocation(StripFeederLocationTypes moveType)
+            => FindLocation(moveType, false);
+
+        // Guided calibration must approach the computed first tape hole even
+        // when an old saved row offset exists. Do not change the manual control
+        // or the operator's UseCalculated selection.
+        private InvokeResult<Point2D<double>> FindLocation(
+            StripFeederLocationTypes moveType, bool forceCalculated)
         {
             if (Current.StagingPlate == null)
             {
@@ -809,7 +818,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 case StripFeederLocationTypes.FirstFeederRowReferenceHole:
                     {
                         SetTapeHoleProfile();
-                        if (UseCalculated)
+                        if (UseCalculated || forceCalculated)
                             return InvokeResult<Point2D<double>>.Create(feederOrigin + calculateFirstReferneceHole);
                         else
                             return InvokeResult<Point2D<double>>.Create(feederOrigin.AddWithConditionalSwap(feederIsVertical, firstReferenceHole));
