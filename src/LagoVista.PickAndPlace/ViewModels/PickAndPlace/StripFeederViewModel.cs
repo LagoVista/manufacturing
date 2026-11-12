@@ -77,6 +77,133 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             private set => Set(ref _barcodeScanVerified, value);
         }
 
+        private StripFeederCalibrationRunner _feederCalibration;
+        private ObservableCollection<FeederCalibrationStepDisplay> _feederCalibrationSteps =
+            new ObservableCollection<FeederCalibrationStepDisplay>();
+
+        public ObservableCollection<FeederCalibrationStepDisplay> FeederCalibrationSteps
+        {
+            get => _feederCalibrationSteps;
+            private set => Set(ref _feederCalibrationSteps, value);
+        }
+
+        public string FeederCalibrationStatus => _feederCalibration?.StatusText ??
+            "Select an existing saved strip feeder and a row to begin guided calibration.";
+
+        public string FeederCalibrationMeasurement => _feederCalibration?.MeasurementText ??
+            "No calibration measurement recorded.";
+
+        public string FeederCalibrationActionLabel => _feederCalibration?.NextActionLabel ??
+            "Select a feeder and row";
+
+        public bool FeederCalibrationCanContinue =>
+            CalibrationSelectionReady && _feederCalibration?.CanExecuteNext == true;
+        public bool FeederCalibrationCanRetry =>
+            CalibrationSelectionReady && _feederCalibration?.CanRetry == true;
+        public bool FeederCalibrationCanCancel => _feederCalibration?.CanCancel == true;
+
+        private bool CalibrationSelectionReady =>
+            _isEditing && Current != null && CurrentRow != null &&
+            Current.Rows != null && Current.Rows.Contains(CurrentRow) &&
+            !_barcodeScanInProgress && Machine != null && Machine.Connected;
+
+        private void OnFeederCalibrationChanged(object sender, EventArgs e)
+        {
+            if (ReferenceEquals(sender, _feederCalibration))
+                RefreshFeederCalibration();
+        }
+
+        private void RefreshFeederCalibration()
+        {
+            var definition = _feederCalibration?.Definition ??
+                StripFeederCalibrationDefinition.Create();
+            var runSteps = _feederCalibration?.Current?.Steps;
+            FeederCalibrationSteps = new ObservableCollection<FeederCalibrationStepDisplay>(
+                definition.Steps.Select((step, index) =>
+                {
+                    var snapshot = runSteps != null ? runSteps[index] : null;
+                    return new FeederCalibrationStepDisplay
+                    {
+                        Number = index + 1,
+                        Title = $"{index + 1}. {step.Title}",
+                        Status = snapshot?.Status.ToString() ?? "Pending",
+                        IsActive = snapshot?.Status == MachineOperationStepStatus.Active,
+                        Evidence = snapshot?.Error ??
+                            snapshot?.Evidence.LastOrDefault()?.Value ?? String.Empty
+                    };
+                }));
+            RaisePropertyChanged(nameof(FeederCalibrationStatus));
+            RaisePropertyChanged(nameof(FeederCalibrationMeasurement));
+            RaisePropertyChanged(nameof(FeederCalibrationActionLabel));
+            RaisePropertyChanged(nameof(FeederCalibrationCanContinue));
+            RaisePropertyChanged(nameof(FeederCalibrationCanRetry));
+            RaisePropertyChanged(nameof(FeederCalibrationCanCancel));
+            RaiseCanExecuteChanged();
+        }
+
+        private void ResetFeederCalibration()
+        {
+            if (_feederCalibration != null)
+            {
+                _feederCalibration.StateChanged -= OnFeederCalibrationChanged;
+                _feederCalibration.Dispose();
+                _feederCalibration = null;
+            }
+
+            if (CalibrationSelectionReady && _locatorVM != null)
+            {
+                var machine = Machine;
+                var feeder = Current;
+                var row = CurrentRow;
+                _feederCalibration = new StripFeederCalibrationRunner(
+                    machine, _locatorVM, feeder, row,
+                    () => FindLocation(StripFeederLocationTypes.FeederOrigin),
+                    item => _restClient.PutAsync("/api/mfg/stripfeeder", item),
+                    () => ReferenceEquals(Machine, machine) &&
+                          ReferenceEquals(Current, feeder) &&
+                          ReferenceEquals(CurrentRow, row));
+                _feederCalibration.StateChanged += OnFeederCalibrationChanged;
+            }
+
+            RefreshFeederCalibration();
+        }
+
+        private async Task RunFeederCalibrationNextAsync()
+        {
+            var operation = _feederCalibration;
+            if (operation == null)
+                return;
+            var result = operation.Current.ActiveStepKey == "save-origin"
+                ? await operation.ConfirmAsync(System.Threading.CancellationToken.None)
+                : await operation.ExecuteNextAsync(System.Threading.CancellationToken.None);
+            if (!result.Successful && !String.IsNullOrEmpty(result.ErrorMessage))
+                Machine?.AddStatusMessage(StatusMessageTypes.Warning, result.ErrorMessage);
+            if (ReferenceEquals(operation, _feederCalibration))
+                RefreshFeederCalibration();
+        }
+
+        private async Task RetryFeederCalibrationAsync()
+        {
+            var operation = _feederCalibration;
+            if (operation == null)
+                return;
+            var result = await operation.RetryAsync(System.Threading.CancellationToken.None);
+            if (!result.Successful && !String.IsNullOrEmpty(result.ErrorMessage))
+                Machine?.AddStatusMessage(StatusMessageTypes.Warning, result.ErrorMessage);
+            if (ReferenceEquals(operation, _feederCalibration))
+                RefreshFeederCalibration();
+        }
+
+        private async Task CancelFeederCalibrationAsync()
+        {
+            var operation = _feederCalibration;
+            if (operation == null)
+                return;
+            await operation.CancelAsync(System.Threading.CancellationToken.None);
+            if (ReferenceEquals(operation, _feederCalibration))
+                RefreshFeederCalibration();
+        }
+
         public StripFeederViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorVM, IRestClient restClient, IMachineUtilitiesViewModel machineUtilitiesViewModel) : base(machineRepo, restClient, locatorVM, machineUtilitiesViewModel)
         {
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
@@ -102,6 +229,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             GoToLastPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.LastPart), () => CurrentRow != null);
             GoToNextPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.NextPart), () => (CurrentRow != null && CurrentPartIndex < TotalPartsInFeederRow));
             GoToPreviousPartCommand = CreatedMachineConnectedCommand(() => GoTo(StripFeederLocationTypes.PreviousPart), () => (CurrentRow != null && CurrentPartIndex > 1));
+
+            FeederCalibrationNextCommand = CreateCommand(async () => await RunFeederCalibrationNextAsync(),
+                () => FeederCalibrationCanContinue);
+            FeederCalibrationRetryCommand = CreateCommand(async () => await RetryFeederCalibrationAsync(),
+                () => FeederCalibrationCanRetry);
+            FeederCalibrationCancelCommand = CreateCommand(async () => await CancelFeederCalibrationAsync(),
+                () => FeederCalibrationCanCancel);
+            FeederCalibrationNewRunCommand = CreateCommand(ResetFeederCalibration,
+                () => CalibrationSelectionReady && _feederCalibration?.IsBusy != true);
 
             RemoveCurrentCommand = CreateCommand(RemoveCurrent, () => Current != null);
             
@@ -957,6 +1093,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public ObservableCollection<MachineStagingPlate> StagingPlates { get => MachineRepo.CurrentMachine.Settings.StagingPlates; }
 
         public ObservableCollection<StripFeeder> Feeders { get => _stripFeeders; }
+
+        public RelayCommand FeederCalibrationNextCommand { get; }
+        public RelayCommand FeederCalibrationRetryCommand { get; }
+        public RelayCommand FeederCalibrationCancelCommand { get; }
+        public RelayCommand FeederCalibrationNewRunCommand { get; }
 
         public RelayCommand SetFeederOriginCommand { get; }
         public RelayCommand GoToFeederOriginCommand { get; }
