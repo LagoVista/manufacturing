@@ -444,9 +444,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return;
 
             var capture = _machine.PositionImageCaptureService;
-            if (capture?.Profile?.Key != VisionProfile.VisionProfile_FeederOrigin ||
-                capture.Camera?.Id.ToString() != _cameraId ||
-                Math.Abs(capture.Camera.EffectivePixelsPerMM - _cameraScale) > 0.0001)
+            if (!FeederOriginCalibrationMath.CameraProfileUnchanged(
+                    _cameraId, _cameraScale,
+                    capture?.Camera?.Id.ToString(),
+                    capture?.Camera?.EffectivePixelsPerMM ?? 0,
+                    capture?.Profile?.Key, VisionProfile.VisionProfile_FeederOrigin))
                 return;
 
             var machinePosition = _machine.MachinePosition;
@@ -508,9 +510,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             else if (_machine.PositionImageCaptureService?.Camera == null)
                 reason = "The position camera is unavailable.";
             else if (requireProfile &&
-                     (_machine.PositionImageCaptureService.Profile?.Key != VisionProfile.VisionProfile_FeederOrigin ||
-                      _machine.PositionImageCaptureService.Camera.Id.ToString() != _cameraId ||
-                      Math.Abs(_machine.PositionImageCaptureService.Camera.EffectivePixelsPerMM - _cameraScale) > 0.0001))
+                     !FeederOriginCalibrationMath.CameraProfileUnchanged(
+                         _cameraId, _cameraScale,
+                         _machine.PositionImageCaptureService.Camera.Id.ToString(),
+                         _machine.PositionImageCaptureService.Camera.EffectivePixelsPerMM,
+                         _machine.PositionImageCaptureService.Profile?.Key,
+                         VisionProfile.VisionProfile_FeederOrigin))
                 reason = "Position camera, Feeder Origin profile or camera scale changed; start over.";
             else if (saving && _machine.AreSettingsLocked)
                 reason = "Machine settings are locked; unlock before saving calibration.";

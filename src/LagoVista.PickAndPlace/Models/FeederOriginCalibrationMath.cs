@@ -36,6 +36,25 @@ namespace LagoVista.PickAndPlace.Models
                    Math.Abs(a.Y - b.Y) <= toleranceMm;
         }
 
+        /// <summary>
+        /// A freshly captured camera baseline is valid on the FIRST approach.
+        /// Later observations must retain the same camera, active profile,
+        /// and effective physical scale. Uninitialized/NaN values never pass.
+        /// </summary>
+        public static bool CameraProfileUnchanged(
+            string expectedCameraId, double expectedPixelsPerMm,
+            string actualCameraId, double actualPixelsPerMm,
+            string actualProfileKey, string requiredProfileKey)
+        {
+            return !String.IsNullOrWhiteSpace(expectedCameraId) &&
+                   !String.IsNullOrWhiteSpace(requiredProfileKey) &&
+                   String.Equals(expectedCameraId, actualCameraId, StringComparison.Ordinal) &&
+                   String.Equals(actualProfileKey, requiredProfileKey, StringComparison.Ordinal) &&
+                   Finite(expectedPixelsPerMm) && expectedPixelsPerMm > 0 &&
+                   Finite(actualPixelsPerMm) && actualPixelsPerMm > 0 &&
+                   Math.Abs(expectedPixelsPerMm - actualPixelsPerMm) <= 0.0001;
+        }
+
         private static bool Finite(double value) =>
             !Double.IsNaN(value) && !Double.IsInfinity(value);
     }

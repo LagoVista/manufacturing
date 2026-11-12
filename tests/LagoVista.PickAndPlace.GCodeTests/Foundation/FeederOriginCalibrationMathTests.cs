@@ -43,6 +43,31 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void FirstApproachAcceptsFreshlyRecordedCameraBaseline()
+        {
+            // Regression: the step-1 check must use the captured baseline,
+            // not zero/null defaults from before profile selection.
+            Assert.That(FeederOriginCalibrationMath.CameraProfileUnchanged(
+                "position-camera", 90.9,
+                "position-camera", 90.9, "feederorigin", "feederorigin"), Is.True);
+            Assert.That(FeederOriginCalibrationMath.CameraProfileUnchanged(
+                null, 0, "position-camera", 90.9, "feederorigin", "feederorigin"), Is.False);
+        }
+
+        [Test]
+        public void CameraGuardRejectsProfileCameraAndScaleChanges()
+        {
+            Assert.That(FeederOriginCalibrationMath.CameraProfileUnchanged(
+                "camera-a", 90.9, "camera-b", 90.9, "feederorigin", "feederorigin"), Is.False);
+            Assert.That(FeederOriginCalibrationMath.CameraProfileUnchanged(
+                "camera-a", 90.9, "camera-a", 90.9, "default", "feederorigin"), Is.False);
+            Assert.That(FeederOriginCalibrationMath.CameraProfileUnchanged(
+                "camera-a", 90.9, "camera-a", 91.0, "feederorigin", "feederorigin"), Is.False);
+            Assert.That(FeederOriginCalibrationMath.CameraProfileUnchanged(
+                "camera-a", 90.9, "camera-a", double.NaN, "feederorigin", "feederorigin"), Is.False);
+        }
+
+        [Test]
         public void PostObservationMovementInvalidatesPositionProof()
         {
             var captured = new Point2D<double>(25.50, 40.20);
