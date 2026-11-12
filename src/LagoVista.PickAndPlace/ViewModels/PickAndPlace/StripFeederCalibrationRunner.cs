@@ -437,6 +437,293 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             return Result(true);
         }
 
+        private async Task<MachineOperationActionResult> AdvanceTapeHoleAsync(
+            bool lastHole, CancellationToken token)
+        {
+            var stepKey = lastHole ? "last-tape-hole" : "first-tape-hole";
+            if (!ReadyForAction(false, false, out var reason))
+                return Block(reason);
+            if (_calculatedOrigin == null)
+                return Block("Feeder origin must be established first.");
+
+            // Two operator actions per hole: move to approximate location,
+            // then use the established camera Jog and explicitly verify/capture.
+            // No hidden auto-jog or speculative motion loop.
+            return _approachedHoleStep == stepKey
+                ? await CaptureTapeHoleAsync(lastHole, token)
+                : await MoveToTapeHoleAsync(lastHole, token);
+        }
+
+        private async Task<MachineOperationActionResult> MoveToTapeHoleAsync(
+            bool lastHole, CancellationToken token)
+        {
+            var stepKey = lastHole ? "last-tape-hole" : "first-tape-hole";
+            var capture = _machine.PositionImageCaptureService;
+            Point2D<double> target;
+            if (lastHole)
+            {
+                if (_firstHoleMachinePosition == null || _firstHoleRowOffset == null)
+                    return Block("First tape-hole measurement is missing.");
+                if (!FeederTapeHoleCalibrationMath.TryApproximateLastHole(
+                    _firstHoleMachinePosition,
+                    _orientation == FeederOrientations.Vertical,
+                    _feeder.Length, _getTapePitch(), out target))
+                    return Block("Feeder length and tape pitch do not define two usable holes.");
+
+                // Retain the profile used when the first hole was verified.
+                _machine.SetVisionProfile(CameraTypes.Position, _tapeProfileKey);
+            }
+            else
+            {
+                // Always use the feeder's calculated first-hole geometry.
+                // Older persisted row offsets must not bias calibration.
+                var first = _resolveFirstTapeHole();
+                if (!first.Successful || first.Result == null)
+                    return Block(first.ErrorMessage ?? "Could not resolve the calculated first tape hole.");
+                target = first.Result;
+                if (capture?.Camera == null || capture.Profile == null)
+                    return Block("Position camera or tape-hole profile is unavailable.");
+
+                _tapeCameraId = capture.Camera.Id.ToString();
+                _tapeCameraScale = capture.Camera.EffectivePixelsPerMM;
+                _tapeProfileKey = capture.Profile.Key;
+            }
+
+            if (!TapeCameraUnchanged())
+                return Block("Tape-hole camera, vision profile or physical scale changed.");
+
+            var area = _machine.Settings.WorkAreaSize;
+            if (Double.IsNaN(target.X) || Double.IsNaN(target.Y) ||
+                Double.IsInfinity(target.X) || Double.IsInfinity(target.Y) ||
+                target.X < 0 || target.Y < 0 || target.X > area.X || target.Y > area.Y)
+                return Block("Calculated tape-hole target is outside the machine work area; no move sent.");
+
+            StatusText = $"Moving to {(lastHole ? "last" : "first")} tape hole: X={target.X:F2}, Y={target.Y:F2} mm.";
+            Signal();
+            token.ThrowIfCancellationRequested();
+
+            _machine.SendSafeMoveHeight();
+            var safe = await _machine.SpinUntilIdleAsync(10000);
+            if (!safe.Successful)
+                return Block("Safe-height move failed: " + safe.ErrorMessage);
+            if (!ReadyForAction(false, false, out var reason) || !TapeCameraUnchanged() ||
+                Current.Status != MachineOperationRunStatus.Running)
+                return Block(reason ?? "Tape-hole camera or machine context changed before the move.");
+
+            capture.ResetDetections();
+            _machine.GotoPoint(target);
+            var moved = await _machine.SpinUntilIdleAsync(30000);
+            if (!moved.Successful)
+                return Block("Tape-hole approach failed: " + moved.ErrorMessage);
+            if (!ReadyForAction(false, false, out reason) || !TapeCameraUnchanged() ||
+                Current.Status != MachineOperationRunStatus.Running)
+                return Block(reason ?? "Tape-hole camera or machine context changed after the move.");
+
+            var actual = await _machine.GetCurrentLocationAsync(5000);
+            if (!actual.Successful ||
+                !FeederOriginCalibrationMath.SamePosition(actual.Result, target, 0.5))
+                return Block("The machine did not confirm reaching the calculated tape-hole target.");
+
+            _approachedHoleStep = stepKey;
+            MeasurementText = $"Approached {(lastHole ? "last" : "first")} hole at X {actual.Result.X:F2}, Y {actual.Result.Y:F2} mm";
+            StatusText = "Use the existing camera Jog to center the intended complete tape hole, then press Verify. No offset is saved until BOTH holes are captured.";
+            Signal();
+            return Result(true);
+        }
+
+        private async Task<MachineOperationActionResult> CaptureTapeHoleAsync(
+            bool lastHole, CancellationToken token)
+        {
+            if (!ReadyForAction(false, lastHole, out var reason) || !TapeCameraUnchanged())
+                return Block(reason ?? "Tape-hole camera/profile/scale changed.");
+
+            StatusText = "Acquiring a fresh stable, centered tape hole at the current camera position.";
+            Signal();
+            var circle = await AcquireFreshCircleAsync(token);
+            if (circle == null)
+                return Block("No stable centered tape hole was found. Jog and retry this step.");
+            if (!ReadyForAction(false, lastHole, out reason) || !TapeCameraUnchanged() ||
+                Current.Status != MachineOperationRunStatus.Running)
+                return Block(reason ?? "Machine context changed during tape-hole verification.");
+
+            var actual = await _machine.GetCurrentLocationAsync(5000);
+            if (!actual.Successful ||
+                !FeederOriginCalibrationMath.SamePosition(actual.Result, circle.MachinePosition, 0.1))
+                return Block("Machine XY changed after centered tape-hole observation.");
+
+            var calibratedOrigin = _calculatedOrigin + _feeder.OriginOffset;
+            var vertical = _orientation == FeederOrientations.Vertical;
+            if (!lastHole && !FeederTapeHoleCalibrationMath.CompletelyBeyondLeadingEdge(
+                    calibratedOrigin, actual.Result, circle.RadiusMm, vertical))
+                return Block("This hole is not fully beyond the feeder leading edge. Choose the first COMPLETE hole and retry.");
+
+            var rowOffset = FeederTapeHoleCalibrationMath.ToRowOffset(
+                calibratedOrigin, actual.Result, vertical);
+            if (!lastHole)
+            {
+                _firstHoleMachinePosition = actual.Result;
+                _firstHoleRowOffset = rowOffset;
+                var observedAt = DateTimeOffset.UtcNow;
+                _session.RecordEvidence(new MachineOperationEvidence
+                {
+                    RunId = Current.RunId,
+                    StepKey = "first-tape-hole",
+                    Name = "Measured first complete tape hole",
+                    Value = $"X {actual.Result.X:F2}, Y {actual.Result.Y:F2}; row offset X {rowOffset.X:F3}, Y {rowOffset.Y:F3}",
+                    Unit = "mm",
+                    Source = "Position camera / centered tape circle",
+                    Verification = MachineOperationVerificationKind.VisionVerified,
+                    Saved = false,
+                    CapturedAtUtc = observedAt,
+                    VisionProfileKey = _tapeProfileKey,
+                    PixelsPerMm = circle.PixelsPerMm
+                });
+                _session.CompleteActiveStep("first-tape-hole", observedAt);
+                _approachedHoleStep = null;
+                MeasurementText = $"MEASURED first hole: row X {rowOffset.X:F3}, Y {rowOffset.Y:F3} mm (not saved yet)";
+                StatusText = "First complete tape hole measured. Next: move to the last hole using the measured first position and tape pitch.";
+                Signal();
+                return Result(true);
+            }
+
+            if (_firstHoleRowOffset == null || rowOffset.X <= _firstHoleRowOffset.X)
+                return Block("Last tape hole must be farther along the tape than the first hole.");
+
+            var previousFirst = _row.FirstTapeHoleOffset;
+            var previousLast = _row.LastTapeHoleOffset;
+            _row.FirstTapeHoleOffset = _firstHoleRowOffset;
+            _row.LastTapeHoleOffset = rowOffset;
+            InvokeResult saved;
+            try
+            {
+                saved = await _saveFeeder(_feeder);
+            }
+            catch
+            {
+                _row.FirstTapeHoleOffset = previousFirst;
+                _row.LastTapeHoleOffset = previousLast;
+                throw;
+            }
+
+            if (!saved.Successful)
+            {
+                _row.FirstTapeHoleOffset = previousFirst;
+                _row.LastTapeHoleOffset = previousLast;
+                return Block("Could not save the paired tape-hole offsets; previous offsets restored locally. " + saved.ErrorMessage);
+            }
+            if (Current.Status != MachineOperationRunStatus.Running)
+                return Result(false, "Tape-hole save finished after cancellation. Reload the feeder before continuing.");
+
+            var now = DateTimeOffset.UtcNow;
+            _session.RecordEvidence(new MachineOperationEvidence
+            {
+                RunId = Current.RunId,
+                StepKey = "last-tape-hole",
+                Name = "Centered and saved first/last tape holes",
+                Value = $"first X {_firstHoleRowOffset.X:F3}, Y {_firstHoleRowOffset.Y:F3}; last X {rowOffset.X:F3}, Y {rowOffset.Y:F3}",
+                Unit = "mm",
+                Source = "Position camera / Manufacturing feeder PUT",
+                Verification = MachineOperationVerificationKind.VisionVerified,
+                Saved = true,
+                CapturedAtUtc = now,
+                VisionProfileKey = _tapeProfileKey,
+                PixelsPerMm = circle.PixelsPerMm
+            });
+            _session.CompleteActiveStep("last-tape-hole", now);
+            _approachedHoleStep = null;
+            MeasurementText = $"SAVED tape holes: first X {_firstHoleRowOffset.X:F3}, Y {_firstHoleRowOffset.Y:F3}; last X {rowOffset.X:F3}, Y {rowOffset.Y:F3}";
+            StatusText = "First and last tape-hole offsets saved together. Pocket checks are the next task; no parts have been picked.";
+            Signal();
+            return Result(true);
+        }
+
+        private bool TapeCameraUnchanged()
+        {
+            var capture = _machine.PositionImageCaptureService;
+            return FeederOriginCalibrationMath.CameraProfileUnchanged(
+                _tapeCameraId, _tapeCameraScale,
+                capture?.Camera?.Id.ToString(),
+                capture?.Camera?.EffectivePixelsPerMM ?? 0,
+                capture?.Profile?.Key, _tapeProfileKey);
+        }
+
+        private async Task<CircleProof> AcquireFreshCircleAsync(CancellationToken token)
+        {
+            TaskCompletionSource<CircleProof> request;
+            lock (_observationGate)
+            {
+                request = new TaskCompletionSource<CircleProof>(
+                    TaskCreationOptions.RunContinuationsAsynchronously);
+                _pendingCircle = request;
+            }
+            try
+            {
+                _machine.PositionImageCaptureService.ResetDetections();
+                _locator.RegisterCircleLocatedHandler(this, 7500);
+                _circleRegistered = true;
+
+                var timeout = await Task.WhenAny(request.Task, Task.Delay(8000, token));
+                if (timeout != request.Task)
+                    return null;
+                return await request.Task;
+            }
+            finally
+            {
+                ReleaseCircleObservation();
+            }
+        }
+
+        public void CircleLocated(MVLocatedCircle circle)
+        {
+            TaskCompletionSource<CircleProof> request;
+            lock (_observationGate)
+                request = _pendingCircle;
+
+            if (request == null || _disposed || circle == null ||
+                circle.CameraType != CameraTypes.Position ||
+                !circle.Stabilized || !circle.PositionStable || !circle.Centered ||
+                circle.RadiusMM <= 0 || _machine.Busy || !_machine.Connected ||
+                _machine.Mode != OperatingMode.Manual || !TapeCameraUnchanged())
+                return;
+
+            var position = _machine.MachinePosition;
+            var offset = circle.OffsetMM;
+            request.TrySetResult(new CircleProof
+            {
+                MachinePosition = new Point2D<double>(position.X, position.Y),
+                OffsetX = offset.X,
+                OffsetY = offset.Y,
+                RadiusMm = circle.RadiusMM,
+                PixelsPerMm = _tapeCameraScale
+            });
+        }
+
+        public void CircleLocatorTimeout()
+        {
+            lock (_observationGate)
+                _pendingCircle?.TrySetResult(null);
+        }
+
+        public void CircleLocatorAborted()
+        {
+            lock (_observationGate)
+                _pendingCircle?.TrySetResult(null);
+        }
+
+        private void ReleaseCircleObservation()
+        {
+            lock (_observationGate)
+            {
+                _pendingCircle?.TrySetResult(null);
+                _pendingCircle = null;
+            }
+            if (_circleRegistered)
+            {
+                _circleRegistered = false;
+                _locator.UnregisterCircleLocatedHandler(this);
+            }
+        }
+
         private async Task<CornerProof> AcquireFreshCornerAsync(CancellationToken token)
         {
             TaskCompletionSource<CornerProof> request;
