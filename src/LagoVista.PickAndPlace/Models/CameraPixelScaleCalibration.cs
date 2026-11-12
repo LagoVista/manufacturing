@@ -60,3 +60,4 @@ namespace LagoVista.PickAndPlace.Models
                 throw new ArgumentOutOfRangeException(nameof(pixelsPerMm));
         }
     }
+}
