@@ -175,12 +175,9 @@ namespace LagoVista.PickAndPlace.App.Services
                     return;
                 }
 
-                // Use the already-stable camera observation, whether its
-                // scale came from the START bar or the camera profile.
-                // Record the scale source for real-machine diagnostics instead
-                // of blocking the proven manual Play workflow on a hypothesis.
+                // Feeder Origin always uses the active camera/profile
+                // calibration for the white-corner jog.
                 var correction = corner.OffsetMM;
-                var scaleSource = corner.UsesStartBarScale ? "START SCALE" : "CAMERA SCALE";
 
                 // The calculated row/column approach can legitimately be
                 // several millimeters away. Keep a single operator-triggered
@@ -208,7 +205,7 @@ namespace LagoVista.PickAndPlace.App.Services
                 }
 
                 Machine.AddStatusMessage(StatusMessageTypes.Info,
-                    $"White corner jog {scaleSource} {corner.PixelsPerMm:F1} px/mm: " +
+                    $"White corner jog CAMERA SCALE {corner.PixelsPerMm:F1} px/mm: " +
                     $"X={correction.X:+0.00;-0.00;0.00}, " +
                     $"Y={correction.Y:+0.00;-0.00;0.00} mm; " +
                     $"from ({current.X:F2},{current.Y:F2}) " +

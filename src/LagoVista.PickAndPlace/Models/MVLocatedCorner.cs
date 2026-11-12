@@ -25,7 +25,6 @@ namespace LagoVista.PickAndPlace.Models
         public Point2D<double> Position { get; set; }
         public int FoundCount { get; set; }
         public int Iteration { get; set; }
-        public bool UsesStartBarScale { get; private set; }
         public double PixelsPerMm => _pixelsPerMm;
         public Point2D<double> TopEdgeStart { get; private set; }
         public Point2D<double> TopEdgeEnd { get; private set; }
@@ -79,12 +78,11 @@ namespace LagoVista.PickAndPlace.Models
             : $"WHITE CORNER ({Position.X:F0},{Position.Y:F0}) " +
               $"X {OffsetMM.X:+0.00;-0.00;0.00} / Y {OffsetMM.Y:+0.00;-0.00;0.00} mm " +
               $"{(PositionStable ? "STABLE" : "ACQUIRING")} " +
-              $"{(UsesStartBarScale ? "START SCALE" : "CAMERA SCALE")} " +
+              "CAMERA SCALE " +
               EdgeSummary;
 
         public void Add(int x, int y, int imageWidth, int imageHeight,
-            double pixelsPerMm, double toleranceMm, int stabilizationCount,
-            bool usesStartBarScale)
+            double pixelsPerMm, double toleranceMm, int stabilizationCount)
         {
             if (pixelsPerMm <= 0 || double.IsNaN(pixelsPerMm) ||
                 double.IsInfinity(pixelsPerMm))
@@ -96,11 +94,9 @@ namespace LagoVista.PickAndPlace.Models
             var sample = new Point2D<double>(x, y);
             if (_samples.Count > 0)
             {
-                // Never combine camera-calibrated and start-calibrated
-                // measurements in one stable history. An optical-scale
-                // change must reacquire stability before a physical jog.
-                if (UsesStartBarScale != usesStartBarScale ||
-                    Math.Abs(_pixelsPerMm - pixelsPerMm) >
+                // A camera/profile calibration change must reacquire
+                // stability before a physical jog.
+                if (Math.Abs(_pixelsPerMm - pixelsPerMm) >
                         Math.Max(1.0, _pixelsPerMm * 0.05))
                     Reset();
             }
@@ -118,7 +114,6 @@ namespace LagoVista.PickAndPlace.Models
             _imageCenter = new Point2D<double>(imageWidth / 2.0, imageHeight / 2.0);
             _requiredSamples = Math.Min(HistorySize, Math.Max(5, stabilizationCount));
             _errorToleranceMm = toleranceMm > 0 ? toleranceMm : 0.15;
-            UsesStartBarScale = usesStartBarScale;
 
             _samples.Enqueue(sample);
             while (_samples.Count > HistorySize)
@@ -141,7 +136,6 @@ namespace LagoVista.PickAndPlace.Models
             _samples.Clear();
             FoundCount = 0;
             Position = null;
-            UsesStartBarScale = false;
             SetFittedEdges(null);
             RaisePropertyChanged(nameof(Summary));
             RaisePropertyChanged(nameof(PositionStable));

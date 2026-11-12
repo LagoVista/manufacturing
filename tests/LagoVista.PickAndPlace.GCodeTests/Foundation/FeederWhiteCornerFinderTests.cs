@@ -73,7 +73,7 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
-        public void UsesVerifiedFiveUnitStartForActualOpticalScale()
+        public void UsesVerifiedFiveUnitStartForDiagnosticOpticalScale()
         {
             var pixels = PrintedWhiteLabel();
             byte Gray(int x, int y) => pixels[y * Size + x];
@@ -89,7 +89,7 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
-        public void NoVerifiedStartLeavesJogScaleUnavailable()
+        public void NoVerifiedStartLeavesDiagnosticOpticalScaleUnavailable()
         {
             var pixels = PrintedWhiteLabel();
             // Remove both data bars. A long dark rectangle alone is not a

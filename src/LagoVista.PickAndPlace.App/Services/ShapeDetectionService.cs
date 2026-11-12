@@ -136,8 +136,7 @@ namespace LagoVista.PickAndPlace.App.Services
                     var offsets = corner.OffsetMM;
                     var measurements = $"X {offsets.X:+0.00;-0.00;0.00}  " +
                         $"Y {offsets.Y:+0.00;-0.00;0.00} mm";
-                    var scale = (corner.UsesStartBarScale ? "START" : "CAMERA") +
-                        $" SCALE {corner.PixelsPerMm:F1} px/mm";
+                    var scale = $"CAMERA SCALE {corner.PixelsPerMm:F1} px/mm";
                     DrawFeederCornerLabel(img.Image, size, headline, 0, color, true);
                     DrawFeederCornerLabel(img.Image, size, measurements, 1, color);
                     DrawFeederCornerLabel(img.Image, size, scale, 2, color);

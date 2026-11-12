@@ -66,17 +66,10 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     }
                     _latestStatus = white.Status;
 
-                    // Prefer the known 2.5 mm start reference when the camera
-                    // currently sees enough barcode bars to verify it. Near
-                    // the cut corner it may not, in which case retain the
-                    // position camera's calibrated scale and report that fact.
-                    var measuredScale = FeederWhiteCornerFinder.MeasureStartScale(
-                        size.Width, size.Height, (x, y) => binary.Data[y, x, 0],
-                        128, white, nominalScale);
-                    var useStartScale = measuredScale > 0;
-                    Track(white.X, white.Y, camera, size,
-                        useStartScale ? measuredScale : nominalScale,
-                        useStartScale, white);
+                    // Corner-to-machine offsets use the position camera/profile
+                    // calibration. The barcode START bar is only a relative
+                    // width reference for barcode decoding, never for jogging.
+                    Track(white.X, white.Y, camera, size, nominalScale, white);
                 }
                 return;
             }
@@ -121,12 +114,12 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     return;
                 }
 
-                Track(foundX, foundY, camera, size, nominalScale, false);
+                Track(foundX, foundY, camera, size, nominalScale);
             }
         }
 
         private void Track(int x, int y, MachineCamera camera,
-            System.Drawing.Size size, double scale, bool usesStartScale,
+            System.Drawing.Size size, double scale,
             FeederWhiteCornerObservation fittedEdges = null)
         {
             var tracked = _locatedCorners.FirstOrDefault();
@@ -139,7 +132,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             tracked.Iteration = _iteration;
             tracked.Add(x, y, size.Width, size.Height, scale,
                 camera.CurrentVisionProfile.ErrorToleranceMM,
-                camera.CurrentVisionProfile.StabilizationCount, usesStartScale);
+                camera.CurrentVisionProfile.StabilizationCount);
             tracked.SetFittedEdges(fittedEdges);
             _locatorViewModel.CornerLocated(tracked);
         }

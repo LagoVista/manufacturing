@@ -68,10 +68,11 @@ namespace LagoVista.PickAndPlace.Models
     public static class FeederWhiteCornerFinder
     {
         /// <summary>
-        /// Measure the 5-unit START on the SAME printed label, to convert the
-        /// optical corner offset to physical millimeters. This is essential:
-        /// the camera's nominal pixels/mm is not trusted for a machine jog.
-        /// Returns zero (jog disabled) if START is not verified.
+        /// Legacy optical START-bar scale diagnostic for a printed label.
+        /// Feeder Origin corner location and jogging deliberately do NOT use
+        /// this scale: they use the position camera/profile calibration.
+        /// Barcode symbol decoding uses FeederBarcodeSignal.ReadFromStart.
+        /// Returns zero if START cannot be verified.
         /// </summary>
         public static double MeasureStartScale(int width, int height,
             Func<int, int, byte> sampleGray, byte threshold,

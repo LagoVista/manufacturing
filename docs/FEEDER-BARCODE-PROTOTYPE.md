@@ -42,23 +42,22 @@ The workflow reuses the UI that already existed:
 3. Use the **second Play** button in the position-camera controls
    (`CenterFoundItemCommand`). This consumes the existing stabilized
    `MVLocatedCorner.OffsetMM` and jogs toward the corner, bounded by
-   Manual/homed/work-area checks and a 2.5 mm correction per axis. It is
+   Manual/homed/work-area checks and a 10 mm correction limit per axis. It is
    operator-triggered, not autonomous. The detector resets after the jog so
    the next camera frame must establish a new stable corner.
 
-The corner detector uses the verified 5x black START bar as an optical
-pixels/mm reference when enough of the marker is visible; otherwise it
-uses the position camera's configured pixels/mm (**CAMERA SCALE**).
-The second Play button accepts a stable corner from either scale source.
-The earlier START SCALE-only guard was removed because it prevented the
-working manual jog whenever the barcode start was outside the camera view.
-The camera overlay shows the scale source and numerical pixels/mm, while a
-machine status message records the actual scale used, requested X/Y motion,
-and machine target. The difference between the reported 50.0 px/mm camera
-scale and 95.2 px/mm START scale is worth measuring on hardware; do not infer
-the cause of a prior overshoot or change calibration based on this alone.
-After a jog the tracker intentionally reacquires five stable frames and may
-briefly show orange.
+The corner detector always uses the position camera's active calibrated
+pixels/mm (the Feeder Origin vision-profile override, if set; otherwise the
+camera's PixelsPerMM) for **both** location offsets and the second Play jog.
+The black START bar must never change that physical conversion; it remains a
+relative width reference for barcode decoding and barcode-scan registration.
+This makes the same detected white corner produce the same jog regardless of
+whether the START bar is visible. The overlay displays **CAMERA SCALE** and
+pixels/mm, and machine status records the calibrated scale, requested X/Y
+motion, and target. The previously observed difference between 50.0 px/mm
+camera scale and 95.2 px/mm START scale remains an on-machine calibration
+diagnostic, not a reason to switch the jog scale. After a jog the tracker
+intentionally reacquires five stable frames and may briefly show orange.
 
 No operation in this workflow writes `OriginOffset` or changes barcode
 scanning. The existing **Set Feeder Origin** button remains the explicit place
