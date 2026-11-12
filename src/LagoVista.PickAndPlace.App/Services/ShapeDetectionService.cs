@@ -120,9 +120,14 @@ namespace LagoVista.PickAndPlace.App.Services
 
                     var point = new Point((int)Math.Round(corner.Position.X),
                         (int)Math.Round(corner.Position.Y));
-                    var color = corner.PositionStable
+                    // A stable corner is not necessarily centered. Only the
+                    // profile's existing Centered check earns a green marker.
+                    // Amber means locked but the operator must still jog.
+                    var color = corner.Centered
                         ? new MCvScalar(0, 255, 0)
-                        : new MCvScalar(0, 180, 255);
+                        : corner.PositionStable
+                            ? new MCvScalar(0, 255, 255)
+                            : new MCvScalar(0, 180, 255);
                     CvInvoke.Circle(img.Image, point, 12, color, 2);
                     CvInvoke.Line(img.Image, new Point(point.X - 18, point.Y),
                         new Point(point.X + 18, point.Y), color, 1);
@@ -133,9 +138,13 @@ namespace LagoVista.PickAndPlace.App.Services
                     // became practically unreadable. Draw fewer, large lines
                     // sized to the source frame and put them at the top-left
                     // away from the camera Play controls at the bottom.
-                    var headline = corner.PositionStable
-                        ? $"CORNER LOCKED ({point.X},{point.Y})"
-                        : $"CORNER ACQUIRING ({point.X},{point.Y})";
+                    // State comes from the detector's existing per-profile
+                    // centering tolerance; no second threshold or gate.
+                    var headline = corner.Centered
+                        ? $"CORNER CENTERED ({point.X},{point.Y})"
+                        : corner.PositionStable
+                            ? "CORNER LOCKED - JOG TO CENTER"
+                            : $"CORNER ACQUIRING ({point.X},{point.Y})";
                     var offsets = corner.OffsetMM;
                     var measurements = $"X {offsets.X:+0.00;-0.00;0.00}  " +
                         $"Y {offsets.Y:+0.00;-0.00;0.00} mm";
