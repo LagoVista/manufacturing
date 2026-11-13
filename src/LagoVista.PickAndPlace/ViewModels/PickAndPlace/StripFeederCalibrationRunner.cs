@@ -986,6 +986,122 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 capture?.Profile?.Key, _tapeProfileKey);
         }
 
+        /// <summary>
+        /// Mirrors staging-plate calibration: stable circle -> profile-based
+        /// Centered check -> bounded jog -> fresh observation, up to five jogs.
+        /// Does not save the first or last tape-hole offsets.
+        /// </summary>
+        private async Task<CircleProof> AutoCenterTapeHoleAsync(CancellationToken token)
+        {
+            var capture = _machine.PositionImageCaptureService;
+            var label = Current.ActiveStepKey == "last-tape-hole" ? "last" : "first";
+            for (var jogCount = 0;
+                 jogCount <= FeederAutoCornerJogMath.MaxAutomaticJogs; jogCount++)
+            {
+                var observed = await AcquireFreshCircleAsync(token, acceptOffCenter: true);
+                if (observed == null)
+                {
+                    _autoCenterError = $"No fresh stable {label} tape hole was detected. Inspect the camera; no jog sent.";
+                    return null;
+                }
+
+                if (!ReadyForAction(false, false, out var reason) ||
+                    !TapeCameraUnchanged() ||
+                    Current.Status != MachineOperationRunStatus.Running)
+                {
+                    _autoCenterError = reason ?? "Tape-hole profile or machine context changed.";
+                    return null;
+                }
+
+                // Circle.Centered is determined by the active vision profile's
+                // ErrorToleranceMM, not exact zero or a hard-coded threshold.
+                if (observed.Centered)
+                    return observed;
+                if (jogCount == FeederAutoCornerJogMath.MaxAutomaticJogs)
+                {
+                    _autoCenterError = $"{label} tape hole remains outside vision profile tolerance after five jogs. Inspect manually.";
+                    return null;
+                }
+
+                var before = await _machine.GetCurrentLocationAsync(5000);
+                if (!before.Successful ||
+                    !FeederOriginCalibrationMath.SamePosition(
+                        before.Result, observed.MachinePosition, 0.1))
+                {
+                    _autoCenterError = "Machine moved after the stable tape-hole observation. No jog sent.";
+                    return null;
+                }
+
+                if (!FeederAutoCornerJogMath.TryTarget(before.Result,
+                    observed.OffsetX, observed.OffsetY,
+                    _machine.Settings.WorkAreaSize, out var expected))
+                {
+                    _autoCenterError = "Tape-hole correction exceeds 10 mm per axis or machine work area. No jog sent.";
+                    return null;
+                }
+
+                token.ThrowIfCancellationRequested();
+                _machine.SendSafeMoveHeight();
+                var safe = await _machine.SpinUntilIdleAsync(10000);
+                if (!safe.Successful)
+                {
+                    _autoCenterError = "Tape-hole safe Z did not finish: " + safe.ErrorMessage;
+                    return null;
+                }
+                if (!ReadyForAction(false, false, out reason) ||
+                    !TapeCameraUnchanged() ||
+                    Current.Status != MachineOperationRunStatus.Running)
+                {
+                    _autoCenterError = reason ?? "Calibration context changed before tape-hole jog.";
+                    return null;
+                }
+
+                StatusText = $"Centering {label} tape hole, jog {jogCount + 1}/{FeederAutoCornerJogMath.MaxAutomaticJogs}: " +
+                    $"X {observed.OffsetX:+0.00;-0.00;0.00}, Y {observed.OffsetY:+0.00;-0.00;0.00} mm.";
+                Signal();
+
+                // Shared with the camera's second Play: exact detector identity,
+                // active profile, stable observation and limits are rechecked
+                // before the relative machine motion is actually queued.
+                var jogged = capture.TryJogToObservedCircle(
+                    observed.DetectionId, observed.OffsetX, observed.OffsetY,
+                    _tapeProfileKey);
+                if (!jogged.Successful)
+                {
+                    _autoCenterError = "Existing tape-hole Jog declined motion: " + jogged.ErrorMessage;
+                    return null;
+                }
+
+                var idle = await _machine.SpinUntilIdleAsync(30000);
+                if (!idle.Successful)
+                {
+                    _autoCenterError = "Tape-hole centering move did not finish: " + idle.ErrorMessage;
+                    return null;
+                }
+                if (!ReadyForAction(false, false, out reason) ||
+                    !TapeCameraUnchanged() ||
+                    Current.Status != MachineOperationRunStatus.Running)
+                {
+                    _autoCenterError = reason ?? "Calibration context changed after tape-hole jog.";
+                    return null;
+                }
+
+                var actual = await _machine.GetCurrentLocationAsync(5000);
+                if (!actual.Successful ||
+                    !FeederOriginCalibrationMath.SamePosition(actual.Result, expected, 0.5))
+                {
+                    _autoCenterError = "Tape-hole jog did not reach its bounded target. Inspect the machine before retry.";
+                    return null;
+                }
+
+                StatusText = $"Tape-hole jog {jogCount + 1} complete; reacquiring fresh stable circle.";
+                Signal();
+            }
+
+            _autoCenterError = "Tape-hole centering stopped without an accepted observation.";
+            return null;
+        }
+
         private async Task<CircleProof> AcquireFreshCircleAsync(
             CancellationToken token, bool acceptOffCenter = false)
         {
