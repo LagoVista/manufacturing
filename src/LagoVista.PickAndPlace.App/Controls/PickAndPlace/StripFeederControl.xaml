@@ -288,10 +288,7 @@
                     </StackPanel>
                  </Grid>
             </StackPanel>
-<<<<<<< HEAD
-        </StackPanel>
-        <StackPanel Grid.Column="2" Grid.RowSpan="4" >
-            <!-- The barcode controls and result need the entire form width,
+<!-- The barcode controls and result need the entire form width,
                         not the narrow third configuration column. -->
             <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Margin="10,8,10,10">
                 <WrapPanel Margin="0,0,0,8">
@@ -405,10 +402,8 @@
                     </StackPanel>
                 </Border>
             </Expander>
-            <local:StripFeederRender Height="1200"   StripFeeder="{Binding Current}" ></local:StripFeederRender>
-        </StackPanel>
-        
-=======
+            
+
             </StackPanel>
         </ScrollViewer>
         <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch"
@@ -416,6 +411,6 @@
                       ResizeBehavior="PreviousAndNext" ShowsPreview="True"
                       Background="#666666" ToolTip="Drag to resize feeder editor and 3D visualization"/>
         <local:StripFeederRender Grid.Column="2" StripFeeder="{Binding Current}" />
->>>>>>> e1ac93b142bb60769581a1981eef5e9dae492ee8
+
     </Grid>
 </ucb:VMBoundUserControl>
