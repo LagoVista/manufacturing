@@ -669,10 +669,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             if (!ReadyForAction(false, false, out var reason))
                 return Block(reason);
-            if (_row.CurrentPartIndex != Current.Target.StartingPartIndex)
+            if (_row.CurrentPartIndex != (Current.Target.StartingPartIndex ?? 0))
                 return Block("Feeder row current-part index changed. Restart calibration.");
             if (!FeederPocketVerificationMath.TryGetInspectionIndex(
-                    Current.Target.StartingPartIndex, _row.PartCapacity, previous, out var index))
+                    (Current.Target.StartingPartIndex ?? 0), _row.PartCapacity, previous, out var index))
                 return Block(previous
                     ? "Part 1 has no preceding pocket; no move sent."
                     : "Current part index is outside feeder capacity.");
@@ -803,7 +803,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             if (!ReadyForAction(false, false, out reason))
                 return false;
-            if (_row.CurrentPartIndex != Current.Target.StartingPartIndex)
+            if (_row.CurrentPartIndex != (Current.Target.StartingPartIndex ?? 0))
                 reason = "Feeder row current-part index changed during pocket check.";
             else if (!PocketCameraUnchanged())
                 reason = "Position camera or vision profile changed during pocket check.";
