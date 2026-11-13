@@ -379,6 +379,10 @@
                                                FontSize="12" Opacity="0.9"/>
                                 <WrapPanel>
                                     <Button Style="{StaticResource CommandButton}"
+                                                Content="{Binding FeederCalibrationAutoRunLabel}"
+                                                Command="{Binding FeederCalibrationAutoRunCommand}"
+                                                FontSize="13" Height="42" Width="190" Margin="0,0,8,6"/>
+                                    <Button Style="{StaticResource CommandButton}"
                                                 Content="{Binding FeederCalibrationActionLabel}"
                                                 Command="{Binding FeederCalibrationNextCommand}"
                                                 FontSize="13" Height="42" Width="220" Margin="0,0,8,6"/>
@@ -395,8 +399,10 @@
                                                 Command="{Binding FeederCalibrationNewRunCommand}"
                                                 FontSize="13" Height="42" Width="105" Margin="0,0,8,6"/>
                                 </WrapPanel>
+                                <TextBlock Text="{Binding FeederCalibrationAutoRunStatus}"
+                                           FontSize="11" TextWrapping="Wrap" Opacity="0.9" Margin="0,3,0,4"/>
                                 <TextBlock FontSize="11" TextWrapping="Wrap" Opacity="0.75"
-                                               Text="Corner and holes: camera Jog then Verify. Pockets: move the camera, visually inspect, and explicitly confirm PRESENT or EMPTY. No picks or inventory changes."/>
+                                               Text="Guided mode waits for operator approval before saving the origin, saving paired hole offsets, or confirming PRESENT/EMPTY. Camera Jog, Retry and Cancel remain available. No picks or inventory changes."/>
                                 <TextBlock Text="{Binding FeederCalibrationHistoryStatus}"
                                            TextWrapping="Wrap" FontSize="11" Margin="0,8,0,3"
                                            Opacity="0.85"/>

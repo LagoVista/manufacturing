@@ -86,6 +86,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public MachineOperationRunSnapshot Current => _session.Snapshot;
         public IReadOnlyList<MachineOperationAction> AvailableActions => _session.AvailableActions;
         public bool IsBusy => _busy;
+        // Automation is an operator-supervised convenience: no automatic saves,
+        // inventory updates, or visual part-presence confirmations.
+        public bool CanAutoAdvance => !_disposed && !_busy &&
+            FeederCalibrationAutoAdvancePolicy.CanAdvance(
+                Current.Status, Current.ActiveStepKey,
+                _approachedHoleStep == Current.ActiveStepKey,
+                _approachedPocketStep == Current.ActiveStepKey);
         public string StatusText { get; private set; } =
             "Ready. Move to the calculated feeder origin to start calibration.";
         public string MeasurementText { get; private set; } =
