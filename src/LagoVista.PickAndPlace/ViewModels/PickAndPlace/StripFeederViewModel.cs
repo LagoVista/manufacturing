@@ -160,6 +160,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     () => FindLocation(StripFeederLocationTypes.FeederOrigin),
                     () => FindLocation(StripFeederLocationTypes.FirstFeederRowReferenceHole, true),
                     () => TapePitch?.ToDouble() ?? 0,
+                    index => ResolvePocketForCalibration(index),
                     item => _restClient.PutAsync("/api/mfg/stripfeeder", item),
                     () => ReferenceEquals(Machine, machine) &&
                           ReferenceEquals(Current, feeder) &&
@@ -864,7 +865,30 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             return ResolvePartInTape(feederOrigin);
         }
 
-        private InvokeResult<Point2D<double>> ResolvePartInTape(Point2D<double> feederOrigin)
+        // Read-only pocket geometry: does NOT change CurrentPartIndex or inventory.
+        private InvokeResult<Point2D<double>> ResolvePocketForCalibration(int index)
+        {
+            if (Current == null || CurrentRow == null || Current.StagingPlate == null)
+                return InvokeResult<Point2D<double>>.FromError(
+                    "Select an existing feeder, staging plate, and row.");
+            if (index < 1 || index > TotalPartsInFeederRow)
+                return InvokeResult<Point2D<double>>.FromError("Pocket index is outside the feeder capacity.");
+
+            var plate = MachineConfiguration.StagingPlates.SingleOrDefault(
+                sp => sp.Id == Current.StagingPlate.Id);
+            if (plate == null)
+                return InvokeResult<Point2D<double>>.FromError("Configured staging plate not found.");
+            var anchor = StagingPlateUtils.ResolveStagePlateWorkSpakeLocation(
+                plate, Current.ReferenceHoleColumn, Current.ReferenceHoleRow);
+            if (anchor == null)
+                return InvokeResult<Point2D<double>>.FromError("Staging-plate reference row/column is missing.");
+
+            SetPartInTapeHoleProfile();
+            return ResolvePartInTape(ResolveFeederOrigin(anchor, Current), index);
+        }
+
+        private InvokeResult<Point2D<double>> ResolvePartInTape(Point2D<double> feederOrigin,
+            int? indexOverride = null)
         {
             if (Current == null)
             {
@@ -900,10 +924,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
 
 
-            CurrentPartIndex = Math.Max(1, CurrentPartIndex);
-            CurrentPartIndex = Math.Min(CurrentPartIndex, TotalPartsInFeederRow);
+            var index = Math.Max(1, Math.Min(indexOverride ?? CurrentPartIndex,
+                TotalPartsInFeederRow));
+            if (!indexOverride.HasValue)
+                CurrentPartIndex = index;
 
-            Machine.DebugWriteLine($"  RESOLVE LOCATION {CurrentPartIndex}, FEED LOCATION: {Current.FeedDirection.Value}");
+            Machine.DebugWriteLine($"  RESOLVE LOCATION {index}, FEED LOCATION: {Current.FeedDirection.Value}");
 
             if (CurrentComponentPackage == null)
                 return InvokeResult<Point2D<double>>.FromError("No component package, can not move to part.");
@@ -915,7 +941,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Current.Orientation.Value == FeederOrientations.Vertical,
                 Current.TapeHolesOnTop,
                 Current.FeedDirection.Value == FeedDirections.Forward,
-                CurrentPartIndex,
+                index,
                 CurrentComponentPackage.CustomTapePitch ?? TapePitch.ToDouble(),
                 TapeSize.ToDouble(),
                 CurrentComponentPackage.XOffsetFromReferenceHole,

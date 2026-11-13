@@ -326,7 +326,7 @@
                           Margin="10,8,10,12">
                 <Border BorderBrush="#606060" BorderThickness="1" CornerRadius="4" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="Guided steps 1–5 are available; pocket verification follows in the next task."
+                        <TextBlock Text="Guided steps 1–7: visually confirm the current part and preceding empty pocket. No picking."
                                        TextWrapping="Wrap" FontSize="12" Opacity="0.85"
                                        Margin="0,0,0,8"/>
                         <Grid>
@@ -396,7 +396,7 @@
                                                 FontSize="13" Height="42" Width="105" Margin="0,0,8,6"/>
                                 </WrapPanel>
                                 <TextBlock FontSize="11" TextWrapping="Wrap" Opacity="0.75"
-                                               Text="Use camera Jog after each approach, then Verify. The feeder origin saves at step 3; first and last tape-hole offsets save together at step 5."/>
+                                               Text="Corner and holes: camera Jog then Verify. Pockets: move the camera, visually inspect, and explicitly confirm PRESENT or EMPTY. No picks or inventory changes."/>
                             </StackPanel>
                         </Grid>
                     </StackPanel>
