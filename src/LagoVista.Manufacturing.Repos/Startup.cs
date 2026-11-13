@@ -19,6 +19,7 @@ namespace LagoVista.Manufacturing.Repos
         {
             services.AddTransient<IComponentRepo, ComponentRepo>();
             services.AddTransient<IStripFeederRepo, StripFeederRepo>();
+            services.AddTransient<IMachineOperationRunRepo, MachineOperationRunRepo>();
             services.AddTransient<IComponentPackageRepo, ComponentPackageRepo>();
             services.AddTransient<IPartPackRepo, PartPackRepo>();
             services.AddTransient<IAutoFeederRepo, AutoFeederRepo>();
