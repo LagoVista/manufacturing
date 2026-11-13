@@ -8,6 +8,7 @@ using Emgu.CV.Structure;
 using LagoVista.Core;
 using LagoVista.Core.Commanding;
 using LagoVista.Core.Models;
+using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using LagoVista.Manufacturing.Models.Resources;
@@ -187,7 +188,11 @@ namespace LagoVista.PickAndPlace.App.Services
                 return InvokeResult.FromError(
                     "Tape-hole observation changed before jog; reacquire it.");
 
-            if (!FeederAutoCornerJogMath.TryTarget(Machine.MachinePosition,
+            var machineXY = new Point2D<double>(
+                Machine.MachinePosition.X,
+                Machine.MachinePosition.Y);
+
+            if (!FeederAutoCornerJogMath.TryTarget(machineXY,
                     correction.X, correction.Y, Machine.Settings.WorkAreaSize, out _))
                 return InvokeResult.FromError(
                     "Tape-hole correction exceeds the 10 mm per-axis limit or the machine work area.");
