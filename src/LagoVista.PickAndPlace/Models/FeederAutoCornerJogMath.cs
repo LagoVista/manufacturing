@@ -8,6 +8,7 @@ namespace LagoVista.PickAndPlace.Models
     public static class FeederAutoCornerJogMath
     {
         public const double MaxCorrectionMm = 10.0;
+        public const int MaxAutomaticJogs = 5;
 
         public static bool TryTarget(Point2D<double> current,
             double correctionX, double correctionY, Point2D<double> workArea,

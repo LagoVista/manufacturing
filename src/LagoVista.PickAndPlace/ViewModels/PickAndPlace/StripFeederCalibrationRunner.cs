@@ -32,11 +32,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         private sealed class CircleProof
         {
+            public Guid DetectionId { get; set; }
             public Point2D<double> MachinePosition { get; set; }
             public double OffsetX { get; set; }
             public double OffsetY { get; set; }
             public double RadiusMm { get; set; }
             public double PixelsPerMm { get; set; }
+            public bool Centered { get; set; }
         }
 
         private readonly IMachine _machine;
@@ -79,6 +81,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private bool _disposed;
         private bool _autoCenterRequested;
         private bool _acceptOffCenterCorner;
+        private bool _acceptOffCenterCircle;
         private string _autoCenterError;
         private Point2D<double> _calculatedOrigin;
         private string _cameraId;
@@ -433,7 +436,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         /// </summary>
         private async Task<CornerProof> AutoCenterCornerAsync(CancellationToken token)
         {
-            const int maxJogs = 2;
+            const int maxJogs = FeederAutoCornerJogMath.MaxAutomaticJogs;
             for (var jogCount = 0; jogCount <= maxJogs; jogCount++)
             {
                 var corner = await AcquireFreshCornerAsync(token, acceptOffCenter: true);
@@ -453,7 +456,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     return corner;
                 if (jogCount == maxJogs)
                 {
-                    _autoCenterError = "White corner is locked but not centered after two bounded camera jogs. Inspect manually.";
+                    _autoCenterError = "White corner remains outside the active vision profile tolerance after five bounded camera jogs. Inspect manually.";
                     return null;
                 }
 
@@ -682,9 +685,24 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 !FeederOriginCalibrationMath.SamePosition(actual.Result, target, 0.5))
                 return Block("The machine did not confirm reaching the calculated tape-hole target.");
 
+            // The last tape-hole capture is a persisted paired-offset commit,
+            // so guided mode jogs NOW, then stops for operator approval to save.
+            CircleProof centered = null;
+            if (lastHole && _autoCenterRequested)
+            {
+                _autoCenterError = null;
+                centered = await AutoCenterTapeHoleAsync(token);
+                if (centered == null)
+                    return Block(_autoCenterError ?? "Could not center the last tape hole.");
+            }
+
             _approachedHoleStep = stepKey;
-            MeasurementText = $"Approached {(lastHole ? "last" : "first")} hole at X {actual.Result.X:F2}, Y {actual.Result.Y:F2} mm";
-            StatusText = "Use the existing camera Jog to center the intended complete tape hole, then press Verify. No offset is saved until BOTH holes are captured.";
+            MeasurementText = centered == null
+                ? $"Approached {(lastHole ? "last" : "first")} hole at X {actual.Result.X:F2}, Y {actual.Result.Y:F2} mm"
+                : $"Centered last hole within profile tolerance: residual X {centered.OffsetX:+0.00;-0.00;0.00}, Y {centered.OffsetY:+0.00;-0.00;0.00} mm";
+            StatusText = centered == null
+                ? "Use existing camera Jog to center the intended complete tape hole, then Verify. No offset is saved until BOTH holes are captured."
+                : "Last tape hole centered within profile tolerance. Inspect the image, then explicitly Verify & Save the paired offsets.";
             Signal();
             return Result(true);
         }
@@ -697,9 +715,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             StatusText = "Acquiring a fresh stable, centered tape hole at the current camera position.";
             Signal();
-            var circle = await AcquireFreshCircleAsync(token);
+            _autoCenterError = null;
+            var circle = _autoCenterRequested
+                ? await AutoCenterTapeHoleAsync(token)
+                : await AcquireFreshCircleAsync(token);
             if (circle == null)
-                return Block("No stable centered tape hole was found. Jog and retry this step.");
+                return Block(_autoCenterError ??
+                    "No stable centered tape hole was found. Jog and retry this step.");
             if (!ReadyForAction(false, lastHole, out reason) || !TapeCameraUnchanged() ||
                 Current.Status != MachineOperationRunStatus.Running)
                 return Block(reason ?? "Machine context changed during tape-hole verification.");
@@ -964,7 +986,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 capture?.Profile?.Key, _tapeProfileKey);
         }
 
-        private async Task<CircleProof> AcquireFreshCircleAsync(CancellationToken token)
+        private async Task<CircleProof> AcquireFreshCircleAsync(
+            CancellationToken token, bool acceptOffCenter = false)
         {
             TaskCompletionSource<CircleProof> request;
             lock (_observationGate)
@@ -972,6 +995,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 request = new TaskCompletionSource<CircleProof>(
                     TaskCreationOptions.RunContinuationsAsynchronously);
                 _pendingCircle = request;
+                _acceptOffCenterCircle = acceptOffCenter;
             }
             try
             {
@@ -998,7 +1022,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             if (request == null || _disposed || circle == null ||
                 circle.CameraType != CameraTypes.Position ||
-                !circle.Stabilized || !circle.PositionStable || !circle.Centered ||
+                !circle.Stabilized || !circle.PositionStable ||
+                (!circle.Centered && !_acceptOffCenterCircle) ||
                 circle.RadiusMM <= 0 || _machine.Busy || !_machine.Connected ||
                 _machine.Mode != OperatingMode.Manual || !TapeCameraUnchanged())
                 return;
@@ -1007,11 +1032,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var offset = circle.OffsetMM;
             request.TrySetResult(new CircleProof
             {
+                DetectionId = circle.Id,
                 MachinePosition = new Point2D<double>(position.X, position.Y),
                 OffsetX = offset.X,
                 OffsetY = offset.Y,
                 RadiusMm = circle.RadiusMM,
-                PixelsPerMm = _tapeCameraScale
+                PixelsPerMm = _tapeCameraScale,
+                Centered = circle.Centered
             });
         }
 
@@ -1033,6 +1060,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 _pendingCircle?.TrySetResult(null);
                 _pendingCircle = null;
+                _acceptOffCenterCircle = false;
             }
             if (_circleRegistered)
             {
