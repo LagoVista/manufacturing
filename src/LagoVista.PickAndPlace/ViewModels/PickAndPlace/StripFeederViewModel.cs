@@ -127,8 +127,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _calibrationAutoRunAdvancing
                 ? "Guided sequence is running. Stay with the machine; Cancel stops future steps."
                 : _calibrationAutoRunEnabled
-                    ? "Paused for operator: inspect the camera, jog if necessary, and use the primary action to confirm. Guided sequence then resumes."
-                    : "Guided mode automatically moves and verifies where safe, but always pauses before saving settings or confirming parts.";
+                    ? "Paused for operator inspection or recovery. Calibrated feeder offsets save automatically after fresh vision verification; part PRESENT/EMPTY still requires your confirmation."
+                    : "Guided mode auto-centers, re-verifies and saves feeder calibration offsets. It pauses for failed observations and part PRESENT/EMPTY confirmation.";
         public bool FeederCalibrationCanCancel => _feederCalibration?.CanCancel == true;
 
         private bool CalibrationSelectionReady =>
@@ -251,9 +251,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RefreshFeederCalibration();
             try
             {
-                // At most one pass through the finite seven-step definition.
-                // Every move retains the runner's homing, bounds, camera and
-                // freshness checks; operator-only approvals are never invoked.
+                // One supervised guided run: persist only freshly verified
+                // feeder offsets. Every move and save retains homing, bounds,
+                // idle, profile, and freshness checks; part PRESENT/EMPTY
+                // observations remain explicitly operator-confirmed.
                 for (var transitions = 0; transitions < 12 && _calibrationAutoRunEnabled; transitions++)
                 {
                     if (!ReferenceEquals(operation, _feederCalibration) ||

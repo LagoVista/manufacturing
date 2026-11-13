@@ -4,8 +4,9 @@ namespace LagoVista.PickAndPlace.Models
 {
     /// <summary>
     /// Pure, conservative transition policy for supervised feeder calibration.
-    /// Auto mode may move and acquire fresh vision evidence, but it cannot
-    /// confirm a part or commit an offset on the operator's behalf.
+    /// Auto mode may move and acquire fresh vision evidence and persist
+    /// validated feeder offsets after the operator starts Guided Sequence.
+    /// It never confirms presence/absence of a part for the operator.
     /// </summary>
     public static class FeederCalibrationAutoAdvancePolicy
     {
@@ -32,14 +33,18 @@ namespace LagoVista.PickAndPlace.Models
                     // First-hole capture is measurement only; no saved mutation.
                     return true;
                 case "last-tape-hole":
-                    // Move automatically, but stop before paired offset save.
-                    return !holeApproached;
+                    // After approach and fresh centering, complete the verified
+                    // paired-offset save within the same guided run.
+                case "save-origin":
+                    // Auto save still performs a NEW centered vision observation
+                    // and validates machine location before persisting.
+                    return true;
                 case "verify-current-part":
                 case "verify-previous-empty":
                     // Move camera only; operator must confirm the live image.
                     return !pocketApproached;
                 default:
-                    // Includes "save-origin": never commit without confirmation.
+                    // Part presence and unknown operations remain manual.
                     return false;
             }
         }

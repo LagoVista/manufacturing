@@ -436,7 +436,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             });
             _session.CompleteActiveStep("center-fiducial", now);
             MeasurementText = $"Corner X {corner.OffsetX:+0.00;-0.00;0.00}, Y {corner.OffsetY:+0.00;-0.00;0.00} mm; scale {corner.PixelsPerMm:F1} px/mm";
-            StatusText = "Corner verified and centered. Press Capture & save origin offset to recheck and persist the measured position.";
+            StatusText = _autoCenterRequested
+                ? "Corner verified within profile tolerance. Guided sequence will recheck and save the feeder origin."
+                : "Corner verified and centered. Press Capture & save origin offset to recheck and persist the measured position.";
             Signal();
             return Result(true);
         }
@@ -595,8 +597,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Name = "Saved feeder OriginOffset",
                 Value = $"X {newOffset.X:+0.00;-0.00;0.00}, Y {newOffset.Y:+0.00;-0.00;0.00}",
                 Unit = "mm",
-                Source = "Operator confirmation / Manufacturing feeder PUT",
-                Verification = MachineOperationVerificationKind.OperatorConfirmed,
+                Source = _autoCenterRequested
+                    ? "Guided sequence fresh centered vision / Manufacturing feeder PUT"
+                    : "Operator confirmation / Manufacturing feeder PUT",
+                Verification = _autoCenterRequested
+                    ? MachineOperationVerificationKind.VisionVerified
+                    : MachineOperationVerificationKind.OperatorConfirmed,
                 Saved = true,
                 CapturedAtUtc = now,
                 VisionProfileKey = VisionProfile.VisionProfile_FeederOrigin,
@@ -830,7 +836,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _session.CompleteActiveStep("last-tape-hole", now);
             _approachedHoleStep = null;
             MeasurementText = $"SAVED tape holes: first X {_firstHoleRowOffset.X:F3}, Y {_firstHoleRowOffset.Y:F3}; last X {rowOffset.X:F3}, Y {rowOffset.Y:F3}";
-            StatusText = "First and last tape-hole offsets saved. Next: inspect the current pocket. No picking.";
+            StatusText = "First and last tape-hole offsets saved after fresh centered vision verification. Next: inspect the current pocket. No picking.";
             Signal();
             return Result(true);
         }

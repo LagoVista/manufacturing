@@ -24,8 +24,8 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         [TestCase(MachineOperationRunStatus.Running, "first-tape-hole", false, false, true)]
         [TestCase(MachineOperationRunStatus.Running, "first-tape-hole", true, false, true)]
         [TestCase(MachineOperationRunStatus.Running, "last-tape-hole", false, false, true)]
-        [TestCase(MachineOperationRunStatus.Running, "last-tape-hole", true, false, false)]
-        [TestCase(MachineOperationRunStatus.Running, "save-origin", false, false, false)]
+        [TestCase(MachineOperationRunStatus.Running, "last-tape-hole", true, false, true)]
+        [TestCase(MachineOperationRunStatus.Running, "save-origin", false, false, true)]
         [TestCase(MachineOperationRunStatus.Running, "verify-current-part", false, false, true)]
         [TestCase(MachineOperationRunStatus.Running, "verify-current-part", false, true, false)]
         [TestCase(MachineOperationRunStatus.Running, "verify-previous-empty", false, false, true)]
@@ -33,7 +33,7 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         [TestCase(MachineOperationRunStatus.Blocked, "first-tape-hole", false, false, false)]
         [TestCase(MachineOperationRunStatus.Completed, null, false, false, false)]
         [TestCase(MachineOperationRunStatus.Cancelled, "verify-current-part", false, false, false)]
-        public void AutoAdvanceNeverCrossesOperatorConfirmation(
+        public void AutoAdvanceCommitsVerifiedOffsetsButNotPartObservations(
             MachineOperationRunStatus status, string activeStepKey,
             bool holeApproached, bool pocketApproached, bool expected)
         {
