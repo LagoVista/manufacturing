@@ -18,6 +18,7 @@ namespace LagoVista.Manufacturing
             services.AddTransient<IComponentManager, ComponentManager>();
             services.AddTransient<IAutoFeederManager, AutoFeederManager>();
             services.AddTransient<IStripFeederManager, StripFeederManager>();
+            services.AddTransient<IMachineOperationRunManager, MachineOperationRunManager>();
             services.AddTransient<IComponentPackageManager, ComponentPackageManager>();
             services.AddTransient<IMachineManager, MachineManager>();
             services.AddTransient<IPickAndPlaceJobManager, PickAndPlaceJobManager>();

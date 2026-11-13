@@ -397,6 +397,13 @@
                                 </WrapPanel>
                                 <TextBlock FontSize="11" TextWrapping="Wrap" Opacity="0.75"
                                                Text="Corner and holes: camera Jog then Verify. Pockets: move the camera, visually inspect, and explicitly confirm PRESENT or EMPTY. No picks or inventory changes."/>
+                                <TextBlock Text="{Binding FeederCalibrationHistoryStatus}"
+                                           TextWrapping="Wrap" FontSize="11" Margin="0,8,0,3"
+                                           Opacity="0.85"/>
+                                <Button Content="Retry History Save"
+                                        Command="{Binding FeederCalibrationRetryHistoryCommand}"
+                                        Style="{StaticResource CommandButton}" Width="150"
+                                        HorizontalAlignment="Left" Height="34" FontSize="12" />
                             </StackPanel>
                         </Grid>
                     </StackPanel>

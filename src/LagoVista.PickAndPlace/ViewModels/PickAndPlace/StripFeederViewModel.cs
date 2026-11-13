@@ -78,6 +78,17 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
 
         private StripFeederCalibrationRunner _feederCalibration;
+        private bool _calibrationHistoryWriting;
+        private MachineOperationRunSnapshot _pendingHistorySnapshot;
+        private MachineOperationDefinition _pendingHistoryDefinition;
+        private string _calibrationHistoryStatus = "Run history will be recorded as calibration progresses.";
+
+        public string FeederCalibrationHistoryStatus
+        {
+            get => _calibrationHistoryStatus;
+            private set => Set(ref _calibrationHistoryStatus, value);
+        }
+
         private ObservableCollection<FeederCalibrationStepDisplay> _feederCalibrationSteps =
             new ObservableCollection<FeederCalibrationStepDisplay>();
 
@@ -97,9 +108,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             "Select a feeder and row";
 
         public bool FeederCalibrationCanContinue =>
-            CalibrationSelectionReady && _feederCalibration?.CanExecuteNext == true;
+            CalibrationSelectionReady && !_calibrationHistoryWriting &&
+            _feederCalibration?.CanExecuteNext == true;
         public bool FeederCalibrationCanRetry =>
-            CalibrationSelectionReady && _feederCalibration?.CanRetry == true;
+            CalibrationSelectionReady && !_calibrationHistoryWriting &&
+            _feederCalibration?.CanRetry == true;
         public bool FeederCalibrationCanCancel => _feederCalibration?.CanCancel == true;
 
         private bool CalibrationSelectionReady =>
@@ -138,6 +151,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RaisePropertyChanged(nameof(FeederCalibrationCanContinue));
             RaisePropertyChanged(nameof(FeederCalibrationCanRetry));
             RaisePropertyChanged(nameof(FeederCalibrationCanCancel));
+            RaisePropertyChanged(nameof(FeederCalibrationHistoryStatus));
             RaiseCanExecuteChanged();
         }
 
@@ -181,6 +195,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 : await operation.ExecuteNextAsync(System.Threading.CancellationToken.None);
             if (!result.Successful && !String.IsNullOrEmpty(result.ErrorMessage))
                 Machine?.AddStatusMessage(StatusMessageTypes.Warning, result.ErrorMessage);
+            await SaveFeederCalibrationRunHistoryAsync(operation);
             if (ReferenceEquals(operation, _feederCalibration))
                 RefreshFeederCalibration();
         }
@@ -193,6 +208,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var result = await operation.RetryAsync(System.Threading.CancellationToken.None);
             if (!result.Successful && !String.IsNullOrEmpty(result.ErrorMessage))
                 Machine?.AddStatusMessage(StatusMessageTypes.Warning, result.ErrorMessage);
+            await SaveFeederCalibrationRunHistoryAsync(operation);
             if (ReferenceEquals(operation, _feederCalibration))
                 RefreshFeederCalibration();
         }
@@ -203,8 +219,70 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if (operation == null)
                 return;
             await operation.CancelAsync(System.Threading.CancellationToken.None);
+            await SaveFeederCalibrationRunHistoryAsync(operation);
             if (ReferenceEquals(operation, _feederCalibration))
                 RefreshFeederCalibration();
+        }
+
+        // The server stores evidence only; this path NEVER writes a feeder
+        // offset or changes the physical operation's Saved indicator.
+        private async Task SaveFeederCalibrationRunHistoryAsync(
+            StripFeederCalibrationRunner operation)
+        {
+            if (operation == null || operation.Current.Status == MachineOperationRunStatus.Pending)
+                return;
+
+            // Clone the evidence snapshot so a Cancel or Retry cannot mutate
+            // the body of an in-flight REST request.
+            _pendingHistorySnapshot =
+                Newtonsoft.Json.JsonConvert.DeserializeObject<MachineOperationRunSnapshot>(
+                    Newtonsoft.Json.JsonConvert.SerializeObject(operation.Current));
+            _pendingHistoryDefinition = operation.Definition;
+            await RetryFeederCalibrationHistoryAsync();
+        }
+
+        private async Task RetryFeederCalibrationHistoryAsync()
+        {
+            if (_calibrationHistoryWriting || _pendingHistorySnapshot == null ||
+                _pendingHistoryDefinition == null)
+                return;
+
+            var snapshot = _pendingHistorySnapshot;
+            var definition = _pendingHistoryDefinition;
+            _calibrationHistoryWriting = true;
+            RefreshFeederCalibration();
+            try
+            {
+                var result = await _restClient.PutAsync("/api/mfg/calibration/run",
+                    new { Snapshot = snapshot, Definition = definition }, waitCursor: false);
+                if (result.Successful)
+                {
+                    if (ReferenceEquals(_pendingHistorySnapshot, snapshot))
+                    {
+                        _pendingHistorySnapshot = null;
+                        _pendingHistoryDefinition = null;
+                    }
+                    FeederCalibrationHistoryStatus =
+                        $"Run history recorded: {snapshot.RunId} ({snapshot.Status}).";
+                }
+                else
+                {
+                    FeederCalibrationHistoryStatus =
+                        "Run history was NOT saved. Use Retry History Save. " + result.ErrorMessage;
+                    Machine?.AddStatusMessage(StatusMessageTypes.Warning, FeederCalibrationHistoryStatus);
+                }
+            }
+            catch (Exception ex)
+            {
+                FeederCalibrationHistoryStatus =
+                    "Run history was NOT saved. Use Retry History Save. " + ex.Message;
+                Machine?.AddStatusMessage(StatusMessageTypes.Warning, FeederCalibrationHistoryStatus);
+            }
+            finally
+            {
+                _calibrationHistoryWriting = false;
+                RefreshFeederCalibration();
+            }
         }
 
         public StripFeederViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorVM, IRestClient restClient, IMachineUtilitiesViewModel machineUtilitiesViewModel) : base(machineRepo, restClient, locatorVM, machineUtilitiesViewModel)
@@ -240,7 +318,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             FeederCalibrationCancelCommand = CreateCommand(async () => await CancelFeederCalibrationAsync(),
                 () => FeederCalibrationCanCancel);
             FeederCalibrationNewRunCommand = CreateCommand(ResetFeederCalibration,
-                () => CalibrationSelectionReady && _feederCalibration?.IsBusy != true);
+                () => CalibrationSelectionReady && !_calibrationHistoryWriting &&
+                    _feederCalibration?.IsBusy != true);
+            FeederCalibrationRetryHistoryCommand = CreateCommand(
+                async () => await RetryFeederCalibrationHistoryAsync(),
+                () => !_calibrationHistoryWriting && _pendingHistorySnapshot != null);
 
             RemoveCurrentCommand = CreateCommand(RemoveCurrent, () => Current != null);
             
@@ -1139,6 +1221,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public RelayCommand FeederCalibrationRetryCommand { get; }
         public RelayCommand FeederCalibrationCancelCommand { get; }
         public RelayCommand FeederCalibrationNewRunCommand { get; }
+        public RelayCommand FeederCalibrationRetryHistoryCommand { get; }
 
         public RelayCommand SetFeederOriginCommand { get; }
         public RelayCommand GoToFeederOriginCommand { get; }
