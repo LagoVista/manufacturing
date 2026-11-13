@@ -62,8 +62,9 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
             foreach (var circle in candidates)
             {
-                // Match the current track while tolerating small center and radius changes.
-                // Large jumps must establish a new track after the stale one expires.
+                // Match by physical center, not fluctuating Hough radius.
+                // Otherwise one hole appears as two overlapping tracks for
+                // a couple of frames despite Hough minDist working correctly.
                 var previous = _foundCircles.FindPrevious(circle, stagingPlateHole ? 20 : 10);
                 if (previous != null)
                 {

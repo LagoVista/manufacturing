@@ -14,13 +14,21 @@
              mc:Ignorable="d" 
              Background="Transparent"
              d:DesignHeight="800" d:DesignWidth="800">
-    <Grid>
+    <!-- Independently scroll the long editor while keeping the interactive
+         3D feeder rendering visible. The splitter lets the operator reclaim
+         unused space from either side without hiding the visualization. -->
+    <Grid ClipToBounds="True">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="50*" />
-            <ColumnDefinition Width="50*" />
+            <ColumnDefinition Width="3*" MinWidth="540"/>
+            <ColumnDefinition Width="6"/>
+            <ColumnDefinition Width="2*" MinWidth="280"/>
         </Grid.ColumnDefinitions>
-        <StackPanel>
-            <DataGrid ItemsSource="{Binding Feeders}" IsReadOnly="True" SelectedItem="{Binding Current, Mode=TwoWay}" CanUserAddRows="false" AutoGenerateColumns="false">
+        <ScrollViewer Grid.Column="0"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      PanningMode="VerticalOnly">
+            <StackPanel>
+            <DataGrid ItemsSource="{Binding Feeders}" IsReadOnly="True" SelectedItem="{Binding Current, Mode=TwoWay}" CanUserAddRows="false" AutoGenerateColumns="false" MaxHeight="180">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Nane" Binding="{Binding Name}" Width="*" />
                     <DataGridTextColumn Header="Size" Binding="{Binding TapeSize}" Width="120" />
@@ -129,7 +137,7 @@
 
 
                 <TextBlock Text="Rows" Style="{StaticResource header}"></TextBlock>
-                <DataGrid ItemsSource="{Binding Current.Rows}" AutoGenerateColumns="False"  IsReadOnly="true" SelectedItem="{Binding CurrentRow}" CanUserAddRows="false">
+                <DataGrid ItemsSource="{Binding Current.Rows}" AutoGenerateColumns="False" IsReadOnly="true" SelectedItem="{Binding CurrentRow}" CanUserAddRows="false" MaxHeight="270">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Idx" Width="80" Binding="{Binding RowIndex}"></DataGridTextColumn>
                         <DataGridTextColumn Header="Current Idx" Width="150" Binding="{Binding CurrentPartIndex}"></DataGridTextColumn>
@@ -280,6 +288,7 @@
                     </StackPanel>
                  </Grid>
             </StackPanel>
+<<<<<<< HEAD
         </StackPanel>
         <StackPanel Grid.Column="2" Grid.RowSpan="4" >
             <!-- The barcode controls and result need the entire form width,
@@ -399,5 +408,14 @@
             <local:StripFeederRender Height="1200"   StripFeeder="{Binding Current}" ></local:StripFeederRender>
         </StackPanel>
         
+=======
+            </StackPanel>
+        </ScrollViewer>
+        <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch" ResizeDirection="Columns"
+                      ResizeBehavior="PreviousAndNext" ShowsPreview="True"
+                      Background="#666666" ToolTip="Drag to resize feeder editor and 3D visualization"/>
+        <local:StripFeederRender Grid.Column="2" StripFeeder="{Binding Current}" />
+>>>>>>> e1ac93b142bb60769581a1981eef5e9dae492ee8
     </Grid>
 </ucb:VMBoundUserControl>
