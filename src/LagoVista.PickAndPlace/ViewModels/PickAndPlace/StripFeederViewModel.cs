@@ -261,7 +261,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         !operation.CanAutoAdvance || !operation.CanExecuteNext)
                         break;
 
-                    var result = await operation.ExecuteNextAsync(
+                    var result = await operation.ExecuteAutoNextAsync(
                         System.Threading.CancellationToken.None);
                     if (!result.Successful)
                     {
