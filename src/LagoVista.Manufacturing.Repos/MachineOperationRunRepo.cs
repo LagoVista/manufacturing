@@ -14,7 +14,8 @@ namespace LagoVista.Manufacturing.Repos
 
         public async Task<MachineOperationRunRecord> FindAsync(string runId)
         {
-            var results = await QueryAsync(run => run.Id == runId);
+            var normalizedId = runId?.ToUpperInvariant();
+            var results = await QueryAsync(run => run.Id == normalizedId);
             return results.FirstOrDefault();
         }
 

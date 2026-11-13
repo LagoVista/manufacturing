@@ -18,6 +18,7 @@ namespace LagoVista.Manufacturing.Models.Operations
         {
             if (snapshot == null || definition == null || snapshot.Target == null ||
                 String.IsNullOrWhiteSpace(snapshot.RunId) ||
+                !Guid.TryParseExact(snapshot.RunId, "N", out _) ||
                 String.IsNullOrWhiteSpace(snapshot.Target.MachineId) ||
                 definition.Version <= 0 || definition.Key != snapshot.DefinitionKey ||
                 definition.Version != snapshot.DefinitionVersion ||
@@ -53,7 +54,7 @@ namespace LagoVista.Manufacturing.Models.Operations
 
             if (previous != null)
             {
-                if (previous.Id != snapshot.RunId ||
+                if (previous.Id != snapshot.RunId.ToUpperInvariant() ||
                     previous.OwnerOrganization?.Id != org.Id ||
                     previous.MachineId != snapshot.Target.MachineId ||
                     previous.FeederId != snapshot.Target.FeederId ||
@@ -87,7 +88,7 @@ namespace LagoVista.Manufacturing.Models.Operations
             var now = UtcTimestamp.Now;
             var record = previous ?? new MachineOperationRunRecord
             {
-                Id = snapshot.RunId,
+                Id = snapshot.RunId.ToUpperInvariant(),
                 Key = snapshot.RunId,
                 CreationDate = now,
                 CreatedBy = user,
