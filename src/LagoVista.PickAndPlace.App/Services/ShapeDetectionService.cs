@@ -199,7 +199,8 @@ namespace LagoVista.PickAndPlace.App.Services
             {
                 foreach(var rect in _rectangleDetector.FoundRectangles)
                 {
-                    _imageHelper.DrawRect(img, camera.CurrentVisionProfile.ZoomLevel, rect, rect.Centered ? System.Drawing.Color.Green : System.Drawing.Color.Red);
+                    _imageHelper.DrawRect(img, camera.CurrentVisionProfile.ZoomLevel, rect,
+                        rect.Centered ? System.Drawing.Color.Lime : System.Drawing.Color.Red);
                 }
             }
             else
@@ -207,7 +208,8 @@ namespace LagoVista.PickAndPlace.App.Services
                 var rect = _rectangleDetector.FoundRectangles.OrderByDescending(rect => rect.FoundCount).FirstOrDefault();
                 if (rect != null)
                 {
-                    _imageHelper.DrawRect(img, camera.CurrentVisionProfile.ZoomLevel, rect, rect.Centered ? System.Drawing.Color.Green : System.Drawing.Color.Red);
+                    _imageHelper.DrawRect(img, camera.CurrentVisionProfile.ZoomLevel, rect,
+                        rect.Centered ? System.Drawing.Color.Lime : System.Drawing.Color.Red);
                 }
              
             }

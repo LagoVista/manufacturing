@@ -49,10 +49,14 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             matrix.RotateAt(rect.RotatedRect.Angle, rect.RotatedRect.Center);
             matrix.TransformPoints(p);
 
-            Line(img, (int)p[0].X, (int)p[0].Y, (int)p[1].X, (int)p[1].Y, color, 1);
-            Line(img, (int)p[1].X, (int)p[1].Y, (int)p[2].X, (int)p[2].Y, color, 1);
-            Line(img, (int)p[2].X, (int)p[2].Y, (int)p[3].X, (int)p[3].Y, color, 1);
-            Line(img, (int)p[3].X, (int)p[3].Y, (int)p[0].X, (int)p[0].Y, color, 1);
+            // Diagnostic overlay only: three-pixel anti-aliased outline is
+            // visible on high-contrast black tape even at a reduced zoom.
+            // Does not modify detected rectangle geometry or acceptance.
+            const int outlineThickness = 3;
+            Line(img, (int)p[0].X, (int)p[0].Y, (int)p[1].X, (int)p[1].Y, color, outlineThickness);
+            Line(img, (int)p[1].X, (int)p[1].Y, (int)p[2].X, (int)p[2].Y, color, outlineThickness);
+            Line(img, (int)p[2].X, (int)p[2].Y, (int)p[3].X, (int)p[3].Y, color, outlineThickness);
+            Line(img, (int)p[3].X, (int)p[3].Y, (int)p[0].X, (int)p[0].Y, color, outlineThickness);
         }
 
         public void ShowCalibrationSquare(IMVImage<IInputOutputArray> destImage, Size size)
