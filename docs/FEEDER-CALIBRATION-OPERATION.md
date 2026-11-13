@@ -8,6 +8,37 @@ session-handoff authority.
 Status: design / next implementation slice (2026-11-12). This document is
 not a claim that the seven-step operation is implemented.
 
+## Implemented procedural execution (2026-11-13)
+
+The existing `MachineOperationDefinition` and `MachineOperationSession`
+form the reusable ordered-step **container**. The new
+`MachineOperationProcedureExecutor` runs the strongly typed actions from
+the existing `StripFeederCalibrationRunner` and checkpoints the existing
+Manufacturing operation journal after each transition. The WPF view renders
+the session's seven step snapshots; it does not own any motion logic.
+
+The operator-facing procedure has **Start** and **Reset**. Start moves,
+vision-centers (up to five jogs within the active profile tolerance),
+rechecks, saves the feeder origin, centers first/last tape holes and commits
+their measured pair, then advances to the current/previous pocket checks.
+No individual Next, Retry, Confirm, Cancel or history-save buttons are shown
+in the procedure panel. Reset is enabled only after an operation stops, and
+records cancellation of an incomplete run before creating a new session.
+A queued machine movement may still complete; the machine's separate
+emergency-stop control is authoritative for immediate physical intervention.
+
+A failed machine move, unavailable camera observation, rejected profile/geometry,
+timeout, or failed durable checkpoint stops further actions. Calibration values
+are committed only after fresh vision evidence. The operator's **Start** is
+the authorization to save verified offsets, not permission to guess results.
+
+**Outstanding acceptance boundary:** present/empty pocket classification is not
+yet validated for the active camera, part and tape. The procedure can move to
+the current pocket, but it fails closed at that check instead of inventing
+a result or silently substituting a manual confirmation. Full seven-step
+unattended completion requires a separately tested presence/absence classifier.
+The source has not yet passed Windows WPF/machine acceptance for this revision.
+
 ## Goal
 
 Calibrate the physical position of a strip feeder, its first and last tape holes,

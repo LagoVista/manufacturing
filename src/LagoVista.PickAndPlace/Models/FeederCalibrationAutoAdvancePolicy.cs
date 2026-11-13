@@ -6,7 +6,9 @@ namespace LagoVista.PickAndPlace.Models
     /// Pure, conservative transition policy for supervised feeder calibration.
     /// Auto mode may move and acquire fresh vision evidence and persist
     /// validated feeder offsets after the operator starts Guided Sequence.
-    /// It never confirms presence/absence of a part for the operator.
+    /// It never invents part presence/absence. The procedure runs the
+    /// camera approach then stops with a blocked step if the classifier
+    /// has not been validated.
     /// </summary>
     public static class FeederCalibrationAutoAdvancePolicy
     {
@@ -41,8 +43,10 @@ namespace LagoVista.PickAndPlace.Models
                     return true;
                 case "verify-current-part":
                 case "verify-previous-empty":
-                    // Move camera only; operator must confirm the live image.
-                    return !pocketApproached;
+                    // Approach the pocket, then invoke the classifier boundary.
+                    // Without a validated classifier the strongly typed runner
+                    // blocks. Never fake an operator confirmation.
+                    return true;
                 default:
                     // Part presence and unknown operations remain manual.
                     return false;

@@ -597,17 +597,38 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Name = "Saved feeder OriginOffset",
                 Value = $"X {newOffset.X:+0.00;-0.00;0.00}, Y {newOffset.Y:+0.00;-0.00;0.00}",
                 Unit = "mm",
+                // The operator's Start authorizes saving newly verified
+                // feeder offsets. A per-step click is not required, but this
+                // authorization is never used for part presence/absence.
                 Source = _autoCenterRequested
-                    ? "Guided sequence fresh centered vision / Manufacturing feeder PUT"
-                    : "Operator confirmation / Manufacturing feeder PUT",
-                Verification = _autoCenterRequested
-                    ? MachineOperationVerificationKind.VisionVerified
-                    : MachineOperationVerificationKind.OperatorConfirmed,
+                    ? "Operator Start authorization; fresh centered vision and Manufacturing feeder PUT"
+                    : "Operator per-step confirmation / Manufacturing feeder PUT",
+                Verification = MachineOperationVerificationKind.OperatorConfirmed,
                 Saved = true,
                 CapturedAtUtc = now,
                 VisionProfileKey = VisionProfile.VisionProfile_FeederOrigin,
                 PixelsPerMm = corner.PixelsPerMm
             });
+            if (_autoCenterRequested)
+            {
+                // Record the fresh vision observation independently of the
+                // Start authorization that the existing operation schema
+                // requires for a saved-origin checkpoint.
+                _session.RecordEvidence(new MachineOperationEvidence
+                {
+                    RunId = Current.RunId,
+                    StepKey = "save-origin",
+                    Name = "Fresh verified centered feeder corner at saved origin",
+                    Value = $"X {corner.OffsetX:+0.00;-0.00;0.00}, Y {corner.OffsetY:+0.00;-0.00;0.00}",
+                    Unit = "mm",
+                    Source = "Position camera / feeder origin profile",
+                    Verification = MachineOperationVerificationKind.VisionVerified,
+                    Saved = true,
+                    CapturedAtUtc = now,
+                    VisionProfileKey = VisionProfile.VisionProfile_FeederOrigin,
+                    PixelsPerMm = corner.PixelsPerMm
+                });
+            }
             _session.CompleteActiveStep("save-origin", now);
             MeasurementText = $"SAVED OriginOffset X {newOffset.X:+0.00;-0.00;0.00}, Y {newOffset.Y:+0.00;-0.00;0.00} mm";
             StatusText = "Feeder origin saved. Next: move to the first complete tape hole. Manual camera Jog remains available.";
@@ -858,6 +879,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     : "Current part index is outside feeder capacity.");
 
             var key = previous ? "verify-previous-empty" : "verify-current-part";
+            if (_approachedPocketStep == key && _autoCenterRequested)
+                return Block("Automated " + (previous ? "EMPTY" : "PRESENT") +
+                    " pocket classification is not validated for this camera/tape/part. " +
+                    "Camera arrived safely but no observation was asserted. " +
+                    "A verified part-presence classifier is required before the full procedure can complete.");
             return _approachedPocketStep == key
                 ? await ConfirmPocketAsync(previous, token)
                 : await MoveToPocketAsync(previous, index, token);

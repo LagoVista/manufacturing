@@ -326,7 +326,7 @@
                           Margin="10,8,10,12">
                 <Border BorderBrush="#606060" BorderThickness="1" CornerRadius="4" Padding="10">
                     <StackPanel>
-                        <TextBlock Text="Guided steps 1–7: visually confirm the current part and preceding empty pocket. No picking."
+                        <TextBlock Text="One procedure. Start executes each calibrated step automatically; Reset prepares a new run after completion or failure. No picking."
                                        TextWrapping="Wrap" FontSize="12" Opacity="0.85"
                                        Margin="0,0,0,8"/>
                         <Grid>
@@ -379,37 +379,21 @@
                                                FontSize="12" Opacity="0.9"/>
                                 <WrapPanel>
                                     <Button Style="{StaticResource CommandButton}"
-                                                Content="{Binding FeederCalibrationAutoRunLabel}"
+                                                Content="Start"
                                                 Command="{Binding FeederCalibrationAutoRunCommand}"
-                                                FontSize="13" Height="42" Width="190" Margin="0,0,8,6"/>
+                                                FontSize="13" Height="42" Width="135" Margin="0,0,8,6"/>
                                     <Button Style="{StaticResource CommandButton}"
-                                                Content="{Binding FeederCalibrationActionLabel}"
-                                                Command="{Binding FeederCalibrationNextCommand}"
-                                                FontSize="13" Height="42" Width="220" Margin="0,0,8,6"/>
-                                    <Button Style="{StaticResource CommandButton}"
-                                                Content="Retry Step"
-                                                Command="{Binding FeederCalibrationRetryCommand}"
-                                                FontSize="13" Height="42" Width="115" Margin="0,0,8,6"/>
-                                    <Button Style="{StaticResource CommandButton}"
-                                                Content="Cancel Operation"
-                                                Command="{Binding FeederCalibrationCancelCommand}"
-                                                FontSize="13" Height="42" Width="155" Margin="0,0,8,6"/>
-                                    <Button Style="{StaticResource CommandButton}"
-                                                Content="New Run"
+                                                Content="Reset"
                                                 Command="{Binding FeederCalibrationNewRunCommand}"
-                                                FontSize="13" Height="42" Width="105" Margin="0,0,8,6"/>
+                                                FontSize="13" Height="42" Width="135" Margin="0,0,8,6"/>
                                 </WrapPanel>
                                 <TextBlock Text="{Binding FeederCalibrationAutoRunStatus}"
                                            FontSize="11" TextWrapping="Wrap" Opacity="0.9" Margin="0,3,0,4"/>
                                 <TextBlock FontSize="11" TextWrapping="Wrap" Opacity="0.75"
-                                               Text="Guided mode automatically re-verifies and saves centered feeder-origin and tape-hole offsets. You still confirm PRESENT/EMPTY from the live camera image. Camera Jog, Retry and Cancel remain available. No picks or inventory changes."/>
+                                               Text="The procedure stops on missing vision proof, failed motion, a save error, or an unvalidated pocket classifier. Review the highlighted step and Reset for another attempt. Machine emergency stop remains separate. No inventory changes."/>
                                 <TextBlock Text="{Binding FeederCalibrationHistoryStatus}"
                                            TextWrapping="Wrap" FontSize="11" Margin="0,8,0,3"
                                            Opacity="0.85"/>
-                                <Button Content="Retry History Save"
-                                        Command="{Binding FeederCalibrationRetryHistoryCommand}"
-                                        Style="{StaticResource CommandButton}" Width="150"
-                                        HorizontalAlignment="Left" Height="34" FontSize="12" />
                             </StackPanel>
                         </Grid>
                     </StackPanel>
