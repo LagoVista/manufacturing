@@ -9,6 +9,12 @@ namespace LagoVista.PickAndPlace.Models
     /// </summary>
     public static class FeederCalibrationAutoAdvancePolicy
     {
+        // An M400 acknowledgement means motion finished, but the serial
+        // pipeline's last acknowledgement can still be in flight.
+        public static bool SerialChannelQuiet(bool connected,
+            bool busy, int toSend, int unacknowledged) =>
+            connected && !busy && toSend == 0 && unacknowledged == 0;
+
         public static bool CanAdvance(
             MachineOperationRunStatus status, string activeStepKey,
             bool holeApproached, bool pocketApproached)

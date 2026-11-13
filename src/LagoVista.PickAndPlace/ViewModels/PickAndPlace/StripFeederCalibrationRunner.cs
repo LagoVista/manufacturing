@@ -217,6 +217,17 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
+
+                // A previous M400 may have completed before the serial Busy
+                // indicator and outstanding acknowledgements have settled.
+                // Allow guided transitions only after two quiet observations.
+                if (Current.Status == MachineOperationRunStatus.Running)
+                {
+                    var settled = await WaitForSerialQuietAsync(cancellationToken);
+                    if (!settled.Successful)
+                        return Block("Previous machine operation did not settle: " + settled.ErrorMessage);
+                }
+
                 if (Current.Status == MachineOperationRunStatus.Pending)
                 {
                     if (!ReadyForAction(false, false, out var reason))
@@ -349,7 +360,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             token.ThrowIfCancellationRequested();
 
             _machine.SendSafeMoveHeight();
-            var safeHeight = await _machine.SpinUntilIdleAsync(10000);
+            var safeHeight = await WaitForMotionAndSerialIdleAsync(10000, token);
             if (!safeHeight.Successful)
                 return Block("Safe-height move did not finish: " + safeHeight.ErrorMessage);
             if (!ReadyForAction(true, false, out reason) || Current.Status != MachineOperationRunStatus.Running)
@@ -357,7 +368,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             capture.ResetDetections();
             _machine.GotoPoint(point);
-            var idle = await _machine.SpinUntilIdleAsync(30000);
+            var idle = await WaitForMotionAndSerialIdleAsync(30000, token);
             if (!idle.Successful)
                 return Block("Calculated-origin move did not finish: " + idle.ErrorMessage);
             if (!ReadyForAction(true, false, out reason) || Current.Status != MachineOperationRunStatus.Running)
@@ -484,7 +495,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 }
 
                 _machine.SendSafeMoveHeight();
-                var safe = await _machine.SpinUntilIdleAsync(10000);
+                var safe = await WaitForMotionAndSerialIdleAsync(10000, token);
                 if (!safe.Successful)
                 {
                     _autoCenterError = "Safe height failed before camera Jog: " + safe.ErrorMessage;
@@ -501,7 +512,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Signal();
                 token.ThrowIfCancellationRequested();
                 jog.Execute(null);
-                var moved = await _machine.SpinUntilIdleAsync(30000);
+                var moved = await WaitForMotionAndSerialIdleAsync(30000, token);
                 if (!moved.Successful)
                 {
                     _autoCenterError = "Corner camera Jog did not finish: " + moved.ErrorMessage;
@@ -664,7 +675,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             token.ThrowIfCancellationRequested();
 
             _machine.SendSafeMoveHeight();
-            var safe = await _machine.SpinUntilIdleAsync(10000);
+            var safe = await WaitForMotionAndSerialIdleAsync(10000, token);
             if (!safe.Successful)
                 return Block("Safe-height move failed: " + safe.ErrorMessage);
             if (!ReadyForAction(false, false, out var reason) || !TapeCameraUnchanged() ||
@@ -673,7 +684,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             capture.ResetDetections();
             _machine.GotoPoint(target);
-            var moved = await _machine.SpinUntilIdleAsync(30000);
+            var moved = await WaitForMotionAndSerialIdleAsync(30000, token);
             if (!moved.Successful)
                 return Block("Tape-hole approach failed: " + moved.ErrorMessage);
             if (!ReadyForAction(false, false, out reason) || !TapeCameraUnchanged() ||
@@ -685,6 +696,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 !FeederOriginCalibrationMath.SamePosition(actual.Result, target, 0.5))
                 return Block("The machine did not confirm reaching the calculated tape-hole target.");
 
+            // Mark the target as approached before camera auto-centering.
+            // If no stable circle is detected here, Retry must let the operator
+            // jog at this location rather than blindly returning to the same
+            // predicted coordinate and losing the manual correction.
+            _approachedHoleStep = stepKey;
+
             // The last tape-hole capture is a persisted paired-offset commit,
             // so guided mode jogs NOW, then stops for operator approval to save.
             CircleProof centered = null;
@@ -693,10 +710,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _autoCenterError = null;
                 centered = await AutoCenterTapeHoleAsync(token);
                 if (centered == null)
-                    return Block(_autoCenterError ?? "Could not center the last tape hole.");
+                    return Block((_autoCenterError ?? "Could not center the last tape hole.") +
+                        $" Predicted last-hole XY: X {actual.Result.X:F2}, Y {actual.Result.Y:F2}. " +
+                        "Inspect the camera and jog to the intended complete hole; Retry then uses the current position.");
             }
 
-            _approachedHoleStep = stepKey;
             MeasurementText = centered == null
                 ? $"Approached {(lastHole ? "last" : "first")} hole at X {actual.Result.X:F2}, Y {actual.Result.Y:F2} mm"
                 : $"Centered last hole within profile tolerance: residual X {centered.OffsetX:+0.00;-0.00;0.00}, Y {centered.OffsetY:+0.00;-0.00;0.00} mm";
@@ -868,7 +886,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             Signal();
             token.ThrowIfCancellationRequested();
             _machine.SendSafeMoveHeight();
-            var safe = await _machine.SpinUntilIdleAsync(10000);
+            var safe = await WaitForMotionAndSerialIdleAsync(10000, token);
             if (!safe.Successful)
                 return Block("Safe-height move failed: " + safe.ErrorMessage);
             if (!PocketContextReady(out var reason) ||
@@ -877,7 +895,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             capture.ResetDetections();
             _machine.GotoPoint(point);
-            var moved = await _machine.SpinUntilIdleAsync(30000);
+            var moved = await WaitForMotionAndSerialIdleAsync(30000, token);
             if (!moved.Successful)
                 return Block("Pocket camera move failed: " + moved.ErrorMessage);
             if (!PocketContextReady(out reason) ||
@@ -1042,7 +1060,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
                 token.ThrowIfCancellationRequested();
                 _machine.SendSafeMoveHeight();
-                var safe = await _machine.SpinUntilIdleAsync(10000);
+                var safe = await WaitForMotionAndSerialIdleAsync(10000, token);
                 if (!safe.Successful)
                 {
                     _autoCenterError = "Tape-hole safe Z did not finish: " + safe.ErrorMessage;
@@ -1072,7 +1090,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     return null;
                 }
 
-                var idle = await _machine.SpinUntilIdleAsync(30000);
+                var idle = await WaitForMotionAndSerialIdleAsync(30000, token);
                 if (!idle.Successful)
                 {
                     _autoCenterError = "Tape-hole centering move did not finish: " + idle.ErrorMessage;
@@ -1277,6 +1295,47 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
+        /// <summary>
+        /// A firmware M400 response establishes physical movement completion.
+        /// It does not guarantee the host's transmit counters have cleared.
+        /// Require two consecutive idle observations before the next action.
+        /// This method never sends motion or changes the machine lock.
+        /// </summary>
+        private async Task<InvokeResult> WaitForSerialQuietAsync(CancellationToken token)
+        {
+            var consecutiveQuiet = 0;
+            for (var poll = 0; poll < 40; poll++)
+            {
+                token.ThrowIfCancellationRequested();
+                if (_disposed || !_contextIsCurrent() || !_machine.Connected)
+                    return InvokeResult.FromError("Machine disconnected or calibration selection changed.");
+
+                if (FeederCalibrationAutoAdvancePolicy.SerialChannelQuiet(
+                    _machine.Connected, _machine.Busy, _machine.ToSendQueueCount,
+                    _machine.UnacknowledgedBytesSent))
+                {
+                    if (++consecutiveQuiet >= 2)
+                        return InvokeResult.Success;
+                }
+                else
+                    consecutiveQuiet = 0;
+
+                await Task.Delay(75, token);
+            }
+
+            return InvokeResult.FromError(
+                "M400 finished, but the machine command channel did not become idle within three seconds.");
+        }
+
+        private async Task<InvokeResult> WaitForMotionAndSerialIdleAsync(
+            uint timeoutMs, CancellationToken token)
+        {
+            var completion = await _machine.SpinUntilIdleAsync(timeoutMs);
+            if (!completion.Successful)
+                return completion;
+            return await WaitForSerialQuietAsync(token);
+        }
+
         private bool ReadyForAction(bool requireProfile, bool saving, out string reason)
         {
             reason = null;
@@ -1305,8 +1364,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                          _machine.PositionImageCaptureService.Profile?.Key,
                          VisionProfile.VisionProfile_FeederOrigin))
                 reason = "Position camera, Feeder Origin profile or camera scale changed; start over.";
-            else if (saving && _machine.AreSettingsLocked)
-                reason = "Machine settings are locked; unlock before saving calibration.";
+            // AreSettingsLocked guards machine configuration editing. This
+            // operation persists a separate StripFeeder entity, never Machine
+            // settings, so its operator-approved save does not require a global
+            // machine-settings unlock. Homing/manual/idle checks still apply.
             return reason == null;
         }
 
