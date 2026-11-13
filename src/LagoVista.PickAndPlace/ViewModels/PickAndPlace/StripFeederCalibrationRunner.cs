@@ -27,6 +27,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             public double OffsetX { get; set; }
             public double OffsetY { get; set; }
             public double PixelsPerMm { get; set; }
+            public bool Centered { get; set; }
         }
 
         private sealed class CircleProof
@@ -76,6 +77,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private Point2D<double> _firstHoleRowOffset;
         private bool _busy;
         private bool _disposed;
+        private bool _autoCenterRequested;
+        private bool _acceptOffCenterCorner;
+        private string _autoCenterError;
         private Point2D<double> _calculatedOrigin;
         private string _cameraId;
         private double _cameraScale;
@@ -180,6 +184,25 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     StartingPartIndex = row.CurrentPartIndex,
                     CameraId = machine.PositionImageCaptureService?.Camera?.Id.ToString()
                 }, DateTimeOffset.UtcNow);
+        }
+
+        /// <summary>
+        /// Guided mode may use the existing camera Jog. Manual Next remains
+        /// verify-only and will not automatically move toward observations.
+        /// </summary>
+        public async Task<MachineOperationActionResult> ExecuteAutoNextAsync(CancellationToken token)
+        {
+            if (!CanExecuteNext)
+                return Result(false, "The operation cannot advance from its current state.");
+            _autoCenterRequested = true;
+            try
+            {
+                return await ExecuteNextAsync(token);
+            }
+            finally
+            {
+                _autoCenterRequested = false;
+            }
         }
 
         public async Task<MachineOperationActionResult> ExecuteNextAsync(CancellationToken cancellationToken)
@@ -368,9 +391,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return Block(reason);
             StatusText = "Acquiring a fresh stable and CENTERED corner. Please keep the machine still.";
             Signal();
-            var corner = await AcquireFreshCornerAsync(token);
+            _autoCenterError = null;
+            var corner = _autoCenterRequested
+                ? await AutoCenterCornerAsync(token)
+                : await AcquireFreshCornerAsync(token);
             if (corner == null)
-                return Block("No fresh stable, centered corner was acquired. Jog using the camera control and retry verification.");
+                return Block(_autoCenterError ??
+                    "No fresh stable, centered corner was acquired. Jog using the camera control and retry verification.");
             if (!ReadyForAction(true, false, out reason) || Current.Status != MachineOperationRunStatus.Running)
                 return Block(reason ?? "Operation was cancelled during corner verification.");
 
@@ -914,13 +941,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        private async Task<CornerProof> AcquireFreshCornerAsync(CancellationToken token)
+        private async Task<CornerProof> AcquireFreshCornerAsync(
+            CancellationToken token, bool acceptOffCenter = false)
         {
             TaskCompletionSource<CornerProof> request;
             lock (_observationGate)
             {
                 request = new TaskCompletionSource<CornerProof>(TaskCreationOptions.RunContinuationsAsynchronously);
                 _pendingCorner = request;
+                _acceptOffCenterCorner = acceptOffCenter;
             }
 
             try
@@ -950,7 +979,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             if (request == null || _disposed || corner == null ||
                 corner.Camera != CameraTypes.Position ||
-                !corner.Stabilized || !corner.PositionStable || !corner.Centered ||
+                !corner.Stabilized || !corner.PositionStable ||
+                (!corner.Centered && !_acceptOffCenterCorner) ||
                 _machine.Busy || !_machine.Connected ||
                 _machine.Mode != OperatingMode.Manual)
                 return;
@@ -971,7 +1001,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 MachinePosition = new Point2D<double>(machinePosition.X, machinePosition.Y),
                 OffsetX = offset.X,
                 OffsetY = offset.Y,
-                PixelsPerMm = corner.PixelsPerMm
+                PixelsPerMm = corner.PixelsPerMm,
+                Centered = corner.Centered
             });
         }
 
@@ -993,6 +1024,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 _pendingCorner?.TrySetResult(null);
                 _pendingCorner = null;
+                _acceptOffCenterCorner = false;
             }
             if (_registered)
             {
