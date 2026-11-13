@@ -14,8 +14,8 @@ using System.Threading.Tasks;
 namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 {
     /// <summary>
-    /// Operator-supervised strip feeder calibration. Steps 1–5 are available.
-    /// Steps 6–7 remain visible but await pocket-verification implementation.
+    /// Operator-supervised seven-step strip feeder calibration.
+    /// Steps 6–7 use operator-confirmed camera inspection without picking.
     /// Strongly typed C# handlers, never data-only DTOs, own machine motion.
     /// </summary>
     internal sealed class StripFeederCalibrationRunner : IMachineOperation, ICornerLocatedHandler, ICircleLocatedHandler
@@ -45,6 +45,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private readonly Func<InvokeResult<Point2D<double>>> _resolveCalculatedOrigin;
         private readonly Func<InvokeResult<Point2D<double>>> _resolveFirstTapeHole;
         private readonly Func<double> _getTapePitch;
+        private readonly Func<int, InvokeResult<Point2D<double>>> _resolvePocket;
         private readonly Func<StripFeeder, Task<InvokeResult>> _saveFeeder;
         private readonly Func<bool> _contextIsCurrent;
         private readonly MachineOperationSession _session;
@@ -62,6 +63,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private bool _registered;
         private bool _circleRegistered;
         private string _approachedHoleStep;
+        private string _approachedPocketStep;
+        private Point2D<double> _pocketTarget;
+        private int _pocketIndex;
+        private string _pocketProfileKey;
+        private string _pocketCameraId;
+        private double _pocketCameraScale;
         private string _tapeProfileKey;
         private string _tapeCameraId;
         private double _tapeCameraScale;
@@ -92,7 +99,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                Current.ActiveStepKey == "center-fiducial" ||
                Current.ActiveStepKey == "save-origin" ||
                Current.ActiveStepKey == "first-tape-hole" ||
-               Current.ActiveStepKey == "last-tape-hole")));
+               Current.ActiveStepKey == "last-tape-hole" ||
+               Current.ActiveStepKey == "verify-current-part" ||
+               Current.ActiveStepKey == "verify-previous-empty")));
 
         public bool CanRetry => !_disposed && !_busy &&
                                 Current.Status == MachineOperationRunStatus.Blocked;
@@ -117,7 +126,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         ? "Verify first centered tape hole" : "Move to first tape hole";
                     case "last-tape-hole": return _approachedHoleStep == "last-tape-hole"
                         ? "Verify & save first/last holes" : "Move to last tape hole";
-                    default: return "Pocket verification pending";
+                    case "verify-current-part": return _approachedPocketStep == "verify-current-part"
+                        ? "Confirm current part PRESENT" : "Move to current part";
+                    case "verify-previous-empty": return _approachedPocketStep == "verify-previous-empty"
+                        ? "Confirm previous pocket EMPTY" : "Move to previous pocket";
+                    default: return "Awaiting operation";
                 }
             }
         }
@@ -127,6 +140,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             Func<InvokeResult<Point2D<double>>> resolveCalculatedOrigin,
             Func<InvokeResult<Point2D<double>>> resolveFirstTapeHole,
             Func<double> getTapePitch,
+            Func<int, InvokeResult<Point2D<double>>> resolvePocket,
             Func<StripFeeder, Task<InvokeResult>> saveFeeder,
             Func<bool> contextIsCurrent)
         {
@@ -137,6 +151,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _resolveCalculatedOrigin = resolveCalculatedOrigin ?? throw new ArgumentNullException(nameof(resolveCalculatedOrigin));
             _resolveFirstTapeHole = resolveFirstTapeHole ?? throw new ArgumentNullException(nameof(resolveFirstTapeHole));
             _getTapePitch = getTapePitch ?? throw new ArgumentNullException(nameof(getTapePitch));
+            _resolvePocket = resolvePocket ?? throw new ArgumentNullException(nameof(resolvePocket));
             _saveFeeder = saveFeeder ?? throw new ArgumentNullException(nameof(saveFeeder));
             _contextIsCurrent = contextIsCurrent ?? throw new ArgumentNullException(nameof(contextIsCurrent));
 
@@ -188,8 +203,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         return await AdvanceTapeHoleAsync(false, cancellationToken);
                     case "last-tape-hole":
                         return await AdvanceTapeHoleAsync(true, cancellationToken);
+                    case "verify-current-part":
+                        return await AdvancePocketAsync(false, cancellationToken);
+                    case "verify-previous-empty":
+                        return await AdvancePocketAsync(true, cancellationToken);
                     default:
-                        return Result(false, "Tape-hole and pocket verification will be enabled in subsequent Workstream tasks.");
+                        return Result(false, "Unknown guided calibration step.");
                 }
             }
             catch (OperationCanceledException)
@@ -220,6 +239,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if (!CanRetry)
                 return Task.FromResult(Result(false, "Only a blocked step can be retried."));
             _session.Retry(DateTimeOffset.UtcNow);
+            if (Current.ActiveStepKey == "verify-current-part" ||
+                Current.ActiveStepKey == "verify-previous-empty")
+            {
+                _approachedPocketStep = null;
+                _pocketTarget = null;
+            }
             StatusText = "Retry is ready. Press the primary action to repeat only this step.";
             Signal();
             return Task.FromResult(Result(true));
@@ -631,9 +656,168 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _session.CompleteActiveStep("last-tape-hole", now);
             _approachedHoleStep = null;
             MeasurementText = $"SAVED tape holes: first X {_firstHoleRowOffset.X:F3}, Y {_firstHoleRowOffset.Y:F3}; last X {rowOffset.X:F3}, Y {rowOffset.Y:F3}";
-            StatusText = "First and last tape-hole offsets saved together. Pocket checks are the next task; no parts have been picked.";
+            StatusText = "First and last tape-hole offsets saved. Next: inspect the current pocket. No picking.";
             Signal();
             return Result(true);
+        }
+
+
+        // Camera moves and visual confirmation are separate operator actions.
+        // Neither action picks a component or updates inventory/CurrentPartIndex.
+        private async Task<MachineOperationActionResult> AdvancePocketAsync(
+            bool previous, CancellationToken token)
+        {
+            if (!ReadyForAction(false, false, out var reason))
+                return Block(reason);
+            if (_row.CurrentPartIndex != Current.Target.StartingPartIndex)
+                return Block("Feeder row current-part index changed. Restart calibration.");
+            if (!FeederPocketVerificationMath.TryGetInspectionIndex(
+                    Current.Target.StartingPartIndex, _row.PartCapacity, previous, out var index))
+                return Block(previous
+                    ? "Part 1 has no preceding pocket; no move sent."
+                    : "Current part index is outside feeder capacity.");
+
+            var key = previous ? "verify-previous-empty" : "verify-current-part";
+            return _approachedPocketStep == key
+                ? await ConfirmPocketAsync(previous, token)
+                : await MoveToPocketAsync(previous, index, token);
+        }
+
+        private async Task<MachineOperationActionResult> MoveToPocketAsync(
+            bool previous, int index, CancellationToken token)
+        {
+            var key = previous ? "verify-previous-empty" : "verify-current-part";
+            var target = _resolvePocket(index);
+            if (!target.Successful || target.Result == null)
+                return Block(target.ErrorMessage ?? "Could not resolve pocket position.");
+            var point = target.Result;
+            var capture = _machine.PositionImageCaptureService;
+            if (capture?.Camera == null || capture.Profile == null)
+                return Block("Position camera or part-in-tape profile unavailable.");
+            _pocketCameraId = capture.Camera.Id.ToString();
+            _pocketCameraScale = capture.Camera.EffectivePixelsPerMM;
+            _pocketProfileKey = capture.Profile.Key;
+            if (_pocketCameraScale <= 0 || Double.IsNaN(_pocketCameraScale) ||
+                Double.IsInfinity(_pocketCameraScale) || !PocketCameraUnchanged())
+                return Block("Invalid position camera scale/profile.");
+
+            var workArea = _machine.Settings.WorkAreaSize;
+            if (Double.IsNaN(point.X) || Double.IsNaN(point.Y) ||
+                Double.IsInfinity(point.X) || Double.IsInfinity(point.Y) ||
+                point.X < 0 || point.Y < 0 ||
+                point.X > workArea.X || point.Y > workArea.Y)
+                return Block("Pocket target is outside machine work area; no move sent.");
+
+            StatusText = $"Moving CAMERA to pocket {index}: X={point.X:F2}, Y={point.Y:F2} mm; no pick.";
+            Signal();
+            token.ThrowIfCancellationRequested();
+            _machine.SendSafeMoveHeight();
+            var safe = await _machine.SpinUntilIdleAsync(10000);
+            if (!safe.Successful)
+                return Block("Safe-height move failed: " + safe.ErrorMessage);
+            if (!PocketContextReady(out var reason) ||
+                Current.Status != MachineOperationRunStatus.Running)
+                return Block(reason ?? "Machine or camera changed before pocket move.");
+
+            capture.ResetDetections();
+            _machine.GotoPoint(point);
+            var moved = await _machine.SpinUntilIdleAsync(30000);
+            if (!moved.Successful)
+                return Block("Pocket camera move failed: " + moved.ErrorMessage);
+            if (!PocketContextReady(out reason) ||
+                Current.Status != MachineOperationRunStatus.Running)
+                return Block(reason ?? "Machine or camera changed after pocket move.");
+
+            var actual = await _machine.GetCurrentLocationAsync(5000);
+            if (!actual.Successful ||
+                !FeederOriginCalibrationMath.SamePosition(actual.Result, point, 0.5))
+                return Block("Machine did not confirm pocket arrival.");
+
+            _pocketTarget = new Point2D<double>(actual.Result.X, actual.Result.Y);
+            _pocketIndex = index;
+            _approachedPocketStep = key;
+            var now = DateTimeOffset.UtcNow;
+            _session.RecordEvidence(new MachineOperationEvidence
+            {
+                RunId = Current.RunId,
+                StepKey = key,
+                Name = "Camera position at pocket",
+                Value = $"index {index}; X {actual.Result.X:F3}, Y {actual.Result.Y:F3}",
+                Unit = "mm",
+                Source = "Machine position readback",
+                Verification = MachineOperationVerificationKind.MachineObserved,
+                CapturedAtUtc = now,
+                VisionProfileKey = _pocketProfileKey,
+                PixelsPerMm = _pocketCameraScale
+            });
+            MeasurementText = $"Pocket {index}: X {actual.Result.X:F3}, Y {actual.Result.Y:F3} mm";
+            StatusText = previous
+                ? "Inspect camera. Confirm EMPTY only if the preceding pocket has NO part; otherwise cancel."
+                : "Inspect camera. Confirm PRESENT only if the current pocket contains a part; otherwise cancel.";
+            Signal();
+            return Result(true);
+        }
+
+        private async Task<MachineOperationActionResult> ConfirmPocketAsync(
+            bool previous, CancellationToken token)
+        {
+            if (!PocketContextReady(out var reason) || _pocketTarget == null)
+                return Block(reason ?? "Pocket camera observation is stale; repeat approach.");
+            token.ThrowIfCancellationRequested();
+            var actual = await _machine.GetCurrentLocationAsync(5000);
+            if (!actual.Successful ||
+                !FeederOriginCalibrationMath.SamePosition(actual.Result, _pocketTarget, 0.1) ||
+                !PocketContextReady(out reason) ||
+                Current.Status != MachineOperationRunStatus.Running)
+                return Block(reason ?? "Machine moved since pocket approach; retry.");
+
+            var key = previous ? "verify-previous-empty" : "verify-current-part";
+            var now = DateTimeOffset.UtcNow;
+            _session.RecordEvidence(new MachineOperationEvidence
+            {
+                RunId = Current.RunId,
+                StepKey = key,
+                Name = previous ? "Operator confirmed EMPTY" : "Operator confirmed PRESENT",
+                Value = $"index {_pocketIndex}; X {actual.Result.X:F3}, Y {actual.Result.Y:F3}; " +
+                        (previous ? "EMPTY" : "PRESENT"),
+                Unit = "mm",
+                Source = "Operator visual confirmation in position camera",
+                Verification = MachineOperationVerificationKind.OperatorConfirmed,
+                CapturedAtUtc = now,
+                VisionProfileKey = _pocketProfileKey,
+                PixelsPerMm = _pocketCameraScale
+            });
+            _session.CompleteActiveStep(key, now);
+            _approachedPocketStep = null;
+            _pocketTarget = null;
+            MeasurementText = $"Confirmed {(previous ? "EMPTY" : "PRESENT")}: pocket {_pocketIndex} at " +
+                $"X {actual.Result.X:F3}, Y {actual.Result.Y:F3} mm";
+            StatusText = previous
+                ? "All seven steps passed. No picking or inventory/index changes."
+                : "Current part confirmed present. Next: inspect preceding pocket and confirm EMPTY.";
+            Signal();
+            return Result(true);
+        }
+
+        private bool PocketContextReady(out string reason)
+        {
+            if (!ReadyForAction(false, false, out reason))
+                return false;
+            if (_row.CurrentPartIndex != Current.Target.StartingPartIndex)
+                reason = "Feeder row current-part index changed during pocket check.";
+            else if (!PocketCameraUnchanged())
+                reason = "Position camera or vision profile changed during pocket check.";
+            return reason == null;
+        }
+
+        private bool PocketCameraUnchanged()
+        {
+            var capture = _machine.PositionImageCaptureService;
+            return FeederOriginCalibrationMath.CameraProfileUnchanged(
+                _pocketCameraId, _pocketCameraScale,
+                capture?.Camera?.Id.ToString(),
+                capture?.Camera?.EffectivePixelsPerMM ?? 0,
+                capture?.Profile?.Key, _pocketProfileKey);
         }
 
         private bool TapeCameraUnchanged()
