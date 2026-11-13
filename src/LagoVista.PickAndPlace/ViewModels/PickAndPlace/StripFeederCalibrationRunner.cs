@@ -427,6 +427,106 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             return Result(true);
         }
 
+        /// <summary>
+        /// Guided mode reuses the second Play camera jog, then reacquires new
+        /// evidence. A locked off-center corner never counts as verified.
+        /// </summary>
+        private async Task<CornerProof> AutoCenterCornerAsync(CancellationToken token)
+        {
+            const int maxJogs = 2;
+            for (var jogCount = 0; jogCount <= maxJogs; jogCount++)
+            {
+                var corner = await AcquireFreshCornerAsync(token, acceptOffCenter: true);
+                if (corner == null)
+                {
+                    _autoCenterError = "No fresh stable white corner found. Inspect camera and retry; no jog sent.";
+                    return null;
+                }
+                if (!ReadyForAction(true, false, out var reason) ||
+                    Current.Status != MachineOperationRunStatus.Running)
+                {
+                    _autoCenterError = reason ?? "Calibration context changed during vision acquisition.";
+                    return null;
+                }
+
+                if (corner.Centered)
+                    return corner;
+                if (jogCount == maxJogs)
+                {
+                    _autoCenterError = "White corner is locked but not centered after two bounded camera jogs. Inspect manually.";
+                    return null;
+                }
+
+                var before = await _machine.GetCurrentLocationAsync(5000);
+                if (!before.Successful ||
+                    !FeederOriginCalibrationMath.SamePosition(before.Result, corner.MachinePosition, 0.1))
+                {
+                    _autoCenterError = "Machine moved after white corner observation. No jog sent.";
+                    return null;
+                }
+
+                if (!FeederAutoCornerJogMath.TryTarget(before.Result,
+                    corner.OffsetX, corner.OffsetY, _machine.Settings.WorkAreaSize,
+                    out var expected))
+                {
+                    _autoCenterError = "White corner correction exceeds 10 mm or the work area. No jog sent.";
+                    return null;
+                }
+
+                var jog = _machine.PositionImageCaptureService?.CenterFoundItemCommand;
+                if (jog == null || !jog.CanExecute(null))
+                {
+                    _autoCenterError = "The existing second Play camera Jog is unavailable. Switch to Manual.";
+                    return null;
+                }
+
+                _machine.SendSafeMoveHeight();
+                var safe = await _machine.SpinUntilIdleAsync(10000);
+                if (!safe.Successful)
+                {
+                    _autoCenterError = "Safe height failed before camera Jog: " + safe.ErrorMessage;
+                    return null;
+                }
+                if (!ReadyForAction(true, false, out reason) ||
+                    Current.Status != MachineOperationRunStatus.Running)
+                {
+                    _autoCenterError = reason ?? "Calibration cancelled before corner jog.";
+                    return null;
+                }
+
+                StatusText = $"Second Play jog {jogCount + 1}/{maxJogs}: X {corner.OffsetX:+0.00;-0.00;0.00}, Y {corner.OffsetY:+0.00;-0.00;0.00} mm.";
+                Signal();
+                token.ThrowIfCancellationRequested();
+                jog.Execute(null);
+                var moved = await _machine.SpinUntilIdleAsync(30000);
+                if (!moved.Successful)
+                {
+                    _autoCenterError = "Corner camera Jog did not finish: " + moved.ErrorMessage;
+                    return null;
+                }
+                if (!ReadyForAction(true, false, out reason) ||
+                    Current.Status != MachineOperationRunStatus.Running)
+                {
+                    _autoCenterError = reason ?? "Calibration cancelled after corner jog.";
+                    return null;
+                }
+
+                var actual = await _machine.GetCurrentLocationAsync(5000);
+                if (!actual.Successful ||
+                    !FeederOriginCalibrationMath.SamePosition(actual.Result, expected, 0.5))
+                {
+                    _autoCenterError = "Camera Jog missed its expected bounded target. Inspect machine before retry.";
+                    return null;
+                }
+
+                StatusText = "Corner jog complete; reacquiring fresh centered vision evidence.";
+                Signal();
+            }
+
+            _autoCenterError = "Automatic white-corner centering did not complete.";
+            return null;
+        }
+
         private async Task<MachineOperationActionResult> CaptureAndSaveOriginAsync(CancellationToken token)
         {
             if (!ReadyForAction(true, true, out var reason))
