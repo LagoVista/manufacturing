@@ -54,10 +54,11 @@ namespace LagoVista.PickAndPlace
             if (deltaY > deltaPixel)
                 return false;
 
-            var deltaRadius = Math.Abs(original.RadiusPixels - candidate.Radius);
-            if (deltaRadius > deltaPixel)
-                return false;
-
+            // The physical circle is identified by its CENTER across frames.
+            // Hough already limits acceptable radii through the vision profile.
+            // Radius estimates can vary with exposure/threshold; treating that
+            // change as a new circle creates overlapping stale tracks even when
+            // OpenCV emits only one circle in the current frame.
             return true;
         }
 
