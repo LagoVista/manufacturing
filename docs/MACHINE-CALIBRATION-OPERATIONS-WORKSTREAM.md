@@ -1,7 +1,12 @@
 # PnP Guided Calibration Operations — Workstream Authority and Handoff
 
-**Status:** Workstream planning, 2026-11-12. **Not implemented:** the shared
-operation contract, guided panel, durable run history and automated feeder flow.
+**Status (updated 2026-11-13):** T001–T004 are implemented and the stable
+Manufacturing history API is deployed to DEV. T005 is in progress: the
+seven-step feeder runner has been exercised on the machine, and a Start/Reset
+procedure coordinator is now in Windows acceptance. The first five steps can
+run automatically; current/previous pocket presence cannot yet be classified
+reliably and must fail closed rather than invent an observation.
+The remainder of this document preserves the original planning rationale.
 
 **Authoritative Forge Workstream ID:** `pnp-guided-calibration-operations`
 **Repository:** `LagoVista/Manufacturing` (master)
@@ -10,6 +15,33 @@ operation contract, guided panel, durable run history and automated feeder flow.
 **Starting point:** commit `e3e2d5d5d688cd206518ad0dc058f3a830c0e4a2` on master. Re-inspect current default HEAD
 before editing. Do not reset recent camera calibration, dynamic barcode decoding,
 or feeder corner alignment changes.
+
+## Revised operation UX and reuse boundary (November 13, 2026)
+
+For the operator-facing procedure, the intended controls are **Start** and
+**Reset** only. Start executes from the first step through success or a
+verifiable failure, using the existing `MachineOperationDefinition`,
+`MachineOperationSession`, strongly typed runners, the established camera
+profiles and machine jog commands, and the Manufacturing operation history API.
+Step progress, measurements and errors render from the existing session
+snapshot. Normal steps do not require Next/Confirm buttons.
+
+A small reusable `MachineOperationProcedureExecutor` sequences C# operations
+and persists each checkpoint; it does **not** interpret strings as motion,
+invent a scripting language, or bypass homing, work-area, profile, vision or
+serial-idle checks. Reset creates a fresh session after an operation stops,
+without interrupting a queued physical move. Emergency stop remains an
+independent machine action.
+
+Saving feeder origin and paired tape-hole offsets is authorized by Start
+but requires new stable, in-tolerance vision evidence and a successful
+Manufacturing feeder save. A failed save prevents further movement. The
+current/previous pocket checks remain a missing *automatic classifier*:
+the procedure moves to the current pocket, then blocks and records the gap
+instead of asserting PRESENT/EMPTY. Full unattended completion must wait
+for that classifier and hardware acceptance. Do not present this new
+source revision as machine-tested until the Windows WPF build and physical
+procedure are verified.
 
 ## Product intent
 
@@ -142,11 +174,12 @@ tasks in the companion calibration workstream.
    status and unresolved attention before source changes.
 3. Resume the first active/ready task (if any). If all tasks remain draft,
    review and ready the first task, then provision/assign it separately.
-4. The next implementation step is **C# operation contracts / snapshots**,
-   then steps 1–3 with explicit origin-offset save and operator evidence.
-5. Do not assume the seven-step runner is already implemented merely
-   because the manual controls exist; do not infer automatic vision-based
-   pocket verification.
+4. Resume T005's Start/Reset procedure acceptance against the current
+   Task workspace commit and Windows WPF application. Do not overwrite
+   the completed T001–T004 work or assume latest source is merged.
+5. The seven-step runner exists and is machine-tested in manual form; the
+   new Start/Reset coordinator is not yet machine-tested. Do not infer
+   automatic vision-based pocket verification.
 6. For physical validation, use a single known feeder/row and current
    camera calibration at pick height; capture measured position and a
    small, safe jog before any new autonomous move.

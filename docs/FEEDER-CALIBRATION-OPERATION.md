@@ -5,8 +5,9 @@
 the feeder's technical steps; the Workstream file is the durable plan and
 session-handoff authority.
 
-Status: design / next implementation slice (2026-11-12). This document is
-not a claim that the seven-step operation is implemented.
+Status: T001–T004 implemented and published; T005 automatic procedure
+execution is in machine acceptance (2026-11-13). The seven-step runner exists,
+but unattended completion is blocked by the unvalidated pocket classifier.
 
 ## Implemented procedural execution (2026-11-13)
 
