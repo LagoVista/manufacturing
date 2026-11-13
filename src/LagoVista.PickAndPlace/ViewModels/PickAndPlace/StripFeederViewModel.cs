@@ -17,6 +17,7 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
+using LagoVista.PickAndPlace.Operations;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -81,6 +82,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private bool _calibrationHistoryWriting;
         private bool _calibrationAutoRunEnabled;
         private bool _calibrationAutoRunAdvancing;
+        private string _calibrationProcedureStatus =
+            "Ready. Start runs the complete procedure and stops if a verification or save fails.";
         private MachineOperationRunSnapshot _pendingHistorySnapshot;
         private MachineOperationDefinition _pendingHistoryDefinition;
         private string _calibrationHistoryStatus = "Run history will be recorded as calibration progresses.";
@@ -119,16 +122,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _feederCalibration?.CanRetry == true;
         public bool FeederCalibrationCanToggleAutoRun =>
             CalibrationSelectionReady && !_calibrationHistoryWriting &&
-            !_calibrationAutoRunAdvancing &&
-            (_calibrationAutoRunEnabled || _feederCalibration?.CanAutoAdvance == true);
-        public string FeederCalibrationAutoRunLabel =>
-            _calibrationAutoRunEnabled ? "Switch to Manual" : "Run Guided Sequence";
+            !_calibrationAutoRunAdvancing && _pendingHistorySnapshot == null &&
+            _feederCalibration?.Current.Status == MachineOperationRunStatus.Pending;
+        public string FeederCalibrationAutoRunLabel => "Start";
         public string FeederCalibrationAutoRunStatus =>
             _calibrationAutoRunAdvancing
-                ? "Guided sequence is running. Stay with the machine; Cancel stops future steps."
-                : _calibrationAutoRunEnabled
-                    ? "Paused for operator inspection or recovery. Calibrated feeder offsets save automatically after fresh vision verification; part PRESENT/EMPTY still requires your confirmation."
-                    : "Guided mode auto-centers, re-verifies and saves feeder calibration offsets. It pauses for failed observations and part PRESENT/EMPTY confirmation.";
+                ? "Procedure running. Do not leave the machine unattended. The step list updates automatically; failures stop the procedure."
+                : _calibrationProcedureStatus;
         public bool FeederCalibrationCanCancel => _feederCalibration?.CanCancel == true;
 
         private bool CalibrationSelectionReady =>
@@ -177,6 +177,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private void ResetFeederCalibration()
         {
             _calibrationAutoRunEnabled = false;
+            _calibrationProcedureStatus =
+                "Ready. Start runs the procedure until completion or a verified failure.";
             if (_feederCalibration != null)
             {
                 _feederCalibration.StateChanged -= OnFeederCalibrationChanged;
@@ -227,17 +229,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         private async Task ToggleFeederCalibrationAutoRunAsync()
         {
-            if (_calibrationAutoRunEnabled)
-            {
-                // Do not cancel a machine move; stop issuing subsequent steps.
-                _calibrationAutoRunEnabled = false;
-                RefreshFeederCalibration();
-                return;
-            }
             var operation = _feederCalibration;
-            if (!CalibrationSelectionReady || operation?.CanAutoAdvance != true)
+            if (!FeederCalibrationCanToggleAutoRun || operation == null)
                 return;
+
             _calibrationAutoRunEnabled = true;
+            _calibrationProcedureStatus = "Running the ordered strip-feeder calibration procedure.";
             RefreshFeederCalibration();
             await AdvanceFeederCalibrationAutoRunAsync(operation);
         }
@@ -251,41 +248,80 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RefreshFeederCalibration();
             try
             {
-                // One supervised guided run: persist only freshly verified
-                // feeder offsets. Every move and save retains homing, bounds,
-                // idle, profile, and freshness checks; part PRESENT/EMPTY
-                // observations remain explicitly operator-confirmed.
-                for (var transitions = 0; transitions < 12 && _calibrationAutoRunEnabled; transitions++)
-                {
-                    if (!ReferenceEquals(operation, _feederCalibration) ||
-                        !CalibrationSelectionReady || _calibrationHistoryWriting ||
-                        !operation.CanAutoAdvance || !operation.CanExecuteNext)
-                        break;
-
-                    var result = await operation.ExecuteAutoNextAsync(
-                        System.Threading.CancellationToken.None);
-                    if (!result.Successful)
+                // MachineOperationDefinition and MachineOperationSession own the
+                // seven ordered steps and evidence. This reusable executor only
+                // continues the current strongly typed action and checkpoints it.
+                // No WPF button is involved in normal step-to-step progress.
+                var outcome = await MachineOperationProcedureExecutor.RunAsync(
+                    () => operation.Current,
+                    token => operation.ExecuteAutoNextAsync(token),
+                    async token =>
                     {
-                        if (!String.IsNullOrEmpty(result.ErrorMessage))
-                            Machine?.AddStatusMessage(StatusMessageTypes.Warning, result.ErrorMessage);
-                        break;
-                    }
+                        if (!ReferenceEquals(operation, _feederCalibration) ||
+                            !CalibrationSelectionReady)
+                            return false;
 
-                    await SaveFeederCalibrationRunHistoryAsync(operation);
-                    // Never hide a history failure behind additional motion.
-                    if (_pendingHistorySnapshot != null)
-                        break;
+                        await SaveFeederCalibrationRunHistoryAsync(operation);
+                        return _pendingHistorySnapshot == null;
+                    },
+                    System.Threading.CancellationToken.None);
+
+                if (ReferenceEquals(operation, _feederCalibration))
+                    _calibrationProcedureStatus = outcome.Completed
+                        ? "Procedure completed successfully. All required steps have verified evidence."
+                        : $"Procedure stopped at {operation.Current.ActiveStepKey ?? "checkpoint"}: {outcome.Message}. Inspect the highlighted step, then Reset to start again.";
+            }
+            catch (Exception ex)
+            {
+                if (ReferenceEquals(operation, _feederCalibration))
+                {
+                    _calibrationProcedureStatus =
+                        "Procedure stopped unexpectedly: " + ex.Message + ". Inspect the machine before Reset.";
+                    Machine?.AddStatusMessage(StatusMessageTypes.Warning, _calibrationProcedureStatus);
                 }
-
-                if (ReferenceEquals(operation, _feederCalibration) &&
-                    operation.Current.Status == MachineOperationRunStatus.Completed)
-                    _calibrationAutoRunEnabled = false;
             }
             finally
             {
+                _calibrationAutoRunEnabled = false;
                 _calibrationAutoRunAdvancing = false;
                 RefreshFeederCalibration();
             }
+        }
+
+        private async Task ResetFeederCalibrationProcedureAsync()
+        {
+            if (!CalibrationSelectionReady || _calibrationAutoRunAdvancing ||
+                _calibrationHistoryWriting || _feederCalibration?.IsBusy == true)
+                return;
+
+            // Do not discard a failed durable history checkpoint on Reset.
+            if (_pendingHistorySnapshot != null)
+            {
+                await RetryFeederCalibrationHistoryAsync();
+                if (_pendingHistorySnapshot != null)
+                {
+                    _calibrationProcedureStatus =
+                        "Reset stopped: the previous run history has not been saved. Check the API connection and try Reset again.";
+                    RefreshFeederCalibration();
+                    return;
+                }
+            }
+
+            var operation = _feederCalibration;
+            if (operation != null && operation.CanCancel)
+            {
+                await operation.CancelAsync(System.Threading.CancellationToken.None);
+                await SaveFeederCalibrationRunHistoryAsync(operation);
+                if (_pendingHistorySnapshot != null)
+                {
+                    _calibrationProcedureStatus =
+                        "Reset stopped: the cancelled run history must be saved before starting a new one.";
+                    RefreshFeederCalibration();
+                    return;
+                }
+            }
+
+            ResetFeederCalibration();
         }
 
         private async Task RetryFeederCalibrationAsync()
@@ -414,7 +450,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 () => FeederCalibrationCanRetry);
             FeederCalibrationCancelCommand = CreateCommand(async () => await CancelFeederCalibrationAsync(),
                 () => FeederCalibrationCanCancel);
-            FeederCalibrationNewRunCommand = CreateCommand(ResetFeederCalibration,
+            FeederCalibrationNewRunCommand = CreateCommand(
+                async () => await ResetFeederCalibrationProcedureAsync(),
                 () => CalibrationSelectionReady && !_calibrationHistoryWriting &&
                     !_calibrationAutoRunAdvancing &&
                     _feederCalibration?.IsBusy != true);
