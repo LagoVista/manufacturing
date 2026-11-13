@@ -149,6 +149,58 @@ namespace LagoVista.PickAndPlace.App.Services
                 : InvokeResult<byte[]>.Create(sample);
         }
 
+        private static bool IsFeederTapeProfile(string key) =>
+            key == VisionProfile.VisionProfile_TapeHoleBlackTape ||
+            key == VisionProfile.VisionProfile_TapeHoleWhiteTape ||
+            key == VisionProfile.VisionProfile_TapeHoleClearTape ||
+            key == VisionProfile.VisionProfile_PartInWhiteTape;
+
+        /// <summary>
+        /// Tape-hole counterpart of the second Play corner jog. The requested
+        /// circle must still be the exact same stable detector object; do not
+        /// substitute the nearest/newest circle during an automated move.
+        /// </summary>
+        public InvokeResult TryJogToObservedCircle(Guid circleId,
+            double expectedOffsetX, double expectedOffsetY, string expectedProfileKey)
+        {
+            if (CameraType != CameraTypes.Position ||
+                !IsFeederTapeProfile(expectedProfileKey) ||
+                Profile?.Key != expectedProfileKey ||
+                !Machine.Connected || Machine.Mode != OperatingMode.Manual ||
+                !Machine.WasMachineHomed || !Machine.WasMachinOriginCalibrated ||
+                Machine.Busy)
+                return InvokeResult.FromError(
+                    "Tape-hole Jog requires an idle, connected, homed machine in Manual mode with the original tape profile.");
+
+            var circle = _shapeDetectorService.FoundCircles
+                .SingleOrDefault(item => item.Id == circleId);
+            if (circle == null || circle.CameraType != CameraTypes.Position ||
+                !circle.Stabilized || !circle.PositionStable || circle.RadiusMM <= 0)
+                return InvokeResult.FromError(
+                    "The expected stable tape-hole observation is no longer available.");
+
+            var correction = circle.OffsetMM;
+            if (Double.IsNaN(expectedOffsetX) || Double.IsInfinity(expectedOffsetX) ||
+                Double.IsNaN(expectedOffsetY) || Double.IsInfinity(expectedOffsetY) ||
+                Math.Abs(correction.X - expectedOffsetX) > 0.1 ||
+                Math.Abs(correction.Y - expectedOffsetY) > 0.1)
+                return InvokeResult.FromError(
+                    "Tape-hole observation changed before jog; reacquire it.");
+
+            if (!FeederAutoCornerJogMath.TryTarget(Machine.MachinePosition,
+                    correction.X, correction.Y, Machine.Settings.WorkAreaSize, out _))
+                return InvokeResult.FromError(
+                    "Tape-hole correction exceeds the 10 mm per-axis limit or the machine work area.");
+
+            Machine.AddStatusMessage(StatusMessageTypes.Info,
+                $"Tape-hole second Play jog X={correction.X:+0.00;-0.00;0.00}, " +
+                $"Y={correction.Y:+0.00;-0.00;0.00} mm.");
+            Machine.SendSafeMoveHeight();
+            Machine.GotoPoint(correction, relativeMove: true);
+            _shapeDetectorService.Reset();
+            return InvokeResult.Success;
+        }
+
         private void CenterFoundItem()
         {
             if (Profile?.Key == VisionProfile.VisionProfile_FeederOrigin)
@@ -233,6 +285,26 @@ namespace LagoVista.PickAndPlace.App.Services
                 }
 
                 Machine.GotoPoint(stableHole.OffsetMM, relativeMove: true);
+                return;
+            }
+
+            if (IsFeederTapeProfile(Profile?.Key))
+            {
+                var stableHole = _shapeDetectorService.FoundCircles
+                    .Where(item => item.Stabilized && item.PositionStable && item.RadiusMM > 0)
+                    .OrderBy(item => Math.Abs(item.OffsetMM.X) + Math.Abs(item.OffsetMM.Y))
+                    .FirstOrDefault();
+                if (stableHole == null)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                        "No stable tape hole is available for the second Play jog.");
+                    return;
+                }
+
+                var offset = stableHole.OffsetMM;
+                var result = TryJogToObservedCircle(stableHole.Id, offset.X, offset.Y, Profile.Key);
+                if (!result.Successful)
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning, result.ErrorMessage);
                 return;
             }
 

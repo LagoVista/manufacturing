@@ -27,6 +27,11 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
         RelayCommand StopCaptureCommand { get; }
         RelayCommand CenterFoundItemCommand { get; }
 
+        // Uses the same bounded stable-circle jog as the camera's second Play.
+        // Rejects changed detector identity/profile/offset before any motion.
+        InvokeResult TryJogToObservedCircle(System.Guid circleId, double expectedOffsetX,
+            double expectedOffsetY, string expectedProfileKey);
+
         Task<InvokeResult> AutoTuneExposureAsync();
 
         // Returns one fresh processed 10-pixel-band barcode signal.
