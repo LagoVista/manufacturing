@@ -54,7 +54,7 @@ namespace Mfg.ServicesTests
             var record = MachineOperationRunProjection.Project(
                 session.Snapshot, session.Definition, Org, User);
 
-            Assert.That(record.Id, Is.EqualTo(session.Snapshot.RunId.ToUpperInvariant()));
+            Assert.That(record.Id.ToString(), Is.EqualTo(session.Snapshot.RunId.ToUpperInvariant()));
             Assert.That(record.OwnerOrganization.Id, Is.EqualTo(Org.Id));
             Assert.That(record.MachineId, Is.EqualTo("lumen-pnp"));
             Assert.That(record.FeederId, Is.EqualTo("feeder-1"));

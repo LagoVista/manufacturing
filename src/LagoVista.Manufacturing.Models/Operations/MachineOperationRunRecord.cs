@@ -1,7 +1,9 @@
 using LagoVista.Core;
+using LagoVista.Core.Attributes;
 using LagoVista.Core.Interfaces;
 using LagoVista.Core.Models;
 using LagoVista.Manufacturing.Models.Operations;
+using LagoVista.Manufacturing.Models.Resources;
 using System;
 
 namespace LagoVista.Manufacturing.Models
@@ -10,6 +12,13 @@ namespace LagoVista.Manufacturing.Models
     /// Durable evidence for one strongly typed machine operation. This is
     /// NOT another source of feeder offsets or other machine configuration.
     /// </summary>
+    [EntityDescription(ManufacutringDomain.Manufacturing,
+        ManufacturingResources.Names.PickAndPlaceJobRun_Title,
+        ManufacturingResources.Names.PickAndPlaceJobRun_Description,
+        ManufacturingResources.Names.PickAndPlaceJobRun_Description,
+        EntityDescriptionAttribute.EntityTypes.Manufacturing,
+        ResourceType: typeof(ManufacturingResources),
+        Icon: "icon-ae-control-panel", Cloneable: false)]
     public class MachineOperationRunRecord : EntityBase, ISummaryFactory
     {
         public int RecordSchemaVersion { get; set; } = 1;
