@@ -187,7 +187,11 @@ namespace LagoVista.PickAndPlace.App.Services
                 return InvokeResult.FromError(
                     "Tape-hole observation changed before jog; reacquire it.");
 
-            if (!FeederAutoCornerJogMath.TryTarget(Machine.MachinePosition,
+            // MachinePosition is a 3D machine coordinate; tape-hole jog
+            // bounds are evaluated only in the camera's XY work plane.
+            var machineXY = new LagoVista.Core.Models.Drawing.Point2D<double>(
+                Machine.MachinePosition.X, Machine.MachinePosition.Y);
+            if (!FeederAutoCornerJogMath.TryTarget(machineXY,
                     correction.X, correction.Y, Machine.Settings.WorkAreaSize, out _))
                 return InvokeResult.FromError(
                     "Tape-hole correction exceeds the 10 mm per-axis limit or the machine work area.");
