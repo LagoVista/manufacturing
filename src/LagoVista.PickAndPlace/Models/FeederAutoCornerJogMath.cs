@@ -10,6 +10,9 @@ namespace LagoVista.PickAndPlace.Models
         public const double MaxCorrectionMm = 10.0;
         public const int MaxAutomaticJogs = 5;
 
+        public static bool CanJogAgain(int completedJogs) =>
+            completedJogs >= 0 && completedJogs < MaxAutomaticJogs;
+
         public static bool TryTarget(Point2D<double> current,
             double correctionX, double correctionY, Point2D<double> workArea,
             out Point2D<double> target)

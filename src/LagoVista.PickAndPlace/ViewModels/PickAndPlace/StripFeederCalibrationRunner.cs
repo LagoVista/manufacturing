@@ -454,7 +454,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
                 if (corner.Centered)
                     return corner;
-                if (jogCount == maxJogs)
+                if (!FeederAutoCornerJogMath.CanJogAgain(jogCount))
                 {
                     _autoCenterError = "White corner remains outside the active vision profile tolerance after five bounded camera jogs. Inspect manually.";
                     return null;
@@ -1017,7 +1017,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 // ErrorToleranceMM, not exact zero or a hard-coded threshold.
                 if (observed.Centered)
                     return observed;
-                if (jogCount == FeederAutoCornerJogMath.MaxAutomaticJogs)
+                if (!FeederAutoCornerJogMath.CanJogAgain(jogCount))
                 {
                     _autoCenterError = $"{label} tape hole remains outside vision profile tolerance after five jogs. Inspect manually.";
                     return null;

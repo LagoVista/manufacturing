@@ -29,6 +29,19 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                 Assert.That(target, Is.Null);
         }
 
+        [TestCase(-1, false)]
+        [TestCase(0, true)]
+        [TestCase(1, true)]
+        [TestCase(2, true)]
+        [TestCase(3, true)]
+        [TestCase(4, true)]
+        [TestCase(5, false)]
+        [TestCase(6, false)]
+        public void AutoCenterStopsAfterFiveJogCommands(int completedJogs, bool expected)
+        {
+            Assert.That(FeederAutoCornerJogMath.CanJogAgain(completedJogs), Is.EqualTo(expected));
+        }
+
         [Test]
         public void RejectsNonFiniteMeasurements()
         {
