@@ -18,6 +18,18 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void LumenJrConfiguredHeadAndCameraApproachIsInsideTheMachineEnvelope()
+        {
+            // Grounded machine configuration: fiducial 164.8/192, N14
+            // Head 1 offset +22.7/+65, bottom camera 165.1/128.24,
+            // work area 330x355 mm. Current XY is an assumed fiducial
+            // starting location; runtime checks the actual M114 reading.
+            Assert.That(NozzleRunoutMotionPreflight.TryValidate(
+                XY(164.8,192),XY(22.7,65),true,XY(165.1,128.24),
+                XY(330,355),out var reason),Is.True,reason);
+        }
+
+        [Test]
         public void RejectsCameraAtTravelMaximum()
         {
             Assert.That(NozzleRunoutMotionPreflight.TryValidate(
