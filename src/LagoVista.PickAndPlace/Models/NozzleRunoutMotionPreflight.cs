@@ -43,7 +43,12 @@ namespace LagoVista.PickAndPlace.Models
                     current.X - previousHeadOffset.X,
                     current.Y - previousHeadOffset.Y)
                 : current;
-            if (!WithinSafeArea(afterOldHead, workArea))
+            // When already in camera navigation there is NO initial
+            // relative move: being close to a travel limit is not an
+            // error as long as current XY is within the work area. From
+            // a selected head, validate its physical return leg.
+            if (previousHeadOffset != null &&
+                !WithinSafeArea(afterOldHead, workArea))
             {
                 reason = $"Returning from the previous head would approach an XY limit: " +
                          $"({afterOldHead.X:F2}, {afterOldHead.Y:F2}) mm.";
