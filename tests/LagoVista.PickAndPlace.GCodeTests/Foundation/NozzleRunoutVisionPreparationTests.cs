@@ -19,6 +19,7 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                 profile, out var reason), Is.True, reason);
             Assert.That(profile.FindCircles, Is.True);
             Assert.That(profile.PerformShapeDetection, Is.True);
+            Assert.That(profile.LightOn, Is.True);
         }
 
         [Test]

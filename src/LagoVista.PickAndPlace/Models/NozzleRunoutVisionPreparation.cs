@@ -18,6 +18,9 @@ namespace LagoVista.PickAndPlace.Models
             }
             profile.PerformShapeDetection = true;
             profile.FindCircles = true;
+            // Calibration owns its illumination setup as well. Preserve
+            // saved brightness/color/intensity; enable only the on/off flag.
+            profile.LightOn = true;
             if (!profile.PerformShapeDetection || !profile.FindCircles)
             {
                 reason = "The Nozzle profile rejected circle-detection configuration.";

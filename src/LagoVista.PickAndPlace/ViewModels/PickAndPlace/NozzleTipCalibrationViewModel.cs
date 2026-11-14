@@ -450,6 +450,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     Stop(cameraStep, visionError + " No movement sent.");
                     return false;
                 }
+                // Re-selecting reapplies the now-enabled bottom illumination
+                // through the canonical Machine.SetVisionProfile path.
+                machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_Nozzle);
                 var captureReady = await capture.EnsureCaptureReadyAsync();
                 if (!captureReady.Successful)
                 {
