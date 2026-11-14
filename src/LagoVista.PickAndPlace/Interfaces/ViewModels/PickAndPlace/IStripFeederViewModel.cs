@@ -27,6 +27,13 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 
         ObservableCollection<StripFeeder> Feeders { get; }
 
+        // Feeder-level procedure rendered by the WPF modal dialog.
+        ObservableCollection<FeederCalibrationFlowStep> FeederFlowSteps { get; }
+        string FeederFlowStatus { get; }
+        bool FeederFlowRunning { get; }
+        bool FeederFlowFinished { get; }
+        System.Threading.Tasks.Task StartFeederCalibrationFlowAsync();
+
         ObservableCollection<FeederCalibrationStepDisplay> FeederCalibrationSteps { get; }
         string FeederCalibrationStatus { get; }
         string FeederCalibrationMeasurement { get; }

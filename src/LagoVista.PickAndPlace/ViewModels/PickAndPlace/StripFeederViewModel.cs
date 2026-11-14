@@ -49,7 +49,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         FeederPickLocation,
     }
 
-    public class StripFeederViewModel : FeederViewModel, IStripFeederViewModel
+    public partial class StripFeederViewModel : FeederViewModel, IStripFeederViewModel
     {
         ObservableCollection<StripFeeder> _stripFeeders;
         private readonly IRestClient _restClient;
