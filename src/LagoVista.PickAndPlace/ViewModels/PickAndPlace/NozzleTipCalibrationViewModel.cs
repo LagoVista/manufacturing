@@ -104,12 +104,48 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RunoutSteps.FirstOrDefault(x =>
                 x.StepKey == $"head-{_activeHead?.HeadIndex}/{key}");
 
+        private bool ValidCameraBeforeMotion(IMachine machine,
+            MachineCamera configuredCamera, out string reason)
+        {
+            reason = null;
+            var capture = machine?.PartInspectionCaptureService;
+            if (configuredCamera == null || capture?.Camera == null ||
+                capture.CameraType != CameraTypes.PartInspection ||
+                !String.Equals(Convert.ToString(capture.Camera.Id),
+                    Convert.ToString(configuredCamera.Id), StringComparison.Ordinal))
+            {
+                reason = "Bottom-camera capture service is missing or bound to a different camera.";
+                return false;
+            }
+            if (!capture.IsCapturing || capture.CaptureFrameSize.Width <= 0 ||
+                capture.CaptureFrameSize.Height <= 0)
+            {
+                reason = "Bottom camera is not capturing live video. Start its stream and confirm live frames before moving.";
+                return false;
+            }
+            if (capture.Profile?.Key != VisionProfile.VisionProfile_Nozzle ||
+                !capture.Profile.FindCircles)
+            {
+                reason = $"Bottom camera's active profile '{capture.Profile?.Key ?? "none"}' " +
+                    "must be Nozzle with circle detection enabled before any calibration motion.";
+                return false;
+            }
+            var scale = capture.Camera.EffectivePixelsPerMM;
+            if (Double.IsNaN(scale) || Double.IsInfinity(scale) || scale <= 0)
+            {
+                reason = "Bottom camera has no valid calibrated pixels/mm. Calibrate its scale before motion.";
+                return false;
+            }
+            return true;
+        }
+
         private bool ValidContext(out string reason)
         {
             reason = null;
             var m = _activeMachine;
             if (m == null || !m.Connected || m.Mode != OperatingMode.Manual ||
-                !m.WasMachineHomed || !m.WasMachinOriginCalibrated || m.CurrentMachineToolHead == null ||
+                !m.WasMachineHomed || !m.WasMachinOriginCalibrated ||
+                m.CurrentMachineToolHead == null ||
                 !ReferenceEquals(m.CurrentMachineToolHead, _activeHead) ||
                 !String.Equals(Convert.ToString(_activeHead?.CurrentNozzle?.Id),
                     _activeNozzleId, StringComparison.Ordinal) ||
@@ -118,16 +154,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 reason = "Machine is not homed/connected/Manual or the selected tool head/nozzle changed.";
                 return false;
             }
-
-            var camera = m.PartInspectionCaptureService;
-            if (camera?.Camera == null || camera.Camera.Id.ToString() != _cameraId ||
-                camera.CameraType != CameraTypes.PartInspection ||
-                camera.Profile?.Key != VisionProfile.VisionProfile_Nozzle ||
-                !camera.Profile.FindCircles ||
-                camera.Camera.EffectivePixelsPerMM <= 0 ||
-                Math.Abs(camera.Camera.EffectivePixelsPerMM - _cameraScale) > 0.1)
+            var configuredCamera = m.Settings?.Cameras?.FirstOrDefault(camera =>
+                camera.CameraType.Value == CameraTypes.PartInspection);
+            if (!ValidCameraBeforeMotion(m, configuredCamera, out reason))
+                return false;
+            if (!String.Equals(Convert.ToString(m.PartInspectionCaptureService.Camera.Id),
+                    _cameraId, StringComparison.Ordinal) ||
+                Math.Abs(m.PartInspectionCaptureService.Camera.EffectivePixelsPerMM -
+                    _cameraScale) > 0.1)
             {
-                reason = "Bottom camera, Nozzle profile or calibrated pixels/mm changed.";
+                reason = "Bottom-camera identity or calibrated pixels/mm changed during the run.";
                 return false;
             }
             return true;
@@ -380,8 +416,43 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _session.Start(DateTimeOffset.UtcNow);
 
                 var positionStep = Step("position");
-                positionStep.Begin($"Using configured Head {tool.HeadIndex}, nozzle {tool.CurrentNozzle.Text}. Selecting tool head safely, then approaching bottom camera.");
-                if (!ReferenceEquals(machine.CurrentMachineToolHead, tool))
+                positionStep.Begin($"Preflighting Head {tool.HeadIndex}, nozzle {tool.CurrentNozzle.Text}, bottom camera and XY targets before motion.");
+
+                // The prior implementation selected the tool head and queued
+                // a relative XY move before checking the camera. That caused
+                // unplanned machine movement even with an invalid profile.
+                if (!ValidCameraBeforeMotion(machine, cameraConfig, out var cameraError))
+                {
+                    Stop(positionStep, "No movement sent: " + cameraError);
+                    return false;
+                }
+
+                // This only reads the current controller XY (M114); it does
+                // not command any axes. Check BOTH the existing relative
+                // tool-selection move and the later bottom-camera target.
+                var location = await machine.GetCurrentLocationAsync(5000);
+                if (!location.Successful || location.Result == null)
+                {
+                    Stop(positionStep, "No movement sent: controller XY could not be read.");
+                    return false;
+                }
+                var needsSelection = !ReferenceEquals(machine.CurrentMachineToolHead, tool);
+                if (!NozzleRunoutMotionPreflight.TryValidate(
+                    location.Result, tool.Offset, needsSelection,
+                    cameraConfig.AbsolutePosition, machine.Settings.WorkAreaSize,
+                    out var geometryError))
+                {
+                    Stop(positionStep, "No movement sent: " + geometryError);
+                    return false;
+                }
+                machine.AddStatusMessage(StatusMessageTypes.Info,
+                    $"Nozzle calibration XY preflight passed: " +
+                    $"head {tool.HeadIndex} offset ({tool.Offset?.X:F2}, {tool.Offset?.Y:F2}), " +
+                    $"current ({location.Result.X:F2}, {location.Result.Y:F2}), " +
+                    $"camera ({cameraConfig.AbsolutePosition.X:F2}, {cameraConfig.AbsolutePosition.Y:F2}), " +
+                    $"work area ({machine.Settings.WorkAreaSize.X:F2}, {machine.Settings.WorkAreaSize.Y:F2}).");
+                positionStep.Detail = "Validated live bottom camera, Nozzle profile, pixels/mm, and bounded XY moves. Selecting head.";
+                if (needsSelection)
                 {
                     // MoveToToolHeadAsync performs safe-Z and its coordinate
                     // change internally. Never bypass it by assigning an
