@@ -510,6 +510,21 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                             $"Could not safely select Head {tool.HeadIndex} with nozzle {tool.CurrentNozzle.Text}. Machine navigation did not settle.");
                         return false;
                     }
+                    // MoveToToolHeadAsync uses G92 to preserve the previous
+                    // logical XY frame after physically shifting the head.
+                    // Verify that reset *completed* before any subsequent
+                    // absolute G0 camera approach can be queued.
+                    var afterHeadSwitch = await machine.GetCurrentLocationAsync(5000);
+                    if (!afterHeadSwitch.Successful ||
+                        afterHeadSwitch.Result == null ||
+                        !FeederOriginCalibrationMath.SamePosition(
+                            afterHeadSwitch.Result, location.Result, 0.5))
+                    {
+                        Stop(positionStep,
+                            "Tool-head G92 coordinate reset did not preserve XY within 0.5 mm. " +
+                            "No bottom-camera approach was sent. Inspect motion log.");
+                        return false;
+                    }
                 }
                 if (!ValidContext(out var contextError))
                 {
