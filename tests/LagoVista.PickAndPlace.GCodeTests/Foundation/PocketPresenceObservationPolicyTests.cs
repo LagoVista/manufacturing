@@ -92,11 +92,11 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
-        public void MultipleCenteredComponentsRemainAmbiguous()
+        public void MultipleContoursFromOneComponentMayStillConfirmPresent()
         {
             var frame = Frame(10, 10, candidates: 2, centered: 2, stableCount: 5);
             Assert.That(PocketPresenceObservationPolicy.Evaluate(frame, 0, Start,
-                Start.AddSeconds(1), Camera, Profile), Is.EqualTo(PocketPresenceDecision.Ambiguous));
+                Start.AddSeconds(1), Camera, Profile), Is.EqualTo(PocketPresenceDecision.Present));
         }
     }
 }

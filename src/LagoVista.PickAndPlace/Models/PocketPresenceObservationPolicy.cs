@@ -40,9 +40,11 @@ namespace LagoVista.PickAndPlace.Models
                 !String.Equals(frame.VisionProfileKey, expectedProfileKey, StringComparison.Ordinal))
                 return PocketPresenceDecision.CameraUnavailable;
 
-            if (frame.StableCenteredCount > 1)
-                return PocketPresenceDecision.Ambiguous;
-            if (frame.StableCenteredCount == 1 &&
+            // The contour detector may produce nested/overlapping outlines
+            // around ONE physical component (as seen on the black tape).
+            // More than one rectangle is not itself evidence of multiple parts.
+            // Use the strongest stable centered candidate for PRESENT.
+            if (frame.StableCenteredCount >= 1 &&
                 frame.StableCenteredFoundCount >= requiredStabilizationCount)
                 return PocketPresenceDecision.Present;
 
