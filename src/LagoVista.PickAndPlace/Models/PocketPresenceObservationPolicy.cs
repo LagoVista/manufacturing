@@ -26,7 +26,8 @@ namespace LagoVista.PickAndPlace.Models
         public static PocketPresenceDecision Evaluate(
             PocketRectangleFrameObservation frame, long frameIdAtArrival,
             DateTimeOffset observationStartUtc, DateTimeOffset now,
-            string expectedCameraId, string expectedProfileKey)
+            string expectedCameraId, string expectedProfileKey,
+            int requiredStabilizationCount = 5)
         {
             if (frame == null || frame.FrameId <= frameIdAtArrival)
                 return PocketPresenceDecision.AwaitingEvidence;
@@ -34,6 +35,7 @@ namespace LagoVista.PickAndPlace.Models
             if (frame.CapturedAtUtc < observationStartUtc ||
                 now - frame.CapturedAtUtc > MaximumFrameAge ||
                 frame.Width <= 0 || frame.Height <= 0 ||
+                requiredStabilizationCount < 1 ||
                 !String.Equals(frame.CameraId, expectedCameraId, StringComparison.Ordinal) ||
                 !String.Equals(frame.VisionProfileKey, expectedProfileKey, StringComparison.Ordinal))
                 return PocketPresenceDecision.CameraUnavailable;
@@ -41,7 +43,7 @@ namespace LagoVista.PickAndPlace.Models
             if (frame.StableCenteredCount > 1)
                 return PocketPresenceDecision.Ambiguous;
             if (frame.StableCenteredCount == 1 &&
-                frame.StableCenteredFoundCount >= 5)
+                frame.StableCenteredFoundCount >= requiredStabilizationCount)
                 return PocketPresenceDecision.Present;
 
             if (frame.FrameId - frameIdAtArrival >= MinimumEmptyFrames &&
