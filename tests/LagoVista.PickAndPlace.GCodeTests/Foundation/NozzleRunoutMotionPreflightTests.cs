@@ -44,7 +44,7 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(NozzleRunoutMotionPreflight.TryValidate(
                 XY(120, 140), XY(22.7, 65), true, XY(390, 340),
                 XY(400, 400), out var reason), Is.False);
-            Assert.That(reason, Does.Contain("bottom-camera XY"));
+            Assert.That(reason, Does.Contain("Selecting the tool head"));
         }
 
         [Test]
@@ -70,7 +70,7 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         public void AllowsFullInBoundsTravelWithoutOperatorPositioning()
         {
             Assert.That(NozzleRunoutMotionPreflight.TryValidate(
-                XY(30, 30), XY(22.7, 65), true, XY(330, 330),
+                XY(30, 30), XY(22.7, 65), true, XY(330, 340),
                 XY(400, 400), out var reason), Is.False,
                 "Head offset at 330/330 exceeds bounds; choose an in-bounds camera target.");
             Assert.That(NozzleRunoutMotionPreflight.TryValidate(
