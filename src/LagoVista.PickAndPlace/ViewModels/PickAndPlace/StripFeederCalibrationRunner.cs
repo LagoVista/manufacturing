@@ -14,8 +14,8 @@ using System.Threading.Tasks;
 namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 {
     /// <summary>
-    /// Operator-supervised seven-step strip feeder calibration.
-    /// Steps 6–7 use operator-confirmed camera inspection without picking.
+    /// Operator-initiated, seven-step feeder calibration.
+    /// Steps 6–7 use fresh processed rectangle evidence without picking.
     /// Strongly typed C# handlers, never data-only DTOs, own machine motion.
     /// </summary>
     internal sealed class StripFeederCalibrationRunner : IMachineOperation, ICornerLocatedHandler, ICircleLocatedHandler
@@ -879,13 +879,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     : "Current part index is outside feeder capacity.");
 
             var key = previous ? "verify-previous-empty" : "verify-current-part";
-            if (_approachedPocketStep == key && _autoCenterRequested)
-                return Block("Automated " + (previous ? "EMPTY" : "PRESENT") +
-                    " pocket classification is not validated for this camera/tape/part. " +
-                    "Camera arrived safely but no observation was asserted. " +
-                    "A verified part-presence classifier is required before the full procedure can complete.");
             return _approachedPocketStep == key
-                ? await ConfirmPocketAsync(previous, token)
+                ? await VerifyPocketFromFreshRectanglesAsync(previous, token)
                 : await MoveToPocketAsync(previous, index, token);
         }
 
@@ -903,6 +898,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _pocketCameraId = capture.Camera.Id.ToString();
             _pocketCameraScale = capture.Camera.EffectivePixelsPerMM;
             _pocketProfileKey = capture.Profile.Key;
+            if (!IsPartInTapeProfile(_pocketProfileKey) ||
+                !capture.Profile.PerformShapeDetection ||
+                !capture.Profile.FindRectangles)
+                return Block("Pocket inspection requires the active part-in-tape profile with rectangle detection enabled.");
             if (_pocketCameraScale <= 0 || Double.IsNaN(_pocketCameraScale) ||
                 Double.IsInfinity(_pocketCameraScale) || !PocketCameraUnchanged())
                 return Block("Invalid position camera scale/profile.");
@@ -958,51 +957,131 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             });
             MeasurementText = $"Pocket {index}: X {actual.Result.X:F3}, Y {actual.Result.Y:F3} mm";
             StatusText = previous
-                ? "Inspect camera. Confirm EMPTY only if the preceding pocket has NO part; otherwise cancel."
-                : "Inspect camera. Confirm PRESENT only if the current pocket contains a part; otherwise cancel.";
+                ? "Camera arrived. Observing fresh frames for a sustained EMPTY result without rectangles."
+                : "Camera arrived. Waiting for a stabilized, centered component rectangle.";
             Signal();
             return Result(true);
         }
 
-        private async Task<MachineOperationActionResult> ConfirmPocketAsync(
+        private static bool IsPartInTapeProfile(string key) =>
+            key == VisionProfile.VisionProfile_PartInWhiteTape ||
+            key == VisionProfile.VisionProfile_PartInBlackTape ||
+            key == VisionProfile.VisionProfile_PartInClearTape;
+
+        /// <summary>
+        /// Confirms the occupied/current and empty/previous pockets using only
+        /// the existing position camera's rectangle detector. A green rectangle
+        /// is stabilized+centered under the active profile; an empty pocket
+        /// requires many fresh, successfully processed frames without ANY
+        /// detected rectangles. No pick or feeder-index mutation is performed.
+        /// </summary>
+        private async Task<MachineOperationActionResult> VerifyPocketFromFreshRectanglesAsync(
             bool previous, CancellationToken token)
         {
             if (!PocketContextReady(out var reason) || _pocketTarget == null)
                 return Block(reason ?? "Pocket camera observation is stale; repeat approach.");
+
+            var capture = _machine.PositionImageCaptureService;
+            if (capture?.Profile == null || !IsPartInTapeProfile(_pocketProfileKey) ||
+                !capture.Profile.PerformShapeDetection || !capture.Profile.FindRectangles)
+                return Block("The part-in-tape rectangle detector is not enabled for the selected camera profile.");
+
             token.ThrowIfCancellationRequested();
             var actual = await _machine.GetCurrentLocationAsync(5000);
             if (!actual.Successful ||
-                !FeederOriginCalibrationMath.SamePosition(actual.Result, _pocketTarget, 0.1) ||
-                !PocketContextReady(out reason) ||
-                Current.Status != MachineOperationRunStatus.Running)
-                return Block(reason ?? "Machine moved since pocket approach; retry.");
+                !FeederOriginCalibrationMath.SamePosition(actual.Result, _pocketTarget, 0.1))
+                return Block("Machine moved after reaching pocket. Cannot verify presence or absence.");
 
-            var key = previous ? "verify-previous-empty" : "verify-current-part";
-            var now = DateTimeOffset.UtcNow;
-            _session.RecordEvidence(new MachineOperationEvidence
+            var settled = await WaitForSerialQuietAsync(token);
+            if (!settled.Successful || !PocketContextReady(out reason) ||
+                Current.Status != MachineOperationRunStatus.Running)
+                return Block(reason ?? "Camera or machine changed before pocket inspection.");
+
+            // Stale detection history from earlier pockets is never evidence.
+            // Snapshot the monotonic camera frame counter, then clear detector
+            // history, requiring all future evidence to come from NEW frames.
+            var baselineId = capture.LatestRectangleFrame?.FrameId ?? 0;
+            capture.ResetDetections();
+            var start = DateTimeOffset.UtcNow;
+            PocketRectangleFrameObservation last = null;
+
+            for (var poll = 0; poll < 65; poll++)
             {
-                RunId = Current.RunId,
-                StepKey = key,
-                Name = previous ? "Operator confirmed EMPTY" : "Operator confirmed PRESENT",
-                Value = $"index {_pocketIndex}; X {actual.Result.X:F3}, Y {actual.Result.Y:F3}; " +
-                        (previous ? "EMPTY" : "PRESENT"),
-                Unit = "mm",
-                Source = "Operator visual confirmation in position camera",
-                Verification = MachineOperationVerificationKind.OperatorConfirmed,
-                CapturedAtUtc = now,
-                VisionProfileKey = _pocketProfileKey,
-                PixelsPerMm = _pocketCameraScale
-            });
-            _session.CompleteActiveStep(key, now);
-            _approachedPocketStep = null;
-            _pocketTarget = null;
-            MeasurementText = $"Confirmed {(previous ? "EMPTY" : "PRESENT")}: pocket {_pocketIndex} at " +
-                $"X {actual.Result.X:F3}, Y {actual.Result.Y:F3} mm";
-            StatusText = previous
-                ? "All seven steps passed. No picking or inventory/index changes."
-                : "Current part confirmed present. Next: inspect preceding pocket and confirm EMPTY.";
-            Signal();
-            return Result(true);
+                token.ThrowIfCancellationRequested();
+                if (!PocketContextReady(out reason) ||
+                    Current.Status != MachineOperationRunStatus.Running)
+                    return Block(reason ?? "Pocket machine/feeder/vision context changed during observation.");
+
+                var now = DateTimeOffset.UtcNow;
+                last = capture.LatestRectangleFrame;
+                var decision = PocketPresenceObservationPolicy.Evaluate(
+                    last, baselineId, start, now, _pocketCameraId,
+                    _pocketProfileKey, capture.Profile.StabilizationCount);
+
+                if (decision == PocketPresenceDecision.CameraUnavailable)
+                    return Block("Part-in-tape camera frames are stale, invalid or from the wrong camera/profile.");
+                if (decision == PocketPresenceDecision.Ambiguous)
+                    return Block("More than one stable centered rectangle detected in a single pocket. Cannot classify safely.");
+
+                if (decision == PocketPresenceDecision.Present ||
+                    decision == PocketPresenceDecision.Empty)
+                {
+                    if (previous && decision == PocketPresenceDecision.Present)
+                        return Block("PREVIOUS POCKET NOT EMPTY: stabilized component rectangle detected. Check tape position.");
+                    if (!previous && decision == PocketPresenceDecision.Empty)
+                        return Block("CURRENT PART MISSING: no component rectangle in the fresh camera observation window.");
+
+                    var measured = await _machine.GetCurrentLocationAsync(5000);
+                    if (!measured.Successful ||
+                        !FeederOriginCalibrationMath.SamePosition(measured.Result, _pocketTarget, 0.1) ||
+                        !PocketContextReady(out reason) ||
+                        Current.Status != MachineOperationRunStatus.Running)
+                        return Block(reason ?? "Machine moved or context changed while verifying pocket evidence.");
+
+                    var key = previous ? "verify-previous-empty" : "verify-current-part";
+                    var observedAt = DateTimeOffset.UtcNow;
+                    var proof = previous
+                        ? $"EMPTY: {last.FrameId - baselineId} fresh processed frames; no rectangle; " +
+                          $"index {_pocketIndex}; X {measured.Result.X:F3}, Y {measured.Result.Y:F3}"
+                        : $"PRESENT: stabilized centered rectangle; observations {last.StableCenteredFoundCount}; " +
+                          $"size {last.CenteredWidthMm:F2} x {last.CenteredHeightMm:F2} mm; " +
+                          $"offset X {last.CenteredOffsetXmm:+0.00;-0.00;0.00}, Y {last.CenteredOffsetYmm:+0.00;-0.00;0.00} mm; index {_pocketIndex}";
+
+                    _session.RecordEvidence(new MachineOperationEvidence
+                    {
+                        RunId = Current.RunId,
+                        StepKey = key,
+                        Name = previous ? "Vision verified EMPTY pocket" : "Vision verified PRESENT component",
+                        Value = proof,
+                        Unit = "mm",
+                        Source = "Position camera / existing part-in-tape rectangle detector; fresh frames",
+                        Verification = MachineOperationVerificationKind.VisionVerified,
+                        CapturedAtUtc = observedAt,
+                        VisionProfileKey = _pocketProfileKey,
+                        PixelsPerMm = _pocketCameraScale
+                    });
+                    _session.CompleteActiveStep(key, observedAt);
+                    _approachedPocketStep = null;
+                    _pocketTarget = null;
+                    MeasurementText = proof;
+                    StatusText = previous
+                        ? "All seven calibration steps passed. Verified preceding pocket EMPTY by vision."
+                        : "Verified current component PRESENT by vision. Next: preceding pocket EMPTY check.";
+                    Signal();
+                    return Result(true);
+                }
+
+                await Task.Delay(100, token);
+            }
+
+            var count = last == null ? 0 : Math.Max(0, last.FrameId - baselineId);
+            return Block($"Pocket inspection was inconclusive after 6.5 seconds and {count} fresh frames. " +
+                (last == null || count == 0
+                    ? "Camera did not produce fresh processed rectangle-detection frames."
+                    : last.LastRectangleFrameId > baselineId
+                        ? "Rectangle candidates appeared but did not stabilize centered; cannot claim EMPTY or PRESENT."
+                        : "Not enough validated camera evidence to establish the expected pocket state.") +
+                " Inspect camera and profile, then Reset.");
         }
 
         private bool PocketContextReady(out string reason)
