@@ -13,7 +13,7 @@ namespace LagoVista.PickAndPlace.Models
     /// </summary>
     public static class InstalledNozzleCalibrationPlan
     {
-        public static IReadOnlyList<MachineToolHead> InstalledHeads(Machine machine)
+        public static IReadOnlyList<MachineToolHead> InstalledHeads(LagoVista.Manufacturing.Models.Machine machine)
         {
             return machine?.ToolHeads == null
                 ? new List<MachineToolHead>()
