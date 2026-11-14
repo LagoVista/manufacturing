@@ -471,92 +471,131 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     _cameraScale);
 
                 var planStep = Step("move-plan");
-                planStep.Begin("Reading controller XY and validating both planned tool/head and camera destinations.");
-                // M114 reads position; no axes move here. Check both existing
-                // tool-selection G91 relative move and subsequent camera XY.
+                planStep.Begin("Reading controller XY and validating camera-first travel plus the tool-head shift at the camera.");
+                // M114 is a read; preflight must approve the exact order
+                // we execute: old head -> camera navigation -> bottom-camera
+                // XY -> target head. A head-offset shift at the current
+                // location may exceed travel even when the camera is safe.
                 var location = await machine.GetCurrentLocationAsync(5000);
                 if (!location.Successful || location.Result == null)
                 {
                     Stop(planStep, "Controller XY could not be read; no movement sent.");
                     return false;
                 }
-                var needsSelection = !ReferenceEquals(machine.CurrentMachineToolHead, tool);
+                var previousHead = machine.CurrentMachineToolHead;
                 if (!NozzleRunoutMotionPreflight.TryValidate(
-                    location.Result, tool.Offset, needsSelection,
+                    location.Result, tool.Offset, true,
                     cameraConfig.AbsolutePosition, machine.Settings.WorkAreaSize,
-                    out var geometryError,
-                    machine.CurrentMachineToolHead?.Offset))
+                    out var geometryError, previousHead?.Offset))
                 {
                     Stop(planStep, "No movement sent: " + geometryError);
                     return false;
                 }
-                var planDetails = $"Current ({location.Result.X:F2}, {location.Result.Y:F2}), " +
-                    $"Head {tool.HeadIndex} offset ({tool.Offset?.X:F2}, {tool.Offset?.Y:F2}), " +
-                    $"Camera ({cameraConfig.AbsolutePosition.X:F2}, {cameraConfig.AbsolutePosition.Y:F2}), " +
-                    $"Bounds ({machine.Settings.WorkAreaSize.X:F2}, {machine.Settings.WorkAreaSize.Y:F2}) mm.";
+                var planDetails = $"Current ({location.Result.X:F2}, {location.Result.Y:F2}); " +
+                    $"previous head {previousHead?.Name ?? "camera"}; " +
+                    $"camera ({cameraConfig.AbsolutePosition.X:F2}, {cameraConfig.AbsolutePosition.Y:F2}); " +
+                    $"head {tool.HeadIndex} shift ({tool.Offset?.X:F2}, {tool.Offset?.Y:F2}); " +
+                    $"bounds ({machine.Settings.WorkAreaSize.X:F2}, {machine.Settings.WorkAreaSize.Y:F2}) mm.";
                 machine.AddStatusMessage(StatusMessageTypes.Info,
-                    "Nozzle runout motion plan approved: " + planDetails);
+                    "Nozzle runout camera-first motion plan approved: " + planDetails);
                 Pass(planStep, planDetails, MachineOperationVerificationKind.MachineObserved);
 
                 var positionStep = Step("position");
-                positionStep.Begin($"Selecting Head {tool.HeadIndex} ({tool.CurrentNozzle.Text}) and moving to bottom camera.");
-                if (needsSelection)
+                positionStep.Begin($"Return to camera navigation, move to bottom camera, then select Head {tool.HeadIndex} ({tool.CurrentNozzle.Text}).");
+
+                // The old tool head might already be selected. Restore
+                // camera navigation at the original XY BEFORE traveling to
+                // the camera, and verify the controller's G92 reference.
+                if (previousHead != null)
                 {
-                    // MoveToToolHeadAsync performs safe-Z and its coordinate
-                    // change internally. Never bypass it by assigning an
-                    // unselected tool head as though navigation had changed.
-                    await machine.MoveToToolHeadAsync(tool);
-                    if (!ReferenceEquals(machine.CurrentMachineToolHead, tool) ||
+                    await machine.MoveToCameraAsync();
+                    if (machine.CurrentMachineToolHead != null ||
                         !await MotionIdleAsync(CancellationToken.None))
                     {
-                        Stop(positionStep,
-                            $"Could not safely select Head {tool.HeadIndex} with nozzle {tool.CurrentNozzle.Text}. Machine navigation did not settle.");
+                        Stop(positionStep, "Unable to restore camera navigation safely.");
                         return false;
                     }
-                    // MoveToToolHeadAsync uses G92 to preserve the previous
-                    // logical XY frame after physically shifting the head.
-                    // Verify that reset *completed* before any subsequent
-                    // absolute G0 camera approach can be queued.
-                    var afterHeadSwitch = await machine.GetCurrentLocationAsync(5000);
-                    if (!afterHeadSwitch.Successful ||
-                        afterHeadSwitch.Result == null ||
+                    var afterCameraNavigation = await machine.GetCurrentLocationAsync(5000);
+                    if (!afterCameraNavigation.Successful ||
+                        afterCameraNavigation.Result == null ||
                         !FeederOriginCalibrationMath.SamePosition(
-                            afterHeadSwitch.Result, location.Result, 0.5))
+                            afterCameraNavigation.Result, location.Result, 0.5))
                     {
-                        Stop(positionStep,
-                            "Tool-head G92 coordinate reset did not preserve XY within 0.5 mm. " +
-                            "No bottom-camera approach was sent. Inspect motion log.");
+                        Stop(positionStep, "Camera-navigation coordinate reset did not preserve XY within 0.5 mm. No camera approach sent.");
                         return false;
                     }
-                }
-                if (!ValidContext(out var contextError))
-                {
-                    Stop(positionStep, contextError +
-                        " Calibration stopped after head selection.");
-                    return false;
                 }
 
+                // We are now in camera coordinates. Raise Z, then move to
+                // the camera's known XY while the nozzle-offset shift is
+                // not yet active.
                 machine.SetAbsoluteMode();
                 machine.SendSafeMoveHeight();
                 if (!await MotionIdleAsync(CancellationToken.None, 10000))
                 {
-                    Stop(positionStep, "Safe-height move did not reach idle.");
+                    Stop(positionStep, "Safe-height move did not settle before camera approach.");
+                    return false;
+                }
+                machine.GotoPoint(cameraConfig.AbsolutePosition);
+                if (!await MotionIdleAsync(CancellationToken.None))
+                {
+                    Stop(positionStep, "Camera-navigation XY approach did not settle.");
+                    return false;
+                }
+                var atCamera = await machine.GetCurrentLocationAsync(5000);
+                if (!atCamera.Successful || atCamera.Result == null ||
+                    !FeederOriginCalibrationMath.SamePosition(
+                        atCamera.Result, cameraConfig.AbsolutePosition, 0.5))
+                {
+                    Stop(positionStep, "Controller did not reach the configured bottom camera XY; tool head was not selected.");
+                    return false;
+                }
+                if (!ValidCameraBeforeMotion(machine, cameraConfig, out var contextError))
+                {
+                    Stop(positionStep, "Bottom camera became unavailable before selecting the tool head: " + contextError);
                     return false;
                 }
 
+                // Only now shift from camera to tool navigation, where
+                // the full head offset was preflighted at camera XY.
+                await machine.MoveToToolHeadAsync(tool);
+                if (!ReferenceEquals(machine.CurrentMachineToolHead, tool) ||
+                    !await MotionIdleAsync(CancellationToken.None))
+                {
+                    Stop(positionStep, $"Could not select Head {tool.HeadIndex} after reaching the bottom camera.");
+                    return false;
+                }
+                var afterHeadSwitch = await machine.GetCurrentLocationAsync(5000);
+                if (!afterHeadSwitch.Successful || afterHeadSwitch.Result == null ||
+                    !FeederOriginCalibrationMath.SamePosition(
+                        afterHeadSwitch.Result, cameraConfig.AbsolutePosition, 0.5))
+                {
+                    Stop(positionStep,
+                        "Tool-head coordinate reset did not preserve the bottom-camera XY within 0.5 mm. Aborting before detection-height descent.");
+                    return false;
+                }
+                if (!ValidContext(out contextError))
+                {
+                    Stop(positionStep, contextError + " No detection-height movement sent.");
+                    return false;
+                }
+
+                // Reuse the canonical bottom-camera detection-height path.
+                // Its XY target is already verified; it now only needs
+                // to lower the active head's ZL/ZR at that position.
                 await machine.GoToPartInspectionCameraAsync();
                 if (!await MotionIdleAsync(CancellationToken.None) ||
                     !ValidContext(out contextError))
                 {
-                    Stop(positionStep, contextError ?? "Bottom camera approach did not settle.");
+                    Stop(positionStep, contextError ?? "Detection-height approach did not settle.");
                     return false;
                 }
                 var cameraXY = await machine.GetCurrentLocationAsync(5000);
-                if (!cameraXY.Successful ||
+                if (!cameraXY.Successful || cameraXY.Result == null ||
                     !FeederOriginCalibrationMath.SamePosition(
                         cameraXY.Result, cameraConfig.AbsolutePosition, 0.5))
                 {
-                    Stop(positionStep, "Machine was not at the configured bottom-camera location.");
+                    Stop(positionStep, "Machine lost the verified bottom-camera XY after lowering the nozzle.");
                     return false;
                 }
                 Pass(positionStep,$"Head {tool.HeadIndex}, nozzle {_activeNozzleId}, {_cameraScale:F1} px/mm.",
