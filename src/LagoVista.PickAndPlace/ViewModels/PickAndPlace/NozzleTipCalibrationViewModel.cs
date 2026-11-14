@@ -32,6 +32,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private TaskCompletionSource<NozzleRunoutSample> _pendingSample;
         private IMachine _activeMachine;
         private MachineToolHead _activeHead;
+        private MachineToolHead _lastMeasuredHead;
         private string _activeNozzleId;
         private string _cameraId;
         private double _cameraScale;
@@ -62,7 +63,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             get
             {
                 var machine = _machineRepo.CurrentMachine;
-                return _activeHead ?? InstalledNozzleCalibrationPlan.ChooseFirst(
+                return _activeHead ?? _lastMeasuredHead ?? InstalledNozzleCalibrationPlan.ChooseFirst(
                     InstalledNozzleCalibrationPlan.InstalledHeads(machine?.Settings),
                     machine?.CurrentMachineToolHead);
             }
@@ -81,17 +82,27 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             : $"Peak radial deviation: {CandidateResult.MaxRadialDeviationMm:F3} mm | " +
               $"X span: {CandidateResult.RangeXmm:F3} mm | Y span: {CandidateResult.RangeYmm:F3} mm";
 
-        private static ObservableCollection<FeederCalibrationFlowStep> NewPlan()
+        private static ObservableCollection<FeederCalibrationFlowStep> NewPlan(
+            IReadOnlyList<MachineToolHead> installed)
         {
-            var steps=new ObservableCollection<FeederCalibrationFlowStep>();
-            foreach(var step in NozzleRunoutProcedureDefinition.Create().Steps)
-                steps.Add(new FeederCalibrationFlowStep
-                {Number=steps.Count+1,StepKey=step.Key,Title=step.Title});
+            var steps = new ObservableCollection<FeederCalibrationFlowStep>();
+            foreach (var head in installed)
+            {
+                var prefix = $"head-{head.HeadIndex}/";
+                foreach (var step in NozzleRunoutProcedureDefinition.Create().Steps)
+                    steps.Add(new FeederCalibrationFlowStep
+                    {
+                        Number = steps.Count + 1,
+                        StepKey = prefix + step.Key,
+                        Title = $"Head {head.HeadIndex} ({head.CurrentNozzle?.Text}) · {step.Title}"
+                    });
+            }
             return steps;
         }
 
         private FeederCalibrationFlowStep Step(string key) =>
-            RunoutSteps.First(x => x.StepKey == key);
+            RunoutSteps.FirstOrDefault(x =>
+                x.StepKey == $"head-{_activeHead?.HeadIndex}/{key}");
 
         private bool ValidContext(out string reason)
         {
@@ -218,8 +229,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private bool Stop(FeederCalibrationFlowStep step, string reason)
         {
             step?.Fail(reason);
+            var currentKey = step?.StepKey;
+            if (currentKey != null && currentKey.Contains("/"))
+                currentKey = currentKey.Substring(currentKey.IndexOf('/') + 1);
             if (_session?.Snapshot.Status == MachineOperationRunStatus.Running &&
-                _session.Snapshot.ActiveStepKey == step?.StepKey)
+                _session.Snapshot.ActiveStepKey == currentKey)
                 _session.BlockActiveStep(reason, DateTimeOffset.UtcNow);
             Status = "Stopped: " + reason;
             return false;
@@ -233,51 +247,60 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 var now=DateTimeOffset.UtcNow;
                 _session.RecordEvidence(new MachineOperationEvidence
                 {
-                    RunId=_session.Snapshot.RunId, StepKey=step.StepKey,
+                    RunId=_session.Snapshot.RunId,
+                    StepKey=step.StepKey.Substring(step.StepKey.IndexOf('/') + 1),
                     Name=step.Title, Value=description, Unit="mm",
                     Source=$"Bottom camera / nozzle {_activeNozzleId}, tool head {_activeHead?.HeadIndex}",
                     Verification=kind, Saved=false, CapturedAtUtc=now,
                     VisionProfileKey=VisionProfile.VisionProfile_Nozzle,
                     PixelsPerMm=pixelsPerMm
                 });
-                _session.CompleteActiveStep(step.StepKey,DateTimeOffset.UtcNow);
+                _session.CompleteActiveStep(
+                    step.StepKey.Substring(step.StepKey.IndexOf('/') + 1),
+                    DateTimeOffset.UtcNow);
             }
             step.Pass(description);
         }
 
+        /// <summary>
+        /// Machine startup / manual calibration procedure. Iterates every
+        /// configured, installed nozzle head. Never auto-moves on mere
+        /// connection: the supervised modal invokes this after homing.
+        /// </summary>
         public async Task StartAsync()
         {
             if (RunoutRunning) return;
-            RunoutSteps = NewPlan();
+            var machine = _machineRepo.CurrentMachine;
+            var installed = InstalledNozzleCalibrationPlan.InstalledHeads(machine?.Settings);
+            RunoutSteps = NewPlan(installed);
             RaisePropertyChanged(nameof(RunoutSteps));
             CalibrationUpdates.Clear();
             CandidateResult = null;
             _session = null;
+            _lastMeasuredHead = null;
             RaisePropertyChanged(nameof(CandidateZero));
             RaisePropertyChanged(nameof(RunoutSummary));
             RunoutFinished = false;
             RunoutRunning = true;
-            Status = "Starting supervised nozzle runout sweep.";
-
+            Status = $"Starting runout checks for {installed.Count} installed nozzle head(s).";
             try
             {
-                var machine = _machineRepo.CurrentMachine;
-                var installed = InstalledNozzleCalibrationPlan.InstalledHeads(machine?.Settings);
-                var tool = InstalledNozzleCalibrationPlan.ChooseFirst(
-                    installed, machine?.CurrentMachineToolHead);
-                if (tool == null)
+                if (installed.Count == 0)
                 {
-                    Stop(Step("position"), "No installed nozzle is assigned to Head 1 or Head 2 in machine settings. Configure Current Nozzle on a tool head first.");
+                    Status = "Stopped: no installed nozzles assigned to Head 1 or Head 2.";
                     return;
                 }
+                _activeHead = installed[0];
+                RaisePropertyChanged(nameof(ToolHeadName));
+                RaisePropertyChanged(nameof(NozzleName));
                 if (machine == null || !machine.Connected ||
                     machine.Mode != OperatingMode.Manual || !machine.WasMachineHomed ||
                     !machine.WasMachinOriginCalibrated || machine.Busy)
                 {
-                    Stop(Step("position"), "Machine must be connected, homed, idle and in Manual mode.");
+                    Stop(Step("position"),
+                        "Machine must be connected, homed, idle and in Manual mode.");
                     return;
                 }
-
                 var cameraConfig = machine.Settings?.Cameras?.FirstOrDefault(c =>
                     c.CameraType.Value == CameraTypes.PartInspection);
                 if (cameraConfig?.AbsolutePosition == null ||
@@ -286,10 +309,54 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     cameraConfig.AbsolutePosition.Y > machine.Settings.WorkAreaSize.Y ||
                     machine.PartInspectionCaptureService?.Camera == null)
                 {
-                    Stop(Step("position"), "No configured/active bottom camera or unsafe camera XY.");
+                    Stop(Step("position"), "Bottom camera is unavailable or its configured XY is outside the work area.");
                     return;
                 }
+                foreach (var tool in installed)
+                {
+                    if (!ReferenceEquals(_machineRepo.CurrentMachine, machine) ||
+                        !ReferenceEquals(machine.Settings?.ToolHeads?.FirstOrDefault(
+                            h => h.HeadIndex == tool.HeadIndex), tool))
+                    {
+                        Stop(Step("position"), "Machine or configured tool heads changed; aborting calibration.");
+                        return;
+                    }
 
+                    _activeHead = tool;
+                    _lastMeasuredHead = tool;
+                    RaisePropertyChanged(nameof(ToolHeadName));
+                    RaisePropertyChanged(nameof(NozzleName));
+
+                    // Failure always leaves this head uncalibrated; a
+                    // successful twelve-angle measurement explicitly earns
+                    // the runtime green check.
+                    tool.InvalidateRunoutCalibration();
+                    if (!await CalibrateInstalledHeadAsync(machine, tool, cameraConfig))
+                        return;
+                }
+                Status = $"All {installed.Count} installed nozzle head(s) calibrated this session. Measurements are invalidated on machine restart or nozzle changes; production compensation remains separate.";
+            }
+            catch (Exception ex)
+            {
+                var step = RunoutSteps.FirstOrDefault(s => s.Status == "Running");
+                Stop(step, "Nozzle runout procedure error: " + ex.Message);
+            }
+            finally
+            {
+                lock (_observationGate) _pendingSample = null;
+                _activeMachine = null;
+                _activeHead = null;
+                _session = null;
+                RunoutRunning = false;
+                RunoutFinished = true;
+                RaisePropertyChanged(nameof(ToolHeadName));
+                RaisePropertyChanged(nameof(NozzleName));
+            }
+        }
+
+        private async Task<bool> CalibrateInstalledHeadAsync(
+            IMachine machine, MachineToolHead tool, MachineCamera cameraConfig)
+        {
                 _activeMachine = machine;
                 _activeHead = tool;
                 _activeNozzleId = Convert.ToString(tool.CurrentNozzle.Id);
@@ -325,14 +392,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     {
                         Stop(positionStep,
                             $"Could not safely select Head {tool.HeadIndex} with nozzle {tool.CurrentNozzle.Text}. Machine navigation did not settle.");
-                        return;
+                        return false;
                     }
                 }
                 if (!ValidContext(out var contextError))
                 {
                     Stop(positionStep, contextError +
                         " Start the bottom camera and configure the Nozzle circle profile.");
-                    return;
+                    return false;
                 }
 
                 machine.SetAbsoluteMode();
@@ -340,7 +407,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (!await MotionIdleAsync(CancellationToken.None, 10000))
                 {
                     Stop(positionStep, "Safe-height move did not reach idle.");
-                    return;
+                    return false;
                 }
 
                 await machine.GoToPartInspectionCameraAsync();
@@ -348,7 +415,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     !ValidContext(out contextError))
                 {
                     Stop(positionStep, contextError ?? "Bottom camera approach did not settle.");
-                    return;
+                    return false;
                 }
                 var cameraXY = await machine.GetCurrentLocationAsync(5000);
                 if (!cameraXY.Successful ||
@@ -356,7 +423,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         cameraXY.Result, cameraConfig.AbsolutePosition, 0.5))
                 {
                     Stop(positionStep, "Machine was not at the configured bottom-camera location.");
-                    return;
+                    return false;
                 }
                 Pass(positionStep,$"Head {tool.HeadIndex}, nozzle {_activeNozzleId}, {_cameraScale:F1} px/mm.",
                     MachineOperationVerificationKind.MachineObserved,_cameraScale);
@@ -370,7 +437,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         !await MotionIdleAsync(CancellationToken.None))
                     {
                         Stop(step, contextError ?? "Machine/vision context did not settle.");
-                        return;
+                        return false;
                     }
 
                     TargetAngle = angle;
@@ -380,7 +447,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         !ValidContext(out contextError))
                     {
                         Stop(step, contextError ?? "Rotary motion did not settle.");
-                        return;
+                        return false;
                     }
 
                     NozzleRunoutSample measured=null;
@@ -392,7 +459,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     if (measured==null)
                     {
                         Stop(step,$"No stable nozzle circle at {angle}° after 3 observation attempts. Check focus/lighting/profile.");
-                        return;
+                        return false;
                     }
                     samples.Add(measured);
                     CurrentCalibrationAngle=angle;
@@ -406,7 +473,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 {
                     Stop(Step("high-point"),
                         $"Measured nozzle deviation {result.MaxRadialDeviationMm:F3} mm exceeds 2 mm sanity limit.");
-                    return;
+                    return false;
                 }
                 var high=Step("high-point");
                 high.Begin($"Revisiting maximum-Y measured at commanded {result.LogicalZeroAngle}°.");
@@ -416,7 +483,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     !ValidContext(out contextError))
                 {
                     Stop(high,contextError ?? "High-point rotation failed to settle.");
-                    return;
+                    return false;
                 }
 
                 var second=await ObserveFreshCircleAsync(result.LogicalZeroAngle,CancellationToken.None);
@@ -424,7 +491,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (!NozzleRunoutMath.IsRepeatable(expected,second,0.1))
                 {
                     Stop(high,"High-point repeatability failed (greater than 0.1 mm difference or no stable circle).");
-                    return;
+                    return false;
                 }
                 Pass(high,$"Logical zero candidate at {result.LogicalZeroAngle}°; repeat XY within 0.1 mm.",
                     MachineOperationVerificationKind.VisionVerified,second.PixelsPerMm);
@@ -436,23 +503,24 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 RaisePropertyChanged(nameof(RunoutSummary));
                 Pass(resultStep,"Twelve calibrated points computed. Preview only; no machine settings or placement compensation were changed.",
                     MachineOperationVerificationKind.VisionVerified,_cameraScale);
-                Status="Completed optical pilot: high-Y logical zero and runout curve verified. Data is unsaved pending Windows machine acceptance.";
-            }
-            catch(Exception ex)
-            {
-                var step=RunoutSteps.FirstOrDefault(s=>s.Status=="Running");
-                Stop(step,"Nozzle runout procedure error: " + ex.Message);
-            }
-            finally
-            {
-                lock (_observationGate) _pendingSample=null;
-                _activeMachine=null;
-                _activeHead=null;
-                RunoutRunning=false;
-                RunoutFinished=true;
-                RaisePropertyChanged(nameof(ToolHeadName));
-                RaisePropertyChanged(nameof(NozzleName));
-            }
+                // Valid only for this specific installed nozzle/head and for
+                // this application session. Do not write G92 or persist the
+                // offset table to machine configuration.
+                if (!ValidContext(out contextError))
+                {
+                    Stop(resultStep, contextError ?? "Nozzle changed before calibration could be committed.");
+                    return false;
+                }
+                var corrections = result.Samples.Select(sample => new RotationOffset
+                {
+                    Angle = sample.CommandedAngle,
+                    Offset = NozzleRunoutMath.Correction(result, sample.CommandedAngle)
+                }).ToList();
+                tool.CompleteRunoutCalibration(_activeNozzleId, result.LogicalZeroAngle, corrections);
+                _lastMeasuredHead = tool;
+                Status = $"Head {tool.HeadIndex} ({tool.CurrentNozzle.Text}) runout calibrated for this session; 12 offsets and high-Y zero validated.";
+                return true;
         }
+
     }
 }
