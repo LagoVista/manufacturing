@@ -136,7 +136,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 {
                     // Keep partial evidence for a stopped operation and do not
                     // overwrite a specific barcode mismatch diagnostic.
-                    if (operation.CanCancel)
+                    // Never replace an unsaved checkpoint snapshot with
+                    // later cancellation evidence. Preserve and retry the
+                    // original failed write on the next modal attempt.
+                    if (operation.CanCancel && _pendingHistorySnapshot == null)
                     {
                         await operation.CancelAsync(token);
                         await SaveFeederCalibrationRunHistoryAsync(operation);
