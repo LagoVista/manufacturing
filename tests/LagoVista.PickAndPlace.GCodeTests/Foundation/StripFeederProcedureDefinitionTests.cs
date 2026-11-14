@@ -8,6 +8,20 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
     public class StripFeederProcedureDefinitionTests
     {
         [Test]
+        public void FeederOriginAndEachTapeAreIndependentOrderedPhases()
+        {
+            var origin = StripFeederProcedureDefinition.CreateForScope(StripFeederCalibrationScope.FeederOrigin);
+            var tape = StripFeederProcedureDefinition.CreateForScope(StripFeederCalibrationScope.InstalledTape);
+            Assert.That(origin.Version, Is.EqualTo(3));
+            Assert.That(tape.Version, Is.EqualTo(3));
+            Assert.That(origin.Steps.Select(x => x.Key).ToArray(),
+                Is.EqualTo(new[] { "approach-origin", "center-fiducial", "save-origin" }));
+            Assert.That(tape.Steps.Select(x => x.Key).ToArray(),
+                Is.EqualTo(new[] { "first-tape-hole", "last-tape-hole", "verify-current-part", "verify-previous-empty" }));
+            Assert.That(tape.Steps.Last().RequiredVerification, Is.EqualTo(MachineOperationVerificationKind.VisionVerified));
+        }
+
+        [Test]
         public void NewVersionRequiresVisionProofForBothPocketSteps()
         {
             var definition = StripFeederProcedureDefinition.Create();

@@ -52,6 +52,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private readonly Func<StripFeeder, Task<InvokeResult>> _saveFeeder;
         private readonly Func<bool> _contextIsCurrent;
         private readonly MachineOperationSession _session;
+        private readonly StripFeederCalibrationScope _scope;
         private readonly object _observationGate = new object();
 
         private readonly string _plateId;
@@ -156,7 +157,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             Func<double> getTapePitch,
             Func<int, InvokeResult<Point2D<double>>> resolvePocket,
             Func<StripFeeder, Task<InvokeResult>> saveFeeder,
-            Func<bool> contextIsCurrent)
+            Func<bool> contextIsCurrent,
+            StripFeederCalibrationScope scope = StripFeederCalibrationScope.Full)
         {
             _machine = machine ?? throw new ArgumentNullException(nameof(machine));
             _locator = locator ?? throw new ArgumentNullException(nameof(locator));
@@ -168,6 +170,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _resolvePocket = resolvePocket ?? throw new ArgumentNullException(nameof(resolvePocket));
             _saveFeeder = saveFeeder ?? throw new ArgumentNullException(nameof(saveFeeder));
             _contextIsCurrent = contextIsCurrent ?? throw new ArgumentNullException(nameof(contextIsCurrent));
+            _scope = scope;
 
             _plateId = feeder.StagingPlate?.Id.ToString();
             _referenceRowId = feeder.ReferenceHoleRow?.Id.ToString();
@@ -178,7 +181,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _mountY = feeder.MountingHoleOffset.Y;
 
             _session = new MachineOperationSession(
-                StripFeederProcedureDefinition.Create(),
+                StripFeederProcedureDefinition.CreateForScope(scope),
                 new MachineOperationTarget
                 {
                     MachineId = machine.Settings?.Id.ToString(),
@@ -232,6 +235,18 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 {
                     if (!ReadyForAction(false, false, out var reason))
                         return Result(false, reason);
+
+                    if (_scope == StripFeederCalibrationScope.InstalledTape)
+                    {
+                        // The common origin has already been physically
+                        // measured, saved and barcode-verified by the feeder
+                        // procedure. Resolve the current calculated origin
+                        // only for row geometry; do not move back to it.
+                        var origin = _resolveCalculatedOrigin();
+                        if (!origin.Successful || origin.Result == null)
+                            return Result(false, origin.ErrorMessage ?? "Feeder origin is unavailable.");
+                        _calculatedOrigin = origin.Result;
+                    }
                     _session.Start(DateTimeOffset.UtcNow);
                 }
 

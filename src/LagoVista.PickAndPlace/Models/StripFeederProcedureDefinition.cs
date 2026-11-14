@@ -9,8 +9,41 @@ namespace LagoVista.PickAndPlace.Models
     /// The original published v1 operation definition remains unchanged.
     /// The Manufacturing history API stores the supplied versioned contract.
     /// </summary>
+    public enum StripFeederCalibrationScope
+    {
+        Full,
+        FeederOrigin,
+        InstalledTape
+    }
+
     public static class StripFeederProcedureDefinition
     {
+        public static MachineOperationDefinition CreateForScope(StripFeederCalibrationScope scope)
+        {
+            var definition = Create();
+            if (scope == StripFeederCalibrationScope.Full)
+                return definition;
+
+            // Phase-specific definitions preserve the exact typed verification
+            // rules. They share the existing runner and evidence projection,
+            // but start at the appropriate step without replaying feeder
+            // origin movements for every tape row.
+            definition.Version = 3;
+            if (scope == StripFeederCalibrationScope.FeederOrigin)
+            {
+                definition.Key = "strip-feeder-origin";
+                definition.Title = "Locate and calibrate feeder origin";
+                definition.Steps = definition.Steps.Take(3).ToList();
+            }
+            else
+            {
+                definition.Key = "strip-feeder-installed-tape";
+                definition.Title = "Verify installed tape";
+                definition.Steps = definition.Steps.Skip(3).ToList();
+            }
+            return definition;
+        }
+
         public static MachineOperationDefinition Create()
         {
             var definition = StripFeederCalibrationDefinition.Create();
