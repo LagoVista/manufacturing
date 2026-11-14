@@ -79,12 +79,35 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
-        public void RejectsUnsafeReturnFromPreviouslySelectedHead()
+        public void AllowsReturnFromPreviouslySelectedHeadInLogicalCoordinateFrame()
         {
+            // M114 is 18,90 after the existing head's G92, but the
+            // physical gantry is 43,155. Returning removes +25,+65.
             Assert.That(NozzleRunoutMotionPreflight.TryValidate(
                 XY(18, 90), XY(22.7, 65), true, XY(165, 128),
+                XY(330, 355), out var reason, XY(25, 65)), Is.True, reason);
+        }
+
+        [Test]
+        public void RejectsPreviousHeadReturnTooNearPhysicalLimit()
+        {
+            // The old head's current physical XY is 28,155, but
+            // returning to camera navigation would land at 3,90.
+            Assert.That(NozzleRunoutMotionPreflight.TryValidate(
+                XY(3, 90), XY(22.7, 65), true, XY(165, 128),
                 XY(330, 355), out var reason, XY(25, 65)), Is.False);
             Assert.That(reason, Does.Contain("previous head"));
+        }
+
+        [Test]
+        public void RejectsPreviouslySelectedHeadAlreadyOutsidePhysicalEnvelope()
+        {
+            // G92 may report in-range logical XY although the physical
+            // gantry is beyond the allowed envelope after the head shift.
+            Assert.That(NozzleRunoutMotionPreflight.TryValidate(
+                XY(316, 293), XY(22.7, 65), true, XY(165, 128),
+                XY(330, 355), out var reason, XY(22.7, 65)), Is.False);
+            Assert.That(reason, Does.Contain("physical XY"));
         }
 
         [Test]

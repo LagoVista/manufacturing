@@ -6,7 +6,8 @@ namespace LagoVista.PickAndPlace.Models
     /// <summary>
     /// Fail-closed provisional motion envelope for the first physically
     /// supervised nozzle-calibration runs. No controller commands are sent.
-    /// Values are the controller-reported XY coordinates in millimeters.
+    /// Inputs are controller-reported XY; existing tool G92 shifts require
+    /// reconstructing the physical gantry position before safety checks.
     /// The sequence is: (1) return any selected head to camera navigation,
     /// (2) travel in the camera frame to the bottom-camera target,
     /// (3) select the requested head there. Never shift the head first.
@@ -36,23 +37,30 @@ namespace LagoVista.PickAndPlace.Models
                 reason = "Controller XY is outside the configured machine work area; calibration cannot start.";
                 return false;
             }
-            // Return from any currently selected head *before* going to
-            // the bottom camera. The old head shift occurs at current XY.
-            var afterOldHead = previousHeadOffset != null
-                ? new Point2D<double>(
-                    current.X - previousHeadOffset.X,
-                    current.Y - previousHeadOffset.Y)
-                : current;
-            // When already in camera navigation there is NO initial
-            // relative move: being close to a travel limit is not an
-            // error as long as current XY is within the work area. From
-            // a selected head, validate its physical return leg.
-            if (previousHeadOffset != null &&
-                !WithinSafeArea(afterOldHead, workArea))
+            // MoveToToolHeadAsync shifts the physical gantry by the head
+            // offset and uses G92 to restore the prior reported XY.
+            // Therefore M114 is in the selected tool's logical frame, not
+            // the physical gantry frame, when an old head is selected.
+            // At the start of MoveToCameraAsync, physical = M114 + offset;
+            // after its relative -offset and G92, physical = M114.
+            if (previousHeadOffset != null)
             {
-                reason = $"Returning from the previous head would approach an XY limit: " +
-                         $"({afterOldHead.X:F2}, {afterOldHead.Y:F2}) mm.";
-                return false;
+                var selectedHeadPhysicalXY = new Point2D<double>(
+                    current.X + previousHeadOffset.X,
+                    current.Y + previousHeadOffset.Y);
+                if (!WithinWorkArea(selectedHeadPhysicalXY, workArea))
+                {
+                    reason = $"The previously selected head's physical XY " +
+                             $"({selectedHeadPhysicalXY.X:F2}, {selectedHeadPhysicalXY.Y:F2}) mm " +
+                             "is outside the machine work area; no calibration motion is safe.";
+                    return false;
+                }
+                if (!WithinSafeArea(current, workArea))
+                {
+                    reason = $"Returning from the previous head would approach an XY limit: " +
+                             $"({current.X:F2}, {current.Y:F2}) mm.";
+                    return false;
+                }
             }
             if (!WithinSafeArea(cameraTarget, workArea))
             {
