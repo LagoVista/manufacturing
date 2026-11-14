@@ -156,6 +156,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 token.ThrowIfCancellationRequested();
                 if (outcome != request.Task) return null;
                 var value = await request.Task;
+                if (value == null) return null;
                 value.CommandedAngle = angle;
                 return value;
             }
