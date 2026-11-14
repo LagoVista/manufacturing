@@ -206,6 +206,21 @@ namespace LagoVista.PickAndPlace.Models
             set { Set(ref _findRectangles, value); }
         }
 
+        // Enabled only by a successful, repeatable image-tuning pass.
+        private bool _useAdaptiveDarkOpening;
+        public bool UseAdaptiveDarkOpening
+        {
+            get => _useAdaptiveDarkOpening;
+            set => Set(ref _useAdaptiveDarkOpening, value);
+        }
+
+        private double _expectedDarkOpeningDiameterMm;
+        public double ExpectedDarkOpeningDiameterMm
+        {
+            get => _expectedDarkOpeningDiameterMm;
+            set => Set(ref _expectedDarkOpeningDiameterMm, Math.Round(value, 3));
+        }
+
         private bool _findCircles;
         public bool FindCircles
         {

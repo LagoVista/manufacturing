@@ -483,11 +483,13 @@ namespace LagoVista.PickAndPlace.App.Services
                                 // actual black/white pixels. Do not pass the
                                 // feeder-origin profile's inverted/blurred/masked
                                 // display image to the corner detector.
-                                var cornerInput =
-                                    camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_FeederOrigin
-                                    ? (IInputOutputArray)gray
-                                    : input;
-                                FindShapes(new MVImage<IInputOutputArray>(cornerInput),
+                                var requireRawGray =
+                                    camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_FeederOrigin ||
+                                    (camera.CurrentVisionProfile.UseAdaptiveDarkOpening &&
+                                     (camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_Nozzle ||
+                                      camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_NozzleCalibration));
+                                var shapeInput = requireRawGray ? (IInputOutputArray)gray : input;
+                                FindShapes(new MVImage<IInputOutputArray>(shapeInput),
                                     output, camera, size);
                             }
 

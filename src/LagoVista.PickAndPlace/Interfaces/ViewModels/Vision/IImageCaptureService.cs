@@ -46,6 +46,10 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
 
         Task<InvokeResult> AutoTuneExposureAsync();
 
+        // Capture-only tuning: 24 fresh frames, no machine motion or
+        // camera-exposure writes; caller persists the verified profile.
+        Task<InvokeResult<DarkCircularOpeningLocator.TuneResult>> TuneNozzleOpeningAsync();
+
         // Returns one fresh processed 10-pixel-band barcode signal.
         Task<InvokeResult<byte[]>> CaptureFeederBarcodeSignalAsync();
 

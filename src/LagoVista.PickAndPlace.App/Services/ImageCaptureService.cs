@@ -86,6 +86,8 @@ namespace LagoVista.PickAndPlace.App.Services
 
         private bool _autoTuneExposureRequested;
         private TaskCompletionSource<InvokeResult> _autoTuneExposureCompletion;
+        private bool _nozzleTuneRequested;
+        private TaskCompletionSource<InvokeResult<DarkCircularOpeningLocator.TuneResult>> _nozzleTuneCompletion;
         VideoCapture _capture;
 
         private object _captureLocker = new object();
@@ -468,6 +470,85 @@ namespace LagoVista.PickAndPlace.App.Services
             return await _autoTuneExposureCompletion.Task;
         }
 
+        public async Task<InvokeResult<DarkCircularOpeningLocator.TuneResult>> TuneNozzleOpeningAsync()
+        {
+            if (CameraType != CameraTypes.PartInspection || Camera == null ||
+                (Profile?.Key != VisionProfile.VisionProfile_Nozzle &&
+                 Profile?.Key != VisionProfile.VisionProfile_NozzleCalibration))
+                return InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                    "Select the bottom camera's Nozzle or Nozzle Calibration profile.");
+            if (_nozzleTuneCompletion != null || _autoTuneExposureCompletion != null)
+                return InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                    "Another camera-tuning operation is running.");
+
+            var readiness = await EnsureCaptureReadyAsync();
+            if (!readiness.Successful)
+                return InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                    readiness.ErrorMessage);
+
+            if (_nozzleTuneCompletion != null || _autoTuneExposureCompletion != null)
+                return InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                    "Another camera-tuning operation started.");
+
+            var request = new TaskCompletionSource<InvokeResult<DarkCircularOpeningLocator.TuneResult>>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            _nozzleTuneCompletion = request;
+            _nozzleTuneRequested = true;
+            var finished = await Task.WhenAny(request.Task, Task.Delay(30000));
+            if (finished != request.Task)
+            {
+                _nozzleTuneRequested = false;
+                if (ReferenceEquals(_nozzleTuneCompletion, request))
+                    _nozzleTuneCompletion = null;
+                return InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                    "Nozzle tuning timed out; profile unchanged.");
+            }
+            return await request.Task;
+        }
+
+        private async Task<InvokeResult<DarkCircularOpeningLocator.TuneResult>> RunNozzleTuneAsync()
+        {
+            var camera = Camera;
+            var profile = Profile;
+            var observations = new List<DarkCircularOpeningLocator.Observation>();
+            const int frameCount = 24;
+            for (var index = 0; index < frameCount; index++)
+            {
+                if (!_running || _capture == null || !ReferenceEquals(Camera, camera) ||
+                    !ReferenceEquals(Profile, profile))
+                    return InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                        "Camera or vision profile changed while tuning.");
+
+                using (var original = _capture.QueryFrame())
+                {
+                    if (original == null)
+                        observations.Add(null);
+                    else
+                    using (var image = original.ToImage<Bgr, byte>())
+                    {
+                        image.ROI = new System.Drawing.Rectangle(
+                            (image.Width - image.Height) / 2, 0, image.Height, image.Height);
+                        using (var cropped = image.Copy())
+                        using (var grayscale = cropped.Convert<Gray, byte>())
+                        {
+                            observations.Add(DarkCircularOpeningLocator.Find(
+                                grayscale.Data, grayscale.Width, grayscale.Height,
+                                camera.EffectivePixelsPerMM, profile.TargetImageRadius));
+                            if (index == 0)
+                                CaptureImage = Emgu.CV.WPF.BitmapSourceConvert.ToBitmapSource(cropped.ToUMat());
+                        }
+                    }
+                }
+                await Task.Delay(50);
+            }
+
+            if (!DarkCircularOpeningLocator.TryValidate(observations,
+                camera.EffectivePixelsPerMM, out var tuned, out var reason))
+                return InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                    "Nozzle image tune did not lock: " + reason);
+            return InvokeResult<DarkCircularOpeningLocator.TuneResult>.Create(tuned);
+        }
+
         private async Task<InvokeResult> RunAutoTuneExposureAsync()
         {
             var originalExposure = Camera.Exposure;
@@ -693,6 +774,11 @@ namespace LagoVista.PickAndPlace.App.Services
                 _autoTuneExposureCompletion?.TrySetResult(
                     InvokeResult.FromError("Camera capture stopped before Auto-Tune completed."));
                 _autoTuneExposureCompletion = null;
+                _nozzleTuneRequested = false;
+                _nozzleTuneCompletion?.TrySetResult(
+                    InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                        "Camera capture stopped before nozzle tuning completed."));
+                _nozzleTuneCompletion = null;
 
                 lock (_captureLocker)
                 {
@@ -760,6 +846,29 @@ namespace LagoVista.PickAndPlace.App.Services
                             _autoTuneExposureCompletion = null;
                         }
 
+                        continue;
+                    }
+
+                    if (_nozzleTuneRequested)
+                    {
+                        var completion = _nozzleTuneCompletion;
+                        _nozzleTuneRequested = false;
+                        try
+                        {
+                            completion?.TrySetResult(await RunNozzleTuneAsync());
+                        }
+                        catch (Exception ex)
+                        {
+                            completion?.TrySetResult(
+                                InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                                    "Nozzle image tuning failed: " + ex.Message));
+                        }
+                        finally
+                        {
+                            _shapeDetectorService.Reset();
+                            if (ReferenceEquals(_nozzleTuneCompletion, completion))
+                                _nozzleTuneCompletion = null;
+                        }
                         continue;
                     }
 
