@@ -1,0 +1,58 @@
+using LagoVista.Core.Models.Drawing;
+using LagoVista.PickAndPlace.Models;
+using NUnit.Framework;
+
+namespace LagoVista.PickAndPlace.GCodeTests.Foundation
+{
+    public class NozzleRunoutMotionPreflightTests
+    {
+        private static Point2D<double> XY(double x, double y) =>
+            new Point2D<double>(x, y);
+
+        [Test]
+        public void AllowsShortWellBoundedMovement()
+        {
+            Assert.That(NozzleRunoutMotionPreflight.TryValidate(
+                XY(100, 100), XY(22.7, 65), true, XY(145, 120),
+                XY(400, 400), out var reason), Is.True, reason);
+        }
+
+        [Test]
+        public void RejectsCameraAtTravelMaximum()
+        {
+            Assert.That(NozzleRunoutMotionPreflight.TryValidate(
+                XY(330, 330), XY(0, 0), false, XY(400, 400),
+                XY(400, 400), out var reason), Is.False);
+            Assert.That(reason, Does.Contain("travel limit"));
+        }
+
+        [Test]
+        public void RejectsRelativeToolHeadMoveNearMachineLimit()
+        {
+            Assert.That(NozzleRunoutMotionPreflight.TryValidate(
+                XY(380, 340), XY(22.7, 65), true, XY(350, 320),
+                XY(400, 400), out var reason), Is.False);
+            Assert.That(reason, Does.Contain("Tool selection"));
+        }
+
+        [Test]
+        public void RejectsUnplannedFullBedTraverse()
+        {
+            Assert.That(NozzleRunoutMotionPreflight.TryValidate(
+                XY(30, 30), XY(22.7, 65), true, XY(330, 330),
+                XY(400, 400), out var reason), Is.False);
+            Assert.That(reason, Does.Contain("traverse too far"));
+        }
+
+        [Test]
+        public void RejectsNonFiniteInputsAndCurrentOutsideArea()
+        {
+            Assert.That(NozzleRunoutMotionPreflight.TryValidate(
+                XY(double.NaN, 30), XY(0, 0), false, XY(90, 90),
+                XY(400, 400), out _), Is.False);
+            Assert.That(NozzleRunoutMotionPreflight.TryValidate(
+                XY(420, 30), XY(0, 0), false, XY(90, 90),
+                XY(400, 400), out _), Is.False);
+        }
+    }
+}
