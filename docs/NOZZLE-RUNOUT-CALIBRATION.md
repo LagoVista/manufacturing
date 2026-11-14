@@ -26,25 +26,38 @@ type as the feeder calibration. The modal discovers each installed nozzle
 from `Machine.Settings.ToolHeads` and calibrates Head 1, then Head 2 if
 both are populated. No prior navigation-tool selection is required; the
 existing awaited safe tool-head navigation path is reused. Each head has
-its own 15-step progress section. The modal starts only after the operator
+its own 18-step progress section. The modal starts only after the operator
 opens it on a connected, homed machine, displaying
 status, actual XY center in mm, observed pixels/mm, elapsed time, retry count,
 failure detail and high-Y logical-zero candidate. **Run Again** is available
 after a stop; closing the modal never masquerades as emergency stop.
 
-`NozzleRunoutProcedureDefinition` creates 15 ordered stages using the
+`NozzleRunoutProcedureDefinition` creates 18 ordered stages using the
 shared `MachineOperationDefinition` and `MachineOperationSession`:
-1. Select the configured, installed nozzle on each tool head and move it over
-   the configured bottom camera using the existing safe tool-head transition.
-2. Rotate to each of 0, 30, 60, ..., 330 degrees; acquire new stabilized
-   bottom-camera nozzle-circle observations with up to three bounded camera
-   acquisition attempts per angle.
-3. Choose the measured sample with maximum physical Y as the *logical*
-   rotational zero, rotate to that commanded angle, and reacquire a sample.
-   The first and second high-Y XY positions must agree within 0.1 mm.
-4. Calculate a mean-centered twelve-point optical compensation preview and
-   the maximum radial deviation and X/Y ranges. No production placement
-   compensation is enabled by this procedure.
+1. Verify machine-fiducial calibration and **every configured staging
+   plate** is calibrated in this machine session. One physical plate with
+   two reference holes is valid for Lumen Jr.; the larger Lumen PNP
+   configuration has two plates, each with two reference holes.
+2. Automatically select the bottom-camera Nozzle profile, turn on its
+   shape/circle detectors, initialize the existing camera capture service
+   if the user has not opened the camera tab, and await fresh live frames.
+3. Read controller XY and validate the COMPLETE route: any previous head
+   returning to camera, the new head's relative offset, and the bottom-
+   camera absolute target against the configured work-area margin.
+4. Select the configured, installed nozzle on the appropriate tool head,
+   verify that the existing tool-switch G92 preserves its prior reported
+   XY position to within 0.5 mm, then approach the bottom camera.
+5. Rotate to 0, 30, 60, ..., 330 degrees, requiring new stabilized
+   bottom-camera nozzle-circle observations at every step.
+6. Revisit the maximum physical Y point and confirm repeatability to
+   0.1 mm before writing runtime-only compensation to the head.
+7. Calculate mean-centered 12-point optical compensation. No production
+   placement correction is enabled by this procedure.
+
+**The operator does not have to pre-open the bottom camera or enable its
+Nozzle detectors.** Camera setup is procedure-owned. An unavailable camera,
+missing live frames, invalid camera scale, or unsafe route stops before
+any nozzle XY motion, displaying exactly which internal step failed.
 
 The code calculates `OffsetPixels.X / EffectivePixelsPerMM` and
 `-OffsetPixels.Y / EffectivePixelsPerMM` (the current
@@ -105,17 +118,21 @@ relative head offset move, camera target, or another queued motion.
 - Read the controller's current XY without issuing a move, then validate
   BOTH the proposed relative head-selection destination and the configured
   bottom-camera destination against the work area.
-- Fail closed if either planned target is within 5 mm of an XY travel limit
-  or would require over 85 mm automatic travel along either axis from
-  the reported current XY. These are temporary commissioning guardrails,
-  not the final motion planning architecture.
+- Fail closed if any planned intermediate target (including the move
+  returning from an already-selected tool head) is within 5 mm of an
+  XY travel limit. Safe, in-bounds camera approaches may traverse the
+  bed automatically; no arbitrary 85 mm operator-positioning prerequisite.
+  Re-read controller XY after the tool-switch G92 and abort before moving
+  to the camera if the original reported XY was not preserved within
+  0.5 mm.
 - Log current XY, physical head offset, bottom-camera target, and work area
   before any accepted physical move. No controller `G92` or absolute XY
   camera approach is allowed merely because the operator opened the modal
   while camera readiness has not been established.
-- Focused pure motion-geometry tests cover safe moves, camera on maximum
-  XY, unsafe relative tool selection, oversized automatic XY traverses,
-  invalid/non-finite input.
+- Focused pure tests cover camera at XY maximum, unsafe first/second
+  tool-selection legs, full-bed but in-bounds automatic approaches,
+  invalid/non-finite input, one-plate and two-plate prerequisites, and
+  automatic Nozzle detector setup.
 
 The structural safeguards **do not prove the physical machine's coordinate
 frame, camera target, rotary reference, Z clearance, or actual controller
@@ -125,10 +142,12 @@ modal's Close button as an emergency stop.
 
 ## Motion/vision safeguards
 
-- Requires connected, homed, idle, Manual-mode machine, an installed nozzle
-  assigned to Head 1 and/or Head 2, a configured in-bounds bottom-camera location,
-  running Part Inspection camera, active Nozzle profile with `FindCircles`,
-  and positive calibrated pixels/mm.
+- Requires connected, homed, idle, Manual-mode machine, calibrated machine
+  fiducial and every configured staging plate, and an installed nozzle
+  assigned to Head 1 and/or Head 2. Procedure-owned preparation automatically
+  configures Nozzle circle detection, starts camera capture and waits for
+  live frames. The saved camera device/position/scale must be valid; failures
+  are visible internal stage results rather than user setup instructions.
 - Existing `SendSafeMoveHeight`, `GoToPartInspectionCameraAsync`,
   `RotateToolHeadAngleAbsolute` (A for left, B for right), and `M400`
   are reused, with serial-idle checks. Force G90 before rotary commands.
