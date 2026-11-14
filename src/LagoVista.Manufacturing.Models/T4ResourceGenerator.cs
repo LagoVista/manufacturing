@@ -1205,6 +1205,8 @@ namespace LagoVista.Manufacturing.Models.Resources
         public static string ToolNozzleTip_Title { get { return GetResourceString("ToolNozzleTip_Title"); } }
 //Resources:ManufacturingResources:VisionProfile_BoardFiducial
         public static string VisionProfile_BoardFiducial { get { return GetResourceString("VisionProfile_BoardFiducial"); } }
+//Resources:ManufacturingResources:VisionProfile_CameraLocator
+        public static string VisionProfile_CameraLocator { get { return GetResourceString("VisionProfile_CameraLocator"); } }
 //Resources:ManufacturingResources:VisionProfile_CountourRetrievealMode
         public static string VisionProfile_CountourRetrievealMode { get { return GetResourceString("VisionProfile_CountourRetrievealMode"); } }
 //Resources:ManufacturingResources:VisionProfile_CountourRetrievealMode_Select
@@ -1837,6 +1839,7 @@ namespace LagoVista.Manufacturing.Models.Resources
             public const string ToolNozzleTip_Description = "ToolNozzleTip_Description";
             public const string ToolNozzleTip_Title = "ToolNozzleTip_Title";
             public const string VisionProfile_BoardFiducial = "VisionProfile_BoardFiducial";
+            public const string VisionProfile_CameraLocator = "VisionProfile_CameraLocator";
             public const string VisionProfile_CountourRetrievealMode = "VisionProfile_CountourRetrievealMode";
             public const string VisionProfile_CountourRetrievealMode_Select = "VisionProfile_CountourRetrievealMode_Select";
             public const string VisionProfile_Custom = "VisionProfile_Custom";

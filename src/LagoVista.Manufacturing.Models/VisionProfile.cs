@@ -36,6 +36,7 @@ namespace LagoVista.PickAndPlace.Models
                 {
                     EntityHeader.Create(VisionProfile_Defauilt,VisionProfile_Defauilt, ManufacturingResources.VisionProfile_Defauilt),
                     EntityHeader.Create(VisionProfile_BoardFiducial,VisionProfile_BoardFiducial, ManufacturingResources.VisionProfile_BoardFiducial),
+                    EntityHeader.Create(VisionProfile_CameraLocator, VisionProfile_CameraLocator, ManufacturingResources.VisionProfile_CameraLocator),
                     EntityHeader.Create(VisionProfile_MachineFiducual, VisionProfile_MachineFiducual, ManufacturingResources.VisionProfile_MachineFiducual),
                     EntityHeader.Create(VisionProfile_MachineFiducual, VisionProfile_KnownLocation, ManufacturingResources.VisionProfile_KnownLocation),
                     EntityHeader.Create(VisionProfile_Nozzle,VisionProfile_Nozzle, ManufacturingResources.VisionProfile_Nozzle),
@@ -60,6 +61,7 @@ namespace LagoVista.PickAndPlace.Models
 
         public const string VisionProfile_Defauilt = "default";
         public const string VisionProfile_BoardFiducial = "brdfiducial";
+        public const string VisionProfile_CameraLocator = "cameralocator";
         public const string VisionProfile_MachineFiducual = "macfiducial";
         public const string VisionProfile_KnownLocation = "knownlocation";
         public const string VisionProfile_TapeHole = "tapehole";
