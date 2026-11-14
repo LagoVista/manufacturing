@@ -27,6 +27,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand SetPixelsPerMMCommand { get; }
         RelayCommand ClearProfilePixelsPerMMCommand { get; }
         RelayCommand SaveCommand { get; }
+        RelayCommand AutoTuneNozzleCommand { get; }
+        string NozzleTuneStatus { get; }
         RelayCommand CopyVisionProfileFromDefaultCommand { get; }
         RelayCommand SetInspectionHeight { get; }
         EntityHeader CustomProfile { get; set; }
