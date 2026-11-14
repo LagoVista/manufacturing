@@ -98,7 +98,9 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 {
                     var foundCircle = new MVLocatedCircle(
                         camera.CameraType.Value, center, camera.EffectivePixelsPerMM,
-                        profile.ErrorToleranceMM, profile.StabilizationCount, stagingPlateHole);
+                        profile.ErrorToleranceMM, profile.StabilizationCount,
+                        stagingPlateHole,
+                        positionStabilityToleranceMm: adaptiveNozzle ? 0.20 : 0.10);
                     foundCircle.Add(circle.Center, circle.Radius);
                     foundCircle.Iteration = _iteration;
                     _foundCircles.Add(foundCircle);

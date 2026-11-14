@@ -71,6 +71,44 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void AdaptiveNozzleTrackRemainsStableWithPointSixteenMmPixelJitter()
+        {
+            var circle = new MVLocatedCircle(CameraTypes.PartInspection,
+                new Point2D<int>(100, 100), 12.5, 0.1, 5,
+                positionStabilityToleranceMm: 0.20);
+            for (var i = 0; i < 9; i++)
+                circle.Add(new PointF(i % 2 == 0 ? 100 : 102, 100), 9.5f);
+
+            Assert.That(circle.Stabilized, Is.True);
+            Assert.That(circle.PositionSpreadMM, Is.EqualTo(0.16).Within(0.001));
+            Assert.That(circle.PositionStable, Is.True);
+        }
+
+        [Test]
+        public void AdaptiveNozzleTrackStillRejectsLargeCenterJitter()
+        {
+            var circle = new MVLocatedCircle(CameraTypes.PartInspection,
+                new Point2D<int>(100, 100), 12.5, 0.1, 5,
+                positionStabilityToleranceMm: 0.20);
+            for (var i = 0; i < 9; i++)
+                circle.Add(new PointF(i % 2 == 0 ? 100 : 104, 100), 9.5f);
+
+            Assert.That(circle.PositionSpreadMM, Is.EqualTo(0.32).Within(0.001));
+            Assert.That(circle.PositionStable, Is.False);
+        }
+
+        [Test]
+        public void DefaultTrackRetainsOriginalPointOneMmStabilityRequirement()
+        {
+            var circle = new MVLocatedCircle(CameraTypes.PartInspection,
+                new Point2D<int>(100, 100), 12.5, 0.1, 5);
+            for (var i = 0; i < 9; i++)
+                circle.Add(new PointF(i % 2 == 0 ? 100 : 102, 100), 9.5f);
+
+            Assert.That(circle.PositionStable, Is.False);
+        }
+
+        [Test]
         public void NewPixelCalibrationRequiresANewCircleTrack()
         {
             var earlier = new MVLocatedCircle(CameraTypes.PartInspection,

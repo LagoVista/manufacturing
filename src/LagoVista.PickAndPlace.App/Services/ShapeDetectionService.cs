@@ -318,7 +318,9 @@ namespace LagoVista.PickAndPlace.App.Services
             var color = circle.Centered ? new MCvScalar(0, 255, 0)
                                         : new MCvScalar(0, 255, 255);
             var first = $"#{number} {status}  X {offsetX:+0.00;-0.00;0.00}  Y {offsetY:+0.00;-0.00;0.00} mm";
-            var second = $"D {diameter:0.00} mm   N={circle.FoundCount}";
+            var jitter = circle.PositionSpreadMM.HasValue
+                ? $"{circle.PositionSpreadMM.Value:0.00} mm" : "--";
+            var second = $"D {diameter:0.00} mm   JIT {jitter}   N={circle.FoundCount}";
 
             // Black stroke keeps colored text legible on both grayscale and
             // thresholded images without a solid box obscuring the camera.
