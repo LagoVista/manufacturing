@@ -67,6 +67,65 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                 480, 480, 50, 2), Is.EqualTo(100));
         }
 
+        // Reproduces the 12.5 px/mm regression: the dark feature covers well
+        // under 1% of the ROI and the background is almost a single level.
+        // The old 1st-percentile threshold returned no candidates.
+        private static byte[,,] MakeSparseNozzleScene(int x = 119, int y = 93,
+            int coreRadius = 4, int surrounding = 127)
+        {
+            var frame = new byte[200, 200, 1];
+            for (var iy = 0; iy < 200; iy++)
+                for (var ix = 0; ix < 200; ix++)
+                {
+                    var d = Math.Sqrt((ix - x) * (ix - x) + (iy - y) * (iy - y));
+                    frame[iy, ix, 0] = d <= coreRadius ? (byte)27
+                        : d <= coreRadius * 2.0 ? (byte)220
+                        : (byte)surrounding;
+                }
+            return frame;
+        }
+
+        [Test]
+        public void SmallDarkOpeningSurvivesFlatBackgroundAtCalibratedScale()
+        {
+            var frame = MakeSparseNozzleScene();
+            var circle = DarkCircularOpeningLocator.Find(
+                frame, 200, 200, 12.5, 2.0, 0.59);
+            Assert.That(circle, Is.Not.Null);
+            Assert.That(circle.X, Is.EqualTo(119).Within(1));
+            Assert.That(circle.Y, Is.EqualTo(93).Within(1));
+            Assert.That(circle.DiameterMm, Is.InRange(0.48, 0.78));
+            Assert.That(circle.Contrast, Is.GreaterThan(35));
+        }
+
+        [Test]
+        public void SlightLightingAndPositionChangesStillFindSameSmallOpening()
+        {
+            var observations = new List<DarkCircularOpeningLocator.Observation>();
+            for (var i = 0; i < 24; i++)
+            {
+                var frame = MakeSparseNozzleScene(
+                    x:119 + (i % 2), y:93, surrounding:120 + (i % 5));
+                observations.Add(DarkCircularOpeningLocator.Find(
+                    frame, 200, 200, 12.5, 2.0, 0.59));
+            }
+            Assert.That(DarkCircularOpeningLocator.TryValidate(
+                observations, 12.5, out var result, out var reason), Is.True, reason);
+            Assert.That(result.GoodFrames, Is.EqualTo(24));
+        }
+
+        [Test]
+        public void NoisyUniformImageDoesNotPassAsSmallNozzle()
+        {
+            var frame = new byte[200, 200, 1];
+            for (var y = 0; y < 200; y++)
+                for (var x = 0; x < 200; x++)
+                    frame[y,x,0] = ((x * 73 + y * 101) % 467 == 0)
+                        ? (byte)7 : (byte)127;
+            Assert.That(DarkCircularOpeningLocator.Find(
+                frame, 200, 200, 12.5, 2.0, 0.59), Is.Null);
+        }
+
         [Test]
         public void NoOpeningMeansNoLock()
         {

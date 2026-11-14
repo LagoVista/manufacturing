@@ -88,16 +88,26 @@ namespace LagoVista.PickAndPlace.Models
                         total++;
                     }
             if (total < 50) return null;
-            var low = Percentile(histogram, total, 0.01);
             var high = Percentile(histogram, total, 0.80);
-            if (high - low < 25) return null;
 
-            // A bounded, repeatable parameter sweep from this frame's
-            // histogram, not from manually tuned profile thresholds.
+            // At 12.5 px/mm, a 0.6 mm nozzle core occupies roughly 40
+            // pixels out of a 72-pixel-radius (~16,000 pixel) search area.
+            // The old 1st-percentile dark reference skipped this opening
+            // entirely whenever the surrounding field was mostly flat.
+            // Use several deterministic lower-tail references instead of
+            // allowing the whole search area's background to drown out the
+            // small dark core. Candidate geometry and bright-annulus contrast
+            // still gate acceptance below.
             var thresholds = new SortedSet<int>();
-            foreach (var fraction in new[] { 0.13, 0.23, 0.33, 0.43, 0.53, 0.63 })
-                thresholds.Add(Math.Max(0, Math.Min(254,
-                    (int)Math.Round(low + (high - low) * fraction))));
+            foreach (var percentile in new[] { 0.001, 0.003, 0.006, 0.01 })
+            {
+                var low = Percentile(histogram, total, percentile);
+                if (high - low < 25) continue;
+                foreach (var fraction in new[] { 0.13, 0.23, 0.33, 0.43, 0.53, 0.63 })
+                    thresholds.Add(Math.Max(0, Math.Min(254,
+                        (int)Math.Round(low + (high - low) * fraction))));
+            }
+            if (thresholds.Count == 0) return null;
 
             var candidates = new List<Observation>();
             var queue = new int[sw * sh];

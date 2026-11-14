@@ -106,7 +106,14 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 }
             }
 
-            var staleRects = FoundCircles.Where(itr => itr.Iteration < _iteration - 2).ToList();
+            // Adaptive nozzle openings may be only 7-8 pixels across at the
+            // calibrated camera scale. A few missed frames must not discard
+            // a valid history before the next fresh observation; missing
+            // frames NEVER count as successful measurements. Runout resets
+            // all histories for each new angular sample.
+            var maxMissedFrames = adaptiveNozzle ? 6 : 2;
+            var staleRects = FoundCircles.Where(itr =>
+                itr.Iteration < _iteration - maxMissedFrames).ToList();
             foreach (var rect in staleRects)
             {
                 FoundCircles.Remove(rect);
