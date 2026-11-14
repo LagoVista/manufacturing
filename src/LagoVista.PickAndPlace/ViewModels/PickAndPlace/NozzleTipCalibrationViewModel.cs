@@ -37,7 +37,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private double _cameraScale;
         private bool _running;
         private bool _finished;
-        private string _status = "Ready. Select a tool head with an installed nozzle. The bottom camera must be running.";
+        private string _status = "Ready. Installed nozzles are discovered from the machine tool-head assignments. The bottom camera must be running.";
         private int _targetAngle;
         private int _currentAngle;
         private NozzleRunoutResult _result;
@@ -57,8 +57,20 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public bool RunoutRunning { get => _running; private set => Set(ref _running, value); }
         public bool RunoutFinished { get => _finished; private set => Set(ref _finished, value); }
         public string Status { get => _status; private set => Set(ref _status, value); }
-        public string ToolHeadName => _machineRepo.CurrentMachine?.CurrentMachineToolHead?.Name ?? "No tool selected";
-        public string NozzleName => _machineRepo.CurrentMachine?.CurrentMachineToolHead?.CurrentNozzle?.Text ?? "No nozzle";
+        private MachineToolHead DisplayHead
+        {
+            get
+            {
+                var machine = _machineRepo.CurrentMachine;
+                return _activeHead ?? InstalledNozzleCalibrationPlan.ChooseFirst(
+                    InstalledNozzleCalibrationPlan.InstalledHeads(machine?.Settings),
+                    machine?.CurrentMachineToolHead);
+            }
+        }
+
+        public string ToolHeadName => DisplayHead == null
+            ? "No installed nozzle assigned" : $"Head {DisplayHead.HeadIndex}: {DisplayHead.Name}";
+        public string NozzleName => DisplayHead?.CurrentNozzle?.Text ?? "No installed nozzle";
         public int TargetAngle { get => _targetAngle; set => Set(ref _targetAngle, value); }
         public int CurrentCalibrationAngle { get => _currentAngle; set => Set(ref _currentAngle, value); }
         public NozzleRunoutResult CandidateResult { get => _result; private set => Set(ref _result, value); }
@@ -250,11 +262,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             try
             {
                 var machine = _machineRepo.CurrentMachine;
-                var tool = machine?.CurrentMachineToolHead;
-                if (tool == null || tool.HeadIndex < 1 || tool.HeadIndex > 2 ||
-                    String.IsNullOrWhiteSpace(Convert.ToString(tool.CurrentNozzle?.Id)))
+                var installed = InstalledNozzleCalibrationPlan.InstalledHeads(machine?.Settings);
+                var tool = InstalledNozzleCalibrationPlan.ChooseFirst(
+                    installed, machine?.CurrentMachineToolHead);
+                if (tool == null)
                 {
-                    Stop(Step("position"), "Select a tool head (1 or 2) with an installed nozzle first.");
+                    Stop(Step("position"), "No installed nozzle is assigned to Head 1 or Head 2 in machine settings. Configure Current Nozzle on a tool head first.");
                     return;
                 }
                 if (machine == null || !machine.Connected ||
@@ -286,13 +299,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 RaisePropertyChanged(nameof(ToolHeadName));
                 RaisePropertyChanged(nameof(NozzleName));
 
-                if (!ValidContext(out var contextError))
-                {
-                    Stop(Step("position"), contextError +
-                        " Start the bottom camera and configure the Nozzle circle profile.");
-                    return;
-                }
-
+                // The configuration tells us which nozzle is installed.
+                // Navigation selection is a separate runtime state. Select
+                // the installed head through the existing awaited safe
+                // tool-change path, rather than demanding a prior UI click.
                 _session=new MachineOperationSession(
                     NozzleRunoutProcedureDefinition.Create(),
                     new MachineOperationTarget
@@ -303,7 +313,28 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _session.Start(DateTimeOffset.UtcNow);
 
                 var positionStep = Step("position");
-                positionStep.Begin("Raising to safe height, moving XY over bottom camera, then lowering selected nozzle to detection height.");
+                positionStep.Begin($"Using configured Head {tool.HeadIndex}, nozzle {tool.CurrentNozzle.Text}. Selecting tool head safely, then approaching bottom camera.");
+                if (!ReferenceEquals(machine.CurrentMachineToolHead, tool))
+                {
+                    // MoveToToolHeadAsync performs safe-Z and its coordinate
+                    // change internally. Never bypass it by assigning an
+                    // unselected tool head as though navigation had changed.
+                    await machine.MoveToToolHeadAsync(tool);
+                    if (!ReferenceEquals(machine.CurrentMachineToolHead, tool) ||
+                        !await MotionIdleAsync(CancellationToken.None))
+                    {
+                        Stop(positionStep,
+                            $"Could not safely select Head {tool.HeadIndex} with nozzle {tool.CurrentNozzle.Text}. Machine navigation did not settle.");
+                        return;
+                    }
+                }
+                if (!ValidContext(out var contextError))
+                {
+                    Stop(positionStep, contextError +
+                        " Start the bottom camera and configure the Nozzle circle profile.");
+                    return;
+                }
+
                 machine.SetAbsoluteMode();
                 machine.SendSafeMoveHeight();
                 if (!await MotionIdleAsync(CancellationToken.None, 10000))
@@ -419,6 +450,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _activeHead=null;
                 RunoutRunning=false;
                 RunoutFinished=true;
+                RaisePropertyChanged(nameof(ToolHeadName));
+                RaisePropertyChanged(nameof(NozzleName));
             }
         }
     }
