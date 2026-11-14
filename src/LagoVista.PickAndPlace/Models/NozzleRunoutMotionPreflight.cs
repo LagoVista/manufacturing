@@ -15,13 +15,15 @@ namespace LagoVista.PickAndPlace.Models
         public static bool TryValidate(Point2D<double> current,
             Point2D<double> headRelativeOffset, bool requiresHeadSelection,
             Point2D<double> cameraTarget, Point2D<double> workArea,
-            out string reason)
+            out string reason, Point2D<double> previousHeadOffset = null)
         {
             reason = null;
             if (!Valid(workArea) || workArea.X <= 2 * EdgeClearanceMm ||
                 workArea.Y <= 2 * EdgeClearanceMm ||
                 !Valid(current) || !Valid(cameraTarget) ||
-                (requiresHeadSelection && !Valid(headRelativeOffset)))
+                (requiresHeadSelection && !Valid(headRelativeOffset)) ||
+                (requiresHeadSelection && previousHeadOffset != null &&
+                    !Valid(previousHeadOffset)))
             {
                 reason = "Current XY, tool-head offset, camera location or work-area limits are missing or invalid.";
                 return false;
@@ -31,12 +33,26 @@ namespace LagoVista.PickAndPlace.Models
                 reason = "Controller XY is outside the configured machine work area; calibration cannot start.";
                 return false;
             }
-            // The existing MoveToToolHeadAsync uses G91 then G0 X/Y by
-            // head.Offset; inspect the target before allowing that command.
+            // A selected-to-selected head transition is TWO G91 moves:
+            // 1) from old head back to the camera by -oldHead.Offset;
+            // 2) from camera to new head by +newHead.Offset.
+            // Check every physical intermediate endpoint, not just the
+            // relative move of the incoming head.
+            var afterOldHead = requiresHeadSelection && previousHeadOffset != null
+                ? new Point2D<double>(
+                    current.X - previousHeadOffset.X,
+                    current.Y - previousHeadOffset.Y)
+                : current;
+            if (!WithinSafeArea(afterOldHead, workArea))
+            {
+                reason = $"Returning from the previous head would approach an XY limit: " +
+                         $"({afterOldHead.X:F2}, {afterOldHead.Y:F2}) mm.";
+                return false;
+            }
             var predicted = requiresHeadSelection
                 ? new Point2D<double>(
-                    current.X + headRelativeOffset.X,
-                    current.Y + headRelativeOffset.Y)
+                    afterOldHead.X + headRelativeOffset.X,
+                    afterOldHead.Y + headRelativeOffset.Y)
                 : current;
             if (!WithinSafeArea(predicted, workArea))
             {

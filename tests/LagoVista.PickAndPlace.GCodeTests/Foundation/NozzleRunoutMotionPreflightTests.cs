@@ -44,6 +44,23 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void RejectsUnsafeReturnFromPreviouslySelectedHead()
+        {
+            Assert.That(NozzleRunoutMotionPreflight.TryValidate(
+                XY(18, 90), XY(22.7, 65), true, XY(165, 128),
+                XY(330, 355), out var reason, XY(25, 65)), Is.False);
+            Assert.That(reason, Does.Contain("previous head"));
+        }
+
+        [Test]
+        public void ValidatesBothMovesDuringHeadToHeadSwitch()
+        {
+            Assert.That(NozzleRunoutMotionPreflight.TryValidate(
+                XY(120, 120), XY(22.7, 65), true, XY(165, 128),
+                XY(330, 355), out var reason, XY(28, 45)), Is.True, reason);
+        }
+
+        [Test]
         public void RejectsNonFiniteInputsAndCurrentOutsideArea()
         {
             Assert.That(NozzleRunoutMotionPreflight.TryValidate(

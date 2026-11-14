@@ -481,7 +481,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (!NozzleRunoutMotionPreflight.TryValidate(
                     location.Result, tool.Offset, needsSelection,
                     cameraConfig.AbsolutePosition, machine.Settings.WorkAreaSize,
-                    out var geometryError))
+                    out var geometryError,
+                    machine.CurrentMachineToolHead?.Offset))
                 {
                     Stop(planStep, "No movement sent: " + geometryError);
                     return false;
