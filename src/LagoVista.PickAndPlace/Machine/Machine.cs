@@ -472,6 +472,14 @@ namespace LagoVista.PickAndPlace
 
         public Task GoToPartInspectionCameraAsync(double? rotate)
         {
+            // Both heads share the XY gantry; never lower the other nozzle
+            // while approaching the bottom camera for optical calibration.
+            if (CurrentMachineToolHead == null)
+            {
+                AddStatusMessage(StatusMessageTypes.Warning,
+                    "Select a tool head before moving over the bottom camera.");
+                return Task.CompletedTask;
+            }
             var partInspectionCamera = Settings.Cameras.FirstOrDefault(cam => cam.CameraType.Value == CameraTypes.PartInspection);
             if (partInspectionCamera != null)
             {
@@ -483,7 +491,7 @@ namespace LagoVista.PickAndPlace
 
                 if (partInspectionCamera.CurrentVisionProfile.DetectionHeight.HasValue)
                 {
-                    this.SendCommand($"G0 ZL{partInspectionCamera.CurrentVisionProfile.DetectionHeight.Value}");
+                    this.SendCommand($"G0 {(_leftToolHead ? "ZL" : "ZR")}{partInspectionCamera.CurrentVisionProfile.DetectionHeight.Value}");
                 }
                 else
                 {

@@ -3,6 +3,8 @@
 // IndexVersion: 2
 // --- END CODE INDEX META ---
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
+using LagoVista.Core.IOC;
 using LagoVista.XPlat;
 using System;
 using System.Collections.Generic;
@@ -29,6 +31,17 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
         public MachineCalibrationControl()
         {
             InitializeComponent();
+        }
+
+        private void OpenNozzleRunout_Click(object sender, RoutedEventArgs e)
+        {
+            var viewModel = SLWIOC.Get<INozzleTipCalibrationViewModel>();
+            var dialog = new NozzleRunoutCalibrationWindow
+            {
+                DataContext = viewModel,
+                Owner = Window.GetWindow(this)
+            };
+            dialog.ShowDialog();
         }
     }
 }

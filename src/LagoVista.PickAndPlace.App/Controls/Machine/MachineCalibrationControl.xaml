@@ -323,7 +323,21 @@
         </TabItem>
         <TabItem Header="Nozzles">
             <Grid Margin="10">
-                        <DataGrid ItemsSource="{Binding MachineConfiguration.Nozzles}" CanUserAddRows="false" SelectedItem="{Binding SelectedNozzleTip}" AutoGenerateColumns="false">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0" Margin="0,0,0,12">
+                    <TextBlock Text="Optical nozzle runout calibration" FontSize="20"
+                               FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <TextBlock Text="Use the currently selected tool head and installed nozzle. The bottom camera must be running with a configured Nozzle circle profile. First run is supervised."
+                               TextWrapping="Wrap" Margin="0,0,0,9"/>
+                    <Button Content="Calibrate Nozzle Runout"
+                            Click="OpenNozzleRunout_Click"
+                            Style="{StaticResource CommandButton}"
+                            HorizontalAlignment="Left" Width="245" Height="44"/>
+                </StackPanel>
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding MachineConfiguration.Nozzles}" CanUserAddRows="false" SelectedItem="{Binding SelectedNozzleTip}" AutoGenerateColumns="false">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
                                 <DataGridTextColumn Header="Safe Move Height." Binding="{Binding SafeMooveHeight}" />
