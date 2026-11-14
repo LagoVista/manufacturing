@@ -28,6 +28,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
     {
         private readonly IMachineRepo _machineRepo;
         private readonly ILocatorViewModel _locator;
+        private readonly IImageCaptureService _bottomCameraBootstrap;
         private readonly object _observationGate = new object();
         private TaskCompletionSource<NozzleRunoutSample> _pendingSample;
         private IMachine _activeMachine;
@@ -38,16 +39,19 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private double _cameraScale;
         private bool _running;
         private bool _finished;
-        private string _status = "Ready. Installed nozzles are discovered from the machine tool-head assignments. The bottom camera must be running.";
+        private string _status = "Ready. Complete machine fiducial and two staging-plate calibrations, then this procedure configures its camera automatically.";
         private int _targetAngle;
         private int _currentAngle;
         private NozzleRunoutResult _result;
         private MachineOperationSession _session;
 
-        public NozzleTipCalibrationViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel)
+        public NozzleTipCalibrationViewModel(IMachineRepo machineRepo,
+            ILocatorViewModel locatorViewModel, IImageCaptureService bottomCameraBootstrap)
         {
             _machineRepo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
             _locator = locatorViewModel ?? throw new ArgumentNullException(nameof(locatorViewModel));
+            _bottomCameraBootstrap = bottomCameraBootstrap ??
+                throw new ArgumentNullException(nameof(bottomCameraBootstrap));
             CalibrateBottomCameraCommand = new RelayCommand(async () => await StartAsync());
         }
 
@@ -331,10 +335,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 RaisePropertyChanged(nameof(NozzleName));
                 if (machine == null || !machine.Connected ||
                     machine.Mode != OperatingMode.Manual || !machine.WasMachineHomed ||
-                    !machine.WasMachinOriginCalibrated || machine.Busy)
+                    machine.Busy)
                 {
-                    Stop(Step("position"),
-                        "Machine must be connected, homed, idle and in Manual mode.");
+                    Stop(Step("readiness"),
+                        "Connect and home the machine before calibrating runout; motor commands were not sent.");
+                    return;
+                }
+                if (!NozzleRunoutReadinessPolicy.TryValidate(machine.Settings,
+                    machine.WasMachinOriginCalibrated, out var prerequisites))
+                {
+                    Stop(Step("readiness"), prerequisites + " No movement sent.");
                     return;
                 }
                 var cameraConfig = machine.Settings?.Cameras?.FirstOrDefault(c =>
@@ -342,10 +352,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (cameraConfig?.AbsolutePosition == null ||
                     cameraConfig.AbsolutePosition.X < 0 || cameraConfig.AbsolutePosition.Y < 0 ||
                     cameraConfig.AbsolutePosition.X > machine.Settings.WorkAreaSize.X ||
-                    cameraConfig.AbsolutePosition.Y > machine.Settings.WorkAreaSize.Y ||
-                    machine.PartInspectionCaptureService?.Camera == null)
+                    cameraConfig.AbsolutePosition.Y > machine.Settings.WorkAreaSize.Y)
                 {
-                    Stop(Step("position"), "Bottom camera is unavailable or its configured XY is outside the work area.");
+                    Stop(Step("camera"), "No configured bottom camera with a valid XY destination; no movement sent.");
                     return;
                 }
                 foreach (var tool in installed)
@@ -396,44 +405,76 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _activeMachine = machine;
                 _activeHead = tool;
                 _activeNozzleId = Convert.ToString(tool.CurrentNozzle.Id);
-                _cameraId = machine.PartInspectionCaptureService.Camera.Id.ToString();
-                machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_Nozzle);
-                _cameraScale = machine.PartInspectionCaptureService.Camera.EffectivePixelsPerMM;
                 RaisePropertyChanged(nameof(ToolHeadName));
                 RaisePropertyChanged(nameof(NozzleName));
 
-                // The configuration tells us which nozzle is installed.
-                // Navigation selection is a separate runtime state. Select
-                // the installed head through the existing awaited safe
-                // tool-change path, rather than demanding a prior UI click.
-                _session=new MachineOperationSession(
+                // All non-motion setup belongs to the procedure. Create the
+                // canonical session BEFORE marking any stage as passed.
+                _session = new MachineOperationSession(
                     NozzleRunoutProcedureDefinition.Create(),
                     new MachineOperationTarget
                     {
-                        MachineId=Convert.ToString(machine.Settings.Id),
-                        CameraId=_cameraId
-                    },DateTimeOffset.UtcNow);
+                        MachineId = Convert.ToString(machine.Settings.Id),
+                        CameraId = Convert.ToString(cameraConfig.Id)
+                    }, DateTimeOffset.UtcNow);
                 _session.Start(DateTimeOffset.UtcNow);
 
-                var positionStep = Step("position");
-                positionStep.Begin($"Preflighting Head {tool.HeadIndex}, nozzle {tool.CurrentNozzle.Text}, bottom camera and XY targets before motion.");
-
-                // The prior implementation selected the tool head and queued
-                // a relative XY move before checking the camera. That caused
-                // unplanned machine movement even with an invalid profile.
-                if (!ValidCameraBeforeMotion(machine, cameraConfig, out var cameraError))
+                var readinessStep = Step("readiness");
+                readinessStep.Begin("Checking completed machine fiducial and both staging plates.");
+                if (!NozzleRunoutReadinessPolicy.TryValidate(
+                    machine.Settings, machine.WasMachinOriginCalibrated,
+                    out var readinessError))
                 {
-                    Stop(positionStep, "No movement sent: " + cameraError);
+                    Stop(readinessStep, readinessError + " No movement sent.");
                     return false;
                 }
+                Pass(readinessStep, "Machine fiducial and both staging plates calibrated this session.",
+                    MachineOperationVerificationKind.MachineObserved);
 
-                // This only reads the current controller XY (M114); it does
-                // not command any axes. Check BOTH the existing relative
-                // tool-selection move and the later bottom-camera target.
+                var cameraStep = Step("camera");
+                cameraStep.Begin("Selecting Nozzle profile, enabling circle detection and starting live bottom camera.");
+                // The camera view may not have been opened in the desktop UI.
+                // Bind the existing injectable capture service on demand.
+                if (machine.PartInspectionCaptureService == null)
+                    _bottomCameraBootstrap.CameraType = CameraTypes.PartInspection;
+                var capture = machine.PartInspectionCaptureService;
+                if (capture?.Camera == null || capture.CameraType != CameraTypes.PartInspection)
+                {
+                    Stop(cameraStep, "Bottom-camera service could not be initialized automatically. No movement sent.");
+                    return false;
+                }
+                machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_Nozzle);
+                if (!NozzleRunoutVisionPreparation.TryEnableCircleDetection(
+                    capture.Profile, out var visionError))
+                {
+                    Stop(cameraStep, visionError + " No movement sent.");
+                    return false;
+                }
+                var captureReady = await capture.EnsureCaptureReadyAsync();
+                if (!captureReady.Successful)
+                {
+                    Stop(cameraStep, captureReady.ErrorMessage + " No movement sent.");
+                    return false;
+                }
+                _cameraId = Convert.ToString(capture.Camera.Id);
+                _cameraScale = capture.Camera.EffectivePixelsPerMM;
+                if (!ValidCameraBeforeMotion(machine, cameraConfig, out visionError))
+                {
+                    Stop(cameraStep, visionError + " No movement sent.");
+                    return false;
+                }
+                Pass(cameraStep, $"Live bottom camera ready; Nozzle circle detection enabled, " +
+                    $"{_cameraScale:F1} px/mm.", MachineOperationVerificationKind.MachineObserved,
+                    _cameraScale);
+
+                var planStep = Step("move-plan");
+                planStep.Begin("Reading controller XY and validating both planned tool/head and camera destinations.");
+                // M114 reads position; no axes move here. Check both existing
+                // tool-selection G91 relative move and subsequent camera XY.
                 var location = await machine.GetCurrentLocationAsync(5000);
                 if (!location.Successful || location.Result == null)
                 {
-                    Stop(positionStep, "No movement sent: controller XY could not be read.");
+                    Stop(planStep, "Controller XY could not be read; no movement sent.");
                     return false;
                 }
                 var needsSelection = !ReferenceEquals(machine.CurrentMachineToolHead, tool);
@@ -442,16 +483,19 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     cameraConfig.AbsolutePosition, machine.Settings.WorkAreaSize,
                     out var geometryError))
                 {
-                    Stop(positionStep, "No movement sent: " + geometryError);
+                    Stop(planStep, "No movement sent: " + geometryError);
                     return false;
                 }
+                var planDetails = $"Current ({location.Result.X:F2}, {location.Result.Y:F2}), " +
+                    $"Head {tool.HeadIndex} offset ({tool.Offset?.X:F2}, {tool.Offset?.Y:F2}), " +
+                    $"Camera ({cameraConfig.AbsolutePosition.X:F2}, {cameraConfig.AbsolutePosition.Y:F2}), " +
+                    $"Bounds ({machine.Settings.WorkAreaSize.X:F2}, {machine.Settings.WorkAreaSize.Y:F2}) mm.";
                 machine.AddStatusMessage(StatusMessageTypes.Info,
-                    $"Nozzle calibration XY preflight passed: " +
-                    $"head {tool.HeadIndex} offset ({tool.Offset?.X:F2}, {tool.Offset?.Y:F2}), " +
-                    $"current ({location.Result.X:F2}, {location.Result.Y:F2}), " +
-                    $"camera ({cameraConfig.AbsolutePosition.X:F2}, {cameraConfig.AbsolutePosition.Y:F2}), " +
-                    $"work area ({machine.Settings.WorkAreaSize.X:F2}, {machine.Settings.WorkAreaSize.Y:F2}).");
-                positionStep.Detail = "Validated live bottom camera, Nozzle profile, pixels/mm, and bounded XY moves. Selecting head.";
+                    "Nozzle runout motion plan approved: " + planDetails);
+                Pass(planStep, planDetails, MachineOperationVerificationKind.MachineObserved);
+
+                var positionStep = Step("position");
+                positionStep.Begin($"Selecting Head {tool.HeadIndex} ({tool.CurrentNozzle.Text}) and moving to bottom camera.");
                 if (needsSelection)
                 {
                     // MoveToToolHeadAsync performs safe-Z and its coordinate
@@ -469,7 +513,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (!ValidContext(out var contextError))
                 {
                     Stop(positionStep, contextError +
-                        " Start the bottom camera and configure the Nozzle circle profile.");
+                        " Calibration stopped after head selection.");
                     return false;
                 }
 
