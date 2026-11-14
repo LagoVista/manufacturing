@@ -16,8 +16,8 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             {
                 Rows = new List<StripFeederRow>
                 {
-                    new StripFeederRow { RowIndex = 3, Component = EntityHeader<Component>.Create("c3", "Part 3") },
-                    new StripFeederRow { RowIndex = 1, Component = EntityHeader<Component>.Create("c1", "Part 1") },
+                    new StripFeederRow { RowIndex = 3, Component = EntityHeader<Component>.Create("c3", "c3", "Part 3") },
+                    new StripFeederRow { RowIndex = 1, Component = EntityHeader<Component>.Create("c1", "c1", "Part 1") },
                     new StripFeederRow { RowIndex = 2 }
                 }
             };
