@@ -6,7 +6,9 @@ namespace LagoVista.PickAndPlace.Models
 {
     /// <summary>
     /// Only operator prerequisite for nozzle runout: machine fiducial and
-    /// both staging plates have been calibrated in this machine session.
+    /// all configured staging plates have been calibrated in this machine session.
+    /// A staging plate has two measured reference holes; machines may
+    /// configure one physical plate (Lumen Jr.) or two (Lumen PNP).
     /// Camera/profile setup is procedure-owned and happens afterward.
     /// </summary>
     public static class NozzleRunoutReadinessPolicy
@@ -26,10 +28,10 @@ namespace LagoVista.PickAndPlace.Models
                 return false;
             }
             var plates = settings.StagingPlates;
-            if (plates == null || plates.Count < 2 ||
-                plates.Count(plate => plate != null && plate.IsCalibrated) < 2)
+            if (plates == null || plates.Count == 0 ||
+                plates.Any(plate => plate == null || !plate.IsCalibrated))
             {
-                reason = "Calibrate both staging plates for this machine session first.";
+                reason = "Calibrate every configured staging plate (both reference holes per plate) for this machine session first.";
                 return false;
             }
             return true;

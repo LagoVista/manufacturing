@@ -33,11 +33,29 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
-        public void RequiresBothCalibratedStagingPlates()
+        public void AllowsOneConfiguredPlateWithBothReferenceHolesVerifiedByCalibration()
+        {
+            var machine = Settings(true,true);
+            machine.StagingPlates.RemoveAt(1);
+            Assert.That(NozzleRunoutReadinessPolicy.TryValidate(
+                machine,true,out var reason),Is.True,reason);
+        }
+
+        [Test]
+        public void RequiresEveryConfiguredStagingPlate()
         {
             Assert.That(NozzleRunoutReadinessPolicy.TryValidate(
                 Settings(true,false),true,out var reason),Is.False);
-            Assert.That(reason,Does.Contain("both staging plates"));
+            Assert.That(reason,Does.Contain("every configured staging plate"));
+        }
+
+        [Test]
+        public void RejectsNoConfiguredStagingPlates()
+        {
+            var machine = Settings(true,true);
+            machine.StagingPlates.Clear();
+            Assert.That(NozzleRunoutReadinessPolicy.TryValidate(
+                machine,true,out _),Is.False);
         }
 
         [Test]
