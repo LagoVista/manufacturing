@@ -31,8 +31,34 @@ namespace LagoVista.PickAndPlace.App.Services
     public class ImageCaptureService : MachineViewModelBase, IImageCaptureService
     {
         private bool _running;
+        private DateTimeOffset _lastFrameUtc;
 
-        public bool IsCapturing => _running && _capture != null;
+        // A connected device without fresh processed images is NOT ready.
+        public bool IsCapturing => _running && _capture != null &&
+            _lastFrameUtc != default(DateTimeOffset) &&
+            (DateTimeOffset.UtcNow - _lastFrameUtc).TotalSeconds <= 3.0;
+
+        public async Task<InvokeResult> EnsureCaptureReadyAsync()
+        {
+            if (Camera == null)
+                return InvokeResult.FromError("Bottom-camera service is not bound to the machine.");
+            if (EntityHeader.IsNullOrEmpty(Camera.CameraDevice))
+                return InvokeResult.FromError("The configured bottom camera has no connected capture device.");
+            if (IsCapturing)
+                return InvokeResult.Success;
+            if (_capture == null)
+                StartCapture(); // Existing WPF device initialization.
+            for (var poll = 0; poll < 80; poll++)
+            {
+                if (IsCapturing && CaptureFrameSize.Width > 0 &&
+                    CaptureFrameSize.Height > 0)
+                    return InvokeResult.Success;
+                await Task.Delay(100);
+            }
+            return InvokeResult.FromError(
+                "Bottom camera did not produce a fresh frame within 8 seconds. " +
+                "Check device connection; no nozzle movement will be sent.");
+        }
         public System.Drawing.Size CaptureFrameSize { get; private set; }
 
         private long _processedRectangleFrameId;
@@ -657,6 +683,8 @@ namespace LagoVista.PickAndPlace.App.Services
             try
             {
                 _running = false;
+                _lastFrameUtc = default(DateTimeOffset);
+                CaptureFrameSize = System.Drawing.Size.Empty;
 
                 _autoTuneExposureRequested = false;
                 _autoTuneExposureCompletion?.TrySetResult(
@@ -758,7 +786,8 @@ namespace LagoVista.PickAndPlace.App.Services
                                     //using (var resized = cropped.Resize(Profile.ZoomLevel, Emgu.CV.CvEnum.Inter.LinearExact))
                                     using (var resized = cropped.Resize(1, Emgu.CV.CvEnum.Inter.LinearExact))
                                     {
-                                        CaptureFrameSize = resized.Size;                                        
+                                        CaptureFrameSize = resized.Size;
+                                        _lastFrameUtc = DateTimeOffset.UtcNow;                                        
                                         if (Profile.PerformShapeDetection || Profile.Key == VisionProfile.VisionProfile_FeederBarcode)
                                         {
                                             using (var results = _shapeDetectorService.PerformShapeDetection(new MVImage<Image<Bgr, byte>>(resized), Camera, resized.Size, FeederBarcodeVertical))

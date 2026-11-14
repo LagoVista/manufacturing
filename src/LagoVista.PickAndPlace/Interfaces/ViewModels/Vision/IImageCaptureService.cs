@@ -25,6 +25,10 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
         // calibration procedure is allowed to move the machine.
         bool IsCapturing { get; }
 
+        /// <summary>Starts the configured camera automatically and waits for
+        /// a fresh processed frame, or returns an actionable failure.</summary>
+        Task<InvokeResult> EnsureCaptureReadyAsync();
+
         // A fresh, processed position-camera frame with the already-configured
         // part-in-tape rectangle detector's results. Null until a valid frame.
         PocketRectangleFrameObservation LatestRectangleFrame { get; }
