@@ -33,6 +33,26 @@ namespace LagoVista.PickAndPlace.Models
             public int TotalFrames { get; set; }
         }
 
+        // Coarse acquisition requires enough image pixels to locate a nozzle
+        // before optical centering. A physical 2 mm search radius would shrink
+        // fourfold after a 50 -> 12.5 px/mm calibration, even though the same
+        // opening is at the same pixel location in the camera image.
+        // Only adaptive nozzle acquisition uses this floor; fiducial/feeder
+        // locators retain their existing physical search area.
+        public const int MinimumAcquisitionRadiusPixels = 72;
+
+        public static double EffectiveAcquisitionRadiusPixels(int width, int height,
+            double pixelsPerMm, double searchRadiusMm)
+        {
+            if (width < 32 || height < 32 || !Finite(pixelsPerMm) ||
+                pixelsPerMm <= 0 || !Finite(searchRadiusMm) || searchRadiusMm <= 0)
+                return 0;
+
+            var maxRadius = Math.Min(width, height) / 2.0 - 2;
+            return Math.Min(maxRadius, Math.Max(MinimumAcquisitionRadiusPixels,
+                pixelsPerMm * searchRadiusMm));
+        }
+
         /// <summary>Find a single unambiguous, circular dark core in raw grayscale.
         /// expectedDiameterMm = 0 discovers the opening; a positive value
         /// locks subsequent tracking to the verified physical feature.</summary>
@@ -48,8 +68,8 @@ namespace LagoVista.PickAndPlace.Models
 
             var cx = width / 2.0;
             var cy = height / 2.0;
-            var searchPx = Math.Min(Math.Min(width, height) / 2.0 - 2,
-                searchRadiusMm * pixelsPerMm);
+            var searchPx = EffectiveAcquisitionRadiusPixels(
+                width, height, pixelsPerMm, searchRadiusMm);
             if (searchPx < 8) return null;
             var left = Math.Max(1, (int)Math.Floor(cx - searchPx));
             var right = Math.Min(width - 2, (int)Math.Ceiling(cx + searchPx));

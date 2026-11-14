@@ -404,6 +404,9 @@ namespace LagoVista.PickAndPlace.App.Services
             _feederBarcodeVertical = feederBarcodeVertical;
             var feederBarcodeMode = camera.CurrentVisionProfile.Key ==
                 VisionProfile.VisionProfile_FeederBarcode;
+            var adaptiveNozzle = camera.CurrentVisionProfile.UseAdaptiveDarkOpening &&
+                (camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_Nozzle ||
+                 camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_NozzleCalibration);
 
             try
             {
@@ -423,6 +426,13 @@ namespace LagoVista.PickAndPlace.App.Services
 
                     var raw = img;
 
+                    // The adaptive nozzle detector must see the REAL camera
+                    // pixels, before any profile mask/threshold/inversion.
+                    // With a newly calibrated px/mm value, the old circular
+                    // mask can otherwise clip the off-center nozzle completely.
+                    // Preserve all legacy display processing and other detectors.
+                    using (var unmaskedNozzleGray = adaptiveNozzle
+                        ? img.Convert<Gray, byte>() : null)
                     using (var masked = new Image<Bgr, byte>(size))
                     {
 
@@ -508,12 +518,11 @@ namespace LagoVista.PickAndPlace.App.Services
                                 // actual black/white pixels. Do not pass the
                                 // feeder-origin profile's inverted/blurred/masked
                                 // display image to the corner detector.
-                                var requireRawGray =
-                                    camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_FeederOrigin ||
-                                    (camera.CurrentVisionProfile.UseAdaptiveDarkOpening &&
-                                     (camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_Nozzle ||
-                                      camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_NozzleCalibration));
-                                var shapeInput = requireRawGray ? (IInputOutputArray)gray : input;
+                                var shapeInput = adaptiveNozzle
+                                    ? (IInputOutputArray)unmaskedNozzleGray
+                                    : camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_FeederOrigin
+                                        ? (IInputOutputArray)gray
+                                        : input;
                                 FindShapes(new MVImage<IInputOutputArray>(shapeInput),
                                     output, camera, size);
                             }

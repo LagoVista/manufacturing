@@ -36,7 +36,13 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             var profile = camera.CurrentVisionProfile;
             var center = size.Center();
 
-            var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.EffectivePixelsPerMM);
+            var adaptiveNozzle = profile.UseAdaptiveDarkOpening &&
+                (profile.Key == VisionProfile.VisionProfile_Nozzle ||
+                 profile.Key == VisionProfile.VisionProfile_NozzleCalibration);
+            var scaledTarget = adaptiveNozzle
+                ? (int)Math.Round(DarkCircularOpeningLocator.EffectiveAcquisitionRadiusPixels(
+                    size.Width, size.Height, camera.EffectivePixelsPerMM, profile.TargetImageRadius))
+                : Convert.ToInt32(profile.TargetImageRadius * camera.EffectivePixelsPerMM);
             var search = new CircleF(new System.Drawing.PointF(center.X, center.Y), scaledTarget);
 
             var stagingPlateHole = profile.Key == VisionProfile.VisionProfile_StagingPlateHole;
@@ -48,9 +54,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 var hole = FindStagingPlateHole(input, camera, profile, search, center);
                 circles = hole.HasValue ? new[] { hole.Value } : Array.Empty<CircleF>();
             }
-            else if (profile.UseAdaptiveDarkOpening &&
-                     (profile.Key == VisionProfile.VisionProfile_Nozzle ||
-                      profile.Key == VisionProfile.VisionProfile_NozzleCalibration))
+            else if (adaptiveNozzle)
             {
                 // Match the verified dark core in raw grayscale, independently
                 // of the profile's legacy Hough and manual threshold settings.

@@ -37,6 +37,37 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void RecalibratingPixelsPerMmDoesNotLoseAnOffCenterOpening()
+        {
+            // A 2 mm ROI shrinks from 100 px to 25 px when camera scale is
+            // corrected from 50 to 12.5. The nozzle may still be 39 pixels
+            // away during coarse positioning; it must remain discoverable
+            // before the optical centering step can move it.
+            var scene = MakeScene(x:117, y:94);
+            Assert.That(DarkCircularOpeningLocator.EffectiveAcquisitionRadiusPixels(
+                160, 160, 12.5, 2.0), Is.GreaterThan(39));
+            var calibrated = DarkCircularOpeningLocator.Find(
+                scene, 160, 160, 12.5, 2.0);
+            Assert.That(calibrated, Is.Not.Null);
+            Assert.That(calibrated.X, Is.EqualTo(117).Within(1.5));
+            Assert.That(calibrated.Y, Is.EqualTo(94).Within(1.5));
+            Assert.That(calibrated.DiameterMm, Is.InRange(0.5, 1.0));
+            Assert.That(DarkCircularOpeningLocator.Find(
+                scene, 160, 160, 50, 2.0), Is.Not.Null);
+        }
+
+        [Test]
+        public void TinyFramesStillBoundTheAcquisitionToTheCameraImage()
+        {
+            Assert.That(DarkCircularOpeningLocator.EffectiveAcquisitionRadiusPixels(
+                160, 160, 12.5, 2), Is.LessThan(80));
+            Assert.That(DarkCircularOpeningLocator.EffectiveAcquisitionRadiusPixels(
+                480, 480, 12.5, 2), Is.EqualTo(72));
+            Assert.That(DarkCircularOpeningLocator.EffectiveAcquisitionRadiusPixels(
+                480, 480, 50, 2), Is.EqualTo(100));
+        }
+
+        [Test]
         public void NoOpeningMeansNoLock()
         {
             var flat = new byte[160,160,1];
