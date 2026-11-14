@@ -17,6 +17,50 @@ The remainder of this document preserves the original planning rationale.
 before editing. Do not reset recent camera calibration, dynamic barcode decoding,
 or feeder corner alignment changes.
 
+## Feeder-wide calibration procedure — new T005 desktop pilot (2026-11-14)
+
+A single **Calibrate Feeder** button on the saved Strip Feeder editor opens
+`FeederCalibrationProgressWindow`. The former inline step panel has been
+removed; the existing manual frame/scan barcode tools are collapsed under
+**Manual barcode diagnostics**.
+
+The window shows an ordered, scrolling progress list with each stop's status,
+error/evidence text, elapsed duration and retry count. It starts automatically
+when opened, remains open while machine motion is in progress, and offers
+**Run Again** only after stopping. The machine's emergency stop remains
+independent of the modal, which does not cancel queued motion on close.
+
+The feeder-wide procedure runs:
+
+1. Move once to the feeder's **calculated** origin.
+2. Find and center the optical feeder origin using existing bounded camera
+   jogs and fresh stable vision proof (up to five centering corrections).
+3. Read the **full 11-bar barcode** using the existing overlapping-frame
+   scan/CRC-2 verification and compare exactly against the persisted four-
+   character hexadecimal `StripFeeder.FeederId`. Until the comparison passes,
+   the newly measured origin offset is only provisional, not saved. After
+   a match, return to the measured corner and reacquire vision proof before
+   saving the shared feeder origin.
+4. For each installed component row in RowIndex order, run the existing typed
+   four-step tape operation: first/top tape hole, last/bottom tape hole,
+   current component PRESENT, previous pocket EMPTY. Rows without configured
+   components or explicitly marked Empty are excluded. A current part index
+   above one is necessary to verify the previous pocket.
+
+The existing `StripFeederCalibrationRunner` now has separate `FeederOrigin`
+and `InstalledTape` scopes, with versioned phase-specific operation evidence
+persisted through the existing Manufacturing API. The client-only feeder
+coordinator does not create a new server model or scripting language.
+Successful step checkpoint writes are required before the next move;
+barcode mismatch, missing vision, unsafe motion and failed persistence stop
+the process. A modal Run Again is a **whole-procedure new run**, not a claim
+that a hardware emergency stop or in-flight movement can be reset.
+
+This is a first-cut integration awaiting **Windows WPF compilation and
+supervised physical testing**, especially the origin→barcode→origin return,
+first-to-last tape-hole calculation, and transitions across rows. No stable
+NuGet publication or API deployment is required for this desktop change.
+
 ## Revised operation UX and reuse boundary (November 13, 2026)
 
 For the operator-facing procedure, the intended controls are **Start** and
