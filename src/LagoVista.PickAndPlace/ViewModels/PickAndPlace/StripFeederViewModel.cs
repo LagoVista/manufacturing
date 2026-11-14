@@ -875,6 +875,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             if (Current != null)
             {
+                // A physical barcode is optional; preserve the exact four-digit
+                // hexadecimal representation (including leading zeroes).
+                if (!FeederBarcodeIdFormat.TryNormalize(Current.FeederId, out var normalizedId))
+                {
+                    const string error = "Feeder ID must be blank or exactly 4 hexadecimal digits (0000-FFFF).";
+                    Machine?.AddStatusMessage(StatusMessageTypes.Warning, error);
+                    return InvokeResult.FromError(error);
+                }
+                Current.FeederId = normalizedId;
+
                 var result = _isEditing ? await _restClient.PutAsync("/api/mfg/stripfeeder", Current) :
                                 await _restClient.PostAsync("/api/mfg/stripfeeder", Current);
                 if (result.Successful)

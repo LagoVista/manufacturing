@@ -30,7 +30,8 @@
             <StackPanel>
             <DataGrid ItemsSource="{Binding Feeders}" IsReadOnly="True" SelectedItem="{Binding Current, Mode=TwoWay}" CanUserAddRows="false" AutoGenerateColumns="false" MaxHeight="180">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Nane" Binding="{Binding Name}" Width="*" />
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
+                    <DataGridTextColumn Header="Feeder ID" Binding="{Binding FeederId}" Width="100" />
                     <DataGridTextColumn Header="Size" Binding="{Binding TapeSize}" Width="120" />
                     <DataGridTextColumn Header="Row Count" Binding="{Binding Rows.Count}" Width="150" />
 
@@ -74,6 +75,11 @@
                     <StackPanel Grid.Row="1" Margin="10">
                         <TextBlock Text="Name:" Style="{StaticResource label}" />
                         <TextBox Text="{Binding Current.Name, Mode=TwoWay}"></TextBox>
+
+                        <TextBlock Text="Feeder ID (optional, 4 hex digits):" Style="{StaticResource label}" />
+                        <TextBox Text="{Binding Current.FeederId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 MaxLength="4" CharacterCasing="Upper" HorizontalAlignment="Left" Width="130"
+                                 ToolTip="Physical feeder barcode ID (0000-FFFF). Leave blank if this feeder does not have a barcode. Saved only when you click Save." />
 
                         <TextBlock Text="Staging Plate Location:" Style="{StaticResource label}" />
                         <mch:StagingPlateSelectorControl StagePlateLocatedObject ="{Binding Current }"></mch:StagingPlateSelectorControl>
