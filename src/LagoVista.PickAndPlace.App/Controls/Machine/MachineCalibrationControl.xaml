@@ -322,31 +322,60 @@
                     </Grid>
         </TabItem>
         <TabItem Header="Nozzles">
-            <Grid Margin="10">
+            <Grid Margin="16" VerticalAlignment="Top">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" Margin="0,0,0,12">
-                    <TextBlock Text="Optical nozzle runout calibration" FontSize="20"
-                               FontWeight="SemiBold" Margin="0,0,0,5"/>
-                    <TextBlock Text="Use the currently selected tool head and installed nozzle. The bottom camera must be running with a configured Nozzle circle profile. First run is supervised."
-                               TextWrapping="Wrap" Margin="0,0,0,9"/>
+
+                <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                    <TextBlock Text="Optical nozzle runout calibration"
+                               FontSize="20" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <TextBlock Text="Select the active tool head with its installed nozzle first. Start the bottom camera with the Nozzle circle profile before calibration."
+                               TextWrapping="Wrap" Margin="0,0,0,10" MaxWidth="900"
+                               HorizontalAlignment="Left"/>
                     <Button Content="Calibrate Nozzle Runout"
                             Click="OpenNozzleRunout_Click"
                             Style="{StaticResource CommandButton}"
                             HorizontalAlignment="Left" Width="245" Height="44"/>
                 </StackPanel>
-                        <DataGrid Grid.Row="1" ItemsSource="{Binding MachineConfiguration.Nozzles}" CanUserAddRows="false" SelectedItem="{Binding SelectedNozzleTip}" AutoGenerateColumns="false">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
-                                <DataGridTextColumn Header="Safe Move Height." Binding="{Binding SafeMooveHeight}" />
-                                <DataGridTextColumn Header="Inner Dia." Binding="{Binding InnerDiameter}" />
-                                <DataGridTextColumn Header="Outer Dia." Binding="{Binding OuterDiameter}" />
-                                <DataGridTextColumn Header="Rack Location" Binding="{Binding ToolRackLocation}" />
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </Grid>
+
+                <StackPanel Grid.Row="1" Margin="0,0,0,8">
+                    <TextBlock Text="Configured nozzle assignments"
+                               FontSize="15" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBlock Text="These are the machine's nozzle rack assignments. The calibration uses the nozzle installed on the currently selected tool head, not the highlighted rack row."
+                               TextWrapping="Wrap" MaxWidth="900" HorizontalAlignment="Left"/>
+                </StackPanel>
+
+                <!-- MachineConfiguration.Nozzles contains ToolNozzleTip records:
+                     the nozzle name is NozzleTip.Text; dimensions belong to the
+                     referenced PnPMachineNozzleTip definition, not this row. -->
+                <DataGrid Grid.Row="2"
+                          ItemsSource="{Binding MachineConfiguration.Nozzles}"
+                          SelectedItem="{Binding SelectedNozzleTip}"
+                          AutoGenerateColumns="False" CanUserAddRows="False"
+                          CanUserDeleteRows="False" IsReadOnly="True"
+                          Height="Auto" MaxHeight="240" MinHeight="96"
+                          HorizontalAlignment="Left" VerticalAlignment="Top"
+                          MinWidth="780" MaxWidth="1040"
+                          RowHeight="34" ColumnHeaderHeight="34"
+                          HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                          Margin="0,4,0,0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Nozzle" Width="190"
+                            Binding="{Binding NozzleTip.Text, TargetNullValue='Not assigned', FallbackValue='Not assigned'}"/>
+                        <DataGridTextColumn Header="Rack location" Width="180"
+                            Binding="{Binding ToolRackLocation}"/>
+                        <DataGridTextColumn Header="Idle vacuum" Width="105"
+                            Binding="{Binding IdleVacuum}"/>
+                        <DataGridTextColumn Header="Picked vacuum" Width="115"
+                            Binding="{Binding PartPickedVacuum}"/>
+                        <DataGridTextColumn Header="Assignment ID" Width="*"
+                            Binding="{Binding Id}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
         </TabItem>
     </TabControl>
 </ucb:VMBoundUserControl>
