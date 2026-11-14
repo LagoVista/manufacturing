@@ -41,12 +41,14 @@ shared `MachineOperationDefinition` and `MachineOperationSession`:
 2. Automatically select the bottom-camera Nozzle profile, turn on its
    shape/circle detectors, initialize the existing camera capture service
    if the user has not opened the camera tab, and await fresh live frames.
-3. Read controller XY and validate the COMPLETE route: any previous head
-   returning to camera, the new head's relative offset, and the bottom-
-   camera absolute target against the configured work-area margin.
-4. Select the configured, installed nozzle on the appropriate tool head,
-   verify that the existing tool-switch G92 preserves its prior reported
-   XY position to within 0.5 mm, then approach the bottom camera.
+3. Read controller XY and validate the COMPLETE **camera-first** route:
+   any previous tool head returning to camera navigation, absolute travel
+   to the configured bottom camera in camera coordinates, and ONLY THEN
+   applying the new head's relative offset at camera XY.
+4. Move into camera navigation if necessary, verify the coordinate
+   reset, raise to safe Z, move over the bottom camera and confirm XY.
+   Now select the installed nozzle's tool head, verify its G92 reset
+   preserves camera XY within 0.5 mm, then lower to detection height.
 5. Rotate to 0, 30, 60, ..., 330 degrees, requiring new stabilized
    bottom-camera nozzle-circle observations at every step.
 6. Revisit the maximum physical Y point and confirm repeatability to
@@ -116,21 +118,23 @@ relative head offset move, camera target, or another queued motion.
   positive finite calibrated pixels/mm. Failure shows a specific blocked
   reason with *no movement sent*.
 - Read the controller's current XY without issuing a move, then validate
-  BOTH the proposed relative head-selection destination and the configured
-  bottom-camera destination against the work area.
+  every position in the camera-first route: current→camera navigation,
+  camera→configured bottom-camera XY, and camera XY→new tool-head offset.
+  Never apply the head offset at the original corner-of-bed position.
 - Fail closed if any planned intermediate target (including the move
   returning from an already-selected tool head) is within 5 mm of an
   XY travel limit. Safe, in-bounds camera approaches may traverse the
   bed automatically; no arbitrary 85 mm operator-positioning prerequisite.
-  Re-read controller XY after the tool-switch G92 and abort before moving
-  to the camera if the original reported XY was not preserved within
-  0.5 mm.
+  Re-read controller XY after BOTH navigation-frame G92 transitions.
+  Abort before the next move if the reported XY was not preserved within
+  0.5 mm. Verify arrival at bottom-camera XY before switching heads.
 - Log current XY, physical head offset, bottom-camera target, and work area
   before any accepted physical move. No controller `G92` or absolute XY
   camera approach is allowed merely because the operator opened the modal
   while camera readiness has not been established.
-- Focused pure tests cover camera at XY maximum, unsafe first/second
-  tool-selection legs, full-bed but in-bounds automatic approaches,
+- Focused pure tests cover camera at XY maximum, unsafe return-to-camera
+  and at-camera tool-selection legs, top-right starting positions that
+  formerly failed unnecessarily, full-bed but in-bounds automatic approaches,
   invalid/non-finite input, one-plate and two-plate prerequisites, and
   automatic Nozzle detector setup.
 
