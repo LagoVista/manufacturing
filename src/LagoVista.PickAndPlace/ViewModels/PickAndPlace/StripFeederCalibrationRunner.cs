@@ -178,7 +178,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _mountY = feeder.MountingHoleOffset.Y;
 
             _session = new MachineOperationSession(
-                StripFeederCalibrationDefinition.Create(),
+                StripFeederProcedureDefinition.Create(),
                 new MachineOperationTarget
                 {
                     MachineId = machine.Settings?.Id.ToString(),

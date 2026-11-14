@@ -145,7 +145,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private void RefreshFeederCalibration()
         {
             var definition = _feederCalibration?.Definition ??
-                StripFeederCalibrationDefinition.Create();
+                StripFeederProcedureDefinition.Create();
             var runSteps = _feederCalibration?.Current?.Steps;
             FeederCalibrationSteps = new ObservableCollection<FeederCalibrationStepDisplay>(
                 definition.Steps.Select((step, index) =>
