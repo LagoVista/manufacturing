@@ -133,10 +133,43 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
                 RefreshFlowStepEvidence(operation, rowKey);
                 if (!outcome.Completed)
-                    return FailFlow(outcome.Message ??
-                        $"Calibration stopped at {operation.Current.ActiveStepKey}.");
+                {
+                    // Keep partial evidence for a stopped operation and do not
+                    // overwrite a specific barcode mismatch diagnostic.
+                    if (operation.CanCancel)
+                    {
+                        await operation.CancelAsync(token);
+                        await SaveFeederCalibrationRunHistoryAsync(operation);
+                    }
+                    return FeederFlowStatus.StartsWith("Stopped:", StringComparison.Ordinal)
+                        ? false
+                        : FailFlow(outcome.Message ??
+                            $"Calibration stopped at {operation.Current.ActiveStepKey}.");
+                }
                 return true;
             }
+        }
+
+        private async Task<bool> WaitForFeederFlowSerialIdleAsync(CancellationToken token)
+        {
+            var machine = Machine;
+            var consecutive = 0;
+            for (var poll = 0; poll < 40; poll++)
+            {
+                token.ThrowIfCancellationRequested();
+                if (machine == null || !machine.Connected)
+                    return false;
+                if (!machine.Busy &&
+                    machine.ToSendQueueCount == 0 &&
+                    machine.UnacknowledgedBytesSent == 0)
+                {
+                    if (++consecutive >= 2)
+                        return true;
+                }
+                else consecutive = 0;
+                await Task.Delay(75, token);
+            }
+            return false;
         }
 
         private async Task<bool> VerifyBarcodeAndReturnToOriginAsync(
@@ -196,17 +229,19 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     VisionProfile.VisionProfile_FeederOrigin);
                 machine.SendSafeMoveHeight();
                 var safe = await machine.SpinUntilIdleAsync(10000);
-                if (!safe.Successful || !machine.Connected || machine.Busy)
+                if (!safe.Successful ||
+                    !await WaitForFeederFlowSerialIdleAsync(token))
                     return FailFlow("Safe Z/serial idle failed returning from barcode scan.");
 
                 machine.PositionImageCaptureService?.ResetDetections();
                 machine.GotoPoint(centered.Result);
                 var moved = await machine.SpinUntilIdleAsync(30000);
-                if (!moved.Successful)
+                if (!moved.Successful ||
+                    !await WaitForFeederFlowSerialIdleAsync(token))
                     return FailFlow("Unable to return to measured feeder origin after barcode scan: " + moved.ErrorMessage);
                 await Task.Delay(200, token);
                 var actual = await machine.GetCurrentLocationAsync(5000);
-                if (!actual.Successful || !machine.Connected || machine.Busy ||
+                if (!actual.Successful || !machine.Connected ||
                     !FeederOriginCalibrationMath.SamePosition(
                         actual.Result, centered.Result, 0.5))
                     return FailFlow("Machine did not settle at the measured origin after barcode scan.");
@@ -249,9 +284,17 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var machine = Machine;
             var installedRows = feeder == null ? new List<StripFeederRow>()
                 : FeederCalibrationFlowPlan.InstalledRows(feeder);
-            FeederFlowSteps = new ObservableCollection<FeederCalibrationFlowStep>(
-                feeder == null ? new List<FeederCalibrationFlowStep>()
-                    : FeederCalibrationFlowPlan.Steps(feeder));
+            var prior = FeederFlowSteps?.Where(x => x.StartedAt.HasValue).ToDictionary(
+                x => x.StepKey + "/" + x.RowIndex, x => x.RetryCount);
+            var planned = feeder == null ? new List<FeederCalibrationFlowStep>()
+                : FeederCalibrationFlowPlan.Steps(feeder);
+            foreach (var step in planned)
+            {
+                if (prior != null && prior.TryGetValue(
+                    step.StepKey + "/" + step.RowIndex, out var count))
+                    step.RetryCount = count + 1;
+            }
+            FeederFlowSteps = new ObservableCollection<FeederCalibrationFlowStep>(planned);
             RaisePropertyChanged(nameof(FeederFlowSteps));
             _feederFlowRunAttempt++;
             FeederFlowFinished = false;
@@ -268,7 +311,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (!FeederBarcodeIdFormat.TryNormalize(feeder.FeederId, out var expectedId) ||
                     String.IsNullOrEmpty(expectedId))
                 {
-                    FailFlow("Set and save the feeder's four-digit hexadecimal barcode ID first.");
+                    var message = "Set and save the feeder's four-digit hexadecimal barcode ID first.";
+                    FindFlowStep("barcode", null)?.Fail(message);
+                    FailFlow(message);
                     return;
                 }
                 if (installedRows.Count == 0)
