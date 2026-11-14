@@ -76,6 +76,12 @@
                         <TextBlock Text="Name:" Style="{StaticResource label}" />
                         <TextBox Text="{Binding Current.Name, Mode=TwoWay}"></TextBox>
 
+                        <Button Content="Calibrate Feeder" Style="{StaticResource CommandButton}"
+                                Click="OpenFeederCalibration_Click"
+                                HorizontalAlignment="Left" MinWidth="180" Height="42"
+                                Margin="0,9,0,13"
+                                ToolTip="Locate feeder origin, verify the full barcode ID and inspect every installed component tape." />
+
                         <TextBlock Text="Feeder ID (optional, 4 hex digits):" Style="{StaticResource label}" />
                         <TextBox Text="{Binding Current.FeederId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  MaxLength="4" CharacterCasing="Upper" HorizontalAlignment="Left" Width="130"
@@ -294,9 +300,9 @@
                     </StackPanel>
                  </Grid>
             </StackPanel>
-<!-- The barcode controls and result need the entire form width,
-                        not the narrow third configuration column. -->
-            <StackPanel Grid.Row="2" Grid.ColumnSpan="3" Margin="10,8,10,10">
+            <!-- Kept for diagnostics only; the feeder procedure reuses this scanner. -->
+            <Expander Header="Manual barcode diagnostics" IsExpanded="False" Margin="10,6,10,4">
+                <StackPanel Margin="10,8,10,10">
                 <WrapPanel Margin="0,0,0,8">
                     <Button Style="{StaticResource CommandButton}" Content="Frame Barcode"
                                    Command="{Binding FrameFeederBarcodeCommand}" Width="160" Margin="0,0,10,6"
@@ -325,86 +331,9 @@
                     </StackPanel>
                 </Border>
             </StackPanel>
-
-            <!-- The C# operation owns motion and persistence. This panel only
-                     renders its steps and invokes operator-approved actions. -->
-            <Expander Header="Guided Strip Feeder Calibration" IsExpanded="True"
-                          Margin="10,8,10,12">
-                <Border BorderBrush="#606060" BorderThickness="1" CornerRadius="4" Padding="10">
-                    <StackPanel>
-                        <TextBlock Text="One procedure. Start executes each calibrated step automatically; Reset prepares a new run after completion or failure. No picking."
-                                       TextWrapping="Wrap" FontSize="12" Opacity="0.85"
-                                       Margin="0,0,0,8"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*" MinWidth="260"/>
-                                <ColumnDefinition Width="3*" MinWidth="260"/>
-                            </Grid.ColumnDefinitions>
-                            <ItemsControl Grid.Column="0" ItemsSource="{Binding FeederCalibrationSteps}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Margin="0,3,12,5">
-                                            <DockPanel>
-                                                <TextBlock Text="{Binding Status}" DockPanel.Dock="Right"
-                                                               FontSize="11" Margin="8,0,0,0">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Setter Property="Foreground" Value="#9DA8B7"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Status}" Value="Passed">
-                                                                    <Setter Property="Foreground" Value="#82DCA3"/>
-                                                                </DataTrigger>
-                                                                <DataTrigger Binding="{Binding Status}" Value="Active">
-                                                                    <Setter Property="Foreground" Value="#80BFFF"/>
-                                                                    <Setter Property="FontWeight" Value="SemiBold"/>
-                                                                </DataTrigger>
-                                                                <DataTrigger Binding="{Binding Status}" Value="Blocked">
-                                                                    <Setter Property="Foreground" Value="#F2B46E"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                                <TextBlock Text="{Binding Title}" FontSize="13"
-                                                               TextWrapping="Wrap"/>
-                                            </DockPanel>
-                                            <TextBlock Text="{Binding Evidence}" FontSize="11"
-                                                           TextWrapping="Wrap" Opacity="0.8"
-                                                           Margin="0,1,0,0"/>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                            <StackPanel Grid.Column="1" Margin="10,0,0,0">
-                                <TextBlock Text="Current Operation" FontWeight="SemiBold" FontSize="14"/>
-                                <TextBlock Text="{Binding FeederCalibrationStatus}"
-                                               TextWrapping="Wrap" Margin="0,6,0,6"
-                                               Style="{StaticResource content}"/>
-                                <TextBlock Text="{Binding FeederCalibrationMeasurement}"
-                                               TextWrapping="Wrap" Margin="0,2,0,10"
-                                               FontSize="12" Opacity="0.9"/>
-                                <WrapPanel>
-                                    <Button Style="{StaticResource CommandButton}"
-                                                Content="Start"
-                                                Command="{Binding FeederCalibrationAutoRunCommand}"
-                                                FontSize="13" Height="42" Width="135" Margin="0,0,8,6"/>
-                                    <Button Style="{StaticResource CommandButton}"
-                                                Content="Reset"
-                                                Command="{Binding FeederCalibrationNewRunCommand}"
-                                                FontSize="13" Height="42" Width="135" Margin="0,0,8,6"/>
-                                </WrapPanel>
-                                <TextBlock Text="{Binding FeederCalibrationAutoRunStatus}"
-                                           FontSize="11" TextWrapping="Wrap" Opacity="0.9" Margin="0,3,0,4"/>
-                                <TextBlock FontSize="11" TextWrapping="Wrap" Opacity="0.75"
-                                               Text="The procedure stops on missing vision proof, failed motion, a save error, or an unvalidated pocket classifier. Review the highlighted step and Reset for another attempt. Machine emergency stop remains separate. No inventory changes."/>
-                                <TextBlock Text="{Binding FeederCalibrationHistoryStatus}"
-                                           TextWrapping="Wrap" FontSize="11" Margin="0,8,0,3"
-                                           Opacity="0.85"/>
-                            </StackPanel>
-                        </Grid>
-                    </StackPanel>
-                </Border>
             </Expander>
+
+            <!-- Full feeder calibration now opens a modal procedure dashboard. -->
             
 
             </StackPanel>
