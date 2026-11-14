@@ -9,7 +9,7 @@ namespace LagoVista.PickAndPlace.Models
     /// </summary>
     public static class NozzleRunoutProcedureDefinition
     {
-        public static MachineOperationDefinition Create()
+        public static MachineOperationDefinition Create(bool includeFinalSafeHeight = false)
         {
             var definition = new MachineOperationDefinition
             {
@@ -76,6 +76,13 @@ namespace LagoVista.PickAndPlace.Models
                 Instructions="Calculate runout compensation, but do not change firmware XY/rotary zero or placement.",
                 RequiredVerification=MachineOperationVerificationKind.VisionVerified
             });
+            if (includeFinalSafeHeight)
+                definition.Steps.Add(new MachineOperationStepDefinition
+                {
+                    Key="safe-height", Title="Return to configured machine safe move height",
+                    Instructions="Move to the existing machine DefaultSafeMoveHeight, verify controller Z, and stop. Do not capture or change the setting.",
+                    RequiredVerification=MachineOperationVerificationKind.MachineObserved
+                });
             return definition;
         }
     }

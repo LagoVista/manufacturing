@@ -91,10 +91,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             IReadOnlyList<MachineToolHead> installed)
         {
             var steps = new ObservableCollection<FeederCalibrationFlowStep>();
-            foreach (var head in installed)
+            for (var index = 0; index < installed.Count; index++)
             {
+                var head = installed[index];
+                var includeFinalSafeHeight = index == installed.Count - 1;
                 var prefix = $"head-{head.HeadIndex}/";
-                foreach (var step in NozzleRunoutProcedureDefinition.Create().Steps)
+                foreach (var step in NozzleRunoutProcedureDefinition.Create(includeFinalSafeHeight).Steps)
                     steps.Add(new FeederCalibrationFlowStep
                     {
                         Number = steps.Count + 1,
@@ -304,6 +306,29 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             step.Pass(description);
         }
 
+        private void PassMachineStep(FeederCalibrationFlowStep step, string description)
+        {
+            if (_session != null)
+            {
+                var now = DateTimeOffset.UtcNow;
+                var key = step.StepKey.Substring(step.StepKey.IndexOf('/') + 1);
+                _session.RecordEvidence(new MachineOperationEvidence
+                {
+                    RunId = _session.Snapshot.RunId,
+                    StepKey = key,
+                    Name = step.Title,
+                    Value = description,
+                    Unit = "mm",
+                    Source = "Machine controller / configured safe move height",
+                    Verification = MachineOperationVerificationKind.MachineObserved,
+                    Saved = false,
+                    CapturedAtUtc = now
+                });
+                _session.CompleteActiveStep(key, DateTimeOffset.UtcNow);
+            }
+            step.Pass(description);
+        }
+
         /// <summary>
         /// Machine startup / manual calibration procedure. Iterates every
         /// configured, installed nozzle head. Never auto-moves on mere
@@ -378,7 +403,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     // successful twelve-angle measurement explicitly earns
                     // the runtime green check.
                     tool.InvalidateRunoutCalibration();
-                    if (!await CalibrateInstalledHeadAsync(machine, tool, cameraConfig))
+                    var isFinalHead = ReferenceEquals(tool, installed[installed.Count - 1]);
+                    if (!await CalibrateInstalledHeadAsync(machine, tool, cameraConfig, isFinalHead))
                         return;
                 }
                 Status = $"All {installed.Count} installed nozzle head(s) calibrated this session. Measurements are invalidated on machine restart or nozzle changes; production compensation remains separate.";
@@ -403,7 +429,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
 
         private async Task<bool> CalibrateInstalledHeadAsync(
-            IMachine machine, MachineToolHead tool, MachineCamera cameraConfig)
+            IMachine machine, MachineToolHead tool, MachineCamera cameraConfig,
+            bool isFinalHead)
         {
                 _activeMachine = machine;
                 _activeHead = tool;
@@ -415,7 +442,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 // All non-motion setup belongs to the procedure. Create the
                 // canonical session BEFORE marking any stage as passed.
                 _session = new MachineOperationSession(
-                    NozzleRunoutProcedureDefinition.Create(),
+                    NozzleRunoutProcedureDefinition.Create(isFinalHead),
                     new MachineOperationTarget
                     {
                         MachineId = Convert.ToString(machine.Settings.Id),
@@ -836,6 +863,60 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 tool.CompleteRunoutCalibration(_activeNozzleId, result.LogicalZeroAngle, corrections);
                 _lastMeasuredHead = tool;
                 Status = $"Head {tool.HeadIndex} ({tool.CurrentNozzle.Text}) runout calibrated for this session; 12 offsets and high-Y zero validated.";
+
+                // Only after the final installed nozzle (normally Head 2 /
+                // right head) has passed all twelve angles and high-point
+                // repeatability, return to the machine's EXISTING configured
+                // safe move height. Do not capture or change that setting.
+                if (isFinalHead)
+                {
+                    var safeHeightStep = Step("safe-height");
+                    safeHeightStep.Begin(
+                        $"Moving to the configured machine safe move height ({machine.Settings.SafMoveHeight:F2} mm).");
+
+                    if (!ValidContext(out contextError) ||
+                        !await MotionIdleAsync(CancellationToken.None))
+                    {
+                        Stop(safeHeightStep, contextError ??
+                            "Machine was not idle before the final safe-height move.");
+                        return false;
+                    }
+
+                    var targetSafeHeight = machine.Settings.SafMoveHeight;
+                    if (Double.IsNaN(targetSafeHeight) || Double.IsInfinity(targetSafeHeight))
+                    {
+                        Stop(safeHeightStep,
+                            "Configured machine safe move height is not a valid finite value; no final Z move sent.");
+                        return false;
+                    }
+
+                    machine.SendSafeMoveHeight();
+                    if (!await MotionIdleAsync(CancellationToken.None))
+                    {
+                        Stop(safeHeightStep,
+                            "Machine did not settle after the final safe move height command.");
+                        return false;
+                    }
+
+                    // M114 refreshes the controller-reported position; the
+                    // parser updates ToolCommonZ for both supported PnP
+                    // firmware paths. Never mark this step passed on queue
+                    // completion alone.
+                    var finalPosition = await machine.GetCurrentLocationAsync(5000);
+                    if (!finalPosition.Successful ||
+                        !ValidContext(out contextError) ||
+                        Math.Abs(machine.ToolCommonZ - targetSafeHeight) > 0.20)
+                    {
+                        Stop(safeHeightStep, contextError ??
+                            $"Safe-height verification failed. Expected Z={targetSafeHeight:F2} mm; " +
+                            $"controller reports Z={machine.ToolCommonZ:F2} mm.");
+                        return false;
+                    }
+
+                    PassMachineStep(safeHeightStep,
+                        $"Machine reached its existing configured safe move height: " +
+                        $"Z={machine.ToolCommonZ:F2} mm. Setting unchanged; procedure stopped here.");
+                }
                 return true;
         }
 

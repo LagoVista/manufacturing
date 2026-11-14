@@ -14,6 +14,11 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             var procedure=NozzleRunoutProcedureDefinition.Create();
             Assert.That(procedure.Key,Is.EqualTo("nozzle-rotation-runout"));
             Assert.That(procedure.Steps.Count,Is.EqualTo(20));
+            var finalHeadProcedure = NozzleRunoutProcedureDefinition.Create(includeFinalSafeHeight:true);
+            Assert.That(finalHeadProcedure.Steps.Count,Is.EqualTo(21));
+            Assert.That(finalHeadProcedure.Steps.Last().Key,Is.EqualTo("safe-height"));
+            Assert.That(finalHeadProcedure.Steps.Last().RequiredVerification,
+                Is.EqualTo(MachineOperationVerificationKind.MachineObserved));
             Assert.That(procedure.Steps.Take(4).Select(s=>s.Key),
                 Is.EqualTo(new[]{"readiness","camera","move-plan","position"}));
             Assert.That(procedure.Steps.Skip(4).Take(2).Select(s=>s.Key),
