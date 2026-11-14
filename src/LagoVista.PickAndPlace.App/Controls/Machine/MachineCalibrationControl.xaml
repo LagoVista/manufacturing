@@ -368,7 +368,7 @@
                         <DataGridTemplateColumn Header="Runout status" Width="170">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <TextBlock VerticalAlignment="Center" Text="Needs calibration" Foreground="#C57A35" FontWeight="SemiBold">
+                                    <TextBlock VerticalAlignment="Center" FontWeight="SemiBold">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Text" Value="Needs calibration"/>
