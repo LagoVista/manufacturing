@@ -82,7 +82,7 @@
                 <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <TextBlock Text="MEASUREMENT PLAN" Foreground="#91A5BC"
                                HorizontalAlignment="Right" FontSize="10"/>
-                    <TextBlock Text="12 samples · 30° increments"
+                    <TextBlock Text="12 samples per head · 30° increments"
                                FontWeight="SemiBold" FontSize="16" HorizontalAlignment="Right"/>
                     <TextBlock Text="Bottom camera · max Y = logical zero"
                                Foreground="#B6C3D2" FontSize="11" HorizontalAlignment="Right"/>
