@@ -71,6 +71,23 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void NewPixelCalibrationRequiresANewCircleTrack()
+        {
+            var earlier = new MVLocatedCircle(CameraTypes.PartInspection,
+                new Point2D<int>(100, 100), 50, 0.1, 1);
+            earlier.Add(new PointF(105, 100), 6);
+
+            var recalibrated = new MVLocatedCircle(CameraTypes.PartInspection,
+                new Point2D<int>(100, 100), 12.5, 0.1, 1);
+            recalibrated.Add(new PointF(105, 100), 6);
+
+            Assert.That(earlier.PixelsPerMM, Is.EqualTo(50));
+            Assert.That(recalibrated.PixelsPerMM, Is.EqualTo(12.5));
+            Assert.That(earlier.OffsetMM.X, Is.EqualTo(0.1));
+            Assert.That(recalibrated.OffsetMM.X, Is.EqualTo(0.4));
+        }
+
+        [Test]
         public void ResetClearsPositionStability()
         {
             var hole = CreateStagingHole();

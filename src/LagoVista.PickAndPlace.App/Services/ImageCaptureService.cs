@@ -109,10 +109,35 @@ namespace LagoVista.PickAndPlace.App.Services
             BindCamera(machine);
         }
 
+        private VisionProfile _observedScaleProfile;
+
+        private void ObserveCurrentProfileScale()
+        {
+            if (_observedScaleProfile != null)
+                _observedScaleProfile.PropertyChanged -= VisionProfile_PropertyChanged;
+
+            _observedScaleProfile = Camera?.CurrentVisionProfile;
+            if (_observedScaleProfile != null)
+                _observedScaleProfile.PropertyChanged += VisionProfile_PropertyChanged;
+        }
+
+        private void VisionProfile_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(VisionProfile.PixelsPerMM))
+            {
+                // MVLocatedCircle captures px/mm at construction. Invalidate
+                // those tracked circles immediately when a profile override changes.
+                _shapeDetectorService.Reset();
+            }
+        }
+
         private void BindCamera(IMachine machine)
         {
             if (Camera != null)
                 Camera.PropertyChanged -= Camera_PropertyChanged;
+            if (_observedScaleProfile != null)
+                _observedScaleProfile.PropertyChanged -= VisionProfile_PropertyChanged;
+            _observedScaleProfile = null;
 
             Camera = machine.Settings.Cameras.FirstOrDefault(c => c.CameraType.Value == CameraType);
             if (Camera != null)
@@ -132,6 +157,8 @@ namespace LagoVista.PickAndPlace.App.Services
                 }
 
                 Camera.PropertyChanged += Camera_PropertyChanged;
+                ObserveCurrentProfileScale();
+                _shapeDetectorService.Reset();
             }
         }
 
@@ -140,8 +167,15 @@ namespace LagoVista.PickAndPlace.App.Services
             if(e.PropertyName == nameof(Camera.CurrentVisionProfile))
             {
                 // A new vision profile may be looking for an entirely different circle.
+                ObserveCurrentProfileScale();
                 _shapeDetectorService.Reset();
                 RaisePropertyChanged(nameof(Profile));
+            }
+            else if (e.PropertyName == nameof(Camera.PixelsPerMM))
+            {
+                // Camera-level calibration also invalidates all tracked circles;
+                // they retain their original px/mm value otherwise.
+                _shapeDetectorService.Reset();
             }
         }
 
@@ -294,6 +328,14 @@ namespace LagoVista.PickAndPlace.App.Services
 
                 var circle = candidates[0];
                 var pixelsPerMm = camera.EffectivePixelsPerMM;
+                if (Math.Abs(circle.PixelsPerMM - pixelsPerMm) > 0.0001)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                        $"Nozzle circle was detected at {circle.PixelsPerMM:F2} px/mm, but the active " +
+                        $"camera profile uses {pixelsPerMm:F2} px/mm. Reacquire before jogging.");
+                    _shapeDetectorService.Reset();
+                    return;
+                }
                 // Use full pixel resolution. MVLocatedCircle.OffsetMM rounds to
                 // 0.1 mm and can leave a visible residual centering error.
                 var observation = new Point2D<double>(
@@ -324,6 +366,7 @@ namespace LagoVista.PickAndPlace.App.Services
                     !machine.WasMachineHomed || machine.Busy || !IsCapturing ||
                     !_shapeDetectorService.FoundCircles.Any(c => ReferenceEquals(c, circle)) ||
                     !circle.Stabilized || !circle.PositionStable ||
+                    Math.Abs(circle.PixelsPerMM - pixelsPerMm) > 0.0001 ||
                     Math.Abs(circle.OffsetPixels.X / pixelsPerMm - observation.X) > 0.10 ||
                     Math.Abs(-circle.OffsetPixels.Y / pixelsPerMm - observation.Y) > 0.10)
                 {
@@ -345,7 +388,9 @@ namespace LagoVista.PickAndPlace.App.Services
                     $"Bottom-camera nozzle jog: observed X={observation.X:+0.000;-0.000;0.000}, " +
                     $"Y={observation.Y:+0.000;-0.000;0.000} mm; physical XY correction " +
                     $"X={relativeJog.X:+0.000;-0.000;0.000}, " +
-                    $"Y={relativeJog.Y:+0.000;-0.000;0.000} mm.");
+                    $"Y={relativeJog.Y:+0.000;-0.000;0.000} mm; " +
+                    $"scale={pixelsPerMm:F2} px/mm " +
+                    $"({(profile.PixelsPerMM.HasValue ? "profile override" : "camera calibration")}).");
 
                 // The nozzle is already at bottom-camera inspection height.
                 // Keep Z stationary, send only the bounded XY correction.
