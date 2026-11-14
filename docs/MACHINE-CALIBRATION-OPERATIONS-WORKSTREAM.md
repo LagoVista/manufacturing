@@ -3,9 +3,10 @@
 **Status (updated 2026-11-13):** T001–T004 are implemented and the stable
 Manufacturing history API is deployed to DEV. T005 is in progress: the
 seven-step feeder runner has been exercised on the machine, and a Start/Reset
-procedure coordinator is now in Windows acceptance. The first five steps can
-run automatically; current/previous pocket presence cannot yet be classified
-reliably and must fail closed rather than invent an observation.
+procedure coordinator is now in Windows acceptance. All seven steps now
+have an executable first-cut implementation, including the black-tape rectangle
+presence/absence pilot. The complete Windows WPF build and supervised physical
+seven-step run are still required before claiming successful acceptance.
 The remainder of this document preserves the original planning rationale.
 
 **Authoritative Forge Workstream ID:** `pnp-guided-calibration-operations`
@@ -35,12 +36,13 @@ independent machine action.
 
 Saving feeder origin and paired tape-hole offsets is authorized by Start
 but requires new stable, in-tolerance vision evidence and a successful
-Manufacturing feeder save. A failed save prevents further movement. The
-current/previous pocket checks remain a missing *automatic classifier*:
-the procedure moves to the current pocket, then blocks and records the gap
-instead of asserting PRESENT/EMPTY. Full unattended completion must wait
-for that classifier and hardware acceptance. Do not present this new
-source revision as machine-tested until the Windows WPF build and physical
+Manufacturing feeder save. A failed save prevents further movement. The current/previous pocket checks now have an initial rectangle-based
+vision evidence path. PRESENT requires a stabilized, centered rectangle from
+the part-in-tape detector; EMPTY requires at least 15 valid, fresh processed
+frames over at least 850 ms with no candidates. Intermittent rectangles,
+camera starvation or profile changes block the run. This is still a
+**supervised acceptance pilot**, not production-proven vision classification.
+Do not present it as machine-tested until the Windows WPF build and physical
 procedure are verified.
 
 ## Product intent

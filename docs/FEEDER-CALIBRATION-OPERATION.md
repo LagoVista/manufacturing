@@ -6,8 +6,9 @@ the feeder's technical steps; the Workstream file is the durable plan and
 session-handoff authority.
 
 Status: T001–T004 implemented and published; T005 automatic procedure
-execution is in machine acceptance (2026-11-13). The seven-step runner exists,
-but unattended completion is blocked by the unvalidated pocket classifier.
+execution is in machine acceptance (2026-11-13). The seven-step runner now
+includes a first-cut automatic rectangle-based pocket observation. The Windows
+WPF compile and complete physical seven-step acceptance remain outstanding.
 
 ## Implemented procedural execution (2026-11-13)
 
@@ -33,12 +34,24 @@ timeout, or failed durable checkpoint stops further actions. Calibration values
 are committed only after fresh vision evidence. The operator's **Start** is
 the authorization to save verified offsets, not permission to guess results.
 
-**Outstanding acceptance boundary:** present/empty pocket classification is not
-yet validated for the active camera, part and tape. The procedure can move to
-the current pocket, but it fails closed at that check instead of inventing
-a result or silently substituting a manual confirmation. Full seven-step
-unattended completion requires a separately tested presence/absence classifier.
-The source has not yet passed Windows WPF/machine acceptance for this revision.
+**New pocket observation pilot:** version 2 of the client procedure requires
+`VisionVerified` evidence in steps 6 and 7, while the previously published
+version 1 operation remains unchanged. After camera arrival and a fresh
+detector reset, PRESENT requires at least one stabilized, centered rectangle
+using the selected part-in-tape profile. EMPTY requires at least 15 freshly
+processed camera frames spanning at least 850 ms, with **no rectangles at all**
+in that observation window. The camera/profile/feeder/machine must remain
+unchanged. Any detected rectangle prevents an EMPTY decision. No fresh frames,
+stale frames, intermittent candidates, unexpected presence/absence, or a
+timed-out acquisition block the procedure. Multiple nested rectangle contours
+may originate from one part, so they are not treated as separate parts.
+The detector reports dimensions/offsets and records evidence for each result.
+This is not a pick operation and never increments or decrements inventory.
+
+The current black-tape camera has demonstrated stable rectangle detection of
+a present component, but the absence behavior and all-seven-step sequence
+must still be verified on the Windows machine. Please **supervise the first
+run**; do not claim production acceptance from unit tests alone.
 
 ## Goal
 
