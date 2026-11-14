@@ -516,19 +516,10 @@ namespace LagoVista.PickAndPlace.App.Services
                 if (darkInRange && whiteInRange && !stable)
                     continue;
 
-                if (sample.Dark < darkLow && sample.White > AutoTuneWhiteCeiling)
-                {
-                    RestoreExposure(originalExposure);
-                    return InvokeResult.FromError(
-                        $"Camera Auto-Tune cannot increase exposure without clipping white. Exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}.");
-                }
-
-                if (sample.Dark > darkHigh && sample.White < AutoTuneWhiteMinimum)
-                {
-                    RestoreExposure(originalExposure);
-                    return InvokeResult.FromError(
-                        $"Camera Auto-Tune cannot decrease exposure without dimming white further. Exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}.");
-                }
+                // Conflicting preferred targets do not prove the scene is
+                // unusable. Continue the bounded exposure search rather than
+                // aborting immediately; the broader contrast policy above
+                // may still find a safe, stable exposure.
 
                 var direction =
                     sample.White > AutoTuneWhiteCeiling || sample.Dark > darkHigh
