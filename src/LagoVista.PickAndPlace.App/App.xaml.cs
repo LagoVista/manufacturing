@@ -101,6 +101,13 @@ namespace LagoVista.PickAndPlace.App
             SLWIOC.Register<IVisionProfileViewModel, VisionProfileViewModel>();
             SLWIOC.Register<IImageCaptureService, ImageCaptureService>();
             SLWIOC.RegisterSingleton<ILocatorViewModel, LocatorViewModel>();
+
+            // The nozzle calibration singleton resolves ImageCaptureService, which
+            // depends on the shape detectors and machine-vision registrations.
+            // Register these dependencies before creating downstream singletons.
+            MachineVision.Startup.Init();
+            Services.Startup.Init();
+
             SLWIOC.Register<IMachineControlViewModel, MachineControlViewModel>();
             SLWIOC.Register<IManualSendViewModel, ManualSendViewModel>();
             SLWIOC.Register<ICurrentMachineViewModel, CurrentMachineViewModel>();
@@ -142,8 +149,6 @@ namespace LagoVista.PickAndPlace.App
 
             popups.RegisterWindow<IPcbMillingProjectWindow, PCBProjectView>();
 
-            MachineVision.Startup.Init();
-            Services.Startup.Init();
         }
     }
 
