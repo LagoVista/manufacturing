@@ -672,6 +672,18 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 ? new Point2D<double>(calibratedOrigin.X + verticalBarcodeCenterOffsetMm, calibratedOrigin.Y - shiftMm)
                 : new Point2D<double>(calibratedOrigin.X + shiftMm, calibratedOrigin.Y);
 
+            // The barcode framing move has a small expected offset, but
+            // still must respect the full XY work area like every other
+            // procedure move. Invalid geometry cannot queue motion.
+            var area = Machine.Settings.WorkAreaSize;
+            if (framed.X < 0 || framed.Y < 0 ||
+                framed.X > area.X || framed.Y > area.Y)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                    "Barcode frame target is outside the machine work area; no move sent.");
+                return;
+            }
+
             Machine.SendSafeMoveHeight();
             Machine.GotoPoint(framed);
             Machine.AddStatusMessage(StatusMessageTypes.Info,
