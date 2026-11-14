@@ -1022,6 +1022,12 @@ namespace LagoVista.PickAndPlace
             {
                 _wasMachineHomed = value;
                 _currentMachineToolHead = null;
+                // Homing/re-homing resets the rotary reference. Any
+                // previously measured nozzle-runout phase is no longer
+                // proven against this controller state.
+                if (Settings?.ToolHeads != null)
+                    foreach (var head in Settings.ToolHeads)
+                        head?.InvalidateRunoutCalibration();
                 RaisePropertyChanged(nameof(CurrentMachineToolHead));
                 RaisePropertyChanged();
             }
