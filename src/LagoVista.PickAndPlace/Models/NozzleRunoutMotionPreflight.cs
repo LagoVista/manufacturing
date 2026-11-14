@@ -11,7 +11,6 @@ namespace LagoVista.PickAndPlace.Models
     public static class NozzleRunoutMotionPreflight
     {
         public const double EdgeClearanceMm = 5.0;
-        public const double MaxAutomaticAxisTravelMm = 85.0;
 
         public static bool TryValidate(Point2D<double> current,
             Point2D<double> headRelativeOffset, bool requiresHeadSelection,
@@ -53,19 +52,10 @@ namespace LagoVista.PickAndPlace.Models
                          "Verify and correct its AbsolutePosition before calibration.";
                 return false;
             }
-            // Temporary commissioning limit: no unexpected full-bed
-            // traverses from one button press, even to an in-bounds point.
-            if (Math.Abs(predicted.X - current.X) > MaxAutomaticAxisTravelMm ||
-                Math.Abs(predicted.Y - current.Y) > MaxAutomaticAxisTravelMm ||
-                Math.Abs(cameraTarget.X - current.X) > MaxAutomaticAxisTravelMm ||
-                Math.Abs(cameraTarget.Y - current.Y) > MaxAutomaticAxisTravelMm)
-            {
-                reason = $"Calibration would traverse too far from current XY " +
-                         $"({current.X:F2}, {current.Y:F2}) toward the tool/camera. " +
-                         $"The commissioning limit is {MaxAutomaticAxisTravelMm:F0} mm per axis. " +
-                         "Position the gantry near the bottom camera under manual supervision first.";
-                return false;
-            }
+            // The rectangular work area is convex: with safe Z and both
+            // endpoints inside its margin, the direct XY segment remains
+            // inside. A known, in-bounds camera is not a user prerequisite
+            // to move near manually. Reject only unsafe geometry.
             return true;
         }
 

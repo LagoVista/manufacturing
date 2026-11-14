@@ -36,12 +36,11 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
-        public void RejectsUnplannedFullBedTraverse()
+        public void AllowsFullInBoundsTravelWithoutOperatorPositioning()
         {
             Assert.That(NozzleRunoutMotionPreflight.TryValidate(
                 XY(30, 30), XY(22.7, 65), true, XY(330, 330),
-                XY(400, 400), out var reason), Is.False);
-            Assert.That(reason, Does.Contain("traverse too far"));
+                XY(400, 400), out var reason), Is.True, reason);
         }
 
         [Test]
