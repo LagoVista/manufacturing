@@ -625,12 +625,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     return false;
                 }
                 if (!ValidContext(out contextError) ||
-                    !await MotionIdleAsync(CancellationToken.None) ||
-                    !NozzleRunoutVisionPreparation.TryLockAdaptiveOpening(
-                        capture.Profile, _cameraScale, tuneResponse.Result, out var tuneError))
+                    !await MotionIdleAsync(CancellationToken.None))
                 {
-                    Stop(tuneStep, contextError ?? tuneError ??
-                        "Nozzle optical tune was invalidated before it could be applied.");
+                    Stop(tuneStep, contextError ??
+                        "Machine was not idle after nozzle image tuning; optical lock was not applied.");
+                    return false;
+                }
+                if (!NozzleRunoutVisionPreparation.TryLockAdaptiveOpening(
+                    capture.Profile, _cameraScale, tuneResponse.Result, out var tuneError))
+                {
+                    Stop(tuneStep, tuneError);
                     return false;
                 }
                 _runoutOpticalLock = true;
