@@ -21,6 +21,10 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
         // the actual capture resolution selected by the Windows camera driver.
         Size CaptureFrameSize { get; }
 
+        // A fresh, processed position-camera frame with the already-configured
+        // part-in-tape rectangle detector's results. Null until a valid frame.
+        PocketRectangleFrameObservation LatestRectangleFrame { get; }
+
         // Set by the selected feeder: true = top-to-bottom barcode, false = left-to-right.
         bool? FeederBarcodeVertical { get; set; }
         RelayCommand StartCaptureCommand { get; }

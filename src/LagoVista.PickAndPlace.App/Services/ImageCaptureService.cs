@@ -34,6 +34,12 @@ namespace LagoVista.PickAndPlace.App.Services
 
         public System.Drawing.Size CaptureFrameSize { get; private set; }
 
+        private long _processedRectangleFrameId;
+        private long _lastRectangleDetectedFrameId;
+        private PocketRectangleFrameObservation _latestRectangleFrame;
+        public PocketRectangleFrameObservation LatestRectangleFrame =>
+            System.Threading.Volatile.Read(ref _latestRectangleFrame);
+
         public bool? FeederBarcodeVertical { get; set; }
         private double _lastBrightness = -9999;
         private double _lastFocus = -9999;
@@ -769,6 +775,49 @@ namespace LagoVista.PickAndPlace.App.Services
                                                         }
                                                         pending?.TrySetResult((byte[])signal.Clone());
                                                     }
+                                                }
+
+                                                // Publish immutable per-frame rectangle statistics
+                                                // only after real camera capture and successful
+                                                // shape detection. This is the sole basis for
+                                                // an automated EMPTY observation; no rectangles
+                                                // in a stale frame cannot establish absence.
+                                                if (results != null && CameraType == CameraTypes.Position &&
+                                                    Profile.FindRectangles)
+                                                {
+                                                    var frameId = System.Threading.Interlocked.Increment(
+                                                        ref _processedRectangleFrameId);
+                                                    var rectangles = _shapeDetectorService.FoundRectangles.ToList();
+                                                    if (rectangles.Count > 0)
+                                                        _lastRectangleDetectedFrameId = frameId;
+
+                                                    var centered = rectangles.Where(r =>
+                                                        r.CameraType == CameraTypes.Position &&
+                                                        r.Stabilized && r.Centered)
+                                                        .OrderByDescending(r => r.FoundCount)
+                                                        .ToList();
+                                                    var best = centered.FirstOrDefault();
+                                                    var offset = best?.OffsetMM;
+                                                    var shape = best?.SizeMM;
+                                                    var observation = new PocketRectangleFrameObservation
+                                                    {
+                                                        FrameId = frameId,
+                                                        LastRectangleFrameId = _lastRectangleDetectedFrameId,
+                                                        CapturedAtUtc = DateTimeOffset.UtcNow,
+                                                        CameraId = Camera.Id.ToString(),
+                                                        VisionProfileKey = Profile.Key,
+                                                        Width = resized.Width,
+                                                        Height = resized.Height,
+                                                        RectangleCount = rectangles.Count,
+                                                        StableCenteredCount = centered.Count,
+                                                        StableCenteredFoundCount = best?.FoundCount ?? 0,
+                                                        CenteredWidthMm = Math.Abs(shape?.X ?? 0),
+                                                        CenteredHeightMm = Math.Abs(shape?.Y ?? 0),
+                                                        CenteredOffsetXmm = offset?.X ?? 0,
+                                                        CenteredOffsetYmm = offset?.Y ?? 0
+                                                    };
+                                                    System.Threading.Volatile.Write(
+                                                        ref _latestRectangleFrame, observation);
                                                 }
 
                                                 if (results == null)
