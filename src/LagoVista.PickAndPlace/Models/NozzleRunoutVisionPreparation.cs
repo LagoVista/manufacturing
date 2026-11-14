@@ -43,7 +43,8 @@ namespace LagoVista.PickAndPlace.Models
             if (profile == null || profile.Key != VisionProfile.VisionProfile_Nozzle ||
                 !Finite(cameraPixelsPerMm) || cameraPixelsPerMm <= 0 ||
                 tuned == null || !Finite(tuned.DiameterMm) ||
-                tuned.DiameterMm < 0.10 || tuned.DiameterMm > 1.40 ||
+                tuned.DiameterMm < DarkCircularOpeningLocator.MinimumOpeningDiameterMm ||
+                tuned.DiameterMm > DarkCircularOpeningLocator.MaximumOpeningDiameterMm ||
                 !Finite(tuned.MedianContrast) || tuned.MedianContrast < 35 ||
                 !Finite(tuned.MaxCenterDeviationMm) ||
                 tuned.MaxCenterDeviationMm > 0.12 ||

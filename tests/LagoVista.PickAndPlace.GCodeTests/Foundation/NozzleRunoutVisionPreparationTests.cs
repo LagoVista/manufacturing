@@ -69,6 +69,22 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void LargerRightHeadOpeningCanBeLockedForRunout()
+        {
+            var profile = new VisionProfile { Key = VisionProfile.VisionProfile_Nozzle };
+            var tuned = new DarkCircularOpeningLocator.TuneResult
+            {
+                DiameterMm = 1.376, MedianContrast = 118.5,
+                MaxCenterDeviationMm = 0.020, GoodFrames = 24, TotalFrames = 24
+            };
+
+            Assert.That(NozzleRunoutVisionPreparation.TryLockAdaptiveOpening(
+                profile, 12.5, tuned, out var reason), Is.True, reason);
+            Assert.That(profile.ExpectedDarkOpeningDiameterMm, Is.EqualTo(1.376));
+            Assert.That(profile.DarkOpeningTunedPixelsPerMM, Is.EqualTo(12.5));
+        }
+
+        [Test]
         public void RejectedAutoTuneDoesNotEnableAdaptiveDetector()
         {
             var profile = new VisionProfile { Key=VisionProfile.VisionProfile_Nozzle };

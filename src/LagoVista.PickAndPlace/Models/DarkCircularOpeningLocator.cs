@@ -41,6 +41,12 @@ namespace LagoVista.PickAndPlace.Models
         // locators retain their existing physical search area.
         public const int MinimumAcquisitionRadiusPixels = 72;
 
+        // The right-head nozzle has a larger opening than the original
+        // left-head target. Keep a physical upper bound, but do not put it
+        // within one pixel of a valid tuned diameter at 12.5 px/mm.
+        public const double MinimumOpeningDiameterMm = 0.10;
+        public const double MaximumOpeningDiameterMm = 2.00;
+
         public static double EffectiveAcquisitionRadiusPixels(int width, int height,
             double pixelsPerMm, double searchRadiusMm)
         {
@@ -169,7 +175,8 @@ namespace LagoVista.PickAndPlace.Models
                     if (touchesEdge || area < 12 || perimeter == 0) continue;
                     var radius = Math.Sqrt(area / Math.PI);
                     var diameterMm = 2 * radius / pixelsPerMm;
-                    if (diameterMm < 0.10 || diameterMm > 1.40) continue;
+                    if (diameterMm < MinimumOpeningDiameterMm ||
+                        diameterMm > MaximumOpeningDiameterMm) continue;
                     if (expectedDiameterMm > 0 &&
                         Math.Abs(diameterMm - expectedDiameterMm) >
                         Math.Max(0.12, expectedDiameterMm * 0.30))

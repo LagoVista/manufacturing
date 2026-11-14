@@ -114,6 +114,46 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(result.GoodFrames, Is.EqualTo(24));
         }
 
+        private static byte[,,] MakeLargeNozzleScene(int x, int y, int coreRadius)
+        {
+            var frame = new byte[200, 200, 1];
+            for (var iy = 0; iy < 200; iy++)
+                for (var ix = 0; ix < 200; ix++)
+                {
+                    var dx = ix - x;
+                    var dy = iy - y;
+                    var distance = Math.Sqrt(dx * dx + dy * dy);
+                    frame[iy, ix, 0] = distance <= coreRadius ? (byte)24
+                        : distance <= coreRadius * 2.0 ? (byte)224
+                        : (byte)128;
+                }
+            return frame;
+        }
+
+        [Test]
+        public void LargerRightHeadOpeningSurvivesOnePixelDiameterVariation()
+        {
+            var observations = new List<DarkCircularOpeningLocator.Observation>();
+            for (var i = 0; i < 24; i++)
+            {
+                // At 12.5 px/mm, a one-pixel radius change shifts measured
+                // diameter by ~0.16 mm. The prior 1.40 mm ceiling rejected
+                // most frames around Head 2's 1.376 mm tuned opening.
+                var radius = i % 2 == 0 ? 9 : 10;
+                var frame = MakeLargeNozzleScene(100 + (i % 2), 100, radius);
+                var found = DarkCircularOpeningLocator.Find(
+                    frame, 200, 200, 12.5, 2.0, 1.376);
+                Assert.That(found, Is.Not.Null, $"Frame {i} should retain the larger opening.");
+                Assert.That(found.DiameterMm, Is.GreaterThan(1.40));
+                observations.Add(found);
+            }
+
+            Assert.That(DarkCircularOpeningLocator.TryValidate(
+                observations, 12.5, out var tune, out var reason), Is.True, reason);
+            Assert.That(tune.GoodFrames, Is.EqualTo(24));
+            Assert.That(tune.DiameterMm, Is.GreaterThan(1.40));
+        }
+
         [Test]
         public void NoisyUniformImageDoesNotPassAsSmallNozzle()
         {
