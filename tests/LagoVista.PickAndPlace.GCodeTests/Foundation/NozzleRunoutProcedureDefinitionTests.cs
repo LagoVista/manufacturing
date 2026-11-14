@@ -13,15 +13,16 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         {
             var procedure=NozzleRunoutProcedureDefinition.Create();
             Assert.That(procedure.Key,Is.EqualTo("nozzle-rotation-runout"));
-            Assert.That(procedure.Steps.Count,Is.EqualTo(15));
-            Assert.That(procedure.Steps[0].Key,Is.EqualTo("position"));
-            Assert.That(procedure.Steps.Skip(1).Take(12).Select(s=>s.Key),
+            Assert.That(procedure.Steps.Count,Is.EqualTo(18));
+            Assert.That(procedure.Steps.Take(4).Select(s=>s.Key),
+                Is.EqualTo(new[]{"readiness","camera","move-plan","position"}));
+            Assert.That(procedure.Steps.Skip(4).Take(12).Select(s=>s.Key),
                 Is.EqualTo(NozzleRunoutMath.SweepAngles().Select(x=>"angle-"+x)));
-            Assert.That(procedure.Steps[13].Key,Is.EqualTo("high-point"));
-            Assert.That(procedure.Steps[14].Key,Is.EqualTo("result"));
-            Assert.That(procedure.Steps[0].RequiredVerification,
-                Is.EqualTo(MachineOperationVerificationKind.MachineObserved));
-            Assert.That(procedure.Steps.Skip(1).All(s=>
+            Assert.That(procedure.Steps[16].Key,Is.EqualTo("high-point"));
+            Assert.That(procedure.Steps[17].Key,Is.EqualTo("result"));
+            Assert.That(procedure.Steps.Take(4).All(s=>
+                s.RequiredVerification==MachineOperationVerificationKind.MachineObserved),Is.True);
+            Assert.That(procedure.Steps.Skip(4).All(s=>
                 s.RequiredVerification==MachineOperationVerificationKind.VisionVerified),Is.True);
             Assert.That(procedure.Steps.Any(s=>s.RequiresSavedEvidence),Is.False);
         }
@@ -33,11 +34,14 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                 new MachineOperationTarget{MachineId="test-machine"},
                 DateTimeOffset.UtcNow);
             s.Start(DateTimeOffset.UtcNow);
-            s.RecordEvidence(new MachineOperationEvidence{
-                RunId=s.Snapshot.RunId,StepKey="position",Name="Safe camera position",
-                Verification=MachineOperationVerificationKind.MachineObserved,
-                CapturedAtUtc=DateTimeOffset.UtcNow});
-            s.CompleteActiveStep("position",DateTimeOffset.UtcNow);
+            foreach (var key in new[]{"readiness","camera","move-plan","position"})
+            {
+                s.RecordEvidence(new MachineOperationEvidence{
+                    RunId=s.Snapshot.RunId,StepKey=key,Name="Verified " + key,
+                    Verification=MachineOperationVerificationKind.MachineObserved,
+                    CapturedAtUtc=DateTimeOffset.UtcNow});
+                s.CompleteActiveStep(key,DateTimeOffset.UtcNow);
+            }
             Assert.Throws<InvalidOperationException>(()=>
                 s.CompleteActiveStep("angle-0",DateTimeOffset.UtcNow));
         }

@@ -14,9 +14,27 @@ namespace LagoVista.PickAndPlace.Models
             var definition = new MachineOperationDefinition
             {
                 Key="nozzle-rotation-runout",
-                Version=1,
+                Version=2,
                 Title="Nozzle Runout Calibration"
             };
+            definition.Steps.Add(new MachineOperationStepDefinition
+            {
+                Key="readiness", Title="Verify machine fiducial and both staging plates",
+                Instructions="Require this session's fiducial and two staging-plate calibrations.",
+                RequiredVerification=MachineOperationVerificationKind.MachineObserved
+            });
+            definition.Steps.Add(new MachineOperationStepDefinition
+            {
+                Key="camera", Title="Configure and start bottom-camera vision",
+                Instructions="Automatically select Nozzle, enable circle detection and await fresh capture.",
+                RequiredVerification=MachineOperationVerificationKind.MachineObserved
+            });
+            definition.Steps.Add(new MachineOperationStepDefinition
+            {
+                Key="move-plan", Title="Verify tool and camera XY movement plan",
+                Instructions="Read actual XY and reject unsafe tool offsets / camera destinations before motion.",
+                RequiredVerification=MachineOperationVerificationKind.MachineObserved
+            });
             definition.Steps.Add(new MachineOperationStepDefinition
             {
                 Key="position", Title="Position over bottom camera",
