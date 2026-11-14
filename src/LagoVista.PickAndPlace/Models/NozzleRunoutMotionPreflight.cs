@@ -6,7 +6,10 @@ namespace LagoVista.PickAndPlace.Models
     /// <summary>
     /// Fail-closed provisional motion envelope for the first physically
     /// supervised nozzle-calibration runs. No controller commands are sent.
-    /// Values are current tool-navigation XY coordinates in millimeters.
+    /// Values are the controller-reported XY coordinates in millimeters.
+    /// The sequence is: (1) return any selected head to camera navigation,
+    /// (2) travel in the camera frame to the bottom-camera target,
+    /// (3) select the requested head there. Never shift the head first.
     /// </summary>
     public static class NozzleRunoutMotionPreflight
     {
@@ -33,12 +36,9 @@ namespace LagoVista.PickAndPlace.Models
                 reason = "Controller XY is outside the configured machine work area; calibration cannot start.";
                 return false;
             }
-            // A selected-to-selected head transition is TWO G91 moves:
-            // 1) from old head back to the camera by -oldHead.Offset;
-            // 2) from camera to new head by +newHead.Offset.
-            // Check every physical intermediate endpoint, not just the
-            // relative move of the incoming head.
-            var afterOldHead = requiresHeadSelection && previousHeadOffset != null
+            // Return from any currently selected head *before* going to
+            // the bottom camera. The old head shift occurs at current XY.
+            var afterOldHead = previousHeadOffset != null
                 ? new Point2D<double>(
                     current.X - previousHeadOffset.X,
                     current.Y - previousHeadOffset.Y)
@@ -49,23 +49,27 @@ namespace LagoVista.PickAndPlace.Models
                          $"({afterOldHead.X:F2}, {afterOldHead.Y:F2}) mm.";
                 return false;
             }
-            var predicted = requiresHeadSelection
-                ? new Point2D<double>(
-                    afterOldHead.X + headRelativeOffset.X,
-                    afterOldHead.Y + headRelativeOffset.Y)
-                : current;
-            if (!WithinSafeArea(predicted, workArea))
-            {
-                reason = $"Tool selection would approach or exceed an XY travel limit: " +
-                         $"target ({predicted.X:F2}, {predicted.Y:F2}), work area " +
-                         $"({workArea.X:F2}, {workArea.Y:F2}) mm.";
-                return false;
-            }
             if (!WithinSafeArea(cameraTarget, workArea))
             {
                 reason = $"Configured bottom-camera XY ({cameraTarget.X:F2}, " +
                          $"{cameraTarget.Y:F2}) is on/near a machine travel limit. " +
                          "Verify and correct its AbsolutePosition before calibration.";
+                return false;
+            }
+            // After navigating to camera XY in camera mode, select the
+            // requested head. The shift is applied at the camera, NOT at
+            // the gantry's prior XY (which may be near the top-right edge).
+            var predicted = requiresHeadSelection
+                ? new Point2D<double>(
+                    cameraTarget.X + headRelativeOffset.X,
+                    cameraTarget.Y + headRelativeOffset.Y)
+                : cameraTarget;
+            if (!WithinSafeArea(predicted, workArea))
+            {
+                reason = $"Selecting the tool head at the bottom camera would " +
+                         $"approach or exceed an XY travel limit: target " +
+                         $"({predicted.X:F2}, {predicted.Y:F2}), work area " +
+                         $"({workArea.X:F2}, {workArea.Y:F2}) mm.";
                 return false;
             }
             // The rectangular work area is convex: with safe Z and both

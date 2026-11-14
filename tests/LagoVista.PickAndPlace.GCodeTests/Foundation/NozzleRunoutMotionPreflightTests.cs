@@ -39,12 +39,31 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
-        public void RejectsRelativeToolHeadMoveNearMachineLimit()
+        public void RejectsHeadSelectionIfCameraPlusOffsetExceedsLimit()
         {
             Assert.That(NozzleRunoutMotionPreflight.TryValidate(
-                XY(380, 340), XY(22.7, 65), true, XY(350, 320),
+                XY(120, 140), XY(22.7, 65), true, XY(390, 340),
                 XY(400, 400), out var reason), Is.False);
-            Assert.That(reason, Does.Contain("Tool selection"));
+            Assert.That(reason, Does.Contain("bottom-camera XY"));
+        }
+
+        [Test]
+        public void AllowsStartingAtTopRightBecauseHeadSelectionOccursAtCamera()
+        {
+            // This previously failed: +22.7/+65 was applied at X316/Y354.
+            // Travel to the known bottom-camera XY FIRST, then change head.
+            Assert.That(NozzleRunoutMotionPreflight.TryValidate(
+                XY(316.4,354.19),XY(22.7,65),true,XY(165.1,128.24),
+                XY(330,355),out var reason),Is.True,reason);
+        }
+
+        [Test]
+        public void RejectsCameraLocationWhoseNewHeadOffsetWouldExceedLimit()
+        {
+            Assert.That(NozzleRunoutMotionPreflight.TryValidate(
+                XY(120, 140), XY(22.7, 65), true, XY(305, 280),
+                XY(330, 355), out var reason), Is.False);
+            Assert.That(reason, Does.Contain("Selecting the tool head"));
         }
 
         [Test]
@@ -52,7 +71,11 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         {
             Assert.That(NozzleRunoutMotionPreflight.TryValidate(
                 XY(30, 30), XY(22.7, 65), true, XY(330, 330),
-                XY(400, 400), out var reason), Is.True, reason);
+                XY(400, 400), out var reason), Is.False,
+                "Head offset at 330/330 exceeds bounds; choose an in-bounds camera target.");
+            Assert.That(NozzleRunoutMotionPreflight.TryValidate(
+                XY(30, 30), XY(22.7, 65), true, XY(255, 270),
+                XY(400, 400), out reason), Is.True, reason);
         }
 
         [Test]
