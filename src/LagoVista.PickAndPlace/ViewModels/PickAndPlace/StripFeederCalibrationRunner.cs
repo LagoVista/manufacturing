@@ -285,6 +285,33 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
+        /// <summary>
+        /// Add full CRC-verified feeder identity proof only while waiting to
+        /// commit the calibrated origin. This is diagnostic evidence, NOT a
+        /// substitute for the fresh centered corner and saved-origin proof.
+        /// </summary>
+        public void RecordBarcodeIdentityEvidence(string expectedId, string decodedId)
+        {
+            if (_scope != StripFeederCalibrationScope.FeederOrigin ||
+                Current.Status != MachineOperationRunStatus.Running ||
+                Current.ActiveStepKey != "save-origin" ||
+                !String.Equals(expectedId, decodedId, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Matching feeder identity is required before recording barcode proof.");
+
+            _session.RecordEvidence(new MachineOperationEvidence
+            {
+                RunId = Current.RunId,
+                StepKey = "save-origin",
+                Name = "Verified physical feeder identity",
+                Value = $"Barcode ID {decodedId}; expected {expectedId}; full scan CRC-2 OK",
+                Source = "Position camera / full feeder barcode scan",
+                Verification = MachineOperationVerificationKind.VisionVerified,
+                CapturedAtUtc = DateTimeOffset.UtcNow,
+                VisionProfileKey = VisionProfile.VisionProfile_FeederBarcode
+            });
+            Signal();
+        }
+
         public Task<MachineOperationActionResult> ConfirmAsync(CancellationToken cancellationToken)
         {
             if (Current.Status != MachineOperationRunStatus.Running ||
