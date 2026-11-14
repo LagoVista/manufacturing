@@ -322,10 +322,23 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     return;
                 }
                 if (installedRows.Any(row => row.CurrentPartIndex <= 1 ||
-                    row.PartCapacity < row.CurrentPartIndex))
+                    (row.PartCapacity > 0 && row.PartCapacity < row.CurrentPartIndex)))
                 {
                     FailFlow("Every installed tape needs a valid current index above 1 and within its capacity to verify its preceding empty pocket.");
                     return;
+                }
+
+                // A failed durable checkpoint must not be overwritten by a
+                // new run in the same modal. Attempt the existing idempotent
+                // history retry before any physical movement.
+                if (_pendingHistorySnapshot != null)
+                {
+                    await RetryFeederCalibrationHistoryAsync();
+                    if (_pendingHistorySnapshot != null)
+                    {
+                        FailFlow("Previous calibration history remains unsaved. Check the API before starting again.");
+                        return;
+                    }
                 }
 
                 FeederFlowStatus =
