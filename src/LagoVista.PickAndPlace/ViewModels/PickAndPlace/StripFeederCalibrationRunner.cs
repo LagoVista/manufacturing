@@ -18,7 +18,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
     /// Steps 6–7 use fresh processed rectangle evidence without picking.
     /// Strongly typed C# handlers, never data-only DTOs, own machine motion.
     /// </summary>
-    internal sealed class StripFeederCalibrationRunner : IMachineOperation, ICornerLocatedHandler, ICircleLocatedHandler
+    internal sealed class StripFeederCalibrationRunner : IMachineOperation, ICornerLocatedHandler, ICircleLocatedHandler, IDisposable
     {
         private sealed class CornerProof
         {
