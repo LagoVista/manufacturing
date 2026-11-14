@@ -79,8 +79,13 @@ namespace LagoVista.Manufacturing.Models
         }
 
         /// <summary>The 30-degree high-Y reference for this installation only.</summary>
+        private double? _runoutZeroAngle;
         [Newtonsoft.Json.JsonIgnore]
-        public double? RunoutZeroAngle { get; private set; }
+        public double? RunoutZeroAngle
+        {
+            get => _runoutZeroAngle;
+            private set => Set(ref _runoutZeroAngle, value);
+        }
 
         /// <summary>
         /// Call on any physical nozzle removal/reseating, even when the nozzle

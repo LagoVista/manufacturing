@@ -76,7 +76,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public int CurrentCalibrationAngle { get => _currentAngle; set => Set(ref _currentAngle, value); }
         public NozzleRunoutResult CandidateResult { get => _result; private set => Set(ref _result, value); }
         public string CandidateZero => CandidateResult == null
-            ? "Not yet measured" : $"{CandidateResult.LogicalZeroAngle}° (logical zero, not firmware G92)";
+            ? "Not yet measured" : $"Head {(_activeHead ?? _lastMeasuredHead)?.HeadIndex}: {CandidateResult.LogicalZeroAngle}° (logical zero, not firmware G92)";
         public string RunoutSummary => CandidateResult == null
             ? "No calibrated runout table. Placement compensation remains unchanged."
             : $"Peak radial deviation: {CandidateResult.MaxRadialDeviationMm:F3} mm | " +
