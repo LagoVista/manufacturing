@@ -75,6 +75,54 @@ repeatable for this installation**, not that placement compensation is
 already wired into the production pick/place motion system. That integration
 is a separately verified acceptance step.
 
+## Safety hold: unexpected XY-to-limit move (2026-11-14)
+
+An operator reported that opening the runout calibration modal immediately
+jogged the gantry to the machine's maximum X and maximum Y. The procedure
+then stopped at the first step reporting that the bottom-camera / Nozzle
+profile / calibrated pixels-per-mm was not ready. **Do not retry machine
+motion until the physical G-code log and configured coordinates have been
+reviewed under supervision.**
+
+Source inspection found an ordering defect: the procedure called
+`MoveToToolHeadAsync(tool)` **before** `ValidContext` checked the camera.
+This is not a virtual selection: it sends safe-Z, switches to relative
+mode (`G91`), enqueues an XY move by `tool.Offset`, switches back to
+absolute (`G90`), and resets machine coordinates with `G92 X/Y`.
+The later `GoToPartInspectionCameraAsync` also sends a direct absolute XY
+move to `MachineCamera.AbsolutePosition` with no built-in boundary
+guard. The screenshot establishes an unexpected move, not its precise
+commanded destination; compare actual device logs to discriminate the
+relative head offset move, camera target, or another queued motion.
+
+**Mitigation on the T004 task branch**:
+
+- Before selecting a head or issuing any motor command, validate an active
+  live Part Inspection capture stream with processed frame dimensions, the
+  actual camera identity, Nozzle profile with circle detection enabled, and
+  positive finite calibrated pixels/mm. Failure shows a specific blocked
+  reason with *no movement sent*.
+- Read the controller's current XY without issuing a move, then validate
+  BOTH the proposed relative head-selection destination and the configured
+  bottom-camera destination against the work area.
+- Fail closed if either planned target is within 5 mm of an XY travel limit
+  or would require over 85 mm automatic travel along either axis from
+  the reported current XY. These are temporary commissioning guardrails,
+  not the final motion planning architecture.
+- Log current XY, physical head offset, bottom-camera target, and work area
+  before any accepted physical move. No controller `G92` or absolute XY
+  camera approach is allowed merely because the operator opened the modal
+  while camera readiness has not been established.
+- Focused pure motion-geometry tests cover safe moves, camera on maximum
+  XY, unsafe relative tool selection, oversized automatic XY traverses,
+  invalid/non-finite input.
+
+The structural safeguards **do not prove the physical machine's coordinate
+frame, camera target, rotary reference, Z clearance, or actual controller
+behavior**. Windows WPF compilation and supervised bench verification are
+required before resuming machine-connected automation. Do not rely on the
+modal's Close button as an emergency stop.
+
 ## Motion/vision safeguards
 
 - Requires connected, homed, idle, Manual-mode machine, an installed nozzle
