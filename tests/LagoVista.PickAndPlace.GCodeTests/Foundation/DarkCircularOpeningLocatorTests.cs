@@ -144,14 +144,23 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                 var found = DarkCircularOpeningLocator.Find(
                     frame, 200, 200, 12.5, 2.0, 1.376);
                 Assert.That(found, Is.Not.Null, $"Frame {i} should retain the larger opening.");
-                Assert.That(found.DiameterMm, Is.GreaterThan(1.40));
+                Assert.That(found.DiameterMm, Is.GreaterThan(1.40).And.LessThanOrEqualTo(1.70));
                 observations.Add(found);
             }
 
             Assert.That(DarkCircularOpeningLocator.TryValidate(
                 observations, 12.5, out var tune, out var reason), Is.True, reason);
             Assert.That(tune.GoodFrames, Is.EqualTo(24));
-            Assert.That(tune.DiameterMm, Is.GreaterThan(1.40));
+            Assert.That(tune.DiameterMm, Is.GreaterThan(1.40).And.LessThanOrEqualTo(1.70));
+        }
+
+        [Test]
+        public void RejectsOpeningAboveThePhysicalMaximumOf1Point7Mm()
+        {
+            // An 11 px radius at 12.5 px/mm is approximately 1.76 mm.
+            var frame = MakeLargeNozzleScene(100, 100, 11);
+            Assert.That(DarkCircularOpeningLocator.Find(
+                frame, 200, 200, 12.5, 2.0, 1.376), Is.Null);
         }
 
         [Test]

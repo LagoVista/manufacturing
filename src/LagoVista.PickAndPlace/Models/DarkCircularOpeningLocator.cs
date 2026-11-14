@@ -45,7 +45,7 @@ namespace LagoVista.PickAndPlace.Models
         // left-head target. Keep a physical upper bound, but do not put it
         // within one pixel of a valid tuned diameter at 12.5 px/mm.
         public const double MinimumOpeningDiameterMm = 0.10;
-        public const double MaximumOpeningDiameterMm = 2.00;
+        public const double MaximumOpeningDiameterMm = 1.70;
 
         public static double EffectiveAcquisitionRadiusPixels(int width, int height,
             double pixelsPerMm, double searchRadiusMm)
