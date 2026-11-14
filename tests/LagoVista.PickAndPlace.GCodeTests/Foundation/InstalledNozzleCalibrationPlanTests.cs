@@ -20,7 +20,7 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         [Test]
         public void FindsInstalledNozzlesWithoutSelectingNavigationTool()
         {
-            var machine = new Machine { ToolHeads = new ObservableCollection<MachineToolHead>
+            var machine = new LagoVista.Manufacturing.Models.Machine { ToolHeads = new ObservableCollection<MachineToolHead>
             {
                 Head(2, null), Head(1, "left-nozzle")
             }};
@@ -33,7 +33,7 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         [Test]
         public void DiscoversBothHeadsInStableOrder()
         {
-            var machine = new Machine { ToolHeads = new ObservableCollection<MachineToolHead>
+            var machine = new LagoVista.Manufacturing.Models.Machine { ToolHeads = new ObservableCollection<MachineToolHead>
             {
                 Head(2,"right-nozzle"), Head(1,"left-nozzle")
             }};
@@ -56,7 +56,7 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         [Test]
         public void NoInstalledNozzlesProducesNoCalibrationTarget()
         {
-            var machine = new Machine {ToolHeads = new ObservableCollection<MachineToolHead>
+            var machine = new LagoVista.Manufacturing.Models.Machine {ToolHeads = new ObservableCollection<MachineToolHead>
             {
                 Head(1,null),Head(2,null)
             }};
