@@ -196,6 +196,12 @@ namespace LagoVista.PickAndPlace
             set
             {
                 _settings = value;
+                // Machine settings can be loaded or replaced independently
+                // of motion state. Never inherit runout calibration from a
+                // previous app/machine session.
+                if (_settings?.ToolHeads != null)
+                    foreach (var head in _settings.ToolHeads)
+                        head?.InvalidateRunoutCalibration();
                 RaisePropertyChanged();
                 RaisePropertyChanged(nameof(IsPnPMachine));
             }
