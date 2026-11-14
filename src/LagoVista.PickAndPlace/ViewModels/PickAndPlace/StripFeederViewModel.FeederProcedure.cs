@@ -1,4 +1,5 @@
 using LagoVista.Core.Validation;
+using LagoVista.Core.Models.Drawing;
 using LagoVista.Manufacturing.Models;
 using LagoVista.Manufacturing.Models.Operations;
 using LagoVista.PickAndPlace.Models;
@@ -72,7 +73,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         private async Task<bool> RunFeederPhaseAsync(
             StripFeeder feeder, StripFeederRow row,
-            StripFeederCalibrationScope scope, CancellationToken token)
+            StripFeederCalibrationScope scope, string expectedId, CancellationToken token)
         {
             if (!ReferenceEquals(CurrentRow, row) ||
                 !ReferenceEquals(Current, feeder) || Machine == null)
@@ -102,6 +103,21 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         token.ThrowIfCancellationRequested();
                         var active = operation.Current.ActiveStepKey;
                         FindFlowStep(active, rowKey)?.Begin(operation.StatusText);
+                        // Verify the physical barcode BEFORE committing the
+                        // shared feeder origin offset. A wrong installed feeder
+                        // must not alter persistent calibration settings.
+                        if (scope == StripFeederCalibrationScope.FeederOrigin &&
+                            active == "save-origin" &&
+                            !await VerifyBarcodeAndReturnToOriginAsync(
+                                feeder, operation, expectedId, ct))
+                        {
+                            FindFlowStep(active, rowKey)?.Fail(FeederFlowStatus);
+                            return new MachineOperationActionResult
+                            {
+                                Successful = false,
+                                ErrorMessage = FeederFlowStatus
+                            };
+                        }
                         var result = await operation.ExecuteAutoNextAsync(ct);
                         RefreshFlowStepEvidence(operation, rowKey);
                         if (!result.Successful)
@@ -121,6 +137,95 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         $"Calibration stopped at {operation.Current.ActiveStepKey}.");
                 return true;
             }
+        }
+
+        private async Task<bool> VerifyBarcodeAndReturnToOriginAsync(
+            StripFeeder feeder, StripFeederCalibrationRunner operation,
+            string expectedId, CancellationToken token)
+        {
+            var barcodeStep = FindFlowStep("barcode", null);
+            barcodeStep?.Begin("Scanning all 11 barcode bars; verifying CRC-2 and feeder identity.");
+            var machine = Machine;
+            if (machine == null || !machine.Connected ||
+                machine.Mode != OperatingMode.Manual)
+                return FailBarcode(barcodeStep, "Machine unavailable or not in Manual mode.");
+
+            token.ThrowIfCancellationRequested();
+            var centered = await machine.GetCurrentLocationAsync(5000);
+            if (!centered.Successful || centered.Result == null)
+                return FailBarcode(barcodeStep,
+                    "Could not capture the visually centered feeder origin position.");
+
+            // Derive a provisional origin offset solely to aim the EXISTING
+            // barcode framing logic. It remains in-memory until identity is
+            // confirmed; saving is exclusively owned by the runner afterward.
+            var calculated = FindLocation(StripFeederLocationTypes.FeederOrigin);
+            var capture = machine.PositionImageCaptureService;
+            if (!calculated.Successful || calculated.Result == null ||
+                capture?.Camera == null ||
+                !FeederOriginCalibrationMath.TryCalculate(
+                    calculated.Result, centered.Result,
+                    capture.Camera.EffectivePixelsPerMM,
+                    positionStable: true, centered: true, out var provisional))
+                return FailBarcode(barcodeStep, "Unable to derive a safe provisional feeder origin.");
+
+            var previous = new Point2D<double>(
+                feeder.OriginOffset.X, feeder.OriginOffset.Y);
+            try
+            {
+                feeder.OriginOffset = provisional;
+                FrameFeederBarcode();
+                var barcode = await ScanFeederBarcodeAsync();
+                if (!barcode.Successful)
+                    return FailBarcode(barcodeStep,
+                        "Full feeder barcode read failed: " + barcode.ErrorMessage);
+                if (!String.Equals(barcode.Result, expectedId,
+                    StringComparison.OrdinalIgnoreCase))
+                    return FailBarcode(barcodeStep,
+                        $"Feeder ID mismatch: expected {expectedId}, read {barcode.Result}. No calibration offset saved.");
+
+                barcodeStep?.Pass(
+                    $"Matched feeder {barcode.Result}; full 11-bar scan, CRC-2 verified.");
+                operation.RecordBarcodeIdentityEvidence(expectedId, barcode.Result);
+
+                // The scan may move as far as 18 mm along the barcode.
+                // Return to the measured center and reacquire a fresh corner
+                // before the existing runner commits any origin offset.
+                token.ThrowIfCancellationRequested();
+                machine.SetVisionProfile(CameraTypes.Position,
+                    VisionProfile.VisionProfile_FeederOrigin);
+                machine.SendSafeMoveHeight();
+                var safe = await machine.SpinUntilIdleAsync(10000);
+                if (!safe.Successful || !machine.Connected || machine.Busy)
+                    return FailFlow("Safe Z/serial idle failed returning from barcode scan.");
+
+                machine.PositionImageCaptureService?.ResetDetections();
+                machine.GotoPoint(centered.Result);
+                var moved = await machine.SpinUntilIdleAsync(30000);
+                if (!moved.Successful)
+                    return FailFlow("Unable to return to measured feeder origin after barcode scan: " + moved.ErrorMessage);
+                await Task.Delay(200, token);
+                var actual = await machine.GetCurrentLocationAsync(5000);
+                if (!actual.Successful || !machine.Connected || machine.Busy ||
+                    !FeederOriginCalibrationMath.SamePosition(
+                        actual.Result, centered.Result, 0.5))
+                    return FailFlow("Machine did not settle at the measured origin after barcode scan.");
+
+                return true;
+            }
+            finally
+            {
+                // Barcode mismatch, camera failure and successful verification
+                // all leave the previously saved offset unchanged in memory.
+                // The runner performs the actual save after fresh corner proof.
+                feeder.OriginOffset = previous;
+            }
+        }
+
+        private bool FailBarcode(FeederCalibrationFlowStep step, string error)
+        {
+            step?.Fail(error);
+            return FailFlow(error);
         }
 
         private bool FailFlow(string error)
@@ -184,30 +289,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 CurrentRow = firstRow;
 
                 if (!await RunFeederPhaseAsync(feeder, firstRow,
-                    StripFeederCalibrationScope.FeederOrigin, CancellationToken.None))
+                    StripFeederCalibrationScope.FeederOrigin, expectedId, CancellationToken.None))
                     return;
-
-                var barcodeStep = FindFlowStep("barcode", null);
-                barcodeStep?.Begin("Framing and reading full barcode with CRC-2 validation.");
-                // Reuse the existing framing and scan implementations; no
-                // replacement barcode decoder or speculative search motion.
-                FrameFeederBarcode();
-                var barcode = await ScanFeederBarcodeAsync();
-                if (!barcode.Successful)
-                {
-                    barcodeStep?.Fail(barcode.ErrorMessage ?? FeederBarcodeScanStatus);
-                    FailFlow("Barcode scan failed: " + barcode.ErrorMessage);
-                    return;
-                }
-                if (!String.Equals(barcode.Result, expectedId,
-                    StringComparison.OrdinalIgnoreCase))
-                {
-                    var error = $"Feeder identity mismatch: expected {expectedId}, read {barcode.Result}. No tape calibration started.";
-                    barcodeStep?.Fail(error);
-                    FailFlow(error);
-                    return;
-                }
-                barcodeStep?.Pass($"Barcode {barcode.Result} matches saved Feeder ID; CRC-2 OK.");
 
                 foreach (var row in installedRows)
                 {
@@ -221,7 +304,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     CurrentRow = row;
                     FeederFlowStatus = $"Calibrating installed tape {row.RowIndex}: {row.Component?.Text}";
                     if (!await RunFeederPhaseAsync(feeder, row,
-                        StripFeederCalibrationScope.InstalledTape, CancellationToken.None))
+                        StripFeederCalibrationScope.InstalledTape, expectedId, CancellationToken.None))
                         return;
                 }
 
