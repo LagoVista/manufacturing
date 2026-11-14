@@ -7,8 +7,8 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
 {
     public class NozzleRunoutReadinessPolicyTests
     {
-        private static Machine Settings(bool left, bool right) =>
-            new Machine
+        private static LagoVista.Manufacturing.Models.Machine Settings(bool left, bool right) =>
+            new LagoVista.Manufacturing.Models.Machine
             {
                 StagingPlates = new ObservableCollection<MachineStagingPlate>
                 {

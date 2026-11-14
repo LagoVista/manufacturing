@@ -11,7 +11,7 @@ namespace LagoVista.PickAndPlace.Models
     /// </summary>
     public static class NozzleRunoutReadinessPolicy
     {
-        public static bool TryValidate(Machine settings, bool machineFiducialCalibrated,
+        public static bool TryValidate(LagoVista.Manufacturing.Models.Machine settings, bool machineFiducialCalibrated,
             out string reason)
         {
             reason = null;
