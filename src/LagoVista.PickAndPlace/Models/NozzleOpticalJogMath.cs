@@ -12,7 +12,7 @@ namespace LagoVista.PickAndPlace.Models
     /// </summary>
     public static class NozzleOpticalJogMath
     {
-        public const double MaximumCorrectionPerAxisMm = 1.5;
+        public const double MaximumCorrectionPerAxisMm = 5;
         public const double EdgeClearanceMm = NozzleRunoutMotionPreflight.EdgeClearanceMm;
 
         public static bool TryPlan(
