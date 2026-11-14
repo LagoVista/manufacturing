@@ -37,6 +37,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private string _activeNozzleId;
         private string _cameraId;
         private double _cameraScale;
+        private bool _runoutOpticalLock;
         private bool _running;
         private bool _finished;
         private string _status = "Ready. Complete machine fiducial and two staging-plate calibrations, then this procedure configures its camera automatically.";
@@ -234,9 +235,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             TaskCompletionSource<NozzleRunoutSample> pending;
             lock (_observationGate) pending = _pendingSample;
-            if (pending == null || circle == null ||
-                circle.CameraType != CameraTypes.PartInspection ||
-                !circle.Stabilized || !circle.PositionStable || circle.RadiusMM <= 0 ||
+            var profile = _activeMachine?.PartInspectionCaptureService?.Profile;
+            if (pending == null || !_runoutOpticalLock ||
+                !NozzleRunoutVisionPreparation.MatchesLockedOpening(
+                    profile, _cameraScale, circle) ||
                 !ValidContext(out _)) return;
 
             // Do not use MVLocatedCircle.OffsetMM: that legacy property rounds
@@ -391,6 +393,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 lock (_observationGate) _pendingSample = null;
                 _activeMachine = null;
                 _activeHead = null;
+                _runoutOpticalLock = false;
                 _session = null;
                 RunoutRunning = false;
                 RunoutFinished = true;
@@ -404,6 +407,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
                 _activeMachine = machine;
                 _activeHead = tool;
+                _runoutOpticalLock = false;
                 _activeNozzleId = Convert.ToString(tool.CurrentNozzle.Id);
                 RaisePropertyChanged(nameof(ToolHeadName));
                 RaisePropertyChanged(nameof(NozzleName));
@@ -600,6 +604,142 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 }
                 Pass(positionStep,$"Head {tool.HeadIndex}, nozzle {_activeNozzleId}, {_cameraScale:F1} px/mm.",
                     MachineOperationVerificationKind.MachineObserved,_cameraScale);
+
+                // The optical detector is always retuned for THIS installed
+                // nozzle and the current bottom-camera scale. Previously saved
+                // image-tuning results (including old pixels/mm) are not a
+                // prerequisite or substitute for fresh runout evidence.
+                var tuneStep = Step("tune-image");
+                tuneStep.Begin($"Auto-tuning the dark opening for Head {tool.HeadIndex} from 24 fresh camera frames.");
+                if (!ValidContext(out contextError) ||
+                    !await MotionIdleAsync(CancellationToken.None))
+                {
+                    Stop(tuneStep, contextError ?? "Machine was not idle for nozzle image acquisition.");
+                    return false;
+                }
+                var tuneResponse = await capture.TuneNozzleOpeningAsync();
+                if (!tuneResponse.Successful || tuneResponse.Result == null)
+                {
+                    Stop(tuneStep, "Nozzle opening could not be auto-tuned: " +
+                        (tuneResponse.ErrorMessage ?? "No repeatable dark opening."));
+                    return false;
+                }
+                if (!ValidContext(out contextError) ||
+                    !await MotionIdleAsync(CancellationToken.None) ||
+                    !NozzleRunoutVisionPreparation.TryLockAdaptiveOpening(
+                        capture.Profile, _cameraScale, tuneResponse.Result, out var tuneError))
+                {
+                    Stop(tuneStep, contextError ?? tuneError ??
+                        "Nozzle optical tune was invalidated before it could be applied.");
+                    return false;
+                }
+                _runoutOpticalLock = true;
+                capture.ResetDetections();
+                var tuned = tuneResponse.Result;
+                Pass(tuneStep,
+                    $"Head {tool.HeadIndex}: {tuned.GoodFrames}/{tuned.TotalFrames} frames; " +
+                    $"opening {tuned.DiameterMm:F3} mm, contrast {tuned.MedianContrast:F1}, " +
+                    $"max center drift {tuned.MaxCenterDeviationMm:F3} mm; {_cameraScale:F1} px/mm. " +
+                    "Adaptive dark-opening detection locked for this run (not persisted).",
+                    MachineOperationVerificationKind.VisionVerified, _cameraScale);
+
+                // The fixed bottom camera sees the nozzle move WITH the
+                // gantry. Use the same reverse-offset geometry as the manual
+                // bottom-camera Jog; do not move until a stable, scale-locked
+                // circle and current physical travel envelope are verified.
+                var centerStep = Step("center-nozzle");
+                centerStep.Begin("Observing the locked opening and centering with at most three bounded XY adjustments.");
+                var tolerance = capture.Profile.ErrorToleranceMM > 0
+                    ? Math.Min(capture.Profile.ErrorToleranceMM, 0.10) : 0.10;
+                var previousDistance = Double.PositiveInfinity;
+                var centered = false;
+                for (var centerAttempt = 0; centerAttempt <= 3; centerAttempt++)
+                {
+                    if (!ValidContext(out contextError) ||
+                        !await MotionIdleAsync(CancellationToken.None))
+                    {
+                        Stop(centerStep, contextError ?? "Machine was not idle before nozzle centering.");
+                        return false;
+                    }
+                    var observation = await ObserveFreshCircleAsync(0, CancellationToken.None);
+                    if (observation == null)
+                    {
+                        Stop(centerStep, "Could not reacquire the scale-locked dark opening for optical centering.");
+                        return false;
+                    }
+                    var distance = Math.Sqrt(observation.Xmm * observation.Xmm +
+                                             observation.Ymm * observation.Ymm);
+                    if (centerAttempt > 0 && distance > previousDistance + 0.08)
+                    {
+                        Stop(centerStep, $"Optical centering moved the detected opening away from center " +
+                            $"({previousDistance:F3} -> {distance:F3} mm). No further jogging or rotation.");
+                        return false;
+                    }
+                    if (Math.Abs(observation.Xmm) <= tolerance &&
+                        Math.Abs(observation.Ymm) <= tolerance)
+                    {
+                        Pass(centerStep,
+                            $"Head {tool.HeadIndex} centered: X={observation.Xmm:+0.000;-0.000;0.000}, " +
+                            $"Y={observation.Ymm:+0.000;-0.000;0.000} mm after {centerAttempt} correction(s).",
+                            MachineOperationVerificationKind.VisionVerified, _cameraScale);
+                        centered = true;
+                        break;
+                    }
+                    if (centerAttempt == 3)
+                    {
+                        Stop(centerStep, $"Nozzle is still off-center after three bounded corrections: " +
+                            $"X={observation.Xmm:F3}, Y={observation.Ymm:F3} mm.");
+                        return false;
+                    }
+
+                    var before = await machine.GetCurrentLocationAsync(5000);
+                    if (!before.Successful || before.Result == null ||
+                        !ValidContext(out contextError) || machine.Busy)
+                    {
+                        Stop(centerStep, contextError ??
+                            "Could not verify controller XY before optical centering; no movement sent.");
+                        return false;
+                    }
+                    var correctionObservation = new Point2D<double>(
+                        observation.Xmm, observation.Ymm);
+                    if (!NozzleOpticalJogMath.TryPlan(
+                        before.Result, correctionObservation, tool.Offset,
+                        machine.Settings.WorkAreaSize, out var jog, out var jogReason))
+                    {
+                        Stop(centerStep, "Nozzle optical centering blocked: " + jogReason);
+                        return false;
+                    }
+                    previousDistance = distance;
+                    machine.AddStatusMessage(StatusMessageTypes.Info,
+                        $"Runout head {tool.HeadIndex} centering {centerAttempt + 1}/3: " +
+                        $"observed ({observation.Xmm:+0.000;-0.000;0.000}," +
+                        $"{observation.Ymm:+0.000;-0.000;0.000}) mm, " +
+                        $"jog ({jog.X:+0.000;-0.000;0.000},{jog.Y:+0.000;-0.000;0.000}) mm.");
+                    // Stay at optical inspection height; do not alter Z.
+                    machine.GotoPoint(jog, relativeMove: true);
+                    if (!await MotionIdleAsync(CancellationToken.None))
+                    {
+                        Stop(centerStep, "Optical centering XY move did not settle; stopping before rotation.");
+                        return false;
+                    }
+                    var after = await machine.GetCurrentLocationAsync(5000);
+                    if (!after.Successful || after.Result == null ||
+                        !ValidContext(out contextError) ||
+                        Math.Abs(after.Result.X - before.Result.X - jog.X) > 0.15 ||
+                        Math.Abs(after.Result.Y - before.Result.Y - jog.Y) > 0.15)
+                    {
+                        Stop(centerStep, contextError ??
+                            "Controller XY did not confirm the requested centering displacement. No further motion.");
+                        return false;
+                    }
+                    capture.ResetDetections();
+                }
+                if (!centered)
+                {
+                    Stop(centerStep, "The verified dark opening was not centered; rotation has not started.");
+                    return false;
+                }
+
                 var samples = new List<NozzleRunoutSample>();
 
                 foreach (var angle in NozzleRunoutMath.SweepAngles())
