@@ -241,8 +241,138 @@ namespace LagoVista.PickAndPlace.App.Services
             return InvokeResult.Success;
         }
 
+        private bool _bottomNozzleJogRunning;
+
+        /// <summary>
+        /// The fixed bottom camera sees the moving nozzle, not a stationary
+        /// feature beneath a moving camera. Unlike top-camera centering, its
+        /// observed offset must be negated to move the nozzle toward center.
+        /// This does one small operator-triggered XY jog, never an unbounded
+        /// sequence or a change to Z/tool selection.
+        /// </summary>
+        private async Task CenterBottomNozzleAsync()
+        {
+            if (_bottomNozzleJogRunning)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                    "A bottom-camera nozzle jog is already in progress.");
+                return;
+            }
+            _bottomNozzleJogRunning = true;
+            try
+            {
+                var machine = Machine;
+                var camera = Camera;
+                var profile = Profile;
+                var head = machine?.CurrentMachineToolHead;
+                if (camera == null || camera.CameraType?.Value != CameraTypes.PartInspection ||
+                    (profile?.Key != VisionProfile.VisionProfile_Nozzle &&
+                     profile?.Key != VisionProfile.VisionProfile_NozzleCalibration) ||
+                    !IsCapturing || machine == null || !machine.Connected ||
+                    machine.Mode != OperatingMode.Manual || !machine.WasMachineHomed ||
+                    !machine.WasMachinOriginCalibrated || machine.Busy ||
+                    head?.CurrentNozzle == null || head.Offset == null ||
+                    camera.EffectivePixelsPerMM <= 0)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                        "Nozzle jog requires a live bottom camera, stable Nozzle profile, " +
+                        "installed selected head, and an idle, homed machine in Manual mode.");
+                    return;
+                }
+
+                var candidates = _shapeDetectorService.FoundCircles
+                    .Where(item => item.CameraType == CameraTypes.PartInspection &&
+                                   item.Stabilized && item.PositionStable &&
+                                   item.RadiusMM > 0)
+                    .ToList();
+                if (candidates.Count != 1)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                        $"Bottom-camera jog requires exactly one stable nozzle circle; found {candidates.Count}. No movement sent.");
+                    return;
+                }
+
+                var circle = candidates[0];
+                var pixelsPerMm = camera.EffectivePixelsPerMM;
+                // Use full pixel resolution. MVLocatedCircle.OffsetMM rounds to
+                // 0.1 mm and can leave a visible residual centering error.
+                var observation = new Point2D<double>(
+                    circle.OffsetPixels.X / pixelsPerMm,
+                    -circle.OffsetPixels.Y / pixelsPerMm);
+                if (Math.Abs(observation.X) <= profile.ErrorToleranceMM &&
+                    Math.Abs(observation.Y) <= profile.ErrorToleranceMM)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Info,
+                        "Nozzle is already centered within the vision profile's tolerance.");
+                    return;
+                }
+
+                var location = await machine.GetCurrentLocationAsync(5000);
+                if (!location.Successful || location.Result == null)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                        "Could not read controller XY for bottom-camera nozzle jog; no movement sent.");
+                    return;
+                }
+
+                // Awaiting M114 gives another opportunity for motion, tool
+                // selection, or the tracked target to change. Revalidate all.
+                if (!ReferenceEquals(Machine, machine) || !ReferenceEquals(Camera, camera) ||
+                    !ReferenceEquals(Profile, profile) ||
+                    !ReferenceEquals(machine.CurrentMachineToolHead, head) ||
+                    !machine.Connected || machine.Mode != OperatingMode.Manual ||
+                    !machine.WasMachineHomed || machine.Busy || !IsCapturing ||
+                    !_shapeDetectorService.FoundCircles.Any(c => ReferenceEquals(c, circle)) ||
+                    !circle.Stabilized || !circle.PositionStable ||
+                    Math.Abs(circle.OffsetPixels.X / pixelsPerMm - observation.X) > 0.10 ||
+                    Math.Abs(-circle.OffsetPixels.Y / pixelsPerMm - observation.Y) > 0.10)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                        "Machine or nozzle observation changed during jog preflight; reacquire the circle. No movement sent.");
+                    return;
+                }
+
+                if (!NozzleOpticalJogMath.TryPlan(location.Result, observation,
+                    head.Offset, machine.Settings.WorkAreaSize,
+                    out var relativeJog, out var reason))
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                        "Bottom-camera nozzle jog blocked: " + reason);
+                    return;
+                }
+
+                Machine.AddStatusMessage(StatusMessageTypes.Info,
+                    $"Bottom-camera nozzle jog: observed X={observation.X:+0.000;-0.000;0.000}, " +
+                    $"Y={observation.Y:+0.000;-0.000;0.000} mm; physical XY correction " +
+                    $"X={relativeJog.X:+0.000;-0.000;0.000}, " +
+                    $"Y={relativeJog.Y:+0.000;-0.000;0.000} mm.");
+
+                // The nozzle is already at bottom-camera inspection height.
+                // Keep Z stationary, send only the bounded XY correction.
+                machine.GotoPoint(relativeJog, relativeMove: true);
+                _shapeDetectorService.Reset(); // Require fresh stable detection for another jog.
+            }
+            catch (Exception ex)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                    "Bottom-camera nozzle jog stopped: " + ex.Message);
+            }
+            finally
+            {
+                _bottomNozzleJogRunning = false;
+            }
+        }
+
         private void CenterFoundItem()
         {
+            if (CameraType == CameraTypes.PartInspection &&
+                (Profile?.Key == VisionProfile.VisionProfile_Nozzle ||
+                 Profile?.Key == VisionProfile.VisionProfile_NozzleCalibration))
+            {
+                _ = CenterBottomNozzleAsync();
+                return;
+            }
+
             if (Profile?.Key == VisionProfile.VisionProfile_FeederOrigin)
             {
                 // Existing second Play button: only a stable white cut corner
