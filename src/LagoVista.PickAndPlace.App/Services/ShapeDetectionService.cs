@@ -208,7 +208,32 @@ namespace LagoVista.PickAndPlace.App.Services
                     DrawCircleCandidateAnnotation(img, camera, circles[index], size, index + 1);
             }
 
-            
+            // A failed nozzle acquisition must still tell the operator which
+            // calibration is actually active. No measurements are drawn near
+            // the opening itself. This is diagnostic UI only, not input.
+            var activeProfile = camera.CurrentVisionProfile;
+            var nozzleProfile = activeProfile.Key == VisionProfile.VisionProfile_Nozzle ||
+                                activeProfile.Key == VisionProfile.VisionProfile_NozzleCalibration;
+            if (nozzleProfile && circles.Count == 0 && size.Width >= 260)
+            {
+                var scale = camera.EffectivePixelsPerMM;
+                var source = activeProfile.PixelsPerMM.HasValue ? "PROFILE" : "CAMERA";
+                var enabled = activeProfile.PerformShapeDetection && activeProfile.FindCircles;
+                var state = !enabled ? "DETECTION OFF" :
+                    activeProfile.UseAdaptiveDarkOpening ? "NO OPENING LOCK" : "NO HOUGH CIRCLE";
+                var expected = DarkOpeningScaleGuard.EffectiveExpectedDiameterMm(
+                    activeProfile.ExpectedDarkOpeningDiameterMm,
+                    activeProfile.DarkOpeningTunedPixelsPerMM, scale);
+                var mode = expected > 0 ? $"DIA {expected:F2} MM" : "DIA REACQUIRE";
+                DrawOutlinedCircleText(img.Image,
+                    $"{state}  {scale:F1} PX/MM ({source})",
+                    new Point(10, 22), 0.46, 1, new MCvScalar(0, 255, 255));
+                DrawOutlinedCircleText(img.Image,
+                    $"SEARCH {activeProfile.TargetImageRadius:F1} MM " +
+                    $"({activeProfile.TargetImageRadius * scale:F0} PX)  {mode}",
+                    new Point(10, 43), 0.43, 1, new MCvScalar(0, 255, 255));
+            }
+
             if (camera.CurrentVisionProfile.LocateByPads)
             {
                 foreach(var rect in _rectangleDetector.FoundRectangles)
