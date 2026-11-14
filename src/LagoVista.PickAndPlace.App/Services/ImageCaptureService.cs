@@ -32,6 +32,7 @@ namespace LagoVista.PickAndPlace.App.Services
     {
         private bool _running;
 
+        public bool IsCapturing => _running && _capture != null;
         public System.Drawing.Size CaptureFrameSize { get; private set; }
 
         private long _processedRectangleFrameId;

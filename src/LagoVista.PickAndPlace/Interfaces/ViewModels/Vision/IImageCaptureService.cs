@@ -21,6 +21,10 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
         // the actual capture resolution selected by the Windows camera driver.
         Size CaptureFrameSize { get; }
 
+        // An active live camera stream is required before an automated
+        // calibration procedure is allowed to move the machine.
+        bool IsCapturing { get; }
+
         // A fresh, processed position-camera frame with the already-configured
         // part-in-tape rectangle detector's results. Null until a valid frame.
         PocketRectangleFrameObservation LatestRectangleFrame { get; }
