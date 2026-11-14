@@ -495,12 +495,21 @@ namespace LagoVista.PickAndPlace.App.Services
                     sample.White <= AutoTuneWhiteCeiling;
                 var stable = sample.DarkRange <= 6.0 && sample.WhiteRange <= 10.0;
 
-                if (darkInRange && whiteInRange && stable)
+                // The narrow dark/white bands are a preferred reference, not
+                // the only usable exposure. A camera may have excellent,
+                // stable black/white contrast without hitting both exact
+                // brightness targets, especially with different lighting.
+                var preferred = darkInRange && whiteInRange && stable;
+                var usable = CameraExposureQuality.IsUsable(
+                    sample.Dark, sample.White, sample.DarkRange, sample.WhiteRange);
+                if (preferred || usable)
                 {
                     Camera.Exposure = candidate;
                     _lastExposure = candidate;
                     Machine.AddStatusMessage(StatusMessageTypes.Info,
-                        $"Camera Auto-Tune completed. Exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}.");
+                        $"Camera Auto-Tune completed ({(preferred ? "preferred" : "usable contrast")}). " +
+                        $"Exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}, " +
+                        $"contrast={sample.White - sample.Dark:F1}.");
                     return InvokeResult.Success;
                 }
 
@@ -546,7 +555,10 @@ namespace LagoVista.PickAndPlace.App.Services
             {
                 var sample = lastSample.Value;
                 return InvokeResult.FromError(
-                    $"Camera Auto-Tune did not converge after {AutoTuneMaximumIterations} sampling attempts. Last exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}, darkRange={sample.DarkRange:F1}, whiteRange={sample.WhiteRange:F1}.");
+                    $"Camera Auto-Tune did not find stable high-contrast exposure after {AutoTuneMaximumIterations} sampling attempts. " +
+                    $"Last exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}, " +
+                    $"contrast={sample.White - sample.Dark:F1}, darkRange={sample.DarkRange:F1}, " +
+                    $"whiteRange={sample.WhiteRange:F1}. Check fiducial framing, lighting and camera manual-exposure support.");
             }
 
             return InvokeResult.FromError(
@@ -726,14 +738,28 @@ namespace LagoVista.PickAndPlace.App.Services
                         var completion = _autoTuneExposureCompletion;
                         _autoTuneExposureRequested = false;
 
+                        // A failed sample can throw after changing the USB camera's
+                        // physical exposure. Restore the saved baseline on every
+                        // exceptional path, not just on normal non-convergence.
+                        var originalExposure = Camera?.Exposure ?? 0;
                         try
                         {
                             completion?.TrySetResult(await RunAutoTuneExposureAsync());
                         }
                         catch (Exception ex)
                         {
+                            try
+                            {
+                                if (_capture != null && Camera != null)
+                                    RestoreExposure(originalExposure);
+                            }
+                            catch (Exception restoreEx)
+                            {
+                                Machine.DebugWriteLine(
+                                    $"[AutoTuneExposure] Could not restore exposure: {restoreEx.Message}");
+                            }
                             completion?.TrySetResult(
-                                InvokeResult.FromError($"Camera Auto-Tune failed: {ex.Message}"));
+                                InvokeResult.FromError($"Camera Auto-Tune failed: {ex.Message}. Previous exposure was preserved in machine settings."));
                         }
                         finally
                         {
