@@ -54,6 +54,61 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void ChangingTheInstalledNozzleInvalidatesRunout()
+        {
+            var head = Head(1, "original");
+            var offsets = Enumerable.Range(0, 12).Select(i => new RotationOffset
+            {
+                Angle = i * 30,
+                Offset = new LagoVista.Core.Models.Drawing.Point2D<double>(0.01, 0.02)
+            }).ToList();
+            head.CompleteRunoutCalibration("original", 90, offsets);
+            Assert.That(head.IsCalibrated, Is.True);
+            Assert.That(head.RotationOffsets.Count, Is.EqualTo(12));
+            Assert.That(head.RunoutZeroAngle, Is.EqualTo(90));
+
+            head.CurrentNozzle =
+                EntityHeader<ToolNozzleTip>.Create("replacement", "replacement", "N2");
+            Assert.That(head.IsCalibrated, Is.False);
+            Assert.That(head.RotationOffsets, Is.Empty);
+            Assert.That(head.RunoutZeroAngle, Is.Null);
+        }
+
+        [Test]
+        public void ReattachingTheSameNozzleStillInvalidatesRunout()
+        {
+            var head = Head(1, "original");
+            var offsets = Enumerable.Range(0, 12).Select(i => new RotationOffset
+                { Angle = i * 30, Offset = new LagoVista.Core.Models.Drawing.Point2D<double>() }).ToList();
+            head.CompleteRunoutCalibration("original", 90, offsets);
+            head.CurrentNozzle =
+                EntityHeader<ToolNozzleTip>.Create("original", "original", "N1");
+            Assert.That(head.IsCalibrated, Is.False);
+        }
+
+        [Test]
+        public void CalibrationCannotBeAppliedToTheWrongNozzle()
+        {
+            var head = Head(1, "original");
+            var offsets = Enumerable.Range(0, 12).Select(i => new RotationOffset
+                { Angle = i * 30, Offset = new LagoVista.Core.Models.Drawing.Point2D<double>() }).ToList();
+            Assert.Throws<System.InvalidOperationException>(() =>
+                head.CompleteRunoutCalibration("other", 90, offsets));
+            Assert.That(head.IsCalibrated, Is.False);
+        }
+
+        [Test]
+        public void RuntimeCalibrationFlagIsNotPersisted()
+        {
+            var attribute = typeof(MachineToolHead).GetProperty(nameof(MachineToolHead.IsCalibrated))
+                .GetCustomAttributes(typeof(Newtonsoft.Json.JsonIgnoreAttribute), true);
+            Assert.That(attribute.Length, Is.EqualTo(1));
+            var offsetsAttribute = typeof(MachineToolHead).GetProperty(nameof(MachineToolHead.RotationOffsets))
+                .GetCustomAttributes(typeof(Newtonsoft.Json.JsonIgnoreAttribute), true);
+            Assert.That(offsetsAttribute.Length, Is.EqualTo(1));
+        }
+
+        [Test]
         public void NoInstalledNozzlesProducesNoCalibrationTarget()
         {
             var machine = new LagoVista.Manufacturing.Models.Machine {ToolHeads = new ObservableCollection<MachineToolHead>
