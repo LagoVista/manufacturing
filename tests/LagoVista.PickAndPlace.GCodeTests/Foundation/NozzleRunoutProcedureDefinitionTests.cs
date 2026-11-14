@@ -13,13 +13,15 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         {
             var procedure=NozzleRunoutProcedureDefinition.Create();
             Assert.That(procedure.Key,Is.EqualTo("nozzle-rotation-runout"));
-            Assert.That(procedure.Steps.Count,Is.EqualTo(18));
+            Assert.That(procedure.Steps.Count,Is.EqualTo(20));
             Assert.That(procedure.Steps.Take(4).Select(s=>s.Key),
                 Is.EqualTo(new[]{"readiness","camera","move-plan","position"}));
-            Assert.That(procedure.Steps.Skip(4).Take(12).Select(s=>s.Key),
+            Assert.That(procedure.Steps.Skip(4).Take(2).Select(s=>s.Key),
+                Is.EqualTo(new[]{"tune-image","center-nozzle"}));
+            Assert.That(procedure.Steps.Skip(6).Take(12).Select(s=>s.Key),
                 Is.EqualTo(NozzleRunoutMath.SweepAngles().Select(x=>"angle-"+x)));
-            Assert.That(procedure.Steps[16].Key,Is.EqualTo("high-point"));
-            Assert.That(procedure.Steps[17].Key,Is.EqualTo("result"));
+            Assert.That(procedure.Steps[18].Key,Is.EqualTo("high-point"));
+            Assert.That(procedure.Steps[19].Key,Is.EqualTo("result"));
             Assert.That(procedure.Steps.Take(4).All(s=>
                 s.RequiredVerification==MachineOperationVerificationKind.MachineObserved),Is.True);
             Assert.That(procedure.Steps.Skip(4).All(s=>
@@ -39,6 +41,14 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                 s.RecordEvidence(new MachineOperationEvidence{
                     RunId=s.Snapshot.RunId,StepKey=key,Name="Verified " + key,
                     Verification=MachineOperationVerificationKind.MachineObserved,
+                    CapturedAtUtc=DateTimeOffset.UtcNow});
+                s.CompleteActiveStep(key,DateTimeOffset.UtcNow);
+            }
+            foreach(var key in new[]{"tune-image","center-nozzle"})
+            {
+                s.RecordEvidence(new MachineOperationEvidence{
+                    RunId=s.Snapshot.RunId,StepKey=key,Name="Verified " + key,
+                    Verification=MachineOperationVerificationKind.VisionVerified,
                     CapturedAtUtc=DateTimeOffset.UtcNow});
                 s.CompleteActiveStep(key,DateTimeOffset.UtcNow);
             }

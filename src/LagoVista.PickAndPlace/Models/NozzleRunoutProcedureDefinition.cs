@@ -14,7 +14,7 @@ namespace LagoVista.PickAndPlace.Models
             var definition = new MachineOperationDefinition
             {
                 Key="nozzle-rotation-runout",
-                Version=2,
+                Version=3,
                 Title="Nozzle Runout Calibration"
             };
             definition.Steps.Add(new MachineOperationStepDefinition
@@ -40,6 +40,19 @@ namespace LagoVista.PickAndPlace.Models
                 Key="position", Title="Position over bottom camera",
                 Instructions="Require homed Manual machine, safe Z and verified camera position.",
                 RequiredVerification=MachineOperationVerificationKind.MachineObserved
+            });
+
+            definition.Steps.Add(new MachineOperationStepDefinition
+            {
+                Key="tune-image", Title="Auto-tune and verify nozzle opening",
+                Instructions="Analyze 24 fresh frames and enable a scale-verified dark-opening locator for this installed head.",
+                RequiredVerification=MachineOperationVerificationKind.VisionVerified
+            });
+            definition.Steps.Add(new MachineOperationStepDefinition
+            {
+                Key="center-nozzle", Title="Optically center nozzle over bottom camera",
+                Instructions="Use bounded, camera-verified XY adjustments; require a fresh centered observation before rotation.",
+                RequiredVerification=MachineOperationVerificationKind.VisionVerified
             });
 
             foreach(var angle in NozzleRunoutMath.SweepAngles())

@@ -1,4 +1,5 @@
 using LagoVista.Manufacturing.Models;
+using System;
 
 namespace LagoVista.PickAndPlace.Models
 {
@@ -28,5 +29,69 @@ namespace LagoVista.PickAndPlace.Models
             }
             return true;
         }
+
+        /// <summary>
+        /// Only lock a fresh, proven optical opening. This is a transient
+        /// per-head runout setting; the procedure must not silently persist
+        /// one head's diameter for another head.
+        /// </summary>
+        public static bool TryLockAdaptiveOpening(VisionProfile profile,
+            double cameraPixelsPerMm, DarkCircularOpeningLocator.TuneResult tuned,
+            out string reason)
+        {
+            reason = null;
+            if (profile == null || profile.Key != VisionProfile.VisionProfile_Nozzle ||
+                !Finite(cameraPixelsPerMm) || cameraPixelsPerMm <= 0 ||
+                tuned == null || !Finite(tuned.DiameterMm) ||
+                tuned.DiameterMm < 0.10 || tuned.DiameterMm > 1.40 ||
+                !Finite(tuned.MedianContrast) || tuned.MedianContrast < 35 ||
+                !Finite(tuned.MaxCenterDeviationMm) ||
+                tuned.MaxCenterDeviationMm > 0.12 ||
+                tuned.TotalFrames < 20 ||
+                tuned.GoodFrames < Math.Max(18, (int)Math.Ceiling(tuned.TotalFrames * 0.8)))
+            {
+                reason = "The bottom-camera nozzle opening did not meet diameter, contrast, and repeatability requirements.";
+                return false;
+            }
+
+            profile.ExpectedDarkOpeningDiameterMm = tuned.DiameterMm;
+            profile.DarkOpeningTunedPixelsPerMM = cameraPixelsPerMm;
+            profile.UseAdaptiveDarkOpening = true;
+            profile.FindCircles = true;
+            profile.PerformShapeDetection = true;
+            return true;
+        }
+
+        /// <summary>
+        /// Require every runout angle to measure the same verified optical
+        /// feature at the unchanged camera scale. Does not accept a fallback
+        /// Hough circle or a tracked circle from an earlier calibration.
+        /// </summary>
+        public static bool MatchesLockedOpening(VisionProfile profile,
+            double cameraPixelsPerMm, MVLocatedCircle circle)
+        {
+            if (profile == null || circle == null ||
+                profile.Key != VisionProfile.VisionProfile_Nozzle ||
+                !profile.UseAdaptiveDarkOpening ||
+                !profile.PerformShapeDetection || !profile.FindCircles ||
+                circle.CameraType != CameraTypes.PartInspection ||
+                !circle.Stabilized || !circle.PositionStable ||
+                !Finite(cameraPixelsPerMm) || cameraPixelsPerMm <= 0 ||
+                !Finite(circle.PixelsPerMM) ||
+                Math.Abs(circle.PixelsPerMM - cameraPixelsPerMm) > 0.01)
+                return false;
+
+            var expected = DarkOpeningScaleGuard.EffectiveExpectedDiameterMm(
+                profile.ExpectedDarkOpeningDiameterMm,
+                profile.DarkOpeningTunedPixelsPerMM, cameraPixelsPerMm);
+            if (expected <= 0 || !Finite(circle.RadiusPixels) || circle.RadiusPixels <= 0)
+                return false;
+
+            var diameterMm = 2 * circle.RadiusPixels / cameraPixelsPerMm;
+            return Math.Abs(diameterMm - expected) <= Math.Max(0.12, expected * 0.30);
+        }
+
+        private static bool Finite(double value) =>
+            !double.IsNaN(value) && !double.IsInfinity(value);
     }
 }
