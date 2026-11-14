@@ -225,12 +225,15 @@ namespace LagoVista.PickAndPlace.App.Services
                     activeProfile.ExpectedDarkOpeningDiameterMm,
                     activeProfile.DarkOpeningTunedPixelsPerMM, scale);
                 var mode = expected > 0 ? $"DIA {expected:F2} MM" : "DIA REACQUIRE";
+                var acquisitionPx = activeProfile.UseAdaptiveDarkOpening
+                    ? DarkCircularOpeningLocator.EffectiveAcquisitionRadiusPixels(
+                        size.Width, size.Height, scale, activeProfile.TargetImageRadius)
+                    : activeProfile.TargetImageRadius * scale;
                 DrawOutlinedCircleText(img.Image,
                     $"{state}  {scale:F1} PX/MM ({source})",
                     new Point(10, 22), 0.46, 1, new MCvScalar(0, 255, 255));
                 DrawOutlinedCircleText(img.Image,
-                    $"SEARCH {activeProfile.TargetImageRadius:F1} MM " +
-                    $"({activeProfile.TargetImageRadius * scale:F0} PX)  {mode}",
+                    $"ROI {acquisitionPx:F0} PX  BASE {activeProfile.TargetImageRadius:F1} MM  {mode}",
                     new Point(10, 43), 0.43, 1, new MCvScalar(0, 255, 255));
             }
 
