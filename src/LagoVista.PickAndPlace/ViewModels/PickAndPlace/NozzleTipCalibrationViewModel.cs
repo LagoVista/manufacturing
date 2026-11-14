@@ -2,6 +2,7 @@ using LagoVista.Core.Commanding;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.ViewModels;
 using LagoVista.Manufacturing.Models;
+using LagoVista.Manufacturing.Models.Operations;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
@@ -40,6 +41,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private int _targetAngle;
         private int _currentAngle;
         private NozzleRunoutResult _result;
+        private MachineOperationSession _session;
 
         public NozzleTipCalibrationViewModel(IMachineRepo machineRepo, ILocatorViewModel locatorViewModel)
         {
@@ -69,16 +71,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         private static ObservableCollection<FeederCalibrationFlowStep> NewPlan()
         {
-            var steps = new ObservableCollection<FeederCalibrationFlowStep>();
-            void Add(string id, string title) => steps.Add(new FeederCalibrationFlowStep
-            {
-                Number=steps.Count+1, StepKey=id, Title=title
-            });
-            Add("position", "Position installed nozzle over bottom camera");
-            foreach (var angle in NozzleRunoutMath.SweepAngles())
-                Add("angle-" + angle, $"Measure tip center at {angle:000}°");
-            Add("high-point", "Revisit maximum-Y point and verify repeatability");
-            Add("result", "Calculate logical zero and unsaved compensation preview");
+            var steps=new ObservableCollection<FeederCalibrationFlowStep>();
+            foreach(var step in NozzleRunoutProcedureDefinition.Create().Steps)
+                steps.Add(new FeederCalibrationFlowStep
+                {Number=steps.Count+1,StepKey=step.Key,Title=step.Title});
             return steps;
         }
 
@@ -210,8 +206,31 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private bool Stop(FeederCalibrationFlowStep step, string reason)
         {
             step?.Fail(reason);
+            if (_session?.Snapshot.Status == MachineOperationRunStatus.Running &&
+                _session.Snapshot.ActiveStepKey == step?.StepKey)
+                _session.BlockActiveStep(reason, DateTimeOffset.UtcNow);
             Status = "Stopped: " + reason;
             return false;
+        }
+
+        private void Pass(FeederCalibrationFlowStep step, string description,
+            MachineOperationVerificationKind kind, double? pixelsPerMm = null)
+        {
+            if (_session != null)
+            {
+                var now=DateTimeOffset.UtcNow;
+                _session.RecordEvidence(new MachineOperationEvidence
+                {
+                    RunId=_session.Snapshot.RunId, StepKey=step.StepKey,
+                    Name=step.Title, Value=description, Unit="mm",
+                    Source=$"Bottom camera / nozzle {_activeNozzleId}, tool head {_activeHead?.HeadIndex}",
+                    Verification=kind, Saved=false, CapturedAtUtc=now,
+                    VisionProfileKey=VisionProfile.VisionProfile_Nozzle,
+                    PixelsPerMm=pixelsPerMm
+                });
+                _session.CompleteActiveStep(step.StepKey,DateTimeOffset.UtcNow);
+            }
+            step.Pass(description);
         }
 
         public async Task StartAsync()
@@ -221,6 +240,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RaisePropertyChanged(nameof(RunoutSteps));
             CalibrationUpdates.Clear();
             CandidateResult = null;
+            _session = null;
             RaisePropertyChanged(nameof(CandidateZero));
             RaisePropertyChanged(nameof(RunoutSummary));
             RunoutFinished = false;
@@ -273,8 +293,18 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     return;
                 }
 
+                _session=new MachineOperationSession(
+                    NozzleRunoutProcedureDefinition.Create(),
+                    new MachineOperationTarget
+                    {
+                        MachineId=Convert.ToString(machine.Settings.Id),
+                        CameraId=_cameraId
+                    },DateTimeOffset.UtcNow);
+                _session.Start(DateTimeOffset.UtcNow);
+
                 var positionStep = Step("position");
                 positionStep.Begin("Raising to safe height, moving XY over bottom camera, then lowering selected nozzle to detection height.");
+                machine.SetAbsoluteMode();
                 machine.SendSafeMoveHeight();
                 if (!await MotionIdleAsync(CancellationToken.None, 10000))
                 {
@@ -297,7 +327,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     Stop(positionStep, "Machine was not at the configured bottom-camera location.");
                     return;
                 }
-                positionStep.Pass($"Head {tool.HeadIndex}, nozzle {_activeNozzleId}, {_cameraScale:F1} px/mm.");
+                Pass(positionStep,$"Head {tool.HeadIndex}, nozzle {_activeNozzleId}, {_cameraScale:F1} px/mm.",
+                    MachineOperationVerificationKind.MachineObserved,_cameraScale);
                 var samples = new List<NozzleRunoutSample>();
 
                 foreach (var angle in NozzleRunoutMath.SweepAngles())
@@ -312,6 +343,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     }
 
                     TargetAngle = angle;
+                    machine.SetAbsoluteMode();
                     machine.RotateToolHeadAngleAbsolute(angle);
                     if (!await MotionIdleAsync(CancellationToken.None) ||
                         !ValidContext(out contextError))
@@ -335,7 +367,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     CurrentCalibrationAngle=angle;
                     var detail=$"X {measured.Xmm:+0.000;-0.000;0.000} Y {measured.Ymm:+0.000;-0.000;0.000} mm at {measured.PixelsPerMm:F1} px/mm";
                     CalibrationUpdates.Add($"{angle:000}°  {detail}");
-                    step.Pass(detail);
+                    Pass(step,detail,MachineOperationVerificationKind.VisionVerified,measured.PixelsPerMm);
                 }
 
                 var result=NozzleRunoutMath.Analyze(samples);
@@ -347,6 +379,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 }
                 var high=Step("high-point");
                 high.Begin($"Revisiting maximum-Y measured at commanded {result.LogicalZeroAngle}°.");
+                machine.SetAbsoluteMode();
                 machine.RotateToolHeadAngleAbsolute(result.LogicalZeroAngle);
                 if (!await MotionIdleAsync(CancellationToken.None) ||
                     !ValidContext(out contextError))
@@ -362,14 +395,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     Stop(high,"High-point repeatability failed (greater than 0.1 mm difference or no stable circle).");
                     return;
                 }
-                high.Pass($"Logical zero candidate at {result.LogicalZeroAngle}°; repeat XY within 0.1 mm.");
+                Pass(high,$"Logical zero candidate at {result.LogicalZeroAngle}°; repeat XY within 0.1 mm.",
+                    MachineOperationVerificationKind.VisionVerified,second.PixelsPerMm);
 
                 var resultStep=Step("result");
                 resultStep.Begin("Calculating mean-centered compensation and logical zero; no firmware re-zero.");
                 CandidateResult=result;
                 RaisePropertyChanged(nameof(CandidateZero));
                 RaisePropertyChanged(nameof(RunoutSummary));
-                resultStep.Pass("Twelve calibrated points computed. Preview only; no machine settings or placement compensation were changed.");
+                Pass(resultStep,"Twelve calibrated points computed. Preview only; no machine settings or placement compensation were changed.",
+                    MachineOperationVerificationKind.VisionVerified,_cameraScale);
                 Status="Completed optical pilot: high-Y logical zero and runout curve verified. Data is unsaved pending Windows machine acceptance.";
             }
             catch(Exception ex)
