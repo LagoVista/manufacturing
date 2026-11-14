@@ -94,9 +94,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                 var tuned = result.Result;
                 var oldEnabled = profile.UseAdaptiveDarkOpening;
                 var oldDiameter = profile.ExpectedDarkOpeningDiameterMm;
+                var oldScale = profile.DarkOpeningTunedPixelsPerMM;
                 var oldFind = profile.FindCircles;
                 var oldPerform = profile.PerformShapeDetection;
                 profile.ExpectedDarkOpeningDiameterMm = tuned.DiameterMm;
+                profile.DarkOpeningTunedPixelsPerMM = camera.EffectivePixelsPerMM;
                 profile.UseAdaptiveDarkOpening = true;
                 profile.FindCircles = true;
                 profile.PerformShapeDetection = true;
@@ -106,6 +108,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                 {
                     profile.UseAdaptiveDarkOpening = oldEnabled;
                     profile.ExpectedDarkOpeningDiameterMm = oldDiameter;
+                    profile.DarkOpeningTunedPixelsPerMM = oldScale;
                     profile.FindCircles = oldFind;
                     profile.PerformShapeDetection = oldPerform;
                     NozzleTuneStatus = "Opening verified but could not save profile: " +

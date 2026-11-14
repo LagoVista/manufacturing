@@ -57,7 +57,11 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 var gray = input.Image as Image<Gray, byte>;
                 var opening = gray == null ? null : DarkCircularOpeningLocator.Find(
                     gray.Data, gray.Width, gray.Height, camera.EffectivePixelsPerMM,
-                    profile.TargetImageRadius, profile.ExpectedDarkOpeningDiameterMm);
+                    profile.TargetImageRadius,
+                    DarkOpeningScaleGuard.EffectiveExpectedDiameterMm(
+                        profile.ExpectedDarkOpeningDiameterMm,
+                        profile.DarkOpeningTunedPixelsPerMM,
+                        camera.EffectivePixelsPerMM));
                 circles = opening == null ? Array.Empty<CircleF>() :
                     new[] { new CircleF(new System.Drawing.PointF(
                         (float)opening.X, (float)opening.Y), (float)opening.RadiusPixels) };

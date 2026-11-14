@@ -221,6 +221,17 @@ namespace LagoVista.PickAndPlace.Models
             set => Set(ref _expectedDarkOpeningDiameterMm, Math.Round(value, 3));
         }
 
+        // The px/mm in effect when the nozzle opening's physical diameter
+        // was measured. Older profiles do not contain this field: their
+        // saved diameters must be treated as unverified after calibration.
+        private double? _darkOpeningTunedPixelsPerMM;
+        public double? DarkOpeningTunedPixelsPerMM
+        {
+            get => _darkOpeningTunedPixelsPerMM;
+            set => Set(ref _darkOpeningTunedPixelsPerMM,
+                value.HasValue ? Math.Round(value.Value, 3) : (double?)null);
+        }
+
         private bool _findCircles;
         public bool FindCircles
         {
