@@ -687,8 +687,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         // No feeder coordinates, identity or calibration settings are persisted.
         private async void ScanFeederBarcode()
         {
+            await ScanFeederBarcodeAsync();
+        }
+
+        // Both the diagnostic button and feeder-level procedure use exactly
+        // the same multi-capture, CRC-verified physical barcode scanner.
+        private async Task<InvokeResult<string>> ScanFeederBarcodeAsync()
+        {
             if (_barcodeScanInProgress || Current == null)
-                return;
+                return InvokeResult<string>.FromError("Barcode scan is busy or no feeder is selected.");
 
             _barcodeScanInProgress = true;
             FeederBarcodeScanVerified = false;
@@ -703,13 +710,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 {
                     FeederBarcodeScanStatus = "Select Frame Barcode with the position camera running first.";
                     Machine?.AddStatusMessage(StatusMessageTypes.Warning, FeederBarcodeScanStatus);
-                    return;
+                    return InvokeResult<string>.FromError(FeederBarcodeScanStatus);
                 }
                 if (Machine.Mode != OperatingMode.Manual)
                 {
                     FeederBarcodeScanStatus = "Barcode scan requires Manual machine mode.";
                     Machine.AddStatusMessage(StatusMessageTypes.Warning, FeederBarcodeScanStatus);
-                    return;
+                    return InvokeResult<string>.FromError(FeederBarcodeScanStatus);
                 }
 
                 var vertical = feeder.Orientation.Value == FeederOrientations.Vertical;
@@ -773,7 +780,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                             $"alignment {scan.LastRegistrationCorrectionMm:+0.00;-0.00;0.00} mm";
                         FeederBarcodeScanVerified = true;
                         Machine.AddStatusMessage(StatusMessageTypes.Info, scan.Status);
-                        return;
+                        return InvokeResult<string>.Create(scan.FeederId.Value.ToString("X4"));
                     }
 
                     FeederBarcodeScanStatus = scan.Status;
@@ -824,6 +831,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _barcodeScanInProgress = false;
                 RaiseCanExecuteChanged();
             }
+            return InvokeResult<string>.FromError(FeederBarcodeScanStatus);
         }
 
         public async void RemoveCurrent()
