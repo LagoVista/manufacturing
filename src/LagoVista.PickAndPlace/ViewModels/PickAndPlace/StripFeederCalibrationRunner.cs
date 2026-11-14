@@ -81,6 +81,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private bool _busy;
         private bool _disposed;
         private bool _autoCenterRequested;
+        private string _automaticJogStepKey;
+        private int _automaticJogCount;
         private bool _acceptOffCenterCorner;
         private bool _acceptOffCenterCircle;
         private string _autoCenterError;
@@ -94,6 +96,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public MachineOperationRunSnapshot Current => _session.Snapshot;
         public IReadOnlyList<MachineOperationAction> AvailableActions => _session.AvailableActions;
         public bool IsBusy => _busy;
+        public string AutomaticJogStepKey => _automaticJogStepKey;
+        public int AutomaticJogCount => _automaticJogCount;
         // Automation is an operator-supervised convenience: no automatic saves,
         // inventory updates, or visual part-presence confirmations.
         public bool CanAutoAdvance => !_disposed && !_busy &&
@@ -215,6 +219,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             if (!CanExecuteNext)
                 return Result(false, "The operation cannot advance from its current state.");
+            if (_automaticJogStepKey != Current.ActiveStepKey)
+            {
+                _automaticJogStepKey = Current.ActiveStepKey;
+                _automaticJogCount = 0;
+            }
             _busy = true;
             Signal();
             try
@@ -556,6 +565,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Signal();
                 token.ThrowIfCancellationRequested();
                 jog.Execute(null);
+                _automaticJogCount++;
+                Signal();
                 var moved = await WaitForMotionAndSerialIdleAsync(30000, token);
                 if (!moved.Successful)
                 {
@@ -1243,6 +1254,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     return null;
                 }
 
+                _automaticJogCount++;
+                Signal();
                 var idle = await WaitForMotionAndSerialIdleAsync(30000, token);
                 if (!idle.Successful)
                 {

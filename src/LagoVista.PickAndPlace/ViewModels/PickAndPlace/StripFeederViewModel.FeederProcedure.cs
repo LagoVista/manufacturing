@@ -61,6 +61,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (step == null)
                     continue;
 
+                // Count actual camera correction commands, not just a
+                // modal Run Again. The runner caps each target at five.
+                if (item.Key == operation.AutomaticJogStepKey)
+                    step.RetryCount = Math.Max(step.RetryCount, operation.AutomaticJogCount);
+
                 if (item.Status == MachineOperationStepStatus.Active)
                     step.Begin(operation.StatusText);
                 if (item.Status == MachineOperationStepStatus.Passed &&
