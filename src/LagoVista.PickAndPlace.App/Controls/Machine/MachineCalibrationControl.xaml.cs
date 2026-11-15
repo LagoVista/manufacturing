@@ -3,6 +3,7 @@
 // IndexVersion: 2
 // --- END CODE INDEX META ---
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
+using LagoVista.Core.IOC;
 using LagoVista.XPlat;
 using System;
 using System.Collections.Generic;
@@ -29,6 +30,17 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
         public MachineCalibrationControl()
         {
             InitializeComponent();
+        }
+
+        private void OpenCameraToolPickup_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = SLWIOC.Get<ICameraToolPickupCalibrationViewModel>();
+            var dialog = new CameraToolPickupCalibrationWindow
+            {
+                DataContext = vm,
+                Owner = Window.GetWindow(this)
+            };
+            dialog.ShowDialog();
         }
     }
 }
