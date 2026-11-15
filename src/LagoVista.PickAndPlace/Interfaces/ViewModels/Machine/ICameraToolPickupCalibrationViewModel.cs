@@ -12,10 +12,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         bool CalibrationRunning { get; }
         bool CalibrationFinished { get; }
         bool SaveVerifiedOffset { get; set; }
-        string PickupZText { get; set; }
-        string ReturnZText { get; set; }
-        string HeldPartInspectionZText { get; set; }
         string HeadIndexText { get; set; }
+        string ConfiguredHeights { get; }
         string Status { get; }
         string CandidateSummary { get; }
         string ToolHeadName { get; }
