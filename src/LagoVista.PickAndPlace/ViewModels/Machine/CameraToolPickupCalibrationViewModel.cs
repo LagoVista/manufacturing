@@ -30,6 +30,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private readonly object _observationGate = new object();
         private TaskCompletionSource<BottomCircle> _pendingCircle;
         private string _expectedBottomProfile;
+        // Transient, per-run optical proof for the installed nozzle only.
+        // Re-established through exactly the same T004 tuning/lock checks.
+        private bool _emptyNozzleOpticalLock;
+        private string _emptyNozzleCameraId;
+        private double _emptyNozzleCameraScale;
         private IMachine _machine;
         private MachineToolHead _head;
         private string _nozzleIdentity;
@@ -133,6 +138,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _machine = _repo.CurrentMachine;
             _head = null;
             _session = null;
+            _emptyNozzleOpticalLock = false;
+            _emptyNozzleCameraId = null;
+            _emptyNozzleCameraScale = 0;
             try
             {
                 if (!Int32.TryParse(HeadIndexText, out var selectedHeadIndex) ||
@@ -203,6 +211,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 // never drop a held cylinder into the machine on an exception.
                 // Operator uses the independent feed hold / emergency stop.
                 lock (_observationGate) _pendingCircle = null;
+                _emptyNozzleOpticalLock = false;
+                _emptyNozzleCameraId = null;
+                _emptyNozzleCameraScale = 0;
                 _locator.UnregisterCircleLocatedHandler(this);
                 _session = null;
                 _head = null;
@@ -394,16 +405,81 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private async Task<BottomCircle> MeasureEmptyNozzleAsync(MachineToolHead head)
         {
             RequireValid();
+            _emptyNozzleOpticalLock = false;
+            _emptyNozzleCameraId = null;
+            _emptyNozzleCameraScale = 0;
+
+            // T004: prepare the live Nozzle profile, turn on its existing
+            // illumination, and enable circle detection before approaching
+            // the bottom camera. Do not depend on saved or previous-session
+            // adaptive detector state.
+            var capture = _machine.PartInspectionCaptureService;
+            if (capture == null)
+            {
+                _bottomCameraBootstrap.CameraType = CameraTypes.PartInspection;
+                capture = _machine.PartInspectionCaptureService;
+            }
+            if (capture?.Camera == null || capture.CameraType != CameraTypes.PartInspection)
+                throw new CalibrationStopped("T004 nozzle reference: bottom camera is unavailable.");
+
+            _machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_Nozzle);
+            if (!NozzleRunoutVisionPreparation.TryEnableCircleDetection(
+                capture.Profile, out var preparationReason))
+                throw new CalibrationStopped("T004 nozzle reference: " + preparationReason);
+            // Same re-selection as T004: applies light enable to hardware.
+            _machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_Nozzle);
+            var captureReady = await capture.EnsureCaptureReadyAsync();
+            if (!captureReady.Successful)
+                throw new CalibrationStopped("T004 nozzle reference: " + captureReady.ErrorMessage);
+
+            _emptyNozzleCameraId = Convert.ToString(capture.Camera.Id);
+            _emptyNozzleCameraScale = capture.Camera.EffectivePixelsPerMM;
+            if (!Finite(_emptyNozzleCameraScale) || _emptyNozzleCameraScale <= 0)
+                throw new CalibrationStopped("T004 nozzle reference: invalid bottom-camera pixel scale.");
+
             await SwitchToHeadAsync(head);
             _machine.ClearToolHeadAngle();
             await NeedIdleAsync("nozzle zero-angle positioning");
-            _machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_Nozzle);
             await MoveToInspectionCameraAsync(holdingCylinder:false);
+            await NeedIdleAsync("nozzle image auto-tune readiness");
+
+            // Reuse T004's proven 24-fresh-frame dark-opening tuning. Each
+            // head is tuned separately, with no camera-exposure writes and
+            // no persistence of transient vision-profile settings.
+            var tuned = await capture.TuneNozzleOpeningAsync();
+            if (!tuned.Successful || tuned.Result == null)
+                throw new CalibrationStopped("T004 adaptive nozzle detector: " +
+                    (tuned.ErrorMessage ?? "No repeatable dark nozzle opening."));
+            RequireValid();
+            await NeedIdleAsync("post-tune nozzle image stability");
+            if (!ReferenceEquals(_machine.PartInspectionCaptureService, capture) ||
+                !String.Equals(Convert.ToString(capture.Camera?.Id),
+                    _emptyNozzleCameraId, StringComparison.Ordinal) ||
+                Math.Abs(capture.Camera.EffectivePixelsPerMM - _emptyNozzleCameraScale) > 0.01 ||
+                capture.Profile?.Key != VisionProfile.VisionProfile_Nozzle ||
+                !ReferenceEquals(_machine.CurrentMachineToolHead, head))
+                throw new CalibrationStopped(
+                    "T004 nozzle reference camera, scale, profile, or selected head changed during tuning.");
+
+            if (!NozzleRunoutVisionPreparation.TryLockAdaptiveOpening(
+                capture.Profile, _emptyNozzleCameraScale, tuned.Result, out var lockReason))
+                throw new CalibrationStopped("T004 adaptive nozzle lock rejected tuning: " + lockReason);
+            _emptyNozzleOpticalLock = true;
+            capture.ResetDetections();
+
+            Status = $"Head {head.HeadIndex}: T004 dark nozzle opening locked, " +
+                $"diameter {tuned.Result.DiameterMm:F3} mm, " +
+                $"{tuned.Result.GoodFrames}/{tuned.Result.TotalFrames} accepted frames, " +
+                $"scale {_emptyNozzleCameraScale:F2} px/mm. Acquiring fresh center.";
+
             return await ObserveBottomAsync(VisionProfile.VisionProfile_Nozzle, isCylinder:false);
         }
 
         private async Task<BottomCircle> ObserveHeldCylinderAsync()
         {
+            // The locked nozzle detector is for the small DARK opening only.
+            // Never allow that feature identity to pass as the white cylinder.
+            _emptyNozzleOpticalLock = false;
             _machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
             await MoveToInspectionCameraAsync(holdingCylinder:true);
             return await ObserveBottomAsync(VisionProfile.VisionProfile_PartInspection, isCylinder:true);
@@ -549,6 +625,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 capture.Camera.EffectivePixelsPerMM <= 0)
                 throw new CalibrationStopped("Configure a circular detector for bottom profile '" +
                     profileKey + "'. No unverified detection will be used.");
+            if (profileKey == VisionProfile.VisionProfile_Nozzle &&
+                (!_emptyNozzleOpticalLock ||
+                 !String.Equals(Convert.ToString(capture.Camera.Id),
+                     _emptyNozzleCameraId, StringComparison.Ordinal) ||
+                 Math.Abs(capture.Camera.EffectivePixelsPerMM - _emptyNozzleCameraScale) > 0.01))
+                throw new CalibrationStopped(
+                    "T004 nozzle optical lock or camera-scale identity is missing; refusing a generic-circle fallback.");
             if (capture.CaptureFrameSize.Width <= 0)
                 capture.StartCapture();
 
@@ -601,6 +684,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     _nozzleIdentity, StringComparison.Ordinal))
                 return;
             var scale = capture.Camera?.EffectivePixelsPerMM ?? 0;
+            if (expected == VisionProfile.VisionProfile_Nozzle &&
+                (!_emptyNozzleOpticalLock ||
+                 !String.Equals(Convert.ToString(capture.Camera?.Id),
+                     _emptyNozzleCameraId, StringComparison.Ordinal) ||
+                 Math.Abs(scale - _emptyNozzleCameraScale) > 0.01 ||
+                 !NozzleRunoutVisionPreparation.MatchesLockedOpening(
+                     capture.Profile, _emptyNozzleCameraScale, circle)))
+                return;
             var offset = circle.OffsetPixels;
             if (scale <= 0 || offset == null || !Finite(offset.X) || !Finite(offset.Y))
                 return;
