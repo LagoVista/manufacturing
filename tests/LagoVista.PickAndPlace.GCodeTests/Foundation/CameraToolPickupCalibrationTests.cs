@@ -120,10 +120,10 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         {
             var d = CameraToolPickupProcedureDefinition.Create();
             Assert.That(d.Key, Is.EqualTo("camera-tool-two-pass-pickup"));
-            Assert.That(d.Steps.Count, Is.EqualTo(15));
+            Assert.That(d.Steps.Count, Is.EqualTo(16));
             Assert.That(d.Steps.Select(s => s.Key).ToArray(), Is.EqualTo(new[]
             {
-                "readiness","known-location","first-target","first-approach","first-pick",
+                "readiness","known-location","first-target","nozzle-reference","first-approach","first-pick",
                 "first-inspect","candidate","replace-part","second-target",
                 "second-approach","second-pick","second-inspect","verify",
                 "safe-camera-mode","commit-offset"
@@ -131,13 +131,13 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(d.Steps.Last().RequiresSavedEvidence, Is.True);
             Assert.That(d.Steps.Single(s=>s.Key=="second-inspect").RequiredVerification,
                 Is.EqualTo(MachineOperationVerificationKind.VisionVerified));
-            Assert.That(d.Steps.Take(14).All(s => !s.RequiresSavedEvidence), Is.True);
+            Assert.That(d.Steps.Take(15).All(s => !s.RequiresSavedEvidence), Is.True);
 
             var now = DateTimeOffset.UtcNow;
             var session = new MachineOperationSession(d,
                 new MachineOperationTarget { MachineId = "test" }, now);
             session.Start(now);
-            foreach (var step in d.Steps.Take(14))
+            foreach (var step in d.Steps.Take(15))
             {
                 session.RecordEvidence(new MachineOperationEvidence
                 {
