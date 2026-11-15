@@ -21,6 +21,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
     {
         private readonly IMachineRepo _repo;
         private readonly ILocatorViewModel _locator;
+        private readonly bool _emitWarnings;
+        // M400/SpinUntilIdleAsync can return before the status-parser Busy
+        // and command queue settle. Allow that transient without treating
+        // an actual camera/profile change as recoverable.
+        private const int MotionSettleTimeoutMs = 5000;
+        private const int StableIdlePolls = 3;
         private readonly object _observationGate = new object();
         private TaskCompletionSource<CircleObservation> _pending;
         private IMachine _machine;
@@ -37,10 +43,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public string Status { get; private set; } = "Ready to verify the cylinder at the configured Known Location.";
 
         public KnownLocationCylinderCenteringRunner(IMachineRepo machineRepo,
-            ILocatorViewModel locator)
+            ILocatorViewModel locator, bool emitWarnings = true)
         {
             _repo = machineRepo ?? throw new ArgumentNullException(nameof(machineRepo));
             _locator = locator ?? throw new ArgumentNullException(nameof(locator));
+            _emitWarnings = emitWarnings;
         }
 
         public async Task<InvokeResult<Point2D<double>>> RunAsync()
@@ -96,8 +103,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
                 for (var attempt = 0; attempt < KnownLocationCylinderCenteringMath.MaximumCenteringAttempts; attempt++)
                 {
-                    if (!ContextValid())
-                        return Failure("Machine, selected camera, profile or optical scale changed during centering.");
+                    // Separate post-motion status lag from a genuine state
+                    // change before resetting camera history or starting
+                    // the next optical measurement.
+                    var readinessError = await WaitForReadyContextAsync();
+                    if (readinessError != null)
+                        return Failure(readinessError);
 
                     // Clear previous detection history after each movement; never
                     // accept yesterday's stable circle as evidence for this move.
@@ -125,9 +136,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     }
 
                     if (observation == null)
-                        return Failure("No stable 7 mm cylinder circle at Known Location within 10 seconds.");
-                    if (!ContextValid())
-                        return Failure("Machine or Known Location vision profile changed after circle measurement.");
+                    {
+                        var failure = await WaitForReadyContextAsync();
+                        return Failure(failure ??
+                            "No stable 7 mm cylinder circle at Known Location within 10 seconds.");
+                    }
+                    var contextAfterVision = await WaitForReadyContextAsync();
+                    if (contextAfterVision != null)
+                        return Failure(contextAfterVision);
 
                     var position = await machine.GetCurrentLocationAsync(5000);
                     if (!position.Successful)
@@ -175,20 +191,83 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
         }
 
+        /// <summary>
+        /// Hard safety invariants are never retried. Only a busy controller
+        /// status or non-empty serial command queue is allowed to settle.
+        /// The returned reason identifies the actual failing condition.
+        /// </summary>
+        private bool CheckContext(out bool settling, out string reason)
+        {
+            settling = false;
+            reason = null;
+            var m = _machine;
+            if (m == null || !ReferenceEquals(_repo.CurrentMachine, m))
+                reason = "Selected machine changed during cylinder centering.";
+            else if (!m.Connected)
+                reason = "Machine disconnected during cylinder centering.";
+            else if (m.Mode != OperatingMode.Manual)
+                reason = "Machine left Manual mode during cylinder centering.";
+            else if (!m.WasMachineHomed || !m.WasMachinOriginCalibrated)
+                reason = "Machine lost homed or calibrated-origin state.";
+            else if (m.CurrentMachineToolHead != null)
+                reason = "Machine unexpectedly switched to tool-head navigation.";
+            else
+            {
+                var capture = m.PositionImageCaptureService;
+                if (capture?.Camera == null || capture.CameraType != CameraTypes.Position)
+                    reason = "Position camera is missing or its camera type changed.";
+                else if (!String.Equals(Convert.ToString(capture.Camera.Id),
+                    _cameraId, StringComparison.Ordinal))
+                    reason = "Position camera device changed during cylinder centering.";
+                else if (capture.Profile?.Key != VisionProfile.VisionProfile_KnownLocation)
+                    reason = "Known Location vision profile changed to '" +
+                        (capture.Profile?.Key ?? "none") + "' during cylinder centering.";
+                else if (!capture.Profile.FindCircles)
+                    reason = "Known Location profile no longer has circle detection enabled.";
+                else if (!Valid(capture.Camera.EffectivePixelsPerMM) ||
+                    Math.Abs(capture.Camera.EffectivePixelsPerMM - _scale) >= 0.001)
+                    reason = "Known Location camera pixel scale changed from " +
+                        _scale.ToString("F4") + " to " +
+                        capture.Camera.EffectivePixelsPerMM.ToString("F4") + " px/mm.";
+                else if (m.Busy || m.ToSendQueueCount > 0 || m.UnacknowledgedBytesSent > 0)
+                {
+                    settling = true;
+                    reason = "Controller still settling: Busy=" + m.Busy +
+                        ", queued=" + m.ToSendQueueCount +
+                        ", unacknowledged=" + m.UnacknowledgedBytesSent + ".";
+                }
+            }
+            return reason == null;
+        }
+
         private bool ContextValid()
         {
-            var m = _machine;
-            var capture = m?.PositionImageCaptureService;
-            return m != null && ReferenceEquals(_repo.CurrentMachine, m) &&
-                m.Connected && m.Mode == OperatingMode.Manual &&
-                m.WasMachineHomed && m.WasMachinOriginCalibrated &&
-                !m.Busy && m.CurrentMachineToolHead == null &&
-                capture?.Camera != null &&
-                capture.CameraType == CameraTypes.Position &&
-                capture.Profile?.Key == VisionProfile.VisionProfile_KnownLocation &&
-                capture.Profile.FindCircles &&
-                String.Equals(Convert.ToString(capture.Camera.Id), _cameraId, StringComparison.Ordinal) &&
-                Math.Abs(capture.Camera.EffectivePixelsPerMM - _scale) < 0.001;
+            return CheckContext(out _, out _);
+        }
+
+        private async Task<string> WaitForReadyContextAsync()
+        {
+            var until = DateTimeOffset.UtcNow.AddMilliseconds(MotionSettleTimeoutMs);
+            var stableIdle = 0;
+            string lastReason = "Controller has not yet reported a stable idle state.";
+            while (DateTimeOffset.UtcNow < until)
+            {
+                if (CheckContext(out var settling, out var reason))
+                {
+                    if (++stableIdle >= StableIdlePolls)
+                        return null;
+                }
+                else if (!settling)
+                    return reason; // actual device, safety or profile change
+                else
+                {
+                    stableIdle = 0;
+                    lastReason = reason;
+                }
+                await Task.Delay(100);
+            }
+            return "Cylinder centering timed out waiting for controller idle after M400. " +
+                lastReason;
         }
 
         public void CircleLocated(MVLocatedCircle circle)
@@ -224,7 +303,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private InvokeResult<Point2D<double>> Failure(string reason)
         {
             Status = reason;
-            _machine?.AddStatusMessage(StatusMessageTypes.Warning, reason);
+            if (_emitWarnings)
+                _machine?.AddStatusMessage(StatusMessageTypes.Warning, reason);
             return InvokeResult<Point2D<double>>.FromError(reason);
         }
 
