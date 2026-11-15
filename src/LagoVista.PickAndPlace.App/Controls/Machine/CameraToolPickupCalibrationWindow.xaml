@@ -187,7 +187,7 @@
             <Button Grid.Column="1" Content="Start / Run Again" Style="{StaticResource ActionButton}"
                     Click="RunAgain_Click" />
             <Button Grid.Column="2" Content="Close" Style="{StaticResource ActionButton}"
-                    Click="Close_Click" IsEnabled="{Binding RunoutFinished}"/>
+                    Click="Close_Click" IsEnabled="{Binding CalibrationFinished}"/>
         </Grid>
     </Grid>
 </Window>
