@@ -49,7 +49,8 @@
                             <TextBlock Style="{StaticResource label}" Text="Known Location: "></TextBlock>
                             <TextBlock Style="{StaticResource content}" Text="{Binding MachineConfiguration.KnownCalibrationPoint}" />
                         </StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">
+                        <StackPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" MaxWidth="320">
+                            <StackPanel Orientation="Horizontal">
                             <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding CaptureKnownLocationCommand}"  ToolTip="Set the known reference location." Width="64" Height="64"  >
                                 <Button.Content>
                                     <Image Source="/imgs/SetTarget.png"/>
@@ -60,6 +61,15 @@
                                     <Image Source="/imgs/MoveToTarget.png"/>
                                 </Button.Content>
                             </Button>
+                            </StackPanel>
+                            <Button Content="Verify / Center Calibration Cylinder"
+                                    Command="{Binding VerifyKnownLocationCylinderCommand}"
+                                    ToolTip="Locate the 7 mm cylinder at Known Location with the existing profile. Perform a bounded top-camera XY jog only when needed; no pickup or settings changes."
+                                    Width="278" Height="36" HorizontalAlignment="Left"
+                                    Margin="0,6,0,0"/>
+                            <TextBlock Text="{Binding CylinderCenterStatus}"
+                                       Margin="0,5,6,0" TextWrapping="Wrap"
+                                       FontSize="12" />
                         </StackPanel>
                         <StackPanel Grid.Column="2">
                             <TextBlock Style="{StaticResource label}" Text="Default Work Origin: "></TextBlock>
