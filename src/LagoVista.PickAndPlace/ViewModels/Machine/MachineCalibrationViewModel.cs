@@ -6,6 +6,7 @@ using LagoVista.Core.Commanding;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Models;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using System;
 using System.Threading.Tasks;
 
@@ -13,8 +14,15 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 {
     public class MachineCalibrationViewModel : MachineViewModelBase, IMachineCalibrationViewModel
     {
-        public MachineCalibrationViewModel(IMachineRepo machineRepo) : base(machineRepo)
+        private readonly KnownLocationCylinderCenteringRunner _cylinderCentering;
+
+        public MachineCalibrationViewModel(IMachineRepo machineRepo, ILocatorViewModel locator)
+            : base(machineRepo)
         {
+            _cylinderCentering = new KnownLocationCylinderCenteringRunner(machineRepo, locator);
+            VerifyKnownLocationCylinderCommand = new RelayCommand(
+                async () => await VerifyKnownLocationCylinderAsync(),
+                () => !_cylinderCentering.Running);
 
             SetStagingPlateReferenceHole1LocationCommand = CreatedMachineConnectedSettingsCommand(() =>
             {
@@ -82,6 +90,34 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         }
 
 
+
+        private string _cylinderCenterStatus =
+            "Ready: verify the cylinder with the existing Known Location circle profile.";
+        public string CylinderCenterStatus
+        {
+            get => _cylinderCenterStatus;
+            private set => Set(ref _cylinderCenterStatus, value);
+        }
+        public RelayCommand VerifyKnownLocationCylinderCommand { get; }
+
+        private async Task VerifyKnownLocationCylinderAsync()
+        {
+            if (_cylinderCentering.Running) return;
+            CylinderCenterStatus = "Locating and checking the calibration cylinder...";
+            VerifyKnownLocationCylinderCommand.RaiseCanExecuteChanged();
+            try
+            {
+                var result = await _cylinderCentering.RunAsync();
+                CylinderCenterStatus = _cylinderCentering.Status;
+                Machine?.AddStatusMessage(
+                    result.Successful ? StatusMessageTypes.Info : StatusMessageTypes.Warning,
+                    CylinderCenterStatus);
+            }
+            finally
+            {
+                VerifyKnownLocationCylinderCommand.RaiseCanExecuteChanged();
+            }
+        }
 
         private bool _savingCameraPixelsPerMM;
         // Text-backed input lets the operator type intermediate values such as "2."
