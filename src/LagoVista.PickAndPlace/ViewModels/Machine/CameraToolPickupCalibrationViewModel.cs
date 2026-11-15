@@ -220,6 +220,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (head.CurrentNozzle == null ||
                 !String.Equals(Convert.ToString(head.CurrentNozzle.Id), _nozzleIdentity, StringComparison.Ordinal))
                 throw new CalibrationStopped("Installed nozzle changed.");
+            // T004 owns this session-only proof. A fresh empty-nozzle image
+            // is NOT equivalent to completing its 12-angle runout procedure.
+            if (!head.IsCalibrated || !head.RunoutZeroAngle.HasValue ||
+                head.RotationOffsets?.Count != NozzleRunoutMath.SampleCount)
+                throw new CalibrationStopped(
+                    "Complete T004 optical runout calibration for this installed head/nozzle " +
+                    "in the current machine session before camera-to-tool pickup.");
             if (!Finite(head.Offset.X) || !Finite(head.Offset.Y))
                 throw new CalibrationStopped("Previous tool-head offset is invalid.");
             if (Math.Abs(_pickupZ - _machine.Settings.DefaultSafeMoveHeight) < 0.01 ||
@@ -595,7 +602,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     part.OffsetMm.Y - nozzle.OffsetMm.Y),
                 VacuumConfirmed = true, // independently checked at pickup
                 StableVision = true, // both bottom observations were stabilized
-                NozzleCalibrated = true, // fresh same-angle optical nozzle reference
+                // T004's session-only runout table belongs to this head and
+                // is invalidated automatically if the installed nozzle changes.
+                NozzleCalibrated = head.IsCalibrated &&
+                    head.RunoutZeroAngle.HasValue &&
+                    head.RotationOffsets?.Count == NozzleRunoutMath.SampleCount,
                 MotionFinishedUtc = motion,
                 CapturedUtc = part.CapturedAtUtc
             };
