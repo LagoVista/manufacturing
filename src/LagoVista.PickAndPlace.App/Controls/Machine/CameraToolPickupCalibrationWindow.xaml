@@ -82,7 +82,7 @@
                 <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <TextBlock Text="MEASUREMENT PLAN" Foreground="#91A5BC"
                                HorizontalAlignment="Right" FontSize="10"/>
-                    <TextBlock Text="Two independent pickups per head"
+                    <TextBlock Text="Two pickups · selected head 1 or 2"
                                FontWeight="SemiBold" FontSize="16" HorizontalAlignment="Right"/>
                     <TextBlock Text="Top-camera reference · bottom-camera verification"
                                Foreground="#B6C3D2" FontSize="11" HorizontalAlignment="Right"/>
@@ -98,7 +98,7 @@
                            Foreground="#F1F8FF" Margin="0,3,0,0"/>
                 <TextBlock Text="No head offsets are changed until the second independent pickup passes the acceptance threshold." FontSize="12" Foreground="#C9D5E3"
                            Margin="0,5,0,0" TextWrapping="Wrap"/>
-                <TextBlock Text="First machine test: leave Auto-save unchecked. The physical pickup/return heights are fixture-specific and MUST be verified by the operator."
+                <TextBlock Text="First machine test: leave Auto-save unchecked. Pickup, return and held-cylinder inspection Z are fixture-specific. Verify all three for each selected head before starting."
                            FontSize="11" Foreground="#B9C6D6" TextWrapping="Wrap"
                            Margin="0,7,0,0"/>
             </StackPanel>
@@ -109,10 +109,14 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                <TextBlock Text="Head (1/2):" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                <TextBox Width="38" Text="{Binding HeadIndexText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,0"/>
                 <TextBlock Text="Pickup Z:" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                <TextBox Width="88" Text="{Binding PickupZText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,14,0" />
+                <TextBox Width="68" Text="{Binding PickupZText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,0" />
                 <TextBlock Text="Return Z:" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                <TextBox Width="88" Text="{Binding ReturnZText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,14,0" />
+                <TextBox Width="68" Text="{Binding ReturnZText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,0" />
+                <TextBlock Text="Held inspection Z:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                <TextBox Width="68" Text="{Binding HeldPartInspectionZText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,0" />
                 <CheckBox Content="Auto-save verified offset"
                           IsChecked="{Binding SaveVerifiedOffset}" VerticalAlignment="Center"/>
             </StackPanel>
