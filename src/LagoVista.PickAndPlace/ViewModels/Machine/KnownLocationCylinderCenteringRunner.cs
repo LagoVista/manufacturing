@@ -110,40 +110,50 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     if (readinessError != null)
                         return Failure(readinessError);
 
-                    // Clear previous detection history after each movement; never
-                    // accept yesterday's stable circle as evidence for this move.
-                    capture.ResetDetections();
-                    var request = new TaskCompletionSource<CircleObservation>(
-                        TaskCreationOptions.RunContinuationsAsynchronously);
-                    lock (_observationGate)
-                        _pending = request;
-                    _locator.RegisterCircleLocatedHandler(this, 10000);
+                    // A stable, correct camera can momentarily lack a stable
+                    // circle after a profile or motion transition. Reset the
+                    // observation history and retry once, without a jog or
+                    // operator intervention. No old detector state is reused.
+                    CircleObservation observation = null;
+                    for (var acquisition = 1; acquisition <= 2 && observation == null; acquisition++)
+                    {
+                        var check = await WaitForReadyContextAsync();
+                        if (check != null)
+                            return Failure(check);
 
-                    CircleObservation observation;
-                    try
-                    {
-                        var completed = await Task.WhenAny(request.Task, Task.Delay(11000));
-                        observation = completed == request.Task ? await request.Task : null;
-                    }
-                    finally
-                    {
-                        _locator.UnregisterCircleLocatedHandler(this);
+                        if (acquisition == 2)
+                            Status = "Known Location circle not yet stable; reacquiring a fresh frame (attempt 2 of 2).";
+                        capture.ResetDetections();
+                        var request = new TaskCompletionSource<CircleObservation>(
+                            TaskCreationOptions.RunContinuationsAsynchronously);
                         lock (_observationGate)
+                            _pending = request;
+                        _locator.RegisterCircleLocatedHandler(this, 10000);
+
+                        try
                         {
-                            if (_pending == request)
-                                _pending = null;
+                            var completed = await Task.WhenAny(request.Task, Task.Delay(11000));
+                            observation = completed == request.Task ? await request.Task : null;
                         }
+                        finally
+                        {
+                            _locator.UnregisterCircleLocatedHandler(this);
+                            lock (_observationGate)
+                            {
+                                if (_pending == request)
+                                    _pending = null;
+                            }
+                        }
+
+                        // Do not conceal a real machine/camera/profile change
+                        // as a harmless lost-circle acquisition.
+                        var afterAcquisition = await WaitForReadyContextAsync();
+                        if (afterAcquisition != null)
+                            return Failure(afterAcquisition);
                     }
 
                     if (observation == null)
-                    {
-                        var failure = await WaitForReadyContextAsync();
-                        return Failure(failure ??
-                            "No stable 7 mm cylinder circle at Known Location within 10 seconds.");
-                    }
-                    var contextAfterVision = await WaitForReadyContextAsync();
-                    if (contextAfterVision != null)
-                        return Failure(contextAfterVision);
+                        return Failure("No fresh stable 7 mm cylinder circle after two bounded acquisition attempts.");
 
                     var position = await machine.GetCurrentLocationAsync(5000);
                     if (!position.Successful)
