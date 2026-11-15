@@ -375,11 +375,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (candidate != null)
             {
                 var current = await _machine.GetCurrentLocationAsync(5000);
-                if (!current.Successful ||
-                    !CameraToolPickupCalibrationMath.TryPlanSecondPickup(
+                if (!current.Successful)
+                    throw new CalibrationStopped("Cannot read physical XY for second-pass jog.");
+                if (!CameraToolPickupCalibrationMath.TryPlanSecondPickup(
                         candidate, current.Result, area, out var jog, out var reason))
-                    throw new CalibrationStopped(current.Successful
-                        ? reason : "Cannot read physical XY for second-pass jog.");
+                    throw new CalibrationStopped(reason);
                 _machine.GotoPoint(jog, relativeMove:true);
                 await NeedIdleAsync("candidate second-pickup jog");
             }
