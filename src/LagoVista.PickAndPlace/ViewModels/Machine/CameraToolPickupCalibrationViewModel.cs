@@ -1,0 +1,652 @@
+using LagoVista.Core.Models.Drawing;
+using LagoVista.Core.ViewModels;
+using LagoVista.Core.Validation;
+using LagoVista.Manufacturing.Models;
+using LagoVista.Manufacturing.Models.Operations;
+using LagoVista.PickAndPlace.Interfaces;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
+using LagoVista.PickAndPlace.Models;
+using System;
+using System.Collections.ObjectModel;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace LagoVista.PickAndPlace.ViewModels.Machine
+{
+    /// <summary>
+    /// One-start, machine-observed two-pass calibration, shown in a dedicated
+    /// WPF modal just like T004 nozzle runout. This is explicitly an early
+    /// supervised hardware procedure: operator supplies fixture-specific
+    /// pickup and return Z, and auto-save defaults OFF.
+    /// </summary>
+    public sealed class CameraToolPickupCalibrationViewModel : ViewModelBase,
+        ICameraToolPickupCalibrationViewModel, ICircleLocatedHandler
+    {
+        private readonly IMachineRepo _repo;
+        private readonly ILocatorViewModel _locator;
+        private readonly IImageCaptureService _bottomCameraBootstrap;
+        private readonly KnownLocationCylinderCenteringRunner _knownLocation;
+        private readonly object _observationGate = new object();
+        private TaskCompletionSource<BottomCircle> _pendingCircle;
+        private string _expectedBottomProfile;
+        private IMachine _machine;
+        private MachineToolHead _head;
+        private string _nozzleIdentity;
+        private MachineOperationSession _session;
+        private double _pickupZ;
+        private double _returnZ;
+        private string _pickupZText;
+        private string _returnZText;
+        private string _status = "Enter the cylinder's verified pickup and return Z heights, then Start.";
+        private string _candidateSummary = "No measured candidate yet.";
+        private string _toolHeadName = "Installed heads";
+        private bool _running;
+        private bool _finished = true;
+        private bool _autoSave;
+        private ObservableCollection<FeederCalibrationFlowStep> _steps =
+            new ObservableCollection<FeederCalibrationFlowStep>();
+
+        private sealed class BottomCircle
+        {
+            public Point2D<double> OffsetMm { get; set; }
+            public double DiameterMm { get; set; }
+            public DateTimeOffset CapturedAtUtc { get; set; }
+        }
+
+        private sealed class CalibrationStopped : Exception
+        {
+            public CalibrationStopped(string message) : base(message) { }
+        }
+
+        public CameraToolPickupCalibrationViewModel(
+            IMachineRepo repo, ILocatorViewModel locator,
+            IImageCaptureService bottomCameraBootstrap)
+        {
+            _repo = repo ?? throw new ArgumentNullException(nameof(repo));
+            _locator = locator ?? throw new ArgumentNullException(nameof(locator));
+            _bottomCameraBootstrap = bottomCameraBootstrap ??
+                throw new ArgumentNullException(nameof(bottomCameraBootstrap));
+            _knownLocation = new KnownLocationCylinderCenteringRunner(repo, locator);
+        }
+
+        public string PickupZText { get => _pickupZText; set => Set(ref _pickupZText, value); }
+        public string ReturnZText { get => _returnZText; set => Set(ref _returnZText, value); }
+        public bool SaveVerifiedOffset { get => _autoSave; set => Set(ref _autoSave, value); }
+        public string Status { get => _status; private set => Set(ref _status, value); }
+        public string CandidateSummary
+        {
+            get => _candidateSummary;
+            private set => Set(ref _candidateSummary, value);
+        }
+        public string ToolHeadName { get => _toolHeadName; private set => Set(ref _toolHeadName, value); }
+        public bool CalibrationRunning
+        {
+            get => _running;
+            private set => Set(ref _running, value);
+        }
+        public bool CalibrationFinished
+        {
+            get => _finished;
+            private set => Set(ref _finished, value);
+        }
+        public ObservableCollection<FeederCalibrationFlowStep> CalibrationSteps
+        {
+            get => _steps;
+            private set => Set(ref _steps, value);
+        }
+
+        public async Task StartAsync()
+        {
+            if (CalibrationRunning)
+                return;
+            CalibrationRunning = true;
+            CalibrationFinished = false;
+            CandidateSummary = "No verified offset yet.";
+            _machine = _repo.CurrentMachine;
+            _head = null;
+            _session = null;
+            try
+            {
+                if (!Double.TryParse(PickupZText, NumberStyles.Float,
+                    CultureInfo.CurrentCulture, out _pickupZ) ||
+                    !Double.TryParse(ReturnZText, NumberStyles.Float,
+                    CultureInfo.CurrentCulture, out _returnZ) ||
+                    !Finite(_pickupZ) || !Finite(_returnZ) ||
+                    Math.Abs(_pickupZ) < 0.001 || Math.Abs(_returnZ) < 0.001)
+                    throw new CalibrationStopped(
+                        "Enter the physically verified absolute pickup Z and return Z for this 7 mm cylinder. No machine movement was sent.");
+
+                if (!ValidMachine(out var error))
+                    throw new CalibrationStopped(error + " No movement was sent.");
+                if (_machine.Settings.ToolHeads == null)
+                    throw new CalibrationStopped("No installed tool heads are configured.");
+
+                var heads = _machine.Settings.ToolHeads
+                    .Where(h => h?.CurrentNozzle != null)
+                    .OrderBy(h => h.HeadIndex)
+                    .ToList();
+                if (heads.Count == 0)
+                    throw new CalibrationStopped("No installed nozzle to calibrate.");
+                if (heads.Any(h => h.HeadIndex < 1 || h.HeadIndex > 2 || h.Offset == null))
+                    throw new CalibrationStopped("An installed head has no supported index or XY offset.");
+                var plan = new ObservableCollection<FeederCalibrationFlowStep>();
+                foreach (var head in heads)
+                {
+                    foreach (var stage in CameraToolPickupProcedureDefinition.Create().Steps)
+                        plan.Add(new FeederCalibrationFlowStep
+                        {
+                            Number = plan.Count + 1,
+                            StepKey = $"head-{head.HeadIndex}/{stage.Key}",
+                            Title = $"Head {head.HeadIndex} - {stage.Title}"
+                        });
+                }
+                CalibrationSteps = plan;
+
+                // One start automatically advances through each installed head;
+                // the first hardware trial should be attended for safety.
+                foreach (var head in heads)
+                {
+                    ToolHeadName = $"Head {head.HeadIndex} - {head.Name}";
+                    await ExecuteHeadAsync(head);
+                }
+                Status = SaveVerifiedOffset
+                    ? "All installed heads passed the two-pick checks; verified offsets were saved."
+                    : "All installed heads measured and verified. Candidates remain UNSAVED (auto-save disabled).";
+            }
+            catch (CalibrationStopped ex)
+            {
+                Status = "Calibration stopped: " + ex.Message;
+                _machine?.AddStatusMessage(StatusMessageTypes.Warning, Status);
+                var active = CalibrationSteps.FirstOrDefault(s => s.Status == "Running");
+                active?.Fail(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Status = "Calibration failed: " + ex.Message;
+                _machine?.AddStatusMessage(StatusMessageTypes.Warning, Status);
+                var active = CalibrationSteps.FirstOrDefault(s => s.Status == "Running");
+                active?.Fail(ex.Message);
+            }
+            finally
+            {
+                // Keep vacuum ON if a pickup failed away from the holder;
+                // never drop a held cylinder into the machine on an exception.
+                // Operator uses the independent feed hold / emergency stop.
+                lock (_observationGate) _pendingCircle = null;
+                _locator.UnregisterCircleLocatedHandler(this);
+                _session = null;
+                _head = null;
+                _machine = null;
+                CalibrationRunning = false;
+                CalibrationFinished = true;
+            }
+        }
+
+        private async Task ExecuteHeadAsync(MachineToolHead head)
+        {
+            _head = head;
+            _nozzleIdentity = Convert.ToString(head.CurrentNozzle.Id);
+            var definition = CameraToolPickupProcedureDefinition.Create();
+            _session = new MachineOperationSession(definition,
+                new MachineOperationTarget { MachineId = Convert.ToString(_machine.Settings.Id) },
+                DateTimeOffset.UtcNow);
+            _session.Start(DateTimeOffset.UtcNow);
+
+            Begin("readiness", "Checking homed Manual machine, installed nozzle, 7 mm fixture and configured heights.");
+            RequireValid();
+            if (head.CurrentNozzle == null ||
+                !String.Equals(Convert.ToString(head.CurrentNozzle.Id), _nozzleIdentity, StringComparison.Ordinal))
+                throw new CalibrationStopped("Installed nozzle changed.");
+            if (!Finite(head.Offset.X) || !Finite(head.Offset.Y))
+                throw new CalibrationStopped("Previous tool-head offset is invalid.");
+            if (Math.Abs(_pickupZ - _machine.Settings.DefaultSafeMoveHeight) < 0.01 ||
+                Math.Abs(_returnZ - _machine.Settings.DefaultSafeMoveHeight) < 0.01)
+                throw new CalibrationStopped("Fixture pickup/return Z must differ from configured safe-move Z.");
+            Pass("readiness", "Connected, homed Manual mode; installed nozzle and fixture Z parameters verified.",
+                MachineOperationVerificationKind.MachineObserved);
+
+            Begin("known-location", "Using the existing Known Calibration Point.");
+            var known = _machine.Settings.KnownCalibrationPoint;
+            if (known == null || (known.X == 0 && known.Y == 0))
+                throw new CalibrationStopped("Known Location is not configured.");
+            Pass("known-location", $"Known Location: X={known.X:F3}, Y={known.Y:F3}; original value preserved.",
+                MachineOperationVerificationKind.MachineObserved);
+
+            Begin("first-target", "Locating the cylinder using existing Known Location circle vision.");
+            var firstTarget = await LocateCylinderAsync();
+            Pass("first-target", $"First cylinder center X={firstTarget.X:F3}, Y={firstTarget.Y:F3}.",
+                MachineOperationVerificationKind.VisionVerified);
+
+            Begin("nozzle-reference", "Measuring the empty nozzle center with the bottom camera.");
+            var nozzleReference = await MeasureEmptyNozzleAsync(head);
+            Pass("nozzle-reference", $"Nozzle reference X={nozzleReference.OffsetMm.X:F3}, " +
+                $"Y={nozzleReference.OffsetMm.Y:F3} mm (bottom camera).",
+                MachineOperationVerificationKind.VisionVerified);
+
+            Begin("first-approach", "Returning over measured top-camera cylinder center.");
+            await MoveHeadToCylinderAsync(firstTarget, null);
+            Pass("first-approach", "Head aligned at cylinder target. Previous XY offset remains active.",
+                MachineOperationVerificationKind.MachineObserved);
+
+            Begin("first-pick", "Lowering to verified pickup Z and checking the vacuum sensor.");
+            await PickCylinderAsync();
+            var firstMotion = DateTimeOffset.UtcNow;
+            Pass("first-pick", "Vacuum sensor confirms the cylinder was picked. Retracted to safe Z.",
+                MachineOperationVerificationKind.MachineObserved);
+
+            Begin("first-inspect", "Inspecting the picked white cylinder with the bottom camera.");
+            var firstCircle = await ObserveHeldCylinderAsync();
+            var first = CreateObservation(head, nozzleReference, firstCircle, firstMotion);
+            Pass("first-inspect", $"Cylinder minus nozzle: X={first.PartRelativeToNozzleMm.X:+0.000;-0.000;0.000}, " +
+                $"Y={first.PartRelativeToNozzleMm.Y:+0.000;-0.000;0.000} mm.",
+                MachineOperationVerificationKind.VisionVerified);
+
+            Begin("candidate", "Computing the unsaved static XY correction.");
+            if (!CameraToolPickupCalibrationMath.TryPropose(
+                head.Offset, first, DateTimeOffset.UtcNow, out var candidate, out var reason))
+                throw new CalibrationStopped(reason);
+            CandidateSummary = $"Head {head.HeadIndex}: previous ({candidate.PreviousOffsetMm.X:F3}, " +
+                $"{candidate.PreviousOffsetMm.Y:F3}) -> candidate ({candidate.ProposedOffsetMm.X:F3}, " +
+                $"{candidate.ProposedOffsetMm.Y:F3}) mm. NOT SAVED.";
+            Pass("candidate", CandidateSummary, MachineOperationVerificationKind.VisionVerified);
+
+            Begin("replace-part", "Returning the cylinder to its holder without modifying XY offsets.");
+            await ReturnCylinderAsync(firstTarget);
+            Pass("replace-part", "Returned cylinder and released vacuum at the configured return Z.",
+                MachineOperationVerificationKind.MachineObserved);
+
+            Begin("second-target", "Locating the returned cylinder again with Known Location vision.");
+            var secondTarget = await LocateCylinderAsync();
+            Pass("second-target", $"Second cylinder center X={secondTarget.X:F3}, Y={secondTarget.Y:F3}.",
+                MachineOperationVerificationKind.VisionVerified);
+
+            Begin("second-approach", "Applying the proposed offset ONLY as a bounded relative jog.");
+            await MoveHeadToCylinderAsync(secondTarget, candidate);
+            Pass("second-approach", $"Candidate test jog X={candidate.SecondPickupJogMm.X:+0.000;-0.000;0.000}, " +
+                $"Y={candidate.SecondPickupJogMm.Y:+0.000;-0.000;0.000} mm. Stored offset unchanged.",
+                MachineOperationVerificationKind.MachineObserved);
+
+            Begin("second-pick", "Performing an independent cylinder pickup with the candidate correction.");
+            await PickCylinderAsync();
+            var secondMotion = DateTimeOffset.UtcNow;
+            Pass("second-pick", "Fresh vacuum sensor pickup confirmation after candidate jog.",
+                MachineOperationVerificationKind.MachineObserved);
+
+            Begin("second-inspect", "Inspecting the second picked cylinder with the bottom camera.");
+            var secondCircle = await ObserveHeldCylinderAsync();
+            var second = CreateObservation(head, nozzleReference, secondCircle, secondMotion);
+            Pass("second-inspect", $"Second pickup residual X={second.PartRelativeToNozzleMm.X:+0.000;-0.000;0.000}, " +
+                $"Y={second.PartRelativeToNozzleMm.Y:+0.000;-0.000;0.000} mm.",
+                MachineOperationVerificationKind.VisionVerified);
+
+            Begin("verify", "Accepting only an independently verified second pickup.");
+            if (!CameraToolPickupCalibrationMath.TryVerify(candidate, second, DateTimeOffset.UtcNow,
+                out var residual, out reason))
+                throw new CalibrationStopped(reason);
+            CandidateSummary = $"Head {head.HeadIndex} second pickup VERIFIED: residual {residual:F3} mm; " +
+                $"candidate ({candidate.ProposedOffsetMm.X:F3}, {candidate.ProposedOffsetMm.Y:F3}) mm.";
+            Pass("verify", CandidateSummary, MachineOperationVerificationKind.VisionVerified);
+
+            // Return the verified cylinder before switching camera/navigation.
+            await ReturnCylinderAsync(secondTarget);
+            Begin("safe-camera-mode", "Restoring safe Z and camera navigation with OLD offset.");
+            _machine.SendSafeMoveHeight();
+            await NeedIdleAsync("final safe height");
+            await _machine.MoveToCameraAsync();
+            await NeedIdleAsync("camera navigation");
+            if (_machine.CurrentMachineToolHead != null)
+                throw new CalibrationStopped("Camera navigation was not restored. Candidate was not saved.");
+            Pass("safe-camera-mode", "Machine at safe Z in camera mode, with previous tool-head offset.",
+                MachineOperationVerificationKind.MachineObserved);
+
+            Begin("commit-offset", "Committing candidate only if explicitly enabled.");
+            if (!SaveVerifiedOffset)
+            {
+                var step = Step("commit-offset");
+                step.Detail = "Measured and verified only. Auto-save is OFF; the previous offset was preserved.";
+                step.Status = "Unsaved";
+                return;
+            }
+            RequireValid();
+            var old = new Point2D<double>(head.Offset.X, head.Offset.Y);
+            head.Offset = new Point2D<double>(candidate.ProposedOffsetMm.X, candidate.ProposedOffsetMm.Y);
+            var saved = await _repo.SaveCurrentMachineAsync();
+            if (!saved.Successful)
+            {
+                head.Offset = old;
+                throw new CalibrationStopped("The verified offset was NOT saved: " + saved.ErrorMessage);
+            }
+            Pass("commit-offset", $"Saved verified XY ({head.Offset.X:F3}, {head.Offset.Y:F3}) mm.",
+                MachineOperationVerificationKind.MachineObserved, saved:true);
+        }
+
+        private async Task<Point2D<double>> LocateCylinderAsync()
+        {
+            RequireValid();
+            var result = await _knownLocation.RunAsync();
+            if (!result.Successful || result.Result == null)
+                throw new CalibrationStopped(_knownLocation.Status);
+            return result.Result;
+        }
+
+        private async Task<BottomCircle> MeasureEmptyNozzleAsync(MachineToolHead head)
+        {
+            RequireValid();
+            await SwitchToHeadAsync(head);
+            _machine.ClearToolHeadAngle();
+            await NeedIdleAsync("nozzle zero-angle positioning");
+            await MoveToInspectionCameraAsync();
+            _machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_NozzleCalibration);
+            return await ObserveBottomAsync(VisionProfile.VisionProfile_NozzleCalibration, isCylinder:false);
+        }
+
+        private async Task<BottomCircle> ObserveHeldCylinderAsync()
+        {
+            await MoveToInspectionCameraAsync();
+            _machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
+            return await ObserveBottomAsync(VisionProfile.VisionProfile_PartInspection, isCylinder:true);
+        }
+
+        private async Task SwitchToHeadAsync(MachineToolHead head)
+        {
+            RequireValid();
+            _machine.SendSafeMoveHeight();
+            await NeedIdleAsync("safe head transition");
+            await _machine.MoveToToolHeadAsync(head);
+            await NeedIdleAsync("selected tool head");
+            if (!ReferenceEquals(_machine.CurrentMachineToolHead, head))
+                throw new CalibrationStopped("The requested tool head was not selected.");
+        }
+
+        private async Task MoveHeadToCylinderAsync(Point2D<double> target,
+            CameraToolPickupCandidate candidate)
+        {
+            await SwitchToHeadAsync(_head);
+            var area = _machine.Settings.WorkAreaSize;
+            var physicalX = target.X + _head.Offset.X;
+            var physicalY = target.Y + _head.Offset.Y;
+            if (physicalX < 5 || physicalY < 5 ||
+                physicalX > area.X - 5 || physicalY > area.Y - 5)
+                throw new CalibrationStopped("Target pickup position would violate physical gantry travel limits.");
+            _machine.GotoPoint(target);
+            await NeedIdleAsync("known cylinder pickup XY");
+            if (candidate != null)
+            {
+                var current = await _machine.GetCurrentLocationAsync(5000);
+                if (!current.Successful ||
+                    !CameraToolPickupCalibrationMath.TryPlanSecondPickup(
+                        candidate, current.Result, area, out var jog, out var reason))
+                    throw new CalibrationStopped(current.Successful
+                        ? reason : "Cannot read physical XY for second-pass jog.");
+                _machine.GotoPoint(jog, relativeMove:true);
+                await NeedIdleAsync("candidate second-pickup jog");
+            }
+        }
+
+        private async Task PickCylinderAsync()
+        {
+            RequireValid();
+            if (_machine.CurrentMachineToolHead != _head)
+                throw new CalibrationStopped("Pickup head selection changed.");
+            _machine.SetToolHeadHeight(_pickupZ);
+            await NeedIdleAsync("fixture-specific pickup Z");
+            SetVacuum(true);
+            await NeedIdleAsync("vacuum activation");
+            await Task.Delay(250);
+            _machine.SendSafeMoveHeight();
+            await NeedIdleAsync("retracting after pickup");
+            if (!await VacuumConfirmsPartAsync())
+                throw new CalibrationStopped("Vacuum sensor did not confirm a picked cylinder. Vacuum remains enabled for safe operator recovery.");
+        }
+
+        private async Task ReturnCylinderAsync(Point2D<double> target)
+        {
+            RequireValid();
+            _machine.SendSafeMoveHeight();
+            await NeedIdleAsync("pre-return safe height");
+            _machine.GotoPoint(target);
+            await NeedIdleAsync("cylinder return XY");
+            _machine.SetToolHeadHeight(_returnZ);
+            await NeedIdleAsync("fixture-specific cylinder return Z");
+            SetVacuum(false);
+            await NeedIdleAsync("vacuum release");
+            await Task.Delay(300);
+            _machine.SendSafeMoveHeight();
+            await NeedIdleAsync("safe retract after return");
+        }
+
+        private async Task MoveToInspectionCameraAsync()
+        {
+            RequireValid();
+            var capture = _machine.PartInspectionCaptureService;
+            if (capture == null)
+            {
+                _bottomCameraBootstrap.CameraType = CameraTypes.PartInspection;
+                capture = _machine.PartInspectionCaptureService;
+            }
+            if (capture?.Camera == null || capture.CameraType != CameraTypes.PartInspection)
+                throw new CalibrationStopped("Bottom camera capture could not initialize.");
+            if (capture.Camera.AbsolutePosition == null)
+                throw new CalibrationStopped("Bottom camera has no configured XY center.");
+            var xy = capture.Camera.AbsolutePosition;
+            var physicalX = xy.X + _head.Offset.X;
+            var physicalY = xy.Y + _head.Offset.Y;
+            var area = _machine.Settings.WorkAreaSize;
+            if (physicalX < 5 || physicalY < 5 ||
+                physicalX > area.X - 5 || physicalY > area.Y - 5)
+                throw new CalibrationStopped("Bottom camera approach exceeds physical XY travel limits.");
+            _machine.SendSafeMoveHeight();
+            await NeedIdleAsync("safe inspection approach");
+            await _machine.GoToPartInspectionCameraAsync();
+            await NeedIdleAsync("bottom-camera alignment and inspection height");
+        }
+
+        private async Task<BottomCircle> ObserveBottomAsync(string profileKey, bool isCylinder)
+        {
+            var capture = _machine.PartInspectionCaptureService;
+            if (capture == null || capture.Camera == null)
+                throw new CalibrationStopped("Bottom camera is unavailable.");
+            if (capture.Profile?.Key != profileKey || !capture.Profile.FindCircles ||
+                capture.Camera.EffectivePixelsPerMM <= 0)
+                throw new CalibrationStopped("Configure a circular detector for bottom profile '" +
+                    profileKey + "'. No unverified detection will be used.");
+            if (capture.CaptureFrameSize.Width <= 0)
+                capture.StartCapture();
+
+            var request = new TaskCompletionSource<BottomCircle>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            lock (_observationGate)
+            {
+                _expectedBottomProfile = profileKey;
+                _pendingCircle = request;
+            }
+            try
+            {
+                capture.ResetDetections();
+                _locator.RegisterCircleLocatedHandler(this, 9000);
+                var completed = await Task.WhenAny(request.Task, Task.Delay(9500));
+                var circle = completed == request.Task ? await request.Task : null;
+                if (circle == null)
+                    throw new CalibrationStopped("No fresh, stable bottom-camera circle for " + profileKey + ".");
+                if (isCylinder && (circle.DiameterMm < 5.5 || circle.DiameterMm > 10.5))
+                    throw new CalibrationStopped("Held-cylinder diameter is inconsistent with the 7 mm fixture.");
+                return circle;
+            }
+            finally
+            {
+                _locator.UnregisterCircleLocatedHandler(this);
+                lock (_observationGate)
+                {
+                    if (ReferenceEquals(_pendingCircle, request))
+                        _pendingCircle = null;
+                }
+            }
+        }
+
+        public void CircleLocated(MVLocatedCircle circle)
+        {
+            TaskCompletionSource<BottomCircle> request;
+            string expected;
+            lock (_observationGate)
+            {
+                request = _pendingCircle;
+                expected = _expectedBottomProfile;
+            }
+            var machine = _machine;
+            var capture = machine?.PartInspectionCaptureService;
+            if (request == null || circle?.CameraType != CameraTypes.PartInspection ||
+                !circle.Stabilized || !circle.PositionStable || machine.Busy ||
+                capture?.Profile?.Key != expected || !ValidMachine(out _) ||
+                machine.CurrentMachineToolHead != _head ||
+                !String.Equals(Convert.ToString(_head.CurrentNozzle?.Id),
+                    _nozzleIdentity, StringComparison.Ordinal))
+                return;
+            var scale = capture.Camera?.EffectivePixelsPerMM ?? 0;
+            var offset = circle.OffsetPixels;
+            if (scale <= 0 || offset == null || !Finite(offset.X) || !Finite(offset.Y))
+                return;
+            request.TrySetResult(new BottomCircle
+            {
+                OffsetMm = new Point2D<double>(offset.X / scale, -offset.Y / scale),
+                DiameterMm = 2 * circle.RadiusPixels / scale,
+                CapturedAtUtc = DateTimeOffset.UtcNow
+            });
+        }
+
+        public void CircleLocatorTimeout()
+        {
+            lock (_observationGate) _pendingCircle?.TrySetResult(null);
+        }
+        public void CircleLocatorAborted() => CircleLocatorTimeout();
+
+        private CameraToolPickupObservation CreateObservation(MachineToolHead head,
+            BottomCircle nozzle, BottomCircle part, DateTimeOffset motion)
+        {
+            if (nozzle == null || part == null || part.CapturedAtUtc < motion)
+                throw new CalibrationStopped("The nozzle/part image pair is not a fresh valid observation.");
+            return new CameraToolPickupObservation
+            {
+                HeadIndex = head.HeadIndex,
+                NozzleId = _nozzleIdentity,
+                FixtureId = "known-location-7mm-cylinder",
+                PartRelativeToNozzleMm = new Point2D<double>(
+                    part.OffsetMm.X - nozzle.OffsetMm.X,
+                    part.OffsetMm.Y - nozzle.OffsetMm.Y),
+                VacuumConfirmed = true, // independently checked at pickup
+                StableVision = true, // both bottom observations were stabilized
+                NozzleCalibrated = true, // fresh same-angle optical nozzle reference
+                MotionFinishedUtc = motion,
+                CapturedUtc = part.CapturedAtUtc
+            };
+        }
+
+        private async Task<bool> VacuumConfirmsPartAsync()
+        {
+            var expected = _head.PartPickedVacuum;
+            var noPart = _head.NoPartPickedVacuum;
+            if (!Finite(expected) || !Finite(noPart) || Math.Abs(expected - noPart) < 1.0)
+                throw new CalibrationStopped(
+                    "Calibrate this head's Part Picked and No Part Picked vacuum sensor values before automatic pickup.");
+            var values = new double[3];
+            for (var i = 0; i < values.Length; i++)
+            {
+                var sample = _head.HeadIndex == 1
+                    ? await _machine.ReadLeftVacuumAsync()
+                    : await _machine.ReadRightVacuumAsync();
+                if (!sample.Successful)
+                    throw new CalibrationStopped("Vacuum sensor read failed: " + sample.ErrorMessage);
+                values[i] = sample.Result;
+                await Task.Delay(80);
+            }
+            var mean = values.Average();
+            return Math.Abs(mean - expected) < Math.Abs(mean - noPart) &&
+                Math.Abs(mean - expected) <= 0.5 * Math.Abs(expected - noPart);
+        }
+
+        private void SetVacuum(bool on)
+        {
+            if (_head.HeadIndex == 1) _machine.LeftVacuumPump = on;
+            else if (_head.HeadIndex == 2) _machine.RightVacuumPump = on;
+            else throw new CalibrationStopped("Only two supported nozzle heads may operate vacuum.");
+        }
+
+        private async Task NeedIdleAsync(string description)
+        {
+            if (!ValidMachine(out var reason))
+                throw new CalibrationStopped(reason + " during " + description);
+            var idle = await _machine.SpinUntilIdleAsync(30000);
+            if (!idle.Successful)
+                throw new CalibrationStopped(description + " failed: " + idle.ErrorMessage);
+            for (var i = 0; i < 30; i++)
+            {
+                if (!ValidMachine(out reason))
+                    throw new CalibrationStopped(reason + " during " + description);
+                if (!_machine.Busy && _machine.ToSendQueueCount == 0 &&
+                    _machine.UnacknowledgedBytesSent == 0)
+                    return;
+                await Task.Delay(100);
+            }
+            throw new CalibrationStopped("Serial command queue did not settle after " + description);
+        }
+
+        private void RequireValid()
+        {
+            if (!ValidMachine(out var reason))
+                throw new CalibrationStopped(reason);
+            if (_head != null && !String.Equals(Convert.ToString(_head.CurrentNozzle?.Id),
+                    _nozzleIdentity, StringComparison.Ordinal))
+                throw new CalibrationStopped("Installed nozzle changed during the procedure.");
+        }
+
+        private bool ValidMachine(out string error)
+        {
+            var m = _machine;
+            if (m == null || !ReferenceEquals(_repo.CurrentMachine, m) ||
+                !m.Connected || m.Settings == null || m.Mode != OperatingMode.Manual ||
+                !m.WasMachineHomed || !m.WasMachinOriginCalibrated)
+            {
+                error = "Machine must remain connected, homed, origin-calibrated and in Manual mode.";
+                return false;
+            }
+            error = null;
+            return true;
+        }
+
+        private FeederCalibrationFlowStep Step(string key) =>
+            CalibrationSteps.FirstOrDefault(s => s.StepKey == $"head-{_head?.HeadIndex}/{key}");
+
+        private void Begin(string key, string description)
+        {
+            RequireValid();
+            var step = Step(key);
+            if (step == null)
+                throw new CalibrationStopped("Missing calibration procedure step: " + key);
+            step.Begin(description);
+            Status = $"Head {_head.HeadIndex}: {description}";
+        }
+
+        private void Pass(string key, string detail, MachineOperationVerificationKind verification,
+            bool saved = false)
+        {
+            var step = Step(key);
+            if (step == null || _session == null)
+                throw new CalibrationStopped("Lost procedure state at " + key);
+            var now = DateTimeOffset.UtcNow;
+            _session.RecordEvidence(new MachineOperationEvidence
+            {
+                RunId = _session.Snapshot.RunId,
+                StepKey = key,
+                Name = detail,
+                Verification = verification,
+                Saved = saved,
+                CapturedAtUtc = now
+            });
+            _session.CompleteActiveStep(key, now);
+            step.Pass(detail);
+        }
+
+        private static bool Finite(double x) => !Double.IsNaN(x) && !Double.IsInfinity(x);
+    }
+}
