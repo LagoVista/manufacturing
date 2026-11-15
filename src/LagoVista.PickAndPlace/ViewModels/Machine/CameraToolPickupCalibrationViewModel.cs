@@ -71,7 +71,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _locator = locator ?? throw new ArgumentNullException(nameof(locator));
             _bottomCameraBootstrap = bottomCameraBootstrap ??
                 throw new ArgumentNullException(nameof(bottomCameraBootstrap));
-            _knownLocation = new KnownLocationCylinderCenteringRunner(repo, locator);
+            // The modal owns step-level failure reporting, so avoid a second,
+            // duplicate machine warning from the nested centering runner.
+            _knownLocation = new KnownLocationCylinderCenteringRunner(
+                repo, locator, emitWarnings:false);
         }
 
         public string PickupZText { get => _pickupZText; set => Set(ref _pickupZText, value); }
