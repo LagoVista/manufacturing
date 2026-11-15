@@ -123,7 +123,7 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(d.Steps.Count, Is.EqualTo(15));
             Assert.That(d.Steps.Select(s => s.Key).ToArray(), Is.EqualTo(new[]
             {
-                "readiness","fixture","first-target","first-approach","first-pick",
+                "readiness","known-location","first-target","first-approach","first-pick",
                 "first-inspect","candidate","replace-part","second-target",
                 "second-approach","second-pick","second-inspect","verify",
                 "safe-camera-mode","commit-offset"
