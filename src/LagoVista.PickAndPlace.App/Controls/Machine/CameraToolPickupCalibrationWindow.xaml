@@ -5,7 +5,7 @@
         Width="1020" Height="790" MinWidth="820" MinHeight="590"
         WindowStartupLocation="CenterOwner" ResizeMode="CanResize"
         Background="#181D26" Foreground="#EAF0F6"
-        Loaded="Window_Loaded" Closing="Window_Closing">
+        Closing="Window_Closing">
     <Window.Resources>
         <Style x:Key="ProcedureCard" TargetType="Border">
             <Setter Property="Background" Value="#252E3B"/>
