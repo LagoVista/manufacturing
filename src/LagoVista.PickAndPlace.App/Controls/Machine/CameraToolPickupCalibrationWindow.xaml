@@ -98,7 +98,7 @@
                            Foreground="#F1F8FF" Margin="0,3,0,0"/>
                 <TextBlock Text="No head offsets are changed until the second independent pickup passes the acceptance threshold." FontSize="12" Foreground="#C9D5E3"
                            Margin="0,5,0,0" TextWrapping="Wrap"/>
-                <TextBlock Text="First machine test: leave Auto-save unchecked. Pickup, return and held-cylinder inspection Z are fixture-specific. Verify all three for each selected head before starting."
+                <TextBlock Text="First machine test: leave Auto-save unchecked. The selected head's existing Pick/Place heights and machine Safe Move Z are used automatically. Confirm cylinder clearance/focus on the first supervised run."
                            FontSize="11" Foreground="#B9C6D6" TextWrapping="Wrap"
                            Margin="0,7,0,0"/>
             </StackPanel>
@@ -108,19 +108,19 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                <TextBlock Text="Head (1/2):" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                <TextBox Width="38" Text="{Binding HeadIndexText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,0"/>
-                <TextBlock Text="Pickup Z:" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                <TextBox Width="68" Text="{Binding PickupZText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,0" />
-                <TextBlock Text="Return Z:" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                <TextBox Width="68" Text="{Binding ReturnZText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,0" />
-                <TextBlock Text="Held inspection Z:" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                <TextBox Width="68" Text="{Binding HeldPartInspectionZText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,0" />
-                <CheckBox Content="Auto-save (after hardware validation)"
-                          IsChecked="{Binding SaveVerifiedOffset}" VerticalAlignment="Center"
-                          IsEnabled="False"
-                          ToolTip="First hardware trials measure candidate XY only. T004 optical-axis integration and verification are required before saving."/>
+            <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Head (1/2):" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBox Width="38" Text="{Binding HeadIndexText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,14,0"/>
+                    <CheckBox Content="Auto-save offset (disabled during initial machine verification)"
+                              IsChecked="{Binding SaveVerifiedOffset}" VerticalAlignment="Center"
+                              IsEnabled="False"
+                              ToolTip="Preserve original offsets until two-pick optical accuracy and hardware clearance are independently proven."/>
+                </StackPanel>
+                <TextBlock Text="{Binding ConfiguredHeights}" TextWrapping="Wrap"
+                           Margin="0,7,0,2" FontWeight="SemiBold"/>
+                <TextBlock Text="Pickup/return use the selected head's saved Pick/Place heights (ZL or ZR). Held inspection stays at the machine's common Safe Move Z: no additional nozzle lowering. Confirm fixture clearance and optical focus on the first supervised run."
+                           FontSize="11" Foreground="#B9C6D6" TextWrapping="Wrap"/>
             </StackPanel>
             <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
