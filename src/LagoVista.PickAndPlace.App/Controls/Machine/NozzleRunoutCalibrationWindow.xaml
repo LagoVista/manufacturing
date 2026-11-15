@@ -1,0 +1,179 @@
+<Window x:Class="LagoVista.PickAndPlace.App.Controls.Machine.NozzleRunoutCalibrationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Optical Nozzle Runout Calibration"
+        Width="1020" Height="790" MinWidth="820" MinHeight="590"
+        WindowStartupLocation="CenterOwner" ResizeMode="CanResize"
+        Background="#181D26" Foreground="#EAF0F6"
+        Loaded="Window_Loaded" Closing="Window_Closing">
+    <Window.Resources>
+        <Style x:Key="ProcedureCard" TargetType="Border">
+            <Setter Property="Background" Value="#252E3B"/>
+            <Setter Property="BorderBrush" Value="#3A4556"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="9"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="Margin" Value="0,0,0,7"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Status}" Value="Running">
+                    <Setter Property="BorderBrush" Value="#55B7FF"/>
+                    <Setter Property="Background" Value="#26394A"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="Passed">
+                    <Setter Property="BorderBrush" Value="#3E7961"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="Failed">
+                    <Setter Property="BorderBrush" Value="#D55F66"/>
+                    <Setter Property="Background" Value="#3B2A32"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="StepStatus" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#A4B1C0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Status}" Value="Running">
+                    <Setter Property="Foreground" Value="#90D3FF"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="Passed">
+                    <Setter Property="Foreground" Value="#79EDAD"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="Failed">
+                    <Setter Property="Foreground" Value="#FF9299"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="MinWidth" Value="110"/>
+            <Setter Property="Margin" Value="8,0,0,0"/>
+            <Setter Property="Padding" Value="16,7"/>
+            <Setter Property="Background" Value="#277EC4"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#4F9BD8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+    </Window.Resources>
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Border Background="#232B38" CornerRadius="10" Padding="18,16" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="NOZZLE / 360° OPTICAL CALIBRATION"
+                               FontWeight="Bold" FontSize="11" Foreground="#8FBFE9"/>
+                    <TextBlock Text="Rotational Runout" FontWeight="SemiBold"
+                               FontSize="25" Margin="0,5,0,3"/>
+                    <TextBlock Text="{Binding ToolHeadName}" Foreground="#DFE9F5"
+                               FontSize="14"/>
+                    <TextBlock Text="{Binding NozzleName}" Foreground="#ACBDD0"
+                               FontSize="12" Margin="0,2,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <TextBlock Text="MEASUREMENT PLAN" Foreground="#91A5BC"
+                               HorizontalAlignment="Right" FontSize="10"/>
+                    <TextBlock Text="12 samples per head · 30° increments"
+                               FontWeight="SemiBold" FontSize="16" HorizontalAlignment="Right"/>
+                    <TextBlock Text="Bottom camera · max Y = logical zero"
+                               Foreground="#B6C3D2" FontSize="11" HorizontalAlignment="Right"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+        <Border Grid.Row="1" BorderBrush="#375B75" BorderThickness="1" Background="#213341"
+                CornerRadius="8" Padding="12" Margin="0,0,0,12">
+            <StackPanel>
+                <TextBlock Text="CANDIDATE ROTATIONAL ZERO" FontSize="10"
+                           Foreground="#93BAD9" FontWeight="Bold"/>
+                <TextBlock Text="{Binding CandidateZero}" FontSize="17" FontWeight="SemiBold"
+                           Foreground="#F1F8FF" Margin="0,3,0,0"/>
+                <TextBlock Text="{Binding RunoutSummary}" FontSize="12" Foreground="#C9D5E3"
+                           Margin="0,5,0,0" TextWrapping="Wrap"/>
+                <TextBlock Text="First machine run: measured data only. No G92, no saved placement correction, no change to camera/tool XY offsets."
+                           FontSize="11" Foreground="#B9C6D6" TextWrapping="Wrap"
+                           Margin="0,7,0,0"/>
+            </StackPanel>
+        </Border>
+        <Grid Grid.Row="2" Margin="4,0,4,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="42"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="92"/>
+                <ColumnDefinition Width="82"/>
+                <ColumnDefinition Width="72"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="#" Foreground="#AAB8C9"/>
+            <TextBlock Grid.Column="1" Text="STAGE / MEASUREMENT" Foreground="#AAB8C9"/>
+            <TextBlock Grid.Column="2" Text="STATUS" Foreground="#AAB8C9"/>
+            <TextBlock Grid.Column="3" Text="ELAPSED" TextAlignment="Right" Foreground="#AAB8C9"/>
+            <TextBlock Grid.Column="4" Text="RETRIES" TextAlignment="Right" Foreground="#AAB8C9"/>
+        </Grid>
+        <Border Grid.Row="3" Background="#1D242F" BorderBrush="#374454"
+                BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,14">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding RunoutSteps}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource ProcedureCard}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="42"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="92"/>
+                                        <ColumnDefinition Width="82"/>
+                                        <ColumnDefinition Width="72"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding Number}"
+                                               VerticalAlignment="Center" Foreground="#98AFC8"
+                                               FontSize="15"/>
+                                    <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold"
+                                                   FontSize="13" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding Detail}" Foreground="#BAC8D8"
+                                                   FontSize="11" TextWrapping="Wrap"
+                                                   Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2" Text="{Binding Status}"
+                                               Style="{StaticResource StepStatus}"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="3" Text="{Binding Duration}"
+                                               Foreground="#D4E1ED" FontFamily="Consolas"
+                                               TextAlignment="Right" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="4" Text="{Binding RetryCount}"
+                                               Foreground="#D4E1ED" FontFamily="Consolas"
+                                               TextAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel VerticalAlignment="Center" Margin="0,0,10,0">
+                <TextBlock Text="{Binding Status}" TextWrapping="Wrap"
+                           FontSize="13" FontWeight="SemiBold"/>
+                <TextBlock Text="First run is supervised. Machine emergency stop remains independent; closing the modal does not cancel queued motion."
+                           TextWrapping="Wrap" Foreground="#9DADC1" FontSize="10" Margin="0,5,0,0"/>
+            </StackPanel>
+            <Button Grid.Column="1" Content="Run Again" Style="{StaticResource ActionButton}"
+                    Click="RunAgain_Click" IsEnabled="{Binding RunoutFinished}"/>
+            <Button Grid.Column="2" Content="Close" Style="{StaticResource ActionButton}"
+                    Click="Close_Click" IsEnabled="{Binding RunoutFinished}"/>
+        </Grid>
+    </Grid>
+</Window>

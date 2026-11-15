@@ -23,6 +23,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="50*" />
@@ -32,6 +33,11 @@
             <ComboBox Grid.Column="1" ItemsSource="{Binding VisionProfiles}" SelectedValuePath="Key" SelectedValue="{Binding SelectedProfile}" ></ComboBox>
             <TextBlock Style="{StaticResource label}" Grid.Row="1" Text="Custom Profile:"></TextBlock>
             <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding CustomProfile.Text, Mode=TwoWay}"></TextBox>
+            <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="6,8,6,8">
+                <Button Style="{StaticResource CommandButton}" HorizontalAlignment="Left"
+                        Command="{Binding AutoTuneNozzleCommand}" Content="Auto Tune Nozzle Image"/>
+                <TextBlock Text="{Binding NozzleTuneStatus}" TextWrapping="Wrap" Margin="0,5,0,0"/>
+            </StackPanel>
         </Grid>
 
         <Controls:MVViewOptions Grid.Row="2" VerticalAlignment="Bottom"  />

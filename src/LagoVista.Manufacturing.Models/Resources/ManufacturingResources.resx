@@ -1247,6 +1247,9 @@
   <data name="VisionProfile_BoardFiducial" xml:space="preserve">
     <value>Board Fiducial</value>
   </data>
+  <data name="VisionProfile_CameraLocator" xml:space="preserve">
+    <value>Camera Locator</value>
+  </data>
   <data name="VisionProfile_MachineFiducual" xml:space="preserve">
     <value>Machine Fiducial</value>
   </data>

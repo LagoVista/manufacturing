@@ -31,6 +31,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             ClearProfilePixelsPerMMCommand = new RelayCommand(ClearProfilePixelsPerMM,
                 () => Profile?.PixelsPerMM.HasValue == true);
             SaveCommand = new RelayCommand(async () => await SaveAsync());
+            AutoTuneNozzleCommand = new RelayCommand(async () => await AutoTuneNozzleAsync());
             SetInspectionHeight = new RelayCommand(() =>
             {
                 Profile.DetectionHeight = Machine.MachinePosition.Z;
@@ -39,6 +40,96 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
             CopyVisionProfileFromDefaultCommand = new RelayCommand(CopyVisionProfile, () => Camera?.CurrentVisionProfile.Key != "default");
 
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
+        }
+
+        private string _nozzleTuneStatus =
+            "Nozzle: automatic tuning uses 24 fresh images without moving the machine.";
+        public string NozzleTuneStatus
+        {
+            get => _nozzleTuneStatus;
+            private set => Set(ref _nozzleTuneStatus, value);
+        }
+
+        public RelayCommand AutoTuneNozzleCommand { get; }
+        private bool _nozzleTuneRunning;
+
+        private async Task AutoTuneNozzleAsync()
+        {
+            if (_nozzleTuneRunning) return;
+            var camera = Camera;
+            var profile = Profile;
+            if (camera?.CameraType?.Value != CameraTypes.PartInspection ||
+                (profile?.Key != VisionProfile.VisionProfile_Nozzle &&
+                 profile?.Key != VisionProfile.VisionProfile_NozzleCalibration) ||
+                camera.ProfileSource != VisionProfileSource.Camera)
+            {
+                NozzleTuneStatus = "Select the bottom camera's camera-owned Nozzle profile.";
+                return;
+            }
+
+            var capture = Machine?.PartInspectionCaptureService;
+            if (capture == null || !ReferenceEquals(capture.Camera, camera))
+            {
+                NozzleTuneStatus = "Bottom camera service is unavailable. " +
+                    "Open the bottom camera view and try again.";
+                return;
+            }
+
+            _nozzleTuneRunning = true;
+            NozzleTuneStatus = "Analyzing 24 fresh images; no machine movement.";
+            try
+            {
+                var result = await capture.TuneNozzleOpeningAsync();
+                if (!result.Successful)
+                {
+                    NozzleTuneStatus = result.ErrorMessage;
+                    return;
+                }
+                if (!ReferenceEquals(Camera, camera) || !ReferenceEquals(Profile, profile))
+                {
+                    NozzleTuneStatus = "Profile changed during tuning; results discarded.";
+                    return;
+                }
+
+                var tuned = result.Result;
+                var oldEnabled = profile.UseAdaptiveDarkOpening;
+                var oldDiameter = profile.ExpectedDarkOpeningDiameterMm;
+                var oldScale = profile.DarkOpeningTunedPixelsPerMM;
+                var oldFind = profile.FindCircles;
+                var oldPerform = profile.PerformShapeDetection;
+                profile.ExpectedDarkOpeningDiameterMm = tuned.DiameterMm;
+                profile.DarkOpeningTunedPixelsPerMM = camera.EffectivePixelsPerMM;
+                profile.UseAdaptiveDarkOpening = true;
+                profile.FindCircles = true;
+                profile.PerformShapeDetection = true;
+
+                var saved = await MachineRepo.SaveCurrentMachineAsync();
+                if (!saved.Successful)
+                {
+                    profile.UseAdaptiveDarkOpening = oldEnabled;
+                    profile.ExpectedDarkOpeningDiameterMm = oldDiameter;
+                    profile.DarkOpeningTunedPixelsPerMM = oldScale;
+                    profile.FindCircles = oldFind;
+                    profile.PerformShapeDetection = oldPerform;
+                    NozzleTuneStatus = "Opening verified but could not save profile: " +
+                        saved.ErrorMessage;
+                    return;
+                }
+
+                capture.ResetDetections();
+                NozzleTuneStatus = $"LOCKED: {tuned.GoodFrames}/{tuned.TotalFrames} images, " +
+                    $"opening {tuned.DiameterMm:F3} mm, contrast {tuned.MedianContrast:F1}, " +
+                    $"center deviation {tuned.MaxCenterDeviationMm:F3} mm. " +
+                    "Adaptive detector enabled and saved.";
+            }
+            catch (Exception ex)
+            {
+                NozzleTuneStatus = "Nozzle tuning failed: " + ex.Message;
+            }
+            finally
+            {
+                _nozzleTuneRunning = false;
+            }
         }
 
         void SetPixelsPerMM()

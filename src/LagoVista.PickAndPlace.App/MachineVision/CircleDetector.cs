@@ -36,7 +36,13 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             var profile = camera.CurrentVisionProfile;
             var center = size.Center();
 
-            var scaledTarget = Convert.ToInt32(profile.TargetImageRadius * camera.EffectivePixelsPerMM);
+            var adaptiveNozzle = profile.UseAdaptiveDarkOpening &&
+                (profile.Key == VisionProfile.VisionProfile_Nozzle ||
+                 profile.Key == VisionProfile.VisionProfile_NozzleCalibration);
+            var scaledTarget = adaptiveNozzle
+                ? (int)Math.Round(DarkCircularOpeningLocator.EffectiveAcquisitionRadiusPixels(
+                    size.Width, size.Height, camera.EffectivePixelsPerMM, profile.TargetImageRadius))
+                : Convert.ToInt32(profile.TargetImageRadius * camera.EffectivePixelsPerMM);
             var search = new CircleF(new System.Drawing.PointF(center.X, center.Y), scaledTarget);
 
             var stagingPlateHole = profile.Key == VisionProfile.VisionProfile_StagingPlateHole;
@@ -47,6 +53,22 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 // is more repeatable than a Hough center on this staging-plate image.
                 var hole = FindStagingPlateHole(input, camera, profile, search, center);
                 circles = hole.HasValue ? new[] { hole.Value } : Array.Empty<CircleF>();
+            }
+            else if (adaptiveNozzle)
+            {
+                // Match the verified dark core in raw grayscale, independently
+                // of the profile's legacy Hough and manual threshold settings.
+                var gray = input.Image as Image<Gray, byte>;
+                var opening = gray == null ? null : DarkCircularOpeningLocator.Find(
+                    gray.Data, gray.Width, gray.Height, camera.EffectivePixelsPerMM,
+                    profile.TargetImageRadius,
+                    DarkOpeningScaleGuard.EffectiveExpectedDiameterMm(
+                        profile.ExpectedDarkOpeningDiameterMm,
+                        profile.DarkOpeningTunedPixelsPerMM,
+                        camera.EffectivePixelsPerMM));
+                circles = opening == null ? Array.Empty<CircleF>() :
+                    new[] { new CircleF(new System.Drawing.PointF(
+                        (float)opening.X, (float)opening.Y), (float)opening.RadiusPixels) };
             }
             else
             {
@@ -76,7 +98,9 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 {
                     var foundCircle = new MVLocatedCircle(
                         camera.CameraType.Value, center, camera.EffectivePixelsPerMM,
-                        profile.ErrorToleranceMM, profile.StabilizationCount, stagingPlateHole);
+                        profile.ErrorToleranceMM, profile.StabilizationCount,
+                        stagingPlateHole,
+                        positionStabilityToleranceMm: adaptiveNozzle ? 0.20 : 0.10);
                     foundCircle.Add(circle.Center, circle.Radius);
                     foundCircle.Iteration = _iteration;
                     _foundCircles.Add(foundCircle);
@@ -84,7 +108,14 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 }
             }
 
-            var staleRects = FoundCircles.Where(itr => itr.Iteration < _iteration - 2).ToList();
+            // Adaptive nozzle openings may be only 7-8 pixels across at the
+            // calibrated camera scale. A few missed frames must not discard
+            // a valid history before the next fresh observation; missing
+            // frames NEVER count as successful measurements. Runout resets
+            // all histories for each new angular sample.
+            var maxMissedFrames = adaptiveNozzle ? 6 : 2;
+            var staleRects = FoundCircles.Where(itr =>
+                itr.Iteration < _iteration - maxMissedFrames).ToList();
             foreach (var rect in staleRects)
             {
                 FoundCircles.Remove(rect);

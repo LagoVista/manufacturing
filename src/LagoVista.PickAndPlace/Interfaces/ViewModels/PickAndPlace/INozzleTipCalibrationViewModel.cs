@@ -3,6 +3,7 @@
 // IndexVersion: 2
 // --- END CODE INDEX META ---
 using LagoVista.Core.Models.Drawing;
+using LagoVista.PickAndPlace.Models;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
@@ -16,5 +17,13 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         int TargetAngle { get; }
         int CurrentCalibrationAngle { get; }
         string Status { get; }
+        string ToolHeadName { get; }
+        string NozzleName { get; }
+        bool RunoutRunning { get; }
+        bool RunoutFinished { get; }
+        ObservableCollection<FeederCalibrationFlowStep> RunoutSteps { get; }
+        NozzleRunoutResult CandidateResult { get; }
+        string CandidateZero { get; }
+        string RunoutSummary { get; }
     }
 }

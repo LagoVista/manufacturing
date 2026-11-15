@@ -21,6 +21,14 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
         // the actual capture resolution selected by the Windows camera driver.
         Size CaptureFrameSize { get; }
 
+        // An active live camera stream is required before an automated
+        // calibration procedure is allowed to move the machine.
+        bool IsCapturing { get; }
+
+        /// <summary>Starts the configured camera automatically and waits for
+        /// a fresh processed frame, or returns an actionable failure.</summary>
+        Task<InvokeResult> EnsureCaptureReadyAsync();
+
         // A fresh, processed position-camera frame with the already-configured
         // part-in-tape rectangle detector's results. Null until a valid frame.
         PocketRectangleFrameObservation LatestRectangleFrame { get; }
@@ -37,6 +45,10 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
             double expectedOffsetY, string expectedProfileKey);
 
         Task<InvokeResult> AutoTuneExposureAsync();
+
+        // Capture-only tuning: 24 fresh frames, no machine motion or
+        // camera-exposure writes; caller persists the verified profile.
+        Task<InvokeResult<DarkCircularOpeningLocator.TuneResult>> TuneNozzleOpeningAsync();
 
         // Returns one fresh processed 10-pixel-band barcode signal.
         Task<InvokeResult<byte[]>> CaptureFeederBarcodeSignalAsync();

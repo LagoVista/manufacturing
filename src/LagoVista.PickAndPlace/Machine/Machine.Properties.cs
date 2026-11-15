@@ -196,6 +196,12 @@ namespace LagoVista.PickAndPlace
             set
             {
                 _settings = value;
+                // Machine settings can be loaded or replaced independently
+                // of motion state. Never inherit runout calibration from a
+                // previous app/machine session.
+                if (_settings?.ToolHeads != null)
+                    foreach (var head in _settings.ToolHeads)
+                        head?.InvalidateRunoutCalibration();
                 RaisePropertyChanged();
                 RaisePropertyChanged(nameof(IsPnPMachine));
             }
@@ -724,7 +730,6 @@ namespace LagoVista.PickAndPlace
                 if (_viewType == ViewTypes.Moving)
                 {
                     AddStatusMessage(StatusMessageTypes.Info, "Can not move to camera, busy.");
-                    _toolHeadMoveSempahor.Release();
                     DebugWriteLine($"[Move_Tool_Head_{toolHeadToMoveTo.Name}] Can not, currently moving...sorta odd while we would be here  {fullSW.Elapsed.TotalMilliseconds}ms");
 
                     if (verbose) 
@@ -734,7 +739,6 @@ namespace LagoVista.PickAndPlace
 
                 if (_currentMachineToolHead == toolHeadToMoveTo)
                 {
-                    _toolHeadMoveSempahor.Release();
                     DebugWriteLine($"[Move_Tool_Head_{toolHeadToMoveTo.Name}] Alerady on tool head {toolHeadToMoveTo.Name}, no need...exit  {fullSW.Elapsed.TotalMilliseconds}ms");
 
                     if (verbose) DebugWriteLine("--------------------------------");
@@ -846,7 +850,7 @@ namespace LagoVista.PickAndPlace
           
         }
 
-        SemaphoreSlim _toolHeadMoveSempahor = new SemaphoreSlim(1);
+        SemaphoreSlim _toolHeadMoveSempahor = new SemaphoreSlim(1, 1);
 
         public async Task  MoveToCameraAsync( bool verbose = false)
         {
@@ -872,14 +876,12 @@ namespace LagoVista.PickAndPlace
                 if (_viewType == ViewTypes.Moving)
                 {
                     AddStatusMessage(StatusMessageTypes.Info, "Can not move to camera, busy.");
-                    _toolHeadMoveSempahor.Release();
                     return;
                 }
 
                 if (_currentMachineToolHead == null)
                 {
                     AddStatusMessage(StatusMessageTypes.Info, "Already viewing camera.");
-                    _toolHeadMoveSempahor.Release();
                     DebugWriteLine($"[Move_Tool_Camera] Exit - Alerady on camera, no need...exit  {start.Elapsed.TotalMilliseconds}ms");
 
                     if (verbose) 
@@ -1016,6 +1018,12 @@ namespace LagoVista.PickAndPlace
             {
                 _wasMachineHomed = value;
                 _currentMachineToolHead = null;
+                // Homing/re-homing resets the rotary reference. Any
+                // previously measured nozzle-runout phase is no longer
+                // proven against this controller state.
+                if (Settings?.ToolHeads != null)
+                    foreach (var head in Settings.ToolHeads)
+                        head?.InvalidateRunoutCalibration();
                 RaisePropertyChanged(nameof(CurrentMachineToolHead));
                 RaisePropertyChanged();
             }

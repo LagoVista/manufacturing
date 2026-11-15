@@ -3,6 +3,7 @@
 // IndexVersion: 2
 // --- END CODE INDEX META ---
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.Core.IOC;
 using LagoVista.XPlat;
 using System;
@@ -38,6 +39,17 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
             var dialog = new CameraToolPickupCalibrationWindow
             {
                 DataContext = vm,
+                Owner = Window.GetWindow(this)
+            };
+            dialog.ShowDialog();
+        }
+
+        private void OpenNozzleRunout_Click(object sender, RoutedEventArgs e)
+        {
+            var viewModel = SLWIOC.Get<INozzleTipCalibrationViewModel>();
+            var dialog = new NozzleRunoutCalibrationWindow
+            {
+                DataContext = viewModel,
                 Owner = Window.GetWindow(this)
             };
             dialog.ShowDialog();

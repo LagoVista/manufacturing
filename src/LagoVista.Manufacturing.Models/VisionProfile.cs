@@ -36,6 +36,7 @@ namespace LagoVista.PickAndPlace.Models
                 {
                     EntityHeader.Create(VisionProfile_Defauilt,VisionProfile_Defauilt, ManufacturingResources.VisionProfile_Defauilt),
                     EntityHeader.Create(VisionProfile_BoardFiducial,VisionProfile_BoardFiducial, ManufacturingResources.VisionProfile_BoardFiducial),
+                    EntityHeader.Create(VisionProfile_CameraLocator, VisionProfile_CameraLocator, ManufacturingResources.VisionProfile_CameraLocator),
                     EntityHeader.Create(VisionProfile_MachineFiducual, VisionProfile_MachineFiducual, ManufacturingResources.VisionProfile_MachineFiducual),
                     EntityHeader.Create(VisionProfile_MachineFiducual, VisionProfile_KnownLocation, ManufacturingResources.VisionProfile_KnownLocation),
                     EntityHeader.Create(VisionProfile_Nozzle,VisionProfile_Nozzle, ManufacturingResources.VisionProfile_Nozzle),
@@ -60,6 +61,7 @@ namespace LagoVista.PickAndPlace.Models
 
         public const string VisionProfile_Defauilt = "default";
         public const string VisionProfile_BoardFiducial = "brdfiducial";
+        public const string VisionProfile_CameraLocator = "cameralocator";
         public const string VisionProfile_MachineFiducual = "macfiducial";
         public const string VisionProfile_KnownLocation = "knownlocation";
         public const string VisionProfile_TapeHole = "tapehole";
@@ -202,6 +204,32 @@ namespace LagoVista.PickAndPlace.Models
         {
             get => _findRectangles;
             set { Set(ref _findRectangles, value); }
+        }
+
+        // Enabled only by a successful, repeatable image-tuning pass.
+        private bool _useAdaptiveDarkOpening;
+        public bool UseAdaptiveDarkOpening
+        {
+            get => _useAdaptiveDarkOpening;
+            set => Set(ref _useAdaptiveDarkOpening, value);
+        }
+
+        private double _expectedDarkOpeningDiameterMm;
+        public double ExpectedDarkOpeningDiameterMm
+        {
+            get => _expectedDarkOpeningDiameterMm;
+            set => Set(ref _expectedDarkOpeningDiameterMm, Math.Round(value, 3));
+        }
+
+        // The px/mm in effect when the nozzle opening's physical diameter
+        // was measured. Older profiles do not contain this field: their
+        // saved diameters must be treated as unverified after calibration.
+        private double? _darkOpeningTunedPixelsPerMM;
+        public double? DarkOpeningTunedPixelsPerMM
+        {
+            get => _darkOpeningTunedPixelsPerMM;
+            set => Set(ref _darkOpeningTunedPixelsPerMM,
+                value.HasValue ? Math.Round(value.Value, 3) : (double?)null);
         }
 
         private bool _findCircles;

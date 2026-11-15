@@ -31,7 +31,34 @@ namespace LagoVista.PickAndPlace.App.Services
     public class ImageCaptureService : MachineViewModelBase, IImageCaptureService
     {
         private bool _running;
+        private DateTimeOffset _lastFrameUtc;
 
+        // A connected device without fresh processed images is NOT ready.
+        public bool IsCapturing => _running && _capture != null &&
+            _lastFrameUtc != default(DateTimeOffset) &&
+            (DateTimeOffset.UtcNow - _lastFrameUtc).TotalSeconds <= 3.0;
+
+        public async Task<InvokeResult> EnsureCaptureReadyAsync()
+        {
+            if (Camera == null)
+                return InvokeResult.FromError("Bottom-camera service is not bound to the machine.");
+            if (EntityHeader.IsNullOrEmpty(Camera.CameraDevice))
+                return InvokeResult.FromError("The configured bottom camera has no connected capture device.");
+            if (IsCapturing)
+                return InvokeResult.Success;
+            if (_capture == null)
+                StartCapture(); // Existing WPF device initialization.
+            for (var poll = 0; poll < 80; poll++)
+            {
+                if (IsCapturing && CaptureFrameSize.Width > 0 &&
+                    CaptureFrameSize.Height > 0)
+                    return InvokeResult.Success;
+                await Task.Delay(100);
+            }
+            return InvokeResult.FromError(
+                "Bottom camera did not produce a fresh frame within 8 seconds. " +
+                "Check device connection; no nozzle movement will be sent.");
+        }
         public System.Drawing.Size CaptureFrameSize { get; private set; }
 
         private long _processedRectangleFrameId;
@@ -59,6 +86,8 @@ namespace LagoVista.PickAndPlace.App.Services
 
         private bool _autoTuneExposureRequested;
         private TaskCompletionSource<InvokeResult> _autoTuneExposureCompletion;
+        private bool _nozzleTuneRequested;
+        private TaskCompletionSource<InvokeResult<DarkCircularOpeningLocator.TuneResult>> _nozzleTuneCompletion;
         VideoCapture _capture;
 
         private object _captureLocker = new object();
@@ -80,10 +109,35 @@ namespace LagoVista.PickAndPlace.App.Services
             BindCamera(machine);
         }
 
+        private VisionProfile _observedScaleProfile;
+
+        private void ObserveCurrentProfileScale()
+        {
+            if (_observedScaleProfile != null)
+                _observedScaleProfile.PropertyChanged -= VisionProfile_PropertyChanged;
+
+            _observedScaleProfile = Camera?.CurrentVisionProfile;
+            if (_observedScaleProfile != null)
+                _observedScaleProfile.PropertyChanged += VisionProfile_PropertyChanged;
+        }
+
+        private void VisionProfile_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(VisionProfile.PixelsPerMM))
+            {
+                // MVLocatedCircle captures px/mm at construction. Invalidate
+                // those tracked circles immediately when a profile override changes.
+                _shapeDetectorService.Reset();
+            }
+        }
+
         private void BindCamera(IMachine machine)
         {
             if (Camera != null)
                 Camera.PropertyChanged -= Camera_PropertyChanged;
+            if (_observedScaleProfile != null)
+                _observedScaleProfile.PropertyChanged -= VisionProfile_PropertyChanged;
+            _observedScaleProfile = null;
 
             Camera = machine.Settings.Cameras.FirstOrDefault(c => c.CameraType.Value == CameraType);
             if (Camera != null)
@@ -103,6 +157,8 @@ namespace LagoVista.PickAndPlace.App.Services
                 }
 
                 Camera.PropertyChanged += Camera_PropertyChanged;
+                ObserveCurrentProfileScale();
+                _shapeDetectorService.Reset();
             }
         }
 
@@ -111,8 +167,15 @@ namespace LagoVista.PickAndPlace.App.Services
             if(e.PropertyName == nameof(Camera.CurrentVisionProfile))
             {
                 // A new vision profile may be looking for an entirely different circle.
+                ObserveCurrentProfileScale();
                 _shapeDetectorService.Reset();
                 RaisePropertyChanged(nameof(Profile));
+            }
+            else if (e.PropertyName == nameof(Camera.PixelsPerMM))
+            {
+                // Camera-level calibration also invalidates all tracked circles;
+                // they retain their original px/mm value otherwise.
+                _shapeDetectorService.Reset();
             }
         }
 
@@ -212,8 +275,149 @@ namespace LagoVista.PickAndPlace.App.Services
             return InvokeResult.Success;
         }
 
+        private bool _bottomNozzleJogRunning;
+
+        /// <summary>
+        /// The fixed bottom camera sees the moving nozzle, not a stationary
+        /// feature beneath a moving camera. Unlike top-camera centering, its
+        /// observed offset must be negated to move the nozzle toward center.
+        /// This does one small operator-triggered XY jog, never an unbounded
+        /// sequence or a change to Z/tool selection.
+        /// </summary>
+        private async Task CenterBottomNozzleAsync()
+        {
+            if (_bottomNozzleJogRunning)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                    "A bottom-camera nozzle jog is already in progress.");
+                return;
+            }
+            _bottomNozzleJogRunning = true;
+            try
+            {
+                var machine = Machine;
+                var camera = Camera;
+                var profile = Profile;
+                var head = machine?.CurrentMachineToolHead;
+                if (camera == null || camera.CameraType?.Value != CameraTypes.PartInspection ||
+                    (profile?.Key != VisionProfile.VisionProfile_Nozzle &&
+                     profile?.Key != VisionProfile.VisionProfile_NozzleCalibration) ||
+                    !IsCapturing || machine == null || !machine.Connected ||
+                    machine.Mode != OperatingMode.Manual || !machine.WasMachineHomed ||
+                    !machine.WasMachinOriginCalibrated || machine.Busy ||
+                    head?.CurrentNozzle == null || head.Offset == null ||
+                    camera.EffectivePixelsPerMM <= 0)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                        "Nozzle jog requires a live bottom camera, stable Nozzle profile, " +
+                        "installed selected head, and an idle, homed machine in Manual mode.");
+                    return;
+                }
+
+                var candidates = _shapeDetectorService.FoundCircles
+                    .Where(item => item.CameraType == CameraTypes.PartInspection &&
+                                   item.Stabilized && item.PositionStable &&
+                                   item.RadiusMM > 0)
+                    .ToList();
+                if (candidates.Count != 1)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                        $"Bottom-camera jog requires exactly one stable nozzle circle; found {candidates.Count}. No movement sent.");
+                    return;
+                }
+
+                var circle = candidates[0];
+                var pixelsPerMm = camera.EffectivePixelsPerMM;
+                if (Math.Abs(circle.PixelsPerMM - pixelsPerMm) > 0.0001)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                        $"Nozzle circle was detected at {circle.PixelsPerMM:F2} px/mm, but the active " +
+                        $"camera profile uses {pixelsPerMm:F2} px/mm. Reacquire before jogging.");
+                    _shapeDetectorService.Reset();
+                    return;
+                }
+                // Use full pixel resolution. MVLocatedCircle.OffsetMM rounds to
+                // 0.1 mm and can leave a visible residual centering error.
+                var observation = new Point2D<double>(
+                    circle.OffsetPixels.X / pixelsPerMm,
+                    -circle.OffsetPixels.Y / pixelsPerMm);
+                if (Math.Abs(observation.X) <= profile.ErrorToleranceMM &&
+                    Math.Abs(observation.Y) <= profile.ErrorToleranceMM)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Info,
+                        "Nozzle is already centered within the vision profile's tolerance.");
+                    return;
+                }
+
+                var location = await machine.GetCurrentLocationAsync(5000);
+                if (!location.Successful || location.Result == null)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                        "Could not read controller XY for bottom-camera nozzle jog; no movement sent.");
+                    return;
+                }
+
+                // Awaiting M114 gives another opportunity for motion, tool
+                // selection, or the tracked target to change. Revalidate all.
+                if (!ReferenceEquals(Machine, machine) || !ReferenceEquals(Camera, camera) ||
+                    !ReferenceEquals(Profile, profile) ||
+                    !ReferenceEquals(machine.CurrentMachineToolHead, head) ||
+                    !machine.Connected || machine.Mode != OperatingMode.Manual ||
+                    !machine.WasMachineHomed || machine.Busy || !IsCapturing ||
+                    !_shapeDetectorService.FoundCircles.Any(c => ReferenceEquals(c, circle)) ||
+                    !circle.Stabilized || !circle.PositionStable ||
+                    Math.Abs(circle.PixelsPerMM - pixelsPerMm) > 0.0001 ||
+                    Math.Abs(circle.OffsetPixels.X / pixelsPerMm - observation.X) > 0.10 ||
+                    Math.Abs(-circle.OffsetPixels.Y / pixelsPerMm - observation.Y) > 0.10)
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                        "Machine or nozzle observation changed during jog preflight; reacquire the circle. No movement sent.");
+                    return;
+                }
+
+                if (!NozzleOpticalJogMath.TryPlan(location.Result, observation,
+                    head.Offset, machine.Settings.WorkAreaSize,
+                    out var relativeJog, out var reason))
+                {
+                    Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                        "Bottom-camera nozzle jog blocked: " + reason);
+                    return;
+                }
+
+                Machine.AddStatusMessage(StatusMessageTypes.Info,
+                    $"Bottom-camera nozzle jog: observed X={observation.X:+0.000;-0.000;0.000}, " +
+                    $"Y={observation.Y:+0.000;-0.000;0.000} mm; physical XY correction " +
+                    $"X={relativeJog.X:+0.000;-0.000;0.000}, " +
+                    $"Y={relativeJog.Y:+0.000;-0.000;0.000} mm; " +
+                    $"scale={pixelsPerMm:F2} px/mm " +
+                    $"({(profile.PixelsPerMM.HasValue ? "profile override" : "camera calibration")}).");
+
+                // The nozzle is already at bottom-camera inspection height.
+                // Keep Z stationary, send only the bounded XY correction.
+                machine.GotoPoint(relativeJog, relativeMove: true);
+                _shapeDetectorService.Reset(); // Require fresh stable detection for another jog.
+            }
+            catch (Exception ex)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                    "Bottom-camera nozzle jog stopped: " + ex.Message);
+            }
+            finally
+            {
+                _bottomNozzleJogRunning = false;
+            }
+        }
+
         private void CenterFoundItem()
         {
+            if (CameraType == CameraTypes.PartInspection &&
+                (Profile?.Key == VisionProfile.VisionProfile_Nozzle ||
+                 Profile?.Key == VisionProfile.VisionProfile_NozzleCalibration))
+            {
+                _ = CenterBottomNozzleAsync();
+                return;
+            }
+
             if (Profile?.Key == VisionProfile.VisionProfile_FeederOrigin)
             {
                 // Existing second Play button: only a stable white cut corner
@@ -441,6 +645,85 @@ namespace LagoVista.PickAndPlace.App.Services
             return await _autoTuneExposureCompletion.Task;
         }
 
+        public async Task<InvokeResult<DarkCircularOpeningLocator.TuneResult>> TuneNozzleOpeningAsync()
+        {
+            if (CameraType != CameraTypes.PartInspection || Camera == null ||
+                (Profile?.Key != VisionProfile.VisionProfile_Nozzle &&
+                 Profile?.Key != VisionProfile.VisionProfile_NozzleCalibration))
+                return InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                    "Select the bottom camera's Nozzle or Nozzle Calibration profile.");
+            if (_nozzleTuneCompletion != null || _autoTuneExposureCompletion != null)
+                return InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                    "Another camera-tuning operation is running.");
+
+            var readiness = await EnsureCaptureReadyAsync();
+            if (!readiness.Successful)
+                return InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                    readiness.ErrorMessage);
+
+            if (_nozzleTuneCompletion != null || _autoTuneExposureCompletion != null)
+                return InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                    "Another camera-tuning operation started.");
+
+            var request = new TaskCompletionSource<InvokeResult<DarkCircularOpeningLocator.TuneResult>>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            _nozzleTuneCompletion = request;
+            _nozzleTuneRequested = true;
+            var finished = await Task.WhenAny(request.Task, Task.Delay(30000));
+            if (finished != request.Task)
+            {
+                _nozzleTuneRequested = false;
+                if (ReferenceEquals(_nozzleTuneCompletion, request))
+                    _nozzleTuneCompletion = null;
+                return InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                    "Nozzle tuning timed out; profile unchanged.");
+            }
+            return await request.Task;
+        }
+
+        private async Task<InvokeResult<DarkCircularOpeningLocator.TuneResult>> RunNozzleTuneAsync()
+        {
+            var camera = Camera;
+            var profile = Profile;
+            var observations = new List<DarkCircularOpeningLocator.Observation>();
+            const int frameCount = 24;
+            for (var index = 0; index < frameCount; index++)
+            {
+                if (!_running || _capture == null || !ReferenceEquals(Camera, camera) ||
+                    !ReferenceEquals(Profile, profile))
+                    return InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                        "Camera or vision profile changed while tuning.");
+
+                using (var original = _capture.QueryFrame())
+                {
+                    if (original == null)
+                        observations.Add(null);
+                    else
+                    using (var image = original.ToImage<Bgr, byte>())
+                    {
+                        image.ROI = new System.Drawing.Rectangle(
+                            (image.Width - image.Height) / 2, 0, image.Height, image.Height);
+                        using (var cropped = image.Copy())
+                        using (var grayscale = cropped.Convert<Gray, byte>())
+                        {
+                            observations.Add(DarkCircularOpeningLocator.Find(
+                                grayscale.Data, grayscale.Width, grayscale.Height,
+                                camera.EffectivePixelsPerMM, profile.TargetImageRadius));
+                            if (index == 0)
+                                CaptureImage = Emgu.CV.WPF.BitmapSourceConvert.ToBitmapSource(cropped.ToUMat());
+                        }
+                    }
+                }
+                await Task.Delay(50);
+            }
+
+            if (!DarkCircularOpeningLocator.TryValidate(observations,
+                camera.EffectivePixelsPerMM, out var tuned, out var reason))
+                return InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                    "Nozzle image tune did not lock: " + reason);
+            return InvokeResult<DarkCircularOpeningLocator.TuneResult>.Create(tuned);
+        }
+
         private async Task<InvokeResult> RunAutoTuneExposureAsync()
         {
             var originalExposure = Camera.Exposure;
@@ -468,31 +751,31 @@ namespace LagoVista.PickAndPlace.App.Services
                     sample.White <= AutoTuneWhiteCeiling;
                 var stable = sample.DarkRange <= 6.0 && sample.WhiteRange <= 10.0;
 
-                if (darkInRange && whiteInRange && stable)
+                // The narrow dark/white bands are a preferred reference, not
+                // the only usable exposure. A camera may have excellent,
+                // stable black/white contrast without hitting both exact
+                // brightness targets, especially with different lighting.
+                var preferred = darkInRange && whiteInRange && stable;
+                var usable = CameraExposureQuality.IsUsable(
+                    sample.Dark, sample.White, sample.DarkRange, sample.WhiteRange);
+                if (preferred || usable)
                 {
                     Camera.Exposure = candidate;
                     _lastExposure = candidate;
                     Machine.AddStatusMessage(StatusMessageTypes.Info,
-                        $"Camera Auto-Tune completed. Exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}.");
+                        $"Camera Auto-Tune completed ({(preferred ? "preferred" : "usable contrast")}). " +
+                        $"Exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}, " +
+                        $"contrast={sample.White - sample.Dark:F1}.");
                     return InvokeResult.Success;
                 }
 
                 if (darkInRange && whiteInRange && !stable)
                     continue;
 
-                if (sample.Dark < darkLow && sample.White > AutoTuneWhiteCeiling)
-                {
-                    RestoreExposure(originalExposure);
-                    return InvokeResult.FromError(
-                        $"Camera Auto-Tune cannot increase exposure without clipping white. Exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}.");
-                }
-
-                if (sample.Dark > darkHigh && sample.White < AutoTuneWhiteMinimum)
-                {
-                    RestoreExposure(originalExposure);
-                    return InvokeResult.FromError(
-                        $"Camera Auto-Tune cannot decrease exposure without dimming white further. Exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}.");
-                }
+                // Conflicting preferred targets do not prove the scene is
+                // unusable. Continue the bounded exposure search rather than
+                // aborting immediately; the broader contrast policy above
+                // may still find a safe, stable exposure.
 
                 var direction =
                     sample.White > AutoTuneWhiteCeiling || sample.Dark > darkHigh
@@ -519,7 +802,10 @@ namespace LagoVista.PickAndPlace.App.Services
             {
                 var sample = lastSample.Value;
                 return InvokeResult.FromError(
-                    $"Camera Auto-Tune did not converge after {AutoTuneMaximumIterations} sampling attempts. Last exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}, darkRange={sample.DarkRange:F1}, whiteRange={sample.WhiteRange:F1}.");
+                    $"Camera Auto-Tune did not find stable high-contrast exposure after {AutoTuneMaximumIterations} sampling attempts. " +
+                    $"Last exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}, " +
+                    $"contrast={sample.White - sample.Dark:F1}, darkRange={sample.DarkRange:F1}, " +
+                    $"whiteRange={sample.WhiteRange:F1}. Check fiducial framing, lighting and camera manual-exposure support.");
             }
 
             return InvokeResult.FromError(
@@ -656,11 +942,18 @@ namespace LagoVista.PickAndPlace.App.Services
             try
             {
                 _running = false;
+                _lastFrameUtc = default(DateTimeOffset);
+                CaptureFrameSize = System.Drawing.Size.Empty;
 
                 _autoTuneExposureRequested = false;
                 _autoTuneExposureCompletion?.TrySetResult(
                     InvokeResult.FromError("Camera capture stopped before Auto-Tune completed."));
                 _autoTuneExposureCompletion = null;
+                _nozzleTuneRequested = false;
+                _nozzleTuneCompletion?.TrySetResult(
+                    InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                        "Camera capture stopped before nozzle tuning completed."));
+                _nozzleTuneCompletion = null;
 
                 lock (_captureLocker)
                 {
@@ -697,14 +990,28 @@ namespace LagoVista.PickAndPlace.App.Services
                         var completion = _autoTuneExposureCompletion;
                         _autoTuneExposureRequested = false;
 
+                        // A failed sample can throw after changing the USB camera's
+                        // physical exposure. Restore the saved baseline on every
+                        // exceptional path, not just on normal non-convergence.
+                        var originalExposure = Camera?.Exposure ?? 0;
                         try
                         {
                             completion?.TrySetResult(await RunAutoTuneExposureAsync());
                         }
                         catch (Exception ex)
                         {
+                            try
+                            {
+                                if (_capture != null && Camera != null)
+                                    RestoreExposure(originalExposure);
+                            }
+                            catch (Exception restoreEx)
+                            {
+                                Machine.DebugWriteLine(
+                                    $"[AutoTuneExposure] Could not restore exposure: {restoreEx.Message}");
+                            }
                             completion?.TrySetResult(
-                                InvokeResult.FromError($"Camera Auto-Tune failed: {ex.Message}"));
+                                InvokeResult.FromError($"Camera Auto-Tune failed: {ex.Message}. Previous exposure was preserved in machine settings."));
                         }
                         finally
                         {
@@ -714,6 +1021,29 @@ namespace LagoVista.PickAndPlace.App.Services
                             _autoTuneExposureCompletion = null;
                         }
 
+                        continue;
+                    }
+
+                    if (_nozzleTuneRequested)
+                    {
+                        var completion = _nozzleTuneCompletion;
+                        _nozzleTuneRequested = false;
+                        try
+                        {
+                            completion?.TrySetResult(await RunNozzleTuneAsync());
+                        }
+                        catch (Exception ex)
+                        {
+                            completion?.TrySetResult(
+                                InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                                    "Nozzle image tuning failed: " + ex.Message));
+                        }
+                        finally
+                        {
+                            _shapeDetectorService.Reset();
+                            if (ReferenceEquals(_nozzleTuneCompletion, completion))
+                                _nozzleTuneCompletion = null;
+                        }
                         continue;
                     }
 
@@ -757,7 +1087,8 @@ namespace LagoVista.PickAndPlace.App.Services
                                     //using (var resized = cropped.Resize(Profile.ZoomLevel, Emgu.CV.CvEnum.Inter.LinearExact))
                                     using (var resized = cropped.Resize(1, Emgu.CV.CvEnum.Inter.LinearExact))
                                     {
-                                        CaptureFrameSize = resized.Size;                                        
+                                        CaptureFrameSize = resized.Size;
+                                        _lastFrameUtc = DateTimeOffset.UtcNow;                                        
                                         if (Profile.PerformShapeDetection || Profile.Key == VisionProfile.VisionProfile_FeederBarcode)
                                         {
                                             using (var results = _shapeDetectorService.PerformShapeDetection(new MVImage<Image<Bgr, byte>>(resized), Camera, resized.Size, FeederBarcodeVertical))

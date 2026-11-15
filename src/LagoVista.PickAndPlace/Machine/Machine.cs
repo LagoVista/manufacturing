@@ -472,6 +472,8 @@ namespace LagoVista.PickAndPlace
 
         public Task GoToPartInspectionCameraAsync(double? rotate)
         {
+            // Preserve the legacy camera-only XY navigation when no tool
+            // head is selected. Only lower a nozzle if a selected head exists.
             var partInspectionCamera = Settings.Cameras.FirstOrDefault(cam => cam.CameraType.Value == CameraTypes.PartInspection);
             if (partInspectionCamera != null)
             {
@@ -483,7 +485,10 @@ namespace LagoVista.PickAndPlace
 
                 if (partInspectionCamera.CurrentVisionProfile.DetectionHeight.HasValue)
                 {
-                    this.SendCommand($"G0 ZL{partInspectionCamera.CurrentVisionProfile.DetectionHeight.Value}");
+                    // Never lower the wrong (or an unselected) nozzle. This
+                    // branch previously always commanded the LEFT head.
+                    if (CurrentMachineToolHead != null)
+                        this.SendCommand($"G0 {(_leftToolHead ? "ZL" : "ZR")}{partInspectionCamera.CurrentVisionProfile.DetectionHeight.Value}");
                 }
                 else
                 {

@@ -332,17 +332,74 @@
                     </Grid>
         </TabItem>
         <TabItem Header="Nozzles">
-            <Grid Margin="10">
-                        <DataGrid ItemsSource="{Binding MachineConfiguration.Nozzles}" CanUserAddRows="false" SelectedItem="{Binding SelectedNozzleTip}" AutoGenerateColumns="false">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Name" Binding="{Binding Name}" />
-                                <DataGridTextColumn Header="Safe Move Height." Binding="{Binding SafeMooveHeight}" />
-                                <DataGridTextColumn Header="Inner Dia." Binding="{Binding InnerDiameter}" />
-                                <DataGridTextColumn Header="Outer Dia." Binding="{Binding OuterDiameter}" />
-                                <DataGridTextColumn Header="Rack Location" Binding="{Binding ToolRackLocation}" />
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </Grid>
+            <Grid Margin="16" VerticalAlignment="Top">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                    <TextBlock Text="Installed tool-head runout calibration"
+                               FontSize="20" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                    <TextBlock Text="Each head is calibrated for its currently installed nozzle. All heads begin uncalibrated after machine startup, reconnect or homing. A nozzle change requires recalibration."
+                               TextWrapping="Wrap" Margin="0,0,0,10" MaxWidth="900"
+                               HorizontalAlignment="Left"/>
+                    <Button Content="Calibrate Installed Tool Heads"
+                            Click="OpenNozzleRunout_Click"
+                            Style="{StaticResource CommandButton}"
+                            HorizontalAlignment="Left" Width="280" Height="44"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Margin="0,0,0,8">
+                    <TextBlock Text="Tool-head calibration status"
+                               FontSize="15" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBlock Text="The procedure discovers every installed nozzle from the tool-head assignments and runs a separate 30-degree optical sweep for each. Camera/tool XY calibration remains separate."
+                               TextWrapping="Wrap" MaxWidth="900" HorizontalAlignment="Left"/>
+                </StackPanel>
+
+                <!-- MachineConfiguration.ToolHeads are the physical
+                     installations; MachineConfiguration.Nozzles are rack
+                     assignments and are not the runout calibration owner. -->
+                <DataGrid Grid.Row="2"
+                          ItemsSource="{Binding MachineConfiguration.ToolHeads}"
+                          AutoGenerateColumns="False" CanUserAddRows="False"
+                          CanUserDeleteRows="False" IsReadOnly="True"
+                          Height="Auto" MaxHeight="240" MinHeight="96"
+                          HorizontalAlignment="Left" VerticalAlignment="Top"
+                          MinWidth="780" MaxWidth="1040"
+                          RowHeight="36" ColumnHeaderHeight="34"
+                          HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                          Margin="0,4,0,0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Head" Width="70" Binding="{Binding HeadIndex}"/>
+                        <DataGridTextColumn Header="Tool head" Width="170" Binding="{Binding Name}"/>
+                        <DataGridTextColumn Header="Installed nozzle" Width="185"
+                            Binding="{Binding CurrentNozzle.Text, TargetNullValue='None installed', FallbackValue='None installed'}"/>
+                        <DataGridTemplateColumn Header="Runout status" Width="170">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock VerticalAlignment="Center" FontWeight="SemiBold">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="Needs calibration"/>
+                                                <Setter Property="Foreground" Value="#C57A35"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsCalibrated}" Value="True">
+                                                        <Setter Property="Text" Value="Calibrated this session"/>
+                                                        <Setter Property="Foreground" Value="#16845A"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="High-Y zero (degrees)" Width="160"
+                            Binding="{Binding RunoutZeroAngle, StringFormat={}{0:F0}}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
         </TabItem>
         <TabItem Header="Camera / Tool XY">
             <ScrollViewer VerticalScrollBarVisibility="Auto">

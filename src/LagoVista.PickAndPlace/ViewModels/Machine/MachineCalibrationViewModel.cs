@@ -266,6 +266,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
             else
             {
+                // The fixed bottom camera is located using the moving top
+                // (Position) camera. Activate the locator profile on the
+                // viewing camera, not on the bottom camera being located.
+                // Keep other camera-selection operations unchanged.
+                if (SelectedMachineCamera.CameraType?.Value == CameraTypes.PartInspection)
+                    Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_CameraLocator);
+
                 Machine.GotoPoint(SelectedMachineCamera.AbsolutePosition);
                 Machine.SendCommand($"G0 Z{SelectedMachineCamera.FocusHeight}");
             }
