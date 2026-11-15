@@ -117,8 +117,10 @@
                 <TextBox Width="68" Text="{Binding ReturnZText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,0" />
                 <TextBlock Text="Held inspection Z:" VerticalAlignment="Center" Margin="0,0,6,0"/>
                 <TextBox Width="68" Text="{Binding HeldPartInspectionZText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,0" />
-                <CheckBox Content="Auto-save verified offset"
-                          IsChecked="{Binding SaveVerifiedOffset}" VerticalAlignment="Center"/>
+                <CheckBox Content="Auto-save (after hardware validation)"
+                          IsChecked="{Binding SaveVerifiedOffset}" VerticalAlignment="Center"
+                          IsEnabled="False"
+                          ToolTip="First hardware trials measure candidate XY only. T004 optical-axis integration and verification are required before saving."/>
             </StackPanel>
             <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
