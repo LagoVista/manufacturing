@@ -30,10 +30,20 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
-        public void RejectsLargeAutomaticCorrection()
+        public void AllowsBoundedInitialOpticalCenteringWithinFiveMillimeters()
         {
             Assert.That(NozzleOpticalJogMath.TryPlan(
                 XY(165, 128), XY(-2.0, -0.5), XY(22.7, 65),
+                XY(330, 355), out var jog, out var reason), Is.True, reason);
+            Assert.That(jog.X, Is.EqualTo(2.0).Within(0.001));
+            Assert.That(jog.Y, Is.EqualTo(0.5).Within(0.001));
+        }
+
+        [Test]
+        public void RejectsLargeAutomaticCorrection()
+        {
+            Assert.That(NozzleOpticalJogMath.TryPlan(
+                XY(165, 128), XY(-6.0, -0.5), XY(22.7, 65),
                 XY(330, 355), out var jog, out var reason), Is.False);
             Assert.That(jog, Is.Null);
             Assert.That(reason, Does.Contain("too far"));
