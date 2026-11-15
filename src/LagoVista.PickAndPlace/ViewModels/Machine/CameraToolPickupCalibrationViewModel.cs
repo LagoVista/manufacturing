@@ -346,8 +346,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _machine.ClearToolHeadAngle();
             await NeedIdleAsync("nozzle zero-angle positioning");
             await MoveToInspectionCameraAsync();
-            _machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_NozzleCalibration);
-            return await ObserveBottomAsync(VisionProfile.VisionProfile_NozzleCalibration, isCylinder:false);
+            _machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_Nozzle);
+            return await ObserveBottomAsync(VisionProfile.VisionProfile_Nozzle, isCylinder:false);
         }
 
         private async Task<BottomCircle> ObserveHeldCylinderAsync()
