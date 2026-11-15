@@ -26,6 +26,9 @@ namespace LagoVista.PickAndPlace.Models
             Add(result, "first-target", "Verify and center the white calibration cylinder",
                 "Find a fresh stable 7 mm cylinder circle against the black holder. Reuse existing Known Location circle vision; bounded top-camera XY jog if required, then re-observe and record actual machine XY. Reject missing or ambiguous targets.",
                 MachineOperationVerificationKind.VisionVerified);
+            Add(result, "nozzle-reference", "Measure the empty nozzle reference",
+                "At the bottom camera, acquire a fresh stable empty-nozzle opening at a fixed head angle before picking the cylinder. Preserve its physical XY reference for both passes.",
+                MachineOperationVerificationKind.VisionVerified);
             Add(result, "first-approach", "Verify approximate pickup motion",
                 "Check head selection, physical XY travel, safe Z and configured pickup height before moving.",
                 MachineOperationVerificationKind.MachineObserved);
@@ -38,16 +41,16 @@ namespace LagoVista.PickAndPlace.Models
             Add(result, "candidate", "Calculate unsaved XY correction",
                 "Bound plate-minus-nozzle error in machine coordinates; do not change the persisted offset.",
                 MachineOperationVerificationKind.VisionVerified);
-            Add(result, "replace-part", "Return the plate to its holder",
+            Add(result, "replace-part", "Return the cylinder to its holder",
                 "Use bounded motion, configured placement Z, verified release and safe retract.",
                 MachineOperationVerificationKind.MachineObserved);
-            Add(result, "second-target", "Re-observe the returned plate",
+            Add(result, "second-target", "Re-observe the returned cylinder",
                 "Return to saved Known Location, reacquire the 7 mm cylinder with the same Known Location profile, center with a bounded verified jog if necessary; stop if fixture moved or target changed.",
                 MachineOperationVerificationKind.VisionVerified);
             Add(result, "second-approach", "Apply candidate only as a bounded XY jog",
                 "Keep the previous stored tool offset while independently checking physical travel limits.",
                 MachineOperationVerificationKind.MachineObserved);
-            Add(result, "second-pick", "Perform independent verification pickup",
+            Add(result, "second-pick", "Perform independent verification cylinder pickup",
                 "Repeat pickup with candidate jog and require fresh vacuum-sensor confirmation.",
                 MachineOperationVerificationKind.MachineObserved);
             Add(result, "second-inspect", "Re-measure held plate with bottom camera",
@@ -59,7 +62,7 @@ namespace LagoVista.PickAndPlace.Models
             Add(result, "safe-camera-mode", "Return to safe height and camera navigation",
                 "Raise to configured safe Z, return to camera mode using the ORIGINAL head offset, and verify controller state.",
                 MachineOperationVerificationKind.MachineObserved);
-            Add(result, "commit-offset", "Save independently verified tool offset",
+            Add(result, "commit-offset", "Save verified tool offset only when auto-save is enabled",
                 "Only now persist MachineToolHead.Offset and verify an authoritative saved receipt.",
                 MachineOperationVerificationKind.MachineObserved, requiresSavedEvidence:true);
             return result;
