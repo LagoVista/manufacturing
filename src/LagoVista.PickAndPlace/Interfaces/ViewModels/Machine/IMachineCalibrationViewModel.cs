@@ -42,5 +42,9 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
 
         RelayCommand CaptureKnownLocationCommand { get; }
         RelayCommand MoveToKnownLocationCommand { get; }
+
+        // T003 first-pass optical proof at MachineConfiguration.KnownCalibrationPoint.
+        RelayCommand VerifyKnownLocationCylinderCommand { get; }
+        string CylinderCenterStatus { get; }
     }
 }
