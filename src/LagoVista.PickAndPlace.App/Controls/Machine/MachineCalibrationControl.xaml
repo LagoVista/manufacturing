@@ -408,7 +408,7 @@
                                FontSize="20" FontWeight="SemiBold" Margin="0,0,0,8"/>
                     <TextBlock Text="The 7 mm white cylinder in its black holder uses the existing Known Location and Known Location circle profile. Each installed nozzle makes two independent pickups. Bottom-camera measurements propose and verify a static head XY correction."
                                TextWrapping="Wrap" Margin="0,0,0,10" />
-                    <TextBlock Text="Supervised hardware setup: enter verified cylinder pickup and return Z in the modal before pressing Start. Auto-save is off by default. An unsafe motion, failed vacuum pickup, or missing camera measurement stops the sequence."
+                    <TextBlock Text="For the first supervised run, the selected head uses its configured Pick Height and Place Height, with common Safe Move Z for held-cylinder inspection. No manual Z entry is needed. Verify clearance and focus; offset saving remains disabled until hardware accuracy is established."
                                TextWrapping="Wrap" Margin="0,0,0,16" />
                     <Button Content="Calibrate Camera-to-Tool XY"
                             Click="OpenCameraToolPickup_Click"
