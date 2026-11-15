@@ -14,6 +14,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         bool SaveVerifiedOffset { get; set; }
         string PickupZText { get; set; }
         string ReturnZText { get; set; }
+        string HeldPartInspectionZText { get; set; }
+        string HeadIndexText { get; set; }
         string Status { get; }
         string CandidateSummary { get; }
         string ToolHeadName { get; }
