@@ -204,6 +204,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (Math.Abs(_pickupZ - _machine.Settings.DefaultSafeMoveHeight) < 0.01 ||
                 Math.Abs(_returnZ - _machine.Settings.DefaultSafeMoveHeight) < 0.01)
                 throw new CalibrationStopped("Fixture pickup/return Z must differ from configured safe-move Z.");
+            if (!Finite(head.PartPickedVacuum) || !Finite(head.NoPartPickedVacuum) ||
+                Math.Abs(head.PartPickedVacuum - head.NoPartPickedVacuum) < 1.0)
+                throw new CalibrationStopped(
+                    "Calibrate the installed head's picked/no-part vacuum sensor readings before any motion.");
+            if ((head.HeadIndex == 1 && _machine.LeftVacuumPump) ||
+                (head.HeadIndex == 2 && _machine.RightVacuumPump))
+                throw new CalibrationStopped(
+                    "Head vacuum is already active. Recover any previously held cylinder before starting.");
             Pass("readiness", "Connected, homed Manual mode; installed nozzle and fixture Z parameters verified.",
                 MachineOperationVerificationKind.MachineObserved);
 
@@ -290,7 +298,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             Pass("verify", CandidateSummary, MachineOperationVerificationKind.VisionVerified);
 
             // Return the verified cylinder before switching camera/navigation.
-            await ReturnCylinderAsync(secondTarget);
+            await ReturnCylinderAsync(secondTarget, candidate);
             Begin("safe-camera-mode", "Restoring safe Z and camera navigation with OLD offset.");
             _machine.SendSafeMoveHeight();
             await NeedIdleAsync("final safe height");
@@ -401,13 +409,26 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 throw new CalibrationStopped("Vacuum sensor did not confirm a picked cylinder. Vacuum remains enabled for safe operator recovery.");
         }
 
-        private async Task ReturnCylinderAsync(Point2D<double> target)
+        private async Task ReturnCylinderAsync(Point2D<double> target,
+            CameraToolPickupCandidate candidate = null)
         {
             RequireValid();
             _machine.SendSafeMoveHeight();
             await NeedIdleAsync("pre-return safe height");
             _machine.GotoPoint(target);
             await NeedIdleAsync("cylinder return XY");
+            if (candidate != null)
+            {
+                var current = await _machine.GetCurrentLocationAsync(5000);
+                if (!current.Successful)
+                    throw new CalibrationStopped("Unable to verify XY before corrected-cylinder return.");
+                if (!CameraToolPickupCalibrationMath.TryPlanSecondPickup(
+                        candidate, current.Result, _machine.Settings.WorkAreaSize,
+                        out var returnJog, out var reason))
+                    throw new CalibrationStopped("Unsafe corrected-cylinder return: " + reason);
+                _machine.GotoPoint(returnJog, relativeMove:true);
+                await NeedIdleAsync("corrected-cylinder return XY");
+            }
             _machine.SetToolHeadHeight(_returnZ);
             await NeedIdleAsync("fixture-specific cylinder return Z");
             SetVacuum(false);
