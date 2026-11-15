@@ -128,6 +128,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 if (!Int32.TryParse(HeadIndexText, out var selectedHeadIndex) ||
                     (selectedHeadIndex != 1 && selectedHeadIndex != 2))
                     throw new CalibrationStopped("Select exactly one physical head (1 or 2) for the first supervised hardware test.");
+                // T004's measured nozzle rotational axis is not yet accepted
+                // into T003's source authority. This first machine trial can
+                // verify two pickups, but must not write a static translation
+                // based on a temporary same-angle empty-nozzle reference.
+                if (SaveVerifiedOffset)
+                    throw new CalibrationStopped(
+                        "Auto-save is disabled for the first physical trial until T004 nozzle-axis integration and hardware verification. Uncheck Auto-save.");
 
                 if (!ValidMachine(out var error))
                     throw new CalibrationStopped(error + " No movement was sent.");
@@ -461,6 +468,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
             if (capture?.Camera == null || capture.CameraType != CameraTypes.PartInspection)
                 throw new CalibrationStopped("Bottom camera capture could not initialize.");
+            if (!ReferenceEquals(_machine.CurrentMachineToolHead, _head))
+                throw new CalibrationStopped("Tool-head selection changed before bottom-camera inspection. No Z descent.");
             if (capture.Camera.AbsolutePosition == null)
                 throw new CalibrationStopped("Bottom camera has no configured XY center.");
             var xy = capture.Camera.AbsolutePosition;
