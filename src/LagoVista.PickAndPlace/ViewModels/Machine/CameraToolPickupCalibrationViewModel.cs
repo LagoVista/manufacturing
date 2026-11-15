@@ -72,7 +72,33 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 repo, locator, emitWarnings:false);
         }
 
-        public string HeadIndexText { get => _headIndexText; set => Set(ref _headIndexText, value); }
+        public string HeadIndexText
+        {
+            get => _headIndexText;
+            set
+            {
+                Set(ref _headIndexText, value);
+                RaisePropertyChanged(nameof(ConfiguredHeights));
+            }
+        }
+
+        public string ConfiguredHeights
+        {
+            get
+            {
+                var machine = _repo.CurrentMachine;
+                if (machine?.Settings?.ToolHeads == null ||
+                    !Int32.TryParse(HeadIndexText, out var selected) ||
+                    (selected != 1 && selected != 2))
+                    return "Select an installed head to view the machine-configured heights.";
+                var head = machine.Settings.ToolHeads.FirstOrDefault(h => h.HeadIndex == selected);
+                if (head == null)
+                    return "No configured tool head at that index.";
+                return $"Head {head.HeadIndex}: Pick {head.PickHeight:F2} mm / " +
+                    $"Place {head.PlaceHeight:F2} mm (ZL/ZR). " +
+                    $"Common safe move Z {machine.Settings.SafMoveHeight:F2} mm.";
+            }
+        }
         public bool SaveVerifiedOffset { get => _autoSave; set => Set(ref _autoSave, value); }
         public string Status { get => _status; private set => Set(ref _status, value); }
         public string CandidateSummary
