@@ -20,11 +20,11 @@ namespace LagoVista.PickAndPlace.Models
             Add(result, "readiness", "Verify machine, cameras, tool and runout",
                 "Require connected, homed Manual machine, verified fiducial/staging plates, installed nozzle and T004 runout calibration.",
                 MachineOperationVerificationKind.MachineObserved);
-            Add(result, "fixture", "Verify black holder and white calibration plate",
-                "Verify fixture identity, clear pickup path and part seated without clamps.",
-                MachineOperationVerificationKind.VisionVerified);
-            Add(result, "first-target", "Locate plate with top camera",
-                "Use fresh stable top-camera geometry at calibrated operating height.",
+            Add(result, "known-location", "Approach configured Known Location",
+                "Use Machine.KnownCalibrationPoint, safe camera navigation and existing Known Location position-camera profile. Never overwrite the operator's saved XY reference.",
+                MachineOperationVerificationKind.MachineObserved);
+            Add(result, "first-target", "Verify and center the white calibration cylinder",
+                "Find a fresh stable 7 mm cylinder circle against the black holder. Reuse existing Known Location circle vision; bounded top-camera XY jog if required, then re-observe and record actual machine XY. Reject missing or ambiguous targets.",
                 MachineOperationVerificationKind.VisionVerified);
             Add(result, "first-approach", "Verify approximate pickup motion",
                 "Check head selection, physical XY travel, safe Z and configured pickup height before moving.",
@@ -42,7 +42,7 @@ namespace LagoVista.PickAndPlace.Models
                 "Use bounded motion, configured placement Z, verified release and safe retract.",
                 MachineOperationVerificationKind.MachineObserved);
             Add(result, "second-target", "Re-observe the returned plate",
-                "Confirm plate is seated and top-camera location is stable; stop if fixture moved.",
+                "Return to saved Known Location, reacquire the 7 mm cylinder with the same Known Location profile, center with a bounded verified jog if necessary; stop if fixture moved or target changed.",
                 MachineOperationVerificationKind.VisionVerified);
             Add(result, "second-approach", "Apply candidate only as a bounded XY jog",
                 "Keep the previous stored tool offset while independently checking physical travel limits.",
