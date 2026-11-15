@@ -129,7 +129,6 @@
             <TextBlock Grid.Column="2" Text="STATUS" Foreground="#AAB8C9"/>
             <TextBlock Grid.Column="3" Text="ELAPSED" TextAlignment="Right" Foreground="#AAB8C9"/>
             <TextBlock Grid.Column="4" Text="RETRIES" TextAlignment="Right" Foreground="#AAB8C9"/>
-        </Grid>
             </Grid>
         </Grid>
         <Border Grid.Row="3" Background="#1D242F" BorderBrush="#374454"
