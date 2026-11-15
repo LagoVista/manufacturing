@@ -9,7 +9,6 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -37,12 +36,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private MachineOperationSession _session;
         private double _pickupZ;
         private double _returnZ;
-        private double _heldPartInspectionZ;
-        private string _heldPartInspectionZText;
         private string _headIndexText = "1";
-        private string _pickupZText;
-        private string _returnZText;
-        private string _status = "Enter the cylinder's verified pickup and return Z heights, then Start.";
+        private string _status = "Select Head 1 or 2. Pickup/return use saved head heights; bottom inspection uses machine safe Z. First run must be supervised.";
         private string _candidateSummary = "No measured candidate yet.";
         private string _toolHeadName = "Installed heads";
         private bool _running;
@@ -77,9 +72,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 repo, locator, emitWarnings:false);
         }
 
-        public string PickupZText { get => _pickupZText; set => Set(ref _pickupZText, value); }
-        public string ReturnZText { get => _returnZText; set => Set(ref _returnZText, value); }
-        public string HeldPartInspectionZText { get => _heldPartInspectionZText; set => Set(ref _heldPartInspectionZText, value); }
         public string HeadIndexText { get => _headIndexText; set => Set(ref _headIndexText, value); }
         public bool SaveVerifiedOffset { get => _autoSave; set => Set(ref _autoSave, value); }
         public string Status { get => _status; private set => Set(ref _status, value); }
@@ -117,17 +109,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _session = null;
             try
             {
-                if (!Double.TryParse(PickupZText, NumberStyles.Float,
-                    CultureInfo.CurrentCulture, out _pickupZ) ||
-                    !Double.TryParse(ReturnZText, NumberStyles.Float,
-                    CultureInfo.CurrentCulture, out _returnZ) ||
-                    !Double.TryParse(HeldPartInspectionZText, NumberStyles.Float,
-                    CultureInfo.CurrentCulture, out _heldPartInspectionZ) ||
-                    !Finite(_pickupZ) || !Finite(_returnZ) || !Finite(_heldPartInspectionZ) ||
-                    Math.Abs(_pickupZ) < 0.001 || Math.Abs(_returnZ) < 0.001 ||
-                    Math.Abs(_heldPartInspectionZ) < 0.001)
-                    throw new CalibrationStopped(
-                        "Enter VERIFIED cylinder pickup Z, return Z, and held-part bottom-camera inspection Z. No movement was sent.");
                 if (!Int32.TryParse(HeadIndexText, out var selectedHeadIndex) ||
                     (selectedHeadIndex != 1 && selectedHeadIndex != 2))
                     throw new CalibrationStopped("Select exactly one physical head (1 or 2) for the first supervised hardware test.");
@@ -215,7 +196,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 DateTimeOffset.UtcNow);
             _session.Start(DateTimeOffset.UtcNow);
 
-            Begin("readiness", "Checking homed Manual machine, installed nozzle, 7 mm fixture and configured heights.");
+            Begin("readiness", "Checking Manual machine, T004 runout and configured head pickup/return heights.");
             RequireValid();
             if (head.CurrentNozzle == null ||
                 !String.Equals(Convert.ToString(head.CurrentNozzle.Id), _nozzleIdentity, StringComparison.Ordinal))
@@ -229,10 +210,24 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     "in the current machine session before camera-to-tool pickup.");
             if (!Finite(head.Offset.X) || !Finite(head.Offset.Y))
                 throw new CalibrationStopped("Previous tool-head offset is invalid.");
-            if (Math.Abs(_pickupZ - _machine.Settings.DefaultSafeMoveHeight) < 0.01 ||
-                Math.Abs(_returnZ - _machine.Settings.DefaultSafeMoveHeight) < 0.01 ||
-                Math.Abs(_heldPartInspectionZ - _machine.Settings.DefaultSafeMoveHeight) < 0.01)
-                throw new CalibrationStopped("Fixture pickup/return Z must differ from configured safe-move Z.");
+            // These Z coordinates are DIFFERENT axes: Pick/Place are nozzle
+            // ZL/ZR, whereas SendSafeMoveHeight moves the common machine Z.
+            // Never issue SetToolHeadHeight(safeMoveHeight) here.
+            _pickupZ = head.PickHeight;
+            _returnZ = head.PlaceHeight;
+            if (!Finite(_pickupZ) || !Finite(_returnZ) ||
+                Math.Abs(_pickupZ) < 0.001 || Math.Abs(_returnZ) < 0.001)
+                throw new CalibrationStopped(
+                    "The selected head must have valid configured Pick Height and Place Height before any pickup.");
+            if (!Finite(_machine.Settings.SafMoveHeight))
+                throw new CalibrationStopped(
+                    "Machine common-axis Safe Move Height is invalid.");
+            // The calibration cylinder returns to the same fixed holder.
+            // Large pickup/return Z discrepancies are unsafe until explicitly
+            // checked against the fixture. The existing two heads use equal values.
+            if (Math.Abs(_pickupZ - _returnZ) > 0.5)
+                throw new CalibrationStopped(
+                    "The head's Pick Height and Place Height differ by more than 0.5 mm. Verify fixture geometry before enabling an automatic return.");
             if (!Finite(head.PartPickedVacuum) || !Finite(head.NoPartPickedVacuum) ||
                 Math.Abs(head.PartPickedVacuum - head.NoPartPickedVacuum) < 1.0)
                 throw new CalibrationStopped(
@@ -241,7 +236,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 (head.HeadIndex == 2 && _machine.RightVacuumPump))
                 throw new CalibrationStopped(
                     "Head vacuum is already active. Recover any previously held cylinder before starting.");
-            Pass("readiness", "Connected, homed Manual mode; installed nozzle and fixture Z parameters verified.",
+            Pass("readiness",
+                $"Head {head.HeadIndex}: Pick ZL/ZR={_pickupZ:F2}, Return ZL/ZR={_returnZ:F2}, " +
+                $"common Safe Z={_machine.Settings.SafMoveHeight:F2} mm. T004 runout present; no manual Z inputs.",
                 MachineOperationVerificationKind.MachineObserved);
 
             Begin("known-location", "Using the existing Known Calibration Point.");
@@ -267,7 +264,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             Pass("first-approach", "Head aligned at cylinder target. Previous XY offset remains active.",
                 MachineOperationVerificationKind.MachineObserved);
 
-            Begin("first-pick", "Lowering to verified pickup Z and checking the vacuum sensor.");
+            Begin("first-pick", $"Lowering selected head to configured Pick Height {_pickupZ:F2} mm and checking vacuum.");
             await PickCylinderAsync();
             var firstMotion = DateTimeOffset.UtcNow;
             Pass("first-pick", "Vacuum sensor confirms the cylinder was picked. Retracted to safe Z.",
@@ -289,7 +286,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 $"{candidate.ProposedOffsetMm.Y:F3}) mm. NOT SAVED.";
             Pass("candidate", CandidateSummary, MachineOperationVerificationKind.VisionVerified);
 
-            Begin("replace-part", "Returning the cylinder to its holder without modifying XY offsets.");
+            Begin("replace-part", $"Returning cylinder at configured Place Height {_returnZ:F2} mm without modifying XY offsets.");
             await ReturnCylinderAsync(firstTarget);
             Pass("replace-part", "Returned cylinder and released vacuum at the configured return Z.",
                 MachineOperationVerificationKind.MachineObserved);
@@ -428,7 +425,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (_machine.CurrentMachineToolHead != _head)
                 throw new CalibrationStopped("Pickup head selection changed.");
             _machine.SetToolHeadHeight(_pickupZ);
-            await NeedIdleAsync("fixture-specific pickup Z");
+            await NeedIdleAsync("head's configured pickup ZL/ZR");
             SetVacuum(true);
             await NeedIdleAsync("vacuum activation");
             await Task.Delay(250);
@@ -459,7 +456,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 await NeedIdleAsync("corrected-cylinder return XY");
             }
             _machine.SetToolHeadHeight(_returnZ);
-            await NeedIdleAsync("fixture-specific cylinder return Z");
+            await NeedIdleAsync("head's configured return ZL/ZR");
             SetVacuum(false);
             await NeedIdleAsync("vacuum release");
             await Task.Delay(300);
@@ -493,12 +490,20 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             await NeedIdleAsync("safe inspection approach");
             if (holdingCylinder)
             {
-                // Never use the empty-nozzle inspection height for a nozzle
-                // holding a protruding 7 mm calibration cylinder.
+                // Machine G0 Z (common safe height) is NOT the same axis as
+                // SetToolHeadHeight (individual ZL/ZR). Keep the selected
+                // nozzle at its pickup setting and DO NOT lower either nozzle
+                // toward the bottom camera while holding the 7 mm cylinder.
+                // If the circle isn't resolvable at safe Z, stop before any
+                // candidate correction. A separate optical calibration must
+                // prove geometry before enabling final offset persistence.
                 _machine.GotoPoint(xy);
-                await NeedIdleAsync("bottom-camera XY with the cylinder held");
-                _machine.SetToolHeadHeight(_heldPartInspectionZ);
-                await NeedIdleAsync("operator-verified held-cylinder inspection height");
+                await NeedIdleAsync("bottom-camera XY at common safe height with cylinder held");
+                var location = await _machine.GetCurrentLocationAsync(5000);
+                if (!location.Successful ||
+                    Math.Abs(_machine.ToolCommonZ - _machine.Settings.SafMoveHeight) > 0.2)
+                    throw new CalibrationStopped(
+                        "Common Z did not verify at Safe Move Height before held-cylinder inspection.");
             }
             else
             {
