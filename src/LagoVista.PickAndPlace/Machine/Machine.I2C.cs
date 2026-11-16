@@ -3,6 +3,7 @@
 // IndexVersion: 2
 // --- END CODE INDEX META ---
 using LagoVista.Core.Validation;
+using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -42,40 +43,45 @@ namespace LagoVista.PickAndPlace
             SendCommand(cmd);*/
         }
 
-        ManualResetEventSlim _i2cResetEvent = new ManualResetEventSlim(false);
+        private readonly SemaphoreSlim _i2cReadGate = new SemaphoreSlim(1, 1);
+        private readonly ManualResetEventSlim _i2cResetEvent = new ManualResetEventSlim(false);
         private byte _byteReceived;
+        private byte _expectedI2cAddress;
 
         public async Task<InvokeResult<byte>> I2CReadHexByte(byte address)
         {
-            _i2cResetEvent.Reset();
-            LineReceived += I2C_LineReceived;
-            var cmd = $"M261 A{address} B1 S1";
-            SendCommand (cmd);
-
-            var attempt = 0;
-            while (!_i2cResetEvent.IsSet)
+            await _i2cReadGate.WaitAsync();
+            try
             {
-                await Task.Delay(5);
-                attempt++;
-                if (attempt > 200)
+                _expectedI2cAddress = address;
+                _i2cResetEvent.Reset();
+                LineReceived += I2C_LineReceived;
+                try
+                {
+                    SendCommand($"M261 A{address} B1 S1");
+                    for (var attempt = 0; attempt < 200 && !_i2cResetEvent.IsSet; attempt++)
+                        await Task.Delay(5);
+                    return _i2cResetEvent.IsSet
+                        ? InvokeResult<byte>.Create(_byteReceived)
+                        : InvokeResult<byte>.FromError("Timed out waiting for a matching M261 I2C response.");
+                }
+                finally
                 {
                     LineReceived -= I2C_LineReceived;
-                    return InvokeResult<byte>.FromError("Timeout requesting I2C");
                 }
             }
-            LineReceived -= I2C_LineReceived;
-            return InvokeResult<byte>.Create(_byteReceived);
+            finally
+            {
+                _i2cReadGate.Release();
+            }
         }
 
-        private void I2C_LineReceived(object sender, string e)
+        private void I2C_LineReceived(object sender, string line)
         {
-            var regEx = new Regex("^echo:i2c-reply: from:(?'address'[0-9]+).+bytes:(?'numbytes'[0-9]+).+data:(?'data'[0-9A-Fa-f]+)$");
-            var match = regEx.Match(e);
-            if (match.Success)
-            {
-                _byteReceived = Byte.Parse(match.Groups["data"].Value,System.Globalization.NumberStyles.HexNumber);
-                _i2cResetEvent.Set();
-            }
+            if (!VacuumI2CByteResponse.TryParse(line, _expectedI2cAddress, out var value))
+                return;
+            _byteReceived = value;
+            _i2cResetEvent.Set();
         }
     }
 }

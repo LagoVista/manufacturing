@@ -37,6 +37,23 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void I2CResponseDecodesDecimalAndRejectsUnrelatedOrInvalidReadings()
+        {
+            Assert.That(VacuumI2CByteResponse.TryParse(
+                "echo:i2c-reply: from:109 bytes:1 data:231", 109, out var value), Is.True);
+            Assert.That(value, Is.EqualTo(231));
+            Assert.That(VacuumI2CByteResponse.TryParse(
+                "echo:i2c-reply: from:109 bytes:1 data:0xE7", 109, out value), Is.True);
+            Assert.That(value, Is.EqualTo(231));
+            Assert.That(VacuumI2CByteResponse.TryParse(
+                "echo:i2c-reply: from:108 bytes:1 data:231", 109, out _), Is.False);
+            Assert.That(VacuumI2CByteResponse.TryParse(
+                "echo:i2c-reply: from:109 bytes:1 data:999", 109, out _), Is.False);
+            Assert.That(VacuumI2CByteResponse.TryParse(
+                "echo:i2c-reply: from:109 bytes:2 data:231", 109, out _), Is.False);
+        }
+
+        [Test]
         public void NormalizesRisingPressureAndSeparatesNoPartFromHeld()
         {
             Assert.That(VacuumCalibrationCandidate.TryCreate(

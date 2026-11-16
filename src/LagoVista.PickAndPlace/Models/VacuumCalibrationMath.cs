@@ -47,6 +47,39 @@ namespace LagoVista.PickAndPlace.Models
         }
     }
 
+    /// <summary>
+    /// Decodes actual Marlin M261 replies; "data:231" represents decimal 231.
+    /// Also accepts explicitly hexadecimal data, but never a mismatched address.
+    /// </summary>
+    public static class VacuumI2CByteResponse
+    {
+        private static readonly Regex Pattern = new Regex(
+            @"^echo:i2c-reply:\s*from:(?<address>[0-9]+)\s+bytes:(?<count>[0-9]+)\s+data:(?<value>(?:0[xX])?[0-9A-Fa-f]+)$",
+            RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+        public static bool TryParse(string response, byte expectedAddress, out byte value)
+        {
+            value = 0;
+            if (String.IsNullOrWhiteSpace(response))
+                return false;
+            var match = Pattern.Match(response.Trim());
+            if (!match.Success ||
+                !Byte.TryParse(match.Groups["address"].Value, out var address) ||
+                address != expectedAddress ||
+                match.Groups["count"].Value != "1")
+                return false;
+            var token = match.Groups["value"].Value;
+            var isHex = token.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ||
+                token.Any(ch => (ch >= 'A' && ch <= 'F') || (ch >= 'a' && ch <= 'f'));
+            if (token.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+                token = token.Substring(2);
+            return Byte.TryParse(token, isHex
+                    ? System.Globalization.NumberStyles.AllowHexSpecifier
+                    : System.Globalization.NumberStyles.None,
+                System.Globalization.CultureInfo.InvariantCulture, out value);
+        }
+    }
+
     public enum VacuumPickupClassification
     {
         Unknown,
