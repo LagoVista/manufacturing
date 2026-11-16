@@ -169,16 +169,16 @@ namespace LagoVista.PickAndPlace.Models
 
         public static bool TryCreate(
             VacuumPressureBand idle, VacuumPressureBand noPart,
-            VacuumPressureBand sealed, double minimumPumpResponseRaw,
+            VacuumPressureBand sealedBand, double minimumPumpResponseRaw,
             double minimumPartSeparationPercent, double hysteresisPercent,
             out VacuumCalibrationCandidate candidate, out string failure)
         {
             candidate = null;
             failure = null;
-            if (idle == null || noPart == null || sealed == null ||
+            if (idle == null || noPart == null || sealedBand == null ||
                 (idle.HeadIndex != 1 && idle.HeadIndex != 2) ||
                 idle.HeadIndex != noPart.HeadIndex ||
-                idle.HeadIndex != sealed.HeadIndex)
+                idle.HeadIndex != sealedBand.HeadIndex)
             {
                 failure = "All three raw pressure bands must belong to one head.";
                 return false;
@@ -190,7 +190,7 @@ namespace LagoVista.PickAndPlace.Models
                 return false;
             }
             if (noPart.FirstSampleUtc <= idle.LastSampleUtc ||
-                sealed.FirstSampleUtc <= noPart.LastSampleUtc)
+                sealedBand.FirstSampleUtc <= noPart.LastSampleUtc)
             {
                 failure = "Calibration stages must be independently sampled in order.";
                 return false;
@@ -200,7 +200,7 @@ namespace LagoVista.PickAndPlace.Models
                 failure = "The open-nozzle reading does not verify pump response.";
                 return false;
             }
-            if (Math.Abs(sealed.MeanRawCount - idle.MeanRawCount) < minimumPumpResponseRaw)
+            if (Math.Abs(sealedBand.MeanRawCount - idle.MeanRawCount) < minimumPumpResponseRaw)
             {
                 failure = "The sealed nozzle is not distinguishable from idle.";
                 return false;
@@ -209,7 +209,7 @@ namespace LagoVista.PickAndPlace.Models
             // clamping an invalid open-nozzle baseline into 0 or 100%.
             var noPartPercent =
                 100.0 * (noPart.MeanRawCount - idle.MeanRawCount) /
-                (sealed.MeanRawCount - idle.MeanRawCount);
+                (sealedBand.MeanRawCount - idle.MeanRawCount);
             if (noPartPercent <= 0 || noPartPercent >= 100 ||
                 100 - noPartPercent < minimumPartSeparationPercent ||
                 100 - noPartPercent <= hysteresisPercent * 2)
@@ -222,7 +222,7 @@ namespace LagoVista.PickAndPlace.Models
                 HeadIndex = idle.HeadIndex,
                 Idle = idle,
                 NoPart = noPart,
-                Sealed = sealed,
+                Sealed = sealedBand,
                 NoPartPercent = noPartPercent,
                 PartPresentThresholdPercent = (100 + noPartPercent) / 2,
                 HysteresisPercent = hysteresisPercent
