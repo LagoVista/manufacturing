@@ -162,7 +162,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     stage + ": command queue/actuator motion did not settle: " + settled.ErrorMessage);
         }
 
-        private async Task<VacuumPressureBand> CaptureAsync(int head, CancellationToken token)
+        private async Task<VacuumPressureBand> CaptureAsync(int head, CancellationToken token, VacuumPressureBand idleBaseline = null)
         {
             // Each attempt collects an independent, fresh six-reading window.
             // A noisy window is never silently clamped or included in the
@@ -196,7 +196,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 }
 
                 var mean = samples.Average(s => (double)s.RawCount);
-                var spreadLimit = Math.Max(40.0, Math.Abs(mean) * 0.04);
+                var spreadLimit = VacuumPressureSampling.AllowedRawSpread(idleBaseline, mean);
                 var accepted = VacuumPressureSampling.TryCaptureBand(
                     samples, head, DateTimeOffset.UtcNow,
                     TimeSpan.FromSeconds(8), samplesPerWindow, spreadLimit,
@@ -206,7 +206,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 RawReading = "Head " + head + " sample window " + window + "/" + maxWindows +
                     ": [" + observed + "] | span " +
                     (samples.Max(s => s.RawCount) - samples.Min(s => s.RawCount)) +
-                    " counts | limit " + spreadLimit.ToString("F1") + " counts";
+                    " counts | " + (idleBaseline == null
+                        ? "idle noise baseline (not yet scaled)"
+                        : "limit " + spreadLimit.ToString("F1") + " counts");
 
                 if (accepted)
                     return band;
@@ -407,13 +409,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             PumpActive = true;
             await WaitForActuatorIdleAsync("Open-nozzle pump-on", token);
             await Task.Delay(450, token);
-            _open = await CaptureAsync(_head, token);
+            _open = await CaptureAsync(_head, token, _idle);
             _oppositeOpen = await CaptureAsync(_head == 1 ? 2 : 1, token);
-            var minResponse = Math.Max(10,
-                3.0 * (_idle.MaximumRawCount - _idle.MinimumRawCount));
+            var minResponse = VacuumPressureSampling.RequiredResponse(_idle);
             if (Math.Abs(_open.MeanRawCount - _idle.MeanRawCount) < minResponse)
                 throw new InvalidOperationException("Pump on did not produce distinguishable sensor response.");
-            var maxOtherDrift = Math.Max(40.0, Math.Abs(_oppositeIdle.MeanRawCount) * 0.04);
+            var maxOtherDrift = Math.Max(40.0, 3.0 * Math.Max(
+                _oppositeIdle.MaximumRawCount - _oppositeIdle.MinimumRawCount,
+                _oppositeOpen.MaximumRawCount - _oppositeOpen.MinimumRawCount));
             if (Math.Abs(_oppositeOpen.MeanRawCount - _oppositeIdle.MeanRawCount) > maxOtherDrift)
                 throw new InvalidOperationException("Inactive head pressure changed unexpectedly.");
 
@@ -470,8 +473,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (!idle.Successful)
                 throw new InvalidOperationException("Wait for manual Z jog to settle before capturing sealed pressure.");
 
-            _sealed = await CaptureAsync(_head, token);
-            var minResponse = Math.Max(10.0, 3.0 * (_idle.MaximumRawCount - _idle.MinimumRawCount));
+            _sealed = await CaptureAsync(_head, token, _idle);
+            var minResponse = VacuumPressureSampling.RequiredResponse(_idle);
             if (!VacuumCalibrationCandidate.TryCreate(_idle, _open, _sealed,
                 minResponse, 12.0, 3.0, out var candidate, out var reason))
                 throw new InvalidOperationException(reason);
@@ -502,7 +505,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (!candidate.IsBackAtIdle(release, 8))
                 throw new InvalidOperationException("Vacuum did not return to the measured idle band.");
             _lastReleased = release;
-            var maxOtherDrift = Math.Max(40.0, Math.Abs(_oppositeIdle.MeanRawCount) * 0.04);
+            var maxOtherDrift = Math.Max(40.0, 3.0 * Math.Max(
+                _oppositeIdle.MaximumRawCount - _oppositeIdle.MinimumRawCount,
+                _oppositeOpen.MaximumRawCount - _oppositeOpen.MinimumRawCount));
             if (Math.Abs(inactive.MeanRawCount - _oppositeIdle.MeanRawCount) > maxOtherDrift)
                 throw new InvalidOperationException("Other head did not remain in its idle band.");
             RecordStep(_head == 1 ? "left-release" : "right-release",

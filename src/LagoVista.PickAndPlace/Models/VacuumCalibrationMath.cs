@@ -93,6 +93,26 @@ namespace LagoVista.PickAndPlace.Models
     /// </summary>
     public static class VacuumPressureSampling
     {
+        /// <summary>
+        /// Idle records its empirical noise before a vacuum-response scale
+        /// exists. For pump-on and sealed stages, stability is measured
+        /// relative to the observed signal change, not the raw count offset.
+        /// </summary>
+        public static double AllowedRawSpread(VacuumPressureBand idle, double observedMean)
+        {
+            if (idle == null)
+                return Double.MaxValue;
+            var idleSpan = (double)idle.MaximumRawCount - idle.MinimumRawCount;
+            var response = Math.Abs(observedMean - idle.MeanRawCount);
+            return Math.Max(3.0 * idleSpan, Math.Max(40.0, response * 0.08));
+        }
+
+        public static double RequiredResponse(VacuumPressureBand idle)
+        {
+            if (idle == null) throw new ArgumentNullException(nameof(idle));
+            return Math.Max(10.0, 5.0 * ((double)idle.MaximumRawCount - idle.MinimumRawCount));
+        }
+
         public static bool TryCaptureBand(
             IReadOnlyList<VacuumPressureSample> readings,
             int expectedHead, DateTimeOffset nowUtc,

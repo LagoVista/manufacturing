@@ -107,6 +107,36 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void RawTwentyFourBitPumpResponseScalesFromMeasuredIdleNoise()
+        {
+            var ambient = new long[] { 4789, 4289, 4651, 5043, 4595, 4643 }
+                .Select((raw, i) => new VacuumPressureSample
+                {
+                    HeadIndex = 1, RawCount = raw,
+                    CapturedAtUtc = Now.AddMilliseconds(i * 100)
+                }).ToArray();
+            Assert.That(VacuumPressureSampling.TryCaptureBand(ambient, 1,
+                Now.AddSeconds(2), TimeSpan.FromSeconds(8), 6,
+                VacuumPressureSampling.AllowedRawSpread(null, 0),
+                out var idle, out var reason), Is.True, reason);
+            Assert.That(idle.MaximumRawCount - idle.MinimumRawCount, Is.EqualTo(754));
+
+            var pump = new long[] { -184289, -186899, -176261, -182871, -187853, -184402 }
+                .Select((raw, i) => new VacuumPressureSample
+                {
+                    HeadIndex = 1, RawCount = raw,
+                    CapturedAtUtc = Now.AddMilliseconds(3000 + i * 100)
+                }).ToArray();
+            var mean = pump.Average(x => (double)x.RawCount);
+            Assert.That(VacuumPressureSampling.TryCaptureBand(pump, 1,
+                Now.AddSeconds(6), TimeSpan.FromSeconds(8), 6,
+                VacuumPressureSampling.AllowedRawSpread(idle, mean),
+                out var open, out reason), Is.True, reason);
+            Assert.That(Math.Abs(open.MeanRawCount - idle.MeanRawCount),
+                Is.GreaterThan(VacuumPressureSampling.RequiredResponse(idle)));
+        }
+
+        [Test]
         public void UnstableBandExplainsMeasuredMinimumMaximumAndAllowedSpan()
         {
             var readings = new long[] { 4676, 4650, 4771, 4922, 4595, 4643 }
