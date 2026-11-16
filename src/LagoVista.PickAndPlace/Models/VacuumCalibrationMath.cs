@@ -134,7 +134,10 @@ namespace LagoVista.PickAndPlace.Models
             var max = readings.Max(r => r.RawCount);
             if ((double)max - min > maximumRawSpread)
             {
-                failure = "Pressure has not settled into a stable band.";
+                failure = "Pressure has not settled into a stable band. " +
+                    "Observed minimum " + min + ", maximum " + max +
+                    ", span " + ((double)max - min).ToString("F1") +
+                    ", permitted span " + maximumRawSpread.ToString("F1") + " raw counts.";
                 return false;
             }
 

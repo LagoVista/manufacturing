@@ -164,38 +164,65 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private async Task<VacuumPressureBand> CaptureAsync(int head, CancellationToken token)
         {
-            var samples = new List<VacuumPressureSample>();
-            for (var i = 0; i < 6; i++)
+            // Each attempt collects an independent, fresh six-reading window.
+            // A noisy window is never silently clamped or included in the
+            // candidate. Permit brief sensor settling, but fail closed after
+            // three windows and retain the raw counts in the operator UI.
+            const int samplesPerWindow = 6;
+            const int maxWindows = 3;
+            for (var window = 1; window <= maxWindows; window++)
             {
-                token.ThrowIfCancellationRequested();
-                if (!ContextSafe(_phase == Phase.AtFiducial || _phase == Phase.Sealed,
-                    out var reason))
-                    throw new InvalidOperationException(reason);
-
-                var result = head == 1
-                    ? await _machine.ReadLeftVacuumAsync()
-                    : await _machine.ReadRightVacuumAsync();
-                if (!result.Successful)
-                    throw new InvalidOperationException("Head " + head + ": " + result.ErrorMessage);
-                samples.Add(new VacuumPressureSample
+                var samples = new List<VacuumPressureSample>();
+                for (var i = 0; i < samplesPerWindow; i++)
                 {
-                    HeadIndex = head,
-                    RawCount = result.Result,
-                    CapturedAtUtc = DateTimeOffset.UtcNow
-                });
-                if (i < 5)
-                    await Task.Delay(90, token);
+                    token.ThrowIfCancellationRequested();
+                    if (!ContextSafe(_phase == Phase.AtFiducial || _phase == Phase.Sealed,
+                        out var reason))
+                        throw new InvalidOperationException(reason);
+
+                    var result = head == 1
+                        ? await _machine.ReadLeftVacuumAsync()
+                        : await _machine.ReadRightVacuumAsync();
+                    if (!result.Successful)
+                        throw new InvalidOperationException("Head " + head + ": " + result.ErrorMessage);
+                    samples.Add(new VacuumPressureSample
+                    {
+                        HeadIndex = head,
+                        RawCount = result.Result,
+                        CapturedAtUtc = DateTimeOffset.UtcNow
+                    });
+                    if (i < samplesPerWindow - 1)
+                        await Task.Delay(150, token);
+                }
+
+                var mean = samples.Average(s => (double)s.RawCount);
+                var spreadLimit = Math.Max(40.0, Math.Abs(mean) * 0.04);
+                var accepted = VacuumPressureSampling.TryCaptureBand(
+                    samples, head, DateTimeOffset.UtcNow,
+                    TimeSpan.FromSeconds(8), samplesPerWindow, spreadLimit,
+                    out var band, out var failure);
+
+                var observed = String.Join(", ", samples.Select(s => s.RawCount.ToString()));
+                RawReading = "Head " + head + " sample window " + window + "/" + maxWindows +
+                    ": [" + observed + "] | span " +
+                    (samples.Max(s => s.RawCount) - samples.Min(s => s.RawCount)) +
+                    " counts | limit " + spreadLimit.ToString("F1") + " counts";
+
+                if (accepted)
+                    return band;
+
+                if (!failure.StartsWith("Pressure has not settled", StringComparison.Ordinal))
+                    throw new InvalidOperationException("Head " + head + ": " + failure);
+                if (window == maxWindows)
+                    throw new InvalidOperationException("Head " + head +
+                        ": baseline remained unstable after " + maxWindows +
+                        " fresh sample windows. " + failure);
+
+                // A late settled window can pass, but the stability requirement
+                // remains the same for every window and every pressure stage.
+                await Task.Delay(600, token);
             }
-            // Raw counts are hardware-dependent. Allow 4% span as a starting
-            // stability gate; show failure rather than accepting a noisy band.
-            var spreadLimit = Math.Max(40.0,
-                Math.Abs(samples.Average(s => (double)s.RawCount)) * 0.04);
-            if (!VacuumPressureSampling.TryCaptureBand(
-                samples, head, DateTimeOffset.UtcNow,
-                TimeSpan.FromSeconds(8), 6, spreadLimit,
-                out var band, out var failure))
-                throw new InvalidOperationException("Head " + head + ": " + failure);
-            return band;
+            throw new InvalidOperationException("Pressure sampling did not complete.");
         }
 
         private void StopPumps()
@@ -306,6 +333,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
             catch (Exception ex)
             {
+                // Idle and pump-on capture never commanded nozzle movement.
+                // Sensor noise during those stages must not trigger an
+                // unexpected physical Z move as part of error cleanup.
+                var motionWasAttempted = _phase == Phase.Open ||
+                    _phase == Phase.AtFiducial || _phase == Phase.Sealed ||
+                    _phase == Phase.Released;
                 SetPhase(Phase.Faulted);
                 Status = "Procedure failed: " + ex.Message + " | Verify pump and Z state before restarting.";
                 try
@@ -313,19 +346,24 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     StopPumps();
                     if (_machine.Connected && _machine.WasMachineHomed)
                     {
-                        if (_machine.CurrentMachineToolHead != null)
-                            _machine.SetToolHeadHeight(_machine.Settings.SafMoveHeight);
-                        _machine.SendSafeMoveHeight();
+                        if (motionWasAttempted)
+                        {
+                            if (_machine.CurrentMachineToolHead != null)
+                                _machine.SetToolHeadHeight(_machine.Settings.SafMoveHeight);
+                            _machine.SendSafeMoveHeight();
+                        }
                         var recovered = await _machine.SpinUntilIdleAsync(15000);
                         if (!recovered.Successful || _machine.Busy)
-                            Status += " | Retraction was NOT confirmed: " + recovered.ErrorMessage;
+                            Status += " | Safe shutdown was NOT confirmed: " + recovered.ErrorMessage;
+                        else if (!motionWasAttempted)
+                            Status += " | Pumps off; no calibration Z move attempted.";
                     }
                     else
-                        Status += " | Retraction unavailable: machine disconnected or not homed.";
+                        Status += " | Safe shutdown unavailable: machine disconnected or not homed.";
                 }
                 catch (Exception cleanupError)
                 {
-                    Status += " | Retraction was NOT confirmed: " + cleanupError.Message;
+                    Status += " | Safe shutdown was NOT confirmed: " + cleanupError.Message;
                 }
                 if (_session?.Snapshot?.Status == MachineOperationRunStatus.Running)
                     _session.BlockActiveStep(ex.Message, DateTimeOffset.UtcNow);

@@ -107,6 +107,27 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void UnstableBandExplainsMeasuredMinimumMaximumAndAllowedSpan()
+        {
+            var readings = new long[] { 4676, 4650, 4771, 4922, 4595, 4643 }
+                .Select((raw, index) => new VacuumPressureSample
+                {
+                    HeadIndex = 1,
+                    RawCount = raw,
+                    CapturedAtUtc = Now.AddMilliseconds(index * 150)
+                }).ToArray();
+            var mean = readings.Average(r => (double)r.RawCount);
+            var limit = Math.Max(40, Math.Abs(mean) * 0.04);
+            Assert.That(VacuumPressureSampling.TryCaptureBand(
+                readings, 1, Now.AddSeconds(2), TimeSpan.FromSeconds(8),
+                6, limit, out _, out var failure), Is.False);
+            Assert.That(failure, Does.Contain("minimum 4595"));
+            Assert.That(failure, Does.Contain("maximum 4922"));
+            Assert.That(failure, Does.Contain("span 327.0"));
+            Assert.That(failure, Does.Contain("188.4"));
+        }
+
+        [Test]
         public void UnstableOrNonseparatingBandsCannotCalibrate()
         {
             var samples = Enumerable.Range(0, 5).Select(i =>
