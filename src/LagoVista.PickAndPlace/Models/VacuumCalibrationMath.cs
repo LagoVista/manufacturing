@@ -1,0 +1,199 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace LagoVista.PickAndPlace.Models
+{
+    /// <summary>One timestamped, head-specific raw count from the selected transport.</summary>
+    public sealed class VacuumPressureSample
+    {
+        public int HeadIndex { get; set; }
+        public long RawCount { get; set; }
+        public DateTimeOffset CapturedAtUtc { get; set; }
+    }
+
+    /// <summary>Observed stable raw-count band, not a commanded actuator state.</summary>
+    public sealed class VacuumPressureBand
+    {
+        public int HeadIndex { get; internal set; }
+        public int SampleCount { get; internal set; }
+        public double MeanRawCount { get; internal set; }
+        public long MinimumRawCount { get; internal set; }
+        public long MaximumRawCount { get; internal set; }
+        public DateTimeOffset FirstSampleUtc { get; internal set; }
+        public DateTimeOffset LastSampleUtc { get; internal set; }
+    }
+
+    public enum VacuumPickupClassification
+    {
+        Unknown,
+        NoPart,
+        PartPresent
+    }
+
+    /// <summary>
+    /// Pure sensor validation: sample ordering, freshness and stability must be
+    /// established before any pressure is used to prove actuator operation.
+    /// </summary>
+    public static class VacuumPressureSampling
+    {
+        public static bool TryCaptureBand(
+            IReadOnlyList<VacuumPressureSample> readings,
+            int expectedHead, DateTimeOffset nowUtc,
+            TimeSpan maximumAge, int minimumSamples, double maximumRawSpread,
+            out VacuumPressureBand band, out string failure)
+        {
+            band = null;
+            failure = null;
+            if ((expectedHead != 1 && expectedHead != 2) ||
+                maximumAge <= TimeSpan.Zero || minimumSamples < 3 ||
+                maximumRawSpread < 0)
+            {
+                failure = "Invalid head or sampling limits.";
+                return false;
+            }
+            if (readings == null || readings.Count < minimumSamples)
+            {
+                failure = "Not enough fresh pressure samples.";
+                return false;
+            }
+            DateTimeOffset? previous = null;
+            foreach (var reading in readings)
+            {
+                if (reading == null || reading.HeadIndex != expectedHead)
+                {
+                    failure = "Sensor evidence is missing or belongs to the wrong head.";
+                    return false;
+                }
+                if (reading.CapturedAtUtc > nowUtc ||
+                    nowUtc - reading.CapturedAtUtc > maximumAge ||
+                    (previous.HasValue && reading.CapturedAtUtc <= previous.Value))
+                {
+                    failure = "Pressure evidence is stale, duplicated or out of order.";
+                    return false;
+                }
+                previous = reading.CapturedAtUtc;
+            }
+            var min = readings.Min(r => r.RawCount);
+            var max = readings.Max(r => r.RawCount);
+            if ((double)max - min > maximumRawSpread)
+            {
+                failure = "Pressure has not settled into a stable band.";
+                return false;
+            }
+
+            band = new VacuumPressureBand
+            {
+                HeadIndex = expectedHead,
+                SampleCount = readings.Count,
+                MinimumRawCount = min,
+                MaximumRawCount = max,
+                MeanRawCount = readings.Average(r => (double)r.RawCount),
+                FirstSampleUtc = readings[0].CapturedAtUtc,
+                LastSampleUtc = readings[readings.Count - 1].CapturedAtUtc
+            };
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Unsaved per-head candidate. Idle = 0%, gently plate-sealed = 100%.
+    /// No polarity, voltage/pressure unit, or physical raw threshold is assumed.
+    /// A calibrated nozzle-open reading supplies the no-part boundary.
+    /// </summary>
+    public sealed class VacuumCalibrationCandidate
+    {
+        public int HeadIndex { get; private set; }
+        public VacuumPressureBand Idle { get; private set; }
+        public VacuumPressureBand NoPart { get; private set; }
+        public VacuumPressureBand Sealed { get; private set; }
+        public double NoPartPercent { get; private set; }
+        public double PartPresentThresholdPercent { get; private set; }
+        public double HysteresisPercent { get; private set; }
+
+        public static bool TryCreate(
+            VacuumPressureBand idle, VacuumPressureBand noPart,
+            VacuumPressureBand sealed, double minimumPumpResponseRaw,
+            double minimumPartSeparationPercent, double hysteresisPercent,
+            out VacuumCalibrationCandidate candidate, out string failure)
+        {
+            candidate = null;
+            failure = null;
+            if (idle == null || noPart == null || sealed == null ||
+                (idle.HeadIndex != 1 && idle.HeadIndex != 2) ||
+                idle.HeadIndex != noPart.HeadIndex ||
+                idle.HeadIndex != sealed.HeadIndex)
+            {
+                failure = "All three raw pressure bands must belong to one head.";
+                return false;
+            }
+            if (minimumPumpResponseRaw <= 0 || minimumPartSeparationPercent <= 0 ||
+                hysteresisPercent <= 0 || hysteresisPercent >= 50)
+            {
+                failure = "Invalid calibration acceptance limits.";
+                return false;
+            }
+            if (noPart.FirstSampleUtc <= idle.LastSampleUtc ||
+                sealed.FirstSampleUtc <= noPart.LastSampleUtc)
+            {
+                failure = "Calibration stages must be independently sampled in order.";
+                return false;
+            }
+            if (Math.Abs(noPart.MeanRawCount - idle.MeanRawCount) < minimumPumpResponseRaw)
+            {
+                failure = "The open-nozzle reading does not verify pump response.";
+                return false;
+            }
+            if (Math.Abs(sealed.MeanRawCount - idle.MeanRawCount) < minimumPumpResponseRaw)
+            {
+                failure = "The sealed nozzle is not distinguishable from idle.";
+                return false;
+            }
+            var noPartPercent = ClampPercent(
+                100.0 * (noPart.MeanRawCount - idle.MeanRawCount) /
+                (sealed.MeanRawCount - idle.MeanRawCount));
+            if (100 - noPartPercent < minimumPartSeparationPercent ||
+                100 - noPartPercent <= hysteresisPercent * 2)
+            {
+                failure = "The open and sealed nozzle values cannot be reliably classified.";
+                return false;
+            }
+            candidate = new VacuumCalibrationCandidate
+            {
+                HeadIndex = idle.HeadIndex,
+                Idle = idle,
+                NoPart = noPart,
+                Sealed = sealed,
+                NoPartPercent = noPartPercent,
+                PartPresentThresholdPercent = (100 + noPartPercent) / 2,
+                HysteresisPercent = hysteresisPercent
+            };
+            return true;
+        }
+
+        public double Normalize(long rawCounts) =>
+            ClampPercent(100.0 * (rawCounts - Idle.MeanRawCount) /
+                (Sealed.MeanRawCount - Idle.MeanRawCount));
+
+        public VacuumPickupClassification Classify(long rawCounts)
+        {
+            var normalized = Normalize(rawCounts);
+            if (normalized >= PartPresentThresholdPercent + HysteresisPercent)
+                return VacuumPickupClassification.PartPresent;
+            if (normalized <= PartPresentThresholdPercent - HysteresisPercent)
+                return VacuumPickupClassification.NoPart;
+            return VacuumPickupClassification.Unknown;
+        }
+
+        public bool IsBackAtIdle(VacuumPressureBand release, double maxDriftPercent)
+        {
+            return release != null && release.HeadIndex == HeadIndex &&
+                release.FirstSampleUtc > Sealed.LastSampleUtc &&
+                maxDriftPercent >= 0 &&
+                Math.Abs(Normalize((long)Math.Round(release.MeanRawCount))) <= maxDriftPercent;
+        }
+
+        private static double ClampPercent(double value) =>
+            Math.Max(0, Math.Min(100, value));
+    }
+}
