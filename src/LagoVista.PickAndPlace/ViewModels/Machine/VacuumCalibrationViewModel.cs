@@ -478,7 +478,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         /// </summary>
         public async Task JogNozzleAsync(double deltaMm)
         {
-            if (!CanJogNozzle || Busy || !Double.IsFinite(deltaMm) ||
+            if (!CanJogNozzle || Busy || !Finite(deltaMm) ||
                 (Math.Abs(deltaMm) != 0.1 && Math.Abs(deltaMm) != 1.0))
                 return;
             Busy = true;
