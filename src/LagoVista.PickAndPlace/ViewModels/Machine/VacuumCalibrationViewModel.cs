@@ -77,7 +77,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             (_phase != Phase.Ready || OperatorAcknowledged) &&
             (_phase != Phase.AtFiducial || OperatorConfirmedContact);
         public bool CanAbort => _phase != Phase.Aborted && _phase != Phase.Finished;
-        public bool CanClose => !Busy && !PumpActive && (_phase == Phase.Aborted || _phase == Phase.Finished);
+        public bool CanClose => !Busy && !PumpActive && (_phase == Phase.Ready || _phase == Phase.Aborted || _phase == Phase.Finished);
         public bool NeedsPlateContact => _phase == Phase.AtFiducial;
         public string NextAction => _phase == Phase.Ready ? ManufacturingResources.VacuumCalibration_CaptureIdle :
             _phase == Phase.Idle ? ManufacturingResources.VacuumCalibration_PumpOpen :
@@ -277,6 +277,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                             if (PumpActive || _machine.LeftVacuumPump || _machine.RightVacuumPump ||
                                 _leftCandidate == null || _rightCandidate == null)
                                 throw new InvalidOperationException("Both heads must finish safely before completion.");
+                            var settled = await _machine.SpinUntilIdleAsync(15000);
+                            if (!settled.Successful || _machine.Busy ||
+                                _machine.ToSendQueueCount > 0 ||
+                                _machine.LeftVacuumPump || _machine.RightVacuumPump)
+                                throw new InvalidOperationException("Machine queue or pump output did not settle at final safe shutdown.");
                             RecordStep("both-safe", null, MachineOperationVerificationKind.MachineObserved);
                             SetPhase(Phase.Finished);
                             Status = ManufacturingResources.VacuumCalibration_Review;
@@ -295,7 +300,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     {
                         _machine.SendSafeMoveHeight();
                         var recovered = await _machine.SpinUntilIdleAsync(15000);
-                        if (!recovered.Successful)
+                        if (!recovered.Successful || _machine.Busy)
                             Status += " | Retraction was NOT confirmed: " + recovered.ErrorMessage;
                     }
                     else
@@ -329,14 +334,17 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private async Task CaptureOpenAsync(CancellationToken token)
         {
-            if (_machine.Settings.GcodeMapping?.Value == null)
+            var mapping = _machine.Settings.GcodeMapping?.Value;
+            if (mapping == null)
                 throw new InvalidOperationException("Vacuum pump G-code mapping is missing.");
             if (_head == 1 &&
-                String.IsNullOrWhiteSpace(_machine.Settings.GcodeMapping.Value.LeftVacuumOn))
-                throw new InvalidOperationException("Left pump on command is not configured.");
+                (String.IsNullOrWhiteSpace(mapping.LeftVacuumOn) ||
+                 String.IsNullOrWhiteSpace(mapping.LeftVacuumOff)))
+                throw new InvalidOperationException("Left pump on/off commands must both be configured.");
             if (_head == 2 &&
-                String.IsNullOrWhiteSpace(_machine.Settings.GcodeMapping.Value.RightVacuumOn))
-                throw new InvalidOperationException("Right pump on command is not configured.");
+                (String.IsNullOrWhiteSpace(mapping.RightVacuumOn) ||
+                 String.IsNullOrWhiteSpace(mapping.RightVacuumOff)))
+                throw new InvalidOperationException("Right pump on/off commands must both be configured.");
 
             if (_head == 1) _machine.LeftVacuumPump = true;
             else _machine.RightVacuumPump = true;
