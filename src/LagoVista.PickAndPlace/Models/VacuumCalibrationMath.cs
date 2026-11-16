@@ -81,11 +81,10 @@ namespace LagoVista.PickAndPlace.Models
     }
 
     /// <summary>
-    /// Reconstructs a polarity-independent runtime classifier from the three
-    /// existing, server-persisted MachineToolHead vacuum fields. No schema
-    /// change is required. PercentAboveNoPartPicked is the percentage of the
-    /// OPEN-to-SEALED gap at which detection transitions (50 = midpoint).
-    /// VacuumTolerancePercent controls the ambiguous/debounce band.
+    /// Reconstructs a polarity-independent classifier using existing
+    /// persisted tool-head fields. An open nozzle is 0%, obstructed is 100%.
+    /// PercentAboveNoPartPicked specifies the detection threshold on that
+    /// open-to-sealed range (50 = midpoint). No server schema change.
     /// </summary>
     public sealed class VacuumCalibrationProfile
     {
@@ -107,21 +106,22 @@ namespace LagoVista.PickAndPlace.Models
                 Double.IsNaN(head.PartPickedVacuum) || Double.IsInfinity(head.PartPickedVacuum))
                 return false;
 
-            var span = head.PartPickedVacuum - head.IdleVacuum;
-            if (Math.Abs(span) < 10.0)
+            // Pump-off idle is diagnostic evidence; the pickup scale starts
+            // at the measured pump-on/open-nozzle state, not at idle.
+            var idleToSealed = head.PartPickedVacuum - head.IdleVacuum;
+            var openToSealed = head.PartPickedVacuum - head.NoPartPickedVacuum;
+            if (Math.Abs(idleToSealed) < 10.0 || Math.Abs(openToSealed) < 10.0)
                 return false;
-            var openPercent = 100.0 * (head.NoPartPickedVacuum - head.IdleVacuum) / span;
-            var thresholdFraction = head.PercentAboveNoPartPicked / 100.0;
+            var openProgressFromIdle = 100.0 *
+                (head.NoPartPickedVacuum - head.IdleVacuum) / idleToSealed;
+            var thresholdPercent = head.PercentAboveNoPartPicked;
             var hysteresis = head.VacuumTolerancePercent;
-            if (openPercent <= 0 || openPercent >= 88 ||
-                Double.IsNaN(thresholdFraction) || Double.IsInfinity(thresholdFraction) ||
-                thresholdFraction <= 0 || thresholdFraction >= 1 ||
+            if (openProgressFromIdle <= 0 || openProgressFromIdle >= 88 ||
+                Double.IsNaN(thresholdPercent) || Double.IsInfinity(thresholdPercent) ||
+                thresholdPercent <= 0 || thresholdPercent >= 100 ||
                 Double.IsNaN(hysteresis) || Double.IsInfinity(hysteresis) ||
-                hysteresis < 0 || hysteresis >= 20)
-                return false;
-            var thresholdPercent = openPercent +
-                (100.0 - openPercent) * thresholdFraction;
-            if (thresholdPercent - hysteresis <= openPercent ||
+                hysteresis < 0 || hysteresis >= 20 ||
+                thresholdPercent - hysteresis <= 0 ||
                 thresholdPercent + hysteresis >= 100)
                 return false;
 
@@ -130,7 +130,7 @@ namespace LagoVista.PickAndPlace.Models
                 IdleRaw = head.IdleVacuum,
                 OpenRaw = head.NoPartPickedVacuum,
                 SealedRaw = head.PartPickedVacuum,
-                NoPartPercent = openPercent,
+                NoPartPercent = 0,
                 ThresholdPercent = thresholdPercent,
                 HysteresisPercent = hysteresis
             };
@@ -139,10 +139,10 @@ namespace LagoVista.PickAndPlace.Models
 
         public double Normalize(double raw) =>
             Math.Max(0, Math.Min(100,
-                100.0 * (raw - IdleRaw) / (SealedRaw - IdleRaw)));
+                100.0 * (raw - OpenRaw) / (SealedRaw - OpenRaw)));
 
         public double ThresholdRaw =>
-            IdleRaw + (SealedRaw - IdleRaw) * (ThresholdPercent / 100.0);
+            OpenRaw + (SealedRaw - OpenRaw) * (ThresholdPercent / 100.0);
 
         public VacuumPickupClassification Classify(double raw)
         {
@@ -251,9 +251,9 @@ namespace LagoVista.PickAndPlace.Models
     }
 
     /// <summary>
-    /// Unsaved per-head candidate. Idle = 0%, gently plate-sealed = 100%.
-    /// No polarity, voltage/pressure unit, or physical raw threshold is assumed.
-    /// A calibrated nozzle-open reading supplies the no-part boundary.
+    /// Unsaved per-head candidate. Open nozzle = 0%, obstructed = 100%.
+    /// Pump-off idle remains diagnostic evidence. No raw polarity or physical
+    /// pressure unit is assumed.
     /// </summary>
     public sealed class VacuumCalibrationCandidate
     {
@@ -305,12 +305,14 @@ namespace LagoVista.PickAndPlace.Models
             }
             // Reject inverted/non-monotonic readings instead of silently
             // clamping an invalid open-nozzle baseline into 0 or 100%.
-            var noPartPercent =
+            // Prove pump-on/open response lies between idle and sealed; this
+            // is a validity check, not the part-detection normalization.
+            var openProgressFromIdle =
                 100.0 * (noPart.MeanRawCount - idle.MeanRawCount) /
                 (sealedBand.MeanRawCount - idle.MeanRawCount);
-            if (noPartPercent <= 0 || noPartPercent >= 100 ||
-                100 - noPartPercent < minimumPartSeparationPercent ||
-                100 - noPartPercent <= hysteresisPercent * 2)
+            if (openProgressFromIdle <= 0 || openProgressFromIdle >= 100 ||
+                100 - openProgressFromIdle < minimumPartSeparationPercent ||
+                100 - openProgressFromIdle <= hysteresisPercent * 2)
             {
                 failure = "The open and sealed nozzle values cannot be reliably classified.";
                 return false;
@@ -321,16 +323,16 @@ namespace LagoVista.PickAndPlace.Models
                 Idle = idle,
                 NoPart = noPart,
                 Sealed = sealedBand,
-                NoPartPercent = noPartPercent,
-                PartPresentThresholdPercent = (100 + noPartPercent) / 2,
+                NoPartPercent = 0,
+                PartPresentThresholdPercent = 50,
                 HysteresisPercent = hysteresisPercent
             };
             return true;
         }
 
         public double Normalize(long rawCounts) =>
-            ClampPercent(100.0 * (rawCounts - Idle.MeanRawCount) /
-                (Sealed.MeanRawCount - Idle.MeanRawCount));
+            ClampPercent(100.0 * (rawCounts - NoPart.MeanRawCount) /
+                (Sealed.MeanRawCount - NoPart.MeanRawCount));
 
         public VacuumPickupClassification Classify(long rawCounts)
         {

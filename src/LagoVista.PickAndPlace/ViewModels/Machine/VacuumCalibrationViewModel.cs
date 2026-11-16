@@ -779,10 +779,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 throw new InvalidOperationException("Other head did not remain in its idle band.");
             RecordStep(_head == 1 ? "left-release" : "right-release",
                 release, MachineOperationVerificationKind.MachineObserved);
-            var summary = "0% = " + candidate.Idle.MeanRawCount.ToString("F0") +
-                " | Open " + candidate.NoPartPercent.ToString("F1") +
-                "% | 100% = " + candidate.Sealed.MeanRawCount.ToString("F0") +
-                " | Part threshold " + candidate.PartPresentThresholdPercent.ToString("F1") + "%";
+            var summary = "Open 0% (" + candidate.NoPart.MeanRawCount.ToString("F0") +
+                ") | Obstructed 100% (" + candidate.Sealed.MeanRawCount.ToString("F0") +
+                ") | Part threshold " + candidate.PartPresentThresholdPercent.ToString("F0") +
+                "% | Idle reference " + candidate.Idle.MeanRawCount.ToString("F0");
             if (_head == 1) LeftSummary = summary;
             else RightSummary = summary;
             Status = ManufacturingResources.VacuumCalibration_ReleaseCaptured;

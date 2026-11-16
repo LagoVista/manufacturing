@@ -59,7 +59,8 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(VacuumCalibrationCandidate.TryCreate(
                 Capture(1, 1000, 0), Capture(1, 2000, 1), Capture(1, 4000, 2),
                 50, 10, 4, out var candidate, out var error), Is.True, error);
-            Assert.That(candidate.Normalize(1000), Is.EqualTo(0).Within(0.1));
+            Assert.That(candidate.Normalize(2000), Is.EqualTo(0).Within(0.1));
+            Assert.That(candidate.PartPresentThresholdPercent, Is.EqualTo(50));
             Assert.That(candidate.Normalize(4000), Is.EqualTo(100).Within(0.1));
             Assert.That(candidate.Classify(2000), Is.EqualTo(VacuumPickupClassification.NoPart));
             Assert.That(candidate.Classify(4000), Is.EqualTo(VacuumPickupClassification.PartPresent));
@@ -74,7 +75,7 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(VacuumCalibrationCandidate.TryCreate(
                 Capture(2, 4000, 0), Capture(2, 3000, 1), Capture(2, 1000, 2),
                 50, 10, 4, out var candidate, out var error), Is.True, error);
-            Assert.That(candidate.Normalize(4000), Is.EqualTo(0).Within(0.1));
+            Assert.That(candidate.Normalize(3000), Is.EqualTo(0).Within(0.1));
             Assert.That(candidate.Normalize(1000), Is.EqualTo(100).Within(0.1));
             Assert.That(candidate.Classify(3000), Is.EqualTo(VacuumPickupClassification.NoPart));
             Assert.That(candidate.Classify(1000), Is.EqualTo(VacuumPickupClassification.PartPresent));
@@ -184,12 +185,13 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                 VacuumTolerancePercent = 3
             };
             Assert.That(VacuumCalibrationProfile.TryFromHead(head, out var profile), Is.True);
-            Assert.That(profile.NoPartPercent, Is.EqualTo(21.4).Within(0.5));
-            Assert.That(profile.ThresholdPercent, Is.EqualTo(60.7).Within(0.5));
+            Assert.That(profile.NoPartPercent, Is.EqualTo(0));
+            Assert.That(profile.ThresholdPercent, Is.EqualTo(50));
+            Assert.That(profile.ThresholdRaw, Is.EqualTo((-183600.0 - 874853.0) / 2).Within(1.0));
             Assert.That(profile.Classify(-183600), Is.EqualTo(VacuumPickupClassification.NoPart));
             Assert.That(profile.Classify(-874853), Is.EqualTo(VacuumPickupClassification.PartPresent));
             Assert.That(profile.Classify(profile.ThresholdRaw), Is.EqualTo(VacuumPickupClassification.Unknown));
-            Assert.That(profile.Normalize(head.IdleVacuum), Is.EqualTo(0).Within(0.01));
+            Assert.That(profile.Normalize(head.NoPartPickedVacuum), Is.EqualTo(0).Within(0.01));
             Assert.That(profile.Normalize(head.PartPickedVacuum), Is.EqualTo(100).Within(0.01));
         }
 
@@ -206,6 +208,8 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                 VacuumTolerancePercent = 3
             };
             Assert.That(VacuumCalibrationProfile.TryFromHead(head, out var profile), Is.True);
+            Assert.That(profile.Normalize(2500), Is.EqualTo(0).Within(0.01));
+            Assert.That(profile.Normalize(4250), Is.EqualTo(50).Within(0.01));
             Assert.That(profile.Classify(2500), Is.EqualTo(VacuumPickupClassification.NoPart));
             Assert.That(profile.Classify(6000), Is.EqualTo(VacuumPickupClassification.PartPresent));
             Assert.That(profile.Classify(profile.ThresholdRaw), Is.EqualTo(VacuumPickupClassification.Unknown));
