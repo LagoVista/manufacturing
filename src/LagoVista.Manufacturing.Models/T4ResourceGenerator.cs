@@ -1207,6 +1207,8 @@ namespace LagoVista.Manufacturing.Models.Resources
         public static string VacuumCalibration_Aborted { get { return GetResourceString("VacuumCalibration_Aborted"); } }
 //Resources:ManufacturingResources:VacuumCalibration_AbortRequested
         public static string VacuumCalibration_AbortRequested { get { return GetResourceString("VacuumCalibration_AbortRequested"); } }
+//Resources:ManufacturingResources:VacuumCalibration_CameraReady
+        public static string VacuumCalibration_CameraReady { get { return GetResourceString("VacuumCalibration_CameraReady"); } }
 //Resources:ManufacturingResources:VacuumCalibration_CaptureIdle
         public static string VacuumCalibration_CaptureIdle { get { return GetResourceString("VacuumCalibration_CaptureIdle"); } }
 //Resources:ManufacturingResources:VacuumCalibration_CaptureSealed
@@ -1217,14 +1219,22 @@ namespace LagoVista.Manufacturing.Models.Resources
         public static string VacuumCalibration_Complete { get { return GetResourceString("VacuumCalibration_Complete"); } }
 //Resources:ManufacturingResources:VacuumCalibration_ContactConfirm
         public static string VacuumCalibration_ContactConfirm { get { return GetResourceString("VacuumCalibration_ContactConfirm"); } }
+//Resources:ManufacturingResources:VacuumCalibration_Down1
+        public static string VacuumCalibration_Down1 { get { return GetResourceString("VacuumCalibration_Down1"); } }
+//Resources:ManufacturingResources:VacuumCalibration_DownFine
+        public static string VacuumCalibration_DownFine { get { return GetResourceString("VacuumCalibration_DownFine"); } }
 //Resources:ManufacturingResources:VacuumCalibration_IdleCaptured
         public static string VacuumCalibration_IdleCaptured { get { return GetResourceString("VacuumCalibration_IdleCaptured"); } }
 //Resources:ManufacturingResources:VacuumCalibration_Intro
         public static string VacuumCalibration_Intro { get { return GetResourceString("VacuumCalibration_Intro"); } }
+//Resources:ManufacturingResources:VacuumCalibration_JogHeading
+        public static string VacuumCalibration_JogHeading { get { return GetResourceString("VacuumCalibration_JogHeading"); } }
 //Resources:ManufacturingResources:VacuumCalibration_JogInstruction
         public static string VacuumCalibration_JogInstruction { get { return GetResourceString("VacuumCalibration_JogInstruction"); } }
 //Resources:ManufacturingResources:VacuumCalibration_Left
         public static string VacuumCalibration_Left { get { return GetResourceString("VacuumCalibration_Left"); } }
+//Resources:ManufacturingResources:VacuumCalibration_LowerPick
+        public static string VacuumCalibration_LowerPick { get { return GetResourceString("VacuumCalibration_LowerPick"); } }
 //Resources:ManufacturingResources:VacuumCalibration_MoveFiducial
         public static string VacuumCalibration_MoveFiducial { get { return GetResourceString("VacuumCalibration_MoveFiducial"); } }
 //Resources:ManufacturingResources:VacuumCalibration_Next
@@ -1235,6 +1245,8 @@ namespace LagoVista.Manufacturing.Models.Resources
         public static string VacuumCalibration_OpenCaptured { get { return GetResourceString("VacuumCalibration_OpenCaptured"); } }
 //Resources:ManufacturingResources:VacuumCalibration_OperatorConfirm
         public static string VacuumCalibration_OperatorConfirm { get { return GetResourceString("VacuumCalibration_OperatorConfirm"); } }
+//Resources:ManufacturingResources:VacuumCalibration_PickReady
+        public static string VacuumCalibration_PickReady { get { return GetResourceString("VacuumCalibration_PickReady"); } }
 //Resources:ManufacturingResources:VacuumCalibration_PumpOpen
         public static string VacuumCalibration_PumpOpen { get { return GetResourceString("VacuumCalibration_PumpOpen"); } }
 //Resources:ManufacturingResources:VacuumCalibration_Raw
@@ -1257,6 +1269,10 @@ namespace LagoVista.Manufacturing.Models.Resources
         public static string VacuumCalibration_Stop { get { return GetResourceString("VacuumCalibration_Stop"); } }
 //Resources:ManufacturingResources:VacuumCalibration_Title
         public static string VacuumCalibration_Title { get { return GetResourceString("VacuumCalibration_Title"); } }
+//Resources:ManufacturingResources:VacuumCalibration_Up1
+        public static string VacuumCalibration_Up1 { get { return GetResourceString("VacuumCalibration_Up1"); } }
+//Resources:ManufacturingResources:VacuumCalibration_UpFine
+        public static string VacuumCalibration_UpFine { get { return GetResourceString("VacuumCalibration_UpFine"); } }
 //Resources:ManufacturingResources:VacuumCalibration_Warning
         public static string VacuumCalibration_Warning { get { return GetResourceString("VacuumCalibration_Warning"); } }
 //Resources:ManufacturingResources:VacuumSensorTransport_I2C
@@ -1902,20 +1918,26 @@ namespace LagoVista.Manufacturing.Models.Resources
             public const string ToolNozzleTip_Title = "ToolNozzleTip_Title";
             public const string VacuumCalibration_Aborted = "VacuumCalibration_Aborted";
             public const string VacuumCalibration_AbortRequested = "VacuumCalibration_AbortRequested";
+            public const string VacuumCalibration_CameraReady = "VacuumCalibration_CameraReady";
             public const string VacuumCalibration_CaptureIdle = "VacuumCalibration_CaptureIdle";
             public const string VacuumCalibration_CaptureSealed = "VacuumCalibration_CaptureSealed";
             public const string VacuumCalibration_Close = "VacuumCalibration_Close";
             public const string VacuumCalibration_Complete = "VacuumCalibration_Complete";
             public const string VacuumCalibration_ContactConfirm = "VacuumCalibration_ContactConfirm";
+            public const string VacuumCalibration_Down1 = "VacuumCalibration_Down1";
+            public const string VacuumCalibration_DownFine = "VacuumCalibration_DownFine";
             public const string VacuumCalibration_IdleCaptured = "VacuumCalibration_IdleCaptured";
             public const string VacuumCalibration_Intro = "VacuumCalibration_Intro";
+            public const string VacuumCalibration_JogHeading = "VacuumCalibration_JogHeading";
             public const string VacuumCalibration_JogInstruction = "VacuumCalibration_JogInstruction";
             public const string VacuumCalibration_Left = "VacuumCalibration_Left";
+            public const string VacuumCalibration_LowerPick = "VacuumCalibration_LowerPick";
             public const string VacuumCalibration_MoveFiducial = "VacuumCalibration_MoveFiducial";
             public const string VacuumCalibration_Next = "VacuumCalibration_Next";
             public const string VacuumCalibration_NextHead = "VacuumCalibration_NextHead";
             public const string VacuumCalibration_OpenCaptured = "VacuumCalibration_OpenCaptured";
             public const string VacuumCalibration_OperatorConfirm = "VacuumCalibration_OperatorConfirm";
+            public const string VacuumCalibration_PickReady = "VacuumCalibration_PickReady";
             public const string VacuumCalibration_PumpOpen = "VacuumCalibration_PumpOpen";
             public const string VacuumCalibration_Raw = "VacuumCalibration_Raw";
             public const string VacuumCalibration_Ready = "VacuumCalibration_Ready";
@@ -1927,6 +1949,8 @@ namespace LagoVista.Manufacturing.Models.Resources
             public const string VacuumCalibration_SealedCaptured = "VacuumCalibration_SealedCaptured";
             public const string VacuumCalibration_Stop = "VacuumCalibration_Stop";
             public const string VacuumCalibration_Title = "VacuumCalibration_Title";
+            public const string VacuumCalibration_Up1 = "VacuumCalibration_Up1";
+            public const string VacuumCalibration_UpFine = "VacuumCalibration_UpFine";
             public const string VacuumCalibration_Warning = "VacuumCalibration_Warning";
             public const string VacuumSensorTransport_I2C = "VacuumSensorTransport_I2C";
             public const string VacuumSensorTransport_Label = "VacuumSensorTransport_Label";
