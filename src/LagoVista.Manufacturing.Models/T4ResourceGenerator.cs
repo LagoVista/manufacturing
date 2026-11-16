@@ -1203,6 +1203,12 @@ namespace LagoVista.Manufacturing.Models.Resources
         public static string ToolNozzleTip_Description { get { return GetResourceString("ToolNozzleTip_Description"); } }
 //Resources:ManufacturingResources:ToolNozzleTip_Title
         public static string ToolNozzleTip_Title { get { return GetResourceString("ToolNozzleTip_Title"); } }
+//Resources:ManufacturingResources:VacuumSensorTransport_I2C
+        public static string VacuumSensorTransport_I2C { get { return GetResourceString("VacuumSensorTransport_I2C"); } }
+//Resources:ManufacturingResources:VacuumSensorTransport_Label
+        public static string VacuumSensorTransport_Label { get { return GetResourceString("VacuumSensorTransport_Label"); } }
+//Resources:ManufacturingResources:VacuumSensorTransport_M170
+        public static string VacuumSensorTransport_M170 { get { return GetResourceString("VacuumSensorTransport_M170"); } }
 //Resources:ManufacturingResources:VisionProfile_BoardFiducial
         public static string VisionProfile_BoardFiducial { get { return GetResourceString("VisionProfile_BoardFiducial"); } }
 //Resources:ManufacturingResources:VisionProfile_CameraLocator
@@ -1838,6 +1844,9 @@ namespace LagoVista.Manufacturing.Models.Resources
             public const string TapeSize_8 = "TapeSize_8";
             public const string ToolNozzleTip_Description = "ToolNozzleTip_Description";
             public const string ToolNozzleTip_Title = "ToolNozzleTip_Title";
+            public const string VacuumSensorTransport_I2C = "VacuumSensorTransport_I2C";
+            public const string VacuumSensorTransport_Label = "VacuumSensorTransport_Label";
+            public const string VacuumSensorTransport_M170 = "VacuumSensorTransport_M170";
             public const string VisionProfile_BoardFiducial = "VisionProfile_BoardFiducial";
             public const string VisionProfile_CameraLocator = "VisionProfile_CameraLocator";
             public const string VisionProfile_CountourRetrievealMode = "VisionProfile_CountourRetrievealMode";
