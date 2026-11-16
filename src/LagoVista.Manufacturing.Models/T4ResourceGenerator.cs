@@ -1263,6 +1263,10 @@ namespace LagoVista.Manufacturing.Models.Resources
         public static string VacuumCalibration_Review { get { return GetResourceString("VacuumCalibration_Review"); } }
 //Resources:ManufacturingResources:VacuumCalibration_Right
         public static string VacuumCalibration_Right { get { return GetResourceString("VacuumCalibration_Right"); } }
+//Resources:ManufacturingResources:VacuumCalibration_RunAll
+        public static string VacuumCalibration_RunAll { get { return GetResourceString("VacuumCalibration_RunAll"); } }
+//Resources:ManufacturingResources:VacuumCalibration_RunAllDescription
+        public static string VacuumCalibration_RunAllDescription { get { return GetResourceString("VacuumCalibration_RunAllDescription"); } }
 //Resources:ManufacturingResources:VacuumCalibration_SealedCaptured
         public static string VacuumCalibration_SealedCaptured { get { return GetResourceString("VacuumCalibration_SealedCaptured"); } }
 //Resources:ManufacturingResources:VacuumCalibration_Stop
@@ -1946,6 +1950,8 @@ namespace LagoVista.Manufacturing.Models.Resources
             public const string VacuumCalibration_ReleaseCaptured = "VacuumCalibration_ReleaseCaptured";
             public const string VacuumCalibration_Review = "VacuumCalibration_Review";
             public const string VacuumCalibration_Right = "VacuumCalibration_Right";
+            public const string VacuumCalibration_RunAll = "VacuumCalibration_RunAll";
+            public const string VacuumCalibration_RunAllDescription = "VacuumCalibration_RunAllDescription";
             public const string VacuumCalibration_SealedCaptured = "VacuumCalibration_SealedCaptured";
             public const string VacuumCalibration_Stop = "VacuumCalibration_Stop";
             public const string VacuumCalibration_Title = "VacuumCalibration_Title";
