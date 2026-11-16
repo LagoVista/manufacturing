@@ -77,7 +77,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             (_phase != Phase.Ready || OperatorAcknowledged) &&
             (_phase != Phase.AtFiducial || OperatorConfirmedContact);
         public bool CanAbort => _phase != Phase.Aborted && _phase != Phase.Finished;
-        public bool CanClose => !Busy && !PumpActive;
+        public bool CanClose => !Busy && !PumpActive && (_phase == Phase.Aborted || _phase == Phase.Finished);
         public bool NeedsPlateContact => _phase == Phase.AtFiducial;
         public string NextAction => _phase == Phase.Ready ? ManufacturingResources.VacuumCalibration_CaptureIdle :
             _phase == Phase.Idle ? ManufacturingResources.VacuumCalibration_PumpOpen :
@@ -156,7 +156,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             for (var i = 0; i < 6; i++)
             {
                 token.ThrowIfCancellationRequested();
-                if (!ContextSafe(false, out var reason))
+                if (!ContextSafe(_phase == Phase.AtFiducial || _phase == Phase.Sealed,
+                    out var reason))
                     throw new InvalidOperationException(reason);
 
                 var result = head == 1
@@ -286,16 +287,23 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             catch (Exception ex)
             {
                 SetPhase(Phase.Faulted);
-                Status = "Stopped safely: " + ex.Message;
+                Status = "Procedure failed: " + ex.Message + " | Verify pump and Z state before restarting.";
                 try
                 {
                     StopPumps();
                     if (_machine.Connected && _machine.WasMachineHomed)
+                    {
                         _machine.SendSafeMoveHeight();
+                        var recovered = await _machine.SpinUntilIdleAsync(15000);
+                        if (!recovered.Successful)
+                            Status += " | Retraction was NOT confirmed: " + recovered.ErrorMessage;
+                    }
+                    else
+                        Status += " | Retraction unavailable: machine disconnected or not homed.";
                 }
                 catch (Exception cleanupError)
                 {
-                    Status += " | Check machine manually: " + cleanupError.Message;
+                    Status += " | Retraction was NOT confirmed: " + cleanupError.Message;
                 }
                 if (_session?.Snapshot?.Status == MachineOperationRunStatus.Running)
                     _session.BlockActiveStep(ex.Message, DateTimeOffset.UtcNow);
@@ -442,24 +450,33 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 Status = ManufacturingResources.VacuumCalibration_AbortRequested;
                 return;
             }
+            Busy = true;
             try
             {
                 StopPumps();
-                if (_machine.Connected && _machine.WasMachineHomed)
-                {
-                    _machine.SendSafeMoveHeight();
-                    await _machine.SpinUntilIdleAsync(10000);
-                }
+                if (!_machine.Connected || !_machine.WasMachineHomed)
+                    throw new InvalidOperationException("Machine disconnected or not homed. Manually verify safe Z.");
+                _machine.SendSafeMoveHeight();
+                var settled = await _machine.SpinUntilIdleAsync(15000);
+                if (!settled.Successful)
+                    throw new InvalidOperationException("Safe-Z retraction was not confirmed: " + settled.ErrorMessage);
+
+                if (_session?.Snapshot?.Status == MachineOperationRunStatus.Running ||
+                    _session?.Snapshot?.Status == MachineOperationRunStatus.Blocked)
+                    _session.Cancel(DateTimeOffset.UtcNow);
+                SetPhase(Phase.Aborted);
+                Status = ManufacturingResources.VacuumCalibration_Aborted;
             }
             catch (Exception ex)
             {
-                Status = "Stop pumps and retract manually: " + ex.Message;
+                SetPhase(Phase.Faulted);
+                Status = "Cannot verify safe shutdown: " + ex.Message +
+                    " | Use machine emergency stop and confirm Z/outputs before closing.";
             }
-            if (_session?.Snapshot?.Status == MachineOperationRunStatus.Running ||
-                _session?.Snapshot?.Status == MachineOperationRunStatus.Blocked)
-                _session.Cancel(DateTimeOffset.UtcNow);
-            SetPhase(Phase.Aborted);
-            Status = ManufacturingResources.VacuumCalibration_Aborted;
+            finally
+            {
+                Busy = false;
+            }
         }
     }
 }
