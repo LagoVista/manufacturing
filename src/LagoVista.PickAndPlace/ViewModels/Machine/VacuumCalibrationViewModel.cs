@@ -150,6 +150,17 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private static bool Finite(double value) => !Double.IsNaN(value) && !Double.IsInfinity(value);
 
+        private async Task WaitForActuatorIdleAsync(string stage, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            var settled = await _machine.SpinUntilIdleAsync(15000);
+            token.ThrowIfCancellationRequested();
+            if (!settled.Successful || _machine.Busy ||
+                _machine.ToSendQueueCount != 0 || _machine.UnacknowledgedBytesSent != 0)
+                throw new InvalidOperationException(
+                    stage + ": command queue/actuator motion did not settle: " + settled.ErrorMessage);
+        }
+
         private async Task<VacuumPressureBand> CaptureAsync(int head, CancellationToken token)
         {
             var samples = new List<VacuumPressureSample>();
@@ -298,6 +309,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     StopPumps();
                     if (_machine.Connected && _machine.WasMachineHomed)
                     {
+                        if (_machine.CurrentMachineToolHead != null)
+                            _machine.SetToolHeadHeight(_machine.Settings.SafMoveHeight);
                         _machine.SendSafeMoveHeight();
                         var recovered = await _machine.SpinUntilIdleAsync(15000);
                         if (!recovered.Successful || _machine.Busy)
@@ -322,6 +335,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private async Task CaptureIdleAsync(CancellationToken token)
         {
             StopPumps();
+            await WaitForActuatorIdleAsync("Idle pump-off", token);
             await Task.Delay(350, token);
             _idle = await CaptureAsync(_head, token);
             _oppositeIdle = await CaptureAsync(_head == 1 ? 2 : 1, token);
@@ -349,6 +363,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (_head == 1) _machine.LeftVacuumPump = true;
             else _machine.RightVacuumPump = true;
             PumpActive = true;
+            await WaitForActuatorIdleAsync("Open-nozzle pump-on", token);
             await Task.Delay(450, token);
             _open = await CaptureAsync(_head, token);
             _oppositeOpen = await CaptureAsync(_head == 1 ? 2 : 1, token);
@@ -379,6 +394,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             await _machine.MoveToToolHeadAsync(head);
             if (_machine.CurrentMachineToolHead?.HeadIndex != _head)
                 throw new InvalidOperationException("Tool-head selection failed.");
+
+            // Safe common Z alone does not establish independent nozzle ZL/ZR.
+            // Retract the selected head explicitly before XY travel.
+            _machine.SetToolHeadHeight(_machine.Settings.SafMoveHeight);
+            await WaitForActuatorIdleAsync("Tool-head safe Z", token);
+            if (!ContextSafe(true, out var reason))
+                throw new InvalidOperationException(reason);
 
             // Tool coordinates are established by MoveToToolHeadAsync.
             _machine.GotoPoint(_machine.Settings.MachineFiducial);
@@ -424,11 +446,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private async Task ReleaseAsync(CancellationToken token)
         {
+            // Retract selected nozzle explicitly before switching off vacuum.
+            _machine.SetToolHeadHeight(_machine.Settings.SafMoveHeight);
+            await WaitForActuatorIdleAsync("Nozzle retract", token);
             _machine.SendSafeMoveHeight();
-            var raised = await _machine.SpinUntilIdleAsync(15000);
-            if (!raised.Successful)
-                throw new InvalidOperationException("Could not retract nozzle from plate.");
+            await WaitForActuatorIdleAsync("Common Z retract", token);
             StopPumps();
+            await WaitForActuatorIdleAsync("Vacuum release", token);
             await Task.Delay(450, token);
             var release = await CaptureAsync(_head, token);
             var inactive = await CaptureAsync(_head == 1 ? 2 : 1, token);
@@ -464,6 +488,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 StopPumps();
                 if (!_machine.Connected || !_machine.WasMachineHomed)
                     throw new InvalidOperationException("Machine disconnected or not homed. Manually verify safe Z.");
+                if (_machine.CurrentMachineToolHead != null)
+                    _machine.SetToolHeadHeight(_machine.Settings.SafMoveHeight);
                 _machine.SendSafeMoveHeight();
                 var settled = await _machine.SpinUntilIdleAsync(15000);
                 if (!settled.Successful)
