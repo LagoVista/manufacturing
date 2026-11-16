@@ -172,6 +172,60 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void StoredNegativeGoingCalibrationClassifiesActualHardwareResponses()
+        {
+            var head = new LagoVista.Manufacturing.Models.MachineToolHead
+            {
+                HeadIndex = 1,
+                IdleVacuum = 4617,
+                NoPartPickedVacuum = -183600,
+                PartPickedVacuum = -874853,
+                PercentAboveNoPartPicked = 50,
+                VacuumTolerancePercent = 3
+            };
+            Assert.That(VacuumCalibrationProfile.TryFromHead(head, out var profile), Is.True);
+            Assert.That(profile.NoPartPercent, Is.EqualTo(21.4).Within(0.5));
+            Assert.That(profile.ThresholdPercent, Is.EqualTo(60.7).Within(0.5));
+            Assert.That(profile.Classify(-183600), Is.EqualTo(VacuumPickupClassification.NoPart));
+            Assert.That(profile.Classify(-874853), Is.EqualTo(VacuumPickupClassification.PartPresent));
+            Assert.That(profile.Classify(profile.ThresholdRaw), Is.EqualTo(VacuumPickupClassification.Unknown));
+            Assert.That(profile.Normalize(head.IdleVacuum), Is.EqualTo(0).Within(0.01));
+            Assert.That(profile.Normalize(head.PartPickedVacuum), Is.EqualTo(100).Within(0.01));
+        }
+
+        [Test]
+        public void StoredPositiveGoingCalibrationUsesSameClassification()
+        {
+            var head = new LagoVista.Manufacturing.Models.MachineToolHead
+            {
+                HeadIndex = 2,
+                IdleVacuum = 1000,
+                NoPartPickedVacuum = 2500,
+                PartPickedVacuum = 6000,
+                PercentAboveNoPartPicked = 50,
+                VacuumTolerancePercent = 3
+            };
+            Assert.That(VacuumCalibrationProfile.TryFromHead(head, out var profile), Is.True);
+            Assert.That(profile.Classify(2500), Is.EqualTo(VacuumPickupClassification.NoPart));
+            Assert.That(profile.Classify(6000), Is.EqualTo(VacuumPickupClassification.PartPresent));
+            Assert.That(profile.Classify(profile.ThresholdRaw), Is.EqualTo(VacuumPickupClassification.Unknown));
+        }
+
+        [Test]
+        public void MissingOrNonMonotonicStoredCalibrationDoesNotEnableNewDetector()
+        {
+            Assert.That(VacuumCalibrationProfile.TryFromHead(
+                new LagoVista.Manufacturing.Models.MachineToolHead(), out _), Is.False);
+            Assert.That(VacuumCalibrationProfile.TryFromHead(
+                new LagoVista.Manufacturing.Models.MachineToolHead
+                {
+                    IdleVacuum = 1000, NoPartPickedVacuum = 900,
+                    PartPickedVacuum = 4000, PercentAboveNoPartPicked = 50,
+                    VacuumTolerancePercent = 3
+                }, out _), Is.False);
+        }
+
+        [Test]
         public void ProcedureRequiresObservedEvidenceForBothHeadsAndFiducial()
         {
             var definition = VacuumValidationProcedureDefinition.Create();
