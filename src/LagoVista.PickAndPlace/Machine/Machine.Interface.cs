@@ -569,36 +569,45 @@ namespace LagoVista.PickAndPlace
         }
 
         ManualResetEventSlim _pressureReadSet = new ManualResetEventSlim(false);
+        private readonly System.Threading.SemaphoreSlim _pressureReadGate =
+            new System.Threading.SemaphoreSlim(1, 1);
 
+        // One M170 returns both pressure channels. Register the listener before
+        // sending and serialize requests to prevent cross-request contamination.
         async Task<InvokeResult> UpdatePressureAsync()
         {
-            _pressureReadSet.Reset();
-            LineReceived += PressureLine_LineReceived;
-
-            var attempt = 0;
-            while(!_pressureReadSet.IsSet)
+            await _pressureReadGate.WaitAsync();
+            try
             {
-                await Task.Delay(5);
-                attempt++;
-                if(attempt > 200)
+                _leftPressure = null;
+                _rightPressure = null;
+                _pressureReadSet.Reset();
+                LineReceived += PressureLine_LineReceived;
+                try
+                {
+                    SendCommand("M170");
+                    for (var attempt = 0; attempt < 200 && !_pressureReadSet.IsSet; attempt++)
+                        await Task.Delay(5);
+                    return _pressureReadSet.IsSet && _leftPressure.HasValue && _rightPressure.HasValue
+                        ? InvokeResult.Success
+                        : InvokeResult.FromError("Timed out waiting for a fresh M170 pressure response.");
+                }
+                finally
                 {
                     LineReceived -= PressureLine_LineReceived;
-                    return InvokeResult.FromError("Could not update pressure.");
                 }
             }
-
-            LineReceived -= PressureLine_LineReceived;
-            return InvokeResult.Success;
+            finally
+            {
+                _pressureReadGate.Release();
+            }
         }
 
         // https://cfsensor.com/wp-content/uploads/2022/11/XGZP6857D-Pressure-Sensor-V2.7.pdf
         public async Task<InvokeResult<long>> ReadLeftVacuumAsync()
         {
-            if (!String.IsNullOrEmpty(Settings.GcodeMapping.Value.ReadLeftVacuumCmd) && false)
+            if (Settings.VacuumSensorTransport?.Value != VacuumSensorTransportTypes.I2C)
             {
-                _leftPressure = null;
-                _rightPressure = null;
-                SendCommand(Settings.GcodeMapping.Value.ReadLeftVacuumCmd);
                 var result = await UpdatePressureAsync();
                 if(result.Successful && _leftPressure.HasValue)
                     return InvokeResult<long>.Create(_leftPressure.Value);
@@ -643,16 +652,8 @@ namespace LagoVista.PickAndPlace
 
         public async Task<InvokeResult<long>> ReadRightVacuumAsync()
         {
-            if (!String.IsNullOrEmpty(Settings.GcodeMapping.Value.ReadLeftVacuumCmd))
+            if (Settings.VacuumSensorTransport?.Value != VacuumSensorTransportTypes.I2C)
             {
-                _leftPressure = null;
-                _rightPressure = null;
-
-                await Task.Delay(100);
-
-                Enqueue(Settings.GcodeMapping.Value.ReadRightVacuumCmd);
-                SendCommand(Settings.GcodeMapping.Value.ReadLeftVacuumCmd);
-                
                 var result = await UpdatePressureAsync();
                 if (result.Successful && _rightPressure.HasValue)
                     return InvokeResult<long>.Create(_rightPressure.Value);

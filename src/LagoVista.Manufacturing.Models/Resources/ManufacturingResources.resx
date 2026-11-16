@@ -1943,4 +1943,13 @@
   <data name="StripFeeder_RowSpacing" xml:space="preserve">
     <value>Row Spacing</value>
   </data>
+  <data name="VacuumSensorTransport_Label" xml:space="preserve">
+    <value>Vacuum Sensor Transport</value>
+  </data>
+  <data name="VacuumSensorTransport_M170" xml:space="preserve">
+    <value>M170 (Raw Pressure)</value>
+  </data>
+  <data name="VacuumSensorTransport_I2C" xml:space="preserve">
+    <value>I2C (M260/M261)</value>
+  </data>
 </root>

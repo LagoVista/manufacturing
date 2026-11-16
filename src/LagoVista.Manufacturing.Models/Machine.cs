@@ -105,6 +105,15 @@ namespace LagoVista.Manufacturing.Models
         XLarge
     }
 
+    /// <summary>Vacuum sensor acquisition protocol, independent of motion firmware.</summary>
+    public enum VacuumSensorTransportTypes
+    {
+        [EnumLabel("m170", ManufacturingResources.Names.VacuumSensorTransport_M170, typeof(ManufacturingResources))]
+        M170,
+        [EnumLabel("i2c", ManufacturingResources.Names.VacuumSensorTransport_I2C, typeof(ManufacturingResources))]
+        I2C
+    }
+
     public enum FirmwareTypes
     {
         GRBL1_1,
@@ -562,6 +571,22 @@ namespace LagoVista.Manufacturing.Models
         {
             get { return _zStepMode; }
             set { Set(ref _zStepMode, value); }
+        }
+
+        // Local-only until the server Machine REST contract can be extended.
+        // This is deliberately not serialized to the current API.
+        private EntityHeader<VacuumSensorTransportTypes> _vacuumSensorTransport =
+            EntityHeader<VacuumSensorTransportTypes>.Create(VacuumSensorTransportTypes.M170);
+
+        [JsonIgnore]
+        [FormField(LabelResource: ManufacturingResources.Names.VacuumSensorTransport_Label,
+            EnumType: typeof(VacuumSensorTransportTypes), FieldType: FieldTypes.Picker,
+            IsRequired: true, ResourceType: typeof(ManufacturingResources))]
+        public EntityHeader<VacuumSensorTransportTypes> VacuumSensorTransport
+        {
+            get => _vacuumSensorTransport;
+            set => Set(ref _vacuumSensorTransport,
+                value ?? EntityHeader<VacuumSensorTransportTypes>.Create(VacuumSensorTransportTypes.M170));
         }
 
         private bool _hasLeftVacuumSensor;
