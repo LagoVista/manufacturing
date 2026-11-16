@@ -32,13 +32,14 @@
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            
-           
+
+
             <TextBlock Grid.Row="0" Style="{StaticResource header}" FontSize="24" Text="{Binding Current.Name}"></TextBlock>
             <TextBlock Grid.Row="1" TextWrapping="Wrap" Style="{StaticResource content}">Move the camera to a known location on the board where you can position the tool head.</TextBlock>
             <Grid Grid.Column="0" Grid.Row="2" HorizontalAlignment="Left">
@@ -67,7 +68,7 @@
                         <TextBlock  Style="{StaticResource content}" Text="{Binding Current.Offset}"></TextBlock>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        
+
                         <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetToolOffsetCommand }"  ToolTip="Set the offset after moving the tool head to the known location." Width="64" Height="64"  >
                             <Button.Content>
                                 <Image Source="/imgs/SetTarget.png"/>
@@ -80,11 +81,12 @@
                         </Button>
                     </StackPanel>
                 </StackPanel>
-                
+
                 <StackPanel Grid.Row="1">
                     <Button Command="{Binding SetDefaultOriginCommand}" Style="{StaticResource CommandButton}" Content="Default Z Origin" Grid.Row="1" />
                     <TextBlock Text="{Binding Current.DefaultOriginPosition}" />
                 </StackPanel>
+                
                 <Grid Margin="10"  Grid.Row="2" Grid.ColumnSpan="2" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -101,31 +103,32 @@
                         <Button  Style="{StaticResource CommandButton}" Command="{Binding SetToolHeadCalibrationCommand}" >Set</Button>
                     </StackPanel>
                 </Grid>
-            </Grid>
 
-            <Grid Grid.Column="1" Grid.Row="2">
-                <StackPanel Orientation="Horizontal" Grid.Row="3" Grid.Column="1">
-                    <Button Command="{Binding SetIdleVacuumCommand}" Style="{StaticResource CommandButton}" Content="Idle Vacuum" />
-                    <Button Command="{Binding SetNoPartPickedVacuumCommand}" Style="{StaticResource CommandButton}" Content="Set No Part Vacuum" />
-                    <Button Command="{Binding SetPartPickedVacuumCommand}" Style="{StaticResource CommandButton}" Content="Set Part Picked Vacuum" />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="1">
-                    <StackPanel>
-                        <Button Width="100" Command="{Binding Vacuum.LeftVacuumOnCommand}" Style="{StaticResource CommandButton}" >On</Button>
-                        <Button Width="100" Command="{Binding Vacuum.LeftVacuumOffCommand}" Style="{StaticResource CommandButton}" >Off</Button>
-                        <Button Width="100" Command="{Binding Vacuum.ReadLeftVacuumCommand}" Style="{StaticResource CommandButton}" >Read</Button>
-                        <TextBlock Text="Left Vacuum" Style="{StaticResource label}" Width="250"></TextBlock>
-                        <TextBlock Text="{Binding Vacuum.LeftVacuum}" Style="{StaticResource content}"/>
-                    </StackPanel>
 
-                    <StackPanel>
-                        <Button Width="100" Command="{Binding Vacuum.RightVacuumOnCommand}" Style="{StaticResource CommandButton}" >On</Button>
-                        <Button Width="100" Command="{Binding Vacuum.RightVacuumOffCommand}" Style="{StaticResource CommandButton}" >Off</Button>
-                        <Button Width="100" Command="{Binding Vacuum.ReadRightVacuumCommand}" Style="{StaticResource CommandButton}" >Read</Button>
-                        <TextBlock Text="Right Vacuum" Style="{StaticResource label}" Width="250"></TextBlock>
-                        <TextBlock Text="{Binding Vacuum.RightVacuum}" Style="{StaticResource content}"/>
+                <Grid Grid.Column="1" Grid.Row="3">
+                    <StackPanel Orientation="Horizontal" Grid.Row="3" Grid.Column="1">
+                        <Button Command="{Binding SetIdleVacuumCommand}" Style="{StaticResource CommandButton}" Content="Idle Vacuum" />
+                        <Button Command="{Binding SetNoPartPickedVacuumCommand}" Style="{StaticResource CommandButton}" Content="Set No Part Vacuum" />
+                        <Button Command="{Binding SetPartPickedVacuumCommand}" Style="{StaticResource CommandButton}" Content="Set Part Picked Vacuum" />
                     </StackPanel>
-                </StackPanel>
+                    <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="1">
+                        <StackPanel>
+                            <Button Width="100" Command="{Binding Vacuum.LeftVacuumOnCommand}" Style="{StaticResource CommandButton}" >On</Button>
+                            <Button Width="100" Command="{Binding Vacuum.LeftVacuumOffCommand}" Style="{StaticResource CommandButton}" >Off</Button>
+                            <Button Width="100" Command="{Binding Vacuum.ReadLeftVacuumCommand}" Style="{StaticResource CommandButton}" >Read</Button>
+                            <TextBlock Text="Left Vacuum" Style="{StaticResource label}" Width="250"></TextBlock>
+                            <TextBlock Text="{Binding Vacuum.LeftVacuum}" Style="{StaticResource content}"/>
+                        </StackPanel>
+
+                        <StackPanel>
+                            <Button Width="100" Command="{Binding Vacuum.RightVacuumOnCommand}" Style="{StaticResource CommandButton}" >On</Button>
+                            <Button Width="100" Command="{Binding Vacuum.RightVacuumOffCommand}" Style="{StaticResource CommandButton}" >Off</Button>
+                            <Button Width="100" Command="{Binding Vacuum.ReadRightVacuumCommand}" Style="{StaticResource CommandButton}" >Read</Button>
+                            <TextBlock Text="Right Vacuum" Style="{StaticResource label}" Width="250"></TextBlock>
+                            <TextBlock Text="{Binding Vacuum.RightVacuum}" Style="{StaticResource content}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
             </Grid>
         </Grid>
     </Grid>
