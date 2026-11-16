@@ -1956,13 +1956,13 @@
     <value>Vacuum pump and sensor calibration</value>
   </data>
   <data name="VacuumCalibration_Intro" xml:space="preserve">
-    <value>Guided validation for both heads. Use the normal machine jog controls to bring the nozzle gently into contact with the machine fiducial after safe XY positioning. The procedure never automatically guesses a contact height.</value>
+    <value>Supervised vacuum validation using the existing machine fiducial as a known XY test spot. The app positions the camera, selects each tool and lowers to its configured pick height. No new fiducial calibration is performed.</value>
   </data>
   <data name="VacuumCalibration_Warning" xml:space="preserve">
     <value>Supervised hardware test. The current Marlin solenoid mapping is not independently verified; this procedure does not certify separate solenoid controls. Nothing is saved to the server.</value>
   </data>
   <data name="VacuumCalibration_Ready" xml:space="preserve">
-    <value>Ready. Confirm the machine is homed, in Manual mode, and the fiducial and safe Z are set.</value>
+    <value>Ready. Confirm the machine is homed, in Manual mode, and the configured test location and tool pick heights are safe.</value>
   </data>
   <data name="VacuumCalibration_ReadyRight" xml:space="preserve">
     <value>Left head complete. Prepare right nozzle, then capture its idle baseline.</value>
@@ -1974,10 +1974,10 @@
     <value>Pump on: capture open nozzle</value>
   </data>
   <data name="VacuumCalibration_MoveFiducial" xml:space="preserve">
-    <value>Go to machine fiducial at safe Z</value>
+    <value>Camera to test spot, then select tool (safe Z)</value>
   </data>
   <data name="VacuumCalibration_CaptureSealed" xml:space="preserve">
-    <value>Capture sealed nozzle</value>
+    <value>Measure obstructed nozzle</value>
   </data>
   <data name="VacuumCalibration_Release" xml:space="preserve">
     <value>Retract, release and verify</value>
@@ -1989,7 +1989,7 @@
     <value>Completed</value>
   </data>
   <data name="VacuumCalibration_JogInstruction" xml:space="preserve">
-    <value>At the machine fiducial. Use your regular machine jog controls to lower the selected nozzle gently onto the staging plate. Confirm contact before collecting the sealed reading.</value>
+    <value>The application controls positioning and pick height; confirm actual nozzle obstruction before measuring.</value>
   </data>
   <data name="VacuumCalibration_Review" xml:space="preserve">
     <value>Both heads measured; review raw and normalized candidate thresholds. No calibration has been saved. Independent solenoid mapping still requires validation.</value>
@@ -2013,10 +2013,10 @@
     <value>Procedure stopped. Pumps commanded off; verify nozzle is at safe height.</value>
   </data>
   <data name="VacuumCalibration_OperatorConfirm" xml:space="preserve">
-    <value>I have verified the machine, safe height, clear staging plate and emergency stop.</value>
+    <value>I verified the machine is homed, the test spot is clear, the tool offsets are configured, and the existing pick heights are safe for contact.</value>
   </data>
   <data name="VacuumCalibration_ContactConfirm" xml:space="preserve">
-    <value>I have gently jogged this nozzle to the plate at the machine fiducial, obscuring the nozzle opening.</value>
+    <value>The selected nozzle is physically obstructed at configured pick height; I am ready to measure its sealed pressure.</value>
   </data>
   <data name="VacuumCalibration_Raw" xml:space="preserve">
     <value>Latest raw observations</value>
@@ -2037,7 +2037,7 @@
     <value>Close window</value>
   </data>
   <data name="VacuumCalibration_JogHeading" xml:space="preserve">
-    <value>Nozzle Z jog at fiducial (operator-controlled, limited)</value>
+    <value>Test spot and tool movement</value>
   </data>
   <data name="VacuumCalibration_Down1" xml:space="preserve">
     <value>Lower 1.0 mm</value>
@@ -2050,5 +2050,14 @@
   </data>
   <data name="VacuumCalibration_Up1" xml:space="preserve">
     <value>Raise 1.0 mm</value>
+  </data>
+  <data name="VacuumCalibration_LowerPick" xml:space="preserve">
+    <value>Lower selected tool to configured PickHeight</value>
+  </data>
+  <data name="VacuumCalibration_CameraReady" xml:space="preserve">
+    <value>Camera positioned at the known test spot; selected tool aligned at safe Z. Advance to lower it to the configured pick height.</value>
+  </data>
+  <data name="VacuumCalibration_PickReady" xml:space="preserve">
+    <value>Selected tool moved to configured pick height. Verify the nozzle opening is actually obstructed, then approve measurement.</value>
   </data>
 </root>

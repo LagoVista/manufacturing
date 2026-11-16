@@ -16,16 +16,17 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 {
     /// <summary>
     /// Supervised, per-head vacuum validation. Only the operator can advance a
-    /// hardware stage. The fiducial approach moves at configured safe Z; the
-    /// operator jogs into plate contact manually rather than this pilot guessing
-    /// a ZL/ZR contact height from feeder PickHeight.
+    /// hardware stage. Uses the already-configured machine fiducial as an
+    /// XY test spot (no fiducial calibration). Camera -> selected tool offsets
+    /// are provided by the existing machine operations; descending to the
+    /// configured pick height is a separate, supervised command.
     ///
     /// This first pass does not persist calibration or claim independent
     /// solenoid proof: the legacy solenoid interface is not per-head on Marlin.
     /// </summary>
     public sealed class VacuumCalibrationViewModel : ViewModelBase
     {
-        private enum Phase { Ready, Idle, Open, AtFiducial, Sealed, Released, Finished, Faulted, Aborted }
+        private enum Phase { Ready, Idle, Open, AtFiducial, AtPickHeight, Sealed, Released, Finished, Faulted, Aborted }
         private readonly IMachineRepo _repo;
         private readonly IMachine _machine;
         private readonly CancellationTokenSource _cancel = new CancellationTokenSource();
@@ -77,22 +78,22 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public bool CanContinue => !Busy && _phase != Phase.Finished &&
             _phase != Phase.Faulted && _phase != Phase.Aborted &&
             (_phase != Phase.Ready || OperatorAcknowledged) &&
-            (_phase != Phase.AtFiducial || OperatorConfirmedContact);
+            (_phase != Phase.AtPickHeight || OperatorConfirmedContact);
         public bool CanAbort => _phase != Phase.Aborted && _phase != Phase.Finished;
         public bool CanClose => !Busy && !PumpActive && (_phase == Phase.Ready || _phase == Phase.Aborted || _phase == Phase.Finished);
-        public bool NeedsPlateContact => _phase == Phase.AtFiducial;
-        public bool CanJogNozzle => _phase == Phase.AtFiducial && !Busy && PumpActive &&
-            _commandedNozzleZ.HasValue;
+        public bool NeedsPlateContact => _phase == Phase.AtPickHeight;
+        public bool CanJogNozzle => false; // Supervised pick-height move replaces manual jogs.
         public string JogPosition => _commandedNozzleZ.HasValue
             ? "Commanded nozzle Z: " + _commandedNozzleZ.Value.ToString("F2") +
               " mm | Lower bound: " + _machine.Settings.ToolHeads
                 .First(h => h.HeadIndex == _head).PickHeight.ToString("F2") + " mm"
-            : "No nozzle Z motion is permitted before reaching the fiducial.";
+            : "No nozzle Z motion is permitted before reaching the test location.";
 
         public string NextAction => _phase == Phase.Ready ? ManufacturingResources.VacuumCalibration_CaptureIdle :
             _phase == Phase.Idle ? ManufacturingResources.VacuumCalibration_PumpOpen :
             _phase == Phase.Open ? ManufacturingResources.VacuumCalibration_MoveFiducial :
-            _phase == Phase.AtFiducial ? ManufacturingResources.VacuumCalibration_CaptureSealed :
+            _phase == Phase.AtFiducial ? ManufacturingResources.VacuumCalibration_LowerPick :
+            _phase == Phase.AtPickHeight ? ManufacturingResources.VacuumCalibration_CaptureSealed :
             _phase == Phase.Sealed ? ManufacturingResources.VacuumCalibration_Release :
             _phase == Phase.Released ? ManufacturingResources.VacuumCalibration_NextHead :
             ManufacturingResources.VacuumCalibration_Complete;
@@ -187,7 +188,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 for (var i = 0; i < samplesPerWindow; i++)
                 {
                     token.ThrowIfCancellationRequested();
-                    if (!ContextSafe(_phase == Phase.AtFiducial || _phase == Phase.Sealed,
+                    if (!ContextSafe(_phase == Phase.AtFiducial || _phase == Phase.AtPickHeight ||
+                    _phase == Phase.Sealed,
                         out var reason))
                         throw new InvalidOperationException(reason);
 
@@ -282,7 +284,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             try
             {
                 _cancel.Token.ThrowIfCancellationRequested();
-                if (!ContextSafe(_phase == Phase.AtFiducial || _phase == Phase.Sealed,
+                if (!ContextSafe(_phase == Phase.AtFiducial || _phase == Phase.AtPickHeight ||
+                    _phase == Phase.Sealed,
                     out var contextError))
                     throw new InvalidOperationException(contextError);
 
@@ -302,11 +305,17 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     case Phase.Open:
                         await MoveToFiducialAsync(_cancel.Token);
                         SetPhase(Phase.AtFiducial);
-                        Status = ManufacturingResources.VacuumCalibration_JogInstruction;
+                        Status = ManufacturingResources.VacuumCalibration_CameraReady;
                         break;
                     case Phase.AtFiducial:
+                        await LowerToPickHeightAsync(_cancel.Token);
+                        OperatorConfirmedContact = false;
+                        SetPhase(Phase.AtPickHeight);
+                        Status = ManufacturingResources.VacuumCalibration_PickReady;
+                        break;
+                    case Phase.AtPickHeight:
                         if (!OperatorConfirmedContact)
-                            throw new InvalidOperationException("Operator has not confirmed plate contact.");
+                            throw new InvalidOperationException("Operator has not confirmed that the nozzle is obstructed.");
                         await CaptureSealedAsync(_cancel.Token);
                         SetPhase(Phase.Sealed);
                         break;
@@ -351,8 +360,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 // Sensor noise during those stages must not trigger an
                 // unexpected physical Z move as part of error cleanup.
                 var motionWasAttempted = _phase == Phase.Open ||
-                    _phase == Phase.AtFiducial || _phase == Phase.Sealed ||
-                    _phase == Phase.Released;
+                    _phase == Phase.AtFiducial || _phase == Phase.AtPickHeight ||
+                    _phase == Phase.Sealed || _phase == Phase.Released;
                 SetPhase(Phase.Faulted);
                 Status = "Procedure failed: " + ex.Message + " | Verify pump and Z state before restarting.";
                 try
@@ -441,84 +450,83 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private async Task MoveToFiducialAsync(CancellationToken token)
         {
-            var head = _machine.Settings.ToolHeads.First(x => x.HeadIndex == _head);
+            // MachineFiducial is a pre-configured XY position used as a
+            // convenient obstruction test spot. No fiducial detection or
+            // origin adjustment is performed by this operation.
+            var settings = _machine.Settings;
+            var tool = settings.ToolHeads.Single(x => x.HeadIndex == _head);
+            var point = settings.MachineFiducial;
+            var area = settings.WorkAreaSize;
+            var physicalX = point.X + tool.Offset.X;
+            var physicalY = point.Y + tool.Offset.Y;
+            if (!Finite(tool.Offset.X) || !Finite(tool.Offset.Y) ||
+                physicalX <= 0 || physicalX >= area.X ||
+                physicalY <= 0 || physicalY >= area.Y)
+                throw new InvalidOperationException(
+                    "Camera-to-tool offset would place tool outside the configured work area.");
+
+            // Retract selected tool before returning to camera coordinates.
+            if (_machine.CurrentMachineToolHead != null)
+            {
+                _machine.SetToolHeadHeight(settings.SafMoveHeight);
+                await WaitForActuatorIdleAsync("Selected nozzle safe Z", token);
+            }
             _machine.SendSafeMoveHeight();
-            var safe = await _machine.SpinUntilIdleAsync(15000);
-            if (!safe.Successful)
-                throw new InvalidOperationException("Safe-Z move failed: " + safe.ErrorMessage);
+            await WaitForActuatorIdleAsync("Machine safe Z", token);
 
             token.ThrowIfCancellationRequested();
-            await _machine.MoveToToolHeadAsync(head);
-            if (_machine.CurrentMachineToolHead?.HeadIndex != _head)
-                throw new InvalidOperationException("Tool-head selection failed.");
+            await _machine.MoveToCameraAsync();
+            await WaitForActuatorIdleAsync("Camera selection", token);
+            if (_machine.CurrentMachineToolHead != null)
+                throw new InvalidOperationException("Machine did not switch to camera coordinates.");
 
-            // Safe common Z alone does not establish independent nozzle ZL/ZR.
-            // Retract the selected head explicitly before XY travel.
-            _machine.SetToolHeadHeight(_machine.Settings.SafMoveHeight);
-            await WaitForActuatorIdleAsync("Tool-head safe Z", token);
-            _commandedNozzleZ = _machine.Settings.SafMoveHeight;
-            NotifyButtons();
-            if (!ContextSafe(true, out var reason))
-                throw new InvalidOperationException(reason);
-
-            // Tool coordinates are established by MoveToToolHeadAsync.
-            _machine.GotoPoint(_machine.Settings.MachineFiducial);
-            var result = await _machine.SpinUntilIdleAsync(20000);
-            if (!result.Successful)
-                throw new InvalidOperationException("Fiducial approach failed: " + result.ErrorMessage);
+            // 1. Camera directly above the existing machine test position.
+            _machine.GotoPoint(point);
+            await WaitForActuatorIdleAsync("Camera at test spot", token);
             await VerifyFiducialAsync(token);
-            Status = ManufacturingResources.VacuumCalibration_JogInstruction;
+
+            // 2. Switch to the selected tool using the machine's established
+            // camera-to-tool offset, not a new hand-authored offset.
+            await _machine.MoveToToolHeadAsync(tool);
+            await WaitForActuatorIdleAsync("Select Tool " + _head, token);
+            if (_machine.CurrentMachineToolHead?.HeadIndex != _head)
+                throw new InvalidOperationException("Tool " + _head + " selection failed.");
+
+            // The tool must remain retracted until the operator advances.
+            _machine.SetToolHeadHeight(settings.SafMoveHeight);
+            await WaitForActuatorIdleAsync("Tool Z safe", token);
+            _commandedNozzleZ = settings.SafMoveHeight;
+            await VerifyFiducialAsync(token);
+            NotifyButtons();
         }
 
         /// <summary>
-        /// Operator-triggered, bounded jog at verified fiducial XY. Never
-        /// automatically descend. The configured PickHeight is a conservative
-        /// lower bound; motion outside that range requires normal machine
-        /// controls and a separate calibration, not this guided runner.
+        /// Operator-triggered descent to the already calibrated PickHeight.
+        /// No probing, automatic contact search, or new fiducial calibration.
         /// </summary>
-        public async Task JogNozzleAsync(double deltaMm)
+        private async Task LowerToPickHeightAsync(CancellationToken token)
         {
-            if (!CanJogNozzle || Busy || !Finite(deltaMm) ||
-                (Math.Abs(deltaMm) != 0.1 && Math.Abs(deltaMm) != 1.0))
-                return;
-            Busy = true;
-            try
-            {
-                if (!ContextSafe(true, out var reason))
-                    throw new InvalidOperationException(reason);
-                await VerifyFiducialAsync(_cancel.Token);
-                var head = _machine.Settings.ToolHeads.First(h => h.HeadIndex == _head);
-                var lower = head.PickHeight;
-                var upper = _machine.Settings.SafMoveHeight;
-                if (!Finite(lower) || lower < 0 || lower >= upper)
-                    throw new InvalidOperationException("Configured pick-height travel limit is invalid.");
-                var next = Math.Round(_commandedNozzleZ.Value + deltaMm, 3);
-                if (next < lower || next > upper)
-                {
-                    Status = "Jog blocked at configured nozzle travel limit (" +
-                        lower.ToString("F2") + ".." + upper.ToString("F2") + " mm).";
-                    return;
-                }
-                _machine.SetToolHeadHeight(next);
-                await WaitForActuatorIdleAsync("Operator nozzle jog", _cancel.Token);
-                _commandedNozzleZ = next;
-                OperatorConfirmedContact = false;
-                Status = "Nozzle jog complete at commanded Z " + next.ToString("F2") +
-                    " mm. Observe the nozzle and confirm gentle plate contact.";
-            }
-            catch (Exception ex)
-            {
-                Status = "Jog stopped: " + ex.Message +
-                    " | Verify the actual machine position before further motion.";
-                // A failed jog does not establish a known physical position.
-                _commandedNozzleZ = null;
-                SetPhase(Phase.Faulted);
-            }
-            finally
-            {
-                Busy = false;
-                NotifyButtons();
-            }
+            if (!ContextSafe(true, out var reason))
+                throw new InvalidOperationException(reason);
+            await VerifyFiducialAsync(token);
+            var settings = _machine.Settings;
+            var tool = settings.ToolHeads.Single(x => x.HeadIndex == _head);
+            var pickHeight = tool.PickHeight;
+            if (!Finite(pickHeight) || pickHeight <= 0 ||
+                pickHeight >= settings.SafMoveHeight)
+                throw new InvalidOperationException(
+                    "Configured Tool " + _head + " PickHeight must be positive and below safe Z.");
+
+            if (!_commandedNozzleZ.HasValue ||
+                Math.Abs(_commandedNozzleZ.Value - settings.SafMoveHeight) > 0.01)
+                throw new InvalidOperationException("Cannot lower: tool safe-height position was not established.");
+
+            // The operator already approved the test location and the
+            // configured pick height. This is one known absolute Z move.
+            _machine.SetToolHeadHeight(pickHeight);
+            await WaitForActuatorIdleAsync("Tool " + _head + " configured pick height", token);
+            _commandedNozzleZ = pickHeight;
+            NotifyButtons();
         }
 
         private async Task VerifyFiducialAsync(CancellationToken token)
@@ -535,9 +543,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private async Task CaptureSealedAsync(CancellationToken token)
         {
             await VerifyFiducialAsync(token);
+            var expectedPick = _machine.Settings.ToolHeads.Single(x => x.HeadIndex == _head).PickHeight;
+            if (!_commandedNozzleZ.HasValue ||
+                Math.Abs(_commandedNozzleZ.Value - expectedPick) > 0.01)
+                throw new InvalidOperationException("Tool has not reached the configured pick height.");
             var idle = await _machine.SpinUntilIdleAsync(10000);
             if (!idle.Successful)
-                throw new InvalidOperationException("Wait for manual Z jog to settle before capturing sealed pressure.");
+                throw new InvalidOperationException("Wait for configured pick-height move to settle before sampling.");
 
             _sealed = await CaptureAsync(_head, token, _idle);
             var minResponse = VacuumPressureSampling.RequiredResponse(_idle);

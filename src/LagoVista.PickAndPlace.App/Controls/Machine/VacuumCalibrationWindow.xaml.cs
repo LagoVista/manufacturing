@@ -5,8 +5,8 @@ using System.Windows;
 namespace LagoVista.PickAndPlace.App.Controls.Machine
 {
     /// <summary>
-    /// The wizard provides limited, explicit nozzle jog buttons for
-    /// operator-controlled contact at the fiducial.
+    /// The guided runner owns camera travel, tool selection, and a
+    /// separately operator-triggered move to configured pick height.
     /// Hardware actions and validation remain in the testable view model.
     /// </summary>
     public partial class VacuumCalibrationWindow : Window
@@ -27,23 +27,6 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
         private async void Abort_Click(object sender, RoutedEventArgs e)
         {
             if (Procedure != null) await Procedure.AbortAsync();
-        }
-
-        private async void JogDown1_Click(object sender, RoutedEventArgs e)
-        {
-            if (Procedure != null) await Procedure.JogNozzleAsync(-1.0);
-        }
-        private async void JogDownFine_Click(object sender, RoutedEventArgs e)
-        {
-            if (Procedure != null) await Procedure.JogNozzleAsync(-0.1);
-        }
-        private async void JogUpFine_Click(object sender, RoutedEventArgs e)
-        {
-            if (Procedure != null) await Procedure.JogNozzleAsync(0.1);
-        }
-        private async void JogUp1_Click(object sender, RoutedEventArgs e)
-        {
-            if (Procedure != null) await Procedure.JogNozzleAsync(1.0);
         }
 
         private void Close_Click(object sender, RoutedEventArgs e)

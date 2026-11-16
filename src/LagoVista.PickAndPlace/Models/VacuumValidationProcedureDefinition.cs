@@ -3,10 +3,10 @@ using LagoVista.Manufacturing.Models.Operations;
 namespace LagoVista.PickAndPlace.Models
 {
     /// <summary>
-    /// Ordered operator-supervised proof steps, not a movement script.
-    /// The concrete runner must validate safe Z and per-head pick-height
-    /// before approaching the configured MachineFiducial. Never infer a
-    /// contact height from the current coordinate or modify machine settings.
+    /// Operator-supervised proof of the two vacuum channels. Uses the
+    /// already configured MachineFiducial only as an XY test location,
+    /// with existing camera/tool offsets and each head's PickHeight.
+    /// It performs no fiducial calibration or coordinate changes.
     /// </summary>
     public static class VacuumValidationProcedureDefinition
     {
@@ -22,7 +22,7 @@ namespace LagoVista.PickAndPlace.Models
             {
                 Key = "readiness",
                 Title = "Confirm homed idle machine, safe Z and machine fiducial",
-                Instructions = "Operator verifies clear nozzle, configured MachineFiducial on staging plate, known gentle contact height, and both pumps off.",
+                Instructions = "Operator verifies configured test spot is safe, tool offsets and configured pick heights are known, machine is homed, and both pumps are off.",
                 RequiredVerification = MachineOperationVerificationKind.OperatorConfirmed
             });
             foreach (var head in new[] { "left", "right" })
@@ -45,7 +45,7 @@ namespace LagoVista.PickAndPlace.Models
                 {
                     Key = head + "-seal",
                     Title = head + ": seal nozzle on machine fiducial",
-                    Instructions = "At safe Z, travel to configured MachineFiducial, then with operator confirmation and bounded pick height gently obscure nozzle port. Capture candidate 100 percent.",
+                    Instructions = "At safe Z, position the camera at the configured MachineFiducial XY, switch to the selected tool using existing offsets, then on operator request lower to configured PickHeight. Confirm the port is obstructed before capture; no fiducial calibration.",
                     RequiredVerification = MachineOperationVerificationKind.MachineObserved
                 });
                 definition.Steps.Add(new MachineOperationStepDefinition
