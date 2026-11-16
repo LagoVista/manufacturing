@@ -1959,7 +1959,7 @@
     <value>Supervised vacuum validation using the existing machine fiducial as a known XY test spot. The app positions the camera, selects each tool and lowers to its configured pick height. No new fiducial calibration is performed.</value>
   </data>
   <data name="VacuumCalibration_Warning" xml:space="preserve">
-    <value>Supervised hardware test. The current Marlin solenoid mapping is not independently verified; this procedure does not certify separate solenoid controls. Nothing is saved to the server.</value>
+    <value>Supervised hardware test. Independent solenoid operation is not yet certified. Calibration values are saved only when you explicitly select Apply Calibration after both heads complete.</value>
   </data>
   <data name="VacuumCalibration_Ready" xml:space="preserve">
     <value>Ready. Confirm the machine is homed, in Manual mode, and the configured test location and tool pick heights are safe.</value>
