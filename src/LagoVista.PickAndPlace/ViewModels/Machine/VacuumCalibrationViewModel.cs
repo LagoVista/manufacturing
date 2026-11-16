@@ -41,6 +41,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private VacuumCalibrationCandidate _leftCandidate;
         private VacuumCalibrationCandidate _rightCandidate;
         private bool _busy;
+        private bool _runAllActive;
         private bool _pumpActive;
         private bool _operatorAcknowledged;
         private bool _operatorConfirmedContact;
@@ -75,13 +76,15 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public string RawReading { get => _rawReading; private set => Set(ref _rawReading, value); }
         public string LeftSummary { get => _leftSummary; private set => Set(ref _leftSummary, value); }
         public string RightSummary { get => _rightSummary; private set => Set(ref _rightSummary, value); }
-        public bool CanContinue => !Busy && _phase != Phase.Finished &&
+        public bool RunAllActive => _runAllActive;
+        public bool CanRunAll => !_runAllActive && !Busy && OperatorAcknowledged && _phase == Phase.Ready;
+        public bool CanContinue => !_runAllActive && !Busy && _phase != Phase.Finished &&
             _phase != Phase.Faulted && _phase != Phase.Aborted &&
             (_phase != Phase.Ready || OperatorAcknowledged) &&
             (_phase != Phase.AtPickHeight || OperatorConfirmedContact);
         public bool CanAbort => _phase != Phase.Aborted && _phase != Phase.Finished;
-        public bool CanClose => !Busy && !PumpActive && (_phase == Phase.Ready || _phase == Phase.Aborted || _phase == Phase.Finished);
-        public bool NeedsPlateContact => _phase == Phase.AtPickHeight;
+        public bool CanClose => !_runAllActive && !Busy && !PumpActive && (_phase == Phase.Ready || _phase == Phase.Aborted || _phase == Phase.Finished);
+        public bool NeedsPlateContact => !_runAllActive && _phase == Phase.AtPickHeight;
         public string NextAction => _phase == Phase.Ready ? ManufacturingResources.VacuumCalibration_CaptureIdle :
             _phase == Phase.Idle ? ManufacturingResources.VacuumCalibration_PumpOpen :
             _phase == Phase.Open ? ManufacturingResources.VacuumCalibration_MoveFiducial :
@@ -95,6 +98,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private void NotifyButtons()
         {
             RaisePropertyChanged(nameof(CanContinue));
+            RaisePropertyChanged(nameof(CanRunAll));
+            RaisePropertyChanged(nameof(RunAllActive));
             RaisePropertyChanged(nameof(CanAbort));
             RaisePropertyChanged(nameof(CanClose));
             RaisePropertyChanged(nameof(NeedsPlateContact));
@@ -272,9 +277,106 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             RecordStep("readiness", null, MachineOperationVerificationKind.OperatorConfirmed);
         }
 
-        public async Task ContinueAsync()
+        /// <summary>
+        /// Runs the same already-proven supervised stages without requiring a
+        /// Next click between each one. A single operator readiness approval
+        /// covers both configured tool contact heights. There is no implied
+        /// physical contact confirmation: the open/sealed sensor evidence
+        /// must pass the existing calibration candidate checks.
+        /// </summary>
+        public async Task RunAllAsync()
         {
-            if (!CanContinue || Busy) return;
+            if (!CanRunAll) return;
+            if (!ValidateAutomaticPreflight(out var reason))
+            {
+                Status = "Run All not started: " + reason;
+                return;
+            }
+
+            _runAllActive = true;
+            NotifyButtons();
+            try
+            {
+                // Ready -> idle -> pump/open -> test spot -> pick height ->
+                // obstructed -> retract/release, repeated for Tool 2. Reuse
+                // AdvanceAsync so there is only ONE hardware motion path.
+                for (var step = 0; step < 16 &&
+                    _phase != Phase.Finished && _phase != Phase.Faulted &&
+                    _phase != Phase.Aborted; step++)
+                {
+                    var previousPhase = _phase;
+                    var previousHead = _head;
+                    await AdvanceAsync(automatic: true);
+
+                    if (_phase == previousPhase && _head == previousHead &&
+                        _phase != Phase.Faulted && _phase != Phase.Aborted)
+                    {
+                        // A non-advancing state must not spin endlessly with a
+                        // running pump. Cancel and reuse existing safe cleanup.
+                        _cancel.Cancel();
+                        await AdvanceAsync(automatic: true);
+                        break;
+                    }
+                }
+                if (_phase != Phase.Finished && _phase != Phase.Faulted &&
+                    _phase != Phase.Aborted)
+                {
+                    _cancel.Cancel();
+                    await AdvanceAsync(automatic: true);
+                }
+            }
+            finally
+            {
+                _runAllActive = false;
+                NotifyButtons();
+            }
+        }
+
+        private bool ValidateAutomaticPreflight(out string reason)
+        {
+            if (!OperatorAcknowledged)
+            {
+                reason = "Operator safety acknowledgement is required.";
+                return false;
+            }
+            if (!ContextSafe(false, out reason))
+                return false;
+
+            var settings = _machine.Settings;
+            foreach (var headIndex in new[] { 1, 2 })
+            {
+                var tool = settings.ToolHeads.FirstOrDefault(h => h.HeadIndex == headIndex);
+                if (tool == null || tool.CurrentNozzle == null ||
+                    !Finite(tool.PickHeight) || tool.PickHeight <= 0 ||
+                    tool.PickHeight >= settings.SafMoveHeight ||
+                    tool.Offset == null ||
+                    !Finite(tool.Offset.X) || !Finite(tool.Offset.Y))
+                {
+                    reason = "Tool " + headIndex +
+                        " requires an installed nozzle, valid offsets, and a safe configured PickHeight.";
+                    return false;
+                }
+                var x = settings.MachineFiducial.X + tool.Offset.X;
+                var y = settings.MachineFiducial.Y + tool.Offset.Y;
+                if (x <= 0 || y <= 0 ||
+                    x >= settings.WorkAreaSize.X || y >= settings.WorkAreaSize.Y)
+                {
+                    reason = "Tool " + headIndex + " offset moves the test spot outside the configured work area.";
+                    return false;
+                }
+            }
+
+            reason = null;
+            return true;
+        }
+
+        public Task ContinueAsync() => AdvanceAsync(automatic: false);
+
+        private async Task AdvanceAsync(bool automatic)
+        {
+            if (Busy || _phase == Phase.Finished || _phase == Phase.Faulted ||
+                _phase == Phase.Aborted || (automatic ? !_runAllActive : !CanContinue))
+                return;
             Busy = true;
             try
             {
@@ -309,7 +411,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         Status = ManufacturingResources.VacuumCalibration_PickReady;
                         break;
                     case Phase.AtPickHeight:
-                        if (!OperatorConfirmedContact)
+                        // Automatic runs do not claim operator-observed contact.
+                        // The actual sealed-vs-open sensor evidence must pass
+                        // TryCreate inside CaptureSealedAsync.
+                        if (!automatic && !OperatorConfirmedContact)
                             throw new InvalidOperationException("Operator has not confirmed that the nozzle is obstructed.");
                         await CaptureSealedAsync(_cancel.Token);
                         SetPhase(Phase.Sealed);
@@ -599,7 +704,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         public async Task AbortAsync()
         {
-            if (Busy)
+            if (Busy || _runAllActive)
             {
                 _cancel.Cancel();
                 StopPumps();
