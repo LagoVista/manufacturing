@@ -563,11 +563,14 @@ namespace LagoVista.PickAndPlace
 
             // Some firmware versions report the pressure line instead of 'ok'.
             // Only remove an actual queued M170; do not dequeue another command.
-            if (_sentQueue.Count > 0 && _sentQueue.Peek().Trim().Equals("M170",
-                StringComparison.OrdinalIgnoreCase))
+            lock (_queueAccessLocker)
             {
-                var sentLine = _sentQueue.Dequeue();
-                UnacknowledgedBytesSent -= sentLine.Length + 1;
+                if (_sentQueue.Count > 0 && _sentQueue.Peek().Trim().Equals("M170",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    var sentLine = _sentQueue.Dequeue();
+                    UnacknowledgedBytesSent -= sentLine.Length + 1;
+                }
             }
         }
 
