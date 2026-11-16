@@ -84,6 +84,19 @@
                     </DockPanel>
                 </Border>
                 <Border Style="{StaticResource PanelCard}">
+                    <DockPanel LastChildFill="True">
+                        <Button DockPanel.Dock="Left"
+                                Content="{x:Static r:ManufacturingResources.VacuumCalibration_Apply}"
+                                IsEnabled="{Binding CanApplyCalibration}"
+                                Click="ApplyCalibration_Click"
+                                Style="{StaticResource Action}"
+                                MinWidth="220" Margin="0,0,16,0"/>
+                        <TextBlock Text="{x:Static r:ManufacturingResources.VacuumCalibration_ApplyDescription}"
+                                   Foreground="#C1D1E2"
+                                   TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    </DockPanel>
+                </Border>
+                <Border Style="{StaticResource PanelCard}">
                     <StackPanel>
                         <TextBlock Text="{x:Static r:ManufacturingResources.VacuumCalibration_Raw}"
                                    FontSize="12" FontWeight="SemiBold" Foreground="#9CC7E6"/>

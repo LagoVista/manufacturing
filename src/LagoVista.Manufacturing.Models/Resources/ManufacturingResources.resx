@@ -2066,4 +2066,13 @@
   <data name="VacuumCalibration_RunAllDescription" xml:space="preserve">
     <value>After the safety check, automatically measure idle and open pressure, position each tool at the test spot, lower to configured pick height, verify obstruction from pressure readings, retract, and check release. Stops on a failed measurement or motion. Keep the machine in view.</value>
   </data>
+  <data name="VacuumCalibration_Apply" xml:space="preserve">
+    <value>Apply Calibration</value>
+  </data>
+  <data name="VacuumCalibration_ApplyDescription" xml:space="preserve">
+    <value>After both heads PASS, approve saving their measured vacuum baselines to the existing machine configuration. Normal part detection uses these saved settings. Previous values are preserved if the save fails.</value>
+  </data>
+  <data name="VacuumCalibration_Saved" xml:space="preserve">
+    <value>Both validated vacuum calibrations saved to the machine. Normal part detection now uses the saved polarity-independent thresholds.</value>
+  </data>
 </root>
