@@ -159,10 +159,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             token.ThrowIfCancellationRequested();
             var settled = await _machine.SpinUntilIdleAsync(15000);
             token.ThrowIfCancellationRequested();
-            if (!settled.Successful || _machine.Busy ||
-                _machine.ToSendQueueCount != 0 || _machine.UnacknowledgedBytesSent != 0)
+            // SpinUntilIdleAsync is the existing machine motion-completion
+            // contract (M400). Do not add a second instantaneous gate on
+            // Busy / queue / unacknowledged-byte counters: these track other
+            // layers and can transiently remain nonzero after a good wait.
+            // The movement stages also verify their expected actual XY via M114.
+            if (!settled.Successful)
                 throw new InvalidOperationException(
-                    stage + ": command queue/actuator motion did not settle: " + settled.ErrorMessage);
+                    stage + ": motion-completion wait failed: " + settled.ErrorMessage);
         }
 
         private async Task<VacuumPressureBand> CaptureAsync(int head, CancellationToken token, VacuumPressureBand idleBaseline = null)
@@ -332,10 +336,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                                 _leftCandidate == null || _rightCandidate == null)
                                 throw new InvalidOperationException("Both heads must finish safely before completion.");
                             var settled = await _machine.SpinUntilIdleAsync(15000);
-                            if (!settled.Successful || _machine.Busy ||
-                                _machine.ToSendQueueCount > 0 ||
-                                _machine.LeftVacuumPump || _machine.RightVacuumPump)
-                                throw new InvalidOperationException("Machine queue or pump output did not settle at final safe shutdown.");
+                            if (!settled.Successful)
+                                throw new InvalidOperationException(
+                                    "Final motion-completion wait failed: " + settled.ErrorMessage);
+                            if (_machine.LeftVacuumPump || _machine.RightVacuumPump)
+                                throw new InvalidOperationException(
+                                    "A vacuum pump is still commanded on at final shutdown.");
                             if (_lastReleased == null)
                                 throw new InvalidOperationException("Missing measured idle-recovery evidence.");
                             RecordStep("both-safe", _lastReleased, MachineOperationVerificationKind.MachineObserved);
@@ -367,7 +373,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                             _machine.SendSafeMoveHeight();
                         }
                         var recovered = await _machine.SpinUntilIdleAsync(15000);
-                        if (!recovered.Successful || _machine.Busy)
+                        if (!recovered.Successful)
                             Status += " | Safe shutdown was NOT confirmed: " + recovered.ErrorMessage;
                         else if (!motionWasAttempted)
                             Status += " | Pumps off; no calibration Z move attempted.";
