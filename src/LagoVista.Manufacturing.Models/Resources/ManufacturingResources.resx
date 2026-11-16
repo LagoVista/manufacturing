@@ -2036,4 +2036,19 @@
   <data name="VacuumCalibration_Close" xml:space="preserve">
     <value>Close window</value>
   </data>
+  <data name="VacuumCalibration_JogHeading" xml:space="preserve">
+    <value>Nozzle Z jog at fiducial (operator-controlled, limited)</value>
+  </data>
+  <data name="VacuumCalibration_Down1" xml:space="preserve">
+    <value>Lower 1.0 mm</value>
+  </data>
+  <data name="VacuumCalibration_DownFine" xml:space="preserve">
+    <value>Lower 0.1 mm</value>
+  </data>
+  <data name="VacuumCalibration_UpFine" xml:space="preserve">
+    <value>Raise 0.1 mm</value>
+  </data>
+  <data name="VacuumCalibration_Up1" xml:space="preserve">
+    <value>Raise 1.0 mm</value>
+  </data>
 </root>

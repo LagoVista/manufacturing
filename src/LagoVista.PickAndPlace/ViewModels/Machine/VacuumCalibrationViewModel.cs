@@ -48,6 +48,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private string _leftSummary = "-";
         private string _rightSummary = "-";
         private int _head = 1;
+        private double? _commandedNozzleZ;
 
         public VacuumCalibrationViewModel(IMachineRepo repo)
         {
@@ -80,6 +81,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public bool CanAbort => _phase != Phase.Aborted && _phase != Phase.Finished;
         public bool CanClose => !Busy && !PumpActive && (_phase == Phase.Ready || _phase == Phase.Aborted || _phase == Phase.Finished);
         public bool NeedsPlateContact => _phase == Phase.AtFiducial;
+        public bool CanJogNozzle => _phase == Phase.AtFiducial && !Busy && PumpActive &&
+            _commandedNozzleZ.HasValue;
+        public string JogPosition => _commandedNozzleZ.HasValue
+            ? "Commanded nozzle Z: " + _commandedNozzleZ.Value.ToString("F2") +
+              " mm | Lower bound: " + _machine.Settings.ToolHeads
+                .First(h => h.HeadIndex == _head).PickHeight.ToString("F2") + " mm"
+            : "No nozzle Z motion is permitted before reaching the fiducial.";
+
         public string NextAction => _phase == Phase.Ready ? ManufacturingResources.VacuumCalibration_CaptureIdle :
             _phase == Phase.Idle ? ManufacturingResources.VacuumCalibration_PumpOpen :
             _phase == Phase.Open ? ManufacturingResources.VacuumCalibration_MoveFiducial :
@@ -95,6 +104,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             RaisePropertyChanged(nameof(CanAbort));
             RaisePropertyChanged(nameof(CanClose));
             RaisePropertyChanged(nameof(NeedsPlateContact));
+            RaisePropertyChanged(nameof(CanJogNozzle));
+            RaisePropertyChanged(nameof(JogPosition));
             RaisePropertyChanged(nameof(NextAction));
             RaisePropertyChanged(nameof(ProcedureStatus));
             RaisePropertyChanged(nameof(HeadIndex));
@@ -307,6 +318,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         if (_head == 1)
                         {
                             _head = 2;
+                            _commandedNozzleZ = null;
                             _idle = null; _oppositeIdle = null;
                             _open = null; _oppositeOpen = null; _sealed = null;
                             OperatorConfirmedContact = false;
@@ -444,6 +456,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             // Retract the selected head explicitly before XY travel.
             _machine.SetToolHeadHeight(_machine.Settings.SafMoveHeight);
             await WaitForActuatorIdleAsync("Tool-head safe Z", token);
+            _commandedNozzleZ = _machine.Settings.SafMoveHeight;
+            NotifyButtons();
             if (!ContextSafe(true, out var reason))
                 throw new InvalidOperationException(reason);
 
@@ -453,6 +467,58 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (!result.Successful)
                 throw new InvalidOperationException("Fiducial approach failed: " + result.ErrorMessage);
             await VerifyFiducialAsync(token);
+            Status = ManufacturingResources.VacuumCalibration_JogInstruction;
+        }
+
+        /// <summary>
+        /// Operator-triggered, bounded jog at verified fiducial XY. Never
+        /// automatically descend. The configured PickHeight is a conservative
+        /// lower bound; motion outside that range requires normal machine
+        /// controls and a separate calibration, not this guided runner.
+        /// </summary>
+        public async Task JogNozzleAsync(double deltaMm)
+        {
+            if (!CanJogNozzle || Busy || !Double.IsFinite(deltaMm) ||
+                (Math.Abs(deltaMm) != 0.1 && Math.Abs(deltaMm) != 1.0))
+                return;
+            Busy = true;
+            try
+            {
+                if (!ContextSafe(true, out var reason))
+                    throw new InvalidOperationException(reason);
+                await VerifyFiducialAsync(_cancel.Token);
+                var head = _machine.Settings.ToolHeads.First(h => h.HeadIndex == _head);
+                var lower = head.PickHeight;
+                var upper = _machine.Settings.SafMoveHeight;
+                if (!Finite(lower) || lower < 0 || lower >= upper)
+                    throw new InvalidOperationException("Configured pick-height travel limit is invalid.");
+                var next = Math.Round(_commandedNozzleZ.Value + deltaMm, 3);
+                if (next < lower || next > upper)
+                {
+                    Status = "Jog blocked at configured nozzle travel limit (" +
+                        lower.ToString("F2") + ".." + upper.ToString("F2") + " mm).";
+                    return;
+                }
+                _machine.SetToolHeadHeight(next);
+                await WaitForActuatorIdleAsync("Operator nozzle jog", _cancel.Token);
+                _commandedNozzleZ = next;
+                OperatorConfirmedContact = false;
+                Status = "Nozzle jog complete at commanded Z " + next.ToString("F2") +
+                    " mm. Observe the nozzle and confirm gentle plate contact.";
+            }
+            catch (Exception ex)
+            {
+                Status = "Jog stopped: " + ex.Message +
+                    " | Verify the actual machine position before further motion.";
+                // A failed jog does not establish a known physical position.
+                _commandedNozzleZ = null;
+                SetPhase(Phase.Faulted);
+            }
+            finally
+            {
+                Busy = false;
+                NotifyButtons();
+            }
         }
 
         private async Task VerifyFiducialAsync(CancellationToken token)
@@ -494,6 +560,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             // Retract selected nozzle explicitly before switching off vacuum.
             _machine.SetToolHeadHeight(_machine.Settings.SafMoveHeight);
             await WaitForActuatorIdleAsync("Nozzle retract", token);
+            _commandedNozzleZ = _machine.Settings.SafMoveHeight;
             _machine.SendSafeMoveHeight();
             await WaitForActuatorIdleAsync("Common Z retract", token);
             StopPumps();

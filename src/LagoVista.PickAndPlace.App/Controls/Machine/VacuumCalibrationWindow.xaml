@@ -72,6 +72,28 @@
                 </Border>
                 <Border Style="{StaticResource PanelCard}">
                     <StackPanel>
+                        <TextBlock Text="{x:Static r:ManufacturingResources.VacuumCalibration_JogHeading}"
+                                   FontWeight="SemiBold" Foreground="#9CC7E6" Margin="0,0,0,6"/>
+                        <TextBlock Text="{Binding JogPosition}" Foreground="#EAF0F6"
+                                   TextWrapping="Wrap" Margin="0,0,0,8"/>
+                        <WrapPanel>
+                            <Button Content="{x:Static r:ManufacturingResources.VacuumCalibration_Down1}"
+                                    IsEnabled="{Binding CanJogNozzle}" Click="JogDown1_Click"
+                                    Style="{StaticResource Action}"/>
+                            <Button Content="{x:Static r:ManufacturingResources.VacuumCalibration_DownFine}"
+                                    IsEnabled="{Binding CanJogNozzle}" Click="JogDownFine_Click"
+                                    Style="{StaticResource Action}"/>
+                            <Button Content="{x:Static r:ManufacturingResources.VacuumCalibration_UpFine}"
+                                    IsEnabled="{Binding CanJogNozzle}" Click="JogUpFine_Click"
+                                    Style="{StaticResource Action}"/>
+                            <Button Content="{x:Static r:ManufacturingResources.VacuumCalibration_Up1}"
+                                    IsEnabled="{Binding CanJogNozzle}" Click="JogUp1_Click"
+                                    Style="{StaticResource Action}"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource PanelCard}">
+                    <StackPanel>
                         <TextBlock Text="{x:Static r:ManufacturingResources.VacuumCalibration_Raw}"
                                    FontSize="12" FontWeight="SemiBold" Foreground="#9CC7E6"/>
                         <TextBlock Text="{Binding RawReading}" FontFamily="Consolas"

@@ -5,8 +5,8 @@ using System.Windows;
 namespace LagoVista.PickAndPlace.App.Controls.Machine
 {
     /// <summary>
-    /// Deliberately non-modal: the operator must use the existing machine
-    /// jog controls to establish gentle nozzle/plate contact at the fiducial.
+    /// The wizard provides limited, explicit nozzle jog buttons for
+    /// operator-controlled contact at the fiducial.
     /// Hardware actions and validation remain in the testable view model.
     /// </summary>
     public partial class VacuumCalibrationWindow : Window
@@ -27,6 +27,23 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
         private async void Abort_Click(object sender, RoutedEventArgs e)
         {
             if (Procedure != null) await Procedure.AbortAsync();
+        }
+
+        private async void JogDown1_Click(object sender, RoutedEventArgs e)
+        {
+            if (Procedure != null) await Procedure.JogNozzleAsync(-1.0);
+        }
+        private async void JogDownFine_Click(object sender, RoutedEventArgs e)
+        {
+            if (Procedure != null) await Procedure.JogNozzleAsync(-0.1);
+        }
+        private async void JogUpFine_Click(object sender, RoutedEventArgs e)
+        {
+            if (Procedure != null) await Procedure.JogNozzleAsync(0.1);
+        }
+        private async void JogUp1_Click(object sender, RoutedEventArgs e)
+        {
+            if (Procedure != null) await Procedure.JogNozzleAsync(1.0);
         }
 
         private void Close_Click(object sender, RoutedEventArgs e)
