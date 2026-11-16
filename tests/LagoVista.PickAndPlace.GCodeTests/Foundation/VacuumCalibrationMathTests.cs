@@ -26,6 +26,17 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void ParsesExampleM170ResponseAndRejectsMalformedData()
+        {
+            Assert.That(VacuumM170Response.TryParse("prs1:5138 prs2:4206",
+                out var left, out var right), Is.True);
+            Assert.That(left, Is.EqualTo(4206));
+            Assert.That(right, Is.EqualTo(5138));
+            Assert.That(VacuumM170Response.TryParse("prs1:bad prs2:4206",
+                out _, out _), Is.False);
+        }
+
+        [Test]
         public void NormalizesRisingPressureAndSeparatesNoPartFromHeld()
         {
             Assert.That(VacuumCalibrationCandidate.TryCreate(
@@ -37,6 +48,7 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(candidate.Classify(4000), Is.EqualTo(VacuumPickupClassification.PartPresent));
             Assert.That(candidate.Classify(3000), Is.EqualTo(VacuumPickupClassification.Unknown));
             Assert.That(candidate.IsBackAtIdle(Capture(1, 1001, 3), 1), Is.True);
+            Assert.That(candidate.IsBackAtIdle(Capture(1, 900, 3), 1), Is.False);
         }
 
         [Test]

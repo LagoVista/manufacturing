@@ -554,17 +554,20 @@ namespace LagoVista.PickAndPlace
 
         private void PressureLine_LineReceived(object sender, string e)
         {
-            var regEx = new Regex("^prs1:(?'prs1'-?[0-9.]+)\\sprs2:(?'prs2'-?[0-9.]+)$");
-            var match = regEx.Match(e);
-            if (match.Success)
+            if (!VacuumM170Response.TryParse(e, out var leftRaw, out var rightRaw))
+                return; // Malformed or unrelated lines must never satisfy a pressure request.
+
+            _leftPressure = leftRaw;
+            _rightPressure = rightRaw;
+            _pressureReadSet.Set();
+
+            // Some firmware versions report the pressure line instead of 'ok'.
+            // Only remove an actual queued M170; do not dequeue another command.
+            if (_sentQueue.Count > 0 && _sentQueue.Peek().Trim().Equals("M170",
+                StringComparison.OrdinalIgnoreCase))
             {
-                _leftPressure = Int32.Parse(match.Groups["prs2"].Value);
-                _rightPressure = Int32.Parse(match.Groups["prs1"].Value);
-
-                _pressureReadSet.Set();
-
                 var sentLine = _sentQueue.Dequeue();
-                UnacknowledgedBytesSent -= (sentLine.Length + 1);
+                UnacknowledgedBytesSent -= sentLine.Length + 1;
             }
         }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace LagoVista.PickAndPlace.Models
 {
@@ -22,6 +23,28 @@ namespace LagoVista.PickAndPlace.Models
         public long MaximumRawCount { get; internal set; }
         public DateTimeOffset FirstSampleUtc { get; internal set; }
         public DateTimeOffset LastSampleUtc { get; internal set; }
+    }
+
+    /// <summary>Protocol parser for the observed "prs1:5138 prs2:4206" M170 response.</summary>
+    public static class VacuumM170Response
+    {
+        private static readonly Regex Pattern = new Regex(
+            @"^prs1:(?<first>-?[0-9]+)\s+prs2:(?<second>-?[0-9]+)$",
+            RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+        public static bool TryParse(string response, out int leftRaw, out int rightRaw)
+        {
+            leftRaw = 0;
+            rightRaw = 0;
+            if (string.IsNullOrWhiteSpace(response))
+                return false;
+            var match = Pattern.Match(response.Trim());
+            // Preserve the current machine-side channel wiring:
+            // prs2 maps to left, prs1 maps to right, pending physical verification.
+            return match.Success &&
+                int.TryParse(match.Groups["second"].Value, out leftRaw) &&
+                int.TryParse(match.Groups["first"].Value, out rightRaw);
+        }
     }
 
     public enum VacuumPickupClassification
@@ -190,7 +213,8 @@ namespace LagoVista.PickAndPlace.Models
             return release != null && release.HeadIndex == HeadIndex &&
                 release.FirstSampleUtc > Sealed.LastSampleUtc &&
                 maxDriftPercent >= 0 &&
-                Math.Abs(Normalize((long)Math.Round(release.MeanRawCount))) <= maxDriftPercent;
+                Math.Abs(100.0 * (release.MeanRawCount - Idle.MeanRawCount) /
+                    (Sealed.MeanRawCount - Idle.MeanRawCount)) <= maxDriftPercent;
         }
 
         private static double ClampPercent(double value) =>
