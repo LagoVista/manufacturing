@@ -1952,4 +1952,88 @@
   <data name="VacuumSensorTransport_I2C" xml:space="preserve">
     <value>I2C (M260/M261)</value>
   </data>
+  <data name="VacuumCalibration_Title" xml:space="preserve">
+    <value>Vacuum pump and sensor calibration</value>
+  </data>
+  <data name="VacuumCalibration_Intro" xml:space="preserve">
+    <value>Guided validation for both heads. Use the normal machine jog controls to bring the nozzle gently into contact with the machine fiducial after safe XY positioning. The procedure never automatically guesses a contact height.</value>
+  </data>
+  <data name="VacuumCalibration_Warning" xml:space="preserve">
+    <value>Supervised hardware test. The current Marlin solenoid mapping is not independently verified; this procedure does not certify separate solenoid controls. Nothing is saved to the server.</value>
+  </data>
+  <data name="VacuumCalibration_Ready" xml:space="preserve">
+    <value>Ready. Confirm the machine is homed, in Manual mode, and the fiducial and safe Z are set.</value>
+  </data>
+  <data name="VacuumCalibration_ReadyRight" xml:space="preserve">
+    <value>Left head complete. Prepare right nozzle, then capture its idle baseline.</value>
+  </data>
+  <data name="VacuumCalibration_CaptureIdle" xml:space="preserve">
+    <value>Capture idle pressure</value>
+  </data>
+  <data name="VacuumCalibration_PumpOpen" xml:space="preserve">
+    <value>Pump on: capture open nozzle</value>
+  </data>
+  <data name="VacuumCalibration_MoveFiducial" xml:space="preserve">
+    <value>Go to machine fiducial at safe Z</value>
+  </data>
+  <data name="VacuumCalibration_CaptureSealed" xml:space="preserve">
+    <value>Capture sealed nozzle</value>
+  </data>
+  <data name="VacuumCalibration_Release" xml:space="preserve">
+    <value>Retract, release and verify</value>
+  </data>
+  <data name="VacuumCalibration_NextHead" xml:space="preserve">
+    <value>Next head / finish</value>
+  </data>
+  <data name="VacuumCalibration_Complete" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="VacuumCalibration_JogInstruction" xml:space="preserve">
+    <value>At the machine fiducial. Use your regular machine jog controls to lower the selected nozzle gently onto the staging plate. Confirm contact before collecting the sealed reading.</value>
+  </data>
+  <data name="VacuumCalibration_Review" xml:space="preserve">
+    <value>Both heads measured; review raw and normalized candidate thresholds. No calibration has been saved. Independent solenoid mapping still requires validation.</value>
+  </data>
+  <data name="VacuumCalibration_IdleCaptured" xml:space="preserve">
+    <value>Fresh idle baselines captured on both heads. Next turn on only the selected pump.</value>
+  </data>
+  <data name="VacuumCalibration_OpenCaptured" xml:space="preserve">
+    <value>Open-nozzle pressure changed and inactive head stayed stable. Next travel to the machine fiducial.</value>
+  </data>
+  <data name="VacuumCalibration_SealedCaptured" xml:space="preserve">
+    <value>Distinct sealed-nozzle reading captured. Next retract, release, and verify return to idle.</value>
+  </data>
+  <data name="VacuumCalibration_ReleaseCaptured" xml:space="preserve">
+    <value>Pressure returned to idle and inactive head stayed stable. Proceed to the next head or finish.</value>
+  </data>
+  <data name="VacuumCalibration_AbortRequested" xml:space="preserve">
+    <value>Abort requested. Pumps commanded off; verify machine state before any further movement.</value>
+  </data>
+  <data name="VacuumCalibration_Aborted" xml:space="preserve">
+    <value>Procedure stopped. Pumps commanded off; verify nozzle is at safe height.</value>
+  </data>
+  <data name="VacuumCalibration_OperatorConfirm" xml:space="preserve">
+    <value>I have verified the machine, safe height, clear staging plate and emergency stop.</value>
+  </data>
+  <data name="VacuumCalibration_ContactConfirm" xml:space="preserve">
+    <value>I have gently jogged this nozzle to the plate at the machine fiducial, obscuring the nozzle opening.</value>
+  </data>
+  <data name="VacuumCalibration_Raw" xml:space="preserve">
+    <value>Latest raw observations</value>
+  </data>
+  <data name="VacuumCalibration_Left" xml:space="preserve">
+    <value>Left head candidate</value>
+  </data>
+  <data name="VacuumCalibration_Right" xml:space="preserve">
+    <value>Right head candidate</value>
+  </data>
+  <data name="VacuumCalibration_Next" xml:space="preserve">
+    <value>Execute next step</value>
+  </data>
+  <data name="VacuumCalibration_Stop" xml:space="preserve">
+    <value>Abort / safe retract</value>
+  </data>
+  <data name="VacuumCalibration_Close" xml:space="preserve">
+    <value>Close window</value>
+  </data>
 </root>
