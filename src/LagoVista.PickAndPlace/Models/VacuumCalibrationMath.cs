@@ -80,6 +80,81 @@ namespace LagoVista.PickAndPlace.Models
         }
     }
 
+    /// <summary>
+    /// Reconstructs a polarity-independent runtime classifier from the three
+    /// existing, server-persisted MachineToolHead vacuum fields. No schema
+    /// change is required. PercentAboveNoPartPicked is the percentage of the
+    /// OPEN-to-SEALED gap at which detection transitions (50 = midpoint).
+    /// VacuumTolerancePercent controls the ambiguous/debounce band.
+    /// </summary>
+    public sealed class VacuumCalibrationProfile
+    {
+        public double IdleRaw { get; private set; }
+        public double OpenRaw { get; private set; }
+        public double SealedRaw { get; private set; }
+        public double NoPartPercent { get; private set; }
+        public double ThresholdPercent { get; private set; }
+        public double HysteresisPercent { get; private set; }
+
+        public static bool TryFromHead(
+            LagoVista.Manufacturing.Models.MachineToolHead head,
+            out VacuumCalibrationProfile profile)
+        {
+            profile = null;
+            if (head == null ||
+                Double.IsNaN(head.IdleVacuum) || Double.IsInfinity(head.IdleVacuum) ||
+                Double.IsNaN(head.NoPartPickedVacuum) || Double.IsInfinity(head.NoPartPickedVacuum) ||
+                Double.IsNaN(head.PartPickedVacuum) || Double.IsInfinity(head.PartPickedVacuum))
+                return false;
+
+            var span = head.PartPickedVacuum - head.IdleVacuum;
+            if (Math.Abs(span) < 10.0)
+                return false;
+            var openPercent = 100.0 * (head.NoPartPickedVacuum - head.IdleVacuum) / span;
+            var thresholdFraction = head.PercentAboveNoPartPicked / 100.0;
+            var hysteresis = head.VacuumTolerancePercent;
+            if (openPercent <= 0 || openPercent >= 88 ||
+                Double.IsNaN(thresholdFraction) || Double.IsInfinity(thresholdFraction) ||
+                thresholdFraction <= 0 || thresholdFraction >= 1 ||
+                Double.IsNaN(hysteresis) || Double.IsInfinity(hysteresis) ||
+                hysteresis < 0 || hysteresis >= 20)
+                return false;
+            var thresholdPercent = openPercent +
+                (100.0 - openPercent) * thresholdFraction;
+            if (thresholdPercent - hysteresis <= openPercent ||
+                thresholdPercent + hysteresis >= 100)
+                return false;
+
+            profile = new VacuumCalibrationProfile
+            {
+                IdleRaw = head.IdleVacuum,
+                OpenRaw = head.NoPartPickedVacuum,
+                SealedRaw = head.PartPickedVacuum,
+                NoPartPercent = openPercent,
+                ThresholdPercent = thresholdPercent,
+                HysteresisPercent = hysteresis
+            };
+            return true;
+        }
+
+        public double Normalize(double raw) =>
+            Math.Max(0, Math.Min(100,
+                100.0 * (raw - IdleRaw) / (SealedRaw - IdleRaw)));
+
+        public double ThresholdRaw =>
+            IdleRaw + (SealedRaw - IdleRaw) * (ThresholdPercent / 100.0);
+
+        public VacuumPickupClassification Classify(double raw)
+        {
+            var percent = Normalize(raw);
+            if (percent >= ThresholdPercent + HysteresisPercent)
+                return VacuumPickupClassification.PartPresent;
+            if (percent <= ThresholdPercent - HysteresisPercent)
+                return VacuumPickupClassification.NoPart;
+            return VacuumPickupClassification.Unknown;
+        }
+    }
+
     public enum VacuumPickupClassification
     {
         Unknown,
