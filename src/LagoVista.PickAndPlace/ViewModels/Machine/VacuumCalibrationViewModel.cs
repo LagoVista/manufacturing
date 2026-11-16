@@ -76,7 +76,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _phase != Phase.Faulted && _phase != Phase.Aborted &&
             (_phase != Phase.Ready || OperatorAcknowledged) &&
             (_phase != Phase.AtFiducial || OperatorConfirmedContact);
-        public bool CanAbort => !Busy && _phase != Phase.Aborted && _phase != Phase.Finished;
+        public bool CanAbort => _phase != Phase.Aborted && _phase != Phase.Finished;
         public bool CanClose => !Busy && !PumpActive;
         public bool NeedsPlateContact => _phase == Phase.AtFiducial;
         public string NextAction => _phase == Phase.Ready ? ManufacturingResources.VacuumCalibration_CaptureIdle :
