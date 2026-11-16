@@ -42,6 +42,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private VacuumCalibrationCandidate _rightCandidate;
         private bool _busy;
         private bool _runAllActive;
+        private bool _calibrationSaved;
         private bool _pumpActive;
         private bool _operatorAcknowledged;
         private bool _operatorConfirmedContact;
@@ -78,6 +79,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public string RightSummary { get => _rightSummary; private set => Set(ref _rightSummary, value); }
         public bool RunAllActive => _runAllActive;
         public bool CanRunAll => !_runAllActive && !Busy && OperatorAcknowledged && _phase == Phase.Ready;
+        public bool CanApplyCalibration => !Busy && !_runAllActive && !_calibrationSaved &&
+            _phase == Phase.Finished && _leftCandidate != null && _rightCandidate != null;
         public bool CanContinue => !_runAllActive && !Busy && _phase != Phase.Finished &&
             _phase != Phase.Faulted && _phase != Phase.Aborted &&
             (_phase != Phase.Ready || OperatorAcknowledged) &&
@@ -99,6 +102,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         {
             RaisePropertyChanged(nameof(CanContinue));
             RaisePropertyChanged(nameof(CanRunAll));
+            RaisePropertyChanged(nameof(CanApplyCalibration));
             RaisePropertyChanged(nameof(RunAllActive));
             RaisePropertyChanged(nameof(CanAbort));
             RaisePropertyChanged(nameof(CanClose));
@@ -284,6 +288,88 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         /// physical contact confirmation: the open/sealed sensor evidence
         /// must pass the existing calibration candidate checks.
         /// </summary>
+        /// <summary>
+        /// Explicit operator-approved persistence after both heads have
+        /// passed. Reuse existing persisted tool-head fields so older machine
+        /// settings and server API contracts need no migration.
+        /// </summary>
+        public async Task ApplyCalibrationAsync()
+        {
+            if (!CanApplyCalibration)
+                return;
+            Busy = true;
+            var heads = _machine.Settings.ToolHeads
+                .Where(h => h.HeadIndex == 1 || h.HeadIndex == 2).ToList();
+            var before = heads.Select(h => new
+            {
+                Head = h,
+                Idle = h.IdleVacuum,
+                Open = h.NoPartPickedVacuum,
+                Sealed = h.PartPickedVacuum,
+                ThresholdFraction = h.PercentAboveNoPartPicked,
+                Tolerance = h.VacuumTolerancePercent
+            }).ToList();
+
+            try
+            {
+                if (!ReferenceEquals(_repo.CurrentMachine, _machine) ||
+                    _machine.LeftVacuumPump || _machine.RightVacuumPump ||
+                    heads.Count != 2 || heads.Select(h => h.HeadIndex).Distinct().Count() != 2)
+                    throw new InvalidOperationException(
+                        "The same machine and both safely stopped tool heads are required.");
+
+                foreach (var h in heads)
+                {
+                    var candidate = h.HeadIndex == 1 ? _leftCandidate : _rightCandidate;
+                    if (candidate == null || candidate.HeadIndex != h.HeadIndex)
+                        throw new InvalidOperationException(
+                            "Missing validated candidate for Head " + h.HeadIndex);
+
+                    h.IdleVacuum = candidate.Idle.MeanRawCount;
+                    h.NoPartPickedVacuum = candidate.NoPart.MeanRawCount;
+                    h.PartPickedVacuum = candidate.Sealed.MeanRawCount;
+                    // Midpoint between observed open and sealed responses.
+                    // Saved raw readings remain signed; normalization works
+                    // for either polarity and is evaluated at read time.
+                    h.PercentAboveNoPartPicked = 50.0;
+                    h.VacuumTolerancePercent = candidate.HysteresisPercent;
+
+                    if (!VacuumCalibrationProfile.TryFromHead(h, out var profile) ||
+                        profile.Classify(h.NoPartPickedVacuum) != VacuumPickupClassification.NoPart ||
+                        profile.Classify(h.PartPickedVacuum) != VacuumPickupClassification.PartPresent)
+                        throw new InvalidOperationException(
+                            "Saved profile cannot classify Head " + h.HeadIndex);
+                }
+
+                var saved = await _repo.SaveCurrentMachineAsync();
+                if (!saved.Successful)
+                    throw new InvalidOperationException(saved.ErrorMessage ??
+                        "Machine configuration API rejected the save.");
+
+                _calibrationSaved = true;
+                Status = ManufacturingResources.VacuumCalibration_Saved;
+            }
+            catch (Exception ex)
+            {
+                // Restore the live in-memory machine settings if the server
+                // save fails; do not leave a half-applied local configuration.
+                foreach (var previous in before)
+                {
+                    previous.Head.IdleVacuum = previous.Idle;
+                    previous.Head.NoPartPickedVacuum = previous.Open;
+                    previous.Head.PartPickedVacuum = previous.Sealed;
+                    previous.Head.PercentAboveNoPartPicked = previous.ThresholdFraction;
+                    previous.Head.VacuumTolerancePercent = previous.Tolerance;
+                }
+                Status = "Calibration was not saved; previous local tool-head settings restored. " +
+                    ex.Message;
+            }
+            finally
+            {
+                Busy = false;
+            }
+        }
+
         public async Task RunAllAsync()
         {
             if (!CanRunAll) return;
