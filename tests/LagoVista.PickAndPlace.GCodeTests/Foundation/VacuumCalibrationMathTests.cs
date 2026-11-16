@@ -179,6 +179,10 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(definition.Steps.Count(s => s.Key.EndsWith("-seal")), Is.EqualTo(2));
             Assert.That(definition.Steps.Single(s => s.Key == "left-seal").Instructions,
                 Does.Contain("MachineFiducial"));
+            Assert.That(definition.Steps.Single(s => s.Key == "left-seal").Instructions,
+                Does.Contain("configured PickHeight"));
+            Assert.That(definition.Steps.Single(s => s.Key == "left-seal").Instructions,
+                Does.Contain("no fiducial calibration"));
             Assert.That(definition.Steps.Single(s => s.Key == "right-seal").RequiredVerification,
                 Is.EqualTo(LagoVista.Manufacturing.Models.Operations.MachineOperationVerificationKind.MachineObserved));
         }

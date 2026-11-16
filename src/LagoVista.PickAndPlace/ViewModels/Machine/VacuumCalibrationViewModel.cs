@@ -82,13 +82,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public bool CanAbort => _phase != Phase.Aborted && _phase != Phase.Finished;
         public bool CanClose => !Busy && !PumpActive && (_phase == Phase.Ready || _phase == Phase.Aborted || _phase == Phase.Finished);
         public bool NeedsPlateContact => _phase == Phase.AtPickHeight;
-        public bool CanJogNozzle => false; // Supervised pick-height move replaces manual jogs.
-        public string JogPosition => _commandedNozzleZ.HasValue
-            ? "Commanded nozzle Z: " + _commandedNozzleZ.Value.ToString("F2") +
-              " mm | Lower bound: " + _machine.Settings.ToolHeads
-                .First(h => h.HeadIndex == _head).PickHeight.ToString("F2") + " mm"
-            : "No nozzle Z motion is permitted before reaching the test location.";
-
         public string NextAction => _phase == Phase.Ready ? ManufacturingResources.VacuumCalibration_CaptureIdle :
             _phase == Phase.Idle ? ManufacturingResources.VacuumCalibration_PumpOpen :
             _phase == Phase.Open ? ManufacturingResources.VacuumCalibration_MoveFiducial :
@@ -105,8 +98,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             RaisePropertyChanged(nameof(CanAbort));
             RaisePropertyChanged(nameof(CanClose));
             RaisePropertyChanged(nameof(NeedsPlateContact));
-            RaisePropertyChanged(nameof(CanJogNozzle));
-            RaisePropertyChanged(nameof(JogPosition));
             RaisePropertyChanged(nameof(NextAction));
             RaisePropertyChanged(nameof(ProcedureStatus));
             RaisePropertyChanged(nameof(HeadIndex));
