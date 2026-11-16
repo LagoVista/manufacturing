@@ -64,6 +64,14 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void NonMonotonicPumpResponseDoesNotProduceCalibration()
+        {
+            Assert.That(VacuumCalibrationCandidate.TryCreate(
+                Capture(1, 1000, 0), Capture(1, 900, 1), Capture(1, 4000, 2),
+                50, 10, 4, out _, out _), Is.False);
+        }
+
+        [Test]
         public void StaleDuplicateAndCrossHeadSamplesFailClosed()
         {
             var samples = Enumerable.Range(0, 5).Select(i =>

@@ -172,10 +172,13 @@ namespace LagoVista.PickAndPlace.Models
                 failure = "The sealed nozzle is not distinguishable from idle.";
                 return false;
             }
-            var noPartPercent = ClampPercent(
+            // Reject inverted/non-monotonic readings instead of silently
+            // clamping an invalid open-nozzle baseline into 0 or 100%.
+            var noPartPercent =
                 100.0 * (noPart.MeanRawCount - idle.MeanRawCount) /
-                (sealed.MeanRawCount - idle.MeanRawCount));
-            if (100 - noPartPercent < minimumPartSeparationPercent ||
+                (sealed.MeanRawCount - idle.MeanRawCount);
+            if (noPartPercent <= 0 || noPartPercent >= 100 ||
+                100 - noPartPercent < minimumPartSeparationPercent ||
                 100 - noPartPercent <= hysteresisPercent * 2)
             {
                 failure = "The open and sealed nozzle values cannot be reliably classified.";
