@@ -36,6 +36,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private VacuumPressureBand _open;
         private VacuumPressureBand _oppositeOpen;
         private VacuumPressureBand _sealed;
+        private VacuumPressureBand _lastReleased;
         private VacuumCalibrationCandidate _leftCandidate;
         private VacuumCalibrationCandidate _rightCandidate;
         private bool _busy;
@@ -216,7 +217,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 Name = "Vacuum " + step,
                 Value = band == null ? "operator-confirmed" : band.MeanRawCount.ToString("F1"),
                 Unit = band == null ? "confirmation" : "raw counts",
-                Source = "vacuum-sensor-" + _machine.Settings.VacuumSensorTransport?.Value.ToString(),
+                Source = band == null ? "operator" :
+                    "vacuum-sensor-" + _machine.Settings.VacuumSensorTransport?.Value.ToString(),
                 Verification = kind,
                 Saved = false
             });
@@ -293,7 +295,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                                 _machine.ToSendQueueCount > 0 ||
                                 _machine.LeftVacuumPump || _machine.RightVacuumPump)
                                 throw new InvalidOperationException("Machine queue or pump output did not settle at final safe shutdown.");
-                            RecordStep("both-safe", null, MachineOperationVerificationKind.MachineObserved);
+                            if (_lastReleased == null)
+                                throw new InvalidOperationException("Missing measured idle-recovery evidence.");
+                            RecordStep("both-safe", _lastReleased, MachineOperationVerificationKind.MachineObserved);
                             SetPhase(Phase.Finished);
                             Status = ManufacturingResources.VacuumCalibration_Review;
                         }
@@ -459,6 +463,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             var candidate = _head == 1 ? _leftCandidate : _rightCandidate;
             if (!candidate.IsBackAtIdle(release, 8))
                 throw new InvalidOperationException("Vacuum did not return to the measured idle band.");
+            _lastReleased = release;
             var maxOtherDrift = Math.Max(40.0, Math.Abs(_oppositeIdle.MeanRawCount) * 0.04);
             if (Math.Abs(inactive.MeanRawCount - _oppositeIdle.MeanRawCount) > maxOtherDrift)
                 throw new InvalidOperationException("Other head did not remain in its idle band.");
