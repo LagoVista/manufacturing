@@ -2016,7 +2016,7 @@
     <value>I verified the machine is homed, the test spot is clear, the tool offsets are configured, and the existing pick heights are safe for contact.</value>
   </data>
   <data name="VacuumCalibration_ContactConfirm" xml:space="preserve">
-    <value>The selected nozzle is physically obstructed at configured pick height; I am ready to measure its sealed pressure.</value>
+    <value>For step-by-step mode: I confirmed this nozzle is obstructed at configured pick height.</value>
   </data>
   <data name="VacuumCalibration_Raw" xml:space="preserve">
     <value>Latest raw observations</value>
@@ -2059,5 +2059,11 @@
   </data>
   <data name="VacuumCalibration_PickReady" xml:space="preserve">
     <value>Selected tool moved to configured pick height. Verify the nozzle opening is actually obstructed, then approve measurement.</value>
+  </data>
+  <data name="VacuumCalibration_RunAll" xml:space="preserve">
+    <value>Run All — Both Heads</value>
+  </data>
+  <data name="VacuumCalibration_RunAllDescription" xml:space="preserve">
+    <value>After the safety check, automatically measure idle and open pressure, position each tool at the test spot, lower to configured pick height, verify obstruction from pressure readings, retract, and check release. Stops on a failed measurement or motion. Keep the machine in view.</value>
   </data>
 </root>

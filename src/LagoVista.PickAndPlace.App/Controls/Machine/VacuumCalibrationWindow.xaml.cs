@@ -24,6 +24,11 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
             if (Procedure != null) await Procedure.ContinueAsync();
         }
 
+        private async void RunAll_Click(object sender, RoutedEventArgs e)
+        {
+            if (Procedure != null) await Procedure.RunAllAsync();
+        }
+
         private async void Abort_Click(object sender, RoutedEventArgs e)
         {
             if (Procedure != null) await Procedure.AbortAsync();
