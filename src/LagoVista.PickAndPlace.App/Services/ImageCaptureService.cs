@@ -685,7 +685,11 @@ namespace LagoVista.PickAndPlace.App.Services
         {
             var camera = Camera;
             var profile = Profile;
+            var selectedHead = Machine?.CurrentMachineToolHead;
+            var selectedNozzleId = selectedHead?.CurrentNozzle == null ? null
+                : Convert.ToString(selectedHead.CurrentNozzle.Id);
             var observations = new List<DarkCircularOpeningLocator.Observation>();
+            var rejections = new List<string>();
             const int frameCount = 24;
             for (var index = 0; index < frameCount; index++)
             {
@@ -693,11 +697,20 @@ namespace LagoVista.PickAndPlace.App.Services
                     !ReferenceEquals(Profile, profile))
                     return InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
                         "Camera or vision profile changed while tuning.");
+                if (selectedHead != null &&
+                    (!ReferenceEquals(Machine?.CurrentMachineToolHead, selectedHead) ||
+                     !String.Equals(Convert.ToString(selectedHead.CurrentNozzle?.Id),
+                         selectedNozzleId, StringComparison.Ordinal)))
+                    return InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                        "Selected nozzle changed during image tuning; discarded all samples.");
 
                 using (var original = _capture.QueryFrame())
                 {
                     if (original == null)
+                    {
                         observations.Add(null);
+                        rejections.Add("CAMERA FRAME UNAVAILABLE");
+                    }
                     else
                     using (var image = original.ToImage<Bgr, byte>())
                     {
@@ -706,9 +719,14 @@ namespace LagoVista.PickAndPlace.App.Services
                         using (var cropped = image.Copy())
                         using (var grayscale = cropped.Convert<Gray, byte>())
                         {
-                            observations.Add(DarkCircularOpeningLocator.Find(
+                            var diagnostic = new DarkCircularOpeningLocator.RejectionDiagnostics();
+                            var observation = DarkCircularOpeningLocator.Find(
                                 grayscale.Data, grayscale.Width, grayscale.Height,
-                                camera.EffectivePixelsPerMM, profile.TargetImageRadius));
+                                camera.EffectivePixelsPerMM, profile.TargetImageRadius,
+                                expectedDiameterMm: 0, diagnostics: diagnostic);
+                            observations.Add(observation);
+                            if (observation == null)
+                                rejections.Add(diagnostic.PrimaryReason);
                             if (index == 0)
                                 CaptureImage = Emgu.CV.WPF.BitmapSourceConvert.ToBitmapSource(cropped.ToUMat());
                         }
@@ -719,8 +737,31 @@ namespace LagoVista.PickAndPlace.App.Services
 
             if (!DarkCircularOpeningLocator.TryValidate(observations,
                 camera.EffectivePixelsPerMM, out var tuned, out var reason))
+            {
+                var prominentRejections = rejections
+                    .GroupBy(item => item)
+                    .OrderByDescending(group => group.Count())
+                    .Take(2)
+                    .Select(group => $"{group.Key} ({group.Count()} frames)");
+                var diagnosticSummary = rejections.Count > 0
+                    ? " Dominant raw-image rejections: " +
+                      String.Join("; ", prominentRejections) + "."
+                    : String.Empty;
                 return InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
-                    "Nozzle image tune did not lock: " + reason);
+                    "Nozzle image tune did not lock: " + reason + diagnosticSummary);
+            }
+            if (selectedHead != null)
+            {
+                if (!ReferenceEquals(Machine?.CurrentMachineToolHead, selectedHead) ||
+                    !String.Equals(Convert.ToString(selectedHead.CurrentNozzle?.Id),
+                        selectedNozzleId, StringComparison.Ordinal))
+                    return InvokeResult<DarkCircularOpeningLocator.TuneResult>.FromError(
+                        "Selected nozzle changed before tune completion; no diameter was associated.");
+                if (!String.IsNullOrWhiteSpace(selectedNozzleId))
+                    _shapeDetectorService.RegisterVerifiedNozzleOpening(
+                        $"{selectedHead.HeadIndex}:{selectedNozzleId}",
+                        tuned.DiameterMm, camera.EffectivePixelsPerMM);
+            }
             return InvokeResult<DarkCircularOpeningLocator.TuneResult>.Create(tuned);
         }
 
