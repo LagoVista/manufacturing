@@ -575,9 +575,13 @@ namespace LagoVista.PickAndPlace.App.Services
                                 // actual black/white pixels. Do not pass the
                                 // feeder-origin profile's inverted/blurred/masked
                                 // display image to the corner detector.
+                                // A white calibration disc must be segmented
+                                // from original grayscale, regardless of the
+                                // selected profile's display threshold or mask.
                                 var shapeInput = adaptiveNozzle
                                     ? (IInputOutputArray)unmaskedNozzleGray
-                                    : camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_FeederOrigin
+                                    : camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_FeederOrigin ||
+                                      camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_CalibrationDisc
                                         ? (IInputOutputArray)gray
                                         : input;
                                 FindShapes(new MVImage<IInputOutputArray>(shapeInput),
