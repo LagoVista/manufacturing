@@ -38,6 +38,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private int _bottomCircleStableFrames;
         private int _bottomCircleWrongSizeFrames;
         private int _bottomCircleContextRejectedFrames;
+        private double _bottomLastCircleDiameterMm;
         // Transient, per-run optical proof for the installed nozzle only.
         // Re-established through exactly the same T004 tuning/lock checks.
         private bool _emptyNozzleOpticalLock;
@@ -500,6 +501,18 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (!captureReady.Successful)
                 throw new CalibrationStopped("Held-disc bottom camera is not capturing fresh frames: " +
                     captureReady.ErrorMessage);
+
+            // Legacy generic Part Inspection defaults to Hough param2=550,
+            // which cannot acquire this small white calibration disc.
+            // Limit the relaxation to this supervised T003 optical observation;
+            // never persist or change the general camera calibration profile.
+            var discProfile = capture.Profile;
+            var originalHoughThreshold = discProfile.HoughCirclesParam2;
+            var originalMinimumRadius = discProfile.HoughCirclesMinRadius;
+            var originalMaximumRadius = discProfile.HoughCirclesMaxRadius;
+            discProfile.HoughCirclesParam2 = 25.0;
+            discProfile.HoughCirclesMinRadius = 1.5;
+            discProfile.HoughCirclesMaxRadius = 5.25;
             try
             {
                 await MoveToInspectionCameraAsync(holdingCylinder:true);
@@ -507,6 +520,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
             finally
             {
+                discProfile.HoughCirclesParam2 = originalHoughThreshold;
+                discProfile.HoughCirclesMinRadius = originalMinimumRadius;
+                discProfile.HoughCirclesMaxRadius = originalMaximumRadius;
                 // The inspection moves common Z below Safe Move Height.
                 // Restore clearance even if optical detection fails, but never
                 // issue new motion if the machine/head safety context was lost.
@@ -722,6 +738,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             Interlocked.Exchange(ref _bottomCircleStableFrames, 0);
             Interlocked.Exchange(ref _bottomCircleWrongSizeFrames, 0);
             Interlocked.Exchange(ref _bottomCircleContextRejectedFrames, 0);
+            Interlocked.Exchange(ref _bottomLastCircleDiameterMm, 0);
             var request = new TaskCompletionSource<BottomCircle>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
             lock (_observationGate)
@@ -747,6 +764,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                             $"candidate frames {Volatile.Read(ref _bottomCircleCandidateFrames)}, " +
                             $"stable {Volatile.Read(ref _bottomCircleStableFrames)}, " +
                             $"wrong size {Volatile.Read(ref _bottomCircleWrongSizeFrames)}, " +
+                            $"last diameter {Volatile.Read(ref _bottomLastCircleDiameterMm):F2} mm, " +
                             $"context rejected {Volatile.Read(ref _bottomCircleContextRejectedFrames)}.";
                 }
                 var circle = request.Task.IsCompleted ? await request.Task : null;
@@ -758,6 +776,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         $"candidate frames {Volatile.Read(ref _bottomCircleCandidateFrames)}, " +
                         $"stable {Volatile.Read(ref _bottomCircleStableFrames)}, " +
                         $"wrong size {Volatile.Read(ref _bottomCircleWrongSizeFrames)}, " +
+                        $"last diameter {Volatile.Read(ref _bottomLastCircleDiameterMm):F2} mm, " +
                         $"context rejected {Volatile.Read(ref _bottomCircleContextRejectedFrames)}. " +
                         $"Camera capturing={capture.IsCapturing}, profile={profile?.Key ?? "none"}, " +
                         $"FindCircles={profile?.FindCircles}, " +
@@ -806,6 +825,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 return;
             }
             var scale = capture.Camera?.EffectivePixelsPerMM ?? 0;
+            if (scale > 0 && Finite(circle.RadiusPixels))
+                Interlocked.Exchange(ref _bottomLastCircleDiameterMm,
+                    2 * circle.RadiusPixels / scale);
             // Ignore an outer fixture/overlay circle and continue seeking
             // the actual white 7 mm disc instead of failing on the first circle.
             if (expected == VisionProfile.VisionProfile_PartInspection &&
