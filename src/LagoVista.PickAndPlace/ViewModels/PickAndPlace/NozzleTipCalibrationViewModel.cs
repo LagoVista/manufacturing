@@ -11,6 +11,7 @@ using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -611,25 +612,52 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     return false;
                 }
 
-                // Reuse the canonical bottom-camera detection-height path.
-                // Its XY target is already verified; it now only needs
-                // to lower the active head's ZL/ZR at that position.
-                await machine.GoToPartInspectionCameraAsync();
+                // The nozzle's configured PickHeight is the optical inspection
+                // height. The old path used the camera's DetectionHeight (often
+                // 3 mm) or FocusHeight instead. Use the same G0 Z... F5000
+                // movement as the manual "Move to pick height" control, with
+                // the machine's existing mirrored mapping for Head 2.
+                if (!NozzleInspectionPickHeight.TryResolveCommonZ(
+                    tool.HeadIndex, tool.PickHeight, machine.Settings.SafMoveHeight,
+                    out var inspectionCommonZ, out var heightError))
+                {
+                    Stop(positionStep, heightError + " No inspection-Z command sent.");
+                    return false;
+                }
+                var beforeInspectionZ = await machine.GetCurrentLocationAsync(5000);
+                if (!beforeInspectionZ.Successful || beforeInspectionZ.Result == null ||
+                    Math.Abs(machine.ToolCommonZ - machine.Settings.SafMoveHeight) > 0.20 ||
+                    !ValidContext(out contextError))
+                {
+                    Stop(positionStep, contextError ??
+                        "Common Z was not verified at safe move height before nozzle inspection.");
+                    return false;
+                }
+                machine.SendCommand(String.Format(CultureInfo.InvariantCulture,
+                    "G0 Z{0:0.###} F5000", inspectionCommonZ));
                 if (!await MotionIdleAsync(CancellationToken.None) ||
                     !ValidContext(out contextError))
                 {
-                    Stop(positionStep, contextError ?? "Detection-height approach did not settle.");
+                    Stop(positionStep, contextError ?? "Pick-height inspection motion did not settle.");
                     return false;
                 }
                 var cameraXY = await machine.GetCurrentLocationAsync(5000);
+                var selectedHeadZ = tool.HeadIndex == 1
+                    ? machine.LeftToolHeadZ : machine.RightToolHeadZ;
                 if (!cameraXY.Successful || cameraXY.Result == null ||
                     !FeederOriginCalibrationMath.SamePosition(
-                        cameraXY.Result, cameraConfig.AbsolutePosition, 0.5))
+                        cameraXY.Result, cameraConfig.AbsolutePosition, 0.5) ||
+                    Math.Abs(machine.ToolCommonZ - inspectionCommonZ) > 0.20 ||
+                    Math.Abs(selectedHeadZ - tool.PickHeight) > 0.20 ||
+                    !ReferenceEquals(machine.CurrentMachineToolHead, tool))
                 {
-                    Stop(positionStep, "Machine lost the verified bottom-camera XY after lowering the nozzle.");
+                    Stop(positionStep, "Head did not verify at configured Pick Height over the bottom camera.");
                     return false;
                 }
-                Pass(positionStep,$"Head {tool.HeadIndex}, nozzle {_activeNozzleId}, {_cameraScale:F1} px/mm.",
+                Pass(positionStep,
+                    $"Head {tool.HeadIndex}, nozzle {_activeNozzleId}, " +
+                    $"pick Z {tool.PickHeight:F2} mm (common Z {inspectionCommonZ:F2}), " +
+                    $"{_cameraScale:F1} px/mm.",
                     MachineOperationVerificationKind.MachineObserved,_cameraScale);
 
                 // The optical detector is always retuned for THIS installed
