@@ -18,6 +18,8 @@ namespace LagoVista.PickAndPlace.Interfaces.Services
         void FindCircles(IMVImage<T> input, MachineCamera camera,
             System.Drawing.Size size, double? expectedOpeningDiameterOverrideMm = null);
         void Reset();
+        // Diagnostic only: reason for the latest adaptive nozzle rejection.
+        string LatestNozzleRejection { get; }
         MVLocatedCircle FoundCircle { get; }
         ObservableCollection<MVLocatedCircle> FoundCircles { get; }
     }
