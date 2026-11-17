@@ -34,6 +34,27 @@ namespace LagoVista.PickAndPlace.Models
         /// Only a fresh change of the profile's tuning values while this head
         /// remains selected establishes its in-session association.
         /// </summary>
+        /// <summary>
+        /// Explicitly associate a proven 24-frame image tune with the nozzle
+        /// that was selected for the entire acquisition. Do not infer a new
+        /// tune from incidental values left in a shared camera profile.
+        /// </summary>
+        public void RegisterVerifiedTune(string nozzleIdentity,
+            double diameterMm, double pixelsPerMm)
+        {
+            if (String.IsNullOrWhiteSpace(nozzleIdentity) ||
+                Double.IsNaN(diameterMm) || Double.IsInfinity(diameterMm) ||
+                diameterMm < DarkCircularOpeningLocator.MinimumOpeningDiameterMm ||
+                diameterMm > DarkCircularOpeningLocator.MaximumOpeningDiameterMm ||
+                Double.IsNaN(pixelsPerMm) || Double.IsInfinity(pixelsPerMm) ||
+                pixelsPerMm <= 0)
+                return;
+
+            _perNozzle[nozzleIdentity] = new TunedOpening {
+                DiameterMm = diameterMm, PixelsPerMm = pixelsPerMm
+            };
+        }
+
         public double Resolve(string nozzleIdentity, VisionProfile profile,
             double currentPixelsPerMm, out bool selectionChanged)
         {
