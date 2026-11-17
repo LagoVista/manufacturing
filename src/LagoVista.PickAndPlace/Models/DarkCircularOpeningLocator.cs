@@ -95,6 +95,17 @@ namespace LagoVista.PickAndPlace.Models
                     }
             if (total < 50) return null;
             var high = Percentile(histogram, total, 0.80);
+            var darkest = Percentile(histogram, total, 0.001);
+            if (high - darkest < 25)
+            {
+                // A reflective nozzle ring can occupy less than 20% of the
+                // acquisition window, especially against a nearly black field.
+                // The 80th percentile then describes only the background and
+                // prevents ALL candidate thresholds from being generated.
+                high = Percentile(histogram, total, 0.98);
+                if (high - darkest < 25)
+                    high = Percentile(histogram, total, 0.995);
+            }
 
             // At 12.5 px/mm, a 0.6 mm nozzle core occupies roughly 40
             // pixels out of a 72-pixel-radius (~16,000 pixel) search area.
@@ -109,7 +120,7 @@ namespace LagoVista.PickAndPlace.Models
             {
                 var low = Percentile(histogram, total, percentile);
                 if (high - low < 25) continue;
-                foreach (var fraction in new[] { 0.13, 0.23, 0.33, 0.43, 0.53, 0.63 })
+                foreach (var fraction in new[] { 0.04, 0.08, 0.13, 0.23, 0.33, 0.43, 0.53, 0.63 })
                     thresholds.Add(Math.Max(0, Math.Min(254,
                         (int)Math.Round(low + (high - low) * fraction))));
             }
@@ -191,34 +202,60 @@ namespace LagoVista.PickAndPlace.Models
                     var offset = Math.Sqrt(DistanceSquared(centerX, centerY, cx, cy));
                     if (offset + radius > searchPx) continue;
 
-                    // Compare the filled core to its immediate illuminated
-                    // surround. Dark camera background and dark concentric
-                    // rings without a bright inner surround cannot pass.
+                    // Require a dark-to-bright transition around MOST of the
+                    // opening, not just a high mean from one specular hotspot.
+                    // The wide metal nozzle can have a missing/washed-out arc,
+                    // so allow sectors to fail while requiring spatial coverage.
+                    // This is still the same central dark opening, not its
+                    // larger exterior concentric metal rings.
                     double surrounding = 0;
                     var ringCount = 0;
-                    foreach (var ringScale in new[] { 1.45, 1.85 })
-                        for (var a = 0; a < 24; a++)
+                    var supportedAngles = 0;
+                    var supportedQuadrants = new bool[4];
+                    for (var a = 0; a < 24; a++)
+                    {
+                        var theta = 2 * Math.PI * a / 24.0;
+                        var cos = Math.Cos(theta);
+                        var sin = Math.Sin(theta);
+                        var innerX = (int)Math.Round(centerX + cos * radius * 0.60);
+                        var innerY = (int)Math.Round(centerY + sin * radius * 0.60);
+                        double localRing = 0;
+                        var localCount = 0;
+                        foreach (var ringScale in new[] { 1.45, 1.85 })
                         {
-                            var theta = 2 * Math.PI * a / 24.0;
-                            var x = (int)Math.Round(centerX +
-                                Math.Cos(theta) * radius * ringScale);
-                            var y = (int)Math.Round(centerY +
-                                Math.Sin(theta) * radius * ringScale);
+                            var x = (int)Math.Round(centerX + cos * radius * ringScale);
+                            var y = (int)Math.Round(centerY + sin * radius * ringScale);
                             if (x >= 0 && x < width && y >= 0 && y < height)
                             {
-                                surrounding += gray[y, x, 0];
-                                ringCount++;
+                                localRing += gray[y, x, 0];
+                                localCount++;
                             }
                         }
-                    if (ringCount < 36) continue;
+                        surrounding += localRing;
+                        ringCount += localCount;
+                        if (localCount == 2 && innerX >= 0 && innerX < width &&
+                            innerY >= 0 && innerY < height &&
+                            localRing / localCount - gray[innerY, innerX, 0] >= 24)
+                        {
+                            supportedAngles++;
+                            supportedQuadrants[a / 6] = true;
+                        }
+                    }
+                    if (ringCount < 36 || supportedAngles < 13 ||
+                        supportedQuadrants.Count(supported => supported) < 3)
+                        continue;
                     var contrast = surrounding / ringCount - darkSum / area;
                     if (contrast < 35) continue;
                     candidates.Add(new Observation {
                         X = centerX, Y = centerY, RadiusPixels = radius,
                         DiameterMm = diameterMm, Contrast = contrast,
                         Circularity = circularity,
-                        Score = contrast + circularity * 35 -
-                            offset / pixelsPerMm * 14 - radius * 0.55
+                        // Favor the complete opening over a smaller bright-edged
+                        // fragment. The physical diameter and ambiguity limits
+                        // above are deliberately NOT relaxed.
+                        Score = contrast + circularity * 35 +
+                            supportedAngles * 1.8 -
+                            offset / pixelsPerMm * 14 - radius * 0.10
                     });
                 }
             }
