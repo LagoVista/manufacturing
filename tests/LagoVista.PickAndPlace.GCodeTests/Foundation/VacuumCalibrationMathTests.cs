@@ -230,6 +230,59 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void ReusableDetectionObservationIncludesHeadClassificationAndDiagnostics()
+        {
+            var head = new LagoVista.Manufacturing.Models.MachineToolHead
+            {
+                HeadIndex = 1,
+                IdleVacuum = 4000,
+                NoPartPickedVacuum = -200000,
+                PartPickedVacuum = -800000,
+                PercentAboveNoPartPicked = 50,
+                VacuumTolerancePercent = 3
+            };
+            Assert.That(VacuumCalibrationProfile.TryFromHead(head, out var profile),
+                Is.True);
+
+            var open = profile.Observe(head.HeadIndex, -200000, Now);
+            Assert.That(open.HeadIndex, Is.EqualTo(1));
+            Assert.That(open.RawCount, Is.EqualTo(-200000));
+            Assert.That(open.CapturedAtUtc, Is.EqualTo(Now));
+            Assert.That(open.NormalizedPercent, Is.EqualTo(0).Within(0.001));
+            Assert.That(open.Classification, Is.EqualTo(VacuumPickupClassification.NoPart));
+            Assert.That(open.ThresholdPercent, Is.EqualTo(50));
+            Assert.That(open.HysteresisPercent, Is.EqualTo(3));
+
+            var ambiguous = profile.Observe(head.HeadIndex, -500000, Now);
+            Assert.That(ambiguous.NormalizedPercent, Is.EqualTo(50).Within(0.001));
+            Assert.That(ambiguous.Classification, Is.EqualTo(VacuumPickupClassification.Unknown));
+
+            var obstructed = profile.Observe(head.HeadIndex, -800000, Now);
+            Assert.That(obstructed.NormalizedPercent, Is.EqualTo(100).Within(0.001));
+            Assert.That(obstructed.Classification, Is.EqualTo(VacuumPickupClassification.PartPresent));
+        }
+
+        [Test]
+        public void ReusableDetectionObservationSupportsPositiveGoingSensor()
+        {
+            var head = new LagoVista.Manufacturing.Models.MachineToolHead
+            {
+                HeadIndex = 2,
+                IdleVacuum = 1000,
+                NoPartPickedVacuum = 2000,
+                PartPickedVacuum = 8000,
+                PercentAboveNoPartPicked = 50,
+                VacuumTolerancePercent = 3
+            };
+            Assert.That(VacuumCalibrationProfile.TryFromHead(head, out var profile),
+                Is.True);
+            var observed = profile.Observe(2, 6500, Now);
+            Assert.That(observed.HeadIndex, Is.EqualTo(2));
+            Assert.That(observed.NormalizedPercent, Is.EqualTo(75).Within(0.001));
+            Assert.That(observed.Classification, Is.EqualTo(VacuumPickupClassification.PartPresent));
+        }
+
+        [Test]
         public void ProcedureRequiresObservedEvidenceForBothHeadsAndFiducial()
         {
             var definition = VacuumValidationProcedureDefinition.Create();

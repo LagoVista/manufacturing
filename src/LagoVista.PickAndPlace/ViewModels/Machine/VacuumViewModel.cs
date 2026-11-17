@@ -225,6 +225,42 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             return InvokeResult<long>.FromError("No current tool head, could not read vacuum.");
         }
 
+        /// <summary>
+        /// Public live observation path used by machine diagnostics and other
+        /// in-process features (for example, T003). Reuses the same calibrated
+        /// classifier as the existing production part-presence checks.
+        /// Does not move the machine or change vacuum actuator state.
+        /// </summary>
+        public async Task<InvokeResult<VacuumDetectionResult>> ReadVacuumDetectionAsync()
+        {
+            if (Machine?.Connected != true)
+                return InvokeResult<VacuumDetectionResult>.FromError(
+                    "Machine is not connected.");
+
+            var head = Machine.CurrentMachineToolHead;
+            if (head == null)
+                return InvokeResult<VacuumDetectionResult>.FromError(
+                    "Select a tool head before reading part detection.");
+
+            if (!VacuumCalibrationProfile.TryFromHead(head, out var profile))
+                return InvokeResult<VacuumDetectionResult>.FromError(
+                    "Selected tool head has no valid saved vacuum calibration. Run and apply vacuum calibration first.");
+
+            var reading = await Machine.ReadVacuumAsync();
+            if (!reading.Successful)
+                return InvokeResult<VacuumDetectionResult>.FromError(
+                    reading.ErrorMessage ?? "Could not read the vacuum sensor.");
+
+            // Avoid attributing a reading from one head to the other if the
+            // operator changes head selection during the asynchronous read.
+            if (!ReferenceEquals(head, Machine.CurrentMachineToolHead))
+                return InvokeResult<VacuumDetectionResult>.FromError(
+                    "Selected tool head changed while reading vacuum.");
+
+            return InvokeResult<VacuumDetectionResult>.Create(
+                profile.Observe(head.HeadIndex, reading.Result, DateTimeOffset.UtcNow));
+        }
+
         public RelayCommand ReadVacuumCommand { get; }
         public RelayCommand VacuumOnCommand { get; }
         public RelayCommand VacuumOffCommand { get; }

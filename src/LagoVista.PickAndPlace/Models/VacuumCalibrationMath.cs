@@ -153,6 +153,39 @@ namespace LagoVista.PickAndPlace.Models
                 return VacuumPickupClassification.NoPart;
             return VacuumPickupClassification.Unknown;
         }
+
+        /// <summary>
+        /// Pure conversion of a live sample into a reusable detection result.
+        /// Production part checks and other consumers use this same profile.
+        /// </summary>
+        public VacuumDetectionResult Observe(
+            int headIndex, long rawCount, DateTimeOffset capturedAtUtc) =>
+            new VacuumDetectionResult
+            {
+                HeadIndex = headIndex,
+                RawCount = rawCount,
+                NormalizedPercent = Normalize(rawCount),
+                ThresholdPercent = ThresholdPercent,
+                HysteresisPercent = HysteresisPercent,
+                Classification = Classify(rawCount),
+                CapturedAtUtc = capturedAtUtc
+            };
+    }
+
+    /// <summary>
+    /// One live, head-specific, calibrated vacuum observation. NormalizedPercent
+    /// is 0 for pump-on/open nozzle and 100 for obstructed nozzle. Raw counts
+    /// are included for diagnostics; no new server-persisted fields are needed.
+    /// </summary>
+    public sealed class VacuumDetectionResult
+    {
+        public int HeadIndex { get; internal set; }
+        public long RawCount { get; internal set; }
+        public double NormalizedPercent { get; internal set; }
+        public double ThresholdPercent { get; internal set; }
+        public double HysteresisPercent { get; internal set; }
+        public VacuumPickupClassification Classification { get; internal set; }
+        public DateTimeOffset CapturedAtUtc { get; internal set; }
     }
 
     public enum VacuumPickupClassification
