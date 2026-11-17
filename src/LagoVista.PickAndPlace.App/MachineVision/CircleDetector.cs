@@ -29,7 +29,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             _locatorViewModel = locatorViewModel;
         }
 
-        public void FindCircles(IMVImage<IInputOutputArray> input, MachineCamera camera, System.Drawing.Size size)
+        public void FindCircles(IMVImage<IInputOutputArray> input, MachineCamera camera,
+            System.Drawing.Size size, double? expectedOpeningDiameterOverrideMm = null)
         {
             _iteration++;
 
@@ -62,10 +63,11 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 var opening = gray == null ? null : DarkCircularOpeningLocator.Find(
                     gray.Data, gray.Width, gray.Height, camera.EffectivePixelsPerMM,
                     profile.TargetImageRadius,
-                    DarkOpeningScaleGuard.EffectiveExpectedDiameterMm(
-                        profile.ExpectedDarkOpeningDiameterMm,
-                        profile.DarkOpeningTunedPixelsPerMM,
-                        camera.EffectivePixelsPerMM));
+                    expectedOpeningDiameterOverrideMm ??
+                        DarkOpeningScaleGuard.EffectiveExpectedDiameterMm(
+                            profile.ExpectedDarkOpeningDiameterMm,
+                            profile.DarkOpeningTunedPixelsPerMM,
+                            camera.EffectivePixelsPerMM));
                 circles = opening == null ? Array.Empty<CircleF>() :
                     new[] { new CircleF(new System.Drawing.PointF(
                         (float)opening.X, (float)opening.Y), (float)opening.RadiusPixels) };
