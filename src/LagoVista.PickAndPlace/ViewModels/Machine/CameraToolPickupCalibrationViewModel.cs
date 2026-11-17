@@ -716,53 +716,40 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 throw new CalibrationStopped("Bottom camera approach exceeds physical XY travel limits.");
             _machine.SendSafeMoveHeight();
             await NeedIdleAsync("safe inspection approach");
-            if (holdingCylinder)
-            {
-                // The operator's proven focus position is the selected head's
-                // Pick Height on the common Marlin Z axis (not ZL/ZR).
-                // Left (Pick) = ToolCommonZ; Right (Pick) is mirrored about
-                // Safe Move Height in the existing machine-position model.
-                // First finish XY travel and verify common Safe Z before
-                // commanding the focus move. Do not use the camera's
-                // DetectionHeight/FocusHeight or reissue its ZL/ZR command.
-                var inspectionCommonZ = _head.HeadIndex == 1
-                    ? _pickupZ
-                    : 2 * _machine.Settings.SafMoveHeight - _pickupZ;
-                if (!Finite(inspectionCommonZ) || inspectionCommonZ < 0)
-                    throw new CalibrationStopped(
-                        "Configured head Pick Height maps to an invalid common-Z inspection position.");
-                _machine.GotoPoint(xy);
-                await NeedIdleAsync("bottom-camera XY at common safe height with cylinder held");
-                var location = await _machine.GetCurrentLocationAsync(5000);
-                if (!location.Successful ||
-                    Math.Abs(_machine.ToolCommonZ - _machine.Settings.SafMoveHeight) > 0.2)
-                    throw new CalibrationStopped(
-                        "Common Z did not verify at Safe Move Height before held-cylinder inspection.");
-                if (!ReferenceEquals(_machine.CurrentMachineToolHead, _head))
-                    throw new CalibrationStopped("Tool head changed before bottom-camera focus motion.");
+            // Empty-nozzle and held-disc inspection must use the selected
+            // head's configured PickHeight, not the shared camera's 3 mm
+            // DetectionHeight/FocusHeight. Keep the existing common Marlin
+            // G0 Z... F5000 movement and mirror Head 2 around Safe Move Height.
+            if (!NozzleInspectionPickHeight.TryResolveCommonZ(
+                _head.HeadIndex, _pickupZ, _machine.Settings.SafMoveHeight,
+                out var inspectionCommonZ, out var heightError))
+                throw new CalibrationStopped(heightError);
 
-                // Same G0 Z/PickHeight axis and feed rate as the existing
-                // operator 'Move to pick height' control.
-                _machine.SendCommand(String.Format(CultureInfo.InvariantCulture,
-                    "G0 Z{0:0.###} F5000", inspectionCommonZ));
-                await NeedIdleAsync("held-disc inspection at selected head Pick Height");
-                var focused = await _machine.GetCurrentLocationAsync(5000);
-                var reportedPickZ = _head.HeadIndex == 1
-                    ? _machine.LeftToolHeadZ : _machine.RightToolHeadZ;
-                if (!focused.Successful ||
-                    Math.Abs(_machine.ToolCommonZ - inspectionCommonZ) > 0.2 ||
-                    Math.Abs(reportedPickZ - _pickupZ) > 0.2 ||
-                    !ReferenceEquals(_machine.CurrentMachineToolHead, _head))
-                    throw new CalibrationStopped(
-                        "Held-disc inspection did not verify the selected head's Pick Height; stopping optical measurement.");
-            }
-            else
-            {
-                // The proven empty-nozzle optical path can use its own profile
-                // height. The profile must be active BEFORE this motion.
-                await _machine.GoToPartInspectionCameraAsync();
-                await NeedIdleAsync("empty-nozzle bottom-camera position");
-            }
+            // XY must be reached at common Safe Z before any focus move.
+            _machine.GotoPoint(xy);
+            await NeedIdleAsync("bottom-camera XY at common safe height");
+            var location = await _machine.GetCurrentLocationAsync(5000);
+            if (!location.Successful ||
+                Math.Abs(_machine.ToolCommonZ - _machine.Settings.SafMoveHeight) > 0.2)
+                throw new CalibrationStopped(
+                    "Common Z did not verify at Safe Move Height before inspection.");
+            if (!ReferenceEquals(_machine.CurrentMachineToolHead, _head))
+                throw new CalibrationStopped("Tool head changed before bottom-camera focus motion.");
+
+            _machine.SendCommand(String.Format(CultureInfo.InvariantCulture,
+                "G0 Z{0:0.###} F5000", inspectionCommonZ));
+            await NeedIdleAsync(holdingCylinder
+                ? "held-disc inspection at selected head Pick Height"
+                : "empty-nozzle inspection at selected head Pick Height");
+            var focused = await _machine.GetCurrentLocationAsync(5000);
+            var reportedPickZ = _head.HeadIndex == 1
+                ? _machine.LeftToolHeadZ : _machine.RightToolHeadZ;
+            if (!focused.Successful ||
+                Math.Abs(_machine.ToolCommonZ - inspectionCommonZ) > 0.2 ||
+                Math.Abs(reportedPickZ - _pickupZ) > 0.2 ||
+                !ReferenceEquals(_machine.CurrentMachineToolHead, _head))
+                throw new CalibrationStopped(
+                    "Bottom-camera inspection did not verify the selected head's Pick Height; stopping optical measurement.");
         }
 
         private async Task<BottomCircle> ObserveBottomAsync(string profileKey, bool isCylinder)
