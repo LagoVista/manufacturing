@@ -42,6 +42,7 @@ namespace LagoVista.PickAndPlace.Models
                     EntityHeader.Create(VisionProfile_Nozzle,VisionProfile_Nozzle, ManufacturingResources.VisionProfile_Nozzle),
                     EntityHeader.Create(VisionProfile_NozzleCalibration, VisionProfile_NozzleCalibration, ManufacturingResources.VisionProfile_NozzleCalibration),
                     EntityHeader.Create(VisionProfile_PartInspection, VisionProfile_PartInspection, ManufacturingResources.VisionProfile_PartInspection),
+                    EntityHeader.Create(VisionProfile_CalibrationDisc, VisionProfile_CalibrationDisc, "Calibration Disc"),
                     EntityHeader.Create(VisionProfile_SquarePart,VisionProfile_SquarePart, ManufacturingResources.VisionProfile_SquarePart),
                     EntityHeader.Create(VisionProfile_StagingPlateHole,VisionProfile_StagingPlateHole, ManufacturingResources.VisionProfile_StagingPlateHole),
                     EntityHeader.Create(VisionProfile_TapeHole,VisionProfile_TapeHole, ManufacturingResources.VisionProfile_TapeHole),
@@ -72,6 +73,7 @@ namespace LagoVista.PickAndPlace.Models
         public const string VisionProfile_Nozzle = "nozzle";
         public const string VisionProfile_NozzleCalibration = "nozzlecalibration";
         public const string VisionProfile_PartInspection = "partinspection";
+        public const string VisionProfile_CalibrationDisc = "calibrationdisc";
         public const string VisionProfile_PartOnBoard = "partonboard";
         public const string VisionProfile_FeederFiducial = "feederfiducial";
         public const string VisionProfile_StagingPlateHole = "stagingplatehole";
