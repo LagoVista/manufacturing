@@ -304,6 +304,44 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void OversizeWideNozzleReportsThePhysicalLimitWithoutLocking()
+        {
+            // This verifies that diagnostics explain the rejected diameter
+            // without changing the physical acceptance boundary.
+            var diagnostic = new DarkCircularOpeningLocator.RejectionDiagnostics();
+            var frame = MakeLargeNozzleScene(100, 100, 11);
+            var circle = DarkCircularOpeningLocator.Find(
+                frame, 200, 200, 12.5, 2.0, 0, diagnostic);
+            Assert.That(circle, Is.Null);
+            Assert.That(diagnostic.RejectedTooLarge, Is.GreaterThan(0));
+            Assert.That(diagnostic.LargestOversizeDiameterMm,
+                Is.GreaterThan(DarkCircularOpeningLocator.MaximumOpeningDiameterMm));
+            Assert.That(diagnostic.PrimaryReason, Does.Contain("OVERSIZE"));
+        }
+
+        [Test]
+        public void ExplicitHeadTuneDoesNotRequireSharedProfileDiameterToChange()
+        {
+            // A repeat tune can report the same physical diameter as last
+            // time; it must still bind explicitly to the selected head.
+            var profile = new VisionProfile {
+                ExpectedDarkOpeningDiameterMm = 0.36,
+                DarkOpeningTunedPixelsPerMM = 12.5
+            };
+            var context = new NozzleOpeningHeadContext();
+            Assert.That(context.Resolve("2:nozzle-wide", profile, 12.5,
+                out _), Is.Zero);
+
+            context.RegisterVerifiedTune("2:nozzle-wide", 1.376, 12.5);
+            Assert.That(context.Resolve("2:nozzle-wide", profile, 12.5,
+                out _), Is.EqualTo(1.376).Within(0.001));
+            Assert.That(context.Resolve("1:nozzle-small", profile, 12.5,
+                out _), Is.Zero);
+            Assert.That(profile.ExpectedDarkOpeningDiameterMm,
+                Is.EqualTo(0.36).Within(0.001));
+        }
+
+        [Test]
         public void NoisyUniformImageDoesNotPassAsSmallNozzle()
         {
             var frame = new byte[200, 200, 1];
