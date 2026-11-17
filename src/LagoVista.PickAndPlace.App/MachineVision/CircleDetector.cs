@@ -24,6 +24,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
         int _iteration = 0;
 
+        public string LatestNozzleRejection { get; private set; }
+
         public CircleDetector(ILocatorViewModel locatorViewModel)
         {
             _locatorViewModel = locatorViewModel;
@@ -33,6 +35,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             System.Drawing.Size size, double? expectedOpeningDiameterOverrideMm = null)
         {
             _iteration++;
+            LatestNozzleRejection = null;
 
             var profile = camera.CurrentVisionProfile;
             var center = size.Center();
@@ -60,6 +63,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 // Match the verified dark core in raw grayscale, independently
                 // of the profile's legacy Hough and manual threshold settings.
                 var gray = input.Image as Image<Gray, byte>;
+                var rejection = new DarkCircularOpeningLocator.RejectionDiagnostics();
                 var opening = gray == null ? null : DarkCircularOpeningLocator.Find(
                     gray.Data, gray.Width, gray.Height, camera.EffectivePixelsPerMM,
                     profile.TargetImageRadius,
@@ -67,7 +71,11 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                         DarkOpeningScaleGuard.EffectiveExpectedDiameterMm(
                             profile.ExpectedDarkOpeningDiameterMm,
                             profile.DarkOpeningTunedPixelsPerMM,
-                            camera.EffectivePixelsPerMM));
+                            camera.EffectivePixelsPerMM), rejection);
+                LatestNozzleRejection = opening == null
+                    ? gray == null ? "INPUT IS NOT GRAYSCALE" :
+                        rejection.PrimaryReason + " / " + rejection.ShortSummary
+                    : null;
                 circles = opening == null ? Array.Empty<CircleF>() :
                     new[] { new CircleF(new System.Drawing.PointF(
                         (float)opening.X, (float)opening.Y), (float)opening.RadiusPixels) };
@@ -189,6 +197,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         {
             _foundCircles.Clear();
             FoundCircle = null;
+            LatestNozzleRejection = null;
         }
     }
 }
