@@ -23,18 +23,24 @@ namespace LagoVista.Manufacturing.Managers
     {
         private readonly IPickAndPlaceJobRepo _pickAndPlaceJobRepo;
         private readonly IPickAndPlaceJobRunRepo _jobRunRepo;
+        private readonly ICircuitBoardManager _circuitBoardManager;
 
-        public PickAndPlaceJobManager(IPickAndPlaceJobRepo partRepo, IPickAndPlaceJobRunRepo jobRunRepo, IAdminLogger logger, IAppConfig appConfig, IDependencyManager depmanager, ISecurity security) :
+        public PickAndPlaceJobManager(IPickAndPlaceJobRepo partRepo, IPickAndPlaceJobRunRepo jobRunRepo, ICircuitBoardManager circuitBoardManager, IAdminLogger logger, IAppConfig appConfig, IDependencyManager depmanager, ISecurity security) :
             base(logger, appConfig, depmanager, security)
         {
             _pickAndPlaceJobRepo = partRepo ?? throw new ArgumentNullException(nameof(partRepo));
             _jobRunRepo = jobRunRepo ?? throw new ArgumentNullException(nameof(jobRunRepo));
+            _circuitBoardManager = circuitBoardManager ?? throw new ArgumentNullException(nameof(circuitBoardManager));
         }
 
         public async Task<InvokeResult> AddPickAndPlaceJobAsync(PickAndPlaceJob job, EntityHeader org, EntityHeader user)
         {
             await AuthorizeAsync(job, AuthorizeActions.Create, user, org);
             ValidationCheck(job, Actions.Create);
+            var boardValidation = await ValidateBoardRevisionAsync(job, org, user);
+            if (!boardValidation.Successful)
+                return boardValidation;
+
             await _pickAndPlaceJobRepo.AddPickAndPlaceJobAsync(job);
 
             return InvokeResult.Success;
@@ -73,7 +79,32 @@ namespace LagoVista.Manufacturing.Managers
         {
             await AuthorizeAsync(job, AuthorizeActions.Update, user, org);
             ValidationCheck(job, Actions.Update);
+            var existing = await _pickAndPlaceJobRepo.GetPickAndPlaceJobAsync(job.Id);
+            if (existing.Board?.Id != job.Board?.Id || existing.BoardRevision?.Id != job.BoardRevision?.Id)
+            {
+                var boardValidation = await ValidateBoardRevisionAsync(job, org, user);
+                if (!boardValidation.Successful)
+                    return boardValidation;
+            }
+
             await _pickAndPlaceJobRepo.UpdatePickAndPlaceJobAsync(job);
+
+            return InvokeResult.Success;
+        }
+
+        // PCB selection and revision selection form one unit. A job must never
+        // silently retain placements from a different board revision.
+        private async Task<InvokeResult> ValidateBoardRevisionAsync(PickAndPlaceJob job, EntityHeader org, EntityHeader user)
+        {
+            if (EntityHeader.IsNullOrEmpty(job.Board))
+                return InvokeResult.FromError("Select a circuit board for this pick-and-place job.");
+
+            if (job.BoardRevision == null || String.IsNullOrWhiteSpace(job.BoardRevision.Id))
+                return InvokeResult.FromError("Select a board revision before saving this pick-and-place job.");
+
+            var board = await _circuitBoardManager.GetCircuitBoardAsync(job.Board.Id, org, user);
+            if (board?.Revisions == null || !board.Revisions.Any(rev => rev.Id == job.BoardRevision.Id))
+                return InvokeResult.FromError("The selected board revision does not belong to the selected circuit board.");
 
             return InvokeResult.Success;
         }
