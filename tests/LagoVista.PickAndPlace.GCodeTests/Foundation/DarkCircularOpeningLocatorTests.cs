@@ -155,12 +155,35 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
-        public void RejectsOpeningAboveThePhysicalMaximumOf1Point7Mm()
+        public void RejectsOpeningAboveTheSupervisedFourMmAcquisitionCeiling()
         {
-            // An 11 px radius at 12.5 px/mm is approximately 1.76 mm.
-            var frame = MakeLargeNozzleScene(100, 100, 11);
+            // A 26 px radius at 12.5 px/mm is greater than 4.0 mm.
+            var frame = MakeLargeNozzleScene(100, 100, 26);
             Assert.That(DarkCircularOpeningLocator.Find(
-                frame, 200, 200, 12.5, 2.0, 1.376), Is.Null);
+                frame, 200, 200, 12.5, 2.0), Is.Null);
+        }
+
+        [Test]
+        public void AcquiresHeadTwoOpeningAroundThreePointFiveMm()
+        {
+            // Reproduce the 3.52 mm candidate reported by actual Head 2
+            // diagnostics. Real camera acceptance still requires hardware.
+            var observations = new List<DarkCircularOpeningLocator.Observation>();
+            for (var i = 0; i < 24; i++)
+            {
+                var frame = MakeLargeNozzleScene(112 + i % 2, 94, 22);
+                var diagnostic = new DarkCircularOpeningLocator.RejectionDiagnostics();
+                var found = DarkCircularOpeningLocator.Find(
+                    frame, 200, 200, 12.5, 2.0, 0, diagnostic);
+                Assert.That(found, Is.Not.Null, diagnostic.PrimaryReason);
+                Assert.That(found.X, Is.EqualTo(112 + i % 2).Within(1));
+                Assert.That(found.Y, Is.EqualTo(94).Within(1));
+                Assert.That(found.DiameterMm, Is.InRange(3.3, 3.8));
+                observations.Add(found);
+            }
+            Assert.That(DarkCircularOpeningLocator.TryValidate(
+                observations, 12.5, out var tune, out var reason), Is.True, reason);
+            Assert.That(tune.GoodFrames, Is.EqualTo(24));
         }
 
         private static byte[,,] MakeReflectiveWideNozzleScene()
@@ -306,10 +329,10 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         [Test]
         public void OversizeWideNozzleReportsThePhysicalLimitWithoutLocking()
         {
-            // This verifies that diagnostics explain the rejected diameter
-            // without changing the physical acceptance boundary.
+            // This verifies that diagnostics explain a genuinely annular
+            // circular opening beyond the supervised 4 mm ceiling.
             var diagnostic = new DarkCircularOpeningLocator.RejectionDiagnostics();
-            var frame = MakeLargeNozzleScene(100, 100, 11);
+            var frame = MakeLargeNozzleScene(100, 100, 26);
             var circle = DarkCircularOpeningLocator.Find(
                 frame, 200, 200, 12.5, 2.0, 0, diagnostic);
             Assert.That(circle, Is.Null);
