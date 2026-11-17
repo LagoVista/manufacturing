@@ -50,13 +50,16 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             var search = new CircleF(new System.Drawing.PointF(center.X, center.Y), scaledTarget);
 
             var stagingPlateHole = profile.Key == VisionProfile.VisionProfile_StagingPlateHole;
+            var calibrationDisc = profile.Key == VisionProfile.VisionProfile_CalibrationDisc;
             CircleF[] circles;
-            if (stagingPlateHole)
+            if (stagingPlateHole || calibrationDisc)
             {
-                // The illuminated hole is a high-contrast filled region. Its area centroid
-                // is more repeatable than a Hough center on this staging-plate image.
-                var hole = FindStagingPlateHole(input, camera, profile, search, center);
-                circles = hole.HasValue ? new[] { hole.Value } : Array.Empty<CircleF>();
+                // Both are bright filled targets on dark backgrounds. Reuse
+                // Otsu/contour-area centroids instead of a jittery Hough edge.
+                // Calibration Disc additionally verifies shape circularity.
+                var located = FindStagingPlateHole(input, camera, profile, search,
+                    center, requireCircularity: calibrationDisc);
+                circles = located.HasValue ? new[] { located.Value } : Array.Empty<CircleF>();
             }
             else if (adaptiveNozzle)
             {
@@ -97,19 +100,20 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 // Match by physical center, not fluctuating Hough radius.
                 // Otherwise one hole appears as two overlapping tracks for
                 // a couple of frames despite Hough minDist working correctly.
-                var previous = _foundCircles.FindPrevious(circle, stagingPlateHole ? 20 : 10);
+                var previous = _foundCircles.FindPrevious(circle,
+                    stagingPlateHole || calibrationDisc ? 20 : 10);
                 if (previous != null)
                 {
                     previous.Iteration = _iteration;
                     previous.Add(circle.Center, circle.Radius);
                     _locatorViewModel.CircleLocated(previous);
                 }
-                else if (!stagingPlateHole || _foundCircles.Count == 0)
+                else if (!(stagingPlateHole || calibrationDisc) || _foundCircles.Count == 0)
                 {
                     var foundCircle = new MVLocatedCircle(
                         camera.CameraType.Value, center, camera.EffectivePixelsPerMM,
                         profile.ErrorToleranceMM, profile.StabilizationCount,
-                        stagingPlateHole,
+                        stagingPlateHole || calibrationDisc,
                         positionStabilityToleranceMm: adaptiveNozzle ? 0.20 : 0.10);
                     foundCircle.Add(circle.Center, circle.Radius);
                     foundCircle.Iteration = _iteration;
@@ -133,7 +137,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         }
 
         private CircleF? FindStagingPlateHole(IMVImage<IInputOutputArray> input, MachineCamera camera,
-            VisionProfile profile, CircleF search, LagoVista.Core.Models.Drawing.Point2D<int> frameCenter)
+            VisionProfile profile, CircleF search, LagoVista.Core.Models.Drawing.Point2D<int> frameCenter,
+            bool requireCircularity = false)
         {
             var pixelsPerMM = camera.EffectivePixelsPerMM;
             var minimumRadius = profile.HoughCirclesMinRadius * pixelsPerMM;
@@ -166,6 +171,20 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                             var radius = Math.Sqrt(moments.M00 / Math.PI);
                             if (radius < minimumRadius || radius > maximumRadius)
                                 continue;
+                            if (requireCircularity)
+                            {
+                                // Guard against bright reflections or holder
+                                // edges. Staging-plate detection is untouched.
+                                var perimeter = CvInvoke.ArcLength(contour, true);
+                                if (perimeter <= 0 ||
+                                    4 * Math.PI * moments.M00 / (perimeter * perimeter) < 0.78)
+                                    continue;
+                                var bounds = CvInvoke.BoundingRectangle(contour);
+                                if (bounds.Width <= 0 || bounds.Height <= 0 ||
+                                    (double)bounds.Width / bounds.Height < 0.85 ||
+                                    (double)bounds.Width / bounds.Height > 1.15)
+                                    continue;
+                            }
 
                             var candidate = new CircleF(
                                 new System.Drawing.PointF((float)(moments.M10 / moments.M00),
