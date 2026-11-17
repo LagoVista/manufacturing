@@ -40,6 +40,14 @@ namespace LagoVista.PickAndPlace.App.Services
 
         public byte[] LatestFeederBarcodeSignal => _feederBarcode?.Signal;
 
+        public void RegisterVerifiedNozzleOpening(string nozzleIdentity,
+            double diameterMm, double pixelsPerMm)
+        {
+            _nozzleOpeningHeadContext.RegisterVerifiedTune(
+                nozzleIdentity, diameterMm, pixelsPerMm);
+            _circleDetector.Reset();
+        }
+
         public ShapeDetectionService(IMachineRepo machineRepo,
             IImageHelper<IInputOutputArray> imageHelper, IRectangleDetector<IInputOutputArray> rectLocator,
             ICircleDetector<IInputOutputArray> circleLocator, ICornerDetector<IInputOutputArray> cornerDetector,
