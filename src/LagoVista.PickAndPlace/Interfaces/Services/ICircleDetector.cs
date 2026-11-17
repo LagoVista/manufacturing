@@ -13,7 +13,10 @@ namespace LagoVista.PickAndPlace.Interfaces.Services
 {
     public interface ICircleDetector<T> where T: class, IDisposable
     {
-        void FindCircles(IMVImage<T> input, MachineCamera camera, System.Drawing.Size size);
+        // null preserves legacy profile behavior; 0 reacquires without a
+        // diameter lock after selecting an unknown physical nozzle.
+        void FindCircles(IMVImage<T> input, MachineCamera camera,
+            System.Drawing.Size size, double? expectedOpeningDiameterOverrideMm = null);
         void Reset();
         MVLocatedCircle FoundCircle { get; }
         ObservableCollection<MVLocatedCircle> FoundCircles { get; }
