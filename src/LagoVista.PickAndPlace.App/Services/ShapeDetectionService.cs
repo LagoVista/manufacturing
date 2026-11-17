@@ -33,6 +33,10 @@ namespace LagoVista.PickAndPlace.App.Services
         FeederBarcodeDetector.Observation _feederBarcode;
         bool? _feederBarcodeVertical;
         private readonly FeederBarcodeTemporalMonitor _feederBarcodeTemporal = new FeederBarcodeTemporalMonitor();
+        private readonly NozzleOpeningHeadContext _nozzleOpeningHeadContext =
+            new NozzleOpeningHeadContext();
+        private double? _activeNozzleExpectedDiameterMm;
+        private int? _activeNozzleHeadIndex;
 
         public byte[] LatestFeederBarcodeSignal => _feederBarcode?.Signal;
 
@@ -221,10 +225,15 @@ namespace LagoVista.PickAndPlace.App.Services
                 var enabled = activeProfile.PerformShapeDetection && activeProfile.FindCircles;
                 var state = !enabled ? "DETECTION OFF" :
                     activeProfile.UseAdaptiveDarkOpening ? "NO OPENING LOCK" : "NO HOUGH CIRCLE";
-                var expected = DarkOpeningScaleGuard.EffectiveExpectedDiameterMm(
-                    activeProfile.ExpectedDarkOpeningDiameterMm,
-                    activeProfile.DarkOpeningTunedPixelsPerMM, scale);
-                var mode = expected > 0 ? $"DIA {expected:F2} MM" : "DIA REACQUIRE";
+                var expected = _activeNozzleExpectedDiameterMm ??
+                    DarkOpeningScaleGuard.EffectiveExpectedDiameterMm(
+                        activeProfile.ExpectedDarkOpeningDiameterMm,
+                        activeProfile.DarkOpeningTunedPixelsPerMM, scale);
+                var headLabel = _activeNozzleHeadIndex.HasValue
+                    ? $"HEAD {_activeNozzleHeadIndex.Value}" : "NO HEAD";
+                var mode = expected > 0
+                    ? $"{headLabel} DIA {expected:F2} MM"
+                    : $"{headLabel} DIA REACQUIRE";
                 var acquisitionPx = activeProfile.UseAdaptiveDarkOpening
                     ? DarkCircularOpeningLocator.EffectiveAcquisitionRadiusPixels(
                         size.Width, size.Height, scale, activeProfile.TargetImageRadius)
@@ -378,11 +387,15 @@ namespace LagoVista.PickAndPlace.App.Services
                 FontFace.HersheySimplex, 0.42, new MCvScalar(255, 255, 255), 1, LineType.AntiAlias);
         }
 
-        private void FindShapes(IMVImage<IInputOutputArray> input, IInputOutputArray output, MachineCamera camera, System.Drawing.Size size)
+        private void FindShapes(IMVImage<IInputOutputArray> input, IInputOutputArray output,
+            MachineCamera camera, System.Drawing.Size size, double? expectedOpeningDiameterOverrideMm)
         {
             if (!_machineRepo.CurrentMachine.Busy)
             {
-                if (camera.CurrentVisionProfile.FindCircles) _circleDetector.FindCircles(input, camera, size); else _circleDetector.Reset();
+                if (camera.CurrentVisionProfile.FindCircles)
+                    _circleDetector.FindCircles(input, camera, size, expectedOpeningDiameterOverrideMm);
+                else
+                    _circleDetector.Reset();
                 if (camera.CurrentVisionProfile.FindCorners) _cornerDetector.FindCorners(input, camera, size); else _cornerDetector.Reset();
                 if (camera.CurrentVisionProfile.FindRectangles) _rectangleDetector.FindRectangles(input, camera, size); else _rectangleDetector.Reset();
                 if (camera.CurrentVisionProfile.FindLines) _lineDetector.FindLines(input, camera, size); else _lineDetector.Reset();
@@ -412,6 +425,30 @@ namespace LagoVista.PickAndPlace.App.Services
             var adaptiveNozzle = camera.CurrentVisionProfile.UseAdaptiveDarkOpening &&
                 (camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_Nozzle ||
                  camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_NozzleCalibration);
+
+            // The camera's saved Nozzle profile is shared across both installed
+            // heads. Never enforce Head 1's diameter against Head 2 on selection.
+            // A new head acquires without an expected diameter until fresh tuning
+            // associates a dimension with that nozzle in this session.
+            double? expectedOpeningDiameterOverrideMm = null;
+            _activeNozzleExpectedDiameterMm = null;
+            _activeNozzleHeadIndex = null;
+            if (adaptiveNozzle && camera.CameraType?.Value == CameraTypes.PartInspection)
+            {
+                var head = _machineRepo.CurrentMachine?.CurrentMachineToolHead;
+                var nozzleId = head?.CurrentNozzle == null ? null
+                    : Convert.ToString(head.CurrentNozzle.Id);
+                var identity = String.IsNullOrWhiteSpace(nozzleId) ? null
+                    : $"{head.HeadIndex}:{nozzleId}";
+                var effectiveDiameter = _nozzleOpeningHeadContext.Resolve(
+                    identity, camera.CurrentVisionProfile,
+                    camera.EffectivePixelsPerMM, out var headChanged);
+                if (headChanged)
+                    _circleDetector.Reset();
+                expectedOpeningDiameterOverrideMm = effectiveDiameter;
+                _activeNozzleExpectedDiameterMm = effectiveDiameter;
+                _activeNozzleHeadIndex = head?.HeadIndex;
+            }
 
             try
             {
@@ -529,7 +566,7 @@ namespace LagoVista.PickAndPlace.App.Services
                                         ? (IInputOutputArray)gray
                                         : input;
                                 FindShapes(new MVImage<IInputOutputArray>(shapeInput),
-                                    output, camera, size);
+                                    output, camera, size, expectedOpeningDiameterOverrideMm);
                             }
 
                             if(camera.CurrentVisionProfile.ShowRectLocatorImage)
