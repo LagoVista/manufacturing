@@ -93,11 +93,16 @@ namespace LagoVista.PickAndPlace.Models
         // locators retain their existing physical search area.
         public const int MinimumAcquisitionRadiusPixels = 72;
 
-        // The right-head nozzle has a larger opening than the original
-        // left-head target. Keep a physical upper bound, but do not put it
-        // within one pixel of a valid tuned diameter at 12.5 px/mm.
+        // Hardware diagnostics on Head 2 showed a plausible 3.52 mm dark
+        // opening at the calibrated 12.5 px/mm. The earlier 1.70 mm cap
+        // discarded it before circularity or annular-support checks could run.
+        // This 4 mm bound is a supervised acquisition ceiling, not proof that
+        // the largest dark component is the nozzle. The surrounding-ring,
+        // ambiguity and multi-frame checks must still validate the target.
+        // Future: use the installed nozzle catalog's InnerDiameter rather
+        // than a global acquisition ceiling.
         public const double MinimumOpeningDiameterMm = 0.10;
-        public const double MaximumOpeningDiameterMm = 1.70;
+        public const double MaximumOpeningDiameterMm = 4.00;
 
         public static double EffectiveAcquisitionRadiusPixels(int width, int height,
             double pixelsPerMm, double searchRadiusMm)
@@ -250,16 +255,10 @@ namespace LagoVista.PickAndPlace.Models
                         if (diagnostics != null) diagnostics.RejectedTooSmall++;
                         continue;
                     }
-                    if (diameterMm > MaximumOpeningDiameterMm)
-                    {
-                        if (diagnostics != null)
-                        {
-                            diagnostics.RejectedTooLarge++;
-                            diagnostics.LargestOversizeDiameterMm =
-                                Math.Max(diagnostics.LargestOversizeDiameterMm, diameterMm);
-                        }
-                        continue;
-                    }
+                    // Do not count an arbitrary large dark connected region as
+                    // an oversize nozzle before proving its geometry/annulus.
+                    // That produced misleading OVERSIZE diagnostics for the
+                    // large dark background around Head 2.
                     if (expectedDiameterMm > 0 &&
                         Math.Abs(diameterMm - expectedDiameterMm) >
                         Math.Max(0.12, expectedDiameterMm * 0.30))
@@ -360,6 +359,18 @@ namespace LagoVista.PickAndPlace.Models
                         supportedQuadrants.Count(supported => supported) < 3)
                     {
                         if (diagnostics != null) diagnostics.RejectedAnnulus++;
+                        continue;
+                    }
+                    // Only a sufficiently circular, illuminated opening is
+                    // allowed to reach the physical diameter limit.
+                    if (diameterMm > MaximumOpeningDiameterMm)
+                    {
+                        if (diagnostics != null)
+                        {
+                            diagnostics.RejectedTooLarge++;
+                            diagnostics.LargestOversizeDiameterMm =
+                                Math.Max(diagnostics.LargestOversizeDiameterMm, diameterMm);
+                        }
                         continue;
                     }
                     candidates.Add(new Observation {
