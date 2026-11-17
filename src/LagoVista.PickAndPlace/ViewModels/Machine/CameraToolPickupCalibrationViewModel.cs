@@ -9,6 +9,7 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -488,8 +489,23 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             capture.Profile.FindCircles = true;
             // Reapply the selected profile so runtime camera settings are active.
             _machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
-            await MoveToInspectionCameraAsync(holdingCylinder:true);
-            return await ObserveBottomAsync(VisionProfile.VisionProfile_PartInspection, isCylinder:true);
+            try
+            {
+                await MoveToInspectionCameraAsync(holdingCylinder:true);
+                return await ObserveBottomAsync(VisionProfile.VisionProfile_PartInspection, isCylinder:true);
+            }
+            finally
+            {
+                // The inspection moves common Z below Safe Move Height.
+                // Restore clearance even if optical detection fails, but never
+                // issue new motion if the machine/head safety context was lost.
+                if (ValidMachine(out _) &&
+                    ReferenceEquals(_machine.CurrentMachineToolHead, _head))
+                {
+                    _machine.SendSafeMoveHeight();
+                    await NeedIdleAsync("safe Z after held-disc inspection");
+                }
+            }
         }
 
         private async Task SwitchToHeadAsync(MachineToolHead head)
@@ -625,17 +641,19 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             await NeedIdleAsync("safe inspection approach");
             if (holdingCylinder)
             {
-                // G0 Z (common safe height) and ZL/ZR (selected nozzle height)
-                // are independent. Use production bottom-camera positioning
-                // only at an operator-configured optical height matching the
-                // proven head Pick Height; never guess or use FocusHeight fallback.
-                var inspectionZ = capture.Camera.CurrentVisionProfile?.DetectionHeight;
-                if (!inspectionZ.HasValue || !Finite(inspectionZ.Value) ||
-                    Math.Abs(inspectionZ.Value - _pickupZ) > 0.5)
+                // The operator's proven focus position is the selected head's
+                // Pick Height on the common Marlin Z axis (not ZL/ZR).
+                // Left (Pick) = ToolCommonZ; Right (Pick) is mirrored about
+                // Safe Move Height in the existing machine-position model.
+                // First finish XY travel and verify common Safe Z before
+                // commanding the focus move. Do not use the camera's
+                // DetectionHeight/FocusHeight or reissue its ZL/ZR command.
+                var inspectionCommonZ = _head.HeadIndex == 1
+                    ? _pickupZ
+                    : 2 * _machine.Settings.SafMoveHeight - _pickupZ;
+                if (!Finite(inspectionCommonZ) || inspectionCommonZ < 0)
                     throw new CalibrationStopped(
-                        $"Bottom Part Inspection Detection Height must be set to the supervised " +
-                        $"Head {_head.HeadIndex} Pick Height ({_pickupZ:F2} mm, within 0.5 mm) " +
-                        "before an automatic held-disc inspection. No nozzle Z descent was sent.");
+                        "Configured head Pick Height maps to an invalid common-Z inspection position.");
                 _machine.GotoPoint(xy);
                 await NeedIdleAsync("bottom-camera XY at common safe height with cylinder held");
                 var location = await _machine.GetCurrentLocationAsync(5000);
@@ -643,12 +661,23 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     Math.Abs(_machine.ToolCommonZ - _machine.Settings.SafMoveHeight) > 0.2)
                     throw new CalibrationStopped(
                         "Common Z did not verify at Safe Move Height before held-cylinder inspection.");
-                // The standard inspection command selects the correct ZL/ZR
-                // at the camera's configured Detection Height, after safe XY.
-                await _machine.GoToPartInspectionCameraAsync();
-                await NeedIdleAsync("held-disc inspection at proven pickup height");
                 if (!ReferenceEquals(_machine.CurrentMachineToolHead, _head))
-                    throw new CalibrationStopped("Tool head changed during bottom-camera inspection.");
+                    throw new CalibrationStopped("Tool head changed before bottom-camera focus motion.");
+
+                // Same G0 Z/PickHeight axis and feed rate as the existing
+                // operator 'Move to pick height' control.
+                _machine.SendCommand(String.Format(CultureInfo.InvariantCulture,
+                    "G0 Z{0:0.###} F5000", inspectionCommonZ));
+                await NeedIdleAsync("held-disc inspection at selected head Pick Height");
+                var focused = await _machine.GetCurrentLocationAsync(5000);
+                var reportedPickZ = _head.HeadIndex == 1
+                    ? _machine.LeftToolHeadZ : _machine.RightToolHeadZ;
+                if (!focused.Successful ||
+                    Math.Abs(_machine.ToolCommonZ - inspectionCommonZ) > 0.2 ||
+                    Math.Abs(reportedPickZ - _pickupZ) > 0.2 ||
+                    !ReferenceEquals(_machine.CurrentMachineToolHead, _head))
+                    throw new CalibrationStopped(
+                        "Held-disc inspection did not verify the selected head's Pick Height; stopping optical measurement.");
             }
             else
             {
