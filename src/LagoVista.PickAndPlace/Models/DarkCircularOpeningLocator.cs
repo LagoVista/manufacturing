@@ -210,8 +210,11 @@ namespace LagoVista.PickAndPlace.Models
                     // larger exterior concentric metal rings.
                     double surrounding = 0;
                     var ringCount = 0;
-                    var supportedAngles = 0;
-                    var supportedQuadrants = new bool[4];
+                    // Hold radial measurements until the candidate's global
+                    // contrast is known. Relative support rejects background-
+                    // only sectors that can look bright beside a tiny dark speck.
+                    var radialContrast = new double[24];
+                    var radialMeasured = new bool[24];
                     for (var a = 0; a < 24; a++)
                     {
                         var theta = 2 * Math.PI * a / 24.0;
@@ -234,18 +237,33 @@ namespace LagoVista.PickAndPlace.Models
                         surrounding += localRing;
                         ringCount += localCount;
                         if (localCount == 2 && innerX >= 0 && innerX < width &&
-                            innerY >= 0 && innerY < height &&
-                            localRing / localCount - gray[innerY, innerX, 0] >= 24)
+                            innerY >= 0 && innerY < height)
                         {
-                            supportedAngles++;
-                            supportedQuadrants[a / 6] = true;
+                            radialContrast[a] = localRing / localCount -
+                                gray[innerY, innerX, 0];
+                            radialMeasured[a] = true;
                         }
                     }
-                    if (ringCount < 36 || supportedAngles < 13 ||
-                        supportedQuadrants.Count(supported => supported) < 3)
-                        continue;
+                    if (ringCount < 36) continue;
                     var contrast = surrounding / ringCount - darkSum / area;
                     if (contrast < 35) continue;
+                    // A dark speck on a moderately bright background otherwise
+                    // gets 24/24 support without having an annulus at all.
+                    // Require sectors to be meaningfully stronger than that
+                    // candidate's own average dark-to-light transition.
+                    var supportThreshold = Math.Max(24, contrast * 0.35);
+                    var supportedAngles = 0;
+                    var supportedQuadrants = new bool[4];
+                    for (var a = 0; a < 24; a++)
+                    {
+                        if (!radialMeasured[a] || radialContrast[a] < supportThreshold)
+                            continue;
+                        supportedAngles++;
+                        supportedQuadrants[a / 6] = true;
+                    }
+                    if (supportedAngles < 13 ||
+                        supportedQuadrants.Count(supported => supported) < 3)
+                        continue;
                     candidates.Add(new Observation {
                         X = centerX, Y = centerY, RadiusPixels = radius,
                         DiameterMm = diameterMm, Contrast = contrast,
