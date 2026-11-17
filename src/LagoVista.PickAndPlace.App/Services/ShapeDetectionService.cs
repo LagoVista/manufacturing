@@ -244,6 +244,13 @@ namespace LagoVista.PickAndPlace.App.Services
                 DrawOutlinedCircleText(img.Image,
                     $"ROI {acquisitionPx:F0} PX  BASE {activeProfile.TargetImageRadius:F1} MM  {mode}",
                     new Point(10, 43), 0.43, 1, new MCvScalar(0, 255, 255));
+                // These counts come from raw grayscale candidates, not the
+                // thresholded display. Diagnostic-only: never influences lock.
+                if (activeProfile.UseAdaptiveDarkOpening &&
+                    !String.IsNullOrWhiteSpace(_circleDetector.LatestNozzleRejection))
+                    DrawOutlinedCircleText(img.Image,
+                        _circleDetector.LatestNozzleRejection,
+                        new Point(10, 64), 0.36, 1, new MCvScalar(0, 255, 255));
             }
 
             if (camera.CurrentVisionProfile.LocateByPads)
