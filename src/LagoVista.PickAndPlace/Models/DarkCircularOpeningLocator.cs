@@ -22,6 +22,58 @@ namespace LagoVista.PickAndPlace.Models
             public double Score { get; set; }
         }
 
+        /// <summary>
+        /// Per-frame rejection evidence. The detector still returns null for
+        /// ambiguous/unproven objects; diagnostics never relax acceptance.
+        /// </summary>
+        public sealed class RejectionDiagnostics
+        {
+            public int ThresholdCount { get; internal set; }
+            public int TouchingRoiEdge { get; internal set; }
+            public int RejectedTooSmall { get; internal set; }
+            public int RejectedTooLarge { get; internal set; }
+            public int RejectedLockedDiameter { get; internal set; }
+            public int RejectedShape { get; internal set; }
+            public int RejectedOutsideSearch { get; internal set; }
+            public int RejectedContrast { get; internal set; }
+            public int RejectedAnnulus { get; internal set; }
+            public bool Ambiguous { get; internal set; }
+            public double LargestOversizeDiameterMm { get; internal set; }
+
+            public string PrimaryReason
+            {
+                get
+                {
+                    if (RejectedTooLarge > 0)
+                        return $"OVERSIZE {LargestOversizeDiameterMm:F2} MM (> {MaximumOpeningDiameterMm:F2})";
+                    if (RejectedLockedDiameter > 0)
+                        return "LOCKED DIAMETER MISMATCH";
+                    if (RejectedAnnulus > 0)
+                        return "INSUFFICIENT BRIGHT RING";
+                    if (RejectedContrast > 0)
+                        return "LOW RING CONTRAST";
+                    if (RejectedShape > 0)
+                        return "NONCIRCULAR DARK REGION";
+                    if (RejectedOutsideSearch > 0)
+                        return "OUTSIDE SEARCH RADIUS";
+                    if (TouchingRoiEdge > 0)
+                        return "DARK REGION TOUCHES ROI EDGE";
+                    if (RejectedTooSmall > 0)
+                        return "DARK REGION TOO SMALL";
+                    if (ThresholdCount == 0)
+                        return "NO USABLE GRAYSCALE THRESHOLD";
+                    return Ambiguous ? "MULTIPLE SIMILAR CANDIDATES" :
+                        "NO VERIFIED DARK OPENING";
+                }
+            }
+
+            public string ShortSummary =>
+                $"EDGE {TouchingRoiEdge} SIZE {RejectedTooLarge} " +
+                $"SHAPE {RejectedShape} RING {RejectedAnnulus} " +
+                $"CONTRAST {RejectedContrast}" +
+                (Ambiguous ? " AMBIGUOUS" : String.Empty);
+        }
+
         public sealed class TuneResult
         {
             public double X { get; set; }
@@ -63,7 +115,8 @@ namespace LagoVista.PickAndPlace.Models
         /// expectedDiameterMm = 0 discovers the opening; a positive value
         /// locks subsequent tracking to the verified physical feature.</summary>
         public static Observation Find(byte[,,] gray, int width, int height,
-            double pixelsPerMm, double searchRadiusMm, double expectedDiameterMm = 0)
+            double pixelsPerMm, double searchRadiusMm, double expectedDiameterMm = 0,
+            RejectionDiagnostics diagnostics = null)
         {
             if (gray == null || width < 32 || height < 32 ||
                 gray.GetLength(0) < height || gray.GetLength(1) < width ||
@@ -124,6 +177,7 @@ namespace LagoVista.PickAndPlace.Models
                     thresholds.Add(Math.Max(0, Math.Min(254,
                         (int)Math.Round(low + (high - low) * fraction))));
             }
+            if (diagnostics != null) diagnostics.ThresholdCount = thresholds.Count;
             if (thresholds.Count == 0) return null;
 
             var candidates = new List<Observation>();
@@ -183,24 +237,57 @@ namespace LagoVista.PickAndPlace.Models
                         }
                     }
 
-                    if (touchesEdge || area < 12 || perimeter == 0) continue;
+                    if (touchesEdge)
+                    {
+                        if (diagnostics != null) diagnostics.TouchingRoiEdge++;
+                        continue;
+                    }
+                    if (area < 12 || perimeter == 0) continue;
                     var radius = Math.Sqrt(area / Math.PI);
                     var diameterMm = 2 * radius / pixelsPerMm;
-                    if (diameterMm < MinimumOpeningDiameterMm ||
-                        diameterMm > MaximumOpeningDiameterMm) continue;
+                    if (diameterMm < MinimumOpeningDiameterMm)
+                    {
+                        if (diagnostics != null) diagnostics.RejectedTooSmall++;
+                        continue;
+                    }
+                    if (diameterMm > MaximumOpeningDiameterMm)
+                    {
+                        if (diagnostics != null)
+                        {
+                            diagnostics.RejectedTooLarge++;
+                            diagnostics.LargestOversizeDiameterMm =
+                                Math.Max(diagnostics.LargestOversizeDiameterMm, diameterMm);
+                        }
+                        continue;
+                    }
                     if (expectedDiameterMm > 0 &&
                         Math.Abs(diameterMm - expectedDiameterMm) >
                         Math.Max(0.12, expectedDiameterMm * 0.30))
+                    {
+                        if (diagnostics != null) diagnostics.RejectedLockedDiameter++;
                         continue;
+                    }
                     var aspect = (maxX - minX + 1.0) / (maxY - minY + 1.0);
-                    if (aspect < 0.72 || aspect > 1.38) continue;
+                    if (aspect < 0.72 || aspect > 1.38)
+                    {
+                        if (diagnostics != null) diagnostics.RejectedShape++;
+                        continue;
+                    }
                     var circularity = Math.Min(1.0, 4.0 * Math.PI * area /
                         (perimeter * perimeter));
-                    if (circularity < 0.42) continue;
+                    if (circularity < 0.42)
+                    {
+                        if (diagnostics != null) diagnostics.RejectedShape++;
+                        continue;
+                    }
                     var centerX = sx / area;
                     var centerY = sy / area;
                     var offset = Math.Sqrt(DistanceSquared(centerX, centerY, cx, cy));
-                    if (offset + radius > searchPx) continue;
+                    if (offset + radius > searchPx)
+                    {
+                        if (diagnostics != null) diagnostics.RejectedOutsideSearch++;
+                        continue;
+                    }
 
                     // Require a dark-to-bright transition around MOST of the
                     // opening, not just a high mean from one specular hotspot.
@@ -244,9 +331,17 @@ namespace LagoVista.PickAndPlace.Models
                             radialMeasured[a] = true;
                         }
                     }
-                    if (ringCount < 36) continue;
+                    if (ringCount < 36)
+                    {
+                        if (diagnostics != null) diagnostics.RejectedAnnulus++;
+                        continue;
+                    }
                     var contrast = surrounding / ringCount - darkSum / area;
-                    if (contrast < 35) continue;
+                    if (contrast < 35)
+                    {
+                        if (diagnostics != null) diagnostics.RejectedContrast++;
+                        continue;
+                    }
                     // A dark speck on a moderately bright background otherwise
                     // gets 24/24 support without having an annulus at all.
                     // Require sectors to be meaningfully stronger than that
@@ -263,7 +358,10 @@ namespace LagoVista.PickAndPlace.Models
                     }
                     if (supportedAngles < 13 ||
                         supportedQuadrants.Count(supported => supported) < 3)
+                    {
+                        if (diagnostics != null) diagnostics.RejectedAnnulus++;
                         continue;
+                    }
                     candidates.Add(new Observation {
                         X = centerX, Y = centerY, RadiusPixels = radius,
                         DiameterMm = diameterMm, Contrast = contrast,
@@ -287,7 +385,10 @@ namespace LagoVista.PickAndPlace.Models
                 var gap = Math.Sqrt(DistanceSquared(best.X, best.Y, other.X, other.Y));
                 if (gap > Math.Max(3, pixelsPerMm * 0.16) &&
                     best.Score - other.Score < 12)
+                {
+                    if (diagnostics != null) diagnostics.Ambiguous = true;
                     return null;
+                }
             }
             return best;
         }
