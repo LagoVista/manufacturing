@@ -1943,4 +1943,136 @@
   <data name="StripFeeder_RowSpacing" xml:space="preserve">
     <value>Row Spacing</value>
   </data>
+  <data name="VacuumSensorTransport_Label" xml:space="preserve">
+    <value>Vacuum Sensor Transport</value>
+  </data>
+  <data name="VacuumSensorTransport_M170" xml:space="preserve">
+    <value>M170 (Raw Pressure)</value>
+  </data>
+  <data name="VacuumSensorTransport_I2C" xml:space="preserve">
+    <value>I2C (M260/M261)</value>
+  </data>
+  <data name="VacuumCalibration_Title" xml:space="preserve">
+    <value>Vacuum pump and sensor calibration</value>
+  </data>
+  <data name="VacuumCalibration_Intro" xml:space="preserve">
+    <value>Supervised vacuum validation using the existing machine fiducial as a known XY test spot. The app positions the camera, selects each tool and lowers to its configured pick height. No new fiducial calibration is performed.</value>
+  </data>
+  <data name="VacuumCalibration_Warning" xml:space="preserve">
+    <value>Supervised hardware test. Independent solenoid operation is not yet certified. Calibration values are saved only when you explicitly select Apply Calibration after both heads complete.</value>
+  </data>
+  <data name="VacuumCalibration_Ready" xml:space="preserve">
+    <value>Ready. Confirm the machine is homed, in Manual mode, and the configured test location and tool pick heights are safe.</value>
+  </data>
+  <data name="VacuumCalibration_ReadyRight" xml:space="preserve">
+    <value>Left head complete. Prepare right nozzle, then capture its idle baseline.</value>
+  </data>
+  <data name="VacuumCalibration_CaptureIdle" xml:space="preserve">
+    <value>Capture idle pressure</value>
+  </data>
+  <data name="VacuumCalibration_PumpOpen" xml:space="preserve">
+    <value>Pump on: capture open nozzle</value>
+  </data>
+  <data name="VacuumCalibration_MoveFiducial" xml:space="preserve">
+    <value>Camera to test spot, then select tool (safe Z)</value>
+  </data>
+  <data name="VacuumCalibration_CaptureSealed" xml:space="preserve">
+    <value>Measure obstructed nozzle</value>
+  </data>
+  <data name="VacuumCalibration_Release" xml:space="preserve">
+    <value>Retract, release and verify</value>
+  </data>
+  <data name="VacuumCalibration_NextHead" xml:space="preserve">
+    <value>Next head / finish</value>
+  </data>
+  <data name="VacuumCalibration_Complete" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="VacuumCalibration_JogInstruction" xml:space="preserve">
+    <value>The application controls positioning and pick height; confirm actual nozzle obstruction before measuring.</value>
+  </data>
+  <data name="VacuumCalibration_Review" xml:space="preserve">
+    <value>Both heads measured; review raw and normalized candidate thresholds. No calibration has been saved. Independent solenoid mapping still requires validation.</value>
+  </data>
+  <data name="VacuumCalibration_IdleCaptured" xml:space="preserve">
+    <value>Fresh idle baselines captured on both heads. Next turn on only the selected pump.</value>
+  </data>
+  <data name="VacuumCalibration_OpenCaptured" xml:space="preserve">
+    <value>Open-nozzle pressure changed and inactive head stayed stable. Next travel to the machine fiducial.</value>
+  </data>
+  <data name="VacuumCalibration_SealedCaptured" xml:space="preserve">
+    <value>Distinct sealed-nozzle reading captured. Next retract, release, and verify return to idle.</value>
+  </data>
+  <data name="VacuumCalibration_ReleaseCaptured" xml:space="preserve">
+    <value>Pressure returned to idle and inactive head stayed stable. Proceed to the next head or finish.</value>
+  </data>
+  <data name="VacuumCalibration_AbortRequested" xml:space="preserve">
+    <value>Abort requested. Pumps commanded off; verify machine state before any further movement.</value>
+  </data>
+  <data name="VacuumCalibration_Aborted" xml:space="preserve">
+    <value>Procedure stopped. Pumps commanded off; verify nozzle is at safe height.</value>
+  </data>
+  <data name="VacuumCalibration_OperatorConfirm" xml:space="preserve">
+    <value>I verified the machine is homed, the test spot is clear, the tool offsets are configured, and the existing pick heights are safe for contact.</value>
+  </data>
+  <data name="VacuumCalibration_ContactConfirm" xml:space="preserve">
+    <value>For step-by-step mode: I confirmed this nozzle is obstructed at configured pick height.</value>
+  </data>
+  <data name="VacuumCalibration_Raw" xml:space="preserve">
+    <value>Latest raw observations</value>
+  </data>
+  <data name="VacuumCalibration_Left" xml:space="preserve">
+    <value>Left head candidate</value>
+  </data>
+  <data name="VacuumCalibration_Right" xml:space="preserve">
+    <value>Right head candidate</value>
+  </data>
+  <data name="VacuumCalibration_Next" xml:space="preserve">
+    <value>Execute next step</value>
+  </data>
+  <data name="VacuumCalibration_Stop" xml:space="preserve">
+    <value>Abort / safe retract</value>
+  </data>
+  <data name="VacuumCalibration_Close" xml:space="preserve">
+    <value>Close window</value>
+  </data>
+  <data name="VacuumCalibration_JogHeading" xml:space="preserve">
+    <value>Test spot and tool movement</value>
+  </data>
+  <data name="VacuumCalibration_Down1" xml:space="preserve">
+    <value>Lower 1.0 mm</value>
+  </data>
+  <data name="VacuumCalibration_DownFine" xml:space="preserve">
+    <value>Lower 0.1 mm</value>
+  </data>
+  <data name="VacuumCalibration_UpFine" xml:space="preserve">
+    <value>Raise 0.1 mm</value>
+  </data>
+  <data name="VacuumCalibration_Up1" xml:space="preserve">
+    <value>Raise 1.0 mm</value>
+  </data>
+  <data name="VacuumCalibration_LowerPick" xml:space="preserve">
+    <value>Lower selected tool to configured PickHeight</value>
+  </data>
+  <data name="VacuumCalibration_CameraReady" xml:space="preserve">
+    <value>Camera positioned at the known test spot; selected tool aligned at safe Z. Advance to lower it to the configured pick height.</value>
+  </data>
+  <data name="VacuumCalibration_PickReady" xml:space="preserve">
+    <value>Selected tool moved to configured pick height. Verify the nozzle opening is actually obstructed, then approve measurement.</value>
+  </data>
+  <data name="VacuumCalibration_RunAll" xml:space="preserve">
+    <value>Run All — Both Heads</value>
+  </data>
+  <data name="VacuumCalibration_RunAllDescription" xml:space="preserve">
+    <value>After the safety check, automatically measure idle and open pressure, position each tool at the test spot, lower to configured pick height, verify obstruction from pressure readings, retract, and check release. Stops on a failed measurement or motion. Keep the machine in view.</value>
+  </data>
+  <data name="VacuumCalibration_Apply" xml:space="preserve">
+    <value>Apply Calibration</value>
+  </data>
+  <data name="VacuumCalibration_ApplyDescription" xml:space="preserve">
+    <value>After both heads PASS, approve saving their measured vacuum baselines to the existing machine configuration. Normal part detection uses these saved settings. Previous values are preserved if the save fails.</value>
+  </data>
+  <data name="VacuumCalibration_Saved" xml:space="preserve">
+    <value>Both validated vacuum calibrations saved to the machine. Normal part detection now uses the saved polarity-independent thresholds.</value>
+  </data>
 </root>

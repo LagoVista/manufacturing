@@ -33,6 +33,27 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
             InitializeComponent();
         }
 
+        private VacuumCalibrationWindow _vacuumWindow;
+
+        private void OpenVacuumCalibration_Click(object sender, RoutedEventArgs e)
+        {
+            if (_vacuumWindow != null)
+            {
+                _vacuumWindow.Activate();
+                return;
+            }
+            var viewModel = new LagoVista.PickAndPlace.ViewModels.Machine.VacuumCalibrationViewModel(
+                SLWIOC.Get<IMachineRepo>());
+            _vacuumWindow = new VacuumCalibrationWindow(viewModel)
+            {
+                Owner = Window.GetWindow(this)
+            };
+            _vacuumWindow.Closed += (s, args) => _vacuumWindow = null;
+            // Nonmodal is intentional: nozzle Z contact must be manually
+            // jogged via the existing machine control panel.
+            _vacuumWindow.Show();
+        }
+
         private void OpenCameraToolPickup_Click(object sender, RoutedEventArgs e)
         {
             var vm = SLWIOC.Get<ICameraToolPickupCalibrationViewModel>();
