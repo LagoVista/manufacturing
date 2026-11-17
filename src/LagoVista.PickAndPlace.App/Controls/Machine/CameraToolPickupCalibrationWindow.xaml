@@ -76,7 +76,7 @@
                                FontSize="25" Margin="0,5,0,3"/>
                     <TextBlock Text="{Binding ToolHeadName}" Foreground="#DFE9F5"
                                FontSize="14"/>
-                    <TextBlock Text="Known Location · 7 mm white cylinder" Foreground="#ACBDD0"
+                    <TextBlock Text="Known Location · 7.5 mm white calibration disc" Foreground="#ACBDD0"
                                FontSize="12" Margin="0,2,0,0"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -126,7 +126,7 @@
             <Border Grid.Row="1" Background="#1C3039" BorderBrush="#426876"
                     BorderThickness="1" CornerRadius="7" Padding="10,7" Margin="0,0,0,9">
                 <StackPanel>
-                    <TextBlock Text="BOTTOM CAMERA / LIVE CIRCLE MEASUREMENT"
+                    <TextBlock Text="BOTTOM CAMERA / CALIBRATION DISC CENTROID"
                                FontSize="10" Foreground="#A2C9D7" FontWeight="Bold"/>
                     <TextBlock Text="{Binding BottomVisionState}" FontSize="12"
                                Foreground="#E8F1F8" FontWeight="SemiBold" Margin="0,3,0,1"/>
