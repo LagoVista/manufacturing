@@ -265,10 +265,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (Math.Abs(_pickupZ - _returnZ) > 0.5)
                 throw new CalibrationStopped(
                     "The head's Pick Height and Place Height differ by more than 0.5 mm. Verify fixture geometry before enabling an automatic return.");
-            if (!Finite(head.PartPickedVacuum) || !Finite(head.NoPartPickedVacuum) ||
-                Math.Abs(head.PartPickedVacuum - head.NoPartPickedVacuum) < 1.0)
+            if (!VacuumCalibrationProfile.TryFromHead(head, out _))
                 throw new CalibrationStopped(
-                    "Calibrate the installed head's picked/no-part vacuum sensor readings before any motion.");
+                    "Calibrate and save the selected head's T007 vacuum profile before any pickup motion.");
             if ((head.HeadIndex == 1 && _machine.LeftVacuumPump) ||
                 (head.HeadIndex == 2 && _machine.RightVacuumPump))
                 throw new CalibrationStopped(
@@ -533,8 +532,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             await Task.Delay(250);
             _machine.SendSafeMoveHeight();
             await NeedIdleAsync("retracting after pickup");
-            if (!await VacuumConfirmsPartAsync())
-                throw new CalibrationStopped("Vacuum sensor did not confirm a picked cylinder. Vacuum remains enabled for safe operator recovery.");
+            await VacuumConfirmsPartAsync();
         }
 
         private async Task ReturnCylinderAsync(Point2D<double> target,
@@ -734,27 +732,40 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             };
         }
 
-        private async Task<bool> VacuumConfirmsPartAsync()
+        private async Task VacuumConfirmsPartAsync()
         {
-            var expected = _head.PartPickedVacuum;
-            var noPart = _head.NoPartPickedVacuum;
-            if (!Finite(expected) || !Finite(noPart) || Math.Abs(expected - noPart) < 1.0)
+            // T007's polarity-independent calibration is the single authority
+            // for part presence, including its configured hysteresis.
+            if (!VacuumCalibrationProfile.TryFromHead(_head, out var profile))
                 throw new CalibrationStopped(
-                    "Calibrate this head's Part Picked and No Part Picked vacuum sensor values before automatic pickup.");
+                    "The selected head has no valid saved T007 vacuum calibration.");
+
             var values = new double[3];
             for (var i = 0; i < values.Length; i++)
             {
+                if (!ReferenceEquals(_machine.CurrentMachineToolHead, _head))
+                    throw new CalibrationStopped("Selected head changed during vacuum pickup verification.");
                 var sample = _head.HeadIndex == 1
                     ? await _machine.ReadLeftVacuumAsync()
                     : await _machine.ReadRightVacuumAsync();
                 if (!sample.Successful)
                     throw new CalibrationStopped("Vacuum sensor read failed: " + sample.ErrorMessage);
                 values[i] = sample.Result;
-                await Task.Delay(80);
+                if (i < values.Length - 1)
+                    await Task.Delay(80);
             }
+
             var mean = values.Average();
-            return Math.Abs(mean - expected) < Math.Abs(mean - noPart) &&
-                Math.Abs(mean - expected) <= 0.5 * Math.Abs(expected - noPart);
+            var classification = profile.Classify(mean);
+            if (classification == VacuumPickupClassification.PartPresent)
+                return;
+
+            throw new CalibrationStopped(
+                $"Vacuum did not confirm the picked cylinder: Head {_head.HeadIndex}, " +
+                $"{classification}, normalized {profile.Normalize(mean):F1}% " +
+                $"(part threshold {profile.ThresholdPercent + profile.HysteresisPercent:F1}%, " +
+                $"raw mean {mean:F0}, open {profile.OpenRaw:F0}, sealed {profile.SealedRaw:F0}). " +
+                "Vacuum remains enabled for safe operator recovery.");
         }
 
         private void SetVacuum(bool on)
