@@ -7,6 +7,7 @@ using LagoVista.Core.IOC;
 using LagoVista.Core.Models;
 using LagoVista.Core.PlatformSupport;
 using LagoVista.Manufacturing.Models;
+using LagoVista.Manufacturing.Models.Resources;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using System;
 using System.Collections.Generic;
@@ -73,6 +74,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             {
                 firmwareTypes.Add(enumType.ToString().Replace("_","."));
             }
+
+            VacuumSensorTransportOptions = new ObservableCollection<string>
+            {
+                ManufacturingResources.VacuumSensorTransport_M170,
+                ManufacturingResources.VacuumSensorTransport_I2C
+            };
+            RaisePropertyChanged(nameof(VacuumSensorTransportOptions));
 
             FirmwareTypes = firmwareTypes;
             RaisePropertyChanged(nameof(FirmwareTypes));

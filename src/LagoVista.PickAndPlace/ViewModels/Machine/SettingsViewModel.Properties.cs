@@ -4,6 +4,7 @@
 // --- END CODE INDEX META ---
 using LagoVista.Core.Models;
 using LagoVista.Manufacturing.Models;
+using LagoVista.Manufacturing.Models.Resources;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -50,6 +51,24 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
 
         public ObservableCollection<String> ConnectionTypes { get; private set; }
+        public ObservableCollection<String> VacuumSensorTransportOptions { get; private set; }
+
+        public string VacuumSensorTransport
+        {
+            get => Settings.VacuumSensorTransport?.Value == VacuumSensorTransportTypes.I2C
+                ? ManufacturingResources.VacuumSensorTransport_I2C
+                : ManufacturingResources.VacuumSensorTransport_M170;
+            set
+            {
+                var selection = value == ManufacturingResources.VacuumSensorTransport_I2C
+                    ? VacuumSensorTransportTypes.I2C
+                    : VacuumSensorTransportTypes.M170;
+                Settings.VacuumSensorTransport =
+                    EntityHeader<VacuumSensorTransportTypes>.Create(selection);
+                RaisePropertyChanged();
+            }
+        }
+
         public ObservableCollection<String> FirmwareTypes { get; private set; }
         public ObservableCollection<String> MachineTypes { get; private set; }
         public ObservableCollection<String> GCodeJogCommands { get; private set; }

@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:resources="clr-namespace:LagoVista.Manufacturing.Models.Resources;assembly=LagoVista.Manufacturing.Models"
         WindowStartupLocation="CenterOwner"
         WindowStyle="ToolWindow"
         Title="SettingsWindow" Height="1024" Width="1024">
@@ -373,6 +374,7 @@
                         <RowDefinition Height="auto" />
                         <RowDefinition Height="auto" />
                         <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
                     </Grid.RowDefinitions>
 
                     <Label Grid.Row="0" Content="Tool Offset X" />
@@ -404,6 +406,9 @@
                     <Label Grid.Row="7" Content="Has Right Vacuum Sensor" />
                     <CheckBox IsChecked="{Binding Settings.HasRightVacuumSensor}"  Grid.Row="7" />
 
+                    <Label Grid.Row="8" Content="{x:Static resources:ManufacturingResources.VacuumSensorTransport_Label}" />
+                    <ComboBox Grid.Row="8" ItemsSource="{Binding VacuumSensorTransportOptions}"
+                              SelectedValue="{Binding VacuumSensorTransport, Mode=TwoWay}" />
                 </Grid>
             </TabItem>
             <TabItem Header="PCB">

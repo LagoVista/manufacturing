@@ -1,0 +1,141 @@
+<Window x:Class="LagoVista.PickAndPlace.App.Controls.Machine.VacuumCalibrationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:r="clr-namespace:LagoVista.Manufacturing.Models.Resources;assembly=LagoVista.Manufacturing.Models"
+        Title="{x:Static r:ManufacturingResources.VacuumCalibration_Title}"
+        Width="1000" Height="730" MinWidth="790" MinHeight="550"
+        WindowStartupLocation="CenterOwner" ResizeMode="CanResize"
+        Closing="Window_Closing" Background="#181D26" Foreground="#EAF0F6">
+    <Window.Resources>
+        <Style x:Key="PanelCard" TargetType="Border">
+            <Setter Property="Background" Value="#242F3E"/>
+            <Setter Property="BorderBrush" Value="#3A4A5C"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="13"/>
+            <Setter Property="Margin" Value="0,0,0,11"/>
+        </Style>
+        <Style x:Key="Action" TargetType="Button">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="MinWidth" Value="130"/>
+            <Setter Property="Margin" Value="8,0,0,0"/>
+            <Setter Property="Padding" Value="15,7"/>
+            <Setter Property="Background" Value="#277EC4"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+    </Window.Resources>
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Border Style="{StaticResource PanelCard}" Grid.Row="0">
+            <StackPanel>
+                <TextBlock Text="{x:Static r:ManufacturingResources.VacuumCalibration_Title}"
+                           FontSize="24" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                <TextBlock Text="{x:Static r:ManufacturingResources.VacuumCalibration_Intro}"
+                           Foreground="#C1D1E2" TextWrapping="Wrap"/>
+                <TextBlock Text="{x:Static r:ManufacturingResources.VacuumCalibration_Warning}"
+                           Foreground="#F1BF85" TextWrapping="Wrap" Margin="0,9,0,0"/>
+            </StackPanel>
+        </Border>
+        <Border Style="{StaticResource PanelCard}" Grid.Row="1">
+            <StackPanel>
+                <DockPanel Margin="0,0,0,6">
+                    <TextBlock Text="{Binding HeadDescription}" FontWeight="Bold"
+                               FontSize="17" DockPanel.Dock="Left"/>
+                    <TextBlock Text="{Binding ProcedureStatus}" FontSize="13"
+                               Foreground="#92C5EB" HorizontalAlignment="Right"/>
+                </DockPanel>
+                <TextBlock Text="{Binding Status}" TextWrapping="Wrap"
+                           Foreground="#F2F5F8" FontSize="15" Margin="0,0,0,9"/>
+                <TextBlock Text="{Binding NextAction}" FontSize="14"
+                           FontWeight="SemiBold" Foreground="#7BC2F4"/>
+            </StackPanel>
+        </Border>
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="0,0,0,8">
+                <Border Style="{StaticResource PanelCard}">
+                    <StackPanel>
+                        <CheckBox Content="{x:Static r:ManufacturingResources.VacuumCalibration_OperatorConfirm}"
+                                  IsChecked="{Binding OperatorAcknowledged, Mode=TwoWay}"
+                                  Margin="0,3,0,8" Foreground="#EAF0F6"/>
+                        <CheckBox Content="{x:Static r:ManufacturingResources.VacuumCalibration_ContactConfirm}"
+                                  IsChecked="{Binding OperatorConfirmedContact, Mode=TwoWay}"
+                                  IsEnabled="{Binding NeedsPlateContact}"
+                                  Margin="0,3,0,3" Foreground="#EAF0F6"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource PanelCard}">
+                    <DockPanel LastChildFill="True">
+                        <Button DockPanel.Dock="Left" 
+                                Content="{x:Static r:ManufacturingResources.VacuumCalibration_RunAll}"
+                                IsEnabled="{Binding CanRunAll}"
+                                Click="RunAll_Click"
+                                Style="{StaticResource Action}"
+                                MinWidth="220" Margin="0,0,16,0"/>
+                        <TextBlock Text="{x:Static r:ManufacturingResources.VacuumCalibration_RunAllDescription}"
+                                   Foreground="#C1D1E2"
+                                   TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    </DockPanel>
+                </Border>
+                <Border Style="{StaticResource PanelCard}">
+                    <DockPanel LastChildFill="True">
+                        <Button DockPanel.Dock="Left"
+                                Content="{x:Static r:ManufacturingResources.VacuumCalibration_Apply}"
+                                IsEnabled="{Binding CanApplyCalibration}"
+                                Click="ApplyCalibration_Click"
+                                Style="{StaticResource Action}"
+                                MinWidth="220" Margin="0,0,16,0"/>
+                        <TextBlock Text="{x:Static r:ManufacturingResources.VacuumCalibration_ApplyDescription}"
+                                   Foreground="#C1D1E2"
+                                   TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    </DockPanel>
+                </Border>
+                <Border Style="{StaticResource PanelCard}">
+                    <StackPanel>
+                        <TextBlock Text="{x:Static r:ManufacturingResources.VacuumCalibration_Raw}"
+                                   FontSize="12" FontWeight="SemiBold" Foreground="#9CC7E6"/>
+                        <TextBlock Text="{Binding RawReading}" FontFamily="Consolas"
+                                   FontSize="15" Margin="0,7,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource PanelCard}">
+                    <StackPanel>
+                        <TextBlock Text="{x:Static r:ManufacturingResources.VacuumCalibration_Left}"
+                                   FontWeight="SemiBold" Foreground="#9CC7E6"/>
+                        <TextBlock Text="{Binding LeftSummary}" TextWrapping="Wrap"
+                                   FontFamily="Consolas" Margin="0,6,0,13"/>
+                        <TextBlock Text="{x:Static r:ManufacturingResources.VacuumCalibration_Right}"
+                                   FontWeight="SemiBold" Foreground="#9CC7E6"/>
+                        <TextBlock Text="{Binding RightSummary}" TextWrapping="Wrap"
+                                   FontFamily="Consolas" Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+        <Grid Grid.Row="3" Margin="0,5,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{Binding ProcedureStatus}"
+                       VerticalAlignment="Center" Foreground="#B5C8DB"/>
+            <Button Grid.Column="1" Style="{StaticResource Action}"
+                    Content="{Binding NextAction}" IsEnabled="{Binding CanContinue}"
+                    Click="Continue_Click" MinWidth="215"/>
+            <Button Grid.Column="2" Style="{StaticResource Action}"
+                    Content="{x:Static r:ManufacturingResources.VacuumCalibration_Stop}"
+                    IsEnabled="{Binding CanAbort}" Click="Abort_Click"/>
+            <Button Grid.Column="3" Style="{StaticResource Action}"
+                    Content="{x:Static r:ManufacturingResources.VacuumCalibration_Close}"
+                    IsEnabled="{Binding CanClose}" Click="Close_Click"/>
+        </Grid>
+    </Grid>
+</Window>
