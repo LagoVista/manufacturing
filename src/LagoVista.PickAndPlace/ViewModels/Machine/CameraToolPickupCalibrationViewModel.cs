@@ -11,6 +11,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels.Machine
@@ -31,6 +32,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private readonly object _observationGate = new object();
         private TaskCompletionSource<BottomCircle> _pendingCircle;
         private string _expectedBottomProfile;
+        // Diagnostics for each live bottom-camera acquisition; camera callbacks
+        // may arrive off the UI thread, so UI updates happen in the await loop.
+        private int _bottomCircleCandidateFrames;
+        private int _bottomCircleStableFrames;
+        private int _bottomCircleWrongSizeFrames;
+        private int _bottomCircleContextRejectedFrames;
         // Transient, per-run optical proof for the installed nozzle only.
         // Re-established through exactly the same T004 tuning/lock checks.
         private bool _emptyNozzleOpticalLock;
@@ -489,6 +496,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             capture.Profile.FindCircles = true;
             // Reapply the selected profile so runtime camera settings are active.
             _machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
+            var captureReady = await capture.EnsureCaptureReadyAsync();
+            if (!captureReady.Successful)
+                throw new CalibrationStopped("Held-disc bottom camera is not capturing fresh frames: " +
+                    captureReady.ErrorMessage);
             try
             {
                 await MoveToInspectionCameraAsync(holdingCylinder:true);
@@ -707,6 +718,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (capture.CaptureFrameSize.Width <= 0)
                 capture.StartCapture();
 
+            Interlocked.Exchange(ref _bottomCircleCandidateFrames, 0);
+            Interlocked.Exchange(ref _bottomCircleStableFrames, 0);
+            Interlocked.Exchange(ref _bottomCircleWrongSizeFrames, 0);
+            Interlocked.Exchange(ref _bottomCircleContextRejectedFrames, 0);
             var request = new TaskCompletionSource<BottomCircle>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
             lock (_observationGate)
@@ -718,10 +733,38 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             {
                 capture.ResetDetections();
                 _locator.RegisterCircleLocatedHandler(this, 9000);
-                var completed = await Task.WhenAny(request.Task, Task.Delay(9500));
-                var circle = completed == request.Task ? await request.Task : null;
+                var target = isCylinder ? "white calibration disc (5.5-10.5 mm)" : "empty nozzle opening";
+                Status = $"Head {_head.HeadIndex}: Bottom camera actively searching for {target} " +
+                    $"at {capture.Camera.EffectivePixelsPerMM:F1} px/mm; awaiting stable circle (9 s).";
+                var deadline = DateTimeOffset.UtcNow.AddMilliseconds(9000);
+                while (!request.Task.IsCompleted && DateTimeOffset.UtcNow < deadline)
+                {
+                    var remainingMs = Math.Max(1, (int)Math.Min(1000,
+                        (deadline - DateTimeOffset.UtcNow).TotalMilliseconds));
+                    await Task.WhenAny(request.Task, Task.Delay(remainingMs));
+                    if (!request.Task.IsCompleted)
+                        Status = $"Head {_head.HeadIndex}: Searching for {target}; " +
+                            $"candidate frames {Volatile.Read(ref _bottomCircleCandidateFrames)}, " +
+                            $"stable {Volatile.Read(ref _bottomCircleStableFrames)}, " +
+                            $"wrong size {Volatile.Read(ref _bottomCircleWrongSizeFrames)}, " +
+                            $"context rejected {Volatile.Read(ref _bottomCircleContextRejectedFrames)}.";
+                }
+                var circle = request.Task.IsCompleted ? await request.Task : null;
                 if (circle == null)
-                    throw new CalibrationStopped("No fresh, stable bottom-camera circle for " + profileKey + ".");
+                {
+                    var profile = capture.Profile;
+                    throw new CalibrationStopped(
+                        $"No fresh stable bottom-camera circle for {profileKey}: " +
+                        $"candidate frames {Volatile.Read(ref _bottomCircleCandidateFrames)}, " +
+                        $"stable {Volatile.Read(ref _bottomCircleStableFrames)}, " +
+                        $"wrong size {Volatile.Read(ref _bottomCircleWrongSizeFrames)}, " +
+                        $"context rejected {Volatile.Read(ref _bottomCircleContextRejectedFrames)}. " +
+                        $"Camera capturing={capture.IsCapturing}, profile={profile?.Key ?? "none"}, " +
+                        $"FindCircles={profile?.FindCircles}, " +
+                        $"search radius={profile?.TargetImageRadius:F1} mm, " +
+                        $"Hough radius={profile?.HoughCirclesMinRadius:F1}-{profile?.HoughCirclesMaxRadius:F1} mm, " +
+                        $"Hough threshold={profile?.HoughCirclesParam2:F1}.");
+                }
                 if (isCylinder && (circle.DiameterMm < 5.5 || circle.DiameterMm > 10.5))
                     throw new CalibrationStopped("Held-cylinder diameter is inconsistent with the 7 mm fixture.");
                 return circle;
@@ -748,20 +791,30 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
             var machine = _machine;
             var capture = machine?.PartInspectionCaptureService;
-            if (request == null || circle?.CameraType != CameraTypes.PartInspection ||
-                !circle.Stabilized || !circle.PositionStable || machine.Busy ||
-                capture?.Profile?.Key != expected || !ValidMachine(out _) ||
-                machine.CurrentMachineToolHead != _head ||
+            if (request == null || circle?.CameraType != CameraTypes.PartInspection)
+                return;
+            Interlocked.Increment(ref _bottomCircleCandidateFrames);
+            if (!circle.Stabilized || !circle.PositionStable)
+                return;
+            Interlocked.Increment(ref _bottomCircleStableFrames);
+            if (machine.Busy || capture?.Profile?.Key != expected ||
+                !ValidMachine(out _) || machine.CurrentMachineToolHead != _head ||
                 !String.Equals(Convert.ToString(_head.CurrentNozzle?.Id),
                     _nozzleIdentity, StringComparison.Ordinal))
+            {
+                Interlocked.Increment(ref _bottomCircleContextRejectedFrames);
                 return;
+            }
             var scale = capture.Camera?.EffectivePixelsPerMM ?? 0;
             // Ignore an outer fixture/overlay circle and continue seeking
             // the actual white 7 mm disc instead of failing on the first circle.
             if (expected == VisionProfile.VisionProfile_PartInspection &&
                 (scale <= 0 || 2 * circle.RadiusPixels / scale < 5.5 ||
                  2 * circle.RadiusPixels / scale > 10.5))
+            {
+                Interlocked.Increment(ref _bottomCircleWrongSizeFrames);
                 return;
+            }
             if (expected == VisionProfile.VisionProfile_Nozzle &&
                 (!_emptyNozzleOpticalLock ||
                  !String.Equals(Convert.ToString(capture.Camera?.Id),
