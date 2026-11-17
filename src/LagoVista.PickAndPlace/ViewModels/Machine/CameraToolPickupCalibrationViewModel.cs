@@ -301,7 +301,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 MachineOperationVerificationKind.MachineObserved);
 
             Begin("first-pick", $"Lowering selected head to configured Pick Height {_pickupZ:F2} mm and checking vacuum.");
-            await PickCylinderAsync();
+            await PickCylinderAsync(firstTarget);
             var firstMotion = DateTimeOffset.UtcNow;
             Pass("first-pick", "Vacuum sensor confirms the cylinder was picked. Retracted to safe Z.",
                 MachineOperationVerificationKind.MachineObserved);
@@ -339,7 +339,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 MachineOperationVerificationKind.MachineObserved);
 
             Begin("second-pick", "Performing an independent cylinder pickup with the candidate correction.");
-            await PickCylinderAsync();
+            await PickCylinderAsync(secondTarget, candidate);
             var secondMotion = DateTimeOffset.UtcNow;
             Pass("second-pick", "Fresh vacuum sensor pickup confirmation after candidate jog.",
                 MachineOperationVerificationKind.MachineObserved);
@@ -520,7 +520,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
         }
 
-        private async Task PickCylinderAsync()
+        private async Task PickCylinderAsync(Point2D<double> holder,
+            CameraToolPickupCandidate candidate = null)
         {
             RequireValid();
             if (_machine.CurrentMachineToolHead != _head)
@@ -532,7 +533,33 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             await Task.Delay(250);
             _machine.SendSafeMoveHeight();
             await NeedIdleAsync("retracting after pickup");
-            await VacuumConfirmsPartAsync();
+
+            // A classified NoPart/Unknown reading does not prove the cylinder
+            // is absent. Assume it is held and use the SAME guarded holder-return
+            // path as the successful pickup. Stop calibration without saving.
+            var detectionFailure = await VacuumConfirmsPartAsync();
+            if (detectionFailure == null)
+                return;
+
+            try
+            {
+                RequireValid();
+                if (!ReferenceEquals(_machine.CurrentMachineToolHead, _head))
+                    throw new CalibrationStopped("Pickup head selection changed before recovery.");
+                await ReturnCylinderAsync(holder, candidate);
+            }
+            catch (Exception recoveryError)
+            {
+                throw new CalibrationStopped(
+                    detectionFailure + " Automatic holder return did not complete: " +
+                    recoveryError.Message +
+                    " Stop and verify cylinder, vacuum and Z before any further motion.");
+            }
+            throw new CalibrationStopped(
+                detectionFailure +
+                " Assuming the cylinder was picked: returned it to its holder, " +
+                "turned off vacuum and retracted to Safe Move Height. " +
+                "Calibration stopped without changing the stored offset.");
         }
 
         private async Task ReturnCylinderAsync(Point2D<double> target,
@@ -732,7 +759,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             };
         }
 
-        private async Task VacuumConfirmsPartAsync()
+        private async Task<string> VacuumConfirmsPartAsync()
         {
             // T007's polarity-independent calibration is the single authority
             // for part presence, including its configured hysteresis.
@@ -758,14 +785,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             var mean = values.Average();
             var classification = profile.Classify(mean);
             if (classification == VacuumPickupClassification.PartPresent)
-                return;
+                return null;
 
-            throw new CalibrationStopped(
-                $"Vacuum did not confirm the picked cylinder: Head {_head.HeadIndex}, " +
+            return $"Vacuum did not confirm the picked cylinder: Head {_head.HeadIndex}, " +
                 $"{classification}, normalized {profile.Normalize(mean):F1}% " +
                 $"(part threshold {profile.ThresholdPercent + profile.HysteresisPercent:F1}%, " +
-                $"raw mean {mean:F0}, open {profile.OpenRaw:F0}, sealed {profile.SealedRaw:F0}). " +
-                "Vacuum remains enabled for safe operator recovery.");
+                $"raw mean {mean:F0}, open {profile.OpenRaw:F0}, sealed {profile.SealedRaw:F0}).";
         }
 
         private void SetVacuum(bool on)
