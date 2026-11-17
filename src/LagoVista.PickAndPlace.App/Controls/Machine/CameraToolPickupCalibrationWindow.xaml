@@ -107,6 +107,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <StackPanel Grid.Row="0" Margin="0,0,0,10">
                 <StackPanel Orientation="Horizontal">
@@ -119,10 +120,22 @@
                 </StackPanel>
                 <TextBlock Text="{Binding ConfiguredHeights}" TextWrapping="Wrap"
                            Margin="0,7,0,2" FontWeight="SemiBold"/>
-                <TextBlock Text="Pickup/return use the selected head's saved Pick/Place heights (ZL or ZR). Held inspection stays at the machine's common Safe Move Z: no additional nozzle lowering. Confirm fixture clearance and optical focus on the first supervised run."
+                <TextBlock Text="Pickup/return use the selected head's saved Pick/Place heights. Held-disc inspection completes XY travel at Safe Move Height, then moves common Z to the selected head's configured Pick Height. Verify fixture clearance and optical focus during supervised testing."
                            FontSize="11" Foreground="#B9C6D6" TextWrapping="Wrap"/>
             </StackPanel>
-            <Grid Grid.Row="1">
+            <Border Grid.Row="1" Background="#1C3039" BorderBrush="#426876"
+                    BorderThickness="1" CornerRadius="7" Padding="10,7" Margin="0,0,0,9">
+                <StackPanel>
+                    <TextBlock Text="BOTTOM CAMERA / LIVE CIRCLE MEASUREMENT"
+                               FontSize="10" Foreground="#A2C9D7" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding BottomVisionState}" FontSize="12"
+                               Foreground="#E8F1F8" FontWeight="SemiBold" Margin="0,3,0,1"/>
+                    <TextBlock Text="{Binding BottomVisionMeasurements}" FontSize="11"
+                               FontFamily="Consolas" Foreground="#C5DFE8"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+            <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="42"/>
                 <ColumnDefinition Width="*"/>
