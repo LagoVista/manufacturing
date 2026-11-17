@@ -105,6 +105,35 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void InspectionHeightUsesConfiguredPickHeightForBothHeads()
+        {
+            const double safe = 31.5;
+            const double pick = 5.0;
+            Assert.That(NozzleInspectionPickHeight.TryResolveCommonZ(
+                1, pick, safe, out var leftCommonZ, out var leftReason),
+                Is.True, leftReason);
+            Assert.That(leftCommonZ, Is.EqualTo(pick).Within(0.001));
+
+            Assert.That(NozzleInspectionPickHeight.TryResolveCommonZ(
+                2, pick, safe, out var rightCommonZ, out var rightReason),
+                Is.True, rightReason);
+            Assert.That(rightCommonZ, Is.EqualTo(2 * safe - pick).Within(0.001));
+            // Machine.Properties.RightToolHeadZ applies this same mirror.
+            Assert.That((2 * safe - rightCommonZ), Is.EqualTo(pick).Within(0.001));
+        }
+
+        [Test]
+        public void InspectionHeightRejectsUnsupportedHeadsAndInvalidPositions()
+        {
+            Assert.That(NozzleInspectionPickHeight.TryResolveCommonZ(
+                3, 5, 31.5, out _, out _), Is.False);
+            Assert.That(NozzleInspectionPickHeight.TryResolveCommonZ(
+                2, double.NaN, 31.5, out _, out _), Is.False);
+            Assert.That(NozzleInspectionPickHeight.TryResolveCommonZ(
+                2, 70, 31.5, out _, out _), Is.False);
+        }
+
+        [Test]
         public void RejectedAutoTuneDoesNotEnableAdaptiveDetector()
         {
             var profile = new VisionProfile { Key=VisionProfile.VisionProfile_Nozzle };
