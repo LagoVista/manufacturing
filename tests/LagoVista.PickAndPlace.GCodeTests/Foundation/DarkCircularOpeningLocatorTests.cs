@@ -227,6 +227,83 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void SwitchingHeadsDoesNotInheritOtherNozzlesSavedOpeningDiameter()
+        {
+            var profile = new VisionProfile {
+                ExpectedDarkOpeningDiameterMm = 0.36,
+                DarkOpeningTunedPixelsPerMM = 12.5
+            };
+            var state = new NozzleOpeningHeadContext();
+
+            // The shared saved 0.36 mm has no known head ownership yet.
+            Assert.That(state.Resolve("1:nozzle-small", profile, 12.5,
+                out var switched), Is.Zero);
+            Assert.That(switched, Is.True);
+            Assert.That(state.Resolve("1:nozzle-small", profile, 12.5,
+                out switched), Is.Zero);
+            Assert.That(switched, Is.False);
+
+            // Explicit fresh tuning belongs to the selected head.
+            profile.ExpectedDarkOpeningDiameterMm = 0.37;
+            Assert.That(state.Resolve("1:nozzle-small", profile, 12.5,
+                out switched), Is.EqualTo(0.37).Within(0.001));
+
+            // Switching to Head 2 must not apply Head 1's 0.37 mm gate.
+            Assert.That(state.Resolve("2:nozzle-wide", profile, 12.5,
+                out switched), Is.Zero);
+            Assert.That(switched, Is.True);
+            profile.ExpectedDarkOpeningDiameterMm = 1.376;
+            Assert.That(state.Resolve("2:nozzle-wide", profile, 12.5,
+                out switched), Is.EqualTo(1.376).Within(0.001));
+
+            // Returning to either nozzle uses its own in-session tuning,
+            // without rewriting the camera-owned vision profile.
+            Assert.That(state.Resolve("1:nozzle-small", profile, 12.5,
+                out switched), Is.EqualTo(0.37).Within(0.001));
+            Assert.That(state.Resolve("2:nozzle-wide", profile, 12.5,
+                out switched), Is.EqualTo(1.376).Within(0.001));
+            Assert.That(profile.ExpectedDarkOpeningDiameterMm,
+                Is.EqualTo(1.376).Within(0.001));
+        }
+
+        [Test]
+        public void InvalidCameraScaleOrProfileReplacementCannotClaimHeadTuning()
+        {
+            var profile = new VisionProfile {
+                ExpectedDarkOpeningDiameterMm = 0.36,
+                DarkOpeningTunedPixelsPerMM = 12.5
+            };
+            var state = new NozzleOpeningHeadContext();
+            state.Resolve("1:nozzle-small", profile, 12.5, out _);
+            profile.ExpectedDarkOpeningDiameterMm = 0.37;
+            Assert.That(state.Resolve("1:nozzle-small", profile, 12.5,
+                out _), Is.EqualTo(0.37).Within(0.001));
+
+            // Loading a different camera-owned Nozzle profile is not proof
+            // of a new nozzle tune.
+            var replacement = new VisionProfile {
+                ExpectedDarkOpeningDiameterMm = 1.376,
+                DarkOpeningTunedPixelsPerMM = 12.5
+            };
+            Assert.That(state.Resolve("1:nozzle-small", replacement, 12.5,
+                out var changed), Is.EqualTo(0.37).Within(0.001));
+            Assert.That(changed, Is.False);
+            Assert.That(state.Resolve("2:nozzle-wide", replacement, 12.5,
+                out changed), Is.Zero);
+            Assert.That(changed, Is.True);
+
+            replacement.ExpectedDarkOpeningDiameterMm = 1.38;
+            Assert.That(state.Resolve("2:nozzle-wide", replacement, 12.5,
+                out _), Is.EqualTo(1.38).Within(0.001));
+
+            // Camera scale changes invalidate physical diameter associations.
+            Assert.That(state.Resolve("1:nozzle-small", replacement, 15,
+                out _), Is.Zero);
+            Assert.That(state.Resolve("2:nozzle-wide", replacement, 15,
+                out _), Is.Zero);
+        }
+
+        [Test]
         public void NoisyUniformImageDoesNotPassAsSmallNozzle()
         {
             var frame = new byte[200, 200, 1];
