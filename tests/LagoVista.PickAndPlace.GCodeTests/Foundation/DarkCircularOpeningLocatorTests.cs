@@ -163,6 +163,69 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                 frame, 200, 200, 12.5, 2.0, 1.376), Is.Null);
         }
 
+        private static byte[,,] MakeReflectiveWideNozzleScene()
+        {
+            // Two circular dark objects, but only the larger nozzle opening
+            // has a bright annulus over most angles. A small reflective speck
+            // has a very bright, ONE-SIDED arc that used to dominate the mean
+            // ring-contrast score even though it was not the nozzle opening.
+            var frame = new byte[200, 200, 1];
+            for (var y = 0; y < 200; y++)
+                for (var x = 0; x < 200; x++)
+                {
+                    var nx = x - 121;
+                    var ny = y - 88;
+                    var nd = Math.Sqrt(nx * nx + ny * ny);
+                    var na = Math.Atan2(ny, nx);
+                    if (na < 0) na += 2 * Math.PI;
+                    var sx = x - 90;
+                    var sy = y - 112;
+                    var sd = Math.Sqrt(sx * sx + sy * sy);
+                    var sa = Math.Atan2(sy, sx);
+                    if (sa < 0) sa += 2 * Math.PI;
+                    frame[y, x, 0] = nd <= 9 || sd <= 4 ? (byte)10
+                        : nd <= 18 && na < 2 * Math.PI * 0.67 ? (byte)145
+                        : sd <= 8 && sa < 2 * Math.PI * 0.42 ? (byte)255
+                        : (byte)40;
+                }
+            return frame;
+        }
+
+        [Test]
+        public void WideNozzleWinsAgainstOneSidedReflectiveDecoy()
+        {
+            var found = DarkCircularOpeningLocator.Find(
+                MakeReflectiveWideNozzleScene(), 200, 200, 12.5, 2.0);
+            Assert.That(found, Is.Not.Null);
+            Assert.That(found.X, Is.EqualTo(121).Within(1));
+            Assert.That(found.Y, Is.EqualTo(88).Within(1));
+            Assert.That(found.DiameterMm, Is.InRange(1.3, 1.7));
+        }
+
+        [Test]
+        public void SparseBrightRingOnDarkFieldIsNotLostAt80thPercentile()
+        {
+            // Less than 20% of the search region is bright. Previously the
+            // 80th-percentile "high" matched the dark background, leaving no
+            // thresholds despite an unmistakable central dark opening.
+            var frame = new byte[200, 200, 1];
+            for (var y = 0; y < 200; y++)
+                for (var x = 0; x < 200; x++)
+                {
+                    var dx = x - 113;
+                    var dy = y - 96;
+                    var d = Math.Sqrt(dx * dx + dy * dy);
+                    frame[y, x, 0] = d <= 9 ? (byte)8
+                        : d <= 18 ? (byte)180 : (byte)18;
+                }
+            var found = DarkCircularOpeningLocator.Find(
+                frame, 200, 200, 12.5, 2.0);
+            Assert.That(found, Is.Not.Null);
+            Assert.That(found.X, Is.EqualTo(113).Within(1));
+            Assert.That(found.Y, Is.EqualTo(96).Within(1));
+            Assert.That(found.DiameterMm, Is.InRange(1.3, 1.7));
+        }
+
         [Test]
         public void NoisyUniformImageDoesNotPassAsSmallNozzle()
         {
