@@ -85,6 +85,26 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void MeasuredThreePointFiveMmOpeningCanBeLockedForHeadTwoRunout()
+        {
+            var profile = new VisionProfile { Key = VisionProfile.VisionProfile_Nozzle };
+            var tuned = new DarkCircularOpeningLocator.TuneResult
+            {
+                DiameterMm = 3.52, MedianContrast = 92,
+                MaxCenterDeviationMm = 0.04, GoodFrames = 24, TotalFrames = 24
+            };
+            Assert.That(NozzleRunoutVisionPreparation.TryLockAdaptiveOpening(
+                profile, 12.5, tuned, out var reason), Is.True, reason);
+
+            var circle = new MVLocatedCircle(CameraTypes.PartInspection,
+                new Point2D<int>(100, 100), 12.5, 0.1, 5, true);
+            for (var i = 0; i < 9; i++)
+                circle.Add(new PointF(100, 100), 22f);
+            Assert.That(NozzleRunoutVisionPreparation.MatchesLockedOpening(
+                profile, 12.5, circle), Is.True);
+        }
+
+        [Test]
         public void RejectedAutoTuneDoesNotEnableAdaptiveDetector()
         {
             var profile = new VisionProfile { Key=VisionProfile.VisionProfile_Nozzle };
