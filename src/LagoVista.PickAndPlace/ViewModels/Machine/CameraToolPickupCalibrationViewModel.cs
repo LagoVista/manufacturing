@@ -511,47 +511,51 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private async Task<BottomCircle> ObserveHeldCylinderAsync()
         {
-            // The locked nozzle detector is for the small DARK opening only.
-            // Reuse the existing stabilized circle detector for the white disc.
+            // The T004 nozzle-opening detector measures a dark opening; this
+            // T003 target is the opposite: a filled white disc on black.
+            // Use an independent bottom-camera profile with centroid vision.
             _emptyNozzleOpticalLock = false;
-            _machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
+            _machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_CalibrationDisc);
             var capture = _machine.PartInspectionCaptureService;
-            if (capture?.Profile?.Key != VisionProfile.VisionProfile_PartInspection)
-                throw new CalibrationStopped("Cannot activate the bottom camera Part Inspection profile.");
-            capture.Profile.UseAdaptiveDarkOpening = false;
-            capture.Profile.PerformShapeDetection = true;
-            capture.Profile.FindCircles = true;
-            // Reapply the selected profile so runtime camera settings are active.
-            _machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
+            if (capture?.Profile?.Key != VisionProfile.VisionProfile_CalibrationDisc)
+                throw new CalibrationStopped("Cannot activate the bottom camera Calibration Disc profile.");
+            var discProfile = capture.Profile;
+            // These controls belong ONLY to calibrationdisc; they do not
+            // alter the camera's regular Part Inspection or Nozzle profiles.
+            discProfile.UseAdaptiveDarkOpening = false;
+            discProfile.PerformShapeDetection = true;
+            discProfile.FindCircles = true;
+            discProfile.FindRectangles = false;
+            discProfile.FindCorners = false;
+            discProfile.FindLines = false;
+            discProfile.ApplyMask = false;
+            discProfile.ApplyThreshold = false;
+            discProfile.Invert = false;
+            discProfile.UseBlurredImage = false;
+            discProfile.TargetImageRadius = 8.1;
+            // Existing centroid detector expresses physical radius limits
+            // through these legacy Hough-named profile fields; it does NOT
+            // invoke HoughCircles for the Calibration Disc profile.
+            discProfile.HoughCirclesMinRadius = 2.75;
+            discProfile.HoughCirclesMaxRadius = 5.25;
+            discProfile.StabilizationCount = 9;
+            discProfile.LightOn = true;
+            // Reassert its own lighting state; do not touch Part Inspection.
+            _machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_CalibrationDisc);
             var captureReady = await capture.EnsureCaptureReadyAsync();
             if (!captureReady.Successful)
-                throw new CalibrationStopped("Held-disc bottom camera is not capturing fresh frames: " +
+                throw new CalibrationStopped("Calibration Disc bottom camera is not capturing fresh frames: " +
                     captureReady.ErrorMessage);
-
-            // Legacy generic Part Inspection defaults to Hough param2=550,
-            // which cannot acquire this small white calibration disc.
-            // Limit the relaxation to this supervised T003 optical observation;
-            // never persist or change the general camera calibration profile.
-            var discProfile = capture.Profile;
-            var originalHoughThreshold = discProfile.HoughCirclesParam2;
-            var originalMinimumRadius = discProfile.HoughCirclesMinRadius;
-            var originalMaximumRadius = discProfile.HoughCirclesMaxRadius;
-            discProfile.HoughCirclesParam2 = 25.0;
-            discProfile.HoughCirclesMinRadius = 1.5;
-            discProfile.HoughCirclesMaxRadius = 5.25;
             try
             {
                 await MoveToInspectionCameraAsync(holdingCylinder:true);
-                return await ObserveBottomAsync(VisionProfile.VisionProfile_PartInspection, isCylinder:true);
+                return await ObserveBottomAsync(VisionProfile.VisionProfile_CalibrationDisc, isCylinder:true);
             }
             finally
             {
-                discProfile.HoughCirclesParam2 = originalHoughThreshold;
-                discProfile.HoughCirclesMinRadius = originalMinimumRadius;
-                discProfile.HoughCirclesMaxRadius = originalMaximumRadius;
-                // The inspection moves common Z below Safe Move Height.
-                // Restore clearance even if optical detection fails, but never
-                // issue new motion if the machine/head safety context was lost.
+                // Retract common Z even on failed centroid acquisition.
+                // The central failure handler separately returns any disc
+                // to its container with vacuum release if position is safe.
                 if (ValidMachine(out _) &&
                     ReferenceEquals(_machine.CurrentMachineToolHead, _head))
                 {
@@ -808,10 +812,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 capture.ResetDetections();
                 _locator.RegisterCircleLocatedHandler(this, 9000);
                 var target = isCylinder ? "white calibration disc (5.5-10.5 mm)" : "empty nozzle opening";
-                BottomVisionState = isCylinder ? "SEARCHING - HELD DISC" : "SEARCHING - NOZZLE";
+                BottomVisionState = isCylinder ? "SEARCHING - CALIBRATION DISC" : "SEARCHING - NOZZLE";
                 BottomVisionMeasurements =
                     $"Acquiring fresh circles at {capture.Camera.EffectivePixelsPerMM:F1} px/mm. " +
-                    (isCylinder ? "Disc center-spread limit: 0.20 mm after nine samples." :
+                    (isCylinder ? "Otsu / bright-region centroid. Disc center-spread limit: 0.20 mm after nine samples." :
                         "Nozzle: strict profile position stability.");
                 Status = $"Head {_head.HeadIndex}: Bottom camera actively searching for {target} " +
                     $"at {capture.Camera.EffectivePixelsPerMM:F1} px/mm; awaiting stable circle (9 s).";
@@ -854,8 +858,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         $"Camera capturing={capture.IsCapturing}, profile={profile?.Key ?? "none"}, " +
                         $"FindCircles={profile?.FindCircles}, " +
                         $"search radius={profile?.TargetImageRadius:F1} mm, " +
-                        $"Hough radius={profile?.HoughCirclesMinRadius:F1}-{profile?.HoughCirclesMaxRadius:F1} mm, " +
-                        $"Hough threshold={profile?.HoughCirclesParam2:F1}.");
+                        (isCylinder
+                            ? $"Otsu/contour centroid; contour radius={profile?.HoughCirclesMinRadius:F1}-" +
+                              $"{profile?.HoughCirclesMaxRadius:F1} mm; circularity >=0.78."
+                            : $"Hough radius={profile?.HoughCirclesMinRadius:F1}-" +
+                              $"{profile?.HoughCirclesMaxRadius:F1} mm; threshold={profile?.HoughCirclesParam2:F1}.") );
                 }
                 if (isCylinder && (circle.DiameterMm < 5.5 || circle.DiameterMm > 10.5))
                     throw new CalibrationStopped("Held-cylinder diameter is inconsistent with the 7 mm fixture.");
@@ -930,7 +937,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             // 12.5 px/mm) is accepted ONLY for the held white disc. Preserve
             // the normal strict stability requirement for the nozzle opening,
             // plus the subsequent disc diameter and independent second pickup.
-            var stableHeldDisc = expected == VisionProfile.VisionProfile_PartInspection &&
+            var stableHeldDisc = expected == VisionProfile.VisionProfile_CalibrationDisc &&
                 circle.FoundCount >= 9 && spread.HasValue &&
                 Finite(spread.Value) && spread.Value <= 0.20;
             if (!circle.PositionStable && !stableHeldDisc)
@@ -949,7 +956,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
             // Ignore an outer fixture/overlay circle and continue seeking
             // the actual white 7 mm disc instead of failing on the first circle.
-            if (expected == VisionProfile.VisionProfile_PartInspection &&
+            if (expected == VisionProfile.VisionProfile_CalibrationDisc &&
                 (scale <= 0 || 2 * circle.RadiusPixels / scale < 5.5 ||
                  2 * circle.RadiusPixels / scale > 10.5))
             {
