@@ -477,8 +477,16 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private async Task<BottomCircle> ObserveHeldCylinderAsync()
         {
             // The locked nozzle detector is for the small DARK opening only.
-            // Never allow that feature identity to pass as the white cylinder.
+            // Reuse the existing stabilized circle detector for the white disc.
             _emptyNozzleOpticalLock = false;
+            _machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
+            var capture = _machine.PartInspectionCaptureService;
+            if (capture?.Profile?.Key != VisionProfile.VisionProfile_PartInspection)
+                throw new CalibrationStopped("Cannot activate the bottom camera Part Inspection profile.");
+            capture.Profile.UseAdaptiveDarkOpening = false;
+            capture.Profile.PerformShapeDetection = true;
+            capture.Profile.FindCircles = true;
+            // Reapply the selected profile so runtime camera settings are active.
             _machine.SetVisionProfile(CameraTypes.PartInspection, VisionProfile.VisionProfile_PartInspection);
             await MoveToInspectionCameraAsync(holdingCylinder:true);
             return await ObserveBottomAsync(VisionProfile.VisionProfile_PartInspection, isCylinder:true);
@@ -617,13 +625,17 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             await NeedIdleAsync("safe inspection approach");
             if (holdingCylinder)
             {
-                // Machine G0 Z (common safe height) is NOT the same axis as
-                // SetToolHeadHeight (individual ZL/ZR). Keep the selected
-                // nozzle at its pickup setting and DO NOT lower either nozzle
-                // toward the bottom camera while holding the 7 mm cylinder.
-                // If the circle isn't resolvable at safe Z, stop before any
-                // candidate correction. A separate optical calibration must
-                // prove geometry before enabling final offset persistence.
+                // G0 Z (common safe height) and ZL/ZR (selected nozzle height)
+                // are independent. Use production bottom-camera positioning
+                // only at an operator-configured optical height matching the
+                // proven head Pick Height; never guess or use FocusHeight fallback.
+                var inspectionZ = capture.Camera.CurrentVisionProfile?.DetectionHeight;
+                if (!inspectionZ.HasValue || !Finite(inspectionZ.Value) ||
+                    Math.Abs(inspectionZ.Value - _pickupZ) > 0.5)
+                    throw new CalibrationStopped(
+                        $"Bottom Part Inspection Detection Height must be set to the supervised " +
+                        $"Head {_head.HeadIndex} Pick Height ({_pickupZ:F2} mm, within 0.5 mm) " +
+                        "before an automatic held-disc inspection. No nozzle Z descent was sent.");
                 _machine.GotoPoint(xy);
                 await NeedIdleAsync("bottom-camera XY at common safe height with cylinder held");
                 var location = await _machine.GetCurrentLocationAsync(5000);
@@ -631,6 +643,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     Math.Abs(_machine.ToolCommonZ - _machine.Settings.SafMoveHeight) > 0.2)
                     throw new CalibrationStopped(
                         "Common Z did not verify at Safe Move Height before held-cylinder inspection.");
+                // The standard inspection command selects the correct ZL/ZR
+                // at the camera's configured Detection Height, after safe XY.
+                await _machine.GoToPartInspectionCameraAsync();
+                await NeedIdleAsync("held-disc inspection at proven pickup height");
+                if (!ReferenceEquals(_machine.CurrentMachineToolHead, _head))
+                    throw new CalibrationStopped("Tool head changed during bottom-camera inspection.");
             }
             else
             {
@@ -709,6 +727,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     _nozzleIdentity, StringComparison.Ordinal))
                 return;
             var scale = capture.Camera?.EffectivePixelsPerMM ?? 0;
+            // Ignore an outer fixture/overlay circle and continue seeking
+            // the actual white 7 mm disc instead of failing on the first circle.
+            if (expected == VisionProfile.VisionProfile_PartInspection &&
+                (scale <= 0 || 2 * circle.RadiusPixels / scale < 5.5 ||
+                 2 * circle.RadiusPixels / scale > 10.5))
+                return;
             if (expected == VisionProfile.VisionProfile_Nozzle &&
                 (!_emptyNozzleOpticalLock ||
                  !String.Equals(Convert.ToString(capture.Camera?.Id),
