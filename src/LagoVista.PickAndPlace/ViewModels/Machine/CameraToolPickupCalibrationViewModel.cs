@@ -62,6 +62,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private string _headIndexText = "1";
         private string _status = "Select Head 1 or 2. Pickup/return use saved head heights; bottom inspection uses machine safe Z. First run must be supervised.";
         private string _candidateSummary = "No measured candidate yet.";
+        private string _bottomVisionState = "WAITING FOR INSPECTION";
+        private string _bottomVisionMeasurements = "Bottom-camera measurements will appear here during acquisition.";
         private string _toolHeadName = "Installed heads";
         private bool _running;
         private bool _finished = true;
@@ -124,6 +126,16 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         }
         public bool SaveVerifiedOffset { get => _autoSave; set => Set(ref _autoSave, value); }
         public string Status { get => _status; private set => Set(ref _status, value); }
+        public string BottomVisionState
+        {
+            get => _bottomVisionState;
+            private set => Set(ref _bottomVisionState, value);
+        }
+        public string BottomVisionMeasurements
+        {
+            get => _bottomVisionMeasurements;
+            private set => Set(ref _bottomVisionMeasurements, value);
+        }
         public string CandidateSummary
         {
             get => _candidateSummary;
@@ -153,6 +165,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             CalibrationRunning = true;
             CalibrationFinished = false;
             CandidateSummary = "No verified offset yet.";
+            BottomVisionState = "WAITING FOR INSPECTION";
+            BottomVisionMeasurements = "Bottom-camera measurements will appear here during acquisition.";
             _machine = _repo.CurrentMachine;
             _head = null;
             _session = null;
@@ -794,6 +808,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 capture.ResetDetections();
                 _locator.RegisterCircleLocatedHandler(this, 9000);
                 var target = isCylinder ? "white calibration disc (5.5-10.5 mm)" : "empty nozzle opening";
+                BottomVisionState = isCylinder ? "SEARCHING - HELD DISC" : "SEARCHING - NOZZLE";
+                BottomVisionMeasurements =
+                    $"Acquiring fresh circles at {capture.Camera.EffectivePixelsPerMM:F1} px/mm. " +
+                    (isCylinder ? "Disc center-spread limit: 0.20 mm after nine samples." :
+                        "Nozzle: strict profile position stability.");
                 Status = $"Head {_head.HeadIndex}: Bottom camera actively searching for {target} " +
                     $"at {capture.Camera.EffectivePixelsPerMM:F1} px/mm; awaiting stable circle (9 s).";
                 var deadline = DateTimeOffset.UtcNow.AddMilliseconds(9000);
@@ -803,6 +822,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         (deadline - DateTimeOffset.UtcNow).TotalMilliseconds));
                     await Task.WhenAny(request.Task, Task.Delay(remainingMs));
                     if (!request.Task.IsCompleted)
+                    {
+                        UpdateBottomVisionReadout(isCylinder);
                         Status = $"Head {_head.HeadIndex}: Searching for {target}; " +
                             $"candidate frames {Volatile.Read(ref _bottomCircleCandidateFrames)}, " +
                             $"stabilized {Volatile.Read(ref _bottomCircleStabilizedFrames)}, " +
@@ -812,10 +833,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                             $"last diameter {Volatile.Read(ref _bottomLastCircleDiameterMm):F2} mm, " +
                             $"wrong size {Volatile.Read(ref _bottomCircleWrongSizeFrames)}, " +
                             $"context rejected {Volatile.Read(ref _bottomCircleContextRejectedFrames)}.";
+                    }
                 }
                 var circle = request.Task.IsCompleted ? await request.Task : null;
                 if (circle == null)
                 {
+                    UpdateBottomVisionReadout(isCylinder);
+                    BottomVisionState = "NO ACCEPTED MEASUREMENT";
                     var profile = capture.Profile;
                     throw new CalibrationStopped(
                         $"No fresh stable bottom-camera circle for {profileKey}: " +
@@ -835,6 +859,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 }
                 if (isCylinder && (circle.DiameterMm < 5.5 || circle.DiameterMm > 10.5))
                     throw new CalibrationStopped("Held-cylinder diameter is inconsistent with the 7 mm fixture.");
+                BottomVisionState = "MEASUREMENT ACCEPTED";
+                BottomVisionMeasurements =
+                    $"Diameter {circle.DiameterMm:F2} mm  |  " +
+                    $"X {circle.OffsetMm.X:+0.000;-0.000;0.000} mm  |  " +
+                    $"Y {circle.OffsetMm.Y:+0.000;-0.000;0.000} mm  |  " +
+                    $"Center spread {Volatile.Read(ref _bottomLastCircleSpreadMm):F3} mm. " +
+                    $"Accepted after {Volatile.Read(ref _bottomCircleCandidateFrames)} circle callbacks.";
                 return circle;
             }
             finally
@@ -846,6 +877,24 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         _pendingCircle = null;
                 }
             }
+        }
+
+        // All UI property updates happen in the awaited calibration loop.
+        // Camera callbacks only write atomic measurement counters.
+        private void UpdateBottomVisionReadout(bool isCylinder)
+        {
+            BottomVisionMeasurements =
+                $"Candidates {Volatile.Read(ref _bottomCircleCandidateFrames)}  |  " +
+                $"Stabilized {Volatile.Read(ref _bottomCircleStabilizedFrames)}  |  " +
+                $"Position accepted {Volatile.Read(ref _bottomCircleStableFrames)}  |  " +
+                $"Jitter rejected {Volatile.Read(ref _bottomCirclePositionRejectedFrames)}  |  " +
+                $"Wrong size {Volatile.Read(ref _bottomCircleWrongSizeFrames)}  |  " +
+                $"Context rejected {Volatile.Read(ref _bottomCircleContextRejectedFrames)}" +
+                Environment.NewLine +
+                $"Last diameter {Volatile.Read(ref _bottomLastCircleDiameterMm):F2} mm  |  " +
+                $"Center spread {Volatile.Read(ref _bottomLastCircleSpreadMm):F3} mm" +
+                (isCylinder ? "  |  Disc spread limit 0.20 mm (nine samples)" :
+                    "  |  Strict nozzle stability required");
         }
 
         public void CircleLocated(MVLocatedCircle circle)
