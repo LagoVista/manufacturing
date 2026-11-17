@@ -15,6 +15,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         string HeadIndexText { get; set; }
         string ConfiguredHeights { get; }
         string Status { get; }
+        string BottomVisionState { get; }
+        string BottomVisionMeasurements { get; }
         string CandidateSummary { get; }
         string ToolHeadName { get; }
     }
