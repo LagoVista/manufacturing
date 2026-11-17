@@ -50,6 +50,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private MachineOperationSession _session;
         private double _pickupZ;
         private double _returnZ;
+        // Armed only once a selected head starts vacuum pickup. This is the
+        // measured holder position for whichever pickup pass was active.
+        private Point2D<double> _possibleDiscReturnTarget;
+        private CameraToolPickupCandidate _possibleDiscReturnCandidate;
+        private bool _possibleDiscHeld;
+        private bool _discReturnStarted;
         private string _headIndexText = "1";
         private string _status = "Select Head 1 or 2. Pickup/return use saved head heights; bottom inspection uses machine safe Z. First run must be supervised.";
         private string _candidateSummary = "No measured candidate yet.";
@@ -150,6 +156,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _emptyNozzleOpticalLock = false;
             _emptyNozzleCameraId = null;
             _emptyNozzleCameraScale = 0;
+            _possibleDiscReturnTarget = null;
+            _possibleDiscReturnCandidate = null;
+            _possibleDiscHeld = false;
+            _discReturnStarted = false;
             try
             {
                 if (!Int32.TryParse(HeadIndexText, out var selectedHeadIndex) ||
@@ -200,25 +210,24 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     ? "Selected head passed both pickups; verified offset was saved."
                     : "Selected head passed both pickups. Candidate remains UNSAVED (auto-save disabled).";
             }
-            catch (CalibrationStopped ex)
-            {
-                Status = "Calibration stopped: " + ex.Message;
-                _machine?.AddStatusMessage(StatusMessageTypes.Warning, Status);
-                var active = CalibrationSteps.FirstOrDefault(s => s.Status == "Running");
-                active?.Fail(ex.Message);
-            }
             catch (Exception ex)
             {
-                Status = "Calibration failed: " + ex.Message;
+                // Any failure after vacuum activation must assume the disc is
+                // still held. Do not rely on the vacuum classifier or the last
+                // successful vision measurement to decide whether to return it.
+                var recovery = await RecoverPossibleDiscAsync();
+                var prefix = ex is CalibrationStopped ? "Calibration stopped: " : "Calibration failed: ";
+                Status = prefix + ex.Message + " " + recovery;
                 _machine?.AddStatusMessage(StatusMessageTypes.Warning, Status);
-                var active = CalibrationSteps.FirstOrDefault(s => s.Status == "Running");
-                active?.Fail(ex.Message);
+                var active = CalibrationSteps.FirstOrDefault(step => step.Status == "Running");
+                active?.Fail(ex.Message + " " + recovery);
             }
             finally
             {
-                // Keep vacuum ON if a pickup failed away from the holder;
-                // never drop a held cylinder into the machine on an exception.
-                // Operator uses the independent feed hold / emergency stop.
+                // Recovery is attempted once by the catch path above. If
+                // return could not be verified, do not turn vacuum off here:
+                // that could drop a held disc outside its container.
+                // Operator retains independent feed hold / emergency stop.
                 lock (_observationGate) _pendingCircle = null;
                 _emptyNozzleOpticalLock = false;
                 _emptyNozzleCameraId = null;
@@ -579,44 +588,44 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 throw new CalibrationStopped("Pickup head selection changed.");
             _machine.SetToolHeadHeight(_pickupZ);
             await NeedIdleAsync("head's configured pickup ZL/ZR");
+            // Keep both the original and corrected-pass return geometry.
+            // Arm before switching vacuum on: an error in the activation or
+            // subsequent sensor/vision steps must still attempt a safe return.
+            _possibleDiscReturnTarget = new Point2D<double>(holder.X, holder.Y);
+            _possibleDiscReturnCandidate = candidate;
+            _possibleDiscHeld = true;
+            _discReturnStarted = false;
             SetVacuum(true);
             await NeedIdleAsync("vacuum activation");
             await Task.Delay(250);
             _machine.SendSafeMoveHeight();
             await NeedIdleAsync("retracting after pickup");
 
-            // A classified NoPart/Unknown reading does not prove the cylinder
-            // is absent. Assume it is held and use the SAME guarded holder-return
-            // path as the successful pickup. Stop calibration without saving.
+            // Use exactly the same failure recovery for a NoPart/Unknown
+            // classification as for every later calibration failure.
             var detectionFailure = await VacuumConfirmsPartAsync();
-            if (detectionFailure == null)
-                return;
-
-            try
-            {
-                RequireValid();
-                if (!ReferenceEquals(_machine.CurrentMachineToolHead, _head))
-                    throw new CalibrationStopped("Pickup head selection changed before recovery.");
-                await ReturnCylinderAsync(holder, candidate);
-            }
-            catch (Exception recoveryError)
-            {
-                throw new CalibrationStopped(
-                    detectionFailure + " Automatic holder return did not complete: " +
-                    recoveryError.Message +
-                    " Stop and verify cylinder, vacuum and Z before any further motion.");
-            }
-            throw new CalibrationStopped(
-                detectionFailure +
-                " Assuming the cylinder was picked: returned it to its holder, " +
-                "turned off vacuum and retracted to Safe Move Height. " +
-                "Calibration stopped without changing the stored offset.");
+            if (detectionFailure != null)
+                throw new CalibrationStopped(detectionFailure);
         }
 
         private async Task ReturnCylinderAsync(Point2D<double> target,
             CameraToolPickupCandidate candidate = null)
         {
             RequireValid();
+            if (!ReferenceEquals(_machine.CurrentMachineToolHead, _head) ||
+                target == null || !Finite(target.X) || !Finite(target.Y) ||
+                _head.Offset == null || !Finite(_head.Offset.X) || !Finite(_head.Offset.Y))
+                throw new CalibrationStopped("Cannot safely return disc: tool head or measured holder position changed.");
+            var area = _machine.Settings.WorkAreaSize;
+            var physicalX = target.X + _head.Offset.X;
+            var physicalY = target.Y + _head.Offset.Y;
+            if (area == null || !Finite(area.X) || !Finite(area.Y) ||
+                physicalX < 5 || physicalY < 5 ||
+                physicalX > area.X - 5 || physicalY > area.Y - 5)
+                throw new CalibrationStopped("Cannot safely return disc: holder XY is outside guarded travel.");
+            // A failed return is not retried blindly; the controller may
+            // already have moved or released the disc when the fault occurred.
+            _discReturnStarted = true;
             _machine.SendSafeMoveHeight();
             await NeedIdleAsync("pre-return safe height");
             _machine.GotoPoint(target);
@@ -640,6 +649,47 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             await Task.Delay(300);
             _machine.SendSafeMoveHeight();
             await NeedIdleAsync("safe retract after return");
+            _possibleDiscHeld = false;
+            _possibleDiscReturnTarget = null;
+            _possibleDiscReturnCandidate = null;
+            _discReturnStarted = false;
+        }
+
+        private async Task<string> RecoverPossibleDiscAsync()
+        {
+            if (!_possibleDiscHeld)
+                return "No active pickup needed disc recovery.";
+            if (_discReturnStarted)
+                return "Disc return was already attempted but did not finish. " +
+                    "Do not release vacuum outside the holder; operator recovery required.";
+            if (_possibleDiscReturnTarget == null || _head == null ||
+                !ValidMachine(out var reason) ||
+                !ReferenceEquals(_machine.CurrentMachineToolHead, _head) ||
+                !String.Equals(Convert.ToString(_head.CurrentNozzle?.Id),
+                    _nozzleIdentity, StringComparison.Ordinal))
+                return "Automatic disc return skipped because the machine, head or return target is not verified. " +
+                    "Leave vacuum engaged until operator can recover the disc safely.";
+
+            // Do not add motion behind an already-stalled command queue.
+            if (_machine.Busy || _machine.ToSendQueueCount > 0 ||
+                _machine.UnacknowledgedBytesSent > 0)
+                return "Automatic disc return skipped: controller has pending or active motion. " +
+                    "Leave vacuum engaged and recover the disc manually.";
+
+            try
+            {
+                Status = $"Head {_head.HeadIndex}: Calibration failed; assuming disc held, " +
+                    "returning to the measured holder before releasing vacuum.";
+                await ReturnCylinderAsync(_possibleDiscReturnTarget, _possibleDiscReturnCandidate);
+                return "Assumed disc was held: returned to its container, switched vacuum OFF, " +
+                    "and retracted to Safe Move Height. Stored offset unchanged.";
+            }
+            catch (Exception recoveryError)
+            {
+                return "Automatic disc return did not complete (" + recoveryError.Message +
+                    "). Do not switch vacuum off away from the holder. " +
+                    "Stop and verify head, disc and machine position before manual recovery.";
+            }
         }
 
         private async Task MoveToInspectionCameraAsync(bool holdingCylinder)
