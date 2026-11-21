@@ -21,6 +21,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
     {
         private const int DetectionTimeoutMs = 18000;
         private const int MaximumCenteringMoves = 5;
+        private const int PreMoveIdleTimeoutMs = 8000;
+        private const int IdleSettlePollMs = 150;
+        private const int IdleSettlePollCount = 20;
         private readonly ILocatorViewModel _locator;
         private readonly Stopwatch _clock = new Stopwatch();
         private TaskCompletionSource<FiducialCircleObservation> _pending;
@@ -184,6 +187,63 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             return true;
         }
 
+        /// <summary>
+        /// Verify firmware has completed previous commands before sending any
+        /// new fiducial positioning motion. M400 is a wait/acknowledgement,
+        /// never a jog; a remaining Busy flag or changed operating mode blocks
+        /// the run. This also absorbs delayed Busy-status delivery after the
+        /// previous exposure calibration without bypassing the interlock.
+        /// </summary>
+        private async Task<string> ConfirmPreMoveIdleAsync(IMachine machine, string phase)
+        {
+            if (machine == null || !machine.Connected || !machine.WasMachineHomed ||
+                machine.Mode != OperatingMode.Manual || machine.IsLocating || _locator.IsLocating)
+                return "Machine is no longer connected, homed, idle in Manual mode, or another locator is running.";
+
+            if (machine.Busy)
+            {
+                var detail = "Waiting for previous machine motion to finish (" + phase + ").";
+                Steps[_activeStep].Detail = detail;
+                Log(detail);
+            }
+
+            // A physical firmware barrier, not a blind delay or Busy override.
+            var acknowledged = await machine.SpinUntilIdleAsync(PreMoveIdleTimeoutMs);
+            if (!acknowledged.Successful)
+                return "Previous motion could not be confirmed idle: " + acknowledged.ErrorMessage;
+
+            var consecutiveIdleReads = 0;
+            for (var attempt = 0; attempt < IdleSettlePollCount; attempt++)
+            {
+                if (!machine.Connected || !machine.WasMachineHomed ||
+                    machine.Mode != OperatingMode.Manual ||
+                    machine.IsLocating || _locator.IsLocating)
+                    return "Machine/locator state changed while waiting for idle.";
+
+                if (!machine.Busy)
+                {
+                    consecutiveIdleReads++;
+                    if (consecutiveIdleReads >= 2)
+                    {
+                        if (attempt > 1)
+                            Log("Firmware acknowledged idle; Busy flag settled after " +
+                                (attempt + 1) + " observations.");
+                        return null;
+                    }
+                }
+                else
+                {
+                    consecutiveIdleReads = 0;
+                }
+
+                await Task.Delay(IdleSettlePollMs);
+            }
+
+            return "Machine still reports Busy after M400 acknowledgement and " +
+                (IdleSettlePollCount * IdleSettlePollMs) +
+                " ms of status settling. No fiducial motion was issued.";
+        }
+
         public async Task RunAsync()
         {
             if (Running || ManualBusy) return;
@@ -214,11 +274,24 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 Step(0, "Checking machine homing, manual mode and live camera.");
                 var machine = Machine;
                 if (machine == null || !machine.Connected || !machine.WasMachineHomed ||
-                    machine.Mode != OperatingMode.Manual || machine.Busy || machine.IsLocating)
+                    machine.Mode != OperatingMode.Manual || machine.IsLocating ||
+                    _locator.IsLocating)
                 {
-                    Fail("Connect and home an idle machine in Manual mode; finish other locator activity first.");
+                    Fail("Connect and home a Manual-mode machine; finish other locator activity first.");
                     return;
                 }
+
+                // A previous calibration can leave the machine Busy briefly
+                // despite no new T009 motion. Confirm firmware completion and
+                // two consecutive idle status samples instead of failing
+                // immediately on a transition that is still settling.
+                var initialIdleError = await ConfirmPreMoveIdleAsync(machine, "preflight");
+                if (initialIdleError != null)
+                {
+                    Fail(initialIdleError);
+                    return;
+                }
+
                 if (MachineConfiguration?.MachineFiducial == null ||
                     MachineConfiguration.MachineFiducial.IsOrigin())
                 {
@@ -254,6 +327,15 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 if (_scale <= 0 || double.IsNaN(_scale) || double.IsInfinity(_scale))
                 {
                     Fail("Position camera has no valid pixels-per-millimeter calibration.");
+                    return;
+                }
+                // Camera readiness/profile switching can trigger an
+                // asynchronous machine status update. Re-confirm before the
+                // first new safe-Z or XY command; do not waive Busy.
+                var preMoveError = await ConfirmPreMoveIdleAsync(machine, "after camera/profile setup");
+                if (preMoveError != null)
+                {
+                    Fail(preMoveError);
                     return;
                 }
                 if (!ContextValid(true, out var error))
