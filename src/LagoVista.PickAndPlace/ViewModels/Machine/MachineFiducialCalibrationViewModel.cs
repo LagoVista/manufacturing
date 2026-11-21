@@ -51,6 +51,27 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public ObservableCollection<FiducialCalibrationStep> Steps { get; } =
             new ObservableCollection<FiducialCalibrationStep>();
 
+        // Bounded, factual timeline for a normal run; collapsed in the UI until
+        // troubleshooting is requested. Never generates synthetic confidence.
+        public ObservableCollection<string> EventLog { get; } =
+            new ObservableCollection<string>();
+
+        private void Log(string message)
+        {
+            var text = DateTimeOffset.UtcNow.ToString("HH:mm:ss.fff") + " UTC  " + message;
+            void Add()
+            {
+                EventLog.Add(text);
+                while (EventLog.Count > 60)
+                    EventLog.RemoveAt(0);
+            }
+
+            if (_uiContext == null || SynchronizationContext.Current == _uiContext)
+                Add();
+            else
+                _uiContext.Post(_ => Add(), null);
+        }
+
         public string Status { get => _status; private set => Set(ref _status, value); }
         public string LastRejection { get => _lastRejection; private set => Set(ref _lastRejection, value); }
         public FiducialCircleObservation CurrentObservation
@@ -102,6 +123,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             Steps[number].Status = "Running";
             Steps[number].Detail = detail;
             Status = detail;
+            Log(detail);
             RaisePropertyChanged(nameof(Elapsed));
         }
 
@@ -121,6 +143,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             FinishCurrentStep("Failed");
             if (_activeStep >= 0) Steps[_activeStep].Detail = reason;
             Status = reason;
+            Log("FAILED: " + reason);
             Machine?.AddStatusMessage(StatusMessageTypes.Warning, reason);
             RaisePropertyChanged(nameof(Elapsed));
         }
@@ -164,6 +187,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
             _uiContext = SynchronizationContext.Current;
             Running = true;
+            EventLog.Clear();
             ResetSteps();
             _clock.Restart();
             _pending = null;
@@ -299,6 +323,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     Steps[3].Detail = "Move " + CenteringMoves + ": correction X=" +
                         found.OffsetXmm.ToString("+0.00;-0.00;0.00") + " mm, Y=" +
                         found.OffsetYmm.ToString("+0.00;-0.00;0.00") + " mm.";
+                    Log(Steps[3].Detail);
                     machine.GotoPoint(new LagoVista.Core.Models.Drawing.Point2D<double>(
                         found.OffsetXmm, found.OffsetYmm), relativeMove: true);
                     var centeredMove = await machine.SpinUntilIdleAsync(10000);
@@ -353,7 +378,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
                 // Resetting the machine origin invalidates dependent staging-plate
                 // references, just as the legacy origin operation does. Preserve
-                // their measured locations but require a separate T010 procedure
+                // their measured locations but require a separate staging procedure
                 // before considering the plates calibrated again.
                 foreach (var plate in MachineConfiguration.StagingPlates)
                     plate.IsCalibrated = false;
@@ -374,6 +399,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 FinishCurrentStep("Passed");
                 Steps[4].Detail = "Verified origin applied; staging plates marked uncalibrated.";
                 Status = "Machine fiducial calibrated. Staging plates require a separate calibration.";
+                Log(Status);
                 machine.AddStatusMessage(StatusMessageTypes.Info, Status);
             }
             catch (Exception ex)
@@ -477,6 +503,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 ObservationCount++;
                 if (good) StableObservationCount++;
                 if (!good) LastRejection = reason;
+                if (ObservationCount == 1 || ObservationCount % 8 == 0 || good)
+                    Log("Circle #" + snapshot.FoundCount +
+                        "  offset=" + snapshot.OffsetXmm.ToString("F2") + "," +
+                        snapshot.OffsetYmm.ToString("F2") + " mm; radius=" +
+                        snapshot.RadiusMm.ToString("F2") + " mm; " +
+                        (good ? "stable" : reason));
             }
             if (_uiContext == null || SynchronizationContext.Current == _uiContext)
                 Update();
