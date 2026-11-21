@@ -45,7 +45,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private bool _runAllActive;
         private bool _calibrationSaved;
         private bool _pumpActive;
-        private bool _operatorAcknowledged;
         private bool _operatorConfirmedContact;
         private string _status = ManufacturingResources.VacuumCalibration_Ready;
         private string _rawReading = "-";
@@ -67,11 +66,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public string HeadDescription => "Head " + _head;
         public bool Busy { get => _busy; private set { Set(ref _busy, value); NotifyButtons(); } }
         public bool PumpActive { get => _pumpActive; private set { Set(ref _pumpActive, value); NotifyButtons(); } }
-        public bool OperatorAcknowledged
-        {
-            get => _operatorAcknowledged;
-            set { Set(ref _operatorAcknowledged, value); NotifyButtons(); }
-        }
         public bool OperatorConfirmedContact
         {
             get => _operatorConfirmedContact;
@@ -84,10 +78,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
         }
 
-        // The operator already reviewed the configured PickHeights/fixture
-        // in the initial machine acknowledgement. At each head we still
-        // verify actual machine/XY/Z readiness before moving. The only
-        // manual mid-run checkpoint now proves REAL nozzle obstruction.
+        // The explicit Run Both button initiates the supervised operation.
+        // Deterministic machine/fixture geometry preflight and existing
+        // safe Z/XY/selected tool checks are required before every descent.
+        // The only manual mid-run checkpoint proves REAL nozzle obstruction.
         public bool AwaitingOperatorCheckpoint =>
             !_runAllActive && _phase == Phase.AtPickHeight;
         public string RunAllAction => _phase == Phase.Ready
@@ -106,7 +100,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public string LeftSummary { get => _leftSummary; private set => Set(ref _leftSummary, value); }
         public string RightSummary { get => _rightSummary; private set => Set(ref _rightSummary, value); }
         public bool RunAllActive => _runAllActive;
-        public bool CanRunAll => !_runAllActive && !Busy && OperatorAcknowledged &&
+        public bool CanRunAll => !_runAllActive && !Busy &&
             (_phase == Phase.Ready ||
              (_runAllPaused && _phase == Phase.AtPickHeight &&
                VacuumContactCheckpoint.CanCaptureSealed(_head, _contactConfirmedHead)));
@@ -114,9 +108,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _phase == Phase.Finished && _leftCandidate != null && _rightCandidate != null;
         public bool CanContinue => !_runAllActive && !Busy && _phase != Phase.Finished &&
             _phase != Phase.Faulted && _phase != Phase.Aborted &&
-            (_phase != Phase.Ready || OperatorAcknowledged) &&
-            (_phase != Phase.AtFiducial ||
-                VacuumContactCheckpoint.CanDescend(_head, OperatorAcknowledged)) &&
             (_phase != Phase.AtPickHeight ||
                 VacuumContactCheckpoint.CanCaptureSealed(_head, _contactConfirmedHead));
         public bool CanAbort => _phase != Phase.Aborted && _phase != Phase.Finished;
@@ -434,10 +425,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     _phase != Phase.Finished && _phase != Phase.Faulted &&
                     _phase != Phase.Aborted; step++)
                 {
-                    // The initial fixture/PickHeight acknowledgement and
-                    // existing numeric, XY and safe-Z preflights authorize
-                    // the known configured descent. No redundant pause at
-                    // the already-verified machine fiducial.
+                    // Explicit operator Start plus the existing numeric,
+                    // XY and safe-Z preflights authorize the known configured
+                    // descent. No redundant checkbox at the fiducial.
                     // A fresh head-specific observation is STILL required
                     // before collecting any sealed-vacuum evidence.
                     if (_phase == Phase.AtPickHeight &&
@@ -483,11 +473,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private bool ValidateAutomaticPreflight(out string reason)
         {
-            if (!OperatorAcknowledged)
-            {
-                reason = "Operator safety acknowledgement is required.";
-                return false;
-            }
+            // Explicit Run Both is the operator action; the actual motion
+            // safety proof comes from the current machine and configuration.
             if (!ContextSafe(false, out reason))
                 return false;
 
@@ -538,8 +525,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 switch (_phase)
                 {
                     case Phase.Ready:
-                        if (!OperatorAcknowledged)
-                            throw new InvalidOperationException("Operator supervision is required.");
+                        // Entering this state requires the explicit Start or
+                        // Next Guided Step action. No checkbox can silently
+                        // become a second, hidden prerequisite mid-run.
                         BeginSession();
                         await CaptureIdleAsync(_cancel.Token);
                         SetPhase(Phase.Idle);
@@ -554,13 +542,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         Status = ManufacturingResources.VacuumCalibration_CameraReady;
                         break;
                     case Phase.AtFiducial:
-                        if (!VacuumContactCheckpoint.CanDescend(
-                            _head, OperatorAcknowledged))
-                            throw new InvalidOperationException(
-                                "The machine/fixture safety acknowledgement is required before configured PickHeight descent.");
                         // Existing LowerToPickHeightAsync revalidates the
                         // current physical head, coordinate frame, XY target,
-                        // safe Z and configured bounded PickHeight.
+                        // safe Z and configured bounded PickHeight. The
+                        // operator can Abort any time; this never probes
+                        // for contact or alters the configured PickHeight.
                         await LowerToPickHeightAsync(_cancel.Token);
                         OperatorConfirmedContact = false;
                         SetPhase(Phase.AtPickHeight);

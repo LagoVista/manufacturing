@@ -106,15 +106,12 @@
                     <StackPanel>
                         <Border Style="{StaticResource Panel}">
                             <StackPanel>
-                                <TextBlock Text="HARDWARE SAFETY &amp; CONTACT CHECKPOINTS"
+                                <TextBlock Text="MACHINE PREFLIGHT &amp; SEALED-NOZZLE PROOF"
                                            FontSize="11" FontWeight="Bold"
                                            Foreground="#99CBED" Margin="0,0,0,8"/>
-                                <CheckBox IsChecked="{Binding OperatorAcknowledged, Mode=TwoWay}"
-                                          Foreground="#DDEBF7" Margin="0,0,0,10">
-                                    <TextBlock Text="I verified the machine is homed, in Manual, and the test location, fixture and configured PickHeights are safe."
-                                               TextWrapping="Wrap" FontSize="12"
-                                               Foreground="#DDEBF7"/>
-                                </CheckBox>
+                                <TextBlock Text="Before pressing Run Both, verify the fixture is clear and both configured PickHeights are safe. Run Both validates homing, Manual mode, machine origin, XY workspace, tool selection and safe Z before movement. No duplicate approval checkbox is required."
+                                           TextWrapping="Wrap" FontSize="11"
+                                           Foreground="#E9C994" Margin="0,0,0,10"/>
                                 <Border Background="#25423F" CornerRadius="5"
                                         Padding="10" Margin="0,0,0,6"
                                         Visibility="{Binding NeedsPlateContact, Converter={StaticResource BoolVisibility}}">
@@ -131,7 +128,7 @@
                                                   Foreground="#E4FFF0" FontWeight="SemiBold"/>
                                     </StackPanel>
                                 </Border>
-                                <TextBlock Text="Run Both uses the acknowledged configured PickHeights and verified safe motion. It pauses only to confirm the actual nozzle seal for each head before evaluating part-present sensor readings."
+                                <TextBlock Text="The explicit Run Both button starts the supervised operation. It pauses only for confirmed physical nozzle contact on each head; stable sensor readings must independently prove the seal."
                                            TextWrapping="Wrap" FontSize="10"
                                            Foreground="#BFCFE0"/>
                             </StackPanel>

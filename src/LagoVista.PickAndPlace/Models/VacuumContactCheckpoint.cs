@@ -1,17 +1,13 @@
 namespace LagoVista.PickAndPlace.Models
 {
     /// <summary>
-    /// Deterministic permission for an already-configured nozzle descent:
-    /// the operator acknowledges fixture/PickHeight safety at the start,
-    /// then the runner verifies current machine, XY, safe Z and head.
-    /// This does NOT replace the distinct post-descent sealed-nozzle
-    /// observation required for sensor-based part-present evidence.
+    /// Operator-observed sealed-nozzle proof: unlike the machine travel
+    /// preflight, physical contact confirmation must be fresh and scoped
+    /// to the specific installed head before collecting sealed pressure.
+    /// The sensor remains independently authoritative afterward.
     /// </summary>
     public static class VacuumContactCheckpoint
     {
-        public static bool CanDescend(int selectedHead, bool machineAcknowledged) =>
-            machineAcknowledged && (selectedHead == 1 || selectedHead == 2);
-
         public static bool CanCaptureSealed(int selectedHead, int confirmedHead) =>
             (selectedHead == 1 || selectedHead == 2) &&
             selectedHead == confirmedHead;
