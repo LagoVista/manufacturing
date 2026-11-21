@@ -106,6 +106,10 @@
                   BorderThickness="1" Padding="10" Margin="0,12,0,0">
             <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="260">
                 <Grid Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
@@ -132,6 +136,9 @@
                     <StackPanel Grid.Column="1">
                         <TextBlock Text="ACTUAL HOUGH PROFILE / READ ONLY" FontSize="11"
                                    Foreground="#91BEE0" FontWeight="Bold" Margin="0,0,0,8"/>
+                        <TextBlock Text="{Binding Machine.PositionImageCaptureService.Camera.PixelsPerMM, StringFormat='Camera baseline scale: {0:F1} px/mm'}" Margin="0,0,0,3"/>
+                        <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.PixelsPerMM, StringFormat='Profile override scale: {0:F1} px/mm'}" Margin="0,0,0,3"/>
+                        <TextBlock Text="{Binding PixelsPerMillimeter, StringFormat='Effective scale: {0:F1} px/mm'}" Margin="0,0,0,7"/>
                         <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.HoughCirclesDP, StringFormat='DP: {0:F2}'}" Margin="0,0,0,3"/>
                         <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.HoughCirclesMinDistance, StringFormat='Minimum separation: {0:F2} mm'}" Margin="0,0,0,3"/>
                         <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.HoughCirclesParam1, StringFormat='Edge threshold: {0:F1}'}" Margin="0,0,0,3"/>
@@ -146,6 +153,24 @@
                         <TextBlock Text="{Binding CenteringMoves, StringFormat='Centering moves: {0}'}" Margin="0,0,0,3"/>
                         <TextBlock Text="{Binding MachinePositionSummary}" TextWrapping="Wrap" Margin="0,6,0,0"/>
                     </StackPanel>
+                    <Border Grid.Row="1" Grid.ColumnSpan="2" Margin="0,14,0,0"
+                            Padding="10" Background="#1B2734" BorderBrush="#35475A"
+                            BorderThickness="1" CornerRadius="6">
+                        <StackPanel>
+                            <TextBlock Text="RECENT FRAME / MOTION / VERIFICATION EVENTS (UTC)"
+                                       FontSize="11" FontWeight="Bold" Foreground="#91BEE0"
+                                       Margin="0,0,0,6"/>
+                            <ItemsControl ItemsSource="{Binding EventLog}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" TextWrapping="Wrap"
+                                                   FontFamily="Consolas" FontSize="11"
+                                                   Foreground="#C6D6E6" Margin="0,0,0,3"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </ScrollViewer>
         </Expander>
