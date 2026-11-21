@@ -366,6 +366,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 }
 
                 Step(6, "Saving both measured reference positions as one verified alignment.");
+                if (!MachineReady(out error) || machine.Busy)
+                {
+                    Fail(error ?? "Machine is no longer idle or verified before plate save.");
+                    return;
+                }
                 // Last-known-good alignment survives every failure until BOTH
                 // real measurements and geometry pass. No G92 or other steps.
                 var previousFirst = selected.ReferenceHoleLocation1;
@@ -442,18 +447,23 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 return false;
             }
             await Machine.MoveToCameraAsync();
-            if (!MachineReady(out reason))
+            var cameraIdle = await WaitForAcknowledgedIdleAsync("after camera navigation");
+            if (cameraIdle != null || !MachineReady(out reason))
             {
-                Fail(reason);
+                Fail(cameraIdle ?? reason);
                 return false;
             }
             Machine.GotoPoint(target);
             var moved = await Machine.SpinUntilIdleAsync(30000);
-            if (!moved.Successful || !MachineReady(out reason) || Machine.Busy)
+            if (!moved.Successful)
             {
-                Fail(!moved.Successful
-                    ? "Reference motion did not finish: " + moved.ErrorMessage
-                    : reason ?? "Machine remains Busy after reference move.");
+                Fail("Reference motion did not finish: " + moved.ErrorMessage);
+                return false;
+            }
+            var settled = await WaitForAcknowledgedIdleAsync("after reference move");
+            if (settled != null || !MachineReady(out reason))
+            {
+                Fail(settled ?? reason);
                 return false;
             }
 
@@ -543,12 +553,15 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     " Y=" + dy.ToString("F3") + " mm.");
                 Machine.GotoPoint(correction, relativeMove: true);
                 var repositioned = await Machine.SpinUntilIdleAsync(10000);
-                if (!repositioned.Successful ||
-                    !MachineReady(out reason) || Machine.Busy)
+                if (!repositioned.Successful)
                 {
-                    Fail(!repositioned.Successful
-                        ? "Centering move not acknowledged: " + repositioned.ErrorMessage
-                        : reason ?? "Machine no longer idle after centering.");
+                    Fail("Centering move not acknowledged: " + repositioned.ErrorMessage);
+                    return null;
+                }
+                var settled = await WaitForAcknowledgedIdleAsync("after centering correction");
+                if (settled != null || !MachineReady(out reason))
+                {
+                    Fail(settled ?? reason);
                     return null;
                 }
 
