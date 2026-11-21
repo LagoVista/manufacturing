@@ -23,7 +23,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
     public sealed partial class StagingPlateCalibrationViewModel : MachineViewModelBase
     {
         private const int ObservationTimeoutMs = 12000;
-        private const int MaximumCenteringMoves = 6;
         private readonly ILocatorViewModel _locator;
         private readonly Stopwatch _clock = new Stopwatch();
         private SynchronizationContext _uiContext;
@@ -44,7 +43,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private MachineStagingPlate _selectedPlate;
         private Point2D<double> _measuredFirst;
         private Point2D<double> _measuredSecond;
-        private int _correctionMoves;
 
         public StagingPlateCalibrationViewModel(IMachineRepo repo,
             ILocatorViewModel locator, MachineStagingPlate selected = null)
@@ -55,6 +53,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 MachineConfiguration?.StagingPlates?.FirstOrDefault();
             ResetStages();
             LoadVisionSettings();
+            LoadMotionSettings();
         }
 
         public ObservableCollection<StagingPlateCalibrationStep> Steps { get; } =
@@ -67,8 +66,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             get => _selectedPlate;
             set
             {
-                if (Running) return;
+                if (Running || TuningBusy || MotionSettingsBusy) return;
                 Set(ref _selectedPlate, value);
+                LoadMotionSettings();
                 ClearPreviousMeasurement();
                 RaisePropertyChanged(nameof(CanRun));
                 RaisePropertyChanged(nameof(SelectedPlateSummary));
@@ -84,11 +84,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 RaisePropertyChanged(nameof(CanRun));
                 RaisePropertyChanged(nameof(CanClose));
                 RaisePropertyChanged(nameof(CanEditVision));
+                RaisePropertyChanged(nameof(CanEditMotion));
             }
         }
-        public bool CanRun => !Running && !TuningBusy &&
-            !HasVisionPreview && !HasVisionDraftChanges && SelectedPlate != null;
-        public bool CanClose => !Running && !TuningBusy;
+        public bool CanRun => !Running && !TuningBusy && !MotionSettingsBusy &&
+            !HasVisionPreview && !HasVisionDraftChanges &&
+            !HasMotionDraftChanges && SelectedPlate != null;
+        public bool CanClose => !Running && !TuningBusy && !MotionSettingsBusy;
         public string Status { get => _status; private set => Set(ref _status, value); }
         public string LastRejection { get => _lastRejection; private set => Set(ref _lastRejection, value); }
         public FiducialCircleObservation CurrentObservation
@@ -314,11 +316,20 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             try
             {
                 Step(0, "Checking selected staging plate, current machine origin and position camera.");
-                if (!StagingPlateReferenceGate.ValidateConfiguration(selected, out var error))
+                if (!StagingPlateReferenceGate.ValidateConfiguration(selected, out var error) ||
+                    !StagingPlateCenteringPolicy.TryValidateSettings(
+                        selected.MaxCenteringCorrectionPerAxisMm,
+                        selected.MaximumCenteringMoves, out error))
                 {
                     Fail(error);
                     return;
                 }
+                Log("Selected plate supervised centering: per-axis limit " +
+                    selected.MaxCenteringCorrectionPerAxisMm.ToString("F2") +
+                    " mm, up to " + selected.MaximumCenteringMoves +
+                    " corrections; hard ceiling " +
+                    StagingPlateCenteringPolicy.HardCorrectionPerAxisCeilingMm.ToString("F1") +
+                    " mm. Controller work area and safe-Z remain enforced.");
                 var machine = Machine;
                 if (machine == null || !machine.Connected ||
                     !machine.WasMachineHomed || !machine.WasMachinOriginCalibrated ||
@@ -539,7 +550,15 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private async Task<Point2D<double>> CenterAndMeasureAsync(string label)
         {
-            for (var n = 0; n <= MaximumCenteringMoves; n++)
+            var maximumCenteringMoves = SelectedPlate.MaximumCenteringMoves;
+            var perAxisLimit = SelectedPlate.MaxCenteringCorrectionPerAxisMm;
+            if (!StagingPlateCenteringPolicy.TryValidateSettings(
+                perAxisLimit, maximumCenteringMoves, out var settingsReason))
+            {
+                Fail(settingsReason);
+                return null;
+            }
+            for (var n = 0; n <= maximumCenteringMoves; n++)
             {
                 if (!MachineReady(out var reason) || Machine.Busy)
                 {
@@ -585,20 +604,19 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     return location.Result;
                 }
 
-                if (n == MaximumCenteringMoves)
+                if (n == maximumCenteringMoves)
                 {
                     Fail("Unable to center " + label + " after " +
-                         MaximumCenteringMoves + " corrections.");
+                         maximumCenteringMoves + " configured corrections.");
                     return null;
                 }
 
                 var dx = circle.OffsetXmm;
                 var dy = circle.OffsetYmm;
-                if (double.IsNaN(dx) || double.IsNaN(dy) ||
-                    double.IsInfinity(dx) || double.IsInfinity(dy) ||
-                    Math.Abs(dx) > 3.0 || Math.Abs(dy) > 3.0)
+                if (!StagingPlateCenteringPolicy.TryAuthorizeCorrection(
+                    dx, dy, perAxisLimit, maximumCenteringMoves, out reason))
                 {
-                    Fail("Circle correction exceeds supervised 3 mm per-axis limit.");
+                    Fail(reason);
                     return null;
                 }
                 var correction = new Point2D<double>(dx, dy);
