@@ -42,6 +42,15 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
             dialog.ShowDialog();
         }
 
+        private void OpenFiducialCalibration_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new MachineFiducialCalibrationWindow
+            {
+                Owner = Window.GetWindow(this)
+            };
+            dialog.ShowDialog();
+        }
+
         private VacuumCalibrationWindow _vacuumWindow;
 
         private void OpenVacuumCalibration_Click(object sender, RoutedEventArgs e)

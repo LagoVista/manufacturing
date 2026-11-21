@@ -293,6 +293,11 @@
             
                             <Separator Margin="0,12,0,10"/>
                             <TextBlock Style="{StaticResource header}" Text="Camera Pixels per MM"/>
+                            <Button Style="{StaticResource CommandButton}"
+                                    Click="OpenFiducialCalibration_Click"
+                                    Content="Open Machine Fiducial Calibration"
+                                    HorizontalAlignment="Left" Margin="0,6,0,0"/>
+
                             <StackPanel Orientation="Horizontal" Margin="0,4,0,6">
                                 <TextBlock Text="Camera default: " FontWeight="SemiBold"/>
                                 <TextBlock Text="{Binding SelectedMachineCamera.PixelsPerMM, StringFormat='{}{0:F1} px/mm'}"/>
