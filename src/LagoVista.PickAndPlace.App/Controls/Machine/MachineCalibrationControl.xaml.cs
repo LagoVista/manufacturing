@@ -65,6 +65,15 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
             dialog.ShowDialog();
         }
 
+        private void OpenStagingPlateCalibration_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new StagingPlateCalibrationWindow(ViewModel?.SelectedStagingPlate)
+            {
+                Owner = Window.GetWindow(this)
+            };
+            dialog.ShowDialog();
+        }
+
         private void OpenStagingPlateSettings_Click(object sender, RoutedEventArgs e)
         {
             // Configuration is available now; do not accidentally run the

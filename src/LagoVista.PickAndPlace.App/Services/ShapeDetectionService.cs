@@ -448,7 +448,18 @@ namespace LagoVista.PickAndPlace.App.Services
                         {
                             using (var mask = new Image<Gray, byte>(size))
                             {
-                                CvInvoke.Circle(mask, new System.Drawing.Point() { X = size.Width / 2, Y = size.Height / 2 },
+                                var isStagingHole = camera.CurrentVisionProfile.Key ==
+                                    VisionProfile.VisionProfile_StagingPlateHole;
+                                var searchCenter = isStagingHole
+                                    ? StagingHoleSearchRegion.Center(size.Width, size.Height,
+                                        camera.EffectivePixelsPerMM,
+                                        camera.CurrentVisionProfile.StagingSearchOffsetXmm,
+                                        camera.CurrentVisionProfile.StagingSearchOffsetYmm)
+                                    : new LagoVista.Core.Models.Drawing.Point2D<double>(
+                                        size.Width / 2, size.Height / 2);
+                                CvInvoke.Circle(mask, new System.Drawing.Point(
+                                        (int)Math.Round(searchCenter.X),
+                                        (int)Math.Round(searchCenter.Y)),
                                 Convert.ToInt32(camera.CurrentVisionProfile.TargetImageRadius * camera.EffectivePixelsPerMM),
                                  new Bgr(System.Drawing.Color.White).MCvScalar,
                                     -1, LineType.AntiAlias);
@@ -497,7 +508,18 @@ namespace LagoVista.PickAndPlace.App.Services
                             {
                                 using (var finalMask = new Image<Gray, byte>(size))
                                 {
-                                    CvInvoke.Circle(finalMask, new Point(size.Width / 2, size.Height / 2),
+                                    var isStagingHole = camera.CurrentVisionProfile.Key ==
+                                        VisionProfile.VisionProfile_StagingPlateHole;
+                                    var searchCenter = isStagingHole
+                                        ? StagingHoleSearchRegion.Center(size.Width, size.Height,
+                                            camera.EffectivePixelsPerMM,
+                                            camera.CurrentVisionProfile.StagingSearchOffsetXmm,
+                                            camera.CurrentVisionProfile.StagingSearchOffsetYmm)
+                                        : new LagoVista.Core.Models.Drawing.Point2D<double>(
+                                            size.Width / 2, size.Height / 2);
+                                    CvInvoke.Circle(finalMask, new Point(
+                                        (int)Math.Round(searchCenter.X),
+                                        (int)Math.Round(searchCenter.Y)),
                                         Convert.ToInt32(camera.CurrentVisionProfile.TargetImageRadius * camera.EffectivePixelsPerMM),
                                         new MCvScalar(255), -1, LineType.AntiAlias);
                                     CvInvoke.BitwiseAnd(input, input, invertedMasked, finalMask);

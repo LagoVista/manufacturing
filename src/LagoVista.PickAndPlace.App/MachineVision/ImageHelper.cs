@@ -92,6 +92,23 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     size.Width, size.Height, camera.EffectivePixelsPerMM, profile.TargetImageRadius)
                 : profile.TargetImageRadius * camera.EffectivePixelsPerMM;
 
+            // Staging-hole ROI may be shifted while the machine's physical
+            // centering target must remain the optical frame center.
+            if (profile.Key == VisionProfile.VisionProfile_StagingPlateHole)
+            {
+                var roi = StagingHoleSearchRegion.Center(size.Width, size.Height,
+                    camera.EffectivePixelsPerMM, profile.StagingSearchOffsetXmm,
+                    profile.StagingSearchOffsetYmm);
+                Circle(destImage, (int)Math.Round(roi.X), (int)Math.Round(roi.Y),
+                    (int)scaledRadius, System.Drawing.Color.Yellow);
+                const int arm = 15;
+                Line(destImage, center.X - arm, center.Y, center.X + arm, center.Y,
+                    System.Drawing.Color.Cyan, 1);
+                Line(destImage, center.X, center.Y - arm, center.X, center.Y + arm,
+                    System.Drawing.Color.Cyan, 1);
+                return;
+            }
+
             Line(destImage, 0, center.Y, center.X - (int)scaledRadius, center.Y, System.Drawing.Color.Yellow);
             Line(destImage, center.X + (int)scaledRadius, center.Y, size.Width, center.Y, System.Drawing.Color.Yellow);
 
