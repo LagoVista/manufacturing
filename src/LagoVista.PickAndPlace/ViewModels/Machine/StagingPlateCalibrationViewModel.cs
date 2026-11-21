@@ -115,9 +115,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         {
             get
             {
-                var position = Machine?.MachinePosition;
-                return position == null ? "Machine position unavailable." :
-                    "Current machine X=" + position.X.ToString("F3") +
+                if (Machine == null) return "Machine position unavailable.";
+                var position = Machine.MachinePosition;
+                return "Current machine X=" + position.X.ToString("F3") +
                     ", Y=" + position.Y.ToString("F3") + " mm.";
             }
         }
@@ -459,12 +459,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private async Task<bool> MoveToReferenceAsync(
             Point2D<double> target, string referenceName)
         {
-            var position = Machine?.MachinePosition;
-            var positionText = position == null ? "current position unknown" :
-                "current X=" + position.X.ToString("F3") +
-                ", Y=" + position.Y.ToString("F3") +
-                "; delta X=" + (target.X - position.X).ToString("+0.000;-0.000;0.000") +
-                ", Y=" + (target.Y - position.Y).ToString("+0.000;-0.000;0.000");
+            var positionText = Machine == null || target == null
+                ? "current position unavailable"
+                : "current X=" + Machine.MachinePosition.X.ToString("F3") +
+                  ", Y=" + Machine.MachinePosition.Y.ToString("F3") +
+                  "; delta X=" + (target.X - Machine.MachinePosition.X)
+                      .ToString("+0.000;-0.000;0.000") +
+                  ", Y=" + (target.Y - Machine.MachinePosition.Y)
+                      .ToString("+0.000;-0.000;0.000");
             var targetDescription = StagingPlateReferenceGate.DescribeTravelViolation(
                 target, Machine?.Settings?.WorkAreaSize, referenceName);
             LastPlannedMove = targetDescription + " (" + positionText + " mm).";
