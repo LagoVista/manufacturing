@@ -79,16 +79,26 @@ line extraction and irrelevant vision properties are **not offered**. Shape
 detection and circle tracking are required execution invariants, not optional
 switches that could silently disable a calibration safety check.
 
-Editing a field or nudging the ROI only changes the draft. **Apply Preview**
-validates values, switches to the real staging-hole profile and applies edits
-to the live camera/detector **without moving the machine**. **Observe 8
-Seconds** collects real centroid observations with no motion. **Save Profile**
-explicitly persists the profile. **Revert** and closing the window discard
-uncommitted applied changes, restoring the prior saved profile. An un-applied
-draft or unsaved preview blocks the automatic seven-step calibration, so the
-later plate-coordinate save cannot accidentally persist unapproved profile
-changes. Editing/preview invalidates all previous detector observations;
-each machine move still requires new post-move verified circle evidence.
+**Search radius and search-center X/Y are now live-preview controls.**
+Typing a valid value or pressing the 0.1 mm search-offset nudge buttons
+updates the ACTUAL active `stagingplatehole` detector/search mask without
+another click, and does not move the machine. The green LIVE SEARCH summary
+and caption on the video show the applied radius and XY offset, including when
+a large circle boundary falls partly outside the camera image. Invalid inputs,
+out-of-image search centers, unavailable live capture and unsafe/Busy machine
+states leave the real detector unchanged with a diagnostic status.
+
+Other applicable vision settings (threshold/blur, camera overrides, lighting,
+display) remain staged until **Apply Preview**. That explicit action validates
+all values and applies the changes without moving the machine. **Observe
+8 Seconds** collects real centroid observations with no motion. **Save Profile**
+persists only explicitly approved, applied settings. **Revert** and closing
+the window discard uncommitted applied changes, restoring prior saved values.
+Unsaved live search geometry and un-applied drafts block the automatic
+seven-step calibration, so its later plate-coordinate save cannot accidentally
+persist unapproved profile edits. Any applied search or image-setting change
+invalidates previous detector observations; each machine move requires fresh
+post-move evidence.
 
 Changing the per-profile camera scale can affect measured dimensions, so its
 effective value must pass finite/positive/ROI-image checks, and trackers are
