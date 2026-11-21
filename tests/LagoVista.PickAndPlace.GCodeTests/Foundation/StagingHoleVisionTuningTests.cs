@@ -105,6 +105,61 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void StagedProcessingCaptureLightingAndDisplayRoundTrip()
+        {
+            var profile = ValidProfile();
+            var baseline = StagingHoleVisionTuning.FromProfile(profile);
+            var draft = StagingHoleVisionTuning.FromProfile(profile);
+            draft.ApplyMask = true;
+            draft.ApplyThreshold = true;
+            draft.PrimaryThreshold = 68;
+            draft.Invert = true;
+            draft.UseBlurredImage = true;
+            draft.BlurKernelSize = 5;
+            draft.BlurSigma = 1.2;
+            draft.SearchOffsetXmm = 0.3;
+            draft.SearchOffsetYmm = -0.2;
+            draft.SearchRadiusMm = 1.5;
+            draft.MinimumRadiusMm = 0.3;
+            draft.MaximumRadiusMm = 2.6;
+            draft.StabilizationCount = 8;
+            draft.CenterToleranceMm = 0.15;
+            draft.PixelsPerMm = 100;
+            draft.Brightness = 2.4;
+            draft.Contrast = 5.5;
+            draft.Focus = 18;
+            draft.Exposure = -9.4;
+            draft.LightOn = true;
+            draft.LightPower = 125;
+            draft.LightRed = 255;
+            draft.LightGreen = 100;
+            draft.LightBlue = 25;
+            draft.ShowOriginalImage = true;
+            draft.ShowCrossHairs = true;
+            draft.ShowCalibrationSquare = true;
+            draft.ZoomLevel = 1.5;
+
+            Assert.That(draft.Validate(out var reason), Is.True, reason);
+            draft.ApplyTo(profile);
+            Assert.Multiple(() =>
+            {
+                Assert.That(StagingHoleVisionTuning.FromProfile(profile).Matches(profile), Is.True);
+                Assert.That(profile.StagingSearchOffsetXmm, Is.EqualTo(0.3));
+                Assert.That(profile.StagingSearchOffsetYmm, Is.EqualTo(-0.2));
+                Assert.That(profile.PrimaryThreshold, Is.EqualTo(68));
+                Assert.That(profile.LightPower, Is.EqualTo(125));
+                Assert.That(profile.PixelsPerMM, Is.EqualTo(100));
+                Assert.That(profile.FindCircles, Is.True);
+                Assert.That(profile.PerformShapeDetection, Is.True);
+                Assert.That(baseline.Matches(profile), Is.False);
+            });
+
+            // Closing an unsaved preview restores the exact profile settings.
+            baseline.ApplyTo(profile);
+            Assert.That(baseline.Matches(profile), Is.True);
+        }
+
+        [Test]
         public void InvalidMaskAndBlurSettingsCannotBeApplied()
         {
             var d = StagingHoleVisionTuning.FromProfile(ValidProfile());
