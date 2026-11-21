@@ -32,6 +32,7 @@ namespace LagoVista.PickAndPlace.App.Services
     {
         private bool _running;
         private DateTimeOffset _lastFrameUtc;
+        public DateTimeOffset LastProcessedFrameUtc => _lastFrameUtc;
 
         // A connected device without fresh processed images is NOT ready.
         public bool IsCapturing => _running && _capture != null &&
