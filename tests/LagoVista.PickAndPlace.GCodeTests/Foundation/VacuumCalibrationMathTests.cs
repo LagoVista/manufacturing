@@ -108,6 +108,59 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void HeadTwoOpenPumpTransientRemainsRejectedAtTheExistingEightPercentThreshold()
+        {
+            var idle = Capture(2, 2060, 0);
+            // The operator's right-head open-nozzle stage showed a roughly
+            // 80k-count response but a >10k within-window fluctuation.
+            // Do not relax safety limits: reject transient windows regardless
+            // of how many bounded attempts the hardware controller makes.
+            var unsettled = new long[] {
+                -83335, -81900, -80000, -77000, -73800, -72772
+            }.Select((raw, index) => new VacuumPressureSample
+            {
+                HeadIndex = 2,
+                RawCount = raw,
+                CapturedAtUtc = Now.AddMilliseconds(3000 + index * 150)
+            }).ToArray();
+            var spread = VacuumPressureSampling.AllowedRawSpread(
+                idle, unsettled.Average(sample => (double)sample.RawCount));
+            Assert.That(spread, Is.GreaterThan(6300).And.LessThan(6600));
+            Assert.That(VacuumPressureSampling.TryCaptureBand(
+                unsettled, 2, Now.AddSeconds(5), TimeSpan.FromSeconds(8), 6,
+                spread, out _, out var reason), Is.False);
+            Assert.That(reason, Does.Contain("span 10563.0"));
+            Assert.That(VacuumPressureSampling.UnstableStageMessage(
+                2, "pump-on / open nozzle", 5, reason),
+                Does.Contain("Head 2 pump-on / open nozzle pressure remained unstable"));
+            Assert.That(VacuumPressureSampling.UnstableStageMessage(
+                2, "pump-on / open nozzle", 5, reason),
+                Does.Not.Contain("baseline remained unstable"));
+        }
+
+        [Test]
+        public void ARealLaterStableRightOpenPumpWindowPassesWithoutChangingThreshold()
+        {
+            var idle = Capture(2, 2060, 0);
+            var settled = new long[] {
+                -79000, -79100, -78800, -78900, -79040, -78930
+            }.Select((raw, index) => new VacuumPressureSample
+            {
+                HeadIndex = 2,
+                RawCount = raw,
+                CapturedAtUtc = Now.AddMilliseconds(3000 + index * 150)
+            }).ToArray();
+            var limit = VacuumPressureSampling.AllowedRawSpread(
+                idle, settled.Average(sample => (double)sample.RawCount));
+            Assert.That(VacuumPressureSampling.TryCaptureBand(
+                settled, 2, Now.AddSeconds(5), TimeSpan.FromSeconds(8), 6,
+                limit, out var accepted, out var error), Is.True, error);
+            Assert.That(accepted.HeadIndex, Is.EqualTo(2));
+            Assert.That(accepted.MaximumRawCount - accepted.MinimumRawCount,
+                Is.LessThan(limit));
+        }
+
+        [Test]
         public void RawTwentyFourBitPumpResponseScalesFromMeasuredIdleNoise()
         {
             var ambient = new long[] { 4789, 4289, 4651, 5043, 4595, 4643 }
