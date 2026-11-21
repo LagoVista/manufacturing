@@ -63,9 +63,10 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             var d = StagingHoleVisionTuning.FromProfile(ValidProfile());
             d.ApplyMask = true;
             d.SearchRadiusMm = 2.5;
-            Assert.That(d.FitsFrame(640, 480, 100, out _), Is.False);
-            d.SearchRadiusMm = 1;
+            // Oversized legacy masks legitimately clip at the image edges.
             Assert.That(d.FitsFrame(640, 480, 100, out _), Is.True);
+            d.SearchOffsetXmm = 4.0;
+            Assert.That(d.FitsFrame(640, 480, 100, out _), Is.False);
         }
 
         [Test]

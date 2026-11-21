@@ -47,12 +47,13 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             // Search-region position is profile-controlled for staging holes.
             // The MVLocatedCircle optical center stays at frame center, so
             // moving the ROI does NOT change the target machine alignment.
-            var searchCenterX = center.X + (stagingPlateHole
-                ? profile.StagingSearchOffsetXmm * camera.EffectivePixelsPerMM : 0);
-            var searchCenterY = center.Y + (stagingPlateHole
-                ? profile.StagingSearchOffsetYmm * camera.EffectivePixelsPerMM : 0);
+            var searchCenter = stagingPlateHole
+                ? StagingHoleSearchRegion.Center(size.Width, size.Height,
+                    camera.EffectivePixelsPerMM, profile.StagingSearchOffsetXmm,
+                    profile.StagingSearchOffsetYmm)
+                : new LagoVista.Core.Models.Drawing.Point2D<double>(center.X, center.Y);
             var search = new CircleF(new System.Drawing.PointF(
-                (float)searchCenterX, (float)searchCenterY), scaledTarget);
+                (float)searchCenter.X, (float)searchCenter.Y), scaledTarget);
             CircleF[] circles;
             if (stagingPlateHole)
             {

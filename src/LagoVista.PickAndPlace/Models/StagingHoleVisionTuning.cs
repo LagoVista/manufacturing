@@ -196,12 +196,13 @@ namespace LagoVista.PickAndPlace.Models
         public bool FitsFrame(int width, int height, double effectivePixelsPerMm,
             out string reason)
         {
+            // The existing mask is permitted to extend beyond the cropped
+            // square camera frame; the relevant clipped ROI still works.
+            // Only reject a search center outside the image itself.
             if (!StagingHoleSearchRegion.FitsFrame(width, height, effectivePixelsPerMm,
-                SearchOffsetXmm, SearchOffsetYmm, SearchRadiusMm, ApplyMask))
+                SearchOffsetXmm, SearchOffsetYmm, SearchRadiusMm, false))
             {
-                reason = ApplyMask
-                    ? "Search mask circle falls outside the camera image; reduce radius or X/Y offset."
-                    : "Search center falls outside the camera image; reduce X/Y offset.";
+                reason = "Search center falls outside the camera image; reduce X/Y offset.";
                 return false;
             }
             reason = null;
