@@ -96,6 +96,19 @@ namespace LagoVista.Manufacturing.Managers
             await AuthorizeAsync(machine, AuthorizeActions.Update, user, org);
             ValidationCheck(machine, Actions.Update);
 
+            // Validate bounded per-plate motion settings at the API boundary:
+            // an outdated or custom client must not persist unsafe values.
+            if (machine.StagingPlates != null)
+            {
+                foreach (var plate in machine.StagingPlates)
+                {
+                    if (plate == null)
+                        return InvokeResult.FromError("Machine contains a null staging plate.");
+                    if (!plate.TryValidateCenteringLimits(out var reason))
+                        return InvokeResult.FromError("Staging plate " + plate.Name + ": " + reason);
+                }
+            }
+
             // Changing the selected reference row or column must not leave an old
             // hole's machine XY attached to the newly selected hole. Project the
             // new location using the previous persisted two-point alignment.

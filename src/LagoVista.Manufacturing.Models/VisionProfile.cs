@@ -169,6 +169,23 @@ namespace LagoVista.PickAndPlace.Models
             set { _targetImageRadius = Math.Round(value, 1); RaisePropertyChanged(); }
         }
 
+        // Staging-hole search acquisition offset from the optical image
+        // center, in millimeters. This never changes machine origin.
+        // Older persisted profiles default to optical-center search (0,0).
+        private double _stagingSearchOffsetXmm;
+        public double StagingSearchOffsetXmm
+        {
+            get => _stagingSearchOffsetXmm;
+            set => Set(ref _stagingSearchOffsetXmm, Math.Round(value, 3));
+        }
+
+        private double _stagingSearchOffsetYmm;
+        public double StagingSearchOffsetYmm
+        {
+            get => _stagingSearchOffsetYmm;
+            set => Set(ref _stagingSearchOffsetYmm, Math.Round(value, 3));
+        }
+
         private double? _focus;
         public double? Focus
         {
