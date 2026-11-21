@@ -127,6 +127,24 @@
                   Margin="0,12,0,0">
             <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="270">
                 <StackPanel Margin="8">
+                    <Border Background="#172737" BorderBrush="#49627A"
+                            BorderThickness="1" CornerRadius="6" Padding="11"
+                            Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="CALCULATED TRAVEL &amp; SAFETY BOUNDS"
+                                       FontSize="11" Foreground="#91BEE0"
+                                       FontWeight="Bold" Margin="0,0,0,7"/>
+                            <TextBlock Text="{Binding ConfiguredTravelSummary}"
+                                       Foreground="#D2E3F0" FontFamily="Consolas"
+                                       FontSize="11" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding CurrentMachinePositionSummary}"
+                                       Foreground="#C2D4E4" FontFamily="Consolas"
+                                       FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding LastPlannedMove}"
+                                       Foreground="#E6C39A" FontSize="11"
+                                       TextWrapping="Wrap" Margin="0,7,0,0"/>
+                        </StackPanel>
+                    </Border>
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>

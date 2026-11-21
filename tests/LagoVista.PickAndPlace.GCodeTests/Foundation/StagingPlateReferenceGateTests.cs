@@ -63,6 +63,36 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void TravelViolationExplainsExactTargetAndHowFarBeyondLimit()
+        {
+            var target = new Point2D<double>(302.125, 150.75);
+            var area = new Point2D<double>(300, 200);
+            Assert.That(StagingPlateReferenceGate.WithinWorkArea(target, area), Is.False);
+            var reason = StagingPlateReferenceGate.DescribeTravelViolation(
+                target, area, "Reference hole 2");
+            Assert.Multiple(() =>
+            {
+                Assert.That(reason, Does.Contain("Reference hole 2"));
+                Assert.That(reason, Does.Contain("302.125"));
+                Assert.That(reason, Does.Contain("300.000"));
+                Assert.That(reason, Does.Contain("2.125"));
+                Assert.That(reason, Does.Contain("No move issued"));
+            });
+        }
+
+        [Test]
+        public void NegativeTargetMustNotBeDescribedAsFixableByIncreasingUpperLimit()
+        {
+            var reason = StagingPlateReferenceGate.DescribeTravelViolation(
+                new Point2D<double>(-4.5, 20), new Point2D<double>(400, 300),
+                "Reference hole 2");
+            Assert.That(reason, Does.Contain("negative coordinate"));
+            Assert.That(reason, Does.Contain("4.500"));
+            Assert.That(StagingPlateReferenceGate.WithinWorkArea(
+                new Point2D<double>(-4.5, 20), new Point2D<double>(400, 300)), Is.False);
+        }
+
+        [Test]
         public void ValidatesPhysicalMachineXYLimits()
         {
             var area = new Point2D<double>(300, 200);
