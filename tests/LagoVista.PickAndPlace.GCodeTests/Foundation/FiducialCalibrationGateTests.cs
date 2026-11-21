@@ -1,4 +1,5 @@
 using LagoVista.PickAndPlace.Models;
+using LagoVista.Manufacturing.Models;
 using NUnit.Framework;
 using System;
 
@@ -12,6 +13,7 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         private static FiducialCircleObservation Centered() =>
             new FiducialCircleObservation
             {
+                CameraType = CameraTypes.Position,
                 ProfileKey = "macfiducial",
                 ObservedAtUtc = Now.AddMilliseconds(-50),
                 FrameAtUtc = Now.AddMilliseconds(-60),
@@ -111,6 +113,15 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             o.ProfileKey = "brdfiducial";
             Assert.That(Qualify(o, out var reason), Is.False);
             Assert.That(reason, Does.Contain("profile"));
+        }
+
+        [Test]
+        public void BottomCameraCircleCannotAuthorizeMachineOriginReset()
+        {
+            var o = Centered();
+            o.CameraType = CameraTypes.PartInspection;
+            Assert.That(Commit(o, out var reason), Is.False);
+            Assert.That(reason, Does.Contain("different camera"));
         }
 
         [Test]

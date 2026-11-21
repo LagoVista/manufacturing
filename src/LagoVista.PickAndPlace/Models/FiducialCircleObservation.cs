@@ -1,4 +1,5 @@
 using System;
+using LagoVista.Manufacturing.Models;
 
 namespace LagoVista.PickAndPlace.Models
 {
@@ -10,6 +11,7 @@ namespace LagoVista.PickAndPlace.Models
     public sealed class FiducialCircleObservation
     {
         public Guid TrackId { get; set; }
+        public CameraTypes CameraType { get; set; }
         public DateTimeOffset ObservedAtUtc { get; set; }
         public DateTimeOffset FrameAtUtc { get; set; }
         public string ProfileKey { get; set; }

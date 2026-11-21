@@ -456,7 +456,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         {
             var request = _pending;
             if (request == null || circle == null || _capture == null ||
-                _camera == null || _profile == null) return;
+                _camera == null || _profile == null ||
+                circle.CameraType != CameraTypes.Position) return;
 
             var offset = circle.OffsetMM;
             var pixels = circle.OffsetPixels;
@@ -464,6 +465,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             var snapshot = new FiducialCircleObservation
             {
                 TrackId = circle.Id,
+                CameraType = circle.CameraType,
                 ObservedAtUtc = DateTimeOffset.UtcNow,
                 FrameAtUtc = _capture.LastProcessedFrameUtc,
                 ProfileKey = _capture.Profile?.Key,

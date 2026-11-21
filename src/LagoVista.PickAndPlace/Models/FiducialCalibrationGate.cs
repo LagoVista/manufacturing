@@ -1,4 +1,5 @@
 using System;
+using LagoVista.Manufacturing.Models;
 
 namespace LagoVista.PickAndPlace.Models
 {
@@ -19,6 +20,11 @@ namespace LagoVista.PickAndPlace.Models
             if (observation == null)
             {
                 rejection = "No circle observed";
+                return false;
+            }
+            if (observation.CameraType != CameraTypes.Position)
+            {
+                rejection = "Circle came from a different camera";
                 return false;
             }
             if (observation.ProfileKey != expectedProfile)
