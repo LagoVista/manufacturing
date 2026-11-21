@@ -9,6 +9,7 @@ using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -54,6 +55,31 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private double? _commandedNozzleZ;
         private int _contactConfirmedHead;
         private bool _runAllPaused;
+        private string _currentHardwareAction = "No hardware command in progress.";
+        private string _lastHardwareFailure = "";
+
+        public string CurrentHardwareAction
+        {
+            get => _currentHardwareAction;
+            private set => Set(ref _currentHardwareAction, value);
+        }
+
+        public string LastHardwareFailure
+        {
+            get => _lastHardwareFailure;
+            private set => Set(ref _lastHardwareFailure, value);
+        }
+
+        // Report the precise machine substage before each awaited controller
+        // operation. One vacuum step includes multiple M400 waits and tool
+        // coordinate changes, so a 20-second interval is not necessarily a
+        // stalled sensor or a missing operator checkbox.
+        private void ReportHardwareAction(string action)
+        {
+            CurrentHardwareAction = "Head " + _head + " · " + action +
+                " · started " + DateTimeOffset.UtcNow.ToString("HH:mm:ss.fff") + " UTC";
+            Status = "Head " + _head + ": " + action;
+        }
 
         public VacuumCalibrationViewModel(IMachineRepo repo)
         {
@@ -194,16 +220,21 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private async Task WaitForActuatorIdleAsync(string stage, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
+            ReportHardwareAction("Waiting for controller motion acknowledgement: " +
+                stage + " (15s limit)");
+            var elapsed = Stopwatch.StartNew();
             var settled = await _machine.SpinUntilIdleAsync(15000);
+            elapsed.Stop();
             token.ThrowIfCancellationRequested();
-            // SpinUntilIdleAsync is the existing machine motion-completion
-            // contract (M400). Do not add a second instantaneous gate on
-            // Busy / queue / unacknowledged-byte counters: these track other
-            // layers and can transiently remain nonzero after a good wait.
-            // The movement stages also verify their expected actual XY via M114.
+            // Keep M400 as the only awaited motion-completion contract; do
+            // not bypass hardware safety or add brittle queue-count gates.
             if (!settled.Successful)
                 throw new InvalidOperationException(
-                    stage + ": motion-completion wait failed: " + settled.ErrorMessage);
+                    stage + ": controller motion wait failed after " +
+                    elapsed.Elapsed.TotalSeconds.ToString("F1") +
+                    "s (15s limit): " + settled.ErrorMessage);
+            ReportHardwareAction(stage + ": acknowledged after " +
+                elapsed.Elapsed.TotalSeconds.ToString("F1") + "s");
         }
 
         private async Task<VacuumPressureBand> CaptureAsync(int head, CancellationToken token, VacuumPressureBand idleBaseline = null)
@@ -414,6 +445,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
 
             _runAllPaused = false;
+            LastHardwareFailure = "";
             _runAllActive = true;
             NotifyButtons();
             try
@@ -610,8 +642,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 var motionWasAttempted = _phase == Phase.Open ||
                     _phase == Phase.AtFiducial || _phase == Phase.AtPickHeight ||
                     _phase == Phase.Sealed || _phase == Phase.Released;
+                var failingAction = CurrentHardwareAction;
                 SetPhase(Phase.Faulted);
-                Status = "Procedure failed: " + ex.Message + " | Verify pump and Z state before restarting.";
+                LastHardwareFailure = "Head " + _head + ": " + ex.Message +
+                    " | Last machine substage: " + failingAction;
+                Status = "Procedure failed: " + LastHardwareFailure +
+                    " | Verify pump and Z state before restarting.";
                 try
                 {
                     StopPumps();
@@ -714,6 +750,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 throw new InvalidOperationException(
                     "Camera-to-tool offset would place tool outside the configured work area.");
 
+            ReportHardwareAction("Preparing camera/selected-tool safe-Z transition");
             // Retract selected tool before returning to camera coordinates.
             if (_machine.CurrentMachineToolHead != null)
             {
@@ -724,18 +761,23 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             await WaitForActuatorIdleAsync("Machine safe Z", token);
 
             token.ThrowIfCancellationRequested();
+            ReportHardwareAction("Switching to camera coordinate frame (awaiting tool navigation)");
             await _machine.MoveToCameraAsync();
             await WaitForActuatorIdleAsync("Camera selection", token);
             if (_machine.CurrentMachineToolHead != null)
                 throw new InvalidOperationException("Machine did not switch to camera coordinates.");
 
             // 1. Camera directly above the existing machine test position.
+            ReportHardwareAction("Moving camera to configured test XY");
             _machine.GotoPoint(point);
             await WaitForActuatorIdleAsync("Camera at test spot", token);
+            ReportHardwareAction("Verifying camera XY from controller M114");
             await VerifyFiducialAsync(token);
 
             // 2. Switch to the selected tool using the machine's established
             // camera-to-tool offset, not a new hand-authored offset.
+            ReportHardwareAction("Switching from camera to Head " + _head +
+                " coordinate frame (awaiting tool navigation)");
             await _machine.MoveToToolHeadAsync(tool);
             await WaitForActuatorIdleAsync("Select Tool " + _head, token);
             if (_machine.CurrentMachineToolHead?.HeadIndex != _head)
@@ -745,7 +787,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _machine.SetToolHeadHeight(settings.SafMoveHeight);
             await WaitForActuatorIdleAsync("Tool Z safe", token);
             _commandedNozzleZ = settings.SafMoveHeight;
+            ReportHardwareAction("Verifying selected Head " + _head +
+                " tool XY from controller M114 at safe Z");
             await VerifyFiducialAsync(token);
+            ReportHardwareAction("Head " + _head +
+                " aligned at test XY and safe Z; next move is configured PickHeight");
             NotifyButtons();
         }
 
@@ -783,10 +829,18 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             token.ThrowIfCancellationRequested();
             var position = await _machine.GetCurrentLocationAsync(5000);
             var target = _machine.Settings.MachineFiducial;
-            if (!position.Successful || position.Result == null ||
-                Math.Abs(position.Result.X - target.X) > 0.5 ||
+            if (!position.Successful || position.Result == null)
+                throw new InvalidOperationException(
+                    "Controller M114 could not verify machine test XY: " +
+                    (position.ErrorMessage ?? "no position returned"));
+            if (Math.Abs(position.Result.X - target.X) > 0.5 ||
                 Math.Abs(position.Result.Y - target.Y) > 0.5)
-                throw new InvalidOperationException("Controller XY does not confirm the machine fiducial.");
+                throw new InvalidOperationException(
+                    "Controller test XY mismatch: expected X=" +
+                    target.X.ToString("F3") + ", Y=" + target.Y.ToString("F3") +
+                    "; observed X=" + position.Result.X.ToString("F3") +
+                    ", Y=" + position.Result.Y.ToString("F3") +
+                    " (0.5mm maximum deviation). No further descent allowed.");
         }
 
         private async Task CaptureSealedAsync(CancellationToken token)
@@ -874,6 +928,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 if (_session?.Snapshot?.Status == MachineOperationRunStatus.Running ||
                     _session?.Snapshot?.Status == MachineOperationRunStatus.Blocked)
                     _session.Cancel(DateTimeOffset.UtcNow);
+                CurrentHardwareAction = "Operator abort completed: pump-off commanded and controller safe-Z wait succeeded.";
                 SetPhase(Phase.Aborted);
                 Status = ManufacturingResources.VacuumCalibration_Aborted;
             }

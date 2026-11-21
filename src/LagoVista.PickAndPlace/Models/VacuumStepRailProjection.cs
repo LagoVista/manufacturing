@@ -16,7 +16,7 @@ namespace LagoVista.PickAndPlace.Models
                 case MachineOperationStepStatus.Active: return "Running";
                 case MachineOperationStepStatus.Passed: return "Passed";
                 case MachineOperationStepStatus.Blocked: return "Failed";
-                case MachineOperationStepStatus.Cancelled: return "Failed";
+                case MachineOperationStepStatus.Cancelled: return "Cancelled";
                 default: return "Queued";
             }
         }

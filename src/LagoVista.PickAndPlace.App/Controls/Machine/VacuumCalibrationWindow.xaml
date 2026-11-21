@@ -62,7 +62,7 @@
                     <TextBlock Text="OPERATOR-SUPERVISED"
                                FontWeight="Bold" Foreground="#F0CC8B"
                                FontSize="12" HorizontalAlignment="Right"/>
-                    <TextBlock Text="Pauses before each Z contact &amp; sealed reading"
+                    <TextBlock Text="Pauses only for head-specific sealed-nozzle evidence"
                                Foreground="#BFD4E5" FontSize="11" Margin="0,5,0,0"
                                HorizontalAlignment="Right"/>
                     <TextBlock Text="Physical stop remains independent"
@@ -86,6 +86,12 @@
                 <TextBlock Text="{Binding Status}" FontSize="12"
                            Foreground="#EDF4FA" TextWrapping="Wrap"
                            Margin="0,6,0,0"/>
+                <TextBlock Text="{Binding CurrentHardwareAction}" FontSize="11"
+                           Foreground="#8ED1EF" TextWrapping="Wrap"
+                           Margin="0,5,0,0"/>
+                <TextBlock Text="{Binding LastHardwareFailure}" FontSize="11"
+                           Foreground="#FF9FA6" TextWrapping="Wrap"
+                           Margin="0,5,0,0"/>
             </StackPanel>
         </Border>
 

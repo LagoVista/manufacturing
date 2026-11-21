@@ -10,7 +10,7 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         [TestCase(MachineOperationStepStatus.Active, "Running")]
         [TestCase(MachineOperationStepStatus.Passed, "Passed")]
         [TestCase(MachineOperationStepStatus.Blocked, "Failed")]
-        [TestCase(MachineOperationStepStatus.Cancelled, "Failed")]
+        [TestCase(MachineOperationStepStatus.Cancelled, "Cancelled")]
         public void UsesActualEvidenceBasedMachineOperationStatus(
             MachineOperationStepStatus source, string expected)
         {

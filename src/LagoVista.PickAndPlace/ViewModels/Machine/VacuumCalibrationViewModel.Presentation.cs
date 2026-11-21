@@ -123,8 +123,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         step.Detail = "Machine/operator evidence accepted for " + step.Title;
                         break;
                     case "Failed":
-                        step.Detail = state.Error ??
-                            "Procedure stopped. Verify pump-off and safe Z.";
+                        step.Detail = state.Error ?? _session?.Snapshot?.LastError ??
+                            "Hardware step blocked without a specific reason. Inspect the red failure detail and machine status.";
+                        break;
+                    case "Cancelled":
+                        step.Detail = "Operator-aborted. Pump-off and safe-Z were requested; " +
+                            "verify physical Z and outputs before another run.";
                         break;
                     case "Queued":
                         step.Detail = "Awaiting fresh machine and sensor evidence.";
