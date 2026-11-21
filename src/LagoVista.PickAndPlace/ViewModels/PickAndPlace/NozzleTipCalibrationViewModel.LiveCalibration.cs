@@ -90,7 +90,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public bool CanStartRunout =>
             !RunoutRunning && !RunoutPreviewBusy &&
             !HasRunoutVisionDraft && !HasRunoutVisionPreview &&
-            SelectedRunoutHead != null;
+            AvailableRunoutHeads.Count > 0;
 
         public bool CanTuneRunoutVision =>
             !RunoutRunning && !RunoutPreviewBusy;

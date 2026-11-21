@@ -32,7 +32,9 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         string RunoutVisionStatus { get; }
         string RunoutSearchSummary { get; }
         IReadOnlyList<MachineToolHead> AvailableRunoutHeads { get; }
-        MachineToolHead SelectedRunoutHead { get; set; }
+        string PlannedRunoutSequence { get; }
+        string RunoutSequenceProgress { get; }
+        ObservableCollection<string> CompletedRunoutSummaries { get; }
         ObservableCollection<string> CalibrationUpdates { get; }
         int TargetAngle { get; }
         int CurrentCalibrationAngle { get; }
