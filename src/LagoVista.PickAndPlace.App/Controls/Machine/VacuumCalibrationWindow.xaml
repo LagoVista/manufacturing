@@ -62,7 +62,7 @@
                     <TextBlock Text="OPERATOR-SUPERVISED"
                                FontWeight="Bold" Foreground="#F0CC8B"
                                FontSize="12" HorizontalAlignment="Right"/>
-                    <TextBlock Text="Pauses only for head-specific sealed-nozzle evidence"
+                    <TextBlock Text="Automatic vacuum sampling · manual confirmation only in Guided mode"
                                Foreground="#BFD4E5" FontSize="11" Margin="0,5,0,0"
                                HorizontalAlignment="Right"/>
                     <TextBlock Text="Physical stop remains independent"
@@ -125,7 +125,7 @@
                                         <TextBlock Text="{Binding HeadDescription, StringFormat='SEALED-NOZZLE CHECK · {0}'}"
                                                    Foreground="#A4EDCF" FontWeight="Bold"
                                                    FontSize="12" Margin="0,0,0,5"/>
-                                        <TextBlock Text="The nozzle is at the configured PickHeight. Confirm it is lightly obstructed without a collision; the sensor must still independently prove part-present. Abort to retract and vent if unsure."
+                                        <TextBlock Text="GUIDED MODE ONLY. The nozzle is at the configured PickHeight. Visually confirm that it is lightly obstructed without collision before sampling. Run Both uses automatic stable sensor verification instead. Abort to retract and vent if unsure."
                                                    Foreground="#E0F1EB" FontSize="11"
                                                    TextWrapping="Wrap" Margin="0,0,0,8"/>
                                         <CheckBox Content="I visually confirmed contact/obstruction for this head."
@@ -134,7 +134,7 @@
                                                   Foreground="#E4FFF0" FontWeight="SemiBold"/>
                                     </StackPanel>
                                 </Border>
-                                <TextBlock Text="The explicit Run Both button starts the supervised operation. It pauses only for confirmed physical nozzle contact on each head; stable sensor readings must independently prove the seal."
+                                <TextBlock Text="Run Both follows the original automatic sensor-verified sequence after the safe configured PickHeight. It does not pause for a contact checkbox. Guided Step requires manual contact confirmation before sampling. Both modes must pass stable sensor separation before a seal is accepted."
                                            TextWrapping="Wrap" FontSize="10"
                                            Foreground="#BFCFE0"/>
                             </StackPanel>

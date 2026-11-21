@@ -9,7 +9,18 @@ namespace LagoVista.PickAndPlace.Models
     public static class VacuumContactCheckpoint
     {
         public static bool CanCaptureSealed(int selectedHead, int confirmedHead) =>
+            CanCaptureSealed(selectedHead, confirmedHead, false);
+
+        /// <summary>
+        /// Restore T007 automatic sampling after the verified PickHeight
+        /// move. This authorizes SAMPLE ACQUISITION, not a claim of contact:
+        /// the stable sensor band must still pass independent response,
+        /// separation and classification validation. Guided operation
+        /// continues to require head-specific visual confirmation.
+        /// </summary>
+        public static bool CanCaptureSealed(int selectedHead, int confirmedHead,
+            bool automatic) =>
             (selectedHead == 1 || selectedHead == 2) &&
-            selectedHead == confirmedHead;
+            (automatic || selectedHead == confirmedHead);
     }
 }

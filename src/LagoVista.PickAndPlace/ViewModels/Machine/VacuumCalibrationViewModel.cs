@@ -54,7 +54,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private int _head = 1;
         private double? _commandedNozzleZ;
         private int _contactConfirmedHead;
-        private bool _runAllPaused;
         private string _currentHardwareAction = "No hardware command in progress.";
         private string _lastHardwareFailure = "";
 
@@ -104,15 +103,23 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
         }
 
-        // The explicit Run Both button initiates the supervised operation.
-        // Deterministic machine/fixture geometry preflight and existing
-        // safe Z/XY/selected tool checks are required before every descent.
-        // The only manual mid-run checkpoint proves REAL nozzle obstruction.
+        private void ResetContactConfirmation()
+        {
+            // The state machine sets Busy while advancing, so the checkbox
+            // setter intentionally rejects changes. Reset the backing proof
+            // here to avoid carrying Head 1's manual approval into Head 2.
+            _operatorConfirmedContact = false;
+            _contactConfirmedHead = 0;
+            RaisePropertyChanged(nameof(OperatorConfirmedContact));
+            NotifyButtons();
+        }
+
+        // The existing T007 Run Both procedure automatically measures the
+        // configured nozzle seal and requires sensor-based verification.
+        // The independent contact checkbox is for GUIDED manual steps only.
         public bool AwaitingOperatorCheckpoint =>
             !_runAllActive && _phase == Phase.AtPickHeight;
-        public string RunAllAction => _phase == Phase.Ready
-            ? "Run Both Heads (pause for contact)"
-            : "Resume Both-Head Procedure";
+        public string RunAllAction => "Run Both Heads";
         public string Status
         {
             get => _status;
@@ -126,10 +133,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public string LeftSummary { get => _leftSummary; private set => Set(ref _leftSummary, value); }
         public string RightSummary { get => _rightSummary; private set => Set(ref _rightSummary, value); }
         public bool RunAllActive => _runAllActive;
-        public bool CanRunAll => !_runAllActive && !Busy &&
-            (_phase == Phase.Ready ||
-             (_runAllPaused && _phase == Phase.AtPickHeight &&
-               VacuumContactCheckpoint.CanCaptureSealed(_head, _contactConfirmedHead)));
+        public bool CanRunAll =>
+            !_runAllActive && !Busy && _phase == Phase.Ready;
         public bool CanApplyCalibration => !Busy && !_runAllActive && !_calibrationSaved &&
             _phase == Phase.Finished && _leftCandidate != null && _rightCandidate != null;
         public bool CanContinue => !_runAllActive && !Busy && _phase != Phase.Finished &&
@@ -444,7 +449,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 return;
             }
 
-            _runAllPaused = false;
             LastHardwareFailure = "";
             _runAllActive = true;
             NotifyButtons();
@@ -457,21 +461,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     _phase != Phase.Finished && _phase != Phase.Faulted &&
                     _phase != Phase.Aborted; step++)
                 {
-                    // Explicit operator Start plus the existing numeric,
-                    // XY and safe-Z preflights authorize the known configured
-                    // descent. No redundant checkbox at the fiducial.
-                    // A fresh head-specific observation is STILL required
-                    // before collecting any sealed-vacuum evidence.
-                    if (_phase == Phase.AtPickHeight &&
-                        !VacuumContactCheckpoint.CanCaptureSealed(
-                            _head, _contactConfirmedHead))
-                    {
-                        _runAllPaused = true;
-                        Status = "Paused at configured PickHeight for Head " + _head +
-                            ": visually verify a lightly sealed nozzle (no collision), " +
-                            "check Contact Confirmed, then Resume. Use Abort to retract and vent.";
-                        return;
-                    }
+                    // T007 automatic mode advances directly from the
+                    // verified configured PickHeight to a fresh stable sealed
+                    // sensor window. It does NOT claim operator-observed
+                    // contact: vacuum separation is checked independently by
+                    // VacuumCalibrationCandidate.TryCreate. Manual guided
+                    // steps retain the explicit visual-contact confirmation.
                     var previousPhase = _phase;
                     var previousHead = _head;
                     await AdvanceAsync(automatic: true);
@@ -496,9 +491,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             finally
             {
                 _runAllActive = false;
-                if (_phase == Phase.Finished || _phase == Phase.Faulted ||
-                    _phase == Phase.Aborted)
-                    _runAllPaused = false;
                 NotifyButtons();
             }
         }
@@ -580,20 +572,26 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         // operator can Abort any time; this never probes
                         // for contact or alters the configured PickHeight.
                         await LowerToPickHeightAsync(_cancel.Token);
-                        OperatorConfirmedContact = false;
+                        ResetContactConfirmation();
                         SetPhase(Phase.AtPickHeight);
                         Status = ManufacturingResources.VacuumCalibration_PickReady;
                         break;
                     case Phase.AtPickHeight:
-                        // Operator confirmation is required in BOTH guided
-                        // and Run Both modes. The independent stable vacuum
-                        // candidate check remains authoritative afterward.
+                        // In Run Both, preserve the original T007 automatic
+                        // sensor-verification path: only the measured stable
+                        // pressure band may establish an obstructed nozzle.
+                        // Guided manual operation still requires a fresh,
+                        // head-specific operator contact confirmation.
                         if (!VacuumContactCheckpoint.CanCaptureSealed(
-                            _head, _contactConfirmedHead))
+                            _head, _contactConfirmedHead, automatic))
                             throw new InvalidOperationException(
-                                "Head " + _head + " nozzle obstruction has not been independently confirmed.");
+                                "Head " + _head +
+                                " requires a fresh operator contact confirmation for guided sealed-pressure sampling.");
+                        if (automatic)
+                            ReportHardwareAction("Sampling Head " + _head +
+                                " sealed-nozzle vacuum automatically; sensor separation must pass");
                         await CaptureSealedAsync(_cancel.Token);
-                        _contactConfirmedHead = 0;
+                        ResetContactConfirmation();
                         SetPhase(Phase.Sealed);
                         break;
                     case Phase.Sealed:
@@ -604,11 +602,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         if (_head == 1)
                         {
                             _head = 2;
-                            _contactConfirmedHead = 0;
+                            ResetContactConfirmation();
                             _commandedNozzleZ = null;
                             _idle = null; _oppositeIdle = null;
                             _open = null; _oppositeOpen = null; _sealed = null;
-                            OperatorConfirmedContact = false;
                             Status = ManufacturingResources.VacuumCalibration_ReadyRight;
                             await CaptureIdleAsync(_cancel.Token);
                             SetPhase(Phase.Idle);

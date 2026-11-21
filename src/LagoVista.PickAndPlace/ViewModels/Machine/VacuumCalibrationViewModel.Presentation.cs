@@ -51,8 +51,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         public string StageStatus =>
             "HEAD " + _head + "  ·  " + _phase +
-            (_runAllPaused ? "  ·  WAITING FOR OPERATOR" :
-                _runAllActive ? "  ·  AUTOMATIC TO NEXT CHECKPOINT" : "");
+            (_runAllActive ? "  ·  AUTOMATIC SENSOR-VERIFIED SEQUENCE" :
+                AwaitingOperatorCheckpoint ? "  ·  GUIDED CONTACT CONFIRMATION" : "");
 
         public string CalibrationSaveStatus =>
             _calibrationSaved
