@@ -12,8 +12,16 @@ to execute the standalone machine-fiducial procedure.
 
 1. Validate connected, homed, idle/manual machine; live position camera;
    configured fiducial, no overlapping locator.
-2. Activate **macfiducial** and follow the established safe-Z camera move.
-3. Detect a fresh Hough circle from production image processing.
+2. Confirm the previous machine command queue has actually finished
+   (firmware M400 acknowledgement and two consecutive settled idle-status
+   reads). Repeat this guard after activating **macfiducial**, immediately
+   before the first new safe-Z or fiducial XY movement. A short, bounded
+   status transition after exposure tuning is tolerated without ignoring
+   the machine Busy flag; an unacknowledged M400, persistent Busy state,
+   another locator, disconnected machine or changed Manual mode blocks
+   the move with a clear diagnostic.
+3. Follow the established safe-Z move and detect a fresh Hough circle
+   from production image processing.
 4. Use stable, physically centered readings to determine bounded XY
    corrections. After **each** correction, wait for machine idle, discard
    all detector history, then collect a new stable observation.
