@@ -20,14 +20,16 @@ conversion and direct `G92 E0 X... Y...` adjustment must **not** be revived.
 
 ## Operator experience
 
-Machine Calibration → **Machine** → **Open Nozzle Calibration** now opens a
-fixed-size, borderless procedure without any automatic motion. Select **one
-installed nozzle head** and press **Start Runout / Run Again** to execute its
-12-point optical sequence. Opening the dialog, changing the head selection,
-and pressing **Preview Bottom Camera** do not command any machine, rotary or
-toolhead motion. The latter only selects the Nozzle optical profile, enables
-the camera/light and initializes fresh video. The procedure can also
-initialize video automatically when Start is pressed without a prior preview.
+Machine Calibration → **Machine** → **Open Nozzle Calibration** opens a
+fixed-size, borderless procedure **without automatic motion**. The window
+lists the installed heads in execution order. Press **Calibrate All Heads /
+Run Again** just once: Head 1 executes its complete twelve-angle optical
+sweep and high-Y revisit, then returns to verified safe Z before Head 2
+starts automatically (if installed). If only one nozzle head is installed,
+only that head is calibrated. Opening the dialog and pressing **Preview
+Bottom Camera** never command machine, rotary or tool-head movement. Camera
+preview selects the Nozzle optical profile, enables camera/light and
+initializes fresh video; Start can also initialize video without preview.
 
 The window reuses the shared `CalibrationStepRail` (auto-follow Running/
 Failed steps) and `CalibrationVideoSurface` (actual bottom-camera frames and
@@ -38,12 +40,18 @@ scale-locked optical opening. The expanded settings/diagnostics area has
 one scrollbar and shows per-angle step duration/retries, measured offsets,
 pixel/mm, optical spread and the candidate logical zero.
 
-Each selected head has its own full 18-step procedure, independent of the
-other installed head. A stale or missing selection aborts instead of
-silently calibrating the next head. Results are runtime-only and the
-other head's calibration remains untouched. No previous machine-navigation
-tool selection is required; the existing safe head-selection path is
-reused. Closing the modal never replaces the hardware emergency stop.
+Each installed head has an independent full step plan, optical session and
+runtime-only result. The shared rail follows all Head 1 steps and then all
+Head 2 steps under one operator Start. The verified optical result and
+safe-Z transition must BOTH succeed before marking a head calibrated.
+The screen retains each completed head's logical-zero and twelve-offset
+summary. Before the next head, the runner rechecks the exact configured
+head objects, captured nozzle IDs, connected/homed Manual state, machine
+origin, all staging plates and controller status. It invalidates only the
+head currently being measured, so Head 1's completed proof survives a
+failure during Head 2. No previous machine-navigation tool selection is
+needed: camera-first travel, safe Z, and verified tool-head navigation
+remain enforced. Closing the modal is NOT an emergency stop.
 
 The Nozzle profile editor exposes only settings used by the runout dark
 opening/camera pipeline: search radius, centering tolerance (runner hard
@@ -65,7 +73,7 @@ motion. The optical acquisition circle may remain visibly unchanged
 between two radius values because of the 72px minimum: the diagnostics
 report the effective pixel radius to make this explicit.
 
-`NozzleRunoutProcedureDefinition` creates 18 ordered stages using the
+`NozzleRunoutProcedureDefinition` creates 21 ordered stages per installed head (including the mandatory safe-height return) using the
 shared `MachineOperationDefinition` and `MachineOperationSession`:
 1. Verify machine-fiducial calibration and **every configured staging
    plate** is calibrated in this machine session. One physical plate with
@@ -211,11 +219,14 @@ move cannot be stopped by closing a modal; use the physical emergency stop.
 2. Confirm configured installed nozzles on each head, bottom camera focus/lighting/profile,
    rotary axis A/B, and that both independent nozzle heads clear the
    camera and feeders during safe movements.
-3. Preview the bottom camera without motion, select one installed head, then
-   press Start only under supervision. Verify all 12 measurement rows and the
-   maximum-Y revisit for **that selected head**, including camera Y orientation,
-   tool-change safety and the WPF current-stage indicators. Repeat as a separate
-   supervised procedure for the other installed head.
+3. Preview the bottom camera without motion. Confirm Head 1 and Head 2
+   appear in the intended sequence, then press **Calibrate All Heads** only
+   under supervision with emergency stop accessible. Verify all 12 angles,
+   high-Y revisit, verified safe-Z return and separate green completion for
+   Head 1 before the automatic move to Head 2. Verify the same for Head 2.
+   One installed head must complete without a nonexistent second-head move.
+   Failure or nozzle change during Head 2 must leave Head 1's valid runtime
+   result intact. No second Start click should be necessary.
 4. Repeat the sweep after machine rehome to establish repeatability.
 5. Verify a nozzle swap/reinstallation clears only its owning head's
    `IsCalibrated`, verify a machine reconnect/rehome clears both heads,
