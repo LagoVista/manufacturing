@@ -52,8 +52,108 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private void VisionTuning_PropertyChanged(object sender, PropertyChangedEventArgs args)
         {
+            // Search geometry is a live optical setting: valid edits must
+            // affect the actual staging-hole detector AND painted search ROI,
+            // not just the draft TextBox. No hardware motion is performed.
+            if (args.PropertyName == nameof(StagingHoleVisionTuning.SearchRadiusMm) ||
+                args.PropertyName == nameof(StagingHoleVisionTuning.SearchOffsetXmm) ||
+                args.PropertyName == nameof(StagingHoleVisionTuning.SearchOffsetYmm))
+                ApplyLiveSearchRegion();
+
             RaisePropertyChanged(nameof(HasVisionDraftChanges));
             RaisePropertyChanged(nameof(CanRun));
+        }
+
+        /// <summary>
+        /// Apply only the three optical search-region values synchronously.
+        /// Other draft settings (including exposure/light/scale) still require
+        /// the explicit Apply Preview button. This avoids an asynchronous
+        /// race between focus changes and +/-0.1mm nudge clicks.
+        /// </summary>
+        private void ApplyLiveSearchRegion()
+        {
+            if (!CanEditVision || VisionTuning == null ||
+                _editingProfile == null || _savedVisionSettings == null)
+                return;
+
+            var radius = VisionTuning.SearchRadiusMm;
+            var offsetX = VisionTuning.SearchOffsetXmm;
+            var offsetY = VisionTuning.SearchOffsetYmm;
+            if (double.IsNaN(radius) || double.IsInfinity(radius) ||
+                radius < 0.1 || radius > 100 ||
+                double.IsNaN(offsetX) || double.IsInfinity(offsetX) ||
+                offsetX < -50 || offsetX > 50 ||
+                double.IsNaN(offsetY) || double.IsInfinity(offsetY) ||
+                offsetY < -50 || offsetY > 50)
+            {
+                TuningStatus = "Search preview not applied: radius must be 0.1-100 mm and offsets within +/-50 mm.";
+                return;
+            }
+
+            if (!TuningContextValid(false, out var reason))
+            {
+                TuningStatus = "Search value edited but not applied live: " + reason;
+                return;
+            }
+
+            try
+            {
+                var capture = Machine.PositionImageCaptureService;
+                var size = capture.CaptureFrameSize;
+                var scale = _editingCamera.EffectivePixelsPerMM;
+                if (!capture.IsCapturing || !StagingHoleSearchRegion.FitsFrame(
+                    size.Width, size.Height, scale, offsetX, offsetY, radius, false))
+                {
+                    TuningStatus = "Search draft not applied: live camera is not ready or search center is outside the image.";
+                    return;
+                }
+
+                // The camera's active profile may not be stagingplatehole
+                // when the dialog opens. Selecting it does not move the
+                // machine; it also keeps the detector and preview identical.
+                if (!ReferenceEquals(_editingCamera.CurrentVisionProfile, _editingProfile))
+                    Machine.SetVisionProfile(CameraTypes.Position,
+                        VisionProfile.VisionProfile_StagingPlateHole);
+
+                if (!TuningContextValid(true, out reason))
+                {
+                    TuningStatus = "Search value not applied: " + reason;
+                    return;
+                }
+
+                _editingProfile.TargetImageRadius = radius;
+                _editingProfile.StagingSearchOffsetXmm = offsetX;
+                _editingProfile.StagingSearchOffsetYmm = offsetY;
+
+                // This drops every tracked circle from the previous ROI.
+                // An old observation can never authorize the next jog/save.
+                InvalidateVisionEvidence("Live staging-hole search region changed; previous detections cleared.");
+                HasVisionPreview = !_savedVisionSettings.Matches(_editingProfile);
+                RaisePropertyChanged(nameof(ActiveSearchSummary));
+                TuningStatus = HasVisionPreview
+                    ? "LIVE SEARCH UPDATED (UNSAVED). The camera search outline should now match the values above. Save Profile or Revert."
+                    : "Live search matches the saved profile.";
+            }
+            catch (Exception ex)
+            {
+                TuningStatus = "Could not apply live search region: " + ex.Message;
+            }
+        }
+
+        public string ActiveSearchSummary
+        {
+            get
+            {
+                if (_editingProfile == null)
+                    return "No staging-hole vision profile available.";
+                var live = ReferenceEquals(
+                    Machine?.PositionImageCaptureService?.Profile, _editingProfile);
+                return (live ? "LIVE" : "PROFILE") + " SEARCH: radius " +
+                    _editingProfile.TargetImageRadius.ToString("F1") +
+                    " mm · X " + _editingProfile.StagingSearchOffsetXmm.ToString("+0.000;-0.000;0.000") +
+                    " mm · Y " + _editingProfile.StagingSearchOffsetYmm.ToString("+0.000;-0.000;0.000") +
+                    " mm" + (HasVisionPreview ? " · UNSAVED" : "");
+            }
         }
 
         public bool HasVisionDraftChanges =>
@@ -111,6 +211,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             VisionTuning = profile == null
                 ? null : StagingHoleVisionTuning.FromProfile(profile);
             HasVisionPreview = false;
+            RaisePropertyChanged(nameof(ActiveSearchSummary));
             if (profile == null)
                 TuningStatus = "The position camera requires a stagingplatehole profile before tuning.";
         }
@@ -127,7 +228,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 Math.Round(VisionTuning.SearchOffsetXmm + deltaXmm, 3);
             VisionTuning.SearchOffsetYmm =
                 Math.Round(VisionTuning.SearchOffsetYmm + deltaYmm, 3);
-            TuningStatus = "Search-center draft changed. Apply Preview to update the live detector.";
+            // VisionTuning_PropertyChanged applies valid search edits to the
+            // active centroid detector immediately. No extra click needed.
         }
 
         private bool BeginTuning()
@@ -244,6 +346,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
                 VisionTuning = StagingHoleVisionTuning.FromProfile(_editingProfile);
                 HasVisionPreview = !_savedVisionSettings.Matches(_editingProfile);
+                RaisePropertyChanged(nameof(ActiveSearchSummary));
                 InvalidateVisionEvidence("Vision preview applied to the live staging-hole profile; previous circles invalidated.");
                 RaisePropertyChanged(nameof(PixelsPerMillimeter));
                 TuningStatus = HasVisionPreview
@@ -286,6 +389,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 }
                 _savedVisionSettings = StagingHoleVisionTuning.FromProfile(_editingProfile);
                 HasVisionPreview = false;
+                RaisePropertyChanged(nameof(ActiveSearchSummary));
                 TuningStatus = "The stagingplatehole profile was saved. No machine movement or plate alignment was performed.";
                 Log(TuningStatus);
             }
@@ -312,6 +416,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 }
                 VisionTuning = StagingHoleVisionTuning.FromProfile(_editingProfile);
                 HasVisionPreview = false;
+                RaisePropertyChanged(nameof(ActiveSearchSummary));
                 RaisePropertyChanged(nameof(PixelsPerMillimeter));
                 TuningStatus = "Restored saved staging-hole profile values.";
             }
