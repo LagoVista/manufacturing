@@ -70,6 +70,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             private set => Set(ref _previewObservationCount, value);
         }
 
+        public void ReportInvalidTuningInput()
+        {
+            ManualStatus = "Please correct the highlighted numeric input before applying Hough tuning.";
+        }
+
         private void InitializeManualControls()
         {
             var camera = Machine?.PositionImageCaptureService?.Camera ??
@@ -111,6 +116,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 return false;
             }
 
+            // Window may have been opened before the position camera/profile
+            // was loaded. Refresh only if no uncommitted changes exist.
+            if ((_tuningCamera == null || _tuningProfile == null) && !HasUnsavedTuning)
+                InitializeManualControls();
+
             if (_tuningProfile == null || _savedTuning == null ||
                 !ReferenceEquals(capture.Camera, _tuningCamera) ||
                 MachineConfiguration?.Cameras?.Contains(_tuningCamera) != true)
@@ -122,6 +132,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (!_tuningCamera.VisionProfiles.Contains(_tuningProfile))
             {
                 reason = "Machine-fiducial profile was replaced; reopen calibration.";
+                return false;
+            }
+            if (!_tuningProfile.PerformShapeDetection || !_tuningProfile.FindCircles)
+            {
+                reason = "The macfiducial profile must enable the production circle detector.";
                 return false;
             }
 
@@ -411,9 +426,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     ManualStatus = reason;
                     return;
                 }
-                if (Machine.CurrentMachineToolHead != null)
+                if (Machine.CurrentMachineToolHead != null ||
+                    Machine.ViewType != LagoVista.PickAndPlace.ViewTypes.Camera)
                 {
-                    ManualStatus = "Select position-camera navigation first; never jog with a tool head selected.";
+                    ManualStatus = "Select position-camera navigation first; never jog while a tool head or moving view is active.";
                     return;
                 }
 
@@ -449,6 +465,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 }
                 if (Machine.Busy || Machine.IsLocating ||
                     Machine.CurrentMachineToolHead != null ||
+                    Machine.ViewType != LagoVista.PickAndPlace.ViewTypes.Camera ||
                     !ReferenceEquals(Machine.PositionImageCaptureService?.Camera, _tuningCamera) ||
                     !ReferenceEquals(_tuningCamera.CurrentVisionProfile, _tuningProfile) ||
                     !FiducialManualJogPolicy.TryValidate(
