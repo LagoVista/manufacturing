@@ -39,6 +39,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private bool _running;
         private string _status = "Select a plate, then run the two-hole calibration.";
         private string _lastRejection = "No detection yet.";
+        private string _lastPlannedMove = "No target calculated yet.";
         private FiducialCircleObservation _currentObservation;
         private MachineStagingPlate _selectedPlate;
         private Point2D<double> _measuredFirst;
@@ -97,6 +98,35 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             Machine?.PositionImageCaptureService?.Camera?.Name ?? "Position camera";
         public double PixelsPerMillimeter => _camera?.EffectivePixelsPerMM ??
             Machine?.PositionImageCaptureService?.Camera?.EffectivePixelsPerMM ?? 0;
+
+        public string ConfiguredTravelSummary
+        {
+            get
+            {
+                var area = Machine?.Settings?.WorkAreaSize;
+                if (area == null || area.X <= 0 || area.Y <= 0)
+                    return "Configured XY travel is unavailable.";
+                return "Allowed X: 0.." + area.X.ToString("F2") +
+                    " mm; Y: 0.." + area.Y.ToString("F2") + " mm.";
+            }
+        }
+
+        public string CurrentMachinePositionSummary
+        {
+            get
+            {
+                var position = Machine?.MachinePosition;
+                return position == null ? "Machine position unavailable." :
+                    "Current machine X=" + position.X.ToString("F3") +
+                    ", Y=" + position.Y.ToString("F3") + " mm.";
+            }
+        }
+
+        public string LastPlannedMove
+        {
+            get => _lastPlannedMove;
+            private set => Set(ref _lastPlannedMove, value);
+        }
 
         public string MeasuredHoleOne =>
             _measuredFirst == null ? "Not measured" :
@@ -267,6 +297,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             EventLog.Clear();
             ClearPreviousMeasurement();
             _clock.Restart();
+            LastPlannedMove = "No target calculated yet.";
             _capture = null;
             _camera = null;
             _profile = null;
@@ -333,7 +364,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
                 Step(1, "Moving safely to " +
                     selected.ReferenceHoleColumn1.Id + selected.ReferenceHoleRow1.Id + ".");
-                if (!await MoveToReferenceAsync(firstTarget)) return;
+                if (!await MoveToReferenceAsync(firstTarget, "Reference hole 1")) return;
                 Step(2, "Centering the first hole using fresh stable top-camera circles.");
                 _measuredFirst = await CenterAndMeasureAsync("reference hole 1");
                 if (_measuredFirst == null) return;
@@ -349,8 +380,16 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     selected.ReferenceHoleColumn1.Id, selected.ReferenceHoleRow1.Id,
                     selected.ReferenceHoleColumn2.Id, selected.ReferenceHoleRow2.Id);
 
+                var referenceGridDelta = new Point2D<double>(
+                    secondTarget.X - _measuredFirst.X,
+                    secondTarget.Y - _measuredFirst.Y);
+                Log("Hole 2 grid displacement from measured hole 1: X=" +
+                    referenceGridDelta.X.ToString("+0.000;-0.000;0.000") +
+                    ", Y=" + referenceGridDelta.Y.ToString("+0.000;-0.000;0.000") +
+                    " mm (spacing " + selected.HoleSpacing.ToString("F3") +
+                    " mm).");
                 Step(3, "Moving from measured first hole to nominal second reference.");
-                if (!await MoveToReferenceAsync(secondTarget)) return;
+                if (!await MoveToReferenceAsync(secondTarget, "Reference hole 2")) return;
                 Step(4, "Centering the second hole using fresh stable top-camera circles.");
                 _measuredSecond = await CenterAndMeasureAsync("reference hole 2");
                 if (_measuredSecond == null) return;
@@ -417,12 +456,25 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
         }
 
-        private async Task<bool> MoveToReferenceAsync(Point2D<double> target)
+        private async Task<bool> MoveToReferenceAsync(
+            Point2D<double> target, string referenceName)
         {
+            var position = Machine?.MachinePosition;
+            var positionText = position == null ? "current position unknown" :
+                "current X=" + position.X.ToString("F3") +
+                ", Y=" + position.Y.ToString("F3") +
+                "; delta X=" + (target.X - position.X).ToString("+0.000;-0.000;0.000") +
+                ", Y=" + (target.Y - position.Y).ToString("+0.000;-0.000;0.000");
+            var targetDescription = StagingPlateReferenceGate.DescribeTravelViolation(
+                target, Machine?.Settings?.WorkAreaSize, referenceName);
+            LastPlannedMove = targetDescription + " (" + positionText + " mm).";
+            RaisePropertyChanged(nameof(CurrentMachinePositionSummary));
+            Log(LastPlannedMove);
+
             if (!StagingPlateReferenceGate.WithinWorkArea(
                 target, Machine?.Settings?.WorkAreaSize))
             {
-                Fail("Reference target outside configured machine XY travel.");
+                Fail(LastPlannedMove);
                 return false;
             }
 
@@ -546,7 +598,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 if (!StagingPlateReferenceGate.WithinWorkArea(
                     destination, Machine.Settings.WorkAreaSize))
                 {
-                    Fail("Centering correction exceeds XY travel bounds.");
+                    Fail(StagingPlateReferenceGate.DescribeTravelViolation(
+                        destination, Machine.Settings.WorkAreaSize,
+                        "Centering correction for " + label));
                     return null;
                 }
                 Log(label + " correction X=" + dx.ToString("F3") +
