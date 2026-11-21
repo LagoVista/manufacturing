@@ -95,14 +95,16 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine.Calibration
                 return;
 
             var step = sender as ICalibrationProcedureStep;
-            if (step?.Status == "Running" || step?.Status == "Failed")
+            if (step?.Status == "Running" || step?.Status == "Failed" ||
+                step?.Status == "Cancelled")
                 ScrollToStep(step);
         }
 
         private void FollowActiveStep()
         {
             var active = _observedSteps.FirstOrDefault(s => s.Status == "Running" ||
-                                                           s.Status == "Failed");
+                                                           s.Status == "Failed" ||
+                                                           s.Status == "Cancelled");
             if (active != null)
                 ScrollToStep(active);
         }

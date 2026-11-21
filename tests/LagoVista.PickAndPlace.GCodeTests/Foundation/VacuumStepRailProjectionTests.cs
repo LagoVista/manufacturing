@@ -19,6 +19,20 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void OperatorAbortIsCancelledNotAHardwareFailure()
+        {
+            var now = System.DateTimeOffset.UtcNow;
+            var session = new MachineOperationSession(
+                VacuumValidationProcedureDefinition.Create(),
+                new MachineOperationTarget { MachineId = "machine" }, now);
+            session.Start(now);
+            session.Cancel(now.AddSeconds(5));
+            Assert.That(VacuumStepRailProjection.FromOperationStatus(
+                session.Snapshot.Steps[0].Status), Is.EqualTo("Cancelled"));
+            Assert.That(session.Snapshot.LastError, Is.Null);
+        }
+
+        [Test]
         public void NoEvidenceMeansProgressCannotAppearPassed()
         {
             var session = new MachineOperationSession(
