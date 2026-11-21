@@ -257,10 +257,15 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 var machine = Machine;
                 var service = machine?.PositionImageCaptureService;
                 camera = SelectedMachineCamera;
+                // Exposure calibration is a supervised, self-contained operation.
+                // The global settings lock is a UI editing guard, not a machine
+                // safety interlock. Do not flip it for this operation: allow
+                // calibration with the existing lock state unchanged while still
+                // requiring the machine to be connected, homed and idle.
                 if (machine == null || !machine.Connected || !machine.WasMachineHomed ||
-                    machine.Busy || machine.IsLocating || machine.AreSettingsLocked)
+                    machine.Busy || machine.IsLocating)
                 {
-                    FailExposureStep("Connect and home an idle machine; unlock settings before calibration.");
+                    FailExposureStep("Connect and home an idle machine before calibration.");
                     return;
                 }
                 if (camera == null || camera.CameraType?.Value != CameraTypes.Position ||

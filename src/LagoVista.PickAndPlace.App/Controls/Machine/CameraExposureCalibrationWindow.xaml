@@ -5,7 +5,7 @@
         Title="Camera Exposure Calibration" Width="1160" Height="820"
         MinWidth="850" MinHeight="640" WindowStartupLocation="CenterOwner"
         Background="#161C25" Foreground="#EDF2F8"
-        WindowStyle="None" ResizeMode="CanResize" ShowInTaskbar="False"
+        WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False"
         Closing="Window_Closing">
     <Window.Resources>
         <Style x:Key="ActionButton" TargetType="Button">
