@@ -8,6 +8,7 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
     /// This first pass does not persist calibration or claim independent
     /// solenoid proof: the legacy solenoid interface is not per-head on Marlin.
     /// </summary>
-    public sealed class VacuumCalibrationViewModel : ViewModelBase
+    public sealed partial class VacuumCalibrationViewModel : ViewModelBase
     {
         private enum Phase { Ready, Idle, Open, AtFiducial, AtPickHeight, Sealed, Released, Finished, Faulted, Aborted }
         private readonly IMachineRepo _repo;
@@ -52,11 +53,15 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private string _rightSummary = "-";
         private int _head = 1;
         private double? _commandedNozzleZ;
+        private int _approachApprovedHead;
+        private int _contactConfirmedHead;
+        private bool _runAllPaused;
 
         public VacuumCalibrationViewModel(IMachineRepo repo)
         {
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
             _machine = repo.CurrentMachine ?? throw new InvalidOperationException("Select a machine before starting.");
+            InitializeVacuumDisplay();
         }
 
         public int HeadIndex => _head;
@@ -71,20 +76,56 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public bool OperatorConfirmedContact
         {
             get => _operatorConfirmedContact;
-            set { Set(ref _operatorConfirmedContact, value); NotifyButtons(); }
+            set
+            {
+                if (Busy || (_phase != Phase.AtPickHeight && value)) return;
+                Set(ref _operatorConfirmedContact, value);
+                _contactConfirmedHead = value && _phase == Phase.AtPickHeight ? _head : 0;
+                NotifyButtons();
+            }
         }
+
+        /// <summary>
+        /// This is NOT the initial machine safety acknowledgement. The
+        /// operator verifies fixture/nozzle clearance at this head's
+        /// actual configured test location before any Z descent.
+        /// A new head always requires an independent confirmation.
+        /// </summary>
+        public bool OperatorApprovedPickHeight
+        {
+            get => _phase == Phase.AtFiducial && _approachApprovedHead == _head;
+            set
+            {
+                if (Busy || _runAllActive || _phase != Phase.AtFiducial) return;
+                _approachApprovedHead = value ? _head : 0;
+                NotifyButtons();
+            }
+        }
+        public bool NeedsPickHeightApproval => !_runAllActive && _phase == Phase.AtFiducial;
+        public bool AwaitingOperatorCheckpoint =>
+            !_runAllActive && (_phase == Phase.AtFiducial || _phase == Phase.AtPickHeight);
+        public string RunAllAction => _phase == Phase.Ready
+            ? "Run Both Heads (pause for contact)"
+            : "Resume Both-Head Procedure";
         public string Status { get => _status; private set => Set(ref _status, value); }
         public string RawReading { get => _rawReading; private set => Set(ref _rawReading, value); }
         public string LeftSummary { get => _leftSummary; private set => Set(ref _leftSummary, value); }
         public string RightSummary { get => _rightSummary; private set => Set(ref _rightSummary, value); }
         public bool RunAllActive => _runAllActive;
-        public bool CanRunAll => !_runAllActive && !Busy && OperatorAcknowledged && _phase == Phase.Ready;
+        public bool CanRunAll => !_runAllActive && !Busy && OperatorAcknowledged &&
+            (_phase == Phase.Ready ||
+             (_runAllPaused && _phase == Phase.AtFiducial && OperatorApprovedPickHeight) ||
+             (_runAllPaused && _phase == Phase.AtPickHeight &&
+               VacuumContactCheckpoint.CanCaptureSealed(_head, _contactConfirmedHead)));
         public bool CanApplyCalibration => !Busy && !_runAllActive && !_calibrationSaved &&
             _phase == Phase.Finished && _leftCandidate != null && _rightCandidate != null;
         public bool CanContinue => !_runAllActive && !Busy && _phase != Phase.Finished &&
             _phase != Phase.Faulted && _phase != Phase.Aborted &&
             (_phase != Phase.Ready || OperatorAcknowledged) &&
-            (_phase != Phase.AtPickHeight || OperatorConfirmedContact);
+            (_phase != Phase.AtFiducial ||
+                VacuumContactCheckpoint.CanDescend(_head, _approachApprovedHead, OperatorAcknowledged)) &&
+            (_phase != Phase.AtPickHeight ||
+                VacuumContactCheckpoint.CanCaptureSealed(_head, _contactConfirmedHead));
         public bool CanAbort => _phase != Phase.Aborted && _phase != Phase.Finished;
         public bool CanClose => !_runAllActive && !Busy && !PumpActive && (_phase == Phase.Ready || _phase == Phase.Aborted || _phase == Phase.Finished);
         public bool NeedsPlateContact => !_runAllActive && _phase == Phase.AtPickHeight;
@@ -102,6 +143,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         {
             RaisePropertyChanged(nameof(CanContinue));
             RaisePropertyChanged(nameof(CanRunAll));
+            RaisePropertyChanged(nameof(OperatorApprovedPickHeight));
+            RaisePropertyChanged(nameof(NeedsPickHeightApproval));
+            RaisePropertyChanged(nameof(AwaitingOperatorCheckpoint));
+            RaisePropertyChanged(nameof(RunAllAction));
             RaisePropertyChanged(nameof(CanApplyCalibration));
             RaisePropertyChanged(nameof(RunAllActive));
             RaisePropertyChanged(nameof(CanAbort));
@@ -111,6 +156,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             RaisePropertyChanged(nameof(ProcedureStatus));
             RaisePropertyChanged(nameof(HeadIndex));
             RaisePropertyChanged(nameof(HeadDescription));
+            RefreshVacuumDisplay();
         }
 
         private void SetPhase(Phase phase)
@@ -375,10 +421,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (!CanRunAll) return;
             if (!ValidateAutomaticPreflight(out var reason))
             {
-                Status = "Run All not started: " + reason;
+                Status = "Run Both Heads not started: " + reason;
                 return;
             }
 
+            _runAllPaused = false;
             _runAllActive = true;
             NotifyButtons();
             try
@@ -390,6 +437,30 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     _phase != Phase.Finished && _phase != Phase.Faulted &&
                     _phase != Phase.Aborted; step++)
                 {
+                    // Never let the generic initial approval become
+                    // authorization for head-specific Z descent or for
+                    // claiming sealed nozzle contact. Pause BEFORE either
+                    // hardware action and require explicit head approval.
+                    if (_phase == Phase.AtFiducial &&
+                        !VacuumContactCheckpoint.CanDescend(
+                            _head, _approachApprovedHead, OperatorAcknowledged))
+                    {
+                        _runAllPaused = true;
+                        Status = "Paused for Head " + _head +
+                            ": verify fixture clearance and PickHeight, check the Head " +
+                            _head + " descent approval, then Resume. Pump remains commanded on.";
+                        return;
+                    }
+                    if (_phase == Phase.AtPickHeight &&
+                        !VacuumContactCheckpoint.CanCaptureSealed(
+                            _head, _contactConfirmedHead))
+                    {
+                        _runAllPaused = true;
+                        Status = "Paused at configured PickHeight for Head " + _head +
+                            ": visually verify a lightly sealed nozzle (no collision), " +
+                            "check Contact Confirmed, then Resume. Use Abort to retract and vent.";
+                        return;
+                    }
                     var previousPhase = _phase;
                     var previousHead = _head;
                     await AdvanceAsync(automatic: true);
@@ -491,18 +562,26 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         Status = ManufacturingResources.VacuumCalibration_CameraReady;
                         break;
                     case Phase.AtFiducial:
+                        if (!VacuumContactCheckpoint.CanDescend(
+                            _head, _approachApprovedHead, OperatorAcknowledged))
+                            throw new InvalidOperationException(
+                                "Head " + _head + " requires explicit operator clearance before PickHeight descent.");
                         await LowerToPickHeightAsync(_cancel.Token);
+                        _approachApprovedHead = 0;
                         OperatorConfirmedContact = false;
                         SetPhase(Phase.AtPickHeight);
                         Status = ManufacturingResources.VacuumCalibration_PickReady;
                         break;
                     case Phase.AtPickHeight:
-                        // Automatic runs do not claim operator-observed contact.
-                        // The actual sealed-vs-open sensor evidence must pass
-                        // TryCreate inside CaptureSealedAsync.
-                        if (!automatic && !OperatorConfirmedContact)
-                            throw new InvalidOperationException("Operator has not confirmed that the nozzle is obstructed.");
+                        // Operator confirmation is required in BOTH guided
+                        // and Run Both modes. The independent stable vacuum
+                        // candidate check remains authoritative afterward.
+                        if (!VacuumContactCheckpoint.CanCaptureSealed(
+                            _head, _contactConfirmedHead))
+                            throw new InvalidOperationException(
+                                "Head " + _head + " nozzle obstruction has not been independently confirmed.");
                         await CaptureSealedAsync(_cancel.Token);
+                        _contactConfirmedHead = 0;
                         SetPhase(Phase.Sealed);
                         break;
                     case Phase.Sealed:
@@ -513,6 +592,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         if (_head == 1)
                         {
                             _head = 2;
+                            _approachApprovedHead = 0;
+                            _contactConfirmedHead = 0;
                             _commandedNozzleZ = null;
                             _idle = null; _oppositeIdle = null;
                             _open = null; _oppositeOpen = null; _sealed = null;
