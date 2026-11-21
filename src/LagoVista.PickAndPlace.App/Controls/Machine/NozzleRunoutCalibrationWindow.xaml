@@ -27,7 +27,6 @@
             <Setter Property="Background" Value="#245579"/>
             <Setter Property="BorderBrush" Value="#507C9C"/>
             <Setter Property="Foreground" Value="#E5F5FF"/>
-            <Setter Property="IsEnabled" Value="{Binding CanTuneRunoutVision}"/>
         </Style>
         <Style x:Key="InputBox" TargetType="TextBox">
             <Setter Property="Background" Value="#162737"/>
@@ -37,7 +36,6 @@
             <Setter Property="Width" Value="153"/>
             <Setter Property="Padding" Value="7,5"/>
             <Setter Property="Margin" Value="0,3,0,3"/>
-            <Setter Property="IsEnabled" Value="{Binding CanTuneRunoutVision}"/>
         </Style>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
     </Window.Resources>
@@ -196,7 +194,7 @@
                     <TextBlock Text="Only settings used by nozzle acquisition, optical centering, camera and lighting are shown. The opening diameter and phase are measured at runtime. Hough thresholds and staging-only settings are not used."
                                FontSize="11" Foreground="#C4D7E8" TextWrapping="Wrap"
                                Margin="0,0,0,10"/>
-                    <TabControl x:Name="NozzleVisionTabs" Background="#1C2B3B"
+                    <TabControl x:Name="NozzleVisionTabs" IsEnabled="{Binding CanTuneRunoutVision}" Background="#1C2B3B"
                                 BorderBrush="#49637A" Foreground="#E6F0FB">
                         <TabItem Header="Acquisition / Center">
                             <StackPanel Margin="12">
@@ -301,10 +299,13 @@
                     </TabControl>
                     <WrapPanel Margin="0,12,0,8">
                         <Button Content="Apply Preview" Click="ApplyNozzlePreview_Click"
+                                IsEnabled="{Binding CanTuneRunoutVision}"
                                 Style="{StaticResource TuningAction}"/>
                         <Button Content="Save Profile" Click="SaveNozzleProfile_Click"
+                                IsEnabled="{Binding CanTuneRunoutVision}"
                                 Style="{StaticResource TuningAction}"/>
                         <Button Content="Revert" Click="RevertNozzleProfile_Click"
+                                IsEnabled="{Binding CanTuneRunoutVision}"
                                 Style="{StaticResource TuningAction}"/>
                     </WrapPanel>
                     <TextBlock Text="{Binding RunoutVisionStatus}"
