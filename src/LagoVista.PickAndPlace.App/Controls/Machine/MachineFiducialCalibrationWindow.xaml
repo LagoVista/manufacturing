@@ -114,7 +114,8 @@
                             <TextBlock Text="Change draft values, Apply Preview, then Observe for 8 seconds. Preview is not saved; Save Profile or Revert before automatic calibration."
                                        TextWrapping="Wrap" Foreground="#BBCFE2" FontSize="11"
                                        Margin="0,0,0,9"/>
-                            <UniformGrid Columns="3">
+                            <UniformGrid x:Name="TuningInputs" Columns="3"
+                                         IsEnabled="{Binding CanManualAdjust}">
                                 <StackPanel Margin="0,0,11,8">
                                     <TextBlock Text="Hough DP" FontSize="11" Foreground="#BFD2E5"/>
                                     <TextBox Text="{Binding Tuning.Dp, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"

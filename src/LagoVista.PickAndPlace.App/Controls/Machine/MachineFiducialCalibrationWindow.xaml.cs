@@ -5,7 +5,9 @@ using LagoVista.PickAndPlace.ViewModels.Machine;
 using System;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace LagoVista.PickAndPlace.App.Controls.Machine
 {
@@ -40,10 +42,25 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
             }
         }
 
+        private static bool ContainsInputError(DependencyObject root)
+        {
+            if (root == null) return false;
+            if (Validation.GetHasError(root)) return true;
+            for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+                if (ContainsInputError(VisualTreeHelper.GetChild(root, i)))
+                    return true;
+            return false;
+        }
+
         private async void ApplyTuning_Click(object sender, RoutedEventArgs e)
         {
-            if (Procedure?.CanManualAdjust == true)
-                await Procedure.ApplyTuningPreviewAsync();
+            if (Procedure?.CanManualAdjust != true) return;
+            if (ContainsInputError(TuningInputs))
+            {
+                Procedure.ReportInvalidTuningInput();
+                return;
+            }
+            await Procedure.ApplyTuningPreviewAsync();
         }
 
         private async void ObserveTuning_Click(object sender, RoutedEventArgs e)
