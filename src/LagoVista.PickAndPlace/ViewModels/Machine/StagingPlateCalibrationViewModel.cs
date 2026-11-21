@@ -20,7 +20,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
     /// Uses production staging grid geometry, real Hough circle callbacks and
     /// the existing motion/persistence APIs. NEVER resets origin or auto-tunes.
     /// </summary>
-    public sealed class StagingPlateCalibrationViewModel : MachineViewModelBase
+    public sealed partial class StagingPlateCalibrationViewModel : MachineViewModelBase
     {
         private const int ObservationTimeoutMs = 12000;
         private const int MaximumCenteringMoves = 6;
@@ -54,6 +54,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _selectedPlate = selected ??
                 MachineConfiguration?.StagingPlates?.FirstOrDefault();
             ResetStages();
+            LoadVisionSettings();
         }
 
         public ObservableCollection<StagingPlateCalibrationStep> Steps { get; } =
@@ -82,10 +83,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 Set(ref _running, value);
                 RaisePropertyChanged(nameof(CanRun));
                 RaisePropertyChanged(nameof(CanClose));
+                RaisePropertyChanged(nameof(CanEditVision));
             }
         }
-        public bool CanRun => !Running && SelectedPlate != null;
-        public bool CanClose => !Running;
+        public bool CanRun => !Running && !TuningBusy &&
+            !HasVisionPreview && !HasVisionDraftChanges && SelectedPlate != null;
+        public bool CanClose => !Running && !TuningBusy;
         public string Status { get => _status; private set => Set(ref _status, value); }
         public string LastRejection { get => _lastRejection; private set => Set(ref _lastRejection, value); }
         public FiducialCircleObservation CurrentObservation
@@ -290,7 +293,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         public async Task RunAsync()
         {
-            if (!CanRun) return;
+            if (!CanRun)
+            {
+                if (HasVisionPreview || HasVisionDraftChanges)
+                    TuningStatus = "Save or revert the staging vision profile changes before automatic plate calibration.";
+                return;
+            }
             _uiContext = SynchronizationContext.Current;
             Running = true;
             ResetStages();
