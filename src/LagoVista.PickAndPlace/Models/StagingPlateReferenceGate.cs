@@ -100,6 +100,45 @@ namespace LagoVista.PickAndPlace.Models
                 location.X <= workArea.X && location.Y <= workArea.Y;
         }
 
+        /// <summary>
+        /// Explain a rejected target using the same exact numerical work-area
+        /// envelope that guards motion. This intentionally does not widen the
+        /// software limit, guess hardware travel, or silently clamp a target.
+        /// </summary>
+        public static string DescribeTravelViolation(Point2D<double> target,
+            Point2D<double> workArea, string referenceName)
+        {
+            var name = string.IsNullOrWhiteSpace(referenceName)
+                ? "Reference target" : referenceName;
+            if (workArea == null || !FinitePositive(workArea.X) ||
+                !FinitePositive(workArea.Y))
+                return name + ": configured machine XY travel is invalid.";
+            if (target == null || !Finite(target.X) || !Finite(target.Y))
+                return name + ": computed XY target is missing or invalid.";
+
+            var message = name + " target X=" + target.X.ToString("F3") +
+                ", Y=" + target.Y.ToString("F3") + " mm. Configured range: X=0.." +
+                workArea.X.ToString("F3") + ", Y=0.." +
+                workArea.Y.ToString("F3") + " mm.";
+
+            if (WithinWorkArea(target, workArea))
+                return message + " Target is inside configured travel.";
+
+            var xShortfall = target.X < 0 ? -target.X :
+                Math.Max(0, target.X - workArea.X);
+            var yShortfall = target.Y < 0 ? -target.Y :
+                Math.Max(0, target.Y - workArea.Y);
+
+            return message +
+                " OUTSIDE configured travel by X=" + xShortfall.ToString("F3") +
+                ", Y=" + yShortfall.ToString("F3") + " mm" +
+                (target.X < 0 || target.Y < 0
+                    ? " (negative coordinate: expanding the upper limit will not fix this)."
+                    : ".") +
+                " Verify plate grid/spacing and machine origin. Only change " +
+                "Work Area Size after confirming actual physical travel. No move issued.";
+        }
+
         private static bool ValidRow(string row) =>
             row != null && row.Length == 1 && row[0] >= 'A' && row[0] <= 'Z';
         private static bool ValidColumn(string column) =>
