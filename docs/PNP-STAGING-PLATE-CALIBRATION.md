@@ -49,6 +49,52 @@ The live video uses the exact T008/T009 `CalibrationVideoSurface`,
 diagnostics for frame times, circle size, center offsets, stability,
 active Hough profile and timestamped step/motion/save history.
 
+## Applicable staging-hole vision tuning in the calibration window
+
+Expand **Vision profile tuning** in the same selected-plate dialog. T010
+presents only settings read by the actual `stagingplatehole` processing path
+and its physical camera controls, grouped as follows:
+
+- **Search & Hole:** search radius, X/Y search-center offsets (in camera-image
+  mm), minimum/maximum accepted hole radius, stability count and physical
+  centering tolerance. ±0.1 mm buttons adjust the SEARCH ROI draft without
+  jogging the machine. The optical frame center remains the physical
+  centering target. The blue search ROI is drawn from the currently **applied**
+  profile so the displayed boundary matches what detection actually uses.
+- **Processing:** circular mask, inversion, threshold enable and threshold
+  value (only when enabled), Gaussian-blur enable and kernel/sigma (only when
+  enabled). These settings feed the production staging-hole centroid image
+  pipeline, including the offset mask before and after inversion.
+- **Camera & Light:** nullable per-profile overrides for exposure, brightness,
+  contrast, focus and pixels/mm; blank means **inherit the camera baseline**.
+  Top-light on/off and optional RGB/power overrides; RGB/power only appears
+  when the light is enabled.
+- **Display:** raw/processed image choice, crosshairs, calibration square,
+  and annotation zoom as currently used by image rendering.
+
+The `stagingplatehole` detector is a **filled-contour centroid** implementation
+with a radius/filter region, not the Hough transform. Hough DP, accumulator,
+Hough minimum-distance, nozzle-specific adaptive opening, corner detection,
+line extraction and irrelevant vision properties are **not offered**. Shape
+detection and circle tracking are required execution invariants, not optional
+switches that could silently disable a calibration safety check.
+
+Editing a field or nudging the ROI only changes the draft. **Apply Preview**
+validates values, switches to the real staging-hole profile and applies edits
+to the live camera/detector **without moving the machine**. **Observe 8
+Seconds** collects real centroid observations with no motion. **Save Profile**
+explicitly persists the profile. **Revert** and closing the window discard
+uncommitted applied changes, restoring the prior saved profile. An un-applied
+draft or unsaved preview blocks the automatic seven-step calibration, so the
+later plate-coordinate save cannot accidentally persist unapproved profile
+changes. Editing/preview invalidates all previous detector observations;
+each machine move still requires new post-move verified circle evidence.
+
+Changing the per-profile camera scale can affect measured dimensions, so its
+effective value must pass finite/positive/ROI-image checks, and trackers are
+invalidated. Editing the search ROI never expands the machine's physical XY
+travel envelope; the separate hole-2 work-area guard remains enforced.
+
 ## Diagnosing the second-reference-hole travel gate
 
 The second reference is computed as **freshly measured first-hole XY**

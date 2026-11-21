@@ -96,8 +96,8 @@ namespace LagoVista.PickAndPlace.Models
                 !InRange(SearchOffsetXmm, -50, 50) ||
                 !InRange(SearchOffsetYmm, -50, 50))
                 reason = "Search radius must be 0.1-100 mm; X/Y search offsets must be within +/-50 mm.";
-            else if (!InRange(MinimumRadiusMm, 0.01, 100) ||
-                     !InRange(MaximumRadiusMm, 0.01, 100) ||
+            else if (!InRange(MinimumRadiusMm, 0.1, 100) ||
+                     !InRange(MaximumRadiusMm, 0.1, 100) ||
                      MaximumRadiusMm <= MinimumRadiusMm)
                 reason = "Hole size bounds must be positive and maximum must exceed minimum.";
             else if (!InRange(CenterToleranceMm, 0.01, 1))
@@ -115,7 +115,7 @@ namespace LagoVista.PickAndPlace.Models
                      !ValidNullable(Contrast, -1000, 1000) ||
                      !ValidNullable(Focus, -1000, 1000))
                 reason = "Camera overrides must be finite and within supported tuning bounds.";
-            else if (!ValidNullable(PixelsPerMm, 0.01, 2000))
+            else if (!ValidNullable(PixelsPerMm, 0.1, 2000))
                 reason = "Camera scale override must be blank (inherit) or 0.01-2000 px/mm.";
             else if (!InRange(ZoomLevel, 0.1, 20))
                 reason = "Overlay zoom must be within 0.1-20.";

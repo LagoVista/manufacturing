@@ -17,8 +17,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 {
     /// <summary>
     /// T010 independently calibrates one explicitly selected staging plate.
-    /// Uses production staging grid geometry, real Hough circle callbacks and
-    /// the existing motion/persistence APIs. NEVER resets origin or auto-tunes.
+    /// Uses production staging grid geometry, real staged-hole centroid circle
+    /// callbacks and the existing motion/persistence APIs. Never resets origin.
     /// </summary>
     public sealed partial class StagingPlateCalibrationViewModel : MachineViewModelBase
     {
