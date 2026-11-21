@@ -196,6 +196,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     throw;
                 }
 
+                // VisionProfile normalizes some numeric inputs (e.g. radius,
+                // thresholds). Reflect the actual applied values in the editor.
+                Tuning = FiducialDetectorTuning.FromProfile(_tuningProfile);
                 HasUnsavedTuning = !_savedTuning.Matches(_tuningProfile);
                 ClearManualObservation("Hough parameters updated for preview; prior circle evidence cleared.");
                 ManualStatus = HasUnsavedTuning
@@ -403,13 +406,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (!BeginManual()) return;
             try
             {
-                if ((!AllowedStep(xMm) && xMm != 0) ||
-                    (!AllowedStep(yMm) && yMm != 0) ||
-                    (xMm != 0 && yMm != 0) || (xMm == 0 && yMm == 0))
-                {
-                    ManualStatus = "Only single-axis 0.1 or 0.5 mm jogs are allowed.";
-                    return;
-                }
                 if (!PreflightManual(out var capture, out var reason))
                 {
                     ManualStatus = reason;
@@ -429,12 +425,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 }
                 var current = Machine.MachinePosition;
                 var limits = Machine.Settings.WorkAreaSize;
-                var x = current.X + xMm;
-                var y = current.Y + yMm;
-                if (limits.X <= 0 || limits.Y <= 0 ||
-                    x < 0 || y < 0 || x > limits.X || y > limits.Y)
+                if (!FiducialManualJogPolicy.TryValidate(
+                    current.X, current.Y, xMm, yMm, limits.X, limits.Y, out reason))
                 {
-                    ManualStatus = "Jog rejected: destination exceeds configured machine XY work area.";
+                    ManualStatus = "Jog rejected: " + reason;
                     return;
                 }
 
@@ -453,9 +447,15 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     ManualStatus = "Safe-Z move not acknowledged; XY jog was not issued.";
                     return;
                 }
-                if (Machine.Busy || Machine.IsLocating)
+                if (Machine.Busy || Machine.IsLocating ||
+                    Machine.CurrentMachineToolHead != null ||
+                    !ReferenceEquals(Machine.PositionImageCaptureService?.Camera, _tuningCamera) ||
+                    !ReferenceEquals(_tuningCamera.CurrentVisionProfile, _tuningProfile) ||
+                    !FiducialManualJogPolicy.TryValidate(
+                        Machine.MachinePosition.X, Machine.MachinePosition.Y,
+                        xMm, yMm, limits.X, limits.Y, out reason))
                 {
-                    ManualStatus = "Machine is no longer idle; XY jog was not issued.";
+                    ManualStatus = "Machine context or safe destination changed; XY jog was not issued.";
                     return;
                 }
                 Machine.GotoPoint(new Point2D<double>(xMm, yMm), relativeMove: true);
@@ -481,9 +481,5 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             finally { ManualBusy = false; }
         }
 
-        private static bool AllowedStep(double v) =>
-            !double.IsNaN(v) && !double.IsInfinity(v) &&
-            (Math.Abs(v - 0.1) < 0.000001 || Math.Abs(v + 0.1) < 0.000001 ||
-             Math.Abs(v - 0.5) < 0.000001 || Math.Abs(v + 0.5) < 0.000001);
     }
 }
