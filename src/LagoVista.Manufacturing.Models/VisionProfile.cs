@@ -169,6 +169,24 @@ namespace LagoVista.PickAndPlace.Models
             set { _targetImageRadius = Math.Round(value, 1); RaisePropertyChanged(); }
         }
 
+        // Staging-hole acquisition ROI offset relative to the optical image
+        // center. Positive X moves right in the camera image; positive Y
+        // moves down. This shifts SEARCH only, never the physical zero used
+        // to center the machine, which remains the optical frame center.
+        private double _stagingSearchOffsetXmm;
+        public double StagingSearchOffsetXmm
+        {
+            get => _stagingSearchOffsetXmm;
+            set => Set(ref _stagingSearchOffsetXmm, Math.Round(value, 3));
+        }
+
+        private double _stagingSearchOffsetYmm;
+        public double StagingSearchOffsetYmm
+        {
+            get => _stagingSearchOffsetYmm;
+            set => Set(ref _stagingSearchOffsetYmm, Math.Round(value, 3));
+        }
+
         private double? _focus;
         public double? Focus
         {

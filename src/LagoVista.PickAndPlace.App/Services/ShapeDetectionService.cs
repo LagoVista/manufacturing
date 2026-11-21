@@ -448,7 +448,13 @@ namespace LagoVista.PickAndPlace.App.Services
                         {
                             using (var mask = new Image<Gray, byte>(size))
                             {
-                                CvInvoke.Circle(mask, new System.Drawing.Point() { X = size.Width / 2, Y = size.Height / 2 },
+                                var isStagingHole = camera.CurrentVisionProfile.Key ==
+                                    VisionProfile.VisionProfile_StagingPlateHole;
+                                CvInvoke.Circle(mask, new System.Drawing.Point() {
+                                        X = (int)Math.Round(size.Width / 2.0 +
+                                            (isStagingHole ? camera.CurrentVisionProfile.StagingSearchOffsetXmm * camera.EffectivePixelsPerMM : 0)),
+                                        Y = (int)Math.Round(size.Height / 2.0 +
+                                            (isStagingHole ? camera.CurrentVisionProfile.StagingSearchOffsetYmm * camera.EffectivePixelsPerMM : 0)) },
                                 Convert.ToInt32(camera.CurrentVisionProfile.TargetImageRadius * camera.EffectivePixelsPerMM),
                                  new Bgr(System.Drawing.Color.White).MCvScalar,
                                     -1, LineType.AntiAlias);
@@ -497,7 +503,13 @@ namespace LagoVista.PickAndPlace.App.Services
                             {
                                 using (var finalMask = new Image<Gray, byte>(size))
                                 {
-                                    CvInvoke.Circle(finalMask, new Point(size.Width / 2, size.Height / 2),
+                                    var isStagingHole = camera.CurrentVisionProfile.Key ==
+                                        VisionProfile.VisionProfile_StagingPlateHole;
+                                    CvInvoke.Circle(finalMask, new Point(
+                                        (int)Math.Round(size.Width / 2.0 +
+                                            (isStagingHole ? camera.CurrentVisionProfile.StagingSearchOffsetXmm * camera.EffectivePixelsPerMM : 0)),
+                                        (int)Math.Round(size.Height / 2.0 +
+                                            (isStagingHole ? camera.CurrentVisionProfile.StagingSearchOffsetYmm * camera.EffectivePixelsPerMM : 0))),
                                         Convert.ToInt32(camera.CurrentVisionProfile.TargetImageRadius * camera.EffectivePixelsPerMM),
                                         new MCvScalar(255), -1, LineType.AntiAlias);
                                     CvInvoke.BitwiseAnd(input, input, invertedMasked, finalMask);
