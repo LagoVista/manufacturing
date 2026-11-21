@@ -115,22 +115,6 @@
                                                TextWrapping="Wrap" FontSize="12"
                                                Foreground="#DDEBF7"/>
                                 </CheckBox>
-                                <Border Background="#314052" CornerRadius="5"
-                                        Padding="10" Margin="0,0,0,10"
-                                        Visibility="{Binding NeedsPickHeightApproval, Converter={StaticResource BoolVisibility}}">
-                                    <StackPanel>
-                                        <TextBlock Text="{Binding HeadDescription, StringFormat='DESCENT APPROVAL · {0}'}"
-                                                   Foreground="#FFDA9D" FontSize="12"
-                                                   FontWeight="Bold" Margin="0,0,0,5"/>
-                                        <TextBlock Text="At camera-verified test XY and safe Z: check that the installed nozzle and fixture have clearance and the configured PickHeight will lightly obstruct the nozzle. This enables ONE head-specific Z descent."
-                                                   Foreground="#E4EDF5" FontSize="11"
-                                                   TextWrapping="Wrap" Margin="0,0,0,8"/>
-                                        <CheckBox Content="I authorize the configured PickHeight descent for this head."
-                                                  IsChecked="{Binding OperatorApprovedPickHeight, Mode=TwoWay}"
-                                                  IsEnabled="{Binding NeedsPickHeightApproval}"
-                                                  Foreground="#FFF1D7" FontWeight="SemiBold"/>
-                                    </StackPanel>
-                                </Border>
                                 <Border Background="#25423F" CornerRadius="5"
                                         Padding="10" Margin="0,0,0,6"
                                         Visibility="{Binding NeedsPlateContact, Converter={StaticResource BoolVisibility}}">
@@ -147,7 +131,7 @@
                                                   Foreground="#E4FFF0" FontWeight="SemiBold"/>
                                     </StackPanel>
                                 </Border>
-                                <TextBlock Text="Run Both pauses for the two checkpoints on EACH head. Acknowledging the machine once never authorizes unattended Z contact."
+                                <TextBlock Text="Run Both uses the acknowledged configured PickHeights and verified safe motion. It pauses only to confirm the actual nozzle seal for each head before evaluating part-present sensor readings."
                                            TextWrapping="Wrap" FontSize="10"
                                            Foreground="#BFCFE0"/>
                             </StackPanel>
