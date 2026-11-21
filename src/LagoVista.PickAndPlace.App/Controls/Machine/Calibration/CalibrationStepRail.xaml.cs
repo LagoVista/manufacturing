@@ -113,8 +113,7 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine.Calibration
             // before BringIntoView. Dispatcher keeps this after the status update.
             Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
             {
-                if (!IsLoaded || step == null || !ReferenceEquals(Steps, _observedCollection) &&
-                    !_observedSteps.Contains(step))
+                if (!IsLoaded || step == null || !_observedSteps.Contains(step))
                     return;
 
                 StepItems.UpdateLayout();

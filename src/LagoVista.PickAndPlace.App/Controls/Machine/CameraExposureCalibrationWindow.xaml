@@ -8,27 +8,6 @@
         WindowStyle="None" ResizeMode="CanResize" ShowInTaskbar="False"
         Closing="Window_Closing">
     <Window.Resources>
-        <Style x:Key="StageCard" TargetType="Border">
-            <Setter Property="Background" Value="#25303D"/>
-            <Setter Property="BorderBrush" Value="#39495B"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="7"/>
-            <Setter Property="Padding" Value="11"/>
-            <Setter Property="Margin" Value="0,0,0,7"/>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding Status}" Value="Running">
-                    <Setter Property="BorderBrush" Value="#4BB8FF"/>
-                    <Setter Property="Background" Value="#233D52"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Status}" Value="Passed">
-                    <Setter Property="BorderBrush" Value="#367F62"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Status}" Value="Failed">
-                    <Setter Property="BorderBrush" Value="#D96A71"/>
-                    <Setter Property="Background" Value="#3C2930"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
         <Style x:Key="ActionButton" TargetType="Button">
             <Setter Property="Height" Value="39"/>
             <Setter Property="MinWidth" Value="125"/>
