@@ -56,6 +56,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 throw new ArgumentNullException(nameof(bottomCameraBootstrap));
             CalibrateBottomCameraCommand = new RelayCommand(async () => await StartAsync());
             LoadRunoutVisionSettings();
+            // Display the entire selected-head plan before Start. This only
+            // creates view-model steps; no camera or machine IO is performed.
+            RunoutSteps = NewPlan(InstalledNozzleCalibrationPlan.SelectOne(
+                AvailableRunoutHeads, SelectedRunoutHead));
         }
 
         public ObservableCollection<FeederCalibrationFlowStep> RunoutSteps { get; private set; } =
@@ -86,6 +90,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 CandidateResult = null;
                 RunoutVideoObservation = null;
                 CalibrationUpdates.Clear();
+                RunoutSteps = NewPlan(InstalledNozzleCalibrationPlan.SelectOne(
+                    AvailableRunoutHeads, SelectedRunoutHead));
+                RaisePropertyChanged(nameof(RunoutSteps));
                 RaisePropertyChanged(nameof(CandidateZero));
                 RaisePropertyChanged(nameof(RunoutSummary));
                 RaisePropertyChanged(nameof(ToolHeadName));
