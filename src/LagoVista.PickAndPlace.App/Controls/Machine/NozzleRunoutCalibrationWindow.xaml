@@ -5,7 +5,7 @@
         Width="1020" Height="790" MinWidth="820" MinHeight="590"
         WindowStartupLocation="CenterOwner" ResizeMode="CanResize"
         Background="#181D26" Foreground="#EAF0F6"
-        Loaded="Window_Loaded" Closing="Window_Closing">
+        Closing="Window_Closing">
     <Window.Resources>
         <Style x:Key="ProcedureCard" TargetType="Border">
             <Setter Property="Background" Value="#252E3B"/>
@@ -78,11 +78,28 @@
                                FontSize="14"/>
                     <TextBlock Text="{Binding NozzleName}" Foreground="#ACBDD0"
                                FontSize="12" Margin="0,2,0,0"/>
+                    <TextBlock Text="Select the installed nozzle head to calibrate"
+                               Foreground="#9FC9E7" FontSize="11"
+                               Margin="0,10,0,4"/>
+                    <ComboBox ItemsSource="{Binding AvailableRunoutHeads}"
+                              SelectedItem="{Binding SelectedRunoutHead, Mode=TwoWay}"
+                              DisplayMemberPath="Name" MinWidth="255" Height="31"
+                              HorizontalAlignment="Left">
+                        <ComboBox.Style>
+                            <Style TargetType="ComboBox">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding RunoutRunning}" Value="True">
+                                        <Setter Property="IsEnabled" Value="False"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ComboBox.Style>
+                    </ComboBox>
                 </StackPanel>
                 <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <TextBlock Text="MEASUREMENT PLAN" Foreground="#91A5BC"
                                HorizontalAlignment="Right" FontSize="10"/>
-                    <TextBlock Text="12 samples per head · 30° increments"
+                    <TextBlock Text="One selected head · 12 samples · 30° increments"
                                FontWeight="SemiBold" FontSize="16" HorizontalAlignment="Right"/>
                     <TextBlock Text="Bottom camera · max Y = logical zero"
                                Foreground="#B6C3D2" FontSize="11" HorizontalAlignment="Right"/>
@@ -167,13 +184,32 @@
             <StackPanel VerticalAlignment="Center" Margin="0,0,10,0">
                 <TextBlock Text="{Binding Status}" TextWrapping="Wrap"
                            FontSize="13" FontWeight="SemiBold"/>
-                <TextBlock Text="First run is supervised. Machine emergency stop remains independent; closing the modal does not cancel queued motion."
+                <TextBlock Text="Opening this window never moves the machine. Press Start Runout to begin a supervised single-head sweep with emergency stop accessible."
                            TextWrapping="Wrap" Foreground="#9DADC1" FontSize="10" Margin="0,5,0,0"/>
             </StackPanel>
-            <Button Grid.Column="1" Content="Run Again" Style="{StaticResource ActionButton}"
-                    Click="RunAgain_Click" IsEnabled="{Binding RunoutFinished}"/>
-            <Button Grid.Column="2" Content="Close" Style="{StaticResource ActionButton}"
-                    Click="Close_Click" IsEnabled="{Binding RunoutFinished}"/>
+            <Button Grid.Column="1" Content="Start Runout / Run Again"
+                    Click="RunAgain_Click">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding RunoutRunning}" Value="True">
+                                <Setter Property="IsEnabled" Value="False"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            <Button Grid.Column="2" Content="Close" Click="Close_Click">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding RunoutRunning}" Value="True">
+                                <Setter Property="IsEnabled" Value="False"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
         </Grid>
     </Grid>
 </Window>

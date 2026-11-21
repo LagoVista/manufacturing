@@ -34,6 +34,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private IMachine _activeMachine;
         private MachineToolHead _activeHead;
         private MachineToolHead _lastMeasuredHead;
+        private MachineToolHead _selectedRunoutHead;
         private string _activeNozzleId;
         private string _cameraId;
         private double _cameraScale;
@@ -63,14 +64,33 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public bool RunoutRunning { get => _running; private set => Set(ref _running, value); }
         public bool RunoutFinished { get => _finished; private set => Set(ref _finished, value); }
         public string Status { get => _status; private set => Set(ref _status, value); }
+        /// <summary>
+        /// Exactly one installed head/nozzle is selected for each supervised
+        /// optical run. Opening the UI has no side effects and never starts
+        /// the sweep or invalidates any installed head's calibration.
+        /// </summary>
+        public IReadOnlyList<MachineToolHead> AvailableRunoutHeads =>
+            InstalledNozzleCalibrationPlan.InstalledHeads(_machineRepo.CurrentMachine?.Settings);
+
+        public MachineToolHead SelectedRunoutHead
+        {
+            get => _selectedRunoutHead ?? AvailableRunoutHeads.FirstOrDefault();
+            set
+            {
+                if (RunoutRunning) return;
+                if (value != null && !AvailableRunoutHeads.Contains(value)) return;
+                Set(ref _selectedRunoutHead, value);
+                RaisePropertyChanged(nameof(ToolHeadName));
+                RaisePropertyChanged(nameof(NozzleName));
+            }
+        }
+
         private MachineToolHead DisplayHead
         {
             get
             {
                 var machine = _machineRepo.CurrentMachine;
-                return _activeHead ?? _lastMeasuredHead ?? InstalledNozzleCalibrationPlan.ChooseFirst(
-                    InstalledNozzleCalibrationPlan.InstalledHeads(machine?.Settings),
-                    machine?.CurrentMachineToolHead);
+                return _activeHead ?? _lastMeasuredHead ?? SelectedRunoutHead;
             }
         }
 
@@ -338,7 +358,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             if (RunoutRunning) return;
             var machine = _machineRepo.CurrentMachine;
-            var installed = InstalledNozzleCalibrationPlan.InstalledHeads(machine?.Settings);
+            // A single operator-selected head is the entire run plan.
+            // Never silently sweep or invalidate other installed heads.
+            var selected = SelectedRunoutHead;
+            var available = InstalledNozzleCalibrationPlan.InstalledHeads(machine?.Settings);
+            IReadOnlyList<MachineToolHead> installed =
+                selected != null && available.Contains(selected)
+                    ? new List<MachineToolHead> { selected }
+                    : new List<MachineToolHead>();
             RunoutSteps = NewPlan(installed);
             RaisePropertyChanged(nameof(RunoutSteps));
             CalibrationUpdates.Clear();
@@ -349,12 +376,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RaisePropertyChanged(nameof(RunoutSummary));
             RunoutFinished = false;
             RunoutRunning = true;
-            Status = $"Starting runout checks for {installed.Count} installed nozzle head(s).";
+            Status = installed.Count == 1
+                ? $"Starting supervised runout for Head {installed[0].HeadIndex} ({installed[0].CurrentNozzle?.Text})."
+                : "Select one installed nozzle head to start runout.";
             try
             {
                 if (installed.Count == 0)
                 {
-                    Status = "Stopped: no installed nozzles assigned to Head 1 or Head 2.";
+                    Status = "Stopped: select an installed nozzle head before starting. No motion sent.";
                     return;
                 }
                 _activeHead = installed[0];
@@ -407,7 +436,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     if (!await CalibrateInstalledHeadAsync(machine, tool, cameraConfig, isFinalHead))
                         return;
                 }
-                Status = $"All {installed.Count} installed nozzle head(s) calibrated this session. Measurements are invalidated on machine restart or nozzle changes; production compensation remains separate.";
+                Status = $"Head {installed[0].HeadIndex} runout measured this session. Other heads were not touched. Measurements are invalidated on machine restart or nozzle changes; production compensation remains separate.";
             }
             catch (Exception ex)
             {

@@ -3,7 +3,9 @@
 // IndexVersion: 2
 // --- END CODE INDEX META ---
 using LagoVista.Core.Models.Drawing;
+using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Models;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
@@ -13,6 +15,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
     {
         void CircleLocation(Point2D<double> center, double diameter, Point2D<double> stdDeviation);
         Task StartAsync();
+        IReadOnlyList<MachineToolHead> AvailableRunoutHeads { get; }
+        MachineToolHead SelectedRunoutHead { get; set; }
         ObservableCollection<string> CalibrationUpdates { get; }
         int TargetAngle { get; }
         int CurrentCalibrationAngle { get; }

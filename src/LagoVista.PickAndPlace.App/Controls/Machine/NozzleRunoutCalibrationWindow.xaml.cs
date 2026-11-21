@@ -10,7 +10,6 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
     /// </summary>
     public partial class NozzleRunoutCalibrationWindow : Window
     {
-        private bool _started;
         public NozzleRunoutCalibrationWindow()
         {
             InitializeComponent();
@@ -18,14 +17,6 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
 
         private INozzleTipCalibrationViewModel Procedure =>
             DataContext as INozzleTipCalibrationViewModel;
-
-        private async void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            if (_started) return;
-            _started = true;
-            if (Procedure != null)
-                await Procedure.StartAsync();
-        }
 
         private async void RunAgain_Click(object sender, RoutedEventArgs e)
         {
