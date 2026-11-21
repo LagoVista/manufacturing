@@ -38,7 +38,7 @@ namespace LagoVista.PickAndPlace.Models
                 {
                     Key = head + "-open",
                     Title = head + ": verify pump with unobstructed nozzle",
-                    Instructions = "Only the selected head pump/valve may operate. Observe both raw channels and verify no false part classification.",
+                    Instructions = "BEFORE any head XY/Z positioning: enable only the selected head pump, wait for actual pressure to settle, verify a fresh stable open-nozzle pressure window and the inactive opposite channel. Controller pump acknowledgment is not pressure-stability proof.",
                     RequiredVerification = MachineOperationVerificationKind.MachineObserved
                 });
                 definition.Steps.Add(new MachineOperationStepDefinition
