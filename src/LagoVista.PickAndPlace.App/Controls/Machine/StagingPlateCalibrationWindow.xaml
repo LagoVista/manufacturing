@@ -18,6 +18,7 @@
             <Setter Property="Width" Value="161"/>
             <Setter Property="Padding" Value="7,5"/>
             <Setter Property="Margin" Value="0,4,0,3"/>
+            <Setter Property="IsEnabled" Value="{Binding CanEditVision}"/>
         </Style>
         <Style x:Key="VisionSecondaryButton" TargetType="Button">
             <Setter Property="Background" Value="#245579"/>
@@ -171,24 +172,27 @@
                                     <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="235">
                                                                             <StackPanel Margin="12">
                                         <TextBlock Text="Search region and accepted hole geometry" FontWeight="Bold" Foreground="#86C4F2" FontSize="13" Margin="0,0,0,9"/>
-                                        <TextBlock Text="These adjust which pixels the centroid detector searches. Offsets move the SEARCH circle only; they do not shift the machine's optical centering target."
+                                        <TextBlock Text="SEARCH RADIUS AND X/Y OFFSETS PREVIEW LIVE as you edit. The camera outline follows the actual detector; no Apply Preview click needed for search geometry. Save Profile to keep changes. The machine does not move."
     TextWrapping="Wrap" Foreground="#CFDEEC" FontSize="11" Margin="0,0,0,9"/>
+<TextBlock Text="{Binding ActiveSearchSummary}"
+    Foreground="#78D6AE" FontWeight="SemiBold" FontSize="12"
+    TextWrapping="Wrap" Margin="0,0,0,11"/>
 <WrapPanel>                                                <StackPanel Width="181" Margin="0,0,12,10">
                                                     <TextBlock Text="Search radius (mm)" Foreground="#B9D1E4" FontSize="11"/>
                                                     <TextBox Style="{StaticResource VisionSettingBox}"
-                                                             Text="{Binding VisionTuning.SearchRadiusMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                             Text="{Binding VisionTuning.SearchRadiusMm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                                     
                                                 </StackPanel>
                                                 <StackPanel Width="181" Margin="0,0,12,10">
                                                     <TextBlock Text="Search center X (mm)" Foreground="#B9D1E4" FontSize="11"/>
                                                     <TextBox Style="{StaticResource VisionSettingBox}"
-                                                             Text="{Binding VisionTuning.SearchOffsetXmm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                             Text="{Binding VisionTuning.SearchOffsetXmm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                                     <TextBlock Text="Positive = right in video" Foreground="#849EB8" TextWrapping="Wrap" FontSize="10"/>
                                                 </StackPanel>
                                                 <StackPanel Width="181" Margin="0,0,12,10">
                                                     <TextBlock Text="Search center Y (mm)" Foreground="#B9D1E4" FontSize="11"/>
                                                     <TextBox Style="{StaticResource VisionSettingBox}"
-                                                             Text="{Binding VisionTuning.SearchOffsetYmm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                             Text="{Binding VisionTuning.SearchOffsetYmm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                                     <TextBlock Text="Positive = down in video" Foreground="#849EB8" TextWrapping="Wrap" FontSize="10"/>
                                                 </StackPanel></WrapPanel>
 <TextBlock Text="Nudge search position (not machine position)" Foreground="#BBD3E6" Margin="0,4,0,6" FontSize="11"/>
