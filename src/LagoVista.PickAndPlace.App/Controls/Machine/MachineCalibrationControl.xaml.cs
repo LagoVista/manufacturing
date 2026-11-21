@@ -33,6 +33,15 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
             InitializeComponent();
         }
 
+        private void OpenExposureCalibration_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new CameraExposureCalibrationWindow(ViewModel)
+            {
+                Owner = Window.GetWindow(this)
+            };
+            dialog.ShowDialog();
+        }
+
         private VacuumCalibrationWindow _vacuumWindow;
 
         private void OpenVacuumCalibration_Click(object sender, RoutedEventArgs e)
