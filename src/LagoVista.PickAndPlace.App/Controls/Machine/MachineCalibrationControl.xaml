@@ -18,6 +18,7 @@
          their original handlers and never initiate movement on tab selection. -->
     <TabControl x:Name="CalibrationTabs" Margin="6" SelectedIndex="0" Background="Transparent">
         <TabItem Header="Machine">
+            <Border Background="#151F2A" Padding="2">
             <ScrollViewer VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled">
                 <StackPanel Margin="18" MaxWidth="1100" HorizontalAlignment="Left">
@@ -156,6 +157,7 @@
                                FontSize="12" Margin="0,4,0,16"/>
                 </StackPanel>
             </ScrollViewer>
+            </Border>
         </TabItem>
         <TabItem Header="Locations">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
