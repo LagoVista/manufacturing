@@ -287,8 +287,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RunoutPreviewBusy = true;
             try
             {
+                string reason = null;
                 if (RunoutVisionTuning == null ||
-                    !RunoutVisionTuning.Validate(out var reason))
+                    !RunoutVisionTuning.Validate(out reason))
                 {
                     RunoutVisionStatus = reason ?? "No valid nozzle profile to preview.";
                     return;
