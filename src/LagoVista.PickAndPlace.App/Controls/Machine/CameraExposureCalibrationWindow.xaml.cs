@@ -1,5 +1,6 @@
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
+using System;
 using System.ComponentModel;
 using System.Windows;
 
