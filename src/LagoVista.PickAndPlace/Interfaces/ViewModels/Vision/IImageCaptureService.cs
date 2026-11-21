@@ -44,6 +44,10 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
         InvokeResult TryJogToObservedCircle(System.Guid circleId, double expectedOffsetX,
             double expectedOffsetY, string expectedProfileKey);
 
+        // Last real sampled exposure observation, including dark/white image levels.
+        // Null until this camera has collected its first sample for the current tune.
+        CameraExposureTuneProgress ExposureTuneProgress { get; }
+
         Task<InvokeResult> AutoTuneExposureAsync();
 
         // Capture-only tuning: 24 fresh frames, no machine motion or
