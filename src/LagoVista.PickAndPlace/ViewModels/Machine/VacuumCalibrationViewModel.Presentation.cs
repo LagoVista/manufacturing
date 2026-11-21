@@ -113,26 +113,21 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 }
                 step.StartedAt = state.StartedAtUtc;
                 step.FinishedAt = state.CompletedAtUtc;
-                switch (state.Status.ToString())
+                step.Status = VacuumStepRailProjection.FromOperationStatus(state.Status);
+                switch (step.Status)
                 {
-                    case "Pending":
-                        step.Status = "Queued";
-                        break;
-                    case "Active":
-                        step.Status = "Running";
+                    case "Running":
                         step.Detail = "Head " + _head + ": " + _status;
                         break;
                     case "Passed":
-                        step.Status = "Passed";
                         step.Detail = "Machine/operator evidence accepted for " + step.Title;
                         break;
-                    case "Blocked":
-                        step.Status = "Failed";
-                        step.Detail = state.Error ?? _status;
+                    case "Failed":
+                        step.Detail = state.Error ??
+                            "Procedure stopped. Verify pump-off and safe Z.";
                         break;
-                    case "Cancelled":
-                        step.Status = "Failed";
-                        step.Detail = "Procedure cancelled. Confirm pump-off and safe Z.";
+                    case "Queued":
+                        step.Detail = "Awaiting fresh machine and sensor evidence.";
                         break;
                 }
             }
