@@ -2,9 +2,9 @@ using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Globalization;
 using System.Windows.Data;
+using System.Windows.Media.Imaging;
 
 namespace LagoVista.PickAndPlace.App.Controls.Machine.Calibration
 {
@@ -23,17 +23,19 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine.Calibration
                 profile.Key != VisionProfile.VisionProfile_StagingPlateHole ||
                 !(values[2] is string activeKey) ||
                 activeKey != VisionProfile.VisionProfile_StagingPlateHole ||
-                !(values[6] is Size frameSize) ||
-                frameSize.Width <= 0 || frameSize.Height <= 0 ||
+                !(values[6] is BitmapSource frame) ||
+                frame.PixelWidth <= 0 || frame.PixelHeight <= 0 ||
                 !(values[7] is double scale) ||
                 scale <= 0 || Double.IsNaN(scale) || Double.IsInfinity(scale))
                 return null;
 
+            var frameWidth = frame.PixelWidth;
+            var frameHeight = frame.PixelHeight;
             var markers = new List<CalibrationVideoMarker>();
             if (profile.TargetImageRadius > 0)
             {
-                var roi = StagingHoleSearchRegion.Center(frameSize.Width,
-                    frameSize.Height, scale, profile.StagingSearchOffsetXmm,
+                var roi = StagingHoleSearchRegion.Center(frameWidth,
+                    frameHeight, scale, profile.StagingSearchOffsetXmm,
                     profile.StagingSearchOffsetYmm);
                 markers.Add(new CalibrationVideoMarker
                 {
@@ -49,15 +51,15 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine.Calibration
             markers.Add(new CalibrationVideoMarker
             {
                 Kind = CalibrationMarkerKind.Target,
-                CenterX = frameSize.Width / 2,
-                CenterY = frameSize.Height / 2,
+                CenterX = frameWidth / 2,
+                CenterY = frameHeight / 2,
                 RadiusPixels = 0,
                 Label = "OPTICAL CENTER"
             });
 
             var observation = values[0] as FiducialCircleObservation;
-            if (observation != null && observation.FrameWidth == frameSize.Width &&
-                observation.FrameHeight == frameSize.Height &&
+            if (observation != null && observation.FrameWidth == frameWidth &&
+                observation.FrameHeight == frameHeight &&
                 observation.RadiusPx > 0)
             {
                 markers.Add(new CalibrationVideoMarker

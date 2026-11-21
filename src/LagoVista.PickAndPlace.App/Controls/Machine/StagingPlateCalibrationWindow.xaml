@@ -129,7 +129,7 @@
                                 <Binding Path="EditableVisionProfile.StagingSearchOffsetXmm"/>
                                 <Binding Path="EditableVisionProfile.StagingSearchOffsetYmm"/>
                                 <Binding Path="EditableVisionProfile.TargetImageRadius"/>
-                                <Binding Path="Machine.PositionImageCaptureService.CaptureFrameSize"/>
+                                <Binding Path="Machine.PositionImageCaptureService.CaptureImage"/>
                                 <Binding Path="PixelsPerMillimeter"/>
                             </MultiBinding>
                         </cal:CalibrationVideoSurface.Markers>
