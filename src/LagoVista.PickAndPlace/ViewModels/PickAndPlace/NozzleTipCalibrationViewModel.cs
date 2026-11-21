@@ -542,6 +542,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     Stop(cameraStep, captureReady.ErrorMessage + " No movement sent.");
                     return false;
                 }
+                // The operator may start directly without first pressing
+                // Preview Bottom Camera. Refresh the bound live-image path
+                // after the existing runner initializes the capture service.
+                RaisePropertyChanged(nameof(RunoutMachine));
+                RaisePropertyChanged(nameof(RunoutSearchSummary));
+                RunoutCameraStatus =
+                    "Live bottom camera active during the supervised nozzle sweep.";
                 _cameraId = Convert.ToString(capture.Camera.Id);
                 _cameraScale = capture.Camera.EffectivePixelsPerMM;
                 if (!ValidCameraBeforeMotion(machine, cameraConfig, out visionError))
