@@ -51,6 +51,18 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
             dialog.ShowDialog();
         }
 
+        private void OpenStagingPlateSettings_Click(object sender, RoutedEventArgs e)
+        {
+            // Configuration is available now; do not accidentally run the
+            // legacy staging runner, which chains to machine-origin calibration.
+            CalibrationTabs.SelectedItem = StagingPlatesTab;
+        }
+
+        private void OpenCameraSettings_Click(object sender, RoutedEventArgs e)
+        {
+            CalibrationTabs.SelectedItem = CamerasTab;
+        }
+
         private VacuumCalibrationWindow _vacuumWindow;
 
         private void OpenVacuumCalibration_Click(object sender, RoutedEventArgs e)
