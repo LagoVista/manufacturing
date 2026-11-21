@@ -105,6 +105,44 @@ effective value must pass finite/positive/ROI-image checks, and trackers are
 invalidated. Editing the search ROI never expands the machine's physical XY
 travel envelope; the separate hole-2 work-area guard remains enforced.
 
+## Per-plate centering motion limits and single-scroll UI
+
+The expanded **Calibration settings** area has one vertical scrollbar.
+Its Search & Hole, Processing, Camera & Light, and Display tabs no longer
+contain nested independently scrolling panes.
+
+**Motion safety limits** are separate from the VisionProfile because they
+govern physical calibration movements, not camera image processing.
+They are stored with the selected `MachineStagingPlate` and appear at the
+top of the same settings area:
+
+- **Max XY correction per axis (mm)** defaults to 3.0 mm per reference-hole
+  centering move; operator may deliberately configure 0.1–10.0 mm.
+- **Maximum centering corrections** defaults to 6 per reference hole;
+  operator may deliberately configure 1–12 attempts.
+
+These are separate draft inputs. Use **Save Limits for Plate** to validate
+and persist the selected plate's motion policy, or **Revert Limits** to
+discard the draft. Unsaved motion-setting edits block automatic calibration;
+saving motion limits is blocked if any vision profile draft/preview is
+unsaved, so the machine configuration save cannot silently persist other
+unapproved camera edits. New plates and older serialized plates retain the
+conservative 3 mm / 6 correction defaults.
+
+A permanent independent 10.0-mm per-axis correction hard ceiling and
+12-attempt hard maximum are enforced even if stored data are corrupt. The
+machine's existing absolute XY work-area limits, safe-Z sequencing,
+homing/origin and Manual-mode checks, fresh/stable circle verification,
+acknowledged controller idle and per-move position checks **remain
+independent** and are never bypassed by increasing the per-plate limits.
+
+A detected correction that exceeds the selected plate's configured value
+fails without commanding a move and reports the measured X/Y offsets, the
+configured per-axis limit and the independent ceiling. Increasing the
+limit should only follow supervised confirmation that the additional move
+has adequate machine, fixture, head and camera clearance; a value being
+configurable does not make every position collision-free.
+
 ## Diagnosing the second-reference-hole travel gate
 
 The second reference is computed as **freshly measured first-hole XY**
