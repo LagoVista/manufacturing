@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using LagoVista.PickAndPlace.Models;
 
 namespace LagoVista.PickAndPlace.App.Controls.Machine.Calibration
 {
@@ -70,11 +71,10 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine.Calibration
             // coordinates to fill an unrelated camera presentation rectangle.
             var frameWidth = (double)frame.PixelWidth;
             var frameHeight = (double)frame.PixelHeight;
-            var scale = Math.Min(RenderSize.Width / frameWidth, RenderSize.Height / frameHeight);
-            if (scale <= 0 || double.IsNaN(scale) || double.IsInfinity(scale)) return;
-            var left = (RenderSize.Width - (frameWidth * scale)) / 2.0;
-            var top = (RenderSize.Height - (frameHeight * scale)) / 2.0;
-            Point Map(double x, double y) => new Point(left + (x * scale), top + (y * scale));
+            if (!CalibrationImageTransform.TryCreate(frameWidth, frameHeight,
+                    RenderSize.Width, RenderSize.Height, out var mapping)) return;
+            var scale = mapping.Scale;
+            Point Map(double x, double y) => new Point(mapping.MapX(x), mapping.MapY(y));
 
             var center = Map(frameWidth / 2.0, frameHeight / 2.0);
             var line = new Pen(Brushes.DeepSkyBlue, 1.25);
