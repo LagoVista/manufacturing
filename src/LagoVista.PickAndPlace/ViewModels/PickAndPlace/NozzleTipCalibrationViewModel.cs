@@ -444,11 +444,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                             "Stopping before further movement; completed heads remain unchanged.");
                         return;
                     }
+                    string transitionError = null;
                     if (!machine.Connected || machine.Mode != OperatingMode.Manual ||
                         !machine.WasMachineHomed || !machine.WasMachinOriginCalibrated ||
                         machine.Busy || !NozzleRunoutReadinessPolicy.TryValidate(
                             machine.Settings, machine.WasMachinOriginCalibrated,
-                            out var transitionError))
+                            out transitionError))
                     {
                         Stop(Step("readiness"),
                             "Head " + tool.HeadIndex +
@@ -478,10 +479,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         "° · 12 offsets verified · safe Z confirmed");
                     RaisePropertyChanged(nameof(RunoutSequenceProgress));
 
-                    if (!ReferenceEquals(tool, installed[installed.Count - 1]))
+                    var nextHead = installed.SkipWhile(
+                        h => !ReferenceEquals(h, tool)).Skip(1).FirstOrDefault();
+                    if (nextHead != null)
                         Status = "Head " + tool.HeadIndex +
                             " complete. Proceeding automatically to Head " +
-                            installed[installed.IndexOf(tool) + 1].HeadIndex +
+                            nextHead.HeadIndex +
                             " after verified safe height. No second Start needed.";
                 }
                 Status = "Runout complete: " + installed.Count +
@@ -948,14 +951,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     Angle = sample.CommandedAngle,
                     Offset = NozzleRunoutMath.Correction(result, sample.CommandedAngle)
                 }).ToList();
-                tool.CompleteRunoutCalibration(_activeNozzleId, result.LogicalZeroAngle, corrections);
-                _lastMeasuredHead = tool;
-                Status = $"Head {tool.HeadIndex} ({tool.CurrentNozzle.Text}) runout calibrated for this session; 12 offsets and high-Y zero validated.";
+                // Do not mark this head complete until the corresponding
+                // safe-Z step has also passed, so a failed transition cannot
+                // claim a fully completed head's calibration.
 
-                // Only after the final installed nozzle (normally Head 2 /
-                // right head) has passed all twelve angles and high-point
-                // repeatability, return to the machine's EXISTING configured
-                // safe move height. Do not capture or change that setting.
+                // After EACH installed nozzle has passed all twelve angles
+                // and the high-point revisit, return to the existing
+                // configured safe move height. This is a mandatory verified
+                // clearance boundary BEFORE switching to the next head.
+                // Do not capture or change that setting.
                 if (isFinalHead)
                 {
                     var safeHeightStep = Step("safe-height");
@@ -1003,8 +1007,22 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
                     PassMachineStep(safeHeightStep,
                         $"Machine reached its existing configured safe move height: " +
-                        $"Z={machine.ToolCommonZ:F2} mm. Setting unchanged; procedure stopped here.");
+                        $"Z={machine.ToolCommonZ:F2} mm. Setting unchanged; safe to " +
+                        $"proceed to next head or finish.");
                 }
+
+                // Both the 12-angle optical proof and safe-Z are now verified.
+                if (!ValidContext(out var completionError))
+                {
+                    Stop(Step("safe-height"), completionError ??
+                        "Nozzle changed during safe-Z verification; runout not committed.");
+                    return false;
+                }
+                tool.CompleteRunoutCalibration(_activeNozzleId,
+                    result.LogicalZeroAngle, corrections);
+                _lastMeasuredHead = tool;
+                Status = $"Head {tool.HeadIndex} ({tool.CurrentNozzle.Text}) completed: " +
+                    "12 optical offsets, high-Y revisit and safe-Z verified.";
                 return true;
         }
 
