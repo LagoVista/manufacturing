@@ -121,7 +121,7 @@
                     <cal:CalibrationVideoSurface
                         FrameSource="{Binding Machine.PositionImageCaptureService.CaptureImage}"
                         ShowExposureReference="False"
-                        Caption="LIVE POSITION CAMERA · blue search ROI / optical target · yellow candidate · green centered">
+                        Caption="{Binding VisionPreviewCaption, Mode=OneWay}">
                         <cal:CalibrationVideoSurface.Markers>
                             <MultiBinding Converter="{StaticResource StagingMarkers}">
                                 <Binding Path="CurrentObservation"/>

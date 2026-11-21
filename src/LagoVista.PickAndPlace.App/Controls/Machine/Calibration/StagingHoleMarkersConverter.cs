@@ -43,7 +43,7 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine.Calibration
                     CenterX = roi.X,
                     CenterY = roi.Y,
                     RadiusPixels = profile.TargetImageRadius * scale,
-                    Label = "SEARCH ROI"
+                    Label = "SEARCH R=" + profile.TargetImageRadius.ToString("F1") + " mm"
                 });
             }
 

@@ -130,6 +130,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 InvalidateVisionEvidence("Live staging-hole search region changed; previous detections cleared.");
                 HasVisionPreview = !_savedVisionSettings.Matches(_editingProfile);
                 RaisePropertyChanged(nameof(ActiveSearchSummary));
+                RaisePropertyChanged(nameof(VisionPreviewCaption));
                 TuningStatus = HasVisionPreview
                     ? "LIVE SEARCH UPDATED (UNSAVED). The camera search outline should now match the values above. Save Profile or Revert."
                     : "Live search matches the saved profile.";
@@ -139,6 +140,20 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 TuningStatus = "Could not apply live search region: " + ex.Message;
             }
         }
+
+        /// <summary>
+        /// Camera-visible confirmation even if the requested circle radius
+        /// extends outside the cropped camera image. Always the APPLIED
+        /// profile, never the uncommitted draft.
+        /// </summary>
+        public string VisionPreviewCaption =>
+            _editingProfile == null
+                ? "LIVE POSITION CAMERA · staging-hole profile not configured"
+                : "LIVE CAMERA · SEARCH R=" +
+                  _editingProfile.TargetImageRadius.ToString("F1") +
+                  " mm · X=" + _editingProfile.StagingSearchOffsetXmm.ToString("+0.00;-0.00;0.00") +
+                  " · Y=" + _editingProfile.StagingSearchOffsetYmm.ToString("+0.00;-0.00;0.00") +
+                  " mm" + (HasVisionPreview ? " · UNSAVED" : " · SAVED");
 
         public string ActiveSearchSummary
         {
@@ -212,6 +227,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 ? null : StagingHoleVisionTuning.FromProfile(profile);
             HasVisionPreview = false;
             RaisePropertyChanged(nameof(ActiveSearchSummary));
+            RaisePropertyChanged(nameof(VisionPreviewCaption));
             if (profile == null)
                 TuningStatus = "The position camera requires a stagingplatehole profile before tuning.";
         }
@@ -347,6 +363,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 VisionTuning = StagingHoleVisionTuning.FromProfile(_editingProfile);
                 HasVisionPreview = !_savedVisionSettings.Matches(_editingProfile);
                 RaisePropertyChanged(nameof(ActiveSearchSummary));
+                RaisePropertyChanged(nameof(VisionPreviewCaption));
                 InvalidateVisionEvidence("Vision preview applied to the live staging-hole profile; previous circles invalidated.");
                 RaisePropertyChanged(nameof(PixelsPerMillimeter));
                 TuningStatus = HasVisionPreview
@@ -390,6 +407,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 _savedVisionSettings = StagingHoleVisionTuning.FromProfile(_editingProfile);
                 HasVisionPreview = false;
                 RaisePropertyChanged(nameof(ActiveSearchSummary));
+                RaisePropertyChanged(nameof(VisionPreviewCaption));
                 TuningStatus = "The stagingplatehole profile was saved. No machine movement or plate alignment was performed.";
                 Log(TuningStatus);
             }
@@ -417,6 +435,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 VisionTuning = StagingHoleVisionTuning.FromProfile(_editingProfile);
                 HasVisionPreview = false;
                 RaisePropertyChanged(nameof(ActiveSearchSummary));
+                RaisePropertyChanged(nameof(VisionPreviewCaption));
                 RaisePropertyChanged(nameof(PixelsPerMillimeter));
                 TuningStatus = "Restored saved staging-hole profile values.";
             }
