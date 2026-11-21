@@ -75,7 +75,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public string CameraName => _camera?.Name ?? Machine?.PositionImageCaptureService?.Camera?.Name ?? "Position camera";
         public string MachinePositionSummary => Machine == null ? "Not connected" :
             $"X={Machine.MachinePosition.X:F2}  Y={Machine.MachinePosition.Y:F2}  Z={Machine.MachinePosition.Z:F2}";
-        public double PixelsPerMillimeter => _camera?.EffectivePixelsPerMM ?? 0;
+        public double PixelsPerMillimeter => _camera?.EffectivePixelsPerMM ??
+            Machine?.PositionImageCaptureService?.Camera?.EffectivePixelsPerMM ?? 0;
 
         private void ResetSteps()
         {
@@ -217,6 +218,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     return;
                 }
                 _scale = _camera.EffectivePixelsPerMM;
+                RaisePropertyChanged(nameof(PixelsPerMillimeter));
                 if (_scale <= 0 || double.IsNaN(_scale) || double.IsInfinity(_scale))
                 {
                     Fail("Position camera has no valid pixels-per-millimeter calibration.");
