@@ -197,7 +197,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
         }
 
-        public bool CanEditVision => !Running && !TuningBusy;
+        public bool CanEditVision => !Running && !TuningBusy && !MotionSettingsBusy;
 
         public string TuningStatus
         {

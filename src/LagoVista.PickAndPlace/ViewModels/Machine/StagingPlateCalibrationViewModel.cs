@@ -297,7 +297,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         {
             if (!CanRun)
             {
-                if (HasVisionPreview || HasVisionDraftChanges)
+                if (HasMotionDraftChanges)
+                    ReportMotionInputError();
+                else if (HasVisionPreview || HasVisionDraftChanges)
                     TuningStatus = "Save or revert the staging vision profile changes before automatic plate calibration.";
                 return;
             }

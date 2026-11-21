@@ -44,6 +44,23 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
             return false;
         }
 
+        private async void SaveMotionLimits_Click(object sender, RoutedEventArgs e)
+        {
+            if (Procedure?.CanEditMotion != true) return;
+            if (HasInvalidInput(MotionSettingInputs))
+            {
+                Procedure.ReportMotionInputError();
+                return;
+            }
+            await Procedure.SaveMotionSettingsAsync();
+        }
+
+        private void RevertMotionLimits_Click(object sender, RoutedEventArgs e)
+        {
+            if (Procedure?.CanEditMotion == true)
+                Procedure.RevertMotionSettings();
+        }
+
         private async void ApplyVisionPreview_Click(object sender, RoutedEventArgs e)
         {
             if (Procedure?.CanEditVision != true) return;
