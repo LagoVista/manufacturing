@@ -48,7 +48,7 @@
                     <TextBlock Text="Fiducial Calibration" FontSize="25"
                                FontWeight="SemiBold" Margin="0,3,0,3"/>
                     <TextBlock Foreground="#B4C5D9" FontSize="12">
-                        <Run Text="Camera: "/><Run Text="{Binding CameraName}"/>
+                        <Run Text="Camera: "/><Run Text="{Binding CameraName, Mode=OneWay}"/>
                         <Run Text="   ·   Algorithm: Hough circles (macfiducial)"/>
                     </TextBlock>
                 </StackPanel>
