@@ -55,6 +55,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _bottomCameraBootstrap = bottomCameraBootstrap ??
                 throw new ArgumentNullException(nameof(bottomCameraBootstrap));
             CalibrateBottomCameraCommand = new RelayCommand(async () => await StartAsync());
+            LoadRunoutVisionSettings();
         }
 
         public ObservableCollection<FeederCalibrationFlowStep> RunoutSteps { get; private set; } =
@@ -79,7 +80,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 if (RunoutRunning) return;
                 if (value != null && !AvailableRunoutHeads.Contains(value)) return;
+                if (ReferenceEquals(_selectedRunoutHead, value)) return;
                 Set(ref _selectedRunoutHead, value);
+                _lastMeasuredHead = null;
+                CandidateResult = null;
+                RunoutVideoObservation = null;
+                CalibrationUpdates.Clear();
+                RaisePropertyChanged(nameof(CandidateZero));
+                RaisePropertyChanged(nameof(RunoutSummary));
                 RaisePropertyChanged(nameof(ToolHeadName));
                 RaisePropertyChanged(nameof(NozzleName));
                 RaisePropertyChanged(nameof(CanStartRunout));
@@ -91,7 +99,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             get
             {
                 var machine = _machineRepo.CurrentMachine;
-                return _activeHead ?? _lastMeasuredHead ?? SelectedRunoutHead;
+                return _activeHead ?? SelectedRunoutHead ?? _lastMeasuredHead;
             }
         }
 
@@ -260,13 +268,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             lock (_observationGate) pending = _pendingSample;
             var profile = _activeMachine?.PartInspectionCaptureService?.Profile;
             if (pending == null || !_runoutOpticalLock ||
-                !NozzleRunoutVisionPreparation.MatchesLockedOpening(
-                    profile, _cameraScale, circle) ||
-                !ValidContext(out _)) return;
+                profile?.Key != VisionProfile.VisionProfile_Nozzle)
+                return;
+            var qualified = NozzleRunoutVisionPreparation.MatchesLockedOpening(
+                profile, _cameraScale, circle) && ValidContext(out _);
 
-            // Publish only the real, scale/profile-locked observation on the
-            // UI thread. This never substitutes for the existing safety gate.
-            PublishRunoutObservation(circle, true);
+            // Render real rejected/candidate/accepted observations, but only
+            // the qualified existing production gate completes a sample.
+            PublishRunoutObservation(circle, qualified);
+            if (!qualified) return;
 
             // Do not use MVLocatedCircle.OffsetMM: that legacy property rounds
             // to 0.1mm and would erase the runout precision we need.
@@ -355,9 +365,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
 
         /// <summary>
-        /// Machine startup / manual calibration procedure. Iterates every
-        /// configured, installed nozzle head. Never auto-moves on mere
-        /// connection: the supervised modal invokes this after homing.
+        /// Operator-started manual runout of ONE explicitly selected installed
+        /// nozzle head. Never auto-moves on opening and never invalidates
+        /// another head's runout while measuring this one.
         /// </summary>
         public async Task StartAsync()
         {
@@ -374,10 +384,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             // Never silently sweep or invalidate other installed heads.
             var selected = SelectedRunoutHead;
             var available = InstalledNozzleCalibrationPlan.InstalledHeads(machine?.Settings);
-            IReadOnlyList<MachineToolHead> installed =
-                selected != null && available.Contains(selected)
-                    ? new List<MachineToolHead> { selected }
-                    : new List<MachineToolHead>();
+            var installed = InstalledNozzleCalibrationPlan.SelectOne(available, selected);
             RunoutSteps = NewPlan(installed);
             RaisePropertyChanged(nameof(RunoutSteps));
             CalibrationUpdates.Clear();

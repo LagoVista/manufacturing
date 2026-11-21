@@ -174,7 +174,7 @@
                                        TextWrapping="Wrap"/>
                             <TextBlock Text="{Binding RunoutSummary}" FontSize="11"
                                        Foreground="#AFCFE1" TextWrapping="Wrap" Margin="0,5,0,0"/>
-                            <TextBlock Text="Measured candidate only · no G92 · placement correction not saved"
+                            <TextBlock Text="Measured candidate · no rotational zero reset · no saved placement correction"
                                        FontSize="10" Foreground="#E0BE8C"
                                        TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>

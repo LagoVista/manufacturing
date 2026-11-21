@@ -405,7 +405,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var capture = _activeMachine.PartInspectionCaptureService;
             var center = circle.CenterPixels;
             var offsetPx = circle.OffsetPixels;
-            var offsetMm = circle.OffsetMM;
+            // The legacy OffsetMM rounds to tenths. The 12-angle analysis
+            // uses full-precision pixel displacement; diagnostics must agree.
+            var validScale = circle.PixelsPerMM > 0 &&
+                !double.IsNaN(circle.PixelsPerMM) &&
+                !double.IsInfinity(circle.PixelsPerMM);
+            var offsetXmm = validScale ? offsetPx.X / circle.PixelsPerMM : 0;
+            var offsetYmm = validScale ? -offsetPx.Y / circle.PixelsPerMM : 0;
             var now = DateTimeOffset.UtcNow;
             var observation = new FiducialCircleObservation
             {
@@ -424,11 +430,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 CenterXpx = center.X,
                 CenterYpx = center.Y,
                 RadiusPx = circle.RadiusPixels,
-                RadiusMm = circle.RadiusMM,
+                RadiusMm = validScale ? circle.RadiusPixels / circle.PixelsPerMM : 0,
                 OffsetXpx = offsetPx.X,
                 OffsetYpx = offsetPx.Y,
-                OffsetXmm = offsetMm.X,
-                OffsetYmm = offsetMm.Y,
+                OffsetXmm = offsetXmm,
+                OffsetYmm = offsetYmm,
                 PositionSpreadMm = circle.PositionSpreadMM,
                 Qualified = qualified,
                 RejectionReason = qualified ? null :

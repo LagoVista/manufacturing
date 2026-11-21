@@ -26,6 +26,20 @@ namespace LagoVista.PickAndPlace.Models
                     .ToList();
         }
 
+        /// <summary>
+        /// Turn an operator-selected installed head into a one-head plan.
+        /// A stale/disconnected selection must never cause a fallback sweep
+        /// of all heads or of an arbitrary other head.
+        /// </summary>
+        public static IReadOnlyList<MachineToolHead> SelectOne(
+            IReadOnlyList<MachineToolHead> installed, MachineToolHead selected)
+        {
+            return installed != null && selected != null &&
+                installed.Any(head => ReferenceEquals(head, selected))
+                ? new List<MachineToolHead> { selected }
+                : new List<MachineToolHead>();
+        }
+
         public static MachineToolHead ChooseFirst(
             IReadOnlyList<MachineToolHead> installed, MachineToolHead active)
         {
