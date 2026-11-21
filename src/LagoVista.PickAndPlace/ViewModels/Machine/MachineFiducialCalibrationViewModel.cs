@@ -17,7 +17,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
     /// Hough detector, machine safe-travel and coordinate-reset commands.
     /// Never invokes exposure auto-tune or staging plate calibration.
     /// </summary>
-    public sealed class MachineFiducialCalibrationViewModel : MachineViewModelBase, ICircleLocatedHandler
+    public sealed class MachineFiducialCalibrationViewModel : MachineViewModelBase
     {
         private const int DetectionTimeoutMs = 18000;
         private const int MaximumCenteringMoves = 5;
@@ -32,7 +32,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private DateTimeOffset _moveCompletedUtc;
         private TimeSpan _stepBegan;
         private int _activeStep = -1;
-        private bool _registered;
+        private CircleWaitHandler _registeredHandler;
         private bool _running;
         private string _status = "Ready to locate the machine fiducial.";
         private string _lastRejection = "No detections yet.";
@@ -426,8 +426,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _capture.ResetDetections();
             try
             {
-                _locator.RegisterCircleLocatedHandler(this, DetectionTimeoutMs);
-                _registered = true;
+                // A unique registration per measurement window prevents a
+                // late timer callback from the preceding correction attempt
+                // from completing the next window's observation.
+                var handler = new CircleWaitHandler(this, waiting);
+                _registeredHandler = handler;
+                _locator.RegisterCircleLocatedHandler(handler, DetectionTimeoutMs);
                 var finished = await Task.WhenAny(waiting.Task,
                     Task.Delay(DetectionTimeoutMs + 1000));
                 if (finished != waiting.Task)
@@ -447,14 +451,54 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private void StopListening()
         {
-            if (!_registered) return;
-            _registered = false;
-            _locator.UnregisterCircleLocatedHandler(this);
+            var handler = _registeredHandler;
+            if (handler == null) return;
+            _registeredHandler = null;
+            _locator.UnregisterCircleLocatedHandler(handler);
         }
 
-        public void CircleLocated(MVLocatedCircle circle)
+        private sealed class CircleWaitHandler : ICircleLocatedHandler
         {
-            var request = _pending;
+            private readonly MachineFiducialCalibrationViewModel _owner;
+            private readonly TaskCompletionSource<FiducialCircleObservation> _completion;
+
+            public CircleWaitHandler(MachineFiducialCalibrationViewModel owner,
+                TaskCompletionSource<FiducialCircleObservation> completion)
+            {
+                _owner = owner;
+                _completion = completion;
+            }
+
+            public void CircleLocated(MVLocatedCircle circle)
+            {
+                if (ReferenceEquals(_owner._pending, _completion))
+                    _owner.ObserveCircle(circle, _completion);
+            }
+
+            public void CircleLocatorTimeout()
+            {
+                _owner.EndWait(_completion,
+                    "The circle detector timed out before a stable observation.");
+            }
+
+            public void CircleLocatorAborted()
+            {
+                _owner.EndWait(_completion, "The circle locator was aborted.");
+            }
+        }
+
+        private void EndWait(TaskCompletionSource<FiducialCircleObservation> completion,
+            string reason)
+        {
+            if (!ReferenceEquals(_pending, completion)) return;
+            completion.TrySetResult(null);
+            SetRejection(reason);
+        }
+
+        private void ObserveCircle(MVLocatedCircle circle,
+            TaskCompletionSource<FiducialCircleObservation> request)
+        {
+            if (!ReferenceEquals(_pending, request)) return;
             if (request == null || circle == null || _capture == null ||
                 _camera == null || _profile == null ||
                 circle.CameraType != CameraTypes.Position) return;
@@ -518,18 +562,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 _uiContext.Post(_ => Update(), null);
             if (good)
                 request.TrySetResult(snapshot);
-        }
-
-        public void CircleLocatorTimeout()
-        {
-            _pending?.TrySetResult(null);
-            SetRejection("The circle detector timed out before a stable observation.");
-        }
-
-        public void CircleLocatorAborted()
-        {
-            _pending?.TrySetResult(null);
-            SetRejection("The circle locator was aborted.");
         }
 
         private void SetRejection(string reason)
