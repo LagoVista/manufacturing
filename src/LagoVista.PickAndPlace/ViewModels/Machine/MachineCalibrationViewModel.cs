@@ -16,6 +16,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
     {
         public MachineCalibrationViewModel(IMachineRepo machineRepo) : base(machineRepo)
         {
+            // Even before the first run, show the operator the complete
+            // independent exposure procedure in the shared step panel.
+            ResetExposureSteps();
 
             SetStagingPlateReferenceHole1LocationCommand = CreatedMachineConnectedSettingsCommand(() =>
             {
