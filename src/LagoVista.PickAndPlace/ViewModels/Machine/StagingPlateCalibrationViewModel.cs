@@ -217,12 +217,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 return false;
             }
             if (SelectedPlate == null ||
-                MachineConfiguration?.StagingPlates?.Contains(SelectedPlate) != true ||
-                !StagingPlateReferenceGate.ValidateConfiguration(SelectedPlate, out reason))
+                MachineConfiguration?.StagingPlates?.Contains(SelectedPlate) != true)
             {
-                reason = reason ?? "Selected staging plate configuration changed.";
+                reason = "Selected staging plate is no longer configured on this machine.";
                 return false;
             }
+            if (!StagingPlateReferenceGate.ValidateConfiguration(SelectedPlate, out reason))
+                return false;
 
             reason = null;
             return true;
