@@ -350,9 +350,30 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 }
                 machine.WasMachinOriginCalibrated = true;
                 originCommitted = true;
+
+                // Resetting the machine origin invalidates dependent staging-plate
+                // references, just as the legacy origin operation does. Preserve
+                // their measured locations but require a separate T010 procedure
+                // before considering the plates calibrated again.
+                foreach (var plate in MachineConfiguration.StagingPlates)
+                    plate.IsCalibrated = false;
+
+                // Persist the invalidated dependent state; never silently allow
+                // a stale staging plate to appear verified after a new origin.
+                var save = await MachineRepo.SaveCurrentMachineAsync();
+                if (!save.Successful)
+                {
+                    FinishCurrentStep("Failed");
+                    Steps[4].Detail = "Origin was applied, but staging-plate invalidation could not be saved.";
+                    Status = "Origin applied; save failed. Revalidate staging plates before use: " +
+                        save.ErrorMessage;
+                    machine.AddStatusMessage(StatusMessageTypes.Warning, Status);
+                    return;
+                }
+
                 FinishCurrentStep("Passed");
-                Steps[4].Detail = "Verified centered origin applied; staging plates unchanged.";
-                Status = "Machine fiducial calibrated. Origin set; no other calibration started.";
+                Steps[4].Detail = "Verified origin applied; staging plates marked uncalibrated.";
+                Status = "Machine fiducial calibrated. Staging plates require a separate calibration.";
                 machine.AddStatusMessage(StatusMessageTypes.Info, Status);
             }
             catch (Exception ex)

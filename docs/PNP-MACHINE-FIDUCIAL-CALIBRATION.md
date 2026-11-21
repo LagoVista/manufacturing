@@ -20,10 +20,14 @@ to execute the standalone machine-fiducial procedure.
 5. Only after the camera/frame/profile/scale remain unchanged and the
    observation is fresh, stable AND within both center tolerances, queue
    the existing G92 machine-origin reset and verify the queued commands
-   completed. Only then set the origin-calibrated flag.
+   completed. Only then set the origin-calibrated flag. On success,
+   existing staging plates are marked uncalibrated and that dependent
+   state is saved. Their physical reference locations are preserved.
 
 This procedure does **not** run exposure tuning, staging-plate calibration,
-T003 tool alignment or any other calibration step. The legacy Machine Vision
+T003 tool alignment or any other calibration step. It only invalidates
+staging-plate calibrated flags after successfully resetting the origin
+and saves that status; the operator runs staging calibration separately. The legacy Machine Vision
 Origin action remains unchanged for backward compatibility; it still has
 its original staging continuation. Do not confuse that legacy button with
 the dedicated standalone T009 entry point.
