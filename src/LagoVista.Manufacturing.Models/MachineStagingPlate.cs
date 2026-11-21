@@ -46,6 +46,23 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlate_HoleSpacing, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double HoleSpacing { get; set; } = 15;
 
+        // Calibration-procedure limits belong to the plate, not to VisionProfile.
+        // Older plates retain the conservative 3 mm / 6 correction defaults.
+        // The T010 window explicitly validates and persists edits.
+        private double _maxCenteringCorrectionPerAxisMm = 3.0;
+        public double MaxCenteringCorrectionPerAxisMm
+        {
+            get => _maxCenteringCorrectionPerAxisMm;
+            set => Set(ref _maxCenteringCorrectionPerAxisMm, value);
+        }
+
+        private int _maximumCenteringMoves = 6;
+        public int MaximumCenteringMoves
+        {
+            get => _maximumCenteringMoves;
+            set => Set(ref _maximumCenteringMoves, value);
+        }
+
         [FormField(LabelResource: ManufacturingResources.Names.Common_Color, FieldType: FieldTypes.Color, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Color { get; set; } = "#000000";
 
