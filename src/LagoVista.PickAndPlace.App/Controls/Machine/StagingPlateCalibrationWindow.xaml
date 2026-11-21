@@ -1,0 +1,213 @@
+<Window x:Class="LagoVista.PickAndPlace.App.Controls.Machine.StagingPlateCalibrationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:cal="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine.Calibration"
+        Title="Staging Plate Calibration" Width="1160" Height="820"
+        WindowStartupLocation="CenterOwner"
+        Background="#161C25" Foreground="#EDF2F8"
+        WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False"
+        Closing="Window_Closing">
+    <Window.Resources>
+        <cal:FiducialMarkersConverter x:Key="StagingMarkers"/>
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Height" Value="39"/>
+            <Setter Property="MinWidth" Value="125"/>
+            <Setter Property="Padding" Value="16,7"/>
+            <Setter Property="Margin" Value="8,0,0,0"/>
+            <Setter Property="Background" Value="#277EC4"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#519CD6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#222D3C" CornerRadius="9"
+                Padding="15" Margin="0,0,0,10" Cursor="SizeAll"
+                MouseLeftButtonDown="Header_MouseLeftButtonDown">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="MACHINE CALIBRATION / STAGING PLATE"
+                               Foreground="#8CC9F6" FontSize="11" FontWeight="Bold"/>
+                    <TextBlock Text="Two-Hole Staging Plate Calibration" FontSize="25"
+                               FontWeight="SemiBold" Margin="0,3,0,3"/>
+                    <TextBlock FontSize="12" Foreground="#B4C5D9">
+                        <Run Text="Camera: "/><Run Text="{Binding CameraName, Mode=OneWay}"/>
+                        <Run Text="  ·  Detector: stagingplatehole (Hough circles)"/>
+                    </TextBlock>
+                </StackPanel>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
+                    <TextBlock Text="EFFECTIVE CAMERA SCALE" Foreground="#9AACBF"
+                               FontSize="10" HorizontalAlignment="Right"/>
+                    <TextBlock Text="{Binding PixelsPerMillimeter, StringFormat='{}{0:F1} px/mm'}"
+                               FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                    <TextBlock Text="Independent alignment · no origin reset"
+                               FontSize="11" Foreground="#AABCD0" HorizontalAlignment="Right"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1" Background="#1E2B39" BorderBrush="#35475A"
+                BorderThickness="1" CornerRadius="8" Padding="12"
+                Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="210"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Staging plate" VerticalAlignment="Center"
+                           FontWeight="SemiBold" Margin="0,0,12,0"/>
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding MachineConfiguration.StagingPlates}"
+                          DisplayMemberPath="Name"
+                          SelectedItem="{Binding SelectedPlate, Mode=TwoWay}"
+                          IsEnabled="{Binding CanRun}"
+                          MinHeight="33" Margin="0,0,16,0"/>
+                <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding SelectedPlateSummary}" Foreground="#A8C6DB"
+                               FontSize="12" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding Machine.WasMachinOriginCalibrated, StringFormat='Current session machine origin verified: {0}'}"
+                               Foreground="#9BB3CB" FontSize="11" Margin="0,3,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <cal:CalibrationStepRail Grid.Column="0" Margin="0,0,12,0"
+                                     Steps="{Binding Steps}"/>
+            <Border Grid.Column="1" Background="#101721" BorderBrush="#35475A"
+                    BorderThickness="1" CornerRadius="8" Padding="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <cal:CalibrationVideoSurface
+                        FrameSource="{Binding Machine.PositionImageCaptureService.CaptureImage}"
+                        ShowExposureReference="False"
+                        Markers="{Binding CurrentObservation, Converter={StaticResource StagingMarkers}}"
+                        Caption="LIVE POSITION CAMERA · blue search target · yellow candidate · green centered"/>
+                    <Border Grid.Row="1" Background="#263747" Padding="9,7">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Current measured hole · verified machine coordinates saved together"
+                                       TextWrapping="Wrap" Foreground="#C2D3E3" FontSize="12"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Elapsed}"
+                                       FontFamily="Consolas" Foreground="#8CC9F6"
+                                       Margin="12,0,0,0"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Expander Grid.Row="3" Header="Two-hole measurements and live diagnostics"
+                  IsExpanded="False" Background="#243040" Foreground="#E5EFFA"
+                  BorderBrush="#3C5066" BorderThickness="1" Padding="10"
+                  Margin="0,12,0,0">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="270">
+                <StackPanel Margin="8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="MEASURED POSITIONS" FontSize="11"
+                                       Foreground="#91BEE0" FontWeight="Bold"
+                                       Margin="0,0,0,8"/>
+                            <TextBlock Text="Reference hole 1" FontSize="11"
+                                       Foreground="#B7CDE0"/>
+                            <TextBlock Text="{Binding MeasuredHoleOne}"
+                                       FontFamily="Consolas" Margin="0,3,0,9"/>
+                            <TextBlock Text="Reference hole 2" FontSize="11"
+                                       Foreground="#B7CDE0"/>
+                            <TextBlock Text="{Binding MeasuredHoleTwo}"
+                                       FontFamily="Consolas" Margin="0,3,0,9"/>
+                            <TextBlock Text="{Binding CurrentObservation.RadiusMm, StringFormat='Observed radius: {0:F3} mm'}"/>
+                            <TextBlock Text="{Binding CurrentObservation.OffsetXmm, StringFormat='Center offset X: {0:F3} mm'}"/>
+                            <TextBlock Text="{Binding CurrentObservation.OffsetYmm, StringFormat='Center offset Y: {0:F3} mm'}"/>
+                            <TextBlock Text="{Binding CurrentObservation.FoundCount, StringFormat='Track detections: {0}'}"/>
+                            <TextBlock Text="{Binding CurrentObservation.PositionStable, StringFormat='Stable position: {0}'}"/>
+                            <TextBlock Text="{Binding CurrentObservation.Centered, StringFormat='Centered: {0}'}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="ACTUAL DETECTOR / PROFILE" FontSize="11"
+                                       Foreground="#91BEE0" FontWeight="Bold"
+                                       Margin="0,0,0,8"/>
+                            <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.Key, StringFormat='Profile: {0}'}"/>
+                            <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.HoughCirclesParam1, StringFormat='Edge threshold: {0:F1}'}"/>
+                            <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.HoughCirclesParam2, StringFormat='Accumulator threshold: {0:F1}'}"/>
+                            <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.HoughCirclesMinRadius, StringFormat='Minimum circle radius: {0:F2} mm'}"/>
+                            <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.HoughCirclesMaxRadius, StringFormat='Maximum circle radius: {0:F2} mm'}"/>
+                            <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.StabilizationCount, StringFormat='Required detections: {0}'}"/>
+                            <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.ErrorToleranceMM, StringFormat='Center tolerance: {0:F3} mm'}"/>
+                            <TextBlock Text="{Binding CurrentObservation.FrameAtUtc, StringFormat='Frame UTC: {0:HH:mm:ss.fff}'}"/>
+                            <TextBlock Text="{Binding LastRejection}" TextWrapping="Wrap"
+                                       Foreground="#E7AFAB" Margin="0,6,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                    <Border Background="#1B2734" BorderBrush="#35475A"
+                            BorderThickness="1" CornerRadius="6"
+                            Margin="0,14,0,0" Padding="10">
+                        <StackPanel>
+                            <TextBlock Text="ACTUAL FRAME / MOTION / SAVE EVENTS (UTC)"
+                                       FontSize="11" FontWeight="Bold"
+                                       Foreground="#91BEE0" Margin="0,0,0,6"/>
+                            <ItemsControl ItemsSource="{Binding EventLog}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" FontSize="11"
+                                                   FontFamily="Consolas" TextWrapping="Wrap"
+                                                   Foreground="#C6D6E6" Margin="0,0,0,3"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Expander>
+
+        <Grid Grid.Row="4" Margin="0,13,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Status}" Foreground="#EAF3FE"
+                           FontWeight="SemiBold" TextWrapping="Wrap"/>
+                <TextBlock Text="Opening this window never moves the machine. Run requires a verified machine origin; only the selected plate is calibrated."
+                           Foreground="#99B7D2" FontSize="11" TextWrapping="Wrap"
+                           Margin="0,4,0,0"/>
+            </StackPanel>
+            <Button Grid.Column="1" Content="Run / Run Again"
+                    Click="RunAgain_Click" Style="{StaticResource ActionButton}"
+                    IsEnabled="{Binding CanRun}"/>
+            <Button Grid.Column="2" Content="Close"
+                    Click="Close_Click" Style="{StaticResource ActionButton}"
+                    IsEnabled="{Binding CanClose}"/>
+        </Grid>
+    </Grid>
+</Window>

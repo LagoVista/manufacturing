@@ -87,13 +87,13 @@
                                 <TextBlock Text="Measure two reference holes on a selected plate, verify their physical alignment, and save the plate coordinates."
                                            TextWrapping="Wrap" Foreground="#B6C9DC"
                                            FontSize="12" Margin="0,7,0,9"/>
-                                <TextBlock Text="T010 standalone procedure is next."
-                                           Foreground="#D8B67F" FontSize="11"
-                                           Margin="0,0,0,10"/>
+                                <TextBlock Text="Select one staging plate in the dialog. Requires the machine origin to be verified this session."
+                                           Foreground="#D8B67F" TextWrapping="Wrap"
+                                           FontSize="11" Margin="0,0,0,10"/>
                                 <WrapPanel>
-                                    <Button Content="Calibrate Staging Plate (T010)"
-                                            IsEnabled="False"
-                                            ToolTip="Available when the standalone T010 window is implemented and locally verified."
+                                    <Button Content="Open Staging Plate Calibration"
+                                            Click="OpenStagingPlateCalibration_Click"
+                                            ToolTip="Opens the independent two-hole procedure. No machine movement until Run."
                                             Style="{StaticResource CommandButton}"
                                             MinWidth="235" Height="38"/>
                                     <Button Content="Configure Plates"
