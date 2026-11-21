@@ -4,6 +4,7 @@
 // --- END CODE INDEX META ---
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
+using LagoVista.Manufacturing.Models;
 using LagoVista.Core.IOC;
 using LagoVista.XPlat;
 using System;
@@ -35,6 +36,19 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
 
         private void OpenExposureCalibration_Click(object sender, RoutedEventArgs e)
         {
+            if (ViewModel == null)
+                return;
+
+            // Launching from Machine must not depend on the operator visiting
+            // Cameras first and manually choosing the position camera.
+            if (ViewModel.SelectedMachineCamera?.CameraType?.Value != CameraTypes.Position)
+            {
+                var position = ViewModel.MachineConfiguration?.Cameras?.FirstOrDefault(
+                    camera => camera.CameraType?.Value == CameraTypes.Position);
+                if (position != null)
+                    ViewModel.SelectedMachineCamera = position;
+            }
+
             var dialog = new CameraExposureCalibrationWindow(ViewModel)
             {
                 Owner = Window.GetWindow(this)
