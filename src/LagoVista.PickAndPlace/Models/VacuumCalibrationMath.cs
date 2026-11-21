@@ -206,6 +206,25 @@ namespace LagoVista.PickAndPlace.Models
         /// exists. For pump-on and sealed stages, stability is measured
         /// relative to the observed signal change, not the raw count offset.
         /// </summary>
+        /// <summary>
+        /// Preserve the true failed stage in diagnostics. A pump-on pressure
+        /// failure is NOT an idle-baseline failure, and none of these
+        /// messages imply that the machine attempted XY or Z positioning.
+        /// </summary>
+        public static string UnstableStageMessage(
+            int head, string pressureStage, int attemptedWindows, string failure)
+        {
+            if (head != 1 && head != 2)
+                throw new ArgumentOutOfRangeException(nameof(head));
+            if (String.IsNullOrWhiteSpace(pressureStage))
+                throw new ArgumentException("Sampling stage must be identified.",
+                    nameof(pressureStage));
+            return "Head " + head + " " + pressureStage +
+                " pressure remained unstable after " + attemptedWindows +
+                " fresh six-reading sample windows. " + failure +
+                " No head repositioning was commanded by this pressure stage.";
+        }
+
         public static double AllowedRawSpread(VacuumPressureBand idle, double observedMean)
         {
             if (idle == null)

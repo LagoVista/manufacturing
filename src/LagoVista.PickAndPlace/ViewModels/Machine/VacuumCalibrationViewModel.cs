@@ -242,16 +242,24 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 elapsed.Elapsed.TotalSeconds.ToString("F1") + "s");
         }
 
-        private async Task<VacuumPressureBand> CaptureAsync(int head, CancellationToken token, VacuumPressureBand idleBaseline = null)
+        private async Task<VacuumPressureBand> CaptureAsync(
+            int head, CancellationToken token, VacuumPressureBand idleBaseline = null,
+            string pressureStage = "pump-off baseline", int maxWindows = 3)
         {
-            // Each attempt collects an independent, fresh six-reading window.
-            // A noisy window is never silently clamped or included in the
-            // candidate. Permit brief sensor settling, but fail closed after
-            // three windows and retain the raw counts in the operator UI.
+            // Each attempt collects an independent fresh six-reading window.
+            // After a pump is activated, M400 acknowledges the COMMAND,
+            // not that the pressure has physically settled. The pump-on
+            // stage gets a bounded extra settling budget, but EVERY accepted
+            // window must pass the same original measured-noise threshold.
+            // No unstable observations are ever admitted to a candidate.
             const int samplesPerWindow = 6;
-            const int maxWindows = 3;
+            if (maxWindows < 1 || maxWindows > 5)
+                throw new ArgumentOutOfRangeException(nameof(maxWindows));
             for (var window = 1; window <= maxWindows; window++)
             {
+                ReportHardwareAction("Sampling " + pressureStage +
+                    ", fresh window " + window + "/" + maxWindows +
+                    " (6 readings; original stability limits)");
                 var samples = new List<VacuumPressureSample>();
                 for (var i = 0; i < samplesPerWindow; i++)
                 {
@@ -284,7 +292,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     out var band, out var failure);
 
                 var observed = String.Join(", ", samples.Select(s => s.RawCount.ToString()));
-                RawReading = "Head " + head + " sample window " + window + "/" + maxWindows +
+                RawReading = "Head " + head + " " + pressureStage +
+                    " window " + window + "/" + maxWindows +
                     ": [" + observed + "] | span " +
                     (samples.Max(s => s.RawCount) - samples.Min(s => s.RawCount)) +
                     " counts | " + (idleBaseline == null
@@ -303,13 +312,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 if (!failure.StartsWith("Pressure has not settled", StringComparison.Ordinal))
                     throw new InvalidOperationException("Head " + head + ": " + failure);
                 if (window == maxWindows)
-                    throw new InvalidOperationException("Head " + head +
-                        ": baseline remained unstable after " + maxWindows +
-                        " fresh sample windows. " + failure);
+                    throw new InvalidOperationException(
+                        VacuumPressureSampling.UnstableStageMessage(
+                            head, pressureStage, maxWindows, failure));
 
-                // A late settled window can pass, but the stability requirement
-                // remains the same for every window and every pressure stage.
-                await Task.Delay(600, token);
+                // Bounded pump-on stabilization only; no relaxed acceptance
+                // or movement to the next stage until the original stable-band
+                // test passes. Abort cancellation is honored at every delay.
+                await Task.Delay(maxWindows > 3 ? 750 : 600, token);
             }
             throw new InvalidOperationException("Pressure sampling did not complete.");
         }
@@ -684,8 +694,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             StopPumps();
             await WaitForActuatorIdleAsync("Idle pump-off", token);
             await Task.Delay(350, token);
-            _idle = await CaptureAsync(_head, token);
-            _oppositeIdle = await CaptureAsync(_head == 1 ? 2 : 1, token);
+            _idle = await CaptureAsync(_head, token,
+                pressureStage: "pump-off idle");
+            _oppositeIdle = await CaptureAsync(_head == 1 ? 2 : 1, token,
+                pressureStage: "opposite-head pump-off idle");
             RawReading = "Idle: " + _idle.MeanRawCount.ToString("F1") +
                 " | Other head: " + _oppositeIdle.MeanRawCount.ToString("F1");
             RecordStep(_head == 1 ? "left-idle" : "right-idle",
@@ -711,9 +723,16 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             else _machine.RightVacuumPump = true;
             PumpActive = true;
             await WaitForActuatorIdleAsync("Open-nozzle pump-on", token);
-            await Task.Delay(450, token);
-            _open = await CaptureAsync(_head, token, _idle);
-            _oppositeOpen = await CaptureAsync(_head == 1 ? 2 : 1, token);
+            // M400 only means the pump command was accepted. Give the
+            // real pump/air volume a bounded opportunity to settle before
+            // six-sample windows; open-nozzle response still must pass the
+            // original 8%-of-response stability limit without exception.
+            ReportHardwareAction("Pump-on vacuum settling before open-nozzle sampling (1.2s)");
+            await Task.Delay(1200, token);
+            _open = await CaptureAsync(_head, token, _idle,
+                pressureStage: "pump-on / open nozzle", maxWindows: 5);
+            _oppositeOpen = await CaptureAsync(_head == 1 ? 2 : 1, token,
+                pressureStage: "inactive opposite head during pump-on");
             var minResponse = VacuumPressureSampling.RequiredResponse(_idle);
             if (Math.Abs(_open.MeanRawCount - _idle.MeanRawCount) < minResponse)
                 throw new InvalidOperationException("Pump on did not produce distinguishable sensor response.");
@@ -851,7 +870,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (!idle.Successful)
                 throw new InvalidOperationException("Wait for configured pick-height move to settle before sampling.");
 
-            _sealed = await CaptureAsync(_head, token, _idle);
+            _sealed = await CaptureAsync(_head, token, _idle,
+                pressureStage: "sealed/obstructed nozzle");
             var minResponse = VacuumPressureSampling.RequiredResponse(_idle);
             if (!VacuumCalibrationCandidate.TryCreate(_idle, _open, _sealed,
                 minResponse, 12.0, 3.0, out var candidate, out var reason))
@@ -878,8 +898,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             StopPumps();
             await WaitForActuatorIdleAsync("Vacuum release", token);
             await Task.Delay(450, token);
-            var release = await CaptureAsync(_head, token);
-            var inactive = await CaptureAsync(_head == 1 ? 2 : 1, token);
+            var release = await CaptureAsync(_head, token,
+                pressureStage: "released/vented nozzle");
+            var inactive = await CaptureAsync(_head == 1 ? 2 : 1, token,
+                pressureStage: "inactive opposite head after vent");
             var candidate = _head == 1 ? _leftCandidate : _rightCandidate;
             if (!candidate.IsBackAtIdle(release, 8))
                 throw new InvalidOperationException("Vacuum did not return to the measured idle band.");
