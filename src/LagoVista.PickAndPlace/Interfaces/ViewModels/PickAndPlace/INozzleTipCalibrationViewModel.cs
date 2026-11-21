@@ -4,6 +4,7 @@
 // --- END CODE INDEX META ---
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Models;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,6 +16,21 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
     {
         void CircleLocation(Point2D<double> center, double diameter, Point2D<double> stdDeviation);
         Task StartAsync();
+        Task PreviewBottomCameraAsync();
+        Task ApplyRunoutVisionPreviewAsync();
+        Task SaveRunoutVisionAsync();
+        void RevertRunoutVision();
+        IMachine RunoutMachine { get; }
+        FiducialCircleObservation RunoutVideoObservation { get; }
+        NozzleRunoutVisionTuning RunoutVisionTuning { get; }
+        bool CanStartRunout { get; }
+        bool CanTuneRunoutVision { get; }
+        bool RunoutPreviewBusy { get; }
+        bool HasRunoutVisionDraft { get; }
+        bool HasRunoutVisionPreview { get; }
+        string RunoutCameraStatus { get; }
+        string RunoutVisionStatus { get; }
+        string RunoutSearchSummary { get; }
         IReadOnlyList<MachineToolHead> AvailableRunoutHeads { get; }
         MachineToolHead SelectedRunoutHead { get; set; }
         ObservableCollection<string> CalibrationUpdates { get; }

@@ -23,7 +23,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
     /// run produces a reviewed LOGICAL zero / candidate compensation table;
     /// it never resets firmware coordinates or changes placement.
     /// </summary>
-    public class NozzleTipCalibrationViewModel : ViewModelBase,
+    public partial class NozzleTipCalibrationViewModel : ViewModelBase,
         INozzleTipCalibrationViewModel, ICircleLocatedHandler
     {
         private readonly IMachineRepo _machineRepo;
@@ -82,6 +82,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Set(ref _selectedRunoutHead, value);
                 RaisePropertyChanged(nameof(ToolHeadName));
                 RaisePropertyChanged(nameof(NozzleName));
+                RaisePropertyChanged(nameof(CanStartRunout));
             }
         }
 
@@ -263,6 +264,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     profile, _cameraScale, circle) ||
                 !ValidContext(out _)) return;
 
+            // Publish only the real, scale/profile-locked observation on the
+            // UI thread. This never substitutes for the existing safety gate.
+            PublishRunoutObservation(circle, true);
+
             // Do not use MVLocatedCircle.OffsetMM: that legacy property rounds
             // to 0.1mm and would erase the runout precision we need.
             var offset = circle.OffsetPixels;
@@ -356,7 +361,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         /// </summary>
         public async Task StartAsync()
         {
-            if (RunoutRunning) return;
+            if (RunoutRunning || RunoutPreviewBusy) return;
+            if (HasRunoutVisionDraft || HasRunoutVisionPreview)
+            {
+                Status = "Save or revert nozzle vision settings before starting a physical run.";
+                return;
+            }
+            _runoutUiContext = SynchronizationContext.Current;
+            RunoutVideoObservation = null;
             var machine = _machineRepo.CurrentMachine;
             // A single operator-selected head is the entire run plan.
             // Never silently sweep or invalidate other installed heads.
@@ -376,6 +388,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RaisePropertyChanged(nameof(RunoutSummary));
             RunoutFinished = false;
             RunoutRunning = true;
+            RaisePropertyChanged(nameof(CanStartRunout));
+            RaisePropertyChanged(nameof(CanTuneRunoutVision));
             Status = installed.Count == 1
                 ? $"Starting supervised runout for Head {installed[0].HeadIndex} ({installed[0].CurrentNozzle?.Text})."
                 : "Select one installed nozzle head to start runout.";
@@ -452,6 +466,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _session = null;
                 RunoutRunning = false;
                 RunoutFinished = true;
+                RaisePropertyChanged(nameof(CanStartRunout));
+                RaisePropertyChanged(nameof(CanTuneRunoutVision));
                 RaisePropertyChanged(nameof(ToolHeadName));
                 RaisePropertyChanged(nameof(NozzleName));
             }

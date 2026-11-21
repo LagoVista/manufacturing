@@ -7,11 +7,13 @@ namespace LagoVista.PickAndPlace.Models
     /// UI-only procedure step. Source-of-truth evidence remains in the
     /// MachineOperationSession / Manufacturing history records.
     /// </summary>
-    public sealed class FeederCalibrationFlowStep : ModelBase
+    public sealed class FeederCalibrationFlowStep : ModelBase, ICalibrationProcedureStep
     {
         public int Number { get; set; }
         public int? RowIndex { get; set; }
         public string StepKey { get; set; }
+        // Shared calibration step rail uses the same step evidence.
+        public string Name => Title;
         public string Title { get; set; }
 
         private string _status = "Queued";
