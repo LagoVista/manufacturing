@@ -8,7 +8,25 @@
         WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False"
         Closing="Window_Closing">
     <Window.Resources>
-        <cal:FiducialMarkersConverter x:Key="StagingMarkers"/>
+        <cal:StagingHoleMarkersConverter x:Key="StagingMarkers"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+        <Style x:Key="VisionSettingBox" TargetType="TextBox">
+            <Setter Property="Background" Value="#142638"/>
+            <Setter Property="Foreground" Value="#F1F7FF"/>
+            <Setter Property="CaretBrush" Value="#F1F7FF"/>
+            <Setter Property="BorderBrush" Value="#54708B"/>
+            <Setter Property="Width" Value="161"/>
+            <Setter Property="Padding" Value="7,5"/>
+            <Setter Property="Margin" Value="0,4,0,3"/>
+        </Style>
+        <Style x:Key="VisionSecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#245579"/>
+            <Setter Property="Foreground" Value="#EDF8FF"/>
+            <Setter Property="BorderBrush" Value="#527F9D"/>
+            <Setter Property="Padding" Value="12,7"/>
+            <Setter Property="MinWidth" Value="93"/>
+            <Setter Property="Margin" Value="0,0,9,5"/>
+        </Style>
         <Style x:Key="ActionButton" TargetType="Button">
             <Setter Property="Height" Value="39"/>
             <Setter Property="MinWidth" Value="125"/>
@@ -45,7 +63,7 @@
                                FontWeight="SemiBold" Margin="0,3,0,3"/>
                     <TextBlock FontSize="12" Foreground="#B4C5D9">
                         <Run Text="Camera: "/><Run Text="{Binding CameraName, Mode=OneWay}"/>
-                        <Run Text="  ·  Detector: stagingplatehole (Hough circles)"/>
+                        <Run Text="  ·  Detector: stagingplatehole (filled-contour centroid)"/>
                     </TextBlock>
                 </StackPanel>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
@@ -102,8 +120,20 @@
                     <cal:CalibrationVideoSurface
                         FrameSource="{Binding Machine.PositionImageCaptureService.CaptureImage}"
                         ShowExposureReference="False"
-                        Markers="{Binding CurrentObservation, Converter={StaticResource StagingMarkers}}"
-                        Caption="LIVE POSITION CAMERA · blue search target · yellow candidate · green centered"/>
+                        Caption="LIVE POSITION CAMERA · blue search ROI / optical target · yellow candidate · green centered">
+                        <cal:CalibrationVideoSurface.Markers>
+                            <MultiBinding Converter="{StaticResource StagingMarkers}">
+                                <Binding Path="CurrentObservation"/>
+                                <Binding Path="EditableVisionProfile"/>
+                                <Binding Path="Machine.PositionImageCaptureService.Profile.Key"/>
+                                <Binding Path="EditableVisionProfile.StagingSearchOffsetXmm"/>
+                                <Binding Path="EditableVisionProfile.StagingSearchOffsetYmm"/>
+                                <Binding Path="EditableVisionProfile.TargetImageRadius"/>
+                                <Binding Path="Machine.PositionImageCaptureService.CaptureFrameSize"/>
+                                <Binding Path="PixelsPerMillimeter"/>
+                            </MultiBinding>
+                        </cal:CalibrationVideoSurface.Markers>
+                    </cal:CalibrationVideoSurface>
                     <Border Grid.Row="1" Background="#263747" Padding="9,7">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -121,12 +151,231 @@
             </Border>
         </Grid>
 
-        <Expander Grid.Row="3" Header="Two-hole measurements and live diagnostics"
+        <Expander Grid.Row="3" Header="Vision profile tuning (search area, detector, camera, light) and diagnostics"
                   IsExpanded="False" Background="#243040" Foreground="#E5EFFA"
                   BorderBrush="#3C5066" BorderThickness="1" Padding="10"
                   Margin="0,12,0,0">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="270">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="305">
                 <StackPanel Margin="8">
+                    <Border Background="#182635" BorderBrush="#354D63"
+                            BorderThickness="1" Padding="11" CornerRadius="7"
+                            Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="STAGING-HOLE VISION PROFILE · ONLY APPLICABLE SETTINGS"
+                                       FontSize="11" FontWeight="Bold" Foreground="#98D3FF"
+                                       Margin="0,0,0,9"/>
+                            <TabControl x:Name="VisionSettingTabs"
+                                        Background="#1A2C3D" Foreground="#DDEBFB"
+                                        BorderBrush="#3D5A74">
+                                <TabItem Header="Search &amp; Hole">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="235">
+                                                                            <StackPanel Margin="12">
+                                        <TextBlock Text="Search region and accepted hole geometry" FontWeight="Bold" Foreground="#86C4F2" FontSize="13" Margin="0,0,0,9"/>
+                                        <TextBlock Text="These adjust which pixels the centroid detector searches. Offsets move the SEARCH circle only; they do not shift the machine's optical centering target."
+    TextWrapping="Wrap" Foreground="#CFDEEC" FontSize="11" Margin="0,0,0,9"/>
+<WrapPanel>                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Search radius (mm)" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.SearchRadiusMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    
+                                                </StackPanel>
+                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Search center X (mm)" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.SearchOffsetXmm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    <TextBlock Text="Positive = right in video" Foreground="#849EB8" TextWrapping="Wrap" FontSize="10"/>
+                                                </StackPanel>
+                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Search center Y (mm)" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.SearchOffsetYmm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    <TextBlock Text="Positive = down in video" Foreground="#849EB8" TextWrapping="Wrap" FontSize="10"/>
+                                                </StackPanel></WrapPanel>
+<TextBlock Text="Nudge search position (not machine position)" Foreground="#BBD3E6" Margin="0,4,0,6" FontSize="11"/>
+<WrapPanel Margin="0,0,0,13">
+    <Button Content="X −0.1" Click="SearchLeft_Click" Style="{StaticResource VisionSecondaryButton}" IsEnabled="{Binding CanEditVision}"/>
+    <Button Content="X +0.1" Click="SearchRight_Click" Style="{StaticResource VisionSecondaryButton}" IsEnabled="{Binding CanEditVision}"/>
+    <Button Content="Y −0.1" Click="SearchUp_Click" Style="{StaticResource VisionSecondaryButton}" IsEnabled="{Binding CanEditVision}"/>
+    <Button Content="Y +0.1" Click="SearchDown_Click" Style="{StaticResource VisionSecondaryButton}" IsEnabled="{Binding CanEditVision}"/>
+</WrapPanel>
+<WrapPanel>                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Minimum accepted hole radius (mm)" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.MinimumRadiusMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    
+                                                </StackPanel>
+                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Maximum accepted hole radius (mm)" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.MaximumRadiusMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    
+                                                </StackPanel>
+                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Stable detections required" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.StabilizationCount, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    
+                                                </StackPanel>
+                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Center tolerance (mm)" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.CenterToleranceMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    
+                                                </StackPanel></WrapPanel>
+                                    </StackPanel>
+                                    </ScrollViewer>
+                                </TabItem>
+                                <TabItem Header="Processing">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="235">
+                                                                            <StackPanel Margin="12">
+                                        <TextBlock Text="Processing actually used by the staging-hole centroid detector" FontWeight="Bold" Foreground="#86C4F2" FontSize="13" Margin="0,0,0,9"/>
+                                        <TextBlock Text="The detector thresholds a grayscale/processed frame and finds a filled contour centroid. Hough DP, accumulator, line, corner and nozzle controls do not apply."
+    TextWrapping="Wrap" Foreground="#CFDEEC" FontSize="11" Margin="0,0,0,9"/>
+<WrapPanel Margin="0,0,0,10">
+    <CheckBox Content="Circular search mask" IsChecked="{Binding VisionTuning.ApplyMask, Mode=TwoWay}" Margin="0,0,18,8"/>
+    <CheckBox Content="Invert pixels" IsChecked="{Binding VisionTuning.Invert, Mode=TwoWay}" Margin="0,0,18,8"/>
+    <CheckBox Content="Apply threshold" IsChecked="{Binding VisionTuning.ApplyThreshold, Mode=TwoWay}" Margin="0,0,18,8"/>
+    <CheckBox Content="Gaussian blur" IsChecked="{Binding VisionTuning.UseBlurredImage, Mode=TwoWay}" Margin="0,0,18,8"/>
+</WrapPanel>
+<StackPanel Visibility="{Binding VisionTuning.ApplyThreshold, Converter={StaticResource BoolToVisibility}}">
+    <WrapPanel>                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Threshold (0–100%)" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.PrimaryThreshold, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    
+                                                </StackPanel></WrapPanel>
+</StackPanel>
+<StackPanel Visibility="{Binding VisionTuning.UseBlurredImage, Converter={StaticResource BoolToVisibility}}">
+    <WrapPanel>                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Gaussian kernel (odd)" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.BlurKernelSize, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    
+                                                </StackPanel>
+                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Gaussian sigma" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.BlurSigma, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    
+                                                </StackPanel></WrapPanel>
+</StackPanel>
+<TextBlock Text="Circle detection and shape processing are required by calibration and cannot be disabled here."
+    Foreground="#98B2C7" TextWrapping="Wrap" FontSize="11"/>
+                                    </StackPanel>
+                                    </ScrollViewer>
+                                </TabItem>
+                                <TabItem Header="Camera &amp; Light">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="235">
+                                                                            <StackPanel Margin="12">
+                                        <TextBlock Text="Optional camera overrides" FontWeight="Bold" Foreground="#86C4F2" FontSize="13" Margin="0,0,0,9"/>
+                                        <TextBlock Text="Leave a field blank to inherit the camera baseline. Changes apply only to the stagingplatehole profile, not the camera's global exposure calibration."
+    Foreground="#D4DEEA" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,8"/>
+<WrapPanel>                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Exposure" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.Exposure, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    <TextBlock Text="Blank = camera baseline" Foreground="#849EB8" TextWrapping="Wrap" FontSize="10"/>
+                                                </StackPanel>
+                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Brightness" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.Brightness, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    <TextBlock Text="Blank = camera baseline" Foreground="#849EB8" TextWrapping="Wrap" FontSize="10"/>
+                                                </StackPanel>
+                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Contrast" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.Contrast, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    <TextBlock Text="Blank = camera baseline" Foreground="#849EB8" TextWrapping="Wrap" FontSize="10"/>
+                                                </StackPanel>
+                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Focus" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.Focus, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    <TextBlock Text="Blank = camera baseline" Foreground="#849EB8" TextWrapping="Wrap" FontSize="10"/>
+                                                </StackPanel>
+                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Pixels / mm" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.PixelsPerMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    <TextBlock Text="Blank = camera scale; changing scale invalidates tracking" Foreground="#849EB8" TextWrapping="Wrap" FontSize="10"/>
+                                                </StackPanel></WrapPanel>
+<TextBlock Text="Lighting is applied to the actual top-camera light only when you click Apply Preview."
+    Foreground="#BFD3E8" FontSize="11" Margin="0,6,0,8" TextWrapping="Wrap"/>
+<CheckBox Content="Top light on" IsChecked="{Binding VisionTuning.LightOn, Mode=TwoWay}"
+    Margin="0,0,0,9"/>
+<StackPanel Visibility="{Binding VisionTuning.LightOn, Converter={StaticResource BoolToVisibility}}">
+    <TextBlock Text="Blank light overrides inherit the camera's RGB/power values."
+        Foreground="#AFC6D7" FontSize="11" Margin="0,0,0,8"/>
+    <WrapPanel>                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Light power (0–255)" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.LightPower, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    
+                                                </StackPanel>
+                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Red (0–255)" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.LightRed, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    
+                                                </StackPanel>
+                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Green (0–255)" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.LightGreen, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    
+                                                </StackPanel>
+                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Blue (0–255)" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.LightBlue, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    
+                                                </StackPanel></WrapPanel>
+</StackPanel>
+                                    </StackPanel>
+                                    </ScrollViewer>
+                                </TabItem>
+                                <TabItem Header="Display">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="235">
+                                                                            <StackPanel Margin="12">
+                                        <TextBlock Text="Camera display and diagnostic overlays" FontWeight="Bold" Foreground="#86C4F2" FontSize="13" Margin="0,0,0,9"/>
+                                        <WrapPanel Margin="0,0,0,11">
+    <CheckBox Content="Show original camera image" IsChecked="{Binding VisionTuning.ShowOriginalImage, Mode=TwoWay}" Margin="0,0,20,8"/>
+    <CheckBox Content="Show optical crosshairs" IsChecked="{Binding VisionTuning.ShowCrossHairs, Mode=TwoWay}" Margin="0,0,20,8"/>
+    <CheckBox Content="Show calibration square" IsChecked="{Binding VisionTuning.ShowCalibrationSquare, Mode=TwoWay}" Margin="0,0,20,8"/>
+</WrapPanel>
+<WrapPanel>                                                <StackPanel Width="181" Margin="0,0,12,10">
+                                                    <TextBlock Text="Annotation zoom" Foreground="#B9D1E4" FontSize="11"/>
+                                                    <TextBox Style="{StaticResource VisionSettingBox}"
+                                                             Text="{Binding VisionTuning.ZoomLevel, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                                    
+                                                </StackPanel></WrapPanel>
+<TextBlock Text="The live SEARCH region overlay is always tied to the applied detector settings, not the unsaved draft."
+    Foreground="#AFC6D7" FontSize="11" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    </ScrollViewer>
+                                </TabItem>
+                            </TabControl>
+                            <WrapPanel Margin="0,13,0,8">
+                                <Button Content="Apply Preview" Click="ApplyVisionPreview_Click"
+                                        Style="{StaticResource VisionSecondaryButton}"
+                                        IsEnabled="{Binding CanEditVision}"/>
+                                <Button Content="Observe 8 Seconds" Click="ObserveVisionPreview_Click"
+                                        Style="{StaticResource VisionSecondaryButton}"
+                                        IsEnabled="{Binding CanEditVision}"/>
+                                <Button Content="Save Profile" Click="SaveVisionProfile_Click"
+                                        Style="{StaticResource VisionSecondaryButton}"
+                                        IsEnabled="{Binding CanEditVision}"/>
+                                <Button Content="Revert" Click="RevertVisionProfile_Click"
+                                        Style="{StaticResource VisionSecondaryButton}"
+                                        IsEnabled="{Binding CanEditVision}"/>
+                            </WrapPanel>
+                            <TextBlock Text="{Binding TuningStatus, Mode=OneWay}"
+                                       TextWrapping="Wrap" Foreground="#A8D5F7" FontSize="11"/>
+                            <TextBlock Text="{Binding PreviewCircleCount, StringFormat='Preview circle updates: {0}'}"
+                                       Foreground="#95AFC5" FontSize="11" Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </Border>
                     <Border Background="#172737" BorderBrush="#49627A"
                             BorderThickness="1" CornerRadius="6" Padding="11"
                             Margin="0,0,0,12">
@@ -170,12 +419,13 @@
                             <TextBlock Text="{Binding CurrentObservation.Centered, StringFormat='Centered: {0}'}"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1">
-                            <TextBlock Text="ACTUAL DETECTOR / PROFILE" FontSize="11"
+                            <TextBlock Text="ACTUAL CENTROID DETECTOR / PROFILE" FontSize="11"
                                        Foreground="#91BEE0" FontWeight="Bold"
                                        Margin="0,0,0,8"/>
                             <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.Key, StringFormat='Profile: {0}'}"/>
-                            <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.HoughCirclesParam1, StringFormat='Edge threshold: {0:F1}'}"/>
-                            <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.HoughCirclesParam2, StringFormat='Accumulator threshold: {0:F1}'}"/>
+                            <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.TargetImageRadius, StringFormat='Search radius: {0:F2} mm'}"/>
+                            <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.StagingSearchOffsetXmm, StringFormat='Search X: {0:+0.000;-0.000;0.000} mm'}"/>
+                            <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.StagingSearchOffsetYmm, StringFormat='Search Y: {0:+0.000;-0.000;0.000} mm'}"/>
                             <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.HoughCirclesMinRadius, StringFormat='Minimum circle radius: {0:F2} mm'}"/>
                             <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.HoughCirclesMaxRadius, StringFormat='Maximum circle radius: {0:F2} mm'}"/>
                             <TextBlock Text="{Binding Machine.PositionImageCaptureService.Profile.StabilizationCount, StringFormat='Required detections: {0}'}"/>
