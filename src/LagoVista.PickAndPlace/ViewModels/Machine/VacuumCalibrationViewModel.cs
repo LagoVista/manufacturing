@@ -107,7 +107,15 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public string RunAllAction => _phase == Phase.Ready
             ? "Run Both Heads (pause for contact)"
             : "Resume Both-Head Procedure";
-        public string Status { get => _status; private set => Set(ref _status, value); }
+        public string Status
+        {
+            get => _status;
+            private set
+            {
+                Set(ref _status, value);
+                RefreshVacuumDisplay();
+            }
+        }
         public string RawReading { get => _rawReading; private set => Set(ref _rawReading, value); }
         public string LeftSummary { get => _leftSummary; private set => Set(ref _leftSummary, value); }
         public string RightSummary { get => _rightSummary; private set => Set(ref _rightSummary, value); }
@@ -274,7 +282,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         : "limit " + spreadLimit.ToString("F1") + " counts");
 
                 if (accepted)
+                {
+                    // Only a fresh, stable, accepted sensor window counts as
+                    // a measured value. Never label commanded pump state
+                    // as sensor proof in the operator dashboard.
+                    RecordAcceptedVacuumBand(head, band);
                     return band;
+                }
 
                 if (!failure.StartsWith("Pressure has not settled", StringComparison.Ordinal))
                     throw new InvalidOperationException("Head " + head + ": " + failure);
@@ -485,6 +499,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             finally
             {
                 _runAllActive = false;
+                if (_phase == Phase.Finished || _phase == Phase.Faulted ||
+                    _phase == Phase.Aborted)
+                    _runAllPaused = false;
                 NotifyButtons();
             }
         }
@@ -659,6 +676,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 }
                 if (_session?.Snapshot?.Status == MachineOperationRunStatus.Running)
                     _session.BlockActiveStep(ex.Message, DateTimeOffset.UtcNow);
+                RefreshVacuumDisplay();
             }
             finally
             {
