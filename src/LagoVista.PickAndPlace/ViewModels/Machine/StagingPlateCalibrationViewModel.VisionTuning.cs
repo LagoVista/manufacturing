@@ -33,6 +33,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private DateTimeOffset _previewStartedUtc;
         private int _previewCircleCount;
 
+        public VisionProfile EditableVisionProfile => _editingProfile;
+
         public StagingHoleVisionTuning VisionTuning
         {
             get => _visionTuning;
