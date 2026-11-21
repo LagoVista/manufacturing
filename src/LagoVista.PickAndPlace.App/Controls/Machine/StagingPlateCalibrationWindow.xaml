@@ -20,6 +20,10 @@
             <Setter Property="Margin" Value="0,4,0,3"/>
             <Setter Property="IsEnabled" Value="{Binding CanEditVision}"/>
         </Style>
+        <Style x:Key="MotionSettingBox" TargetType="TextBox"
+               BasedOn="{StaticResource VisionSettingBox}">
+            <Setter Property="IsEnabled" Value="{Binding CanEditMotion}"/>
+        </Style>
         <Style x:Key="VisionSecondaryButton" TargetType="Button">
             <Setter Property="Background" Value="#245579"/>
             <Setter Property="Foreground" Value="#EDF8FF"/>
@@ -152,12 +156,55 @@
             </Border>
         </Grid>
 
-        <Expander Grid.Row="3" Header="Vision profile tuning (search area, detector, camera, light) and diagnostics"
+        <Expander Grid.Row="3" Header="Calibration settings (motion limits, vision tuning and diagnostics)"
                   IsExpanded="False" Background="#243040" Foreground="#E5EFFA"
                   BorderBrush="#3C5066" BorderThickness="1" Padding="10"
                   Margin="0,12,0,0">
             <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="305">
                 <StackPanel Margin="8">
+                    <Border Background="#1A2A38" BorderBrush="#4B667D"
+                            BorderThickness="1" CornerRadius="7" Padding="12"
+                            Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="MOTION SAFETY LIMITS · SELECTED STAGING PLATE"
+                                       Foreground="#9BCFF3" FontWeight="Bold"
+                                       FontSize="12" Margin="0,0,0,6"/>
+                            <TextBlock Text="If a hole is farther from the expected center, increase only the supervised correction allowance you have verified is clear. This does not change machine XY travel, safe-Z or controller idle safeguards."
+                                       TextWrapping="Wrap" Foreground="#D7C3A6"
+                                       FontSize="11" Margin="0,0,0,11"/>
+                            <WrapPanel x:Name="MotionSettingInputs">
+                                <StackPanel Width="232" Margin="0,0,16,8">
+                                    <TextBlock Text="Max XY correction per axis (mm)"
+                                               Foreground="#C5DEEE" FontSize="11"/>
+                                    <TextBox Style="{StaticResource MotionSettingBox}"
+                                             Text="{Binding MotionSettings.MaxCorrectionPerAxisMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                    <TextBlock Text="Default 3.0 mm · hard maximum 10.0 mm"
+                                               Foreground="#A4BAD1" FontSize="10"/>
+                                </StackPanel>
+                                <StackPanel Width="232" Margin="0,0,16,8">
+                                    <TextBlock Text="Maximum centering corrections"
+                                               Foreground="#C5DEEE" FontSize="11"/>
+                                    <TextBox Style="{StaticResource MotionSettingBox}"
+                                             Text="{Binding MotionSettings.MaximumCorrectionMoves, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                    <TextBlock Text="Default 6 · hard maximum 12"
+                                               Foreground="#A4BAD1" FontSize="10"/>
+                                </StackPanel>
+                            </WrapPanel>
+                            <WrapPanel Margin="0,4,0,7">
+                                <Button Content="Save Limits for Plate"
+                                        Click="SaveMotionLimits_Click"
+                                        IsEnabled="{Binding CanEditMotion}"
+                                        Style="{StaticResource VisionSecondaryButton}"/>
+                                <Button Content="Revert Limits"
+                                        Click="RevertMotionLimits_Click"
+                                        IsEnabled="{Binding CanEditMotion}"
+                                        Style="{StaticResource VisionSecondaryButton}"/>
+                            </WrapPanel>
+                            <TextBlock Text="{Binding MotionSettingsStatus, Mode=OneWay}"
+                                       FontSize="11" TextWrapping="Wrap"
+                                       Foreground="#99CBEF"/>
+                        </StackPanel>
+                    </Border>
                     <Border Background="#182635" BorderBrush="#354D63"
                             BorderThickness="1" Padding="11" CornerRadius="7"
                             Margin="0,0,0,14">
@@ -169,7 +216,7 @@
                                         Background="#1A2C3D" Foreground="#DDEBFB"
                                         BorderBrush="#3D5A74">
                                 <TabItem Header="Search &amp; Hole">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="235">
+                                    <StackPanel>
                                                                             <StackPanel Margin="12">
                                         <TextBlock Text="Search region and accepted hole geometry" FontWeight="Bold" Foreground="#86C4F2" FontSize="13" Margin="0,0,0,9"/>
                                         <TextBlock Text="SEARCH RADIUS AND X/Y OFFSETS PREVIEW LIVE as you edit. The camera outline follows the actual detector; no Apply Preview click needed for search geometry. Save Profile to keep changes. The machine does not move."
@@ -227,10 +274,10 @@
                                                     
                                                 </StackPanel></WrapPanel>
                                     </StackPanel>
-                                    </ScrollViewer>
+                                    </StackPanel>
                                 </TabItem>
                                 <TabItem Header="Processing">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="235">
+                                    <StackPanel>
                                                                             <StackPanel Margin="12">
                                         <TextBlock Text="Processing actually used by the staging-hole centroid detector" FontWeight="Bold" Foreground="#86C4F2" FontSize="13" Margin="0,0,0,9"/>
                                         <TextBlock Text="The detector thresholds a grayscale/processed frame and finds a filled contour centroid. Hough DP, accumulator, line, corner and nozzle controls do not apply."
@@ -266,10 +313,10 @@
 <TextBlock Text="Circle detection and shape processing are required by calibration and cannot be disabled here."
     Foreground="#98B2C7" TextWrapping="Wrap" FontSize="11"/>
                                     </StackPanel>
-                                    </ScrollViewer>
+                                    </StackPanel>
                                 </TabItem>
                                 <TabItem Header="Camera &amp; Light">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="235">
+                                    <StackPanel>
                                                                             <StackPanel Margin="12">
                                         <TextBlock Text="Optional camera overrides" FontWeight="Bold" Foreground="#86C4F2" FontSize="13" Margin="0,0,0,9"/>
                                         <TextBlock Text="Leave a field blank to inherit the camera baseline. Changes apply only to the stagingplatehole profile, not the camera's global exposure calibration."
@@ -337,10 +384,10 @@
                                                 </StackPanel></WrapPanel>
 </StackPanel>
                                     </StackPanel>
-                                    </ScrollViewer>
+                                    </StackPanel>
                                 </TabItem>
                                 <TabItem Header="Display">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="235">
+                                    <StackPanel>
                                                                             <StackPanel Margin="12">
                                         <TextBlock Text="Camera display and diagnostic overlays" FontWeight="Bold" Foreground="#86C4F2" FontSize="13" Margin="0,0,0,9"/>
                                         <WrapPanel Margin="0,0,0,11">
@@ -357,7 +404,7 @@
 <TextBlock Text="The live SEARCH region overlay is always tied to the applied detector settings, not the unsaved draft."
     Foreground="#AFC6D7" FontSize="11" TextWrapping="Wrap"/>
                                     </StackPanel>
-                                    </ScrollViewer>
+                                    </StackPanel>
                                 </TabItem>
                             </TabControl>
                             <WrapPanel Margin="0,13,0,8">
