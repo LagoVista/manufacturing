@@ -80,8 +80,11 @@ namespace LagoVista.PickAndPlace.Interfaces
 
         bool TopLightOn { get; set; }
         bool BottomLightOn { get; set; }
-        
-        
+
+
+        double RightToolHeadZ { get;  }
+        double LeftToolHeadZ { get; }
+
         bool PuffPump { get; set; }
         bool VacuumSolendoid { get; set; }
         bool PuffSolenoid { get; set; }
