@@ -49,6 +49,39 @@ The live video uses the exact T008/T009 `CalibrationVideoSurface`,
 diagnostics for frame times, circle size, center offsets, stability,
 active Hough profile and timestamped step/motion/save history.
 
+## Diagnosing the second-reference-hole travel gate
+
+The second reference is computed as **freshly measured first-hole XY**
+plus the configured reference-hole row/column displacement at the plate's
+current hole spacing. Detecting and centering the first reference does not
+prove the second calculated target is physically reachable.
+
+If a calculated hole target is outside configured `Machine.Settings.WorkAreaSize`
+(X=0 through `WorkAreaSize.X`, Y=0 through `WorkAreaSize.Y` in the
+machine's current G-code coordinates), the procedure **must stop before any
+XY move**. Open the diagnostics panel to see the exact target, controller's
+current XY, requested delta, allowed maximum and magnitude by which the
+target exceeds the bounds. The stage's failure text and UTC event timeline
+contain the same values.
+
+Before revising any travel configuration, verify all of the following against
+the actual installed fixture and homed controller:
+
+- The selected plate's reference-hole row/column and `HoleSpacing` are
+  correct, and the hole-1 controller coordinate makes sense after G92.
+- The second reference is physically within confirmed collision-free
+  machine travel, including camera/tool clearance and frame endstops.
+- The controller's actual coordinate origin and firmware travel envelope
+  agree with configured `WorkAreaSize`. A negative target **cannot** be
+  fixed merely by increasing the positive-axis maximum.
+- Only then update the machine's authoritative Work Area Size setting if
+  its current value is smaller than safely verified physical travel.
+
+Do **not** compensate by silently clamping the target, bypassing bounds,
+increasing the requested movement without verification, or using the frame
+size as if it were a safe work-area limit. The target remains blocked until
+the configuration/geometry discrepancy is resolved.
+
 ## Safety and test boundaries
 
 No machine action starts automatically. Each move requires a verified
