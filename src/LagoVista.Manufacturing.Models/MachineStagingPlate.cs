@@ -46,6 +46,42 @@ namespace LagoVista.Manufacturing.Models
         [FormField(LabelResource: ManufacturingResources.Names.MachineStagingPlate_HoleSpacing, FieldType: FieldTypes.Decimal, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public double HoleSpacing { get; set; } = 15;
 
+        // T010 supervised centering policy. Persisted with the selected plate
+        // through Machine.StagingPlates; never a global vision setting.
+        // Legacy JSON lacking these optional properties inherits safe defaults.
+        private double _maxCenteringCorrectionPerAxisMm = 3.0;
+        public double MaxCenteringCorrectionPerAxisMm
+        {
+            get => _maxCenteringCorrectionPerAxisMm;
+            set => Set(ref _maxCenteringCorrectionPerAxisMm, value);
+        }
+
+        private int _maximumCenteringMoves = 6;
+        public int MaximumCenteringMoves
+        {
+            get => _maximumCenteringMoves;
+            set => Set(ref _maximumCenteringMoves, value);
+        }
+
+        public bool TryValidateCenteringLimits(out string reason)
+        {
+            if (Double.IsNaN(MaxCenteringCorrectionPerAxisMm) ||
+                Double.IsInfinity(MaxCenteringCorrectionPerAxisMm) ||
+                MaxCenteringCorrectionPerAxisMm < 0.1 ||
+                MaxCenteringCorrectionPerAxisMm > 10.0)
+            {
+                reason = "Maximum centering correction must be 0.1-10 mm per axis.";
+                return false;
+            }
+            if (MaximumCenteringMoves < 1 || MaximumCenteringMoves > 12)
+            {
+                reason = "Maximum centering corrections must be 1-12.";
+                return false;
+            }
+            reason = null;
+            return true;
+        }
+
         [FormField(LabelResource: ManufacturingResources.Names.Common_Color, FieldType: FieldTypes.Color, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
         public string Color { get; set; } = "#000000";
 
