@@ -17,7 +17,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
     /// Hough detector, machine safe-travel and coordinate-reset commands.
     /// Never invokes exposure auto-tune or staging plate calibration.
     /// </summary>
-    public sealed class MachineFiducialCalibrationViewModel : MachineViewModelBase
+    public sealed partial class MachineFiducialCalibrationViewModel : MachineViewModelBase
     {
         private const int DetectionTimeoutMs = 18000;
         private const int MaximumCenteringMoves = 5;
@@ -46,6 +46,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         {
             _locator = locator ?? throw new ArgumentNullException(nameof(locator));
             ResetSteps();
+            InitializeManualControls();
         }
 
         public ObservableCollection<FiducialCalibrationStep> Steps { get; } =
@@ -86,9 +87,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             {
                 Set(ref _running, value);
                 RaisePropertyChanged(nameof(CanRun));
+                RaisePropertyChanged(nameof(CanClose));
+                RaisePropertyChanged(nameof(CanManualAdjust));
             }
         }
-        public bool CanRun => !Running;
+        public bool CanRun => !Running && !ManualBusy && !HasUnsavedTuning;
         public string Elapsed => _clock.Elapsed.TotalSeconds.ToString("F1") + " s";
         public int ObservationCount { get => _observations; private set => Set(ref _observations, value); }
         public int StableObservationCount { get => _stableObservations; private set => Set(ref _stableObservations, value); }
@@ -183,7 +186,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         public async Task RunAsync()
         {
-            if (Running) return;
+            if (Running || ManualBusy) return;
+            if (HasUnsavedTuning)
+            {
+                Status = "Save or revert preview Hough tuning before automatic calibration.";
+                return;
+            }
 
             _uiContext = SynchronizationContext.Current;
             Running = true;
