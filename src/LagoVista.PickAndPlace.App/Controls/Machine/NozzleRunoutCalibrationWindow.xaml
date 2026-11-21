@@ -60,7 +60,7 @@
                 <StackPanel>
                     <TextBlock Text="MACHINE CALIBRATION / OPTICAL NOZZLE RUNOUT"
                                FontSize="11" FontWeight="Bold" Foreground="#87C6F2"/>
-                    <TextBlock Text="Nozzle Runout · Single Head" FontSize="25"
+                    <TextBlock Text="Nozzle Runout · All Installed Heads" FontSize="25"
                                FontWeight="SemiBold" Margin="0,3,0,3"/>
                     <TextBlock Text="{Binding ToolHeadName}" Foreground="#C4DAEA" FontSize="13"/>
                     <TextBlock Text="{Binding NozzleName}" Foreground="#92B9D3" FontSize="11"/>
@@ -69,7 +69,7 @@
                             VerticalAlignment="Center">
                     <TextBlock Text="SUPERVISED PROCEDURE" FontSize="10"
                                Foreground="#9BB3C9" HorizontalAlignment="Right"/>
-                    <TextBlock Text="12 angles · 0–330° · 30° increments"
+                    <TextBlock Text="12 angles per head · Head 1 → Head 2"
                                FontWeight="SemiBold" FontSize="15"
                                HorizontalAlignment="Right" Margin="0,4,0,0"/>
                     <TextBlock Text="Bottom camera · max-Y logical zero"
@@ -88,36 +88,30 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="Installed head / nozzle" VerticalAlignment="Center"
+                <TextBlock Text="One-click calibration sequence" VerticalAlignment="Center"
                            FontSize="12" FontWeight="SemiBold" Margin="0,0,12,0"/>
-                <ComboBox Grid.Column="1" Width="310" Height="34"
-                          ItemsSource="{Binding AvailableRunoutHeads}"
-                          SelectedItem="{Binding SelectedRunoutHead, Mode=TwoWay}"
-                          Margin="0,0,14,0">
-                    <ComboBox.ItemTemplate>
+                <ItemsControl Grid.Column="1" ItemsSource="{Binding AvailableRunoutHeads}"
+                              Margin="0,0,14,0" VerticalAlignment="Center">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding HeadIndex, StringFormat='Head {0}  ·  '}" />
-                                <TextBlock Text="{Binding Name}" />
-                                <TextBlock Text="{Binding CurrentNozzle.Text, StringFormat='  ·  {0}'}"/>
-                            </StackPanel>
+                            <Border Background="#254B66" BorderBrush="#5984A0"
+                                    BorderThickness="1" CornerRadius="5"
+                                    Padding="10,5" Margin="0,0,8,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding HeadIndex, StringFormat='Head {0}'}"
+                                               FontWeight="SemiBold" Foreground="#F0F8FF"/>
+                                    <TextBlock Text="{Binding CurrentNozzle.Text, StringFormat='  ·  {0}'}"
+                                               Foreground="#CADDEB"/>
+                                </StackPanel>
+                            </Border>
                         </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                    <ComboBox.Style>
-                        <Style TargetType="ComboBox">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding RunoutRunning}" Value="True">
-                                    <Setter Property="IsEnabled" Value="False"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding RunoutPreviewBusy}" Value="True">
-                                    <Setter Property="IsEnabled" Value="False"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ComboBox.Style>
-                </ComboBox>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
                 <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                    <TextBlock Text="Selecting a head never starts motion. Start runs only this selected head."
+                    <TextBlock Text="One Start calibrates Head 1, returns to verified safe Z, then automatically runs Head 2 when installed."
                                FontSize="11" Foreground="#A7C5DD" TextWrapping="Wrap"/>
                     <TextBlock Text="{Binding RunoutMachine.WasMachinOriginCalibrated, StringFormat='Current session machine origin verified: {0}'}"
                                FontSize="11" Foreground="#B8C6D6" Margin="0,3,0,0"/>
@@ -172,6 +166,18 @@
                                        TextWrapping="Wrap"/>
                             <TextBlock Text="{Binding RunoutSummary}" FontSize="11"
                                        Foreground="#AFCFE1" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                            <TextBlock Text="{Binding RunoutSequenceProgress}"
+                                       FontSize="11" Foreground="#9DD0F2"
+                                       FontWeight="SemiBold" Margin="0,6,0,2"/>
+                            <ItemsControl ItemsSource="{Binding CompletedRunoutSummaries}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" FontSize="11"
+                                                   Foreground="#83D9B2" TextWrapping="Wrap"
+                                                   Margin="0,2,0,2"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                             <TextBlock Text="Measured candidate · no rotational zero reset · no saved placement correction"
                                        FontSize="10" Foreground="#E0BE8C"
                                        TextWrapping="Wrap" Margin="0,4,0,0"/>
@@ -363,14 +369,14 @@
             <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
                 <TextBlock Text="{Binding Status}" TextWrapping="Wrap"
                            Foreground="#EAF4FC" FontWeight="SemiBold" FontSize="12"/>
-                <TextBlock Text="Opening, choosing a head and camera preview never move the machine. Run requires verified origin and both staging plates."
+                <TextBlock Text="Opening or previewing never moves the machine. One Start runs all installed heads after verified origin and both staging plates."
                            FontSize="10" TextWrapping="Wrap"
                            Foreground="#9EBDD3" Margin="0,4,0,0"/>
             </StackPanel>
             <Button Grid.Column="1" Content="Preview Bottom Camera"
                     Style="{StaticResource ActionButton}"
                     Click="PreviewCamera_Click" IsEnabled="{Binding CanTuneRunoutVision}"/>
-            <Button Grid.Column="2" Content="Start Runout / Run Again"
+            <Button Grid.Column="2" Content="Calibrate All Heads / Run Again"
                     Style="{StaticResource ActionButton}"
                     Click="RunAgain_Click" IsEnabled="{Binding CanStartRunout}"/>
             <Button Grid.Column="3" Content="Close" Click="Close_Click">
