@@ -5,6 +5,7 @@
         Title="Camera Exposure Calibration" Width="1160" Height="820"
         MinWidth="850" MinHeight="640" WindowStartupLocation="CenterOwner"
         Background="#161C25" Foreground="#EDF2F8"
+        WindowStyle="None" ResizeMode="CanResize" ShowInTaskbar="False"
         Closing="Window_Closing">
     <Window.Resources>
         <Style x:Key="StageCard" TargetType="Border">
@@ -54,7 +55,8 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Background="#222D3C" CornerRadius="9"
-                Padding="15" Margin="0,0,0,12">
+                Padding="15" Margin="0,0,0,12" Cursor="SizeAll"
+                MouseLeftButtonDown="Header_MouseLeftButtonDown">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -86,43 +88,8 @@
                 <ColumnDefinition Width="280"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Border Grid.Column="0" Background="#1D2633" BorderBrush="#35475A"
-                    BorderThickness="1" CornerRadius="8" Margin="0,0,12,0"
-                    Padding="11">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="PROCEDURE STEPS"
-                               FontSize="11" FontWeight="Bold" Foreground="#99B5D0"
-                               Margin="4,2,0,12"/>
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <ItemsControl ItemsSource="{Binding ExposureSteps}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Style="{StaticResource StageCard}">
-                                        <StackPanel>
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
-                                                           FontSize="13" TextWrapping="Wrap"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding Status}"
-                                                           Foreground="#8ACCF7" FontSize="11"
-                                                           Margin="8,0,0,0"/>
-                                            </Grid>
-                                            <TextBlock Text="{Binding Detail}" Foreground="#B6C7D8"
-                                                       FontSize="11" TextWrapping="Wrap"
-                                                       Margin="0,5,0,0"/>
-                                            <TextBlock Text="{Binding Duration}" Foreground="#91A6BC"
-                                                       FontSize="10" Margin="0,4,0,0"/>
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </DockPanel>
-            </Border>
+            <cal:CalibrationStepRail Grid.Column="0" Margin="0,0,12,0"
+                Steps="{Binding ExposureSteps}"/>
 
             <Border Grid.Column="1" Background="#101721" BorderBrush="#35475A"
                     BorderThickness="1" CornerRadius="8" Padding="8">

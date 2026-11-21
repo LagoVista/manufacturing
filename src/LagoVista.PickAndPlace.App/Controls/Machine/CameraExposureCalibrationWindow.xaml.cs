@@ -32,6 +32,19 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
                 await Procedure.RunExposureCalibrationAsync();
         }
 
+        // Borderless dialog: the in-app header is the drag surface.
+        // Keep the explicit Close action and existing active-motion guard.
+        private void Header_MouseLeftButtonDown(object sender,
+            System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.ClickCount == 1 &&
+                e.LeftButton == System.Windows.Input.MouseButtonState.Pressed)
+            {
+                try { DragMove(); }
+                catch (InvalidOperationException) { /* Pointer released before drag. */ }
+            }
+        }
+
         private void Close_Click(object sender, RoutedEventArgs e)
         {
             if (Procedure?.ExposureCalibrationRunning != true) Close();

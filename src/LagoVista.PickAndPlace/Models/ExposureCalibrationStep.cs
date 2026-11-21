@@ -3,7 +3,7 @@ using LagoVista.Core.Models;
 namespace LagoVista.PickAndPlace.Models
 {
     /// <summary>Operator-visible internal stage of one calibration procedure.</summary>
-    public sealed class ExposureCalibrationStep : ModelBase
+    public sealed class ExposureCalibrationStep : ModelBase, ICalibrationProcedureStep
     {
         public string Name { get; set; }
         private string _status = "Pending";
