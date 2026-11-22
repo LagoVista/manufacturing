@@ -34,7 +34,7 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(sessionActive, Is.True, "Head 1 still owns its session during history I/O.");
             Assert.That(running, Is.True, "Head 2 cannot start before Head 1 history upload finishes.");
             Assert.That(finished, Is.False, "Batch sequencing must not auto-advance.");
-            CollectionAssert.AreEqual(new[] { "upload-start" }, events);
+            Assert.That(events, Is.EqualTo(new[] { "upload-start" }));
 
             upload.SetResult(true);
             await operation;
@@ -42,10 +42,10 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(sessionActive, Is.False);
             Assert.That(running, Is.False);
             Assert.That(finished, Is.True);
-            CollectionAssert.AreEqual(new[]
+            Assert.That(events, Is.EqualTo(new[]
             {
                 "upload-start", "upload-done", "session-retired", "idle", "finished"
-            }, events);
+            }));
         }
 
         [Test]
@@ -59,10 +59,10 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                     () => events.Add("idle"),
                     () => events.Add("finished")));
 
-            CollectionAssert.AreEqual(new[]
+            Assert.That(events, Is.EqualTo(new[]
             {
                 "session-retired", "idle", "finished"
-            }, events);
+            }));
         }
     }
 }
