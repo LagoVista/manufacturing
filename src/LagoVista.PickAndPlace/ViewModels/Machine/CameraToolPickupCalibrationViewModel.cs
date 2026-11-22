@@ -47,6 +47,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private bool _emptyNozzleOpticalLock;
         private string _emptyNozzleCameraId;
         private double _emptyNozzleCameraScale;
+        // Per-run optical framing only. Never persisted as a machine-head offset.
+        // The same inspection pose is reused for empty nozzle and held disc.
+        private Point2D<double> _inspectionFramingOffsetMm;
         private IMachine _machine;
         private MachineToolHead _head;
         private string _nozzleIdentity;
@@ -280,6 +283,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _emptyNozzleOpticalLock = false;
             _emptyNozzleCameraId = null;
             _emptyNozzleCameraScale = 0;
+            _inspectionFramingOffsetMm = null;
             _possibleDiscReturnTarget = null;
             _possibleDiscReturnCandidate = null;
             _possibleDiscHeld = false;
@@ -630,7 +634,64 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 $"{tuned.Result.GoodFrames}/{tuned.Result.TotalFrames} accepted frames, " +
                 $"scale {_emptyNozzleCameraScale:F2} px/mm. Acquiring fresh center.";
 
-            return await ObserveBottomAsync(VisionProfile.VisionProfile_Nozzle, isCylinder:false);
+            var initial = await ObserveBottomAsync(VisionProfile.VisionProfile_Nozzle,
+                isCylinder:false);
+            return await CenterNozzleInBottomCameraAsync(initial);
+        }
+
+        /// <summary>
+        /// Calibrate the inspection MOVE, never the static camera-to-tool
+        /// offset. Empirically probe X/Y at safe Z and use fresh T004 nozzle
+        /// observations to solve image orientation. All inspected discs will
+        /// use the very same temporary camera-framing XY translation.
+        /// </summary>
+        private async Task<BottomCircle> CenterNozzleInBottomCameraAsync(BottomCircle initial)
+        {
+            var original = initial.OffsetMm;
+            var probe = CameraToolBottomCameraFraming.ProbeMm;
+            Status = $"Head {_head.HeadIndex}: Nozzle is " +
+                $"{CameraToolBottomCameraFraming.Radius(original):F3} mm " +
+                "from bottom camera center. Measuring small XY framing probes.";
+            await MoveToInspectionCameraAsync(false,
+                new Point2D<double>(probe, 0));
+            var xProbe = await ObserveBottomAsync(VisionProfile.VisionProfile_Nozzle,
+                isCylinder:false);
+
+            await MoveToInspectionCameraAsync(false,
+                new Point2D<double>(0, probe));
+            var yProbe = await ObserveBottomAsync(VisionProfile.VisionProfile_Nozzle,
+                isCylinder:false);
+
+            if (!CameraToolBottomCameraFraming.TrySolve(
+                original, xProbe.OffsetMm, yProbe.OffsetMm, probe,
+                out var correction, out var reason))
+                throw new CalibrationStopped("Nozzle camera framing rejected: " + reason);
+            _inspectionFramingOffsetMm = correction;
+            // All XY changes use safe Z first; now prove the computed result.
+            await MoveToInspectionCameraAsync(holdingCylinder:false);
+            var centered = await ObserveBottomAsync(
+                VisionProfile.VisionProfile_Nozzle, isCylinder:false);
+            var remaining = CameraToolBottomCameraFraming.Radius(centered.OffsetMm);
+            if (remaining > CameraToolBottomCameraFraming.NozzleCameraToleranceMm)
+                throw new CalibrationStopped(
+                    $"Bottom-camera nozzle centering did not converge: " +
+                    $"original {original.X:+0.000;-0.000;0.000}/" +
+                    $"{original.Y:+0.000;-0.000;0.000} mm, inspection jog " +
+                    $"{correction.X:+0.000;-0.000;0.000}/" +
+                    $"{correction.Y:+0.000;-0.000;0.000} mm, remaining " +
+                    $"{remaining:F3} mm (max " +
+                    $"{CameraToolBottomCameraFraming.NozzleCameraToleranceMm:F3}). " +
+                    "Do not save the camera-to-tool offset.");
+            BottomVisionState = "NOZZLE CENTERED IN BOTTOM CAMERA";
+            BottomVisionMeasurements =
+                $"NOZZLE CAMERA CENTER {remaining:F3} mm  |  " +
+                $"Inspection-only jog X {correction.X:+0.000;-0.000;0.000}, " +
+                $"Y {correction.Y:+0.000;-0.000;0.000} mm. " +
+                "Static camera-to-tool offset unchanged.";
+            Status = $"Head {_head.HeadIndex}: nozzle optically centered " +
+                $"within {remaining:F3} mm; holding this camera inspection " +
+                "framing for each disc pickup.";
+            return centered;
         }
 
         private async Task<BottomCircle> ObserveHeldCylinderAsync(bool retainFocusForSavedProof = false)
@@ -849,7 +910,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
         }
 
-        private async Task MoveToInspectionCameraAsync(bool holdingCylinder)
+        private async Task MoveToInspectionCameraAsync(bool holdingCylinder,
+            Point2D<double> probeFramingMm = null)
         {
             RequireValid();
             var capture = _machine.PartInspectionCaptureService;
@@ -865,12 +927,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (capture.Camera.AbsolutePosition == null)
                 throw new CalibrationStopped("Bottom camera has no configured XY center.");
             var xy = capture.Camera.AbsolutePosition;
-            var physicalX = xy.X + _head.Offset.X;
-            var physicalY = xy.Y + _head.Offset.Y;
-            var area = _machine.Settings.WorkAreaSize;
-            if (physicalX < 5 || physicalY < 5 ||
-                physicalX > area.X - 5 || physicalY > area.Y - 5)
-                throw new CalibrationStopped("Bottom camera approach exceeds physical XY travel limits.");
+            var inspectionJog = probeFramingMm ??
+                _inspectionFramingOffsetMm ?? new Point2D<double>(0, 0);
+            if (!CameraToolBottomCameraFraming.TryValidateInspectionXY(
+                xy, _head.Offset, inspectionJog, _machine.Settings.WorkAreaSize,
+                out var inspectionTarget, out var framingError))
+                throw new CalibrationStopped(
+                    "Bottom camera approach rejected: " + framingError);
             _machine.SendSafeMoveHeight();
             await NeedIdleAsync("safe inspection approach");
             // Empty-nozzle and held-disc inspection must use the selected
@@ -883,7 +946,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 throw new CalibrationStopped(heightError);
 
             // XY must be reached at common Safe Z before any focus move.
-            _machine.GotoPoint(xy);
+            _machine.GotoPoint(inspectionTarget);
             await NeedIdleAsync("bottom-camera XY at common safe height");
             var location = await _machine.GetCurrentLocationAsync(5000);
             if (!location.Successful ||
