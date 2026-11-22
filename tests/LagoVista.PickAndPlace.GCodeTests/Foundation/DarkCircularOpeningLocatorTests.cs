@@ -342,6 +342,59 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(diagnostic.PrimaryReason, Does.Contain("OVERSIZE"));
         }
 
+        // The N24 real camera can show a narrow black seam through the
+        // reflective white metal ring. Without bounded repair, the dark core
+        // floods into the background and the locator returns ROI EDGE instead
+        // of the correct, previously measured 1.525 mm opening.
+        private static byte[,,] MakeSeamedReflectiveNozzle(int seamHalfWidth)
+        {
+            var pixels = new byte[200, 200, 1];
+            for (var y = 0; y < 200; y++)
+                for (var x = 0; x < 200; x++)
+                {
+                    var dx = x - 105;
+                    var dy = y - 96;
+                    var d = Math.Sqrt(dx * dx + dy * dy);
+                    var seam = dx >= 0 && Math.Abs(dy) <= seamHalfWidth;
+                    pixels[y, x, 0] = d <= 9 ? (byte)8
+                        : d <= 21 && !seam ? (byte)205 : (byte)18;
+                }
+            return pixels;
+        }
+
+        [Test]
+        public void LockedNozzleMayBridgeOnePixelReflectiveRingSeamButKeepsDiameterProof()
+        {
+            var frame = MakeSeamedReflectiveNozzle(0);
+            var raw = DarkCircularOpeningLocator.Find(frame, 200, 200,
+                12.5, 8.2, expectedDiameterMm:1.525,
+                allowTinyRingGapRepair:false);
+            Assert.That(raw, Is.Null,
+                "The small seam connects the dark core to the ROI exterior.");
+            var diagnostics = new DarkCircularOpeningLocator.RejectionDiagnostics();
+            var repaired = DarkCircularOpeningLocator.Find(frame, 200, 200,
+                12.5, 8.2, expectedDiameterMm:1.525, diagnostics:diagnostics);
+            Assert.That(repaired, Is.Not.Null, diagnostics.PrimaryReason);
+            Assert.That(diagnostics.TinyRingGapRepairUsed, Is.True);
+            Assert.That(repaired.X, Is.EqualTo(105).Within(1));
+            Assert.That(repaired.Y, Is.EqualTo(96).Within(1));
+            Assert.That(repaired.DiameterMm, Is.InRange(1.12, 1.98));
+            Assert.That(DarkCircularOpeningLocator.Find(frame, 200, 200,
+                12.5, 8.2, expectedDiameterMm:0.55), Is.Null,
+                "The repair cannot substitute an incorrectly sized opening.");
+        }
+
+        [Test]
+        public void LargeMissingRingArcRemainsUnqualifiedEvenWithTinyGapRecovery()
+        {
+            var damaged = MakeSeamedReflectiveNozzle(6);
+            var diagnostics = new DarkCircularOpeningLocator.RejectionDiagnostics();
+            Assert.That(DarkCircularOpeningLocator.Find(damaged,
+                200, 200, 12.5, 8.2, 1.525, diagnostics), Is.Null,
+                "A 13-pixel missing ring band must not be reconstructed.");
+            Assert.That(diagnostics.TinyRingGapRepairUsed, Is.False);
+        }
+
         [Test]
         public void ExplicitHeadTuneDoesNotRequireSharedProfileDiameterToChange()
         {
