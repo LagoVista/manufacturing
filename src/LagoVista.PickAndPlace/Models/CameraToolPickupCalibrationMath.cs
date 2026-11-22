@@ -43,6 +43,9 @@ namespace LagoVista.PickAndPlace.Models
     {
         public const double MaximumCorrectionPerAxisMm = 2.0;
         public const double VerificationToleranceMm = 0.12;
+        // Operator's production acceptance threshold, checked only by a third
+        // fresh pickup using the persisted offset and NO relative correction jog.
+        public const double SavedOffsetPickupToleranceMm = 0.20;
         public const double TravelClearanceMm = 5.0;
         public static readonly TimeSpan MaximumVisionAge = TimeSpan.FromSeconds(3);
 
@@ -156,6 +159,38 @@ namespace LagoVista.PickAndPlace.Models
             if (residualMm > VerificationToleranceMm)
             {
                 reason = "Second pickup did not verify the XY correction.";
+                return false;
+            }
+            reason = null;
+            return true;
+        }
+
+        public static bool TryVerifySavedOffsetPickup(
+            CameraToolPickupCandidate candidate, CameraToolPickupObservation third,
+            DateTimeOffset now, out double residualMm, out string reason)
+        {
+            residualMm = Double.NaN;
+            if (candidate == null)
+            {
+                reason = "No approved two-pick candidate for saved-offset verification.";
+                return false;
+            }
+            if (!ValidObservation(third, now, out reason))
+                return false;
+            if (third.HeadIndex != candidate.HeadIndex ||
+                !String.Equals(third.NozzleId, candidate.NozzleId, StringComparison.Ordinal) ||
+                !String.Equals(third.FixtureId, candidate.FixtureId, StringComparison.Ordinal) ||
+                third.MotionFinishedUtc <= candidate.FirstCaptureUtc)
+            {
+                reason = "Third pickup must be fresh, on the original head/nozzle/fixture.";
+                return false;
+            }
+            var error = third.PartRelativeToNozzleMm;
+            residualMm = Math.Sqrt(error.X * error.X + error.Y * error.Y);
+            if (residualMm > SavedOffsetPickupToleranceMm)
+            {
+                reason = $"Saved-offset third pickup residual {residualMm:F3} mm exceeds " +
+                    $"{SavedOffsetPickupToleranceMm:F3} mm radial acceptance.";
                 return false;
             }
             reason = null;
