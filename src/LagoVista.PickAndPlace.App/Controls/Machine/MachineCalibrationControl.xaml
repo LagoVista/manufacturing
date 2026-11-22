@@ -24,9 +24,33 @@
                 <StackPanel Margin="18" MaxWidth="1100" HorizontalAlignment="Left">
                     <TextBlock Text="Machine Calibration" FontSize="28" FontWeight="Bold"
                                Foreground="#E9F3FD" Margin="0,0,0,6"/>
-                    <TextBlock Text="Open one calibration procedure at a time. Each runs independently; opening a calibration window does not command machine motion."
+                    <TextBlock Text="Open a single calibration for troubleshooting, or run the complete supervised sequence below."
                                TextWrapping="Wrap" FontSize="13" Foreground="#AFC7DE"
                                MaxWidth="1020" Margin="0,0,0,17"/>
+                    <Border Background="#21364A" BorderBrush="#4B779B"
+                            BorderThickness="1" CornerRadius="9"
+                            Padding="17" Margin="0,0,0,15">
+                        <StackPanel>
+                            <TextBlock Text="ONE-CLICK CALIBRATION SEQUENCE"
+                                       FontWeight="Bold" FontSize="12"
+                                       Foreground="#98D4FC" Margin="0,0,0,6"/>
+                            <TextBlock Text="Exposure → Machine fiducial → Every staging plate → Installed nozzle runout → Camera-to-tool XY for each installed head"
+                                       FontSize="12" Foreground="#E8F3FD"
+                                       TextWrapping="Wrap" Margin="0,0,0,8"/>
+                            <TextBlock Text="Excludes vacuum calibration. Physical machine motion begins with this button: supervise the machine and keep the independent emergency stop accessible. Every stage must verify success before the next starts. Camera-to-tool offsets remain unsaved."
+                                       FontSize="11" Foreground="#E8C38D"
+                                       TextWrapping="Wrap" Margin="0,0,0,12"/>
+                            <Button x:Name="AllCalibrationSequenceButton"
+                                    Content="Run All Calibrations (Except Vacuum)"
+                                    Click="RunAllCalibrations_Click"
+                                    Style="{StaticResource CommandButton}"
+                                    HorizontalAlignment="Left" MinWidth="310" Height="44"/>
+                            <TextBlock x:Name="AllCalibrationSequenceStatus"
+                                       Text="Ready. Individual calibration windows remain available below."
+                                       TextWrapping="Wrap" FontSize="12"
+                                       Foreground="#B6D1E4" Margin="0,10,0,0"/>
+                        </StackPanel>
+                    </Border>
                     <UniformGrid Columns="2">
                         <Border Background="#202E3E" BorderBrush="#39526B"
                                 BorderThickness="1" CornerRadius="9"
