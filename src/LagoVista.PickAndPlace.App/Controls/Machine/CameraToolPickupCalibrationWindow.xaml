@@ -9,6 +9,7 @@
         Background="#161C25" Foreground="#EDF2F8"
         Closing="Window_Closing">
     <Window.Resources>
+        <cal:CameraToolSavedPickupMarkersConverter x:Key="SavedPickupMarkers"/>
         <Style x:Key="ProcedureCard" TargetType="Border">
             <Setter Property="Background" Value="#252E3B"/>
             <Setter Property="BorderBrush" Value="#3A4556"/>
@@ -96,15 +97,31 @@
         <Border Grid.Row="1" BorderBrush="#375B75" BorderThickness="1" Background="#213341"
                 CornerRadius="8" Padding="12" Margin="0,0,0,12">
             <StackPanel>
-                <TextBlock Text="UNSAVED / VERIFIED TOOL OFFSET" FontSize="10"
+                <TextBlock Text="VERIFIED CANDIDATE / SAVED-OFFSET ACCEPTANCE" FontSize="10"
                            Foreground="#93BAD9" FontWeight="Bold"/>
                 <TextBlock Text="{Binding CandidateSummary}" FontSize="17" FontWeight="SemiBold"
                            Foreground="#F1F8FF" Margin="0,3,0,0"/>
                 <TextBlock Text="No head offsets are changed until the second independent pickup passes the acceptance threshold." FontSize="12" Foreground="#C9D5E3"
                            Margin="0,5,0,0" TextWrapping="Wrap"/>
-                <TextBlock Text="First machine test: leave Auto-save unchecked. The selected head's existing Pick/Place heights and machine Safe Move Z are used automatically. Confirm cylinder clearance/focus on the first supervised run."
-                           FontSize="11" Foreground="#B9C6D6" TextWrapping="Wrap"
-                           Margin="0,7,0,0"/>
+                <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
+                    <Ellipse Width="15" Height="15" Margin="0,0,7,0" StrokeThickness="2"
+                             Stroke="#9FB4CA" Fill="Transparent">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SavedPickupVerified}" Value="True">
+                                        <Setter Property="Fill" Value="#37C978"/>
+                                        <Setter Property="Stroke" Value="#9AF4BF"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <TextBlock Text="{Binding SavedPickupStatus}" FontSize="12"
+                               Foreground="#C5DCED" TextWrapping="Wrap"/>
+                </StackPanel>
+                <TextBlock Text="The final green ring is measured against the nozzle axis, NOT the camera crosshair. Only the operator-approved third pickup using the saved offset can turn green (radial residual <= 0.200 mm)."
+                           FontSize="11" Foreground="#B9C6D6" TextWrapping="Wrap" Margin="0,5,0,0"/>
             </StackPanel>
         </Border>
         <Grid Grid.Row="2" Margin="4,0,4,8">
@@ -122,7 +139,7 @@
                         <ComboBoxItem Content="Head 1" Tag="1"/>
                         <ComboBoxItem Content="Head 2" Tag="2"/>
                     </ComboBox>
-                    <TextBlock Text="OFFSET SAVE LOCKED · first machine verification is measurement-only"
+                    <TextBlock Text="OFFSET SAVE REQUIRES AN EXPLICIT APPROVAL AFTER TWO VERIFIED PICKUPS"
                                Foreground="#E8C58B" FontSize="11" VerticalAlignment="Center"
                                TextWrapping="Wrap"/>
                 </StackPanel>
@@ -186,7 +203,17 @@
                         <TabItem Header="Bottom camera - nozzle / disc">
                             <cal:CalibrationVideoSurface
                                 FrameSource="{Binding CalibrationMachine.PartInspectionCaptureService.CaptureImage}"
-                                Caption="LIVE BOTTOM CAMERA - nozzle reference and held white disc"/>
+                                Caption="LIVE BOTTOM CAMERA - green only for saved-offset nozzle-relative proof">
+                                <cal:CalibrationVideoSurface.Markers>
+                                    <MultiBinding Converter="{StaticResource SavedPickupMarkers}">
+                                        <Binding Path="SavedPickupProof"/>
+                                        <Binding Path="CalibrationMachine.PartInspectionCaptureService.CaptureImage"/>
+                                        <Binding Path="CalibrationMachine.PartInspectionCaptureService.Camera.EffectivePixelsPerMM"/>
+                                        <Binding Path="ShowSavedPickupRing"/>
+                                        <Binding Path="CalibrationMachine.PartInspectionCaptureService.Profile.Key"/>
+                                    </MultiBinding>
+                                </cal:CalibrationVideoSurface.Markers>
+                            </cal:CalibrationVideoSurface>
                         </TabItem>
                     </TabControl>
                     <Expander Grid.Row="1" Header="Optical diagnostics - bottom camera"
@@ -215,6 +242,7 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel VerticalAlignment="Center" Margin="0,0,10,0">
                 <TextBlock Text="{Binding Status}" TextWrapping="Wrap"
@@ -232,7 +260,7 @@
                     <Button Content="Copy Run Report" Click="CopyRunReport_Click"
                             Height="27" MinWidth="120" Padding="6,2"/>
                 </StackPanel>
-                <TextBlock Text="Supervise motion; emergency stop is independent. Offset save remains locked."
+                <TextBlock Text="Supervise motion; emergency stop is independent. Third pickup requires explicit saved-offset approval."
                            TextWrapping="Wrap" Foreground="#9DADC1" FontSize="10" Margin="0,5,0,0"/>
             </StackPanel>
             <Button Grid.Column="1" Content="Preview Bottom Camera"
@@ -241,7 +269,10 @@
             <Button Grid.Column="2" Content="Start / Run Again"
                     Style="{StaticResource ActionButton}" Click="RunAgain_Click"
                     IsEnabled="{Binding CanOperate}"/>
-            <Button Grid.Column="3" Content="Close" Style="{StaticResource ActionButton}"
+            <Button Grid.Column="3" Content="Approve, Save &amp; Verify Third Pickup"
+                    Style="{StaticResource ActionButton}" Click="SaveAndVerify_Click"
+                    IsEnabled="{Binding CanSaveAndVerify}"/>
+            <Button Grid.Column="4" Content="Close" Style="{StaticResource ActionButton}"
                     Click="Close_Click" IsEnabled="{Binding CanOperate}"/>
         </Grid>
     </Grid>
