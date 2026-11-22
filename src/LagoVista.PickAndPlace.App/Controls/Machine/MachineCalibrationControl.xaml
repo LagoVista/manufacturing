@@ -37,7 +37,7 @@
                             <TextBlock Text="Exposure → Machine fiducial → Every staging plate → Installed nozzle runout → Camera-to-tool XY for each installed head"
                                        FontSize="12" Foreground="#E8F3FD"
                                        TextWrapping="Wrap" Margin="0,0,0,8"/>
-                            <TextBlock Text="Excludes vacuum calibration. Physical machine motion begins with this button: supervise the machine and keep the independent emergency stop accessible. Every stage must verify success before the next starts. Camera-to-tool offsets remain unsaved."
+                            <TextBlock Text="Excludes vacuum calibration. Physical machine motion begins with this button: supervise the machine and keep the independent emergency stop accessible. Every stage must verify success before the next starts. Camera-to-tool offsets require an explicit operator approval and green third-pickup verification before continuing."
                                        FontSize="11" Foreground="#E8C38D"
                                        TextWrapping="Wrap" Margin="0,0,0,12"/>
                             <Button x:Name="AllCalibrationSequenceButton"

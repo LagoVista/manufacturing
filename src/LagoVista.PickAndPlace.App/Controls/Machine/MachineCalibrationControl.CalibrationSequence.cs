@@ -6,6 +6,7 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.ViewModels.Machine;
 using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -87,6 +88,77 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
                 {
                     SetCalibrationSequenceStatus(stageName + " stopped: " + ex.Message +
                         " Review machine state and close this window; later stages will not run.");
+                }
+            };
+            window.ShowDialog();
+            return accepted;
+        }
+
+        /// <summary>
+        /// T014's first two pickups produce only an UNSAVED candidate. The
+        /// operator must then explicitly approve the stored offset and third
+        /// independent pickup in this dialog. Only green, durable evidence
+        /// permits the full sequence to proceed to another head.
+        /// </summary>
+        private bool RunSavedOffsetApprovalWindow(
+            CameraToolPickupCalibrationWindow window,
+            ICameraToolPickupCalibrationViewModel vm, string stageName)
+        {
+            var accepted = false;
+            var started = false;
+            window.Owner = Window.GetWindow(this);
+            var notifier = vm as INotifyPropertyChanged;
+            PropertyChangedEventHandler onChanged = null;
+            bool Verified() =>
+                vm.CalibrationFinished && !vm.CalibrationRunning &&
+                !vm.HistoryBusy && vm.SavedPickupVerified &&
+                vm.HistoryStatus.StartsWith("RECORDED", StringComparison.Ordinal) &&
+                vm.CalibrationSteps.Count ==
+                    CameraToolSavedOffsetVerificationProcedure.Create().Steps.Count &&
+                StepsPassed(vm.CalibrationSteps.Select(s => s.Status));
+            onChanged = (sender, args) =>
+            {
+                if (args.PropertyName != nameof(vm.HistoryBusy) &&
+                    args.PropertyName != nameof(vm.HistoryStatus) &&
+                    args.PropertyName != nameof(vm.SavedPickupVerified) &&
+                    args.PropertyName != nameof(vm.CalibrationFinished))
+                    return;
+                if (!accepted && Verified())
+                {
+                    accepted = true;
+                    window.Close();
+                }
+            };
+            if (notifier != null)
+                notifier.PropertyChanged += onChanged;
+            window.Closed += (sender, args) =>
+            {
+                if (notifier != null)
+                    notifier.PropertyChanged -= onChanged;
+            };
+            window.Loaded += async (sender, args) =>
+            {
+                if (started)
+                    return;
+                started = true;
+                try
+                {
+                    await vm.StartAsync();
+                    if (vm.CanSaveAndVerify)
+                        SetCalibrationSequenceStatus(stageName +
+                            ": two pickups verified. Review the candidate and " +
+                            "click Approve, Save & Verify Third Pickup in the " +
+                            "open window; no stored offset has changed yet.");
+                    else
+                        SetCalibrationSequenceStatus(stageName +
+                            ": first two pickups did not produce an approved " +
+                            "candidate or durable history. Review the dialog; " +
+                            "no later calibration runs until this stage passes.");
+                }
+                catch (Exception ex)
+                {
+                    SetCalibrationSequenceStatus(stageName +
+                        " stopped: " + ex.Message + ". Review the dialog.");
                 }
             };
             window.ShowDialog();
@@ -232,24 +304,14 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
                         DataContext = vm
                     };
                     if (!Next("Camera-to-tool XY: Head " + head.HeadIndex, () =>
-                        RunSequenceWindow(dialog,
-                            "Camera-to-tool XY: Head " + head.HeadIndex,
-                            () => vm.StartAsync(),
-                            () => vm.CalibrationFinished && !vm.CalibrationRunning &&
-                                !vm.SaveVerifiedOffset &&
-                                !vm.CanRetryHistory &&
-                                vm.HistoryStatus.StartsWith("RECORDED", StringComparison.Ordinal) &&
-                                vm.CalibrationSteps.Count == 16 &&
-                                vm.CalibrationSteps.All(s => s.StepKey.EndsWith(
-                                    "/commit-offset", StringComparison.Ordinal)
-                                    ? s.Status == "Unsaved" : s.Status == "Passed"),
-                            () => vm.CanRetryHistory ? vm.HistoryStatus : vm.Status)))
+                        RunSavedOffsetApprovalWindow(
+                            dialog, vm, "Camera-to-tool XY: Head " + head.HeadIndex)))
                         return;
                 }
 
                 SetCalibrationSequenceStatus(
                     "All " + count + " calibration stages VERIFIED. Vacuum calibration was not " +
-                    "run. Camera-to-tool XY candidates remain UNSAVED for supervised hardware acceptance.");
+                    "run. Both saved tool-head offsets completed their independent third-pickup acceptance.");
             }
             catch (Exception ex)
             {
