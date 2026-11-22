@@ -7,6 +7,10 @@ namespace LagoVista.PickAndPlace.VisionWorkbench.Services;
 
 public sealed class WorkbenchMachineControl : IDisposable
 {
+    // Conservative workbench-only jog/travel cap (mm/min).
+    private const int InitialFastFeedRate = 1000;
+    private bool _settingsLoadedFromPlatform;
+
     public LagoVista.PickAndPlace.Machine Machine { get; } = new();
 
     public event EventHandler? StateChanged;
