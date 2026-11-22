@@ -630,9 +630,15 @@ namespace LagoVista.PickAndPlace.App.Services
                                     VisionProfile.VisionProfile_CalibrationDisc &&
                                 !camera.CurrentVisionProfile.ShowOriginalImage)
                             {
+                                using (var smoothedDisc = new Image<Gray, byte>(gray.Size))
                                 using (var binaryDisc = new Image<Gray, byte>(gray.Size))
                                 {
-                                    CvInvoke.Threshold(gray, binaryDisc, 0, 255,
+                                    // Match the CalibrationDisc detector precisely.
+                                    // Blur reduces single-pixel edge noise before
+                                    // thresholding without changing acceptance gates.
+                                    CvInvoke.GaussianBlur(gray, smoothedDisc,
+                                        new Size(5, 5), 0);
+                                    CvInvoke.Threshold(smoothedDisc, binaryDisc, 0, 255,
                                         ThresholdType.Binary | ThresholdType.Otsu);
                                     using (var displayDisc = binaryDisc.Convert<Bgr, byte>())
                                     {

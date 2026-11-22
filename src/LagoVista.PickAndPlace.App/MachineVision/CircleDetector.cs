@@ -159,13 +159,24 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             var expectedX = previous == null ? frameCenter.X : previous.CenterPixels.X;
             var expectedY = previous == null ? frameCenter.Y : previous.CenterPixels.Y;
 
+            using (var smoothed = new Mat())
             using (var binary = new Mat())
             using (var contours = new VectorOfVectorOfPoint())
             {
-                // Use original grayscale for the white disc. The same Otsu
-                // segmentation is rendered in the calibration-specific preview.
-                var otsu = CvInvoke.Threshold(input.Image, binary, 0, 255,
-                    ThresholdType.Binary | ThresholdType.Otsu);
+                // The white-disc boundary is pixel-jagged on actual camera
+                // frames. At 12.5 px/mm, even a visually round disc can score
+                // below our strict circularity gate with raw Otsu contours.
+                // Smooth only CalibrationDisc before Otsu (NOT staging holes,
+                // nozzle runout, or any other shape detector). The displayed
+                // CalibrationDisc preview uses the identical 5x5 pipeline.
+                if (requireCircularity)
+                    CvInvoke.GaussianBlur(input.Image, smoothed,
+                        new System.Drawing.Size(5, 5), 0);
+                var otsu = requireCircularity
+                    ? CvInvoke.Threshold(smoothed, binary, 0, 255,
+                        ThresholdType.Binary | ThresholdType.Otsu)
+                    : CvInvoke.Threshold(input.Image, binary, 0, 255,
+                        ThresholdType.Binary | ThresholdType.Otsu);
                 CvInvoke.FindContours(binary, contours, null, RetrType.External,
                     ChainApproxMethod.ChainApproxSimple);
 
@@ -255,7 +266,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 var outside = nearestOutsideMm < double.MaxValue
                     ? $"; nearest excluded center {nearestOutsideMm:F1} mm from image center"
                     : String.Empty;
-                diagnostics = $"Otsu={otsu:F0}; bright contours={contours.Size}; " +
+                diagnostics = $"segmentation={(requireCircularity ? "Gaussian5+Otsu" : "Otsu")}; " +
+                    $"Otsu={otsu:F0}; bright contours={contours.Size}; " +
                     $"radius-pass={sizeAccepted}, circularity-pass={roundAccepted}, " +
                     $"aspect-pass={aspectAccepted}, search-pass={roiAccepted}; " +
                     $"diameter range {2 * profile.HoughCirclesMinRadius:F1}-" +
