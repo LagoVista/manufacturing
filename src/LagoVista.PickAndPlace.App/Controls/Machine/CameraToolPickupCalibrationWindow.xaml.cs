@@ -40,13 +40,13 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
 
         private void Close_Click(object sender, RoutedEventArgs e)
         {
-            if (Procedure?.CanOperate == true)
+            if (Procedure?.CanOperate != false)
                 Close();
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-            if (Procedure?.CanOperate != true)
+            if (Procedure?.CanOperate == false)
                 e.Cancel = true;
         }
     }
