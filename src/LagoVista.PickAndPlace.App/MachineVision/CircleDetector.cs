@@ -47,9 +47,17 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 ? (int)Math.Round(DarkCircularOpeningLocator.EffectiveAcquisitionRadiusPixels(
                     size.Width, size.Height, camera.EffectivePixelsPerMM, profile.TargetImageRadius))
                 : Convert.ToInt32(profile.TargetImageRadius * camera.EffectivePixelsPerMM);
-            var search = new CircleF(new System.Drawing.PointF(center.X, center.Y), scaledTarget);
-
             var stagingPlateHole = profile.Key == VisionProfile.VisionProfile_StagingPlateHole;
+            // Search-region position is profile-controlled for staging holes.
+            // The MVLocatedCircle optical center stays at frame center, so
+            // moving the ROI does NOT change the target machine alignment.
+            var searchCenter = stagingPlateHole
+                ? StagingHoleSearchRegion.Center(size.Width, size.Height,
+                    camera.EffectivePixelsPerMM, profile.StagingSearchOffsetXmm,
+                    profile.StagingSearchOffsetYmm)
+                : new LagoVista.Core.Models.Drawing.Point2D<double>(center.X, center.Y);
+            var search = new CircleF(new System.Drawing.PointF(
+                (float)searchCenter.X, (float)searchCenter.Y), scaledTarget);
             var calibrationDisc = profile.Key == VisionProfile.VisionProfile_CalibrationDisc;
             CircleF[] circles;
             if (stagingPlateHole || calibrationDisc)

@@ -13,7 +13,165 @@
              mc:Ignorable="d" 
              d:DesignHeight="1200" d:DesignWidth="1600">
     <!-- Keep each calibration workflow in a dedicated view. Selection state lives in the existing view models. -->
-    <TabControl Margin="6" SelectedIndex="4" Background="Transparent">
+    <!-- Machine is the calibration launchpad. The existing category tabs
+         remain for configuration and detailed status; all launch buttons reuse
+         their original handlers and never initiate movement on tab selection. -->
+    <TabControl x:Name="CalibrationTabs" Margin="6" SelectedIndex="0" Background="Transparent">
+        <TabItem Header="Machine">
+            <Border Background="#151F2A" Padding="2">
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="18" MaxWidth="1100" HorizontalAlignment="Left">
+                    <TextBlock Text="Machine Calibration" FontSize="28" FontWeight="Bold"
+                               Foreground="#E9F3FD" Margin="0,0,0,6"/>
+                    <TextBlock Text="Open one calibration procedure at a time. Each runs independently; opening a calibration window does not command machine motion."
+                               TextWrapping="Wrap" FontSize="13" Foreground="#AFC7DE"
+                               MaxWidth="1020" Margin="0,0,0,17"/>
+                    <UniformGrid Columns="2">
+                        <Border Background="#202E3E" BorderBrush="#39526B"
+                                BorderThickness="1" CornerRadius="9"
+                                Padding="19" Margin="0,0,10,12">
+                            <StackPanel>
+                                <TextBlock Text="01  Camera Exposure" FontSize="18"
+                                           FontWeight="SemiBold" Foreground="#F2F7FC"/>
+                                <TextBlock Text="Calibrate the position camera's black/white fiducial exposure. Saves the verified camera baseline."
+                                           TextWrapping="Wrap" Foreground="#B6C9DC"
+                                           FontSize="12" Margin="0,7,0,15"/>
+                                <Button Content="Open Exposure Calibration"
+                                        Click="OpenExposureCalibration_Click"
+                                        Style="{StaticResource CommandButton}"
+                                        HorizontalAlignment="Left" MinWidth="235" Height="38"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#202E3E" BorderBrush="#39526B"
+                                BorderThickness="1" CornerRadius="9"
+                                Padding="19" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="02  Machine Fiducial" FontSize="18"
+                                           FontWeight="SemiBold" Foreground="#F2F7FC"/>
+                                <TextBlock Text="Locate and center on the machine fiducial, then establish the machine origin from a fresh verified circle."
+                                           TextWrapping="Wrap" Foreground="#B6C9DC"
+                                           FontSize="12" Margin="0,7,0,15"/>
+                                <Button Content="Open Fiducial Calibration"
+                                        Click="OpenFiducialCalibration_Click"
+                                        Style="{StaticResource CommandButton}"
+                                        HorizontalAlignment="Left" MinWidth="235" Height="38"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                    <TextBlock Text="Origin this session: "
+                                               Foreground="#A9BECE" FontSize="11"/>
+                                    <TextBlock FontSize="11" FontWeight="SemiBold">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="Not verified"/>
+                                                <Setter Property="Foreground" Value="#D5AA80"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Machine.WasMachinOriginCalibrated}" Value="True">
+                                                        <Setter Property="Text" Value="Verified"/>
+                                                        <Setter Property="Foreground" Value="#83D8AA"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#202E3E" BorderBrush="#39526B"
+                                BorderThickness="1" CornerRadius="9"
+                                Padding="19" Margin="0,0,10,12">
+                            <StackPanel>
+                                <TextBlock Text="03  Staging Plates" FontSize="18"
+                                           FontWeight="SemiBold" Foreground="#F2F7FC"/>
+                                <TextBlock Text="Measure two reference holes on a selected plate, verify their physical alignment, and save the plate coordinates."
+                                           TextWrapping="Wrap" Foreground="#B6C9DC"
+                                           FontSize="12" Margin="0,7,0,9"/>
+                                <TextBlock Text="Select one staging plate in the dialog. Requires the machine origin to be verified this session."
+                                           Foreground="#D8B67F" TextWrapping="Wrap"
+                                           FontSize="11" Margin="0,0,0,10"/>
+                                <WrapPanel>
+                                    <Button Content="Open Staging Plate Calibration"
+                                            Click="OpenStagingPlateCalibration_Click"
+                                            ToolTip="Opens the independent two-hole procedure. No machine movement until Run."
+                                            Style="{StaticResource CommandButton}"
+                                            MinWidth="235" Height="38"/>
+                                    <Button Content="Configure Plates"
+                                            Click="OpenStagingPlateSettings_Click"
+                                            Style="{StaticResource CommandButton}"
+                                            Margin="8,0,0,0" Height="38"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#202E3E" BorderBrush="#39526B"
+                                BorderThickness="1" CornerRadius="9"
+                                Padding="19" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="04  Nozzle Runout" FontSize="18"
+                                           FontWeight="SemiBold" Foreground="#F2F7FC"/>
+                                <TextBlock Text="Measure each installed nozzle's rotational runout and logical zero using the bottom camera."
+                                           TextWrapping="Wrap" Foreground="#B6C9DC"
+                                           FontSize="12" Margin="0,7,0,15"/>
+                                <Button Content="Open Nozzle Calibration"
+                                        Click="OpenNozzleRunout_Click"
+                                        Style="{StaticResource CommandButton}"
+                                        HorizontalAlignment="Left" MinWidth="235" Height="38"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#202E3E" BorderBrush="#39526B"
+                                BorderThickness="1" CornerRadius="9"
+                                Padding="19" Margin="0,0,10,12">
+                            <StackPanel>
+                                <TextBlock Text="05  Vacuum and Solenoids" FontSize="18"
+                                           FontWeight="SemiBold" Foreground="#F2F7FC"/>
+                                <TextBlock Text="Run the existing supervised vacuum pump, valve and sensor calibration for both tool heads."
+                                           TextWrapping="Wrap" Foreground="#B6C9DC"
+                                           FontSize="12" Margin="0,7,0,15"/>
+                                <Button Content="Open Vacuum Calibration"
+                                        Click="OpenVacuumCalibration_Click"
+                                        Style="{StaticResource CommandButton}"
+                                        HorizontalAlignment="Left" MinWidth="235" Height="38"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#202E3E" BorderBrush="#39526B"
+                                BorderThickness="1" CornerRadius="9"
+                                Padding="19" Margin="0,0,0,12">
+                            <StackPanel>
+                                <TextBlock Text="06  Camera Scale and Position" FontSize="18"
+                                           FontWeight="SemiBold" Foreground="#F2F7FC"/>
+                                <TextBlock Text="Configure camera positions and measure pixels per millimeter. These controls remain in Camera settings."
+                                           TextWrapping="Wrap" Foreground="#B6C9DC"
+                                           FontSize="12" Margin="0,7,0,15"/>
+                                <Button Content="Open Camera Settings"
+                                        Click="OpenCameraSettings_Click"
+                                        Style="{StaticResource CommandButton}"
+                                        HorizontalAlignment="Left" MinWidth="235" Height="38"/>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+                    <Border Background="#202E3E" BorderBrush="#39526B" BorderThickness="1"
+                            CornerRadius="9" Padding="19" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="Camera-to-Tool XY Alignment · T003" FontSize="18"
+                                       FontWeight="SemiBold" Foreground="#F2F7FC"/>
+                            <TextBlock Text="Guided two-pass pickup. Top-camera white reference, vacuum-confirmed pickup, bottom-camera measurement and independent verification before saving."
+                                       TextWrapping="Wrap" Foreground="#B6C9DC"
+                                       FontSize="12" Margin="0,7,0,10"/>
+                            <TextBlock Text="Requires a mechanically reliable vacuum channel. No movement occurs on opening."
+                                       Foreground="#D8B67F" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                            <Button Content="Open Camera-to-Tool Calibration"
+                                    Click="OpenCameraToolPickup_Click"
+                                    Style="{StaticResource CommandButton}"
+                                    HorizontalAlignment="Left" MinWidth="245" Height="38"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+            </Border>
+        </TabItem>
         <TabItem Header="Locations">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <Grid Margin="14">
@@ -108,7 +266,7 @@
                     </Grid>
             </ScrollViewer>
         </TabItem>
-        <TabItem Header="Staging Plates">
+        <TabItem x:Name="StagingPlatesTab" Header="Staging Plates">
             <Grid Margin="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="3*"/>
@@ -252,7 +410,7 @@
             <local:ToolHeadControl />
             </ScrollViewer>
         </TabItem>
-        <TabItem Header="Cameras">
+        <TabItem x:Name="CamerasTab" Header="Cameras">
             <Grid Margin="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="3*"/>
@@ -297,12 +455,17 @@
                                     </TextBlock.Text>
                                 </TextBlock>
                                 <Button Style="{StaticResource CommandButton}"
-                                        Command="{Binding AutoTuneCameraExposureCommand}"
-                                        Content="Move + Auto Tune Exposure" />
+                                        Click="OpenExposureCalibration_Click"
+                                        Content="Open Exposure Calibration" />
                             </StackPanel>
+                            <Button Style="{StaticResource CommandButton}"
+                                    Click="OpenFiducialCalibration_Click"
+                                    Content="Open Machine Fiducial Calibration"
+                                    HorizontalAlignment="Left" Margin="0,8,0,0"/>
             
                             <Separator Margin="0,12,0,10"/>
                             <TextBlock Style="{StaticResource header}" Text="Camera Pixels per MM"/>
+
                             <StackPanel Orientation="Horizontal" Margin="0,4,0,6">
                                 <TextBlock Text="Camera default: " FontWeight="SemiBold"/>
                                 <TextBlock Text="{Binding SelectedMachineCamera.PixelsPerMM, StringFormat='{}{0:F1} px/mm'}"/>

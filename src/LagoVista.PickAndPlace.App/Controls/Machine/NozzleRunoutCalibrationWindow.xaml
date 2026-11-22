@@ -1,179 +1,398 @@
 <Window x:Class="LagoVista.PickAndPlace.App.Controls.Machine.NozzleRunoutCalibrationWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Optical Nozzle Runout Calibration"
-        Width="1020" Height="790" MinWidth="820" MinHeight="590"
-        WindowStartupLocation="CenterOwner" ResizeMode="CanResize"
-        Background="#181D26" Foreground="#EAF0F6"
-        Loaded="Window_Loaded" Closing="Window_Closing">
+        xmlns:cal="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine.Calibration"
+        Title="Optical Nozzle Runout Calibration" Width="1160" Height="830"
+        WindowStartupLocation="CenterOwner" WindowStyle="None"
+        ResizeMode="NoResize" ShowInTaskbar="False"
+        Background="#151D27" Foreground="#EBF3FB"
+        Closing="Window_Closing">
     <Window.Resources>
-        <Style x:Key="ProcedureCard" TargetType="Border">
-            <Setter Property="Background" Value="#252E3B"/>
-            <Setter Property="BorderBrush" Value="#3A4556"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="9"/>
-            <Setter Property="Padding" Value="12"/>
-            <Setter Property="Margin" Value="0,0,0,7"/>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding Status}" Value="Running">
-                    <Setter Property="BorderBrush" Value="#55B7FF"/>
-                    <Setter Property="Background" Value="#26394A"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Status}" Value="Passed">
-                    <Setter Property="BorderBrush" Value="#3E7961"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Status}" Value="Failed">
-                    <Setter Property="BorderBrush" Value="#D55F66"/>
-                    <Setter Property="Background" Value="#3B2A32"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="StepStatus" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#A4B1C0"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding Status}" Value="Running">
-                    <Setter Property="Foreground" Value="#90D3FF"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Status}" Value="Passed">
-                    <Setter Property="Foreground" Value="#79EDAD"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Status}" Value="Failed">
-                    <Setter Property="Foreground" Value="#FF9299"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
+        <cal:NozzleRunoutMarkersConverter x:Key="NozzleMarkers"/>
         <Style x:Key="ActionButton" TargetType="Button">
-            <Setter Property="Height" Value="40"/>
-            <Setter Property="MinWidth" Value="110"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Padding" Value="13,6"/>
+            <Setter Property="MinWidth" Value="118"/>
             <Setter Property="Margin" Value="8,0,0,0"/>
-            <Setter Property="Padding" Value="16,7"/>
-            <Setter Property="Background" Value="#277EC4"/>
-            <Setter Property="Foreground" Value="#FFFFFF"/>
-            <Setter Property="BorderBrush" Value="#4F9BD8"/>
+            <Setter Property="Background" Value="#2677B7"/>
+            <Setter Property="BorderBrush" Value="#579AC9"/>
+            <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
+        <Style x:Key="TuningAction" TargetType="Button">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Padding" Value="12,5"/>
+            <Setter Property="MinWidth" Value="92"/>
+            <Setter Property="Margin" Value="0,0,9,5"/>
+            <Setter Property="Background" Value="#245579"/>
+            <Setter Property="BorderBrush" Value="#507C9C"/>
+            <Setter Property="Foreground" Value="#E5F5FF"/>
+        </Style>
+        <Style x:Key="InputBox" TargetType="TextBox">
+            <Setter Property="Background" Value="#162737"/>
+            <Setter Property="Foreground" Value="#F1F8FF"/>
+            <Setter Property="CaretBrush" Value="#F1F8FF"/>
+            <Setter Property="BorderBrush" Value="#496986"/>
+            <Setter Property="Width" Value="153"/>
+            <Setter Property="Padding" Value="7,5"/>
+            <Setter Property="Margin" Value="0,3,0,3"/>
+        </Style>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
     </Window.Resources>
-    <Grid Margin="20">
+
+    <Grid Margin="18">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Border Background="#232B38" CornerRadius="10" Padding="18,16" Margin="0,0,0,12">
+
+        <Border Grid.Row="0" Background="#233043" Padding="15"
+                CornerRadius="8" Margin="0,0,0,10"
+                MouseLeftButtonDown="Header_MouseLeftButtonDown">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel>
-                    <TextBlock Text="NOZZLE / 360° OPTICAL CALIBRATION"
-                               FontWeight="Bold" FontSize="11" Foreground="#8FBFE9"/>
-                    <TextBlock Text="Rotational Runout" FontWeight="SemiBold"
-                               FontSize="25" Margin="0,5,0,3"/>
-                    <TextBlock Text="{Binding ToolHeadName}" Foreground="#DFE9F5"
-                               FontSize="14"/>
-                    <TextBlock Text="{Binding NozzleName}" Foreground="#ACBDD0"
-                               FontSize="12" Margin="0,2,0,0"/>
+                    <TextBlock Text="MACHINE CALIBRATION / OPTICAL NOZZLE RUNOUT"
+                               FontSize="11" FontWeight="Bold" Foreground="#87C6F2"/>
+                    <TextBlock Text="Nozzle Runout · All Installed Heads" FontSize="25"
+                               FontWeight="SemiBold" Margin="0,3,0,3"/>
+                    <TextBlock Text="{Binding ToolHeadName}" Foreground="#C4DAEA" FontSize="13"/>
+                    <TextBlock Text="{Binding NozzleName}" Foreground="#92B9D3" FontSize="11"/>
                 </StackPanel>
-                <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <TextBlock Text="MEASUREMENT PLAN" Foreground="#91A5BC"
-                               HorizontalAlignment="Right" FontSize="10"/>
-                    <TextBlock Text="12 samples per head · 30° increments"
-                               FontWeight="SemiBold" FontSize="16" HorizontalAlignment="Right"/>
-                    <TextBlock Text="Bottom camera · max Y = logical zero"
-                               Foreground="#B6C3D2" FontSize="11" HorizontalAlignment="Right"/>
+                <StackPanel Grid.Column="1" HorizontalAlignment="Right"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="SUPERVISED PROCEDURE" FontSize="10"
+                               Foreground="#9BB3C9" HorizontalAlignment="Right"/>
+                    <TextBlock Text="12 angles per head · Head 1 → Head 2"
+                               FontWeight="SemiBold" FontSize="15"
+                               HorizontalAlignment="Right" Margin="0,4,0,0"/>
+                    <TextBlock Text="Bottom camera · max-Y logical zero"
+                               Foreground="#B4CBDB" FontSize="11"
+                               HorizontalAlignment="Right" Margin="0,3,0,0"/>
                 </StackPanel>
             </Grid>
         </Border>
-        <Border Grid.Row="1" BorderBrush="#375B75" BorderThickness="1" Background="#213341"
-                CornerRadius="8" Padding="12" Margin="0,0,0,12">
-            <StackPanel>
-                <TextBlock Text="CANDIDATE ROTATIONAL ZERO" FontSize="10"
-                           Foreground="#93BAD9" FontWeight="Bold"/>
-                <TextBlock Text="{Binding CandidateZero}" FontSize="17" FontWeight="SemiBold"
-                           Foreground="#F1F8FF" Margin="0,3,0,0"/>
-                <TextBlock Text="{Binding RunoutSummary}" FontSize="12" Foreground="#C9D5E3"
-                           Margin="0,5,0,0" TextWrapping="Wrap"/>
-                <TextBlock Text="First machine run: measured data only. No G92, no saved placement correction, no change to camera/tool XY offsets."
-                           FontSize="11" Foreground="#B9C6D6" TextWrapping="Wrap"
-                           Margin="0,7,0,0"/>
-            </StackPanel>
-        </Border>
-        <Grid Grid.Row="2" Margin="4,0,4,8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="42"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="92"/>
-                <ColumnDefinition Width="82"/>
-                <ColumnDefinition Width="72"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="#" Foreground="#AAB8C9"/>
-            <TextBlock Grid.Column="1" Text="STAGE / MEASUREMENT" Foreground="#AAB8C9"/>
-            <TextBlock Grid.Column="2" Text="STATUS" Foreground="#AAB8C9"/>
-            <TextBlock Grid.Column="3" Text="ELAPSED" TextAlignment="Right" Foreground="#AAB8C9"/>
-            <TextBlock Grid.Column="4" Text="RETRIES" TextAlignment="Right" Foreground="#AAB8C9"/>
-        </Grid>
-        <Border Grid.Row="3" Background="#1D242F" BorderBrush="#374454"
-                BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,14">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding RunoutSteps}">
+
+        <Border Grid.Row="1" Background="#1D2C3C" BorderBrush="#3E5974"
+                BorderThickness="1" CornerRadius="7"
+                Padding="11" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="One-click calibration sequence" VerticalAlignment="Center"
+                           FontSize="12" FontWeight="SemiBold" Margin="0,0,12,0"/>
+                <ItemsControl Grid.Column="1" ItemsSource="{Binding AvailableRunoutHeads}"
+                              Margin="0,0,14,0" VerticalAlignment="Center">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Style="{StaticResource ProcedureCard}">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="42"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="92"/>
-                                        <ColumnDefinition Width="82"/>
-                                        <ColumnDefinition Width="72"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="{Binding Number}"
-                                               VerticalAlignment="Center" Foreground="#98AFC8"
-                                               FontSize="15"/>
-                                    <StackPanel Grid.Column="1" Margin="0,0,12,0">
-                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold"
-                                                   FontSize="13" TextWrapping="Wrap"/>
-                                        <TextBlock Text="{Binding Detail}" Foreground="#BAC8D8"
-                                                   FontSize="11" TextWrapping="Wrap"
-                                                   Margin="0,3,0,0"/>
-                                    </StackPanel>
-                                    <TextBlock Grid.Column="2" Text="{Binding Status}"
-                                               Style="{StaticResource StepStatus}"
-                                               VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="3" Text="{Binding Duration}"
-                                               Foreground="#D4E1ED" FontFamily="Consolas"
-                                               TextAlignment="Right" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="4" Text="{Binding RetryCount}"
-                                               Foreground="#D4E1ED" FontFamily="Consolas"
-                                               TextAlignment="Right" VerticalAlignment="Center"/>
-                                </Grid>
+                            <Border Background="#254B66" BorderBrush="#5984A0"
+                                    BorderThickness="1" CornerRadius="5"
+                                    Padding="10,5" Margin="0,0,8,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding HeadIndex, StringFormat='Head {0}'}"
+                                               FontWeight="SemiBold" Foreground="#F0F8FF"/>
+                                    <TextBlock Text="{Binding CurrentNozzle.Text, StringFormat='  ·  {0}'}"
+                                               Foreground="#CADDEB"/>
+                                </StackPanel>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-            </ScrollViewer>
+                <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                    <TextBlock Text="One Start calibrates Head 1, returns to verified safe Z, then automatically runs Head 2 when installed."
+                               FontSize="11" Foreground="#A7C5DD" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding RunoutMachine.WasMachinOriginCalibrated, StringFormat='Current session machine origin verified: {0}'}"
+                               FontSize="11" Foreground="#B8C6D6" Margin="0,3,0,0"/>
+                </StackPanel>
+            </Grid>
         </Border>
-        <Grid Grid.Row="4">
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="285"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <cal:CalibrationStepRail Grid.Column="0" Margin="0,0,12,0"
+                                     Steps="{Binding RunoutSteps}"/>
+            <Border Grid.Column="1" Background="#0E1720" BorderBrush="#39516B"
+                    BorderThickness="1" CornerRadius="8" Padding="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <cal:CalibrationVideoSurface
+                        FrameSource="{Binding RunoutMachine.PartInspectionCaptureService.CaptureImage}"
+                        ShowExposureReference="False"
+                        Caption="LIVE BOTTOM CAMERA · blue acquisition ROI · amber candidate · green verified">
+                        <cal:CalibrationVideoSurface.Markers>
+                            <MultiBinding Converter="{StaticResource NozzleMarkers}">
+                                <Binding Path="RunoutVideoObservation"/>
+                                <Binding Path="RunoutMachine.PartInspectionCaptureService.CaptureImage"/>
+                                <Binding Path="RunoutMachine.PartInspectionCaptureService.Profile"/>
+                                <Binding Path="RunoutMachine.PartInspectionCaptureService.Camera.EffectivePixelsPerMM"/>
+                            </MultiBinding>
+                        </cal:CalibrationVideoSurface.Markers>
+                    </cal:CalibrationVideoSurface>
+                    <Border Grid.Row="1" Background="#243447" Padding="9,7">
+                        <StackPanel>
+                            <TextBlock Text="{Binding RunoutCameraStatus}"
+                                       Foreground="#BFD7EA" FontSize="11"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding RunoutSearchSummary}"
+                                       Foreground="#86D6B1" FontSize="11"
+                                       FontWeight="SemiBold" TextWrapping="Wrap"
+                                       Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Row="2" Background="#1D2C39" Padding="9,7"
+                            Margin="0,6,0,0" CornerRadius="4">
+                        <StackPanel>
+                            <TextBlock Text="{Binding CandidateZero}" FontSize="13"
+                                       FontWeight="SemiBold" Foreground="#E6F3FE"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding RunoutSummary}" FontSize="11"
+                                       Foreground="#AFCFE1" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                            <TextBlock Text="{Binding RunoutSequenceProgress}"
+                                       FontSize="11" Foreground="#9DD0F2"
+                                       FontWeight="SemiBold" Margin="0,6,0,2"/>
+                            <ItemsControl ItemsSource="{Binding CompletedRunoutSummaries}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" FontSize="11"
+                                                   Foreground="#83D9B2" TextWrapping="Wrap"
+                                                   Margin="0,2,0,2"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Text="Measured candidate · no rotational zero reset · no saved placement correction"
+                                       FontSize="10" Foreground="#E0BE8C"
+                                       TextWrapping="Wrap" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Expander Grid.Row="3" Header="Applicable Nozzle vision settings and live measurements"
+                  IsExpanded="False" Background="#243141" Foreground="#EBF5FE"
+                  BorderBrush="#456078" BorderThickness="1"
+                  Padding="10" Margin="0,11,0,0">
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled" MaxHeight="272">
+                <StackPanel Margin="8">
+                    <TextBlock Text="NOZZLE PROFILE · ACTUAL DARK-OPENING DETECTOR"
+                               FontSize="11" FontWeight="Bold"
+                               Foreground="#8ACAF4" Margin="0,0,0,7"/>
+                    <TextBlock Text="Only settings used by nozzle acquisition, optical centering, camera and lighting are shown. The opening diameter and phase are measured at runtime. Hough thresholds and staging-only settings are not used."
+                               FontSize="11" Foreground="#C4D7E8" TextWrapping="Wrap"
+                               Margin="0,0,0,10"/>
+                    <TabControl x:Name="NozzleVisionTabs" IsEnabled="{Binding CanTuneRunoutVision}" Background="#1C2B3B"
+                                BorderBrush="#49637A" Foreground="#E6F0FB">
+                        <TabItem Header="Acquisition / Center">
+                            <StackPanel Margin="12">
+                                <TextBlock Text="Search radius previews live when camera capture is active. The dark-opening locator has a 72-pixel minimum search radius at low camera scales. The blue circle always shows the effective acquisition area."
+                                           FontSize="11" Foreground="#BECFDF"
+                                           TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                <WrapPanel><StackPanel Width="166" Margin="0,0,14,10">
+<TextBlock Text="Search radius (mm)" FontSize="11" Foreground="#C5D6E8"/>
+<TextBox Style="{StaticResource InputBox}" Text="{Binding RunoutVisionTuning.SearchRadiusMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+<TextBlock Text="0.1–30 mm; 72px effective floor" Foreground="#95ACC1" FontSize="10" TextWrapping="Wrap"/>
+</StackPanel>
+<StackPanel Width="166" Margin="0,0,14,10">
+<TextBlock Text="Center tolerance (mm)" FontSize="11" Foreground="#C5D6E8"/>
+<TextBox Style="{StaticResource InputBox}" Text="{Binding RunoutVisionTuning.CenterToleranceMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+<TextBlock Text="Runner caps at 0.10 mm" Foreground="#95ACC1" FontSize="10" TextWrapping="Wrap"/>
+</StackPanel>
+<StackPanel Width="166" Margin="0,0,14,10">
+<TextBlock Text="Stable detections" FontSize="11" Foreground="#C5D6E8"/>
+<TextBox Style="{StaticResource InputBox}" Text="{Binding RunoutVisionTuning.StabilizationCount, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+<TextBlock Text="2–60 frames" Foreground="#95ACC1" FontSize="10" TextWrapping="Wrap"/>
+</StackPanel></WrapPanel>
+                                <TextBlock Text="{Binding RunoutSearchSummary}"
+                                           Foreground="#8BD6B2" FontSize="11"
+                                           FontWeight="SemiBold" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </TabItem>
+                        <TabItem Header="Camera / Lighting">
+                            <StackPanel Margin="12">
+                                <TextBlock Text="Optional camera overrides; blank means inherit the camera baseline. Lighting is required for nozzle acquisition and is automatically enabled during the run."
+                                           FontSize="11" Foreground="#BED2E3"
+                                           TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                <WrapPanel><StackPanel Width="166" Margin="0,0,14,10">
+<TextBlock Text="Exposure" FontSize="11" Foreground="#C5D6E8"/>
+<TextBox Style="{StaticResource InputBox}" Text="{Binding RunoutVisionTuning.Exposure, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+<TextBlock Text="Blank = baseline" Foreground="#95ACC1" FontSize="10" TextWrapping="Wrap"/>
+</StackPanel>
+<StackPanel Width="166" Margin="0,0,14,10">
+<TextBlock Text="Brightness" FontSize="11" Foreground="#C5D6E8"/>
+<TextBox Style="{StaticResource InputBox}" Text="{Binding RunoutVisionTuning.Brightness, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+<TextBlock Text="Blank = baseline" Foreground="#95ACC1" FontSize="10" TextWrapping="Wrap"/>
+</StackPanel>
+<StackPanel Width="166" Margin="0,0,14,10">
+<TextBlock Text="Contrast" FontSize="11" Foreground="#C5D6E8"/>
+<TextBox Style="{StaticResource InputBox}" Text="{Binding RunoutVisionTuning.Contrast, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+<TextBlock Text="Blank = baseline" Foreground="#95ACC1" FontSize="10" TextWrapping="Wrap"/>
+</StackPanel>
+<StackPanel Width="166" Margin="0,0,14,10">
+<TextBlock Text="Focus" FontSize="11" Foreground="#C5D6E8"/>
+<TextBox Style="{StaticResource InputBox}" Text="{Binding RunoutVisionTuning.Focus, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+<TextBlock Text="Blank = baseline" Foreground="#95ACC1" FontSize="10" TextWrapping="Wrap"/>
+</StackPanel>
+<StackPanel Width="166" Margin="0,0,14,10">
+<TextBlock Text="Pixels / mm" FontSize="11" Foreground="#C5D6E8"/>
+<TextBox Style="{StaticResource InputBox}" Text="{Binding RunoutVisionTuning.PixelsPerMm, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+<TextBlock Text="Blank = calibrated camera" Foreground="#95ACC1" FontSize="10" TextWrapping="Wrap"/>
+</StackPanel></WrapPanel>
+                                <TextBlock Text="Nozzle illumination overrides (blank = camera defaults)"
+                                           FontSize="11" FontWeight="SemiBold"
+                                           Foreground="#AFCDE2" Margin="0,5,0,8"/>
+                                <WrapPanel><StackPanel Width="166" Margin="0,0,14,10">
+<TextBlock Text="Light power (0–255)" FontSize="11" Foreground="#C5D6E8"/>
+<TextBox Style="{StaticResource InputBox}" Text="{Binding RunoutVisionTuning.LightPower, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+
+</StackPanel>
+<StackPanel Width="166" Margin="0,0,14,10">
+<TextBlock Text="Red (0–255)" FontSize="11" Foreground="#C5D6E8"/>
+<TextBox Style="{StaticResource InputBox}" Text="{Binding RunoutVisionTuning.LightRed, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+
+</StackPanel>
+<StackPanel Width="166" Margin="0,0,14,10">
+<TextBlock Text="Green (0–255)" FontSize="11" Foreground="#C5D6E8"/>
+<TextBox Style="{StaticResource InputBox}" Text="{Binding RunoutVisionTuning.LightGreen, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+
+</StackPanel>
+<StackPanel Width="166" Margin="0,0,14,10">
+<TextBlock Text="Blue (0–255)" FontSize="11" Foreground="#C5D6E8"/>
+<TextBox Style="{StaticResource InputBox}" Text="{Binding RunoutVisionTuning.LightBlue, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+
+</StackPanel></WrapPanel>
+                            </StackPanel>
+                        </TabItem>
+                        <TabItem Header="Display">
+                            <StackPanel Margin="12">
+                                <WrapPanel>
+                                    <CheckBox Content="Show original image"
+                                              IsChecked="{Binding RunoutVisionTuning.ShowOriginalImage, Mode=TwoWay}"
+                                              Margin="0,0,20,10"/>
+                                    <CheckBox Content="Show optical crosshair"
+                                              IsChecked="{Binding RunoutVisionTuning.ShowCrossHairs, Mode=TwoWay}"
+                                              Margin="0,0,20,10"/>
+                                    <CheckBox Content="Show calibration square"
+                                              IsChecked="{Binding RunoutVisionTuning.ShowCalibrationSquare, Mode=TwoWay}"
+                                              Margin="0,0,20,10"/>
+                                </WrapPanel>
+                                <WrapPanel><StackPanel Width="166" Margin="0,0,14,10">
+<TextBlock Text="Annotation zoom" FontSize="11" Foreground="#C5D6E8"/>
+<TextBox Style="{StaticResource InputBox}" Text="{Binding RunoutVisionTuning.ZoomLevel, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+
+</StackPanel></WrapPanel>
+                            </StackPanel>
+                        </TabItem>
+                    </TabControl>
+                    <WrapPanel Margin="0,12,0,8">
+                        <Button Content="Apply Preview" Click="ApplyNozzlePreview_Click"
+                                IsEnabled="{Binding CanTuneRunoutVision}"
+                                Style="{StaticResource TuningAction}"/>
+                        <Button Content="Save Profile" Click="SaveNozzleProfile_Click"
+                                IsEnabled="{Binding CanTuneRunoutVision}"
+                                Style="{StaticResource TuningAction}"/>
+                        <Button Content="Revert" Click="RevertNozzleProfile_Click"
+                                IsEnabled="{Binding CanTuneRunoutVision}"
+                                Style="{StaticResource TuningAction}"/>
+                    </WrapPanel>
+                    <TextBlock Text="{Binding RunoutVisionStatus}"
+                               Foreground="#A8D4F3" FontSize="11" TextWrapping="Wrap"
+                               Margin="0,0,0,8"/>
+                    <Border Background="#1A2A3B" BorderBrush="#3A5671"
+                            BorderThickness="1" Padding="10" CornerRadius="6">
+                        <StackPanel>
+                            <TextBlock Text="LIVE OPTICAL OBSERVATION"
+                                       FontSize="11" FontWeight="Bold"
+                                       Foreground="#8ACAF4" Margin="0,0,0,6"/>
+                            <WrapPanel>
+                                <TextBlock Text="{Binding CurrentCalibrationAngle, StringFormat='Angle: {0}°'}"
+                                           Foreground="#C4D9EC" Margin="0,0,20,5"/>
+                                <TextBlock Text="{Binding RunoutVideoObservation.RadiusMm, StringFormat='Opening radius: {0:F3} mm'}"
+                                           Foreground="#C4D9EC" Margin="0,0,20,5"/>
+                                <TextBlock Text="{Binding RunoutVideoObservation.OffsetXmm, StringFormat='Optical X: {0:+0.000;-0.000;0.000} mm'}"
+                                           Foreground="#C4D9EC" Margin="0,0,20,5"/>
+                                <TextBlock Text="{Binding RunoutVideoObservation.OffsetYmm, StringFormat='Optical Y: {0:+0.000;-0.000;0.000} mm'}"
+                                           Foreground="#C4D9EC" Margin="0,0,20,5"/>
+                                <TextBlock Text="{Binding RunoutVideoObservation.PositionSpreadMm, StringFormat='Spread: {0:F3} mm'}"
+                                           Foreground="#C4D9EC" Margin="0,0,20,5"/>
+                                <TextBlock Text="{Binding RunoutVideoObservation.FoundCount, StringFormat='Detection count: {0}'}"
+                                           Foreground="#C4D9EC" Margin="0,0,20,5"/>
+                                <TextBlock Text="{Binding RunoutVideoObservation.FrameAtUtc, StringFormat='Frame UTC: {0:HH:mm:ss.fff}'}"
+                                           Foreground="#C4D9EC" Margin="0,0,20,5"/>
+                            </WrapPanel>
+                            <TextBlock Text="{Binding RunoutVideoObservation.RejectionReason}"
+                                       TextWrapping="Wrap" Foreground="#E7B3A6" FontSize="11"/>
+                            <TextBlock Text="RECORDED ANGLE MEASUREMENTS"
+                                       FontSize="11" FontWeight="Bold"
+                                       Foreground="#8ACAF4" Margin="0,10,0,5"/>
+                            <ItemsControl ItemsSource="{Binding CalibrationUpdates}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" FontFamily="Consolas"
+                                                   FontSize="11" Foreground="#C3D8E8"
+                                                   TextWrapping="Wrap" Margin="0,0,0,4"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Expander>
+
+        <Grid Grid.Row="4" Margin="0,12,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <StackPanel VerticalAlignment="Center" Margin="0,0,10,0">
+            <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
                 <TextBlock Text="{Binding Status}" TextWrapping="Wrap"
-                           FontSize="13" FontWeight="SemiBold"/>
-                <TextBlock Text="First run is supervised. Machine emergency stop remains independent; closing the modal does not cancel queued motion."
-                           TextWrapping="Wrap" Foreground="#9DADC1" FontSize="10" Margin="0,5,0,0"/>
+                           Foreground="#EAF4FC" FontWeight="SemiBold" FontSize="12"/>
+                <TextBlock Text="Opening or previewing never moves the machine. One Start runs all installed heads after verified origin and both staging plates."
+                           FontSize="10" TextWrapping="Wrap"
+                           Foreground="#9EBDD3" Margin="0,4,0,0"/>
             </StackPanel>
-            <Button Grid.Column="1" Content="Run Again" Style="{StaticResource ActionButton}"
-                    Click="RunAgain_Click" IsEnabled="{Binding RunoutFinished}"/>
-            <Button Grid.Column="2" Content="Close" Style="{StaticResource ActionButton}"
-                    Click="Close_Click" IsEnabled="{Binding RunoutFinished}"/>
+            <Button Grid.Column="1" Content="Preview Bottom Camera"
+                    Style="{StaticResource ActionButton}"
+                    Click="PreviewCamera_Click" IsEnabled="{Binding CanTuneRunoutVision}"/>
+            <Button Grid.Column="2" Content="Calibrate All Heads / Run Again"
+                    Style="{StaticResource ActionButton}"
+                    Click="RunAgain_Click" IsEnabled="{Binding CanStartRunout}"/>
+            <Button Grid.Column="3" Content="Close" Click="Close_Click">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding RunoutRunning}" Value="True">
+                                <Setter Property="IsEnabled" Value="False"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding RunoutPreviewBusy}" Value="True">
+                                <Setter Property="IsEnabled" Value="False"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
         </Grid>
     </Grid>
 </Window>

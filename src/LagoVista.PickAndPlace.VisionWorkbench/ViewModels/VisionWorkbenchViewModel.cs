@@ -440,10 +440,11 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
             {
                 ShowImageTest(test);
                 var imageSize = $"{OriginalImage!.PixelWidth}×{OriginalImage.PixelHeight}";
-                var circles = _detector.Detect(OriginalImage, FeederVisionSuite.CreateProfile()).Circles;
+                var regressionProfile = FeederVisionSuite.CreateProfile();
+                var circles = _detector.Detect(OriginalImage, regressionProfile, Camera.PixelsPerMM).Circles;
                 var sequence = TapeHoleSequence.Evaluate(
                     circles.Select(circle => new TapeGeometry.Point(circle.X, circle.Y)).ToArray(),
-                    FeederVisionSuite.HolePitchMm, FeederVisionSuite.CreateProfile().PixelsPerMM);
+                    FeederVisionSuite.HolePitchMm, regressionProfile.PixelsPerMM ?? Camera.PixelsPerMM);
                 var errorReport = "";
                 if (_annotations.TryGetValue(test.FileName, out var expectedCenters) && expectedCenters.Count == 3 && sequence.Accepted.Count >= 3)
                 {
@@ -574,7 +575,7 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
         var measurementStatus = "No detectors selected";
         try
         {
-            var detection = _detector.Detect(OriginalImage, activeProfile);
+            var detection = _detector.Detect(OriginalImage, activeProfile, Camera.PixelsPerMM);
             DetectionOverlay = DrawOverlay(width, height, detection,
                 _selectedTest is not null && _annotations.TryGetValue(_selectedTest.FileName, out var expected)
                     ? expected : null);
@@ -588,7 +589,7 @@ public sealed class VisionWorkbenchViewModel : INotifyPropertyChanged
             var sequence = TapeHoleSequence.Evaluate(
                 detection.Circles.Select(c => new TapeGeometry.Point(c.X, c.Y)).ToArray(),
                 _inspectionProfile is null ? TapeHolePitchMm : FeederVisionSuite.HolePitchMm,
-                activeProfile.PixelsPerMM);
+                activeProfile.PixelsPerMM ?? Camera.PixelsPerMM);
             var geometry = sequence.Valid ? sequence.Geometry : null;
             var prediction = FeederPickupGeometry.Predict(geometry, PickupAlongMm, PickupCrossMm,
                 _inspectionProfile is null ? TapeHolePitchMm : FeederVisionSuite.HolePitchMm);

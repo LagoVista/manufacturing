@@ -24,7 +24,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
     /// run produces a reviewed LOGICAL zero / candidate compensation table;
     /// it never resets firmware coordinates or changes placement.
     /// </summary>
-    public class NozzleTipCalibrationViewModel : ViewModelBase,
+    public partial class NozzleTipCalibrationViewModel : ViewModelBase,
         INozzleTipCalibrationViewModel, ICircleLocatedHandler
     {
         private readonly IMachineRepo _machineRepo;
@@ -55,6 +55,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _bottomCameraBootstrap = bottomCameraBootstrap ??
                 throw new ArgumentNullException(nameof(bottomCameraBootstrap));
             CalibrateBottomCameraCommand = new RelayCommand(async () => await StartAsync());
+            LoadRunoutVisionSettings();
+            // Display the entire selected-head plan before Start. This only
+            // creates view-model steps; no camera or machine IO is performed.
+            RunoutSteps = NewPlan(AvailableRunoutHeads);
         }
 
         public ObservableCollection<FeederCalibrationFlowStep> RunoutSteps { get; private set; } =
@@ -64,16 +68,30 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public bool RunoutRunning { get => _running; private set => Set(ref _running, value); }
         public bool RunoutFinished { get => _finished; private set => Set(ref _finished, value); }
         public string Status { get => _status; private set => Set(ref _status, value); }
-        private MachineToolHead DisplayHead
-        {
-            get
-            {
-                var machine = _machineRepo.CurrentMachine;
-                return _activeHead ?? _lastMeasuredHead ?? InstalledNozzleCalibrationPlan.ChooseFirst(
-                    InstalledNozzleCalibrationPlan.InstalledHeads(machine?.Settings),
-                    machine?.CurrentMachineToolHead);
-            }
-        }
+        /// <summary>
+        /// One explicit Start runs all physically installed nozzles in
+        /// Head 1, then Head 2 order. The window only previews the plan;
+        /// listing heads or opening it never issues machine commands.
+        /// </summary>
+        public IReadOnlyList<MachineToolHead> AvailableRunoutHeads =>
+            InstalledNozzleCalibrationPlan.InstalledHeads(_machineRepo.CurrentMachine?.Settings);
+
+        public string PlannedRunoutSequence =>
+            AvailableRunoutHeads.Count == 0
+                ? "No installed nozzle heads configured."
+                : "One Start · " + String.Join(" → ",
+                    AvailableRunoutHeads.Select(h =>
+                        "Head " + h.HeadIndex + " (" + h.CurrentNozzle?.Text + ")"));
+
+        public ObservableCollection<string> CompletedRunoutSummaries { get; } =
+            new ObservableCollection<string>();
+
+        public string RunoutSequenceProgress =>
+            "Completed " + CompletedRunoutSummaries.Count + " of " +
+            AvailableRunoutHeads.Count + " installed head(s).";
+
+        private MachineToolHead DisplayHead =>
+            _activeHead ?? _lastMeasuredHead ?? AvailableRunoutHeads.FirstOrDefault();
 
         public string ToolHeadName => DisplayHead == null
             ? "No installed nozzle assigned" : $"Head {DisplayHead.HeadIndex}: {DisplayHead.Name}";
@@ -95,9 +113,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             for (var index = 0; index < installed.Count; index++)
             {
                 var head = installed[index];
-                var includeFinalSafeHeight = index == installed.Count - 1;
+                // Raise to verified safe Z after EVERY head, before starting
+                // the next head's coordinate-frame transition.
                 var prefix = $"head-{head.HeadIndex}/";
-                foreach (var step in NozzleRunoutProcedureDefinition.Create(includeFinalSafeHeight).Steps)
+                foreach (var step in NozzleRunoutProcedureDefinition.Create(true).Steps)
                     steps.Add(new FeederCalibrationFlowStep
                     {
                         Number = steps.Count + 1,
@@ -240,9 +259,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             lock (_observationGate) pending = _pendingSample;
             var profile = _activeMachine?.PartInspectionCaptureService?.Profile;
             if (pending == null || !_runoutOpticalLock ||
-                !NozzleRunoutVisionPreparation.MatchesLockedOpening(
-                    profile, _cameraScale, circle) ||
-                !ValidContext(out _)) return;
+                profile?.Key != VisionProfile.VisionProfile_Nozzle)
+                return;
+            var qualified = NozzleRunoutVisionPreparation.MatchesLockedOpening(
+                profile, _cameraScale, circle) && ValidContext(out _);
+
+            // Render real rejected/candidate/accepted observations, but only
+            // the qualified existing production gate completes a sample.
+            PublishRunoutObservation(circle, qualified);
+            if (!qualified) return;
 
             // Do not use MVLocatedCircle.OffsetMM: that legacy property rounds
             // to 0.1mm and would erase the runout precision we need.
@@ -331,18 +356,34 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
 
         /// <summary>
-        /// Machine startup / manual calibration procedure. Iterates every
-        /// configured, installed nozzle head. Never auto-moves on mere
-        /// connection: the supervised modal invokes this after homing.
+        /// One explicitly operator-started sequence calibrates every installed
+        /// nozzle, Head 1 before Head 2, with fresh safety/camera checks for
+        /// each head. Opening the window never moves or invalidates anything.
+        /// Each head's successful runtime proof survives a later-head failure.
         /// </summary>
         public async Task StartAsync()
         {
-            if (RunoutRunning) return;
+            if (RunoutRunning || RunoutPreviewBusy) return;
+            if (HasRunoutVisionDraft || HasRunoutVisionPreview)
+            {
+                Status = "Save or revert nozzle vision settings before starting a physical run.";
+                return;
+            }
+            _runoutUiContext = SynchronizationContext.Current;
+            RunoutVideoObservation = null;
             var machine = _machineRepo.CurrentMachine;
-            var installed = InstalledNozzleCalibrationPlan.InstalledHeads(machine?.Settings);
+            // Resolve both installed heads once in physical Head 1 -> Head 2
+            // order; snapshot nozzle IDs so an installation change during
+            // Head 1 cannot be silently used for Head 2.
+            var planValid = InstalledNozzleCalibrationPlan.TryCreateSequentialPlan(
+                machine?.Settings, out var installed, out var planReason);
+            var originalNozzles = installed.ToDictionary(
+                h => h, h => Convert.ToString(h.CurrentNozzle.Id));
             RunoutSteps = NewPlan(installed);
             RaisePropertyChanged(nameof(RunoutSteps));
             CalibrationUpdates.Clear();
+            CompletedRunoutSummaries.Clear();
+            RaisePropertyChanged(nameof(RunoutSequenceProgress));
             CandidateResult = null;
             _session = null;
             _lastMeasuredHead = null;
@@ -350,14 +391,17 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RaisePropertyChanged(nameof(RunoutSummary));
             RunoutFinished = false;
             RunoutRunning = true;
-            Status = $"Starting runout checks for {installed.Count} installed nozzle head(s).";
+            RaisePropertyChanged(nameof(CanStartRunout));
+            RaisePropertyChanged(nameof(CanTuneRunoutVision));
+            Status = planValid
+                ? "Starting supervised sequential runout: " +
+                  String.Join(" → ", installed.Select(h => "Head " + h.HeadIndex)) +
+                  ". Each head is separately checked and returned to safe Z."
+                : "Stopped: " + planReason + " No motion sent.";
             try
             {
-                if (installed.Count == 0)
-                {
-                    Status = "Stopped: no installed nozzles assigned to Head 1 or Head 2.";
+                if (!planValid || installed.Count == 0)
                     return;
-                }
                 _activeHead = installed[0];
                 RaisePropertyChanged(nameof(ToolHeadName));
                 RaisePropertyChanged(nameof(NozzleName));
@@ -387,28 +431,66 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 }
                 foreach (var tool in installed)
                 {
-                    if (!ReferenceEquals(_machineRepo.CurrentMachine, machine) ||
-                        !ReferenceEquals(machine.Settings?.ToolHeads?.FirstOrDefault(
-                            h => h.HeadIndex == tool.HeadIndex), tool))
-                    {
-                        Stop(Step("position"), "Machine or configured tool heads changed; aborting calibration.");
-                        return;
-                    }
-
                     _activeHead = tool;
-                    _lastMeasuredHead = tool;
                     RaisePropertyChanged(nameof(ToolHeadName));
                     RaisePropertyChanged(nameof(NozzleName));
 
-                    // Failure always leaves this head uncalibrated; a
-                    // successful twelve-angle measurement explicitly earns
-                    // the runtime green check.
-                    tool.InvalidateRunoutCalibration();
-                    var isFinalHead = ReferenceEquals(tool, installed[installed.Count - 1]);
-                    if (!await CalibrateInstalledHeadAsync(machine, tool, cameraConfig, isFinalHead))
+                    if (!ReferenceEquals(_machineRepo.CurrentMachine, machine) ||
+                        !installed.All(h =>
+                            InstalledNozzleCalibrationPlan.MatchesPlannedInstallation(
+                                machine.Settings, h, originalNozzles[h])))
+                    {
+                        Stop(Step("readiness"),
+                            "Machine, head or nozzle installation changed during the sequence. " +
+                            "Stopping before further movement; completed heads remain unchanged.");
                         return;
+                    }
+                    string transitionError = null;
+                    if (!machine.Connected || machine.Mode != OperatingMode.Manual ||
+                        !machine.WasMachineHomed || !machine.WasMachinOriginCalibrated ||
+                        machine.Busy || !NozzleRunoutReadinessPolicy.TryValidate(
+                            machine.Settings, machine.WasMachinOriginCalibrated,
+                            out transitionError))
+                    {
+                        Stop(Step("readiness"),
+                            "Head " + tool.HeadIndex +
+                            " transition safety preflight failed. " +
+                            transitionError + " No new motion sent.");
+                        return;
+                    }
+
+                    // Invalidate ONLY the head about to be recalibrated.
+                    // Do not invalidate future heads or the Head 1 success
+                    // if Head 2 subsequently fails.
+                    tool.InvalidateRunoutCalibration();
+                    RunoutVideoObservation = null;
+                    CandidateResult = null;
+                    RaisePropertyChanged(nameof(CandidateZero));
+                    RaisePropertyChanged(nameof(RunoutSummary));
+                    Status = "Head " + tool.HeadIndex + ": acquiring a new independent " +
+                        "12-angle runout, then verifying the safe-Z transition.";
+
+                    if (!await CalibrateInstalledHeadAsync(machine, tool, cameraConfig, true))
+                        return;
+
+                    _lastMeasuredHead = tool;
+                    CompletedRunoutSummaries.Add(
+                        "Head " + tool.HeadIndex + " (" + tool.CurrentNozzle.Text +
+                        ") ✓ Logical zero " + tool.RunoutZeroAngle?.ToString("F0") +
+                        "° · 12 offsets verified · safe Z confirmed");
+                    RaisePropertyChanged(nameof(RunoutSequenceProgress));
+
+                    var nextHead = installed.SkipWhile(
+                        h => !ReferenceEquals(h, tool)).Skip(1).FirstOrDefault();
+                    if (nextHead != null)
+                        Status = "Head " + tool.HeadIndex +
+                            " complete. Proceeding automatically to Head " +
+                            nextHead.HeadIndex +
+                            " after verified safe height. No second Start needed.";
                 }
-                Status = $"All {installed.Count} installed nozzle head(s) calibrated this session. Measurements are invalidated on machine restart or nozzle changes; production compensation remains separate.";
+                Status = "Runout complete: " + installed.Count +
+                    " installed head(s) verified independently in one run. " +
+                    "No placement compensation saved or rotational zero reset.";
             }
             catch (Exception ex)
             {
@@ -424,6 +506,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _session = null;
                 RunoutRunning = false;
                 RunoutFinished = true;
+                RaisePropertyChanged(nameof(CanStartRunout));
+                RaisePropertyChanged(nameof(CanTuneRunoutVision));
                 RaisePropertyChanged(nameof(ToolHeadName));
                 RaisePropertyChanged(nameof(NozzleName));
             }
@@ -491,6 +575,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     Stop(cameraStep, captureReady.ErrorMessage + " No movement sent.");
                     return false;
                 }
+                // The operator may start directly without first pressing
+                // Preview Bottom Camera. Refresh the bound live-image path
+                // after the existing runner initializes the capture service.
+                RaisePropertyChanged(nameof(RunoutMachine));
+                RaisePropertyChanged(nameof(RunoutSearchSummary));
+                RunoutCameraStatus =
+                    "Live bottom camera active during the supervised nozzle sweep.";
                 _cameraId = Convert.ToString(capture.Camera.Id);
                 _cameraScale = capture.Camera.EffectivePixelsPerMM;
                 if (!ValidCameraBeforeMotion(machine, cameraConfig, out visionError))
@@ -888,14 +979,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     Angle = sample.CommandedAngle,
                     Offset = NozzleRunoutMath.Correction(result, sample.CommandedAngle)
                 }).ToList();
-                tool.CompleteRunoutCalibration(_activeNozzleId, result.LogicalZeroAngle, corrections);
-                _lastMeasuredHead = tool;
-                Status = $"Head {tool.HeadIndex} ({tool.CurrentNozzle.Text}) runout calibrated for this session; 12 offsets and high-Y zero validated.";
+                // Do not mark this head complete until the corresponding
+                // safe-Z step has also passed, so a failed transition cannot
+                // claim a fully completed head's calibration.
 
-                // Only after the final installed nozzle (normally Head 2 /
-                // right head) has passed all twelve angles and high-point
-                // repeatability, return to the machine's EXISTING configured
-                // safe move height. Do not capture or change that setting.
+                // After EACH installed nozzle has passed all twelve angles
+                // and the high-point revisit, return to the existing
+                // configured safe move height. This is a mandatory verified
+                // clearance boundary BEFORE switching to the next head.
+                // Do not capture or change that setting.
                 if (isFinalHead)
                 {
                     var safeHeightStep = Step("safe-height");
@@ -943,8 +1035,22 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
                     PassMachineStep(safeHeightStep,
                         $"Machine reached its existing configured safe move height: " +
-                        $"Z={machine.ToolCommonZ:F2} mm. Setting unchanged; procedure stopped here.");
+                        $"Z={machine.ToolCommonZ:F2} mm. Setting unchanged; safe to " +
+                        $"proceed to next head or finish.");
                 }
+
+                // Both the 12-angle optical proof and safe-Z are now verified.
+                if (!ValidContext(out var completionError))
+                {
+                    Stop(Step("safe-height"), completionError ??
+                        "Nozzle changed during safe-Z verification; runout not committed.");
+                    return false;
+                }
+                tool.CompleteRunoutCalibration(_activeNozzleId,
+                    result.LogicalZeroAngle, corrections);
+                _lastMeasuredHead = tool;
+                Status = $"Head {tool.HeadIndex} ({tool.CurrentNozzle.Text}) completed: " +
+                    "12 optical offsets, high-Y revisit and safe-Z verified.";
                 return true;
         }
 

@@ -19,6 +19,17 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
 
         private VacuumCalibrationViewModel Procedure => DataContext as VacuumCalibrationViewModel;
 
+        private void Header_MouseLeftButtonDown(object sender,
+            System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.ClickCount == 1 &&
+                e.LeftButton == System.Windows.Input.MouseButtonState.Pressed)
+            {
+                try { DragMove(); }
+                catch (System.InvalidOperationException) { }
+            }
+        }
+
         private async void Continue_Click(object sender, RoutedEventArgs e)
         {
             if (Procedure != null) await Procedure.ContinueAsync();

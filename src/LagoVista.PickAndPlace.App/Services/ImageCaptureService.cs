@@ -32,6 +32,7 @@ namespace LagoVista.PickAndPlace.App.Services
     {
         private bool _running;
         private DateTimeOffset _lastFrameUtc;
+        public DateTimeOffset LastProcessedFrameUtc => _lastFrameUtc;
 
         // A connected device without fresh processed images is NOT ready.
         public bool IsCapturing => _running && _capture != null &&
@@ -71,6 +72,13 @@ namespace LagoVista.PickAndPlace.App.Services
         private double _lastBrightness = -9999;
         private double _lastFocus = -9999;
         private double _lastExposure = -9999;
+
+        private CameraExposureTuneProgress _exposureTuneProgress;
+        public CameraExposureTuneProgress ExposureTuneProgress
+        {
+            get => _exposureTuneProgress;
+            private set => Set(ref _exposureTuneProgress, value);
+        }
         private double _lastTopContrast = -9999;
         private const double AutoTuneExposureMinimum = -10.0;
         private const double AutoTuneExposureMaximum = 10.0;
@@ -773,6 +781,7 @@ namespace LagoVista.PickAndPlace.App.Services
             var step = AutoTuneInitialStep;
             var previousDirection = 0;
             (double Dark, double White, double DarkRange, double WhiteRange)? lastSample = null;
+            ExposureTuneProgress = null;
 
             Machine.AddStatusMessage(StatusMessageTypes.Info,
                 $"Camera Auto-Tune started at exposure {candidate:F1}.");
@@ -799,6 +808,21 @@ namespace LagoVista.PickAndPlace.App.Services
                 var preferred = darkInRange && whiteInRange && stable;
                 var usable = CameraExposureQuality.IsUsable(
                     sample.Dark, sample.White, sample.DarkRange, sample.WhiteRange);
+                ExposureTuneProgress = new CameraExposureTuneProgress
+                {
+                    ObservedAtUtc = DateTimeOffset.UtcNow,
+                    Iteration = iteration + 1,
+                    SampleFrames = AutoTuneSampleFrames,
+                    CandidateExposure = candidate,
+                    DarkLevel = sample.Dark,
+                    WhiteLevel = sample.White,
+                    DarkRange = sample.DarkRange,
+                    WhiteRange = sample.WhiteRange,
+                    Preferred = preferred,
+                    Usable = usable,
+                    Decision = preferred ? "Preferred contrast" : usable ? "Usable contrast" :
+                        !stable ? "Unstable samples" : "Searching for valid exposure"
+                };
                 if (preferred || usable)
                 {
                     Camera.Exposure = candidate;

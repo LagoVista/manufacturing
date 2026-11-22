@@ -21,6 +21,10 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
         // the actual capture resolution selected by the Windows camera driver.
         Size CaptureFrameSize { get; }
 
+        // Time of the most recently acquired, actually processed camera frame.
+        // A new fiducial reading must be newer than the last completed machine move.
+        System.DateTimeOffset LastProcessedFrameUtc { get; }
+
         // An active live camera stream is required before an automated
         // calibration procedure is allowed to move the machine.
         bool IsCapturing { get; }
@@ -43,6 +47,10 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
         // Rejects changed detector identity/profile/offset before any motion.
         InvokeResult TryJogToObservedCircle(System.Guid circleId, double expectedOffsetX,
             double expectedOffsetY, string expectedProfileKey);
+
+        // Last real sampled exposure observation, including dark/white image levels.
+        // Null until this camera has collected its first sample for the current tune.
+        CameraExposureTuneProgress ExposureTuneProgress { get; }
 
         Task<InvokeResult> AutoTuneExposureAsync();
 

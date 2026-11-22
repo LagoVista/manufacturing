@@ -108,6 +108,208 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void HeadTwoOpenPumpTransientRemainsRejectedAtTheExistingEightPercentThreshold()
+        {
+            var idle = Capture(2, 2060, 0);
+            // The operator's right-head open-nozzle stage showed a roughly
+            // 80k-count response but a >10k within-window fluctuation.
+            // Do not relax safety limits: reject transient windows regardless
+            // of how many bounded attempts the hardware controller makes.
+            var unsettled = new long[] {
+                -83335, -81900, -80000, -77000, -73800, -72772
+            }.Select((raw, index) => new VacuumPressureSample
+            {
+                HeadIndex = 2,
+                RawCount = raw,
+                CapturedAtUtc = Now.AddMilliseconds(3000 + index * 150)
+            }).ToArray();
+            var spread = VacuumPressureSampling.AllowedRawSpread(
+                idle, unsettled.Average(sample => (double)sample.RawCount));
+            Assert.That(spread, Is.GreaterThan(6300).And.LessThan(6600));
+            Assert.That(VacuumPressureSampling.TryCaptureBand(
+                unsettled, 2, Now.AddSeconds(5), TimeSpan.FromSeconds(8), 6,
+                spread, out _, out var reason), Is.False);
+            Assert.That(reason, Does.Contain("span 10563.0"));
+            Assert.That(VacuumPressureSampling.UnstableStageMessage(
+                2, "pump-on / open nozzle", 5, reason),
+                Does.Contain("Head 2 pump-on / open nozzle pressure remained unstable"));
+            Assert.That(VacuumPressureSampling.UnstableStageMessage(
+                2, "pump-on / open nozzle", 5, reason),
+                Does.Not.Contain("baseline remained unstable"));
+        }
+
+        [Test]
+        public void ARealLaterStableRightOpenPumpWindowPassesWithoutChangingThreshold()
+        {
+            var idle = Capture(2, 2060, 0);
+            var settled = new long[] {
+                -79000, -79100, -78800, -78900, -79040, -78930
+            }.Select((raw, index) => new VacuumPressureSample
+            {
+                HeadIndex = 2,
+                RawCount = raw,
+                CapturedAtUtc = Now.AddMilliseconds(3000 + index * 150)
+            }).ToArray();
+            var limit = VacuumPressureSampling.AllowedRawSpread(
+                idle, settled.Average(sample => (double)sample.RawCount));
+            Assert.That(VacuumPressureSampling.TryCaptureBand(
+                settled, 2, Now.AddSeconds(5), TimeSpan.FromSeconds(8), 6,
+                limit, out var accepted, out var error), Is.True, error);
+            Assert.That(accepted.HeadIndex, Is.EqualTo(2));
+            Assert.That(accepted.MaximumRawCount - accepted.MinimumRawCount,
+                Is.LessThan(limit));
+        }
+
+        [Test]
+        public void NoiseAwareFifteenSampleBandsProduceDistinctDetectorCalibrationForBothHeads()
+        {
+            foreach (var head in new[] { 1, 2 })
+            {
+                var idle = head == 1
+                    ? Enumerable.Range(0, 15).Select(i => 3500L + i % 6 * 135).ToArray()
+                    : Enumerable.Range(0, 15).Select(i => 900L + i % 7 * 100).ToArray();
+                var open = head == 1
+                    ? Enumerable.Range(0, 15).Select(i => -152000L + i % 6 * 2000).ToArray()
+                    : Enumerable.Range(0, 15).Select(i => -55000L + i % 6 * 3000).ToArray();
+                var sealedReadings = head == 1
+                    ? Enumerable.Range(0, 15).Select(i => -1000000L + i % 6 * 20000).ToArray()
+                    : Enumerable.Range(0, 15).Select(i => -240000L + i % 5 * 5000).ToArray();
+
+                var idleBand = RobustCapture(head, idle, 0);
+                var openBand = RobustCapture(head, open, 1);
+                var sealedBand = RobustCapture(head, sealedReadings, 2);
+                var centerResponse = Math.Abs(openBand.MeanRawCount - idleBand.MeanRawCount);
+                var legacyLimit = VacuumPressureSampling.AllowedRawSpread(idleBand, openBand.MeanRawCount);
+                if (head == 2)
+                    Assert.That(openBand.MaximumRawCount - openBand.MinimumRawCount,
+                        Is.GreaterThan(legacyLimit), "Right-head input was rejected by the prior 8% rule");
+
+                Assert.That(centerResponse, Is.GreaterThan(3 *
+                    (openBand.NoiseRadiusRaw + idleBand.NoiseRadiusRaw)));
+                Assert.That(VacuumCalibrationCandidate.TryCreate(
+                    idleBand, openBand, sealedBand,
+                    VacuumPressureSampling.RequiredResponse(idleBand), 12, 3,
+                    out var candidate, out var error), Is.True, error);
+                Assert.That(candidate.ObservedBandGapRaw, Is.GreaterThan(0));
+                Assert.That(candidate.Classify((long)openBand.MeanRawCount),
+                    Is.EqualTo(VacuumPickupClassification.NoPart));
+                Assert.That(candidate.Classify((long)sealedBand.MeanRawCount),
+                    Is.EqualTo(VacuumPickupClassification.PartPresent));
+            }
+        }
+
+        private static VacuumPressureBand RobustCapture(int head, long[] rawCounts, int phase)
+        {
+            var samples = rawCounts.Select((raw, i) => new VacuumPressureSample
+            {
+                HeadIndex = head,
+                RawCount = raw,
+                CapturedAtUtc = Now.AddSeconds(phase * 10).AddMilliseconds(i * 100)
+            }).ToArray();
+            Assert.That(VacuumPressureSampling.TryCaptureRobustBand(samples, head,
+                Now.AddSeconds(phase * 10 + 3), TimeSpan.FromSeconds(8), 15,
+                out var band, out var error), Is.True, error);
+            return band;
+        }
+
+        [Test]
+        public void RobustBandTrimsIsolatedBadRawSampleWithoutHidingIt()
+        {
+            var values = Enumerable.Repeat(-48000L, 15).ToArray();
+            values[0] = -900000; // a single wild reading remains visible in raw extrema
+            var band = RobustCapture(2, values, 0);
+            Assert.That(band.MinimumRawCount, Is.EqualTo(-900000));
+            Assert.That(band.MeanRawCount, Is.EqualTo(-48000).Within(0.1));
+            Assert.That(band.RobustMinimumRawCount, Is.EqualTo(-48000));
+            Assert.That(band.NoiseRadiusRaw, Is.Zero);
+        }
+
+        [Test]
+        public void NoiseAwareCandidateRejectsOverlappingOpenAndObstructedBands()
+        {
+            var idle = RobustCapture(2, Enumerable.Range(0, 15)
+                .Select(i => 900L + i % 7 * 100).ToArray(), 0);
+            var open = RobustCapture(2, Enumerable.Range(0, 15)
+                .Select(i => -55000L + i % 6 * 3000).ToArray(), 1);
+            var conflicting = RobustCapture(2, Enumerable.Range(0, 15)
+                .Select(i => -58000L + i % 6 * 3000).ToArray(), 2);
+            Assert.That(VacuumCalibrationCandidate.TryCreate(idle, open, conflicting,
+                VacuumPressureSampling.RequiredResponse(idle), 12, 3,
+                out _, out var reason), Is.False);
+            Assert.That(reason, Does.Contain("overlap").Or.Contain("classified"));
+        }
+
+        [Test]
+        public void RightHeadActualFailedSealReportsBothCentersAndRequiredNoiseMargin()
+        {
+            // Approximate earlier right open-nozzle range, followed by the
+            // operator's actual failed right sealed-stage 15 raw readings.
+            // Do not turn this weak/noisy seal into a saved part-present level.
+            var idle = RobustCapture(2, Enumerable.Range(0, 15)
+                .Select(i => 900L + i % 7 * 100).ToArray(), 0);
+            var open = RobustCapture(2, Enumerable.Range(0, 15)
+                .Select(i => -55000L + i % 6 * 3000).ToArray(), 1);
+            var attemptedSeal = RobustCapture(2, new long[] {
+                -78577, -92613, -79755, -99900, -90207, -82714,
+                -90957, -101992, -87686, -83425, -94241, -93637,
+                -90436, -80024, -96034
+            }, 2);
+            Assert.That(attemptedSeal.MeanRawCount, Is.EqualTo(-89546).Within(1));
+            Assert.That(VacuumCalibrationCandidate.TryCreate(
+                idle, open, attemptedSeal,
+                VacuumPressureSampling.RequiredResponse(idle), 12, 3,
+                out _, out var reason), Is.False);
+            Assert.That(reason, Does.Contain("Head 2"));
+            Assert.That(reason, Does.Contain("Open center"));
+            Assert.That(reason, Does.Contain("obstructed center -89546"));
+            Assert.That(reason, Does.Contain("required"));
+            Assert.That(reason, Does.Contain("robust gap"));
+            Assert.That(reason, Does.Contain("Calibration withheld"));
+        }
+
+        [Test]
+        public void RobustWindowStillRejectsStaleAndWrongHeadEvidence()
+        {
+            var samples = Enumerable.Range(0, 15)
+                .Select(i => new VacuumPressureSample {
+                    HeadIndex = 1, RawCount = -45000 + i,
+                    CapturedAtUtc = Now.AddMilliseconds(i * 100)
+                }).ToArray();
+            Assert.That(VacuumPressureSampling.TryCaptureRobustBand(samples, 2,
+                Now.AddSeconds(3), TimeSpan.FromSeconds(8), 15,
+                out _, out _), Is.False);
+            Assert.That(VacuumPressureSampling.TryCaptureRobustBand(samples, 1,
+                Now.AddSeconds(20), TimeSpan.FromSeconds(8), 15,
+                out _, out _), Is.False);
+        }
+
+        [Test]
+        public void FiveReadingVoteRequiresAgreementAndFailsUnknownOnOppositeState()
+        {
+            var head = new LagoVista.Manufacturing.Models.MachineToolHead
+            {
+                HeadIndex = 2,
+                IdleVacuum = 1200,
+                NoPartPickedVacuum = -47500,
+                PartPickedVacuum = -230000,
+                PercentAboveNoPartPicked = 50,
+                VacuumTolerancePercent = 3
+            };
+            Assert.That(VacuumCalibrationProfile.TryFromHead(head, out var profile), Is.True);
+            Assert.That(profile.ClassifyWindow(new long[] {
+                -230000, -220000, -235000, -230000, -138750
+            }), Is.EqualTo(VacuumPickupClassification.PartPresent));
+            Assert.That(profile.ClassifyWindow(new long[] {
+                -230000, -220000, -235000, -230000, -47500
+            }), Is.EqualTo(VacuumPickupClassification.Unknown));
+            Assert.That(profile.ClassifyWindow(new long[] {
+                -48000, -45000, -47000, -55000, -230000
+            }), Is.EqualTo(VacuumPickupClassification.Unknown));
+            Assert.That(profile.ClassifyWindow(new long[] { -230000, -220000 }),
+                Is.EqualTo(VacuumPickupClassification.Unknown));
+        }
+
+        [Test]
         public void RawTwentyFourBitPumpResponseScalesFromMeasuredIdleNoise()
         {
             var ambient = new long[] { 4789, 4289, 4651, 5043, 4595, 4643 }
