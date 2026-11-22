@@ -3,6 +3,7 @@ using LagoVista.Manufacturing.Models;
 using LagoVista.Manufacturing.Models.Operations;
 using Newtonsoft.Json;
 using System;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -22,6 +23,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private string _historyStatus =
             "Run evidence will be saved after the machine settles.";
         private string _historyRunId = "No run yet";
+        private string _localHistoryPath = "Not saved locally yet";
         private string _lastBottomOpticalEvidence;
 
         public string HistoryStatus
@@ -34,6 +36,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         {
             get => _historyRunId;
             private set => Set(ref _historyRunId, value);
+        }
+
+        public string LocalHistoryPath
+        {
+            get => _localHistoryPath;
+            private set => Set(ref _localHistoryPath, value);
         }
 
         public bool HistoryBusy
@@ -59,6 +67,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 b.AppendLine("T014 - Camera-to-Tool XY / two-pick verification");
                 b.AppendLine("Run ID: " + HistoryRunId);
                 b.AppendLine("History receipt: " + HistoryStatus);
+                b.AppendLine("Local evidence JSON: " + LocalHistoryPath);
                 b.AppendLine("Procedure: " + Status);
                 b.AppendLine("Candidate: " + CandidateSummary);
                 b.AppendLine("Bottom vision: " + BottomVisionState);
@@ -87,6 +96,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private void NewHistorySession(MachineOperationSession session)
         {
             HistoryRunId = session.Snapshot.RunId;
+            LocalHistoryPath = "Not saved locally yet";
             HistoryStatus = "Collecting run evidence; not saved remotely yet.";
             _lastBottomOpticalEvidence = null;
             RaisePropertyChanged(nameof(DiagnosticReport));
@@ -125,6 +135,29 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 _lastHistorySnapshot = snapshot;
                 _pendingHistorySnapshot = snapshot;
                 _pendingHistoryDefinition = _session.Definition;
+                // Always retain a local immutable JSON receipt before network I/O.
+                // A failed API write must not destroy the physical run evidence.
+                try
+                {
+                    var folder = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                        "LagoVista", "PickAndPlace", "CalibrationRunHistory");
+                    Directory.CreateDirectory(folder);
+                    var path = Path.Combine(folder, "T014-" + snapshot.RunId + ".json");
+                    var payload = JsonConvert.SerializeObject(new
+                    {
+                        Snapshot = snapshot,
+                        Definition = _pendingHistoryDefinition
+                    }, Formatting.Indented);
+                    await File.WriteAllTextAsync(path, payload);
+                    LocalHistoryPath = path;
+                }
+                catch (Exception localError)
+                {
+                    LocalHistoryPath = "LOCAL BACKUP FAILED: " + localError.Message;
+                    _repo.CurrentMachine?.AddStatusMessage(
+                        StatusMessageTypes.Warning, LocalHistoryPath);
+                }
                 RaisePropertyChanged(nameof(CanRetryHistory));
                 RaisePropertyChanged(nameof(DiagnosticReport));
                 await RetryHistoryAsync();
