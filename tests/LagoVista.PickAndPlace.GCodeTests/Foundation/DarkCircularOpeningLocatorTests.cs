@@ -356,7 +356,10 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                     var dy = y - 96;
                     var d = Math.Sqrt(dx * dx + dy * dy);
                     var seam = dx >= 0 && Math.Abs(dy) <= seamHalfWidth;
-                    pixels[y, x, 0] = d <= 9 ? (byte)8
+                    // The camera's dark aperture and dark background can
+                    // have effectively equal grayscale levels. Only the
+                    // reflective metal annulus isolates the core.
+                    pixels[y, x, 0] = d <= 9 ? (byte)18
                         : d <= 21 && !seam ? (byte)205 : (byte)18;
                 }
             return pixels;
