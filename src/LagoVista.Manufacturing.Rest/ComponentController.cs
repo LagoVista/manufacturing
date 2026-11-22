@@ -47,6 +47,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return response;
         }
 
+        [McpEndpoint("manufacturing-component-factory", Description = "Get an initialized organization-owned component model and selectable package options before creating a new inventory component.", FamilyId = "manufacturing")]
         [HttpGet("/api/mfg/component/factory")]
         public async Task<DetailResponse<Component>> CreateComponent()
         {
@@ -59,6 +60,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return form;
         }
 
+        [McpEndpoint("manufacturing-component-purchase-factory", Description = "Get an initialized component purchase model before recording a new purchase.", FamilyId = "manufacturing")]
         [HttpGet("/api/mfg/component/purchase/factory")]
         public DetailResponse<ComponentPurchase> CreateComponentPurchase()
         {
@@ -95,24 +97,28 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return await _mgr.DeleteComponentAsync(id, OrgEntityHeader, UserEntityHeader);
         }
 
+        [McpEndpoint("manufacturing-component-purchase-add", Description = "Record a purchase for an existing component. QuantityOrdered increases quantity on order and QuantityReceived increases quantity on hand.", FamilyId = "manufacturing")]
         [HttpPost("/api/mfg/component/{id}/purchase")]
         public async Task<InvokeResult> AddComponentPurchase(string id, [FromBody] ComponentPurchase purchase)
         {
             return await _mgr.AddComponentPurchaseAsync(id, purchase, OrgEntityHeader, UserEntityHeader);
         }
 
+        [McpEndpoint("manufacturing-component-purchase-receive", Description = "Receive quantity against an existing component purchase identified by OrderId. Increases quantity on hand and decreases quantity on order.", FamilyId = "manufacturing")]
         [HttpPut("/api/mfg/component/{id}/purchase/{orderid}/receive/{qty}")]
         public async Task<InvokeResult> ReceiveComponentPurchase(string id, string orderid, decimal qty)
         {
             return await _mgr.ReceiveComponentPurchaseAsync(id, orderid, qty, OrgEntityHeader, UserEntityHeader);
         }
 
+        [McpEndpoint("manufacturing-component-create", Description = "Create a new manufacturing component in the current organization. Use manufacturing-component-factory for initialized fields and provide the part number, component type, and initial stock.", FamilyId = "manufacturing")]
         [HttpPost("/api/mfg/component")]
         public Task<InvokeResult> AddComponentPackageAsync([FromBody] Component component)
         {
             return _mgr.AddComponentAsync(component, OrgEntityHeader, UserEntityHeader);
         }
 
+        [McpEndpoint("manufacturing-component-update", Description = "Update a component using the complete model returned by manufacturing-component-get; preserve unrelated fields including purchases, stock quantities and vision profiles.", FamilyId = "manufacturing")]
         [HttpPut("/api/mfg/component")]
         public Task<InvokeResult> UpdateComponentPackage([FromBody] Component component)
         {
