@@ -1287,6 +1287,8 @@ namespace LagoVista.PickAndPlace.App.Services
         }
 
         public IShapeDetectorService<Image<Bgr, byte>> ShapeDetector => _shapeDetectorService;
+        public string LatestCalibrationDiscDiagnostic =>
+            _shapeDetectorService.LatestCalibrationDiscDiagnostic;
 
         public VisionProfile Profile
         {

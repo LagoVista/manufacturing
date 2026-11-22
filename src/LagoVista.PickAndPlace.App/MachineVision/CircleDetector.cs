@@ -25,6 +25,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         int _iteration = 0;
 
         public string LatestNozzleRejection { get; private set; }
+        public string LatestCalibrationDiscDiagnostic { get; private set; } =
+            "No calibration-disc frame processed yet.";
 
         public CircleDetector(ILocatorViewModel locatorViewModel)
         {
@@ -66,7 +68,9 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 // Otsu/contour-area centroids instead of a jittery Hough edge.
                 // Calibration Disc additionally verifies shape circularity.
                 var located = FindStagingPlateHole(input, camera, profile, search,
-                    center, requireCircularity: calibrationDisc);
+                    center, calibrationDisc, out var contourDiagnostics);
+                if (calibrationDisc)
+                    LatestCalibrationDiscDiagnostic = contourDiagnostics;
                 circles = located.HasValue ? new[] { located.Value } : Array.Empty<CircleF>();
             }
             else if (adaptiveNozzle)
@@ -146,7 +150,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
         private CircleF? FindStagingPlateHole(IMVImage<IInputOutputArray> input, MachineCamera camera,
             VisionProfile profile, CircleF search, LagoVista.Core.Models.Drawing.Point2D<int> frameCenter,
-            bool requireCircularity = false)
+            bool requireCircularity, out string diagnostics)
         {
             var pixelsPerMM = camera.EffectivePixelsPerMM;
             var minimumRadius = profile.HoughCirclesMinRadius * pixelsPerMM;
@@ -158,60 +162,85 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             using (var binary = new Mat())
             using (var contours = new VectorOfVectorOfPoint())
             {
-                // Use the processed grayscale image, with Otsu handling both gray and
-                // already-thresholded staging-plate profiles. Never modify the input.
-                CvInvoke.Threshold(input.Image, binary, 0, 255,
+                // Use original grayscale for the white disc. The same Otsu
+                // segmentation is rendered in the calibration-specific preview.
+                var otsu = CvInvoke.Threshold(input.Image, binary, 0, 255,
                     ThresholdType.Binary | ThresholdType.Otsu);
                 CvInvoke.FindContours(binary, contours, null, RetrType.External,
                     ChainApproxMethod.ChainApproxSimple);
 
+                var sizeAccepted = 0;
+                var roundAccepted = 0;
+                var aspectAccepted = 0;
+                var roiAccepted = 0;
+                double nearestOutsideMm = double.MaxValue;
                 CircleF? best = null;
                 var bestDistanceSquared = double.MaxValue;
                 for (var i = 0; i < contours.Size; i++)
                 {
                     using (var contour = contours[i])
+                    using (var moments = CvInvoke.Moments(contour))
                     {
-                        using (var moments = CvInvoke.Moments(contour))
+                        if (moments.M00 <= 0)
+                            continue;
+                        var radius = Math.Sqrt(moments.M00 / Math.PI);
+                        if (radius < minimumRadius || radius > maximumRadius)
+                            continue;
+                        sizeAccepted++;
+
+                        if (requireCircularity)
                         {
-                            if (moments.M00 <= 0)
+                            var perimeter = CvInvoke.ArcLength(contour, true);
+                            if (perimeter <= 0 ||
+                                4 * Math.PI * moments.M00 / (perimeter * perimeter) < 0.78)
                                 continue;
+                        }
+                        roundAccepted++;
 
-                            var radius = Math.Sqrt(moments.M00 / Math.PI);
-                            if (radius < minimumRadius || radius > maximumRadius)
+                        if (requireCircularity)
+                        {
+                            var bounds = CvInvoke.BoundingRectangle(contour);
+                            if (bounds.Width <= 0 || bounds.Height <= 0 ||
+                                (double)bounds.Width / bounds.Height < 0.85 ||
+                                (double)bounds.Width / bounds.Height > 1.15)
                                 continue;
-                            if (requireCircularity)
-                            {
-                                // Guard against bright reflections or holder
-                                // edges. Staging-plate detection is untouched.
-                                var perimeter = CvInvoke.ArcLength(contour, true);
-                                if (perimeter <= 0 ||
-                                    4 * Math.PI * moments.M00 / (perimeter * perimeter) < 0.78)
-                                    continue;
-                                var bounds = CvInvoke.BoundingRectangle(contour);
-                                if (bounds.Width <= 0 || bounds.Height <= 0 ||
-                                    (double)bounds.Width / bounds.Height < 0.85 ||
-                                    (double)bounds.Width / bounds.Height > 1.15)
-                                    continue;
-                            }
+                        }
+                        aspectAccepted++;
 
-                            var candidate = new CircleF(
-                                new System.Drawing.PointF((float)(moments.M10 / moments.M00),
-                                    (float)(moments.M01 / moments.M00)), (float)radius);
-                            if (!search.WithinRadius(candidate))
-                                continue;
+                        var candidate = new CircleF(
+                            new System.Drawing.PointF((float)(moments.M10 / moments.M00),
+                                (float)(moments.M01 / moments.M00)), (float)radius);
+                        if (!search.WithinRadius(candidate))
+                        {
+                            var deltaX = candidate.Center.X - search.Center.X;
+                            var deltaY = candidate.Center.Y - search.Center.Y;
+                            nearestOutsideMm = Math.Min(nearestOutsideMm,
+                                Math.Sqrt(deltaX * deltaX + deltaY * deltaY) / pixelsPerMM);
+                            continue;
+                        }
+                        roiAccepted++;
 
-                            var dx = candidate.Center.X - expectedX;
-                            var dy = candidate.Center.Y - expectedY;
-                            var distanceSquared = dx * dx + dy * dy;
-                            if (distanceSquared < bestDistanceSquared)
-                            {
-                                bestDistanceSquared = distanceSquared;
-                                best = candidate;
-                            }
+                        var dx = candidate.Center.X - expectedX;
+                        var dy = candidate.Center.Y - expectedY;
+                        var distanceSquared = dx * dx + dy * dy;
+                        if (distanceSquared < bestDistanceSquared)
+                        {
+                            bestDistanceSquared = distanceSquared;
+                            best = candidate;
                         }
                     }
                 }
 
+                var outside = nearestOutsideMm < double.MaxValue
+                    ? $"; nearest excluded center {nearestOutsideMm:F1} mm from image center"
+                    : String.Empty;
+                diagnostics = $"Otsu={otsu:F0}; bright contours={contours.Size}; " +
+                    $"radius-pass={sizeAccepted}, circularity-pass={roundAccepted}, " +
+                    $"aspect-pass={aspectAccepted}, search-pass={roiAccepted}; " +
+                    $"diameter range {2 * profile.HoughCirclesMinRadius:F1}-" +
+                    $"{2 * profile.HoughCirclesMaxRadius:F1} mm, center ROI " +
+                    $"{profile.TargetImageRadius:F1} mm, scale {pixelsPerMM:F1} px/mm" +
+                    outside + (best.HasValue ? "; centroid accepted" : "; no accepted centroid");
                 return best;
             }
         }
@@ -225,6 +254,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             _foundCircles.Clear();
             FoundCircle = null;
             LatestNozzleRejection = null;
+            LatestCalibrationDiscDiagnostic = "No calibration-disc frame processed since reset.";
         }
     }
 }

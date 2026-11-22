@@ -18,6 +18,7 @@ namespace LagoVista.PickAndPlace.Interfaces.Services
 
         // Sampled from the same processed frame as the barcode overlay.
         byte[] LatestFeederBarcodeSignal { get; }
+        string LatestCalibrationDiscDiagnostic { get; }
 
         // In-session only; called after a 24-frame, head-stable nozzle tune.
         // Does not persist a diameter to the shared camera vision profile.

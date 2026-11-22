@@ -14,6 +14,8 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Vision
     public interface IImageCaptureService : IMachineViewModelBase
     {
         VisionProfile Profile { get; }
+        // Read-only pipeline diagnostics for the active calibrationdisc camera.
+        string LatestCalibrationDiscDiagnostic { get; }
         CameraTypes CameraType { get; set; }
         MachineCamera Camera { get; }
 

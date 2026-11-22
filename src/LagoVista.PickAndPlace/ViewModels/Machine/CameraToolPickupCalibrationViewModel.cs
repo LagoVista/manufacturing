@@ -621,6 +621,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             // These controls belong ONLY to calibrationdisc; they do not
             // alter the camera's regular Part Inspection or Nozzle profiles.
             discProfile.UseAdaptiveDarkOpening = false;
+            // Display actual Otsu segmentation rather than a retained raw
+            // preview while calibrating the white disc.
+            discProfile.ShowOriginalImage = false;
             discProfile.PerformShapeDetection = true;
             discProfile.FindCircles = true;
             discProfile.FindRectangles = false;
@@ -955,6 +958,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         $"context rejected {Volatile.Read(ref _bottomCircleContextRejectedFrames)}. " +
                         $"Camera capturing={capture.IsCapturing}, profile={profile?.Key ?? "none"}, " +
                         $"FindCircles={profile?.FindCircles}, " +
+                        (isCylinder ? " Detector trace: " + capture.LatestCalibrationDiscDiagnostic + ". " : String.Empty) +
                         $"search radius={profile?.TargetImageRadius:F1} mm, " +
                         (isCylinder
                             ? $"Otsu/contour centroid; contour radius={profile?.HoughCirclesMinRadius:F1}-" +
@@ -998,8 +1002,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 Environment.NewLine +
                 $"Last diameter {Volatile.Read(ref _bottomLastCircleDiameterMm):F2} mm  |  " +
                 $"Center spread {Volatile.Read(ref _bottomLastCircleSpreadMm):F3} mm" +
-                (isCylinder ? "  |  Disc spread limit 0.20 mm (nine samples)" :
-                    "  |  Strict nozzle stability required");
+                (isCylinder
+                    ? "  |  Disc spread limit 0.20 mm (nine samples)" +
+                      Environment.NewLine + "Detector: " +
+                      (_machine?.PartInspectionCaptureService?.LatestCalibrationDiscDiagnostic ??
+                        "Camera detector unavailable")
+                    : "  |  Strict nozzle stability required");
         }
 
         public void CircleLocated(MVLocatedCircle circle)

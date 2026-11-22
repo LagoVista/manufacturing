@@ -39,6 +39,9 @@ namespace LagoVista.PickAndPlace.App.Services
         private int? _activeNozzleHeadIndex;
 
         public byte[] LatestFeederBarcodeSignal => _feederBarcode?.Signal;
+        private string _latestCalibrationDiscDiagnostic =
+            "No calibration-disc frame processed.";
+        public string LatestCalibrationDiscDiagnostic => _latestCalibrationDiscDiagnostic;
 
         public void RegisterVerifiedNozzleOpening(string nozzleIdentity,
             double diameterMm, double pixelsPerMm)
@@ -408,9 +411,17 @@ namespace LagoVista.PickAndPlace.App.Services
             if (!_machineRepo.CurrentMachine.Busy)
             {
                 if (camera.CurrentVisionProfile.FindCircles)
+                {
                     _circleDetector.FindCircles(input, camera, size, expectedOpeningDiameterOverrideMm);
+                    if (camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_CalibrationDisc)
+                        _latestCalibrationDiscDiagnostic = _circleDetector.LatestCalibrationDiscDiagnostic;
+                }
                 else
+                {
                     _circleDetector.Reset();
+                    if (camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_CalibrationDisc)
+                        _latestCalibrationDiscDiagnostic = "Circle detection disabled in active profile.";
+                }
                 if (camera.CurrentVisionProfile.FindCorners) _cornerDetector.FindCorners(input, camera, size); else _cornerDetector.Reset();
                 if (camera.CurrentVisionProfile.FindRectangles) _rectangleDetector.FindRectangles(input, camera, size); else _rectangleDetector.Reset();
                 if (camera.CurrentVisionProfile.FindLines) _lineDetector.FindLines(input, camera, size); else _lineDetector.Reset();
@@ -418,6 +429,8 @@ namespace LagoVista.PickAndPlace.App.Services
             }
             else
             {
+                if (camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_CalibrationDisc)
+                    _latestCalibrationDiscDiagnostic = "Detector paused: machine Busy.";
             //    _cornerDetector.Reset();
             //    _circleDetector.Reset();
             //    _rectangleDetector.Reset();
@@ -610,6 +623,26 @@ namespace LagoVista.PickAndPlace.App.Services
                                     output, camera, size, expectedOpeningDiameterOverrideMm);
                             }
 
+                            // Visualize the very same Otsu binary segmentation
+                            // consumed by CalibrationDisc contour detection.
+                            // This changes display only, never detection input.
+                            if (camera.CurrentVisionProfile.Key ==
+                                    VisionProfile.VisionProfile_CalibrationDisc &&
+                                !camera.CurrentVisionProfile.ShowOriginalImage)
+                            {
+                                using (var binaryDisc = new Image<Gray, byte>(gray.Size))
+                                {
+                                    CvInvoke.Threshold(gray, binaryDisc, 0, 255,
+                                        ThresholdType.Binary | ThresholdType.Otsu);
+                                    using (var displayDisc = binaryDisc.Convert<Bgr, byte>())
+                                    {
+                                        RenderOutput(new MVImage<IInputOutputArray>(displayDisc),
+                                            camera, size);
+                                        return displayDisc.Clone();
+                                    }
+                                }
+                            }
+
                             if(camera.CurrentVisionProfile.ShowRectLocatorImage)
                             {
                                 var mat = _rectangleDetector.Image as Mat;
@@ -637,6 +670,9 @@ namespace LagoVista.PickAndPlace.App.Services
             }
             catch (Exception ex)
             {
+                if (camera?.CurrentVisionProfile?.Key ==
+                    VisionProfile.VisionProfile_CalibrationDisc)
+                    _latestCalibrationDiscDiagnostic = "Disc detector threw: " + ex.Message;
                 Debug.WriteLine(ex.Message);
                 Debug.WriteLine(ex.StackTrace);
                 /*NOP, sometimes OpenCV acts a little funny. */
@@ -655,6 +691,7 @@ namespace LagoVista.PickAndPlace.App.Services
             _feederBarcode = null;
             _feederBarcodeVertical = null;
             _feederBarcodeTemporal.Reset();
+            _latestCalibrationDiscDiagnostic = "No calibration-disc frame processed since reset.";
             _circleDetector.FoundCircles.Clear();
             _rectangleDetector.FoundRectangles.Clear();
             _cornerDetector.FoundCorners.Clear();
