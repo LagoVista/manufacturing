@@ -1,4 +1,4 @@
-using LagoVista.Core;
+using LagoVista.Client.Core;
 using LagoVista.Manufacturing.Models;
 using LagoVista.Manufacturing.Models.Operations;
 using Newtonsoft.Json;

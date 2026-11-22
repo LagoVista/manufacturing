@@ -86,7 +86,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         public CameraToolPickupCalibrationViewModel(
             IMachineRepo repo, ILocatorViewModel locator,
-            IImageCaptureService bottomCameraBootstrap, LagoVista.Core.IRestClient restClient)
+            IImageCaptureService bottomCameraBootstrap, LagoVista.Client.Core.IRestClient restClient)
         {
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
             _locator = locator ?? throw new ArgumentNullException(nameof(locator));
