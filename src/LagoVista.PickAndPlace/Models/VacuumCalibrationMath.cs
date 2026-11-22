@@ -454,7 +454,20 @@ namespace LagoVista.PickAndPlace.Models
             if (direction == 0 || observedGap <= 0 ||
                 Math.Abs(openToSealed) < 4.0 * noiseRadius)
             {
-                failure = "Open and obstructed sensor bands overlap or lack sufficient noise margin.";
+                failure = "Head " + idle.HeadIndex +
+                    " open and obstructed sensor bands overlap or lack sufficient noise margin. " +
+                    "Open center " + noPart.MeanRawCount.ToString("F0") +
+                    " (robust [" + noPart.RobustMinimumRawCount + ", " +
+                    noPart.RobustMaximumRawCount + "], noise +/-" +
+                    noPart.NoiseRadiusRaw.ToString("F0") + "); " +
+                    "obstructed center " + sealedBand.MeanRawCount.ToString("F0") +
+                    " (robust [" + sealedBand.RobustMinimumRawCount + ", " +
+                    sealedBand.RobustMaximumRawCount + "], noise +/-" +
+                    sealedBand.NoiseRadiusRaw.ToString("F0") + "); " +
+                    "center separation " + Math.Abs(openToSealed).ToString("F0") +
+                    ", required " + (4.0 * noiseRadius).ToString("F0") +
+                    ", robust gap " + observedGap.ToString("F0") +
+                    " raw counts. Calibration withheld; verify physical nozzle contact/seal.";
                 return false;
             }
             candidate = new VacuumCalibrationCandidate

@@ -240,6 +240,34 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void RightHeadActualFailedSealReportsBothCentersAndRequiredNoiseMargin()
+        {
+            // Approximate earlier right open-nozzle range, followed by the
+            // operator's actual failed right sealed-stage 15 raw readings.
+            // Do not turn this weak/noisy seal into a saved part-present level.
+            var idle = RobustCapture(2, Enumerable.Range(0, 15)
+                .Select(i => 900L + i % 7 * 100).ToArray(), 0);
+            var open = RobustCapture(2, Enumerable.Range(0, 15)
+                .Select(i => -55000L + i % 6 * 3000).ToArray(), 1);
+            var attemptedSeal = RobustCapture(2, new long[] {
+                -78577, -92613, -79755, -99900, -90207, -82714,
+                -90957, -101992, -87686, -83425, -94241, -93637,
+                -90436, -80024, -96034
+            }, 2);
+            Assert.That(attemptedSeal.MeanRawCount, Is.EqualTo(-89546).Within(1));
+            Assert.That(VacuumCalibrationCandidate.TryCreate(
+                idle, open, attemptedSeal,
+                VacuumPressureSampling.RequiredResponse(idle), 12, 3,
+                out _, out var reason), Is.False);
+            Assert.That(reason, Does.Contain("Head 2"));
+            Assert.That(reason, Does.Contain("Open center"));
+            Assert.That(reason, Does.Contain("obstructed center -89546"));
+            Assert.That(reason, Does.Contain("required"));
+            Assert.That(reason, Does.Contain("robust gap"));
+            Assert.That(reason, Does.Contain("Calibration withheld"));
+        }
+
+        [Test]
         public void RobustWindowStillRejectsStaleAndWrongHeadEvidence()
         {
             var samples = Enumerable.Range(0, 15)

@@ -849,7 +849,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             var minResponse = VacuumPressureSampling.RequiredResponse(_idle);
             if (!VacuumCalibrationCandidate.TryCreate(_idle, _open, _sealed,
                 minResponse, 12.0, 3.0, out var candidate, out var reason))
+            {
+                // Keep the raw sealed samples and BOTH comparison bands visible
+                // in the diagnostic pane even after the rail transitions to Failed.
+                RawReading += Environment.NewLine + "DETECTOR REJECTED | " + reason;
                 throw new InvalidOperationException(reason);
+            }
             if (_head == 1) _leftCandidate = candidate;
             else _rightCandidate = candidate;
 
