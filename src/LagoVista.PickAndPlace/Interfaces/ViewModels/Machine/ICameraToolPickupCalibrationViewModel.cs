@@ -10,6 +10,12 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
     {
         Task StartAsync();
         Task PreviewBottomCameraAsync();
+        Task RetryHistoryAsync();
+        bool CanRetryHistory { get; }
+        bool HistoryBusy { get; }
+        string HistoryStatus { get; }
+        string HistoryRunId { get; }
+        string DiagnosticReport { get; }
         bool PreviewBusy { get; }
         bool CanOperate { get; }
         IMachine CalibrationMachine { get; }

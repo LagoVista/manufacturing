@@ -22,7 +22,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
     /// supervised hardware procedure: operator supplies fixture-specific
     /// pickup and return Z, and auto-save defaults OFF.
     /// </summary>
-    public sealed class CameraToolPickupCalibrationViewModel : ViewModelBase,
+    public sealed partial class CameraToolPickupCalibrationViewModel : ViewModelBase,
         ICameraToolPickupCalibrationViewModel, ICircleLocatedHandler
     {
         private readonly IMachineRepo _repo;
@@ -86,10 +86,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         public CameraToolPickupCalibrationViewModel(
             IMachineRepo repo, ILocatorViewModel locator,
-            IImageCaptureService bottomCameraBootstrap)
+            IImageCaptureService bottomCameraBootstrap, LagoVista.Core.IRestClient restClient)
         {
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
             _locator = locator ?? throw new ArgumentNullException(nameof(locator));
+            _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
             _bottomCameraBootstrap = bottomCameraBootstrap ??
                 throw new ArgumentNullException(nameof(bottomCameraBootstrap));
             // The modal owns step-level failure reporting, so avoid a second,
@@ -196,7 +197,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 RaisePropertyChanged(nameof(CanOperate));
             }
         }
-        public bool CanOperate => !CalibrationRunning && !PreviewBusy;
+        public bool CanOperate => !CalibrationRunning && !PreviewBusy && !HistoryBusy;
         public bool CalibrationFinished
         {
             get => _finished;
@@ -259,6 +260,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         {
             if (!CanOperate)
                 return;
+            if (_pendingHistorySnapshot != null)
+            {
+                Status = "Previous physical run history is NOT saved. Retry History Save or copy the diagnostic report before starting another run.";
+                return;
+            }
             CalibrationRunning = true;
             CalibrationFinished = false;
             CandidateSummary = "No verified offset yet.";
@@ -336,6 +342,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 _machine?.AddStatusMessage(StatusMessageTypes.Warning, Status);
                 var active = CalibrationSteps.FirstOrDefault(step => step.Status == "Running");
                 active?.Fail(ex.Message + " " + recovery);
+                BlockHistoryStep(Status);
             }
             finally
             {
@@ -348,11 +355,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 _emptyNozzleCameraId = null;
                 _emptyNozzleCameraScale = 0;
                 _locator.UnregisterCircleLocatedHandler(this);
-                _session = null;
                 _head = null;
                 _machine = null;
                 CalibrationRunning = false;
                 CalibrationFinished = true;
+                // Remote history I/O happens only after recovery and settled motion.
+                await SaveSettledHistoryAsync();
+                _session = null;
             }
         }
 
@@ -362,9 +371,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _nozzleIdentity = Convert.ToString(head.CurrentNozzle.Id);
             var definition = CameraToolPickupProcedureDefinition.Create();
             _session = new MachineOperationSession(definition,
-                new MachineOperationTarget { MachineId = Convert.ToString(_machine.Settings.Id) },
-                DateTimeOffset.UtcNow);
+                new MachineOperationTarget
+                {
+                    MachineId = Convert.ToString(_machine.Settings.Id),
+                    CameraId = Convert.ToString(_machine.PartInspectionCaptureService?.Camera?.Id)
+                }, DateTimeOffset.UtcNow);
             _session.Start(DateTimeOffset.UtcNow);
+            NewHistorySession(_session);
 
             Begin("readiness", "Checking Manual machine, T004 runout and configured head pickup/return heights.");
             RequireValid();
@@ -510,6 +523,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 var step = Step("commit-offset");
                 step.Detail = "Measured and verified only. Auto-save is OFF; the previous offset was preserved.";
                 step.Status = "Unsaved";
+                BlockHistoryStep("Both pickups verified. Candidate measurement only; offset intentionally UNSAVED pending supervised approval.");
                 return;
             }
             RequireValid();
@@ -969,6 +983,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 if (isCylinder && (circle.DiameterMm < 5.5 || circle.DiameterMm > 10.5))
                     throw new CalibrationStopped("Held-cylinder diameter is inconsistent with the 7 mm fixture.");
                 BottomVisionState = "MEASUREMENT ACCEPTED";
+                CaptureBottomOpticalEvidence(profileKey, circle.DiameterMm,
+                    circle.OffsetMm.X, circle.OffsetMm.Y,
+                    isCylinder ? capture.LatestCalibrationDiscDiagnostic :
+                        "T004 verified dark-nozzle opening");
                 BottomVisionMeasurements =
                     $"Diameter {circle.DiameterMm:F2} mm  |  " +
                     $"X {circle.OffsetMm.X:+0.000;-0.000;0.000} mm  |  " +
@@ -1227,6 +1245,19 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 RunId = _session.Snapshot.RunId,
                 StepKey = key,
                 Name = detail,
+                Value = detail + ((key == "nozzle-reference" || key == "first-inspect" ||
+                    key == "second-inspect") && _lastBottomOpticalEvidence != null
+                        ? " | " + _lastBottomOpticalEvidence : String.Empty),
+                Source = "T014.CameraToolPickupCalibrationViewModel",
+                VisionProfileKey = key == "first-target" || key == "second-target"
+                    ? VisionProfile.VisionProfile_KnownLocation
+                    : key == "nozzle-reference" ? VisionProfile.VisionProfile_Nozzle
+                    : key == "first-inspect" || key == "second-inspect"
+                        ? VisionProfile.VisionProfile_CalibrationDisc : null,
+                PixelsPerMm = (key == "nozzle-reference" || key == "first-inspect" ||
+                    key == "second-inspect")
+                        ? _machine.PartInspectionCaptureService?.Camera?.EffectivePixelsPerMM
+                        : null,
                 Verification = verification,
                 Saved = saved,
                 CapturedAtUtc = now
