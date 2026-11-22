@@ -237,11 +237,13 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
                             () => vm.StartAsync(),
                             () => vm.CalibrationFinished && !vm.CalibrationRunning &&
                                 !vm.SaveVerifiedOffset &&
+                                !vm.CanRetryHistory &&
+                                vm.HistoryStatus.StartsWith("RECORDED", StringComparison.Ordinal) &&
                                 vm.CalibrationSteps.Count == 16 &&
                                 vm.CalibrationSteps.All(s => s.StepKey.EndsWith(
                                     "/commit-offset", StringComparison.Ordinal)
                                     ? s.Status == "Unsaved" : s.Status == "Passed"),
-                            () => vm.Status)))
+                            () => vm.CanRetryHistory ? vm.HistoryStatus : vm.Status)))
                         return;
                 }
 
