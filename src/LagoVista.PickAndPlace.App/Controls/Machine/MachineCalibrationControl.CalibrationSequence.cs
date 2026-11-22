@@ -99,7 +99,7 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
                 return;
 
             var machine = ViewModel?.Machine;
-            if (machine == null || !VerifySequenceMachine(machine, out var readiness))
+            if (!VerifySequenceMachine(machine, out var readiness))
             {
                 SetCalibrationSequenceStatus(readiness ??
                     "No connected machine was available.");
