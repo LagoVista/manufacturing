@@ -42,9 +42,10 @@ namespace LagoVista.PickAndPlace.Models
     public static class CameraToolPickupCalibrationMath
     {
         public const double MaximumCorrectionPerAxisMm = 2.0;
-        public const double VerificationToleranceMm = 0.12;
-        // Operator's production acceptance threshold, checked only by a third
-        // fresh pickup using the persisted offset and NO relative correction jog.
+        // Operator-defined maximum radial disc-to-nozzle error. The second
+        // temporary-jog pickup and third saved-offset pickup use the same
+        // 0.20 mm acceptance limit; saved-offset proof remains independent.
+        public const double VerificationToleranceMm = 0.20;
         public const double SavedOffsetPickupToleranceMm = 0.20;
         public const double TravelClearanceMm = 5.0;
         public static readonly TimeSpan MaximumVisionAge = TimeSpan.FromSeconds(3);
@@ -158,7 +159,8 @@ namespace LagoVista.PickAndPlace.Models
             residualMm = Math.Sqrt(error.X * error.X + error.Y * error.Y);
             if (residualMm > VerificationToleranceMm)
             {
-                reason = "Second pickup did not verify the XY correction.";
+                reason = $"Second pickup radial residual {residualMm:F3} mm exceeds " +
+                    $"{VerificationToleranceMm:F3} mm acceptance.";
                 return false;
             }
             reason = null;

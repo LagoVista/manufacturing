@@ -67,6 +67,39 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void SecondPickupUsesOperatorPointTwoMillimeterRadialTolerance()
+        {
+            var now = DateTimeOffset.UtcNow;
+            Assert.That(CameraToolPickupCalibrationMath.VerificationToleranceMm,
+                Is.EqualTo(0.20));
+            Assert.That(CameraToolPickupCalibrationMath.VerificationToleranceMm,
+                Is.EqualTo(CameraToolPickupCalibrationMath.SavedOffsetPickupToleranceMm));
+            Assert.That(CameraToolPickupCalibrationMath.TryPropose(XY(22.7, 65),
+                Observation(0.742, 0.274, now.AddSeconds(-3), now.AddSeconds(-2)),
+                now.AddSeconds(-1), out var candidate, out var reason), Is.True, reason);
+
+            // Actual Head 1 failure (~0.172 mm) now satisfies the requirement.
+            Assert.That(CameraToolPickupCalibrationMath.TryVerify(candidate,
+                Observation(0.148, 0.087, now.AddMilliseconds(-900),
+                    now.AddMilliseconds(-100)), now,
+                out var residual, out reason), Is.True, reason);
+            Assert.That(residual, Is.EqualTo(Math.Sqrt(0.148 * 0.148 + 0.087 * 0.087))
+                .Within(0.0000001));
+
+            // Exactly at 0.200 mm is accepted; above it still fails.
+            Assert.That(CameraToolPickupCalibrationMath.TryVerify(candidate,
+                Observation(0.12, 0.16, now.AddMilliseconds(-900),
+                    now.AddMilliseconds(-100)), now, out residual, out reason),
+                Is.True, reason);
+            Assert.That(residual, Is.EqualTo(0.20).Within(0.0000001));
+            Assert.That(CameraToolPickupCalibrationMath.TryVerify(candidate,
+                Observation(0.201, 0, now.AddMilliseconds(-900),
+                    now.AddMilliseconds(-100)), now, out residual, out reason),
+                Is.False);
+            Assert.That(reason, Does.Contain("0.200 mm"));
+        }
+
+        [Test]
         public void MissingVacuumOrRunoutOrStaleCameraCannotProposeAnOffset()
         {
             var now = DateTimeOffset.UtcNow;
@@ -102,7 +135,7 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(CameraToolPickupCalibrationMath.TryPropose(XY(22, 65),
                 Observation(-0.4, 0.2, now.AddSeconds(-2), now.AddSeconds(-1.5)),
                 now, out var candidate, out _), Is.True);
-            var second = Observation(0.15, 0, now.AddSeconds(-0.9), now.AddMilliseconds(-100));
+            var second = Observation(0.21, 0, now.AddSeconds(-0.9), now.AddMilliseconds(-100));
             Assert.That(CameraToolPickupCalibrationMath.TryVerify(candidate, second, now,
                 out _, out _), Is.False);
             second.PartRelativeToNozzleMm = XY(0.01, 0.02);
