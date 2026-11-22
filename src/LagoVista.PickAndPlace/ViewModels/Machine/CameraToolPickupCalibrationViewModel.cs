@@ -96,6 +96,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             // duplicate machine warning from the nested centering runner.
             _knownLocation = new KnownLocationCylinderCenteringRunner(
                 repo, locator, emitWarnings:false);
+            PreviewSelectedHeadPlan();
         }
 
         public IMachine CalibrationMachine => _repo.CurrentMachine;
@@ -107,7 +108,39 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             {
                 Set(ref _headIndexText, value);
                 RaisePropertyChanged(nameof(ConfiguredHeights));
+                if (!CalibrationRunning)
+                    PreviewSelectedHeadPlan();
             }
+        }
+
+        // Build the operator's plan when the dialog opens or head selection changes.
+        // This is a pure view-model projection: no machine commands, camera
+        // initialization, optical acquisition, vacuum or offset writes.
+        private void PreviewSelectedHeadPlan()
+        {
+            var plan = new ObservableCollection<FeederCalibrationFlowStep>();
+            if (!Int32.TryParse(_headIndexText, out var selected) ||
+                (selected != 1 && selected != 2))
+            {
+                ToolHeadName = "Select a physical head";
+                CalibrationSteps = plan;
+                return;
+            }
+
+            var head = _repo.CurrentMachine?.Settings?.ToolHeads?
+                .FirstOrDefault(h => h != null && h.HeadIndex == selected);
+            ToolHeadName = head == null
+                ? $"Head {selected} - no configured head"
+                : $"Head {selected} - {head.Name}";
+
+            foreach (var stage in CameraToolPickupProcedureDefinition.Create().Steps)
+                plan.Add(new FeederCalibrationFlowStep
+                {
+                    Number = plan.Count + 1,
+                    StepKey = $"head-{selected}/{stage.Key}",
+                    Title = $"Head {selected} - {stage.Title}"
+                });
+            CalibrationSteps = plan;
         }
 
         public string ConfiguredHeights
