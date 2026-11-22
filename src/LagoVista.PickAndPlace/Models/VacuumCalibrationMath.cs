@@ -21,6 +21,13 @@ namespace LagoVista.PickAndPlace.Models
         public double MeanRawCount { get; internal set; }
         public long MinimumRawCount { get; internal set; }
         public long MaximumRawCount { get; internal set; }
+        // Raw extrema remain visible for diagnostics; robust limits exclude
+        // the outermost readings during noise-aware detector calibration.
+        public long RobustMinimumRawCount { get; internal set; }
+        public long RobustMaximumRawCount { get; internal set; }
+        public double NoiseRadiusRaw => Math.Max(
+            Math.Abs(MeanRawCount - RobustMinimumRawCount),
+            Math.Abs(RobustMaximumRawCount - MeanRawCount));
         public DateTimeOffset FirstSampleUtc { get; internal set; }
         public DateTimeOffset LastSampleUtc { get; internal set; }
     }
@@ -150,6 +157,30 @@ namespace LagoVista.PickAndPlace.Models
             if (percent >= ThresholdPercent + HysteresisPercent)
                 return VacuumPickupClassification.PartPresent;
             if (percent <= ThresholdPercent - HysteresisPercent)
+                return VacuumPickupClassification.NoPart;
+            return VacuumPickupClassification.Unknown;
+        }
+
+        /// <summary>
+        /// Optional five-reading detector vote for a live consumer. One noisy
+        /// opposite-state vote makes the outcome Unknown rather than claiming
+        /// the part is present. Existing single-reading consumers are unchanged.
+        /// </summary>
+        public VacuumPickupClassification ClassifyWindow(IReadOnlyList<long> readings)
+        {
+            if (readings == null || readings.Count < 5)
+                return VacuumPickupClassification.Unknown;
+            var part = 0;
+            var noPart = 0;
+            for (var i = readings.Count - 5; i < readings.Count; i++)
+            {
+                var state = Classify(readings[i]);
+                if (state == VacuumPickupClassification.PartPresent) part++;
+                if (state == VacuumPickupClassification.NoPart) noPart++;
+            }
+            if (part >= 4 && noPart == 0)
+                return VacuumPickupClassification.PartPresent;
+            if (noPart >= 4 && part == 0)
                 return VacuumPickupClassification.NoPart;
             return VacuumPickupClassification.Unknown;
         }
@@ -294,10 +325,48 @@ namespace LagoVista.PickAndPlace.Models
                 SampleCount = readings.Count,
                 MinimumRawCount = min,
                 MaximumRawCount = max,
+                RobustMinimumRawCount = min,
+                RobustMaximumRawCount = max,
                 MeanRawCount = readings.Average(r => (double)r.RawCount),
                 FirstSampleUtc = readings[0].CapturedAtUtc,
                 LastSampleUtc = readings[readings.Count - 1].CapturedAtUtc
             };
+            return true;
+        }
+
+        /// <summary>
+        /// Noise-aware detector estimate. Freshness, ordering and channel checks
+        /// are identical to strict capture. Instead of judging raw max-minus-min
+        /// against an arbitrary fraction of the pump response, use a trimmed
+        /// center and a central (outlier-resistant) noise envelope. Whether
+        /// this band is DISTINCT from another operating state is validated
+        /// separately before motion and before calibration can be saved.
+        /// </summary>
+        public static bool TryCaptureRobustBand(
+            IReadOnlyList<VacuumPressureSample> readings,
+            int expectedHead, DateTimeOffset nowUtc, TimeSpan maximumAge,
+            int minimumSamples, out VacuumPressureBand band, out string failure)
+        {
+            if (minimumSamples < 9 || minimumSamples % 2 == 0)
+            {
+                band = null;
+                failure = "A robust sensor window requires at least nine readings and an odd sample count.";
+                return false;
+            }
+            if (!TryCaptureBand(readings, expectedHead, nowUtc, maximumAge,
+                minimumSamples, Double.MaxValue, out band, out failure))
+                return false;
+
+            var ordered = readings.Select(sample => sample.RawCount)
+                .OrderBy(raw => raw).ToArray();
+            var trim = ordered.Length / 5; // 15 readings: discard 3 on each end of the mean
+            band.MeanRawCount = ordered.Skip(trim)
+                .Take(ordered.Length - 2 * trim)
+                .Average(raw => (double)raw);
+            // The 15-reading robust envelope uses sorted positions 3..13;
+            // original untrimmed extrema are retained above for diagnosis.
+            band.RobustMinimumRawCount = ordered[trim - 1];
+            band.RobustMaximumRawCount = ordered[ordered.Length - trim];
             return true;
         }
     }
@@ -316,6 +385,7 @@ namespace LagoVista.PickAndPlace.Models
         public double NoPartPercent { get; private set; }
         public double PartPresentThresholdPercent { get; private set; }
         public double HysteresisPercent { get; private set; }
+        public double ObservedBandGapRaw { get; private set; }
 
         public static bool TryCreate(
             VacuumPressureBand idle, VacuumPressureBand noPart,
@@ -345,9 +415,12 @@ namespace LagoVista.PickAndPlace.Models
                 failure = "Calibration stages must be independently sampled in order.";
                 return false;
             }
-            if (Math.Abs(noPart.MeanRawCount - idle.MeanRawCount) < minimumPumpResponseRaw)
+            var openResponse = Math.Abs(noPart.MeanRawCount - idle.MeanRawCount);
+            var requiredPumpResponse = Math.Max(minimumPumpResponseRaw,
+                3.0 * (idle.NoiseRadiusRaw + noPart.NoiseRadiusRaw));
+            if (openResponse < requiredPumpResponse)
             {
-                failure = "The open-nozzle reading does not verify pump response.";
+                failure = "The open-nozzle pump response is not distinct from measured sensor noise.";
                 return false;
             }
             if (Math.Abs(sealedBand.MeanRawCount - idle.MeanRawCount) < minimumPumpResponseRaw)
@@ -369,8 +442,24 @@ namespace LagoVista.PickAndPlace.Models
                 failure = "The open and sealed nozzle values cannot be reliably classified.";
                 return false;
             }
+            // We detect two distinct pressure states, NOT accurate physical
+            // pressure. Robust bounds must not overlap, and center separation
+            // must exceed four times the combined state noise radii.
+            var openToSealed = sealedBand.MeanRawCount - noPart.MeanRawCount;
+            var direction = Math.Sign(openToSealed);
+            var noiseRadius = noPart.NoiseRadiusRaw + sealedBand.NoiseRadiusRaw;
+            var observedGap = direction < 0
+                ? noPart.RobustMinimumRawCount - sealedBand.RobustMaximumRawCount
+                : sealedBand.RobustMinimumRawCount - noPart.RobustMaximumRawCount;
+            if (direction == 0 || observedGap <= 0 ||
+                Math.Abs(openToSealed) < 4.0 * noiseRadius)
+            {
+                failure = "Open and obstructed sensor bands overlap or lack sufficient noise margin.";
+                return false;
+            }
             candidate = new VacuumCalibrationCandidate
             {
+                ObservedBandGapRaw = observedGap,
                 HeadIndex = idle.HeadIndex,
                 Idle = idle,
                 NoPart = noPart,

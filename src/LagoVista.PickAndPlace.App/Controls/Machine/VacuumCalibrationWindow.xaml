@@ -134,7 +134,7 @@
                                                   Foreground="#E4FFF0" FontWeight="SemiBold"/>
                                     </StackPanel>
                                 </Border>
-                                <TextBlock Text="Run Both follows the original automatic sensor-verified sequence after the safe configured PickHeight. It does not pause for a contact checkbox. Guided Step requires manual contact confirmation before sampling. Both modes must pass stable sensor separation before a seal is accepted."
+                                <TextBlock Text="Run Both follows the original automatic sensor-verified sequence after the safe configured PickHeight. It does not pause for a contact checkbox. Guided Step requires manual contact confirmation before sampling. Both modes must prove noise-aware separation between no-part and obstructed samples before a seal is accepted."
                                            TextWrapping="Wrap" FontSize="10"
                                            Foreground="#BFCFE0"/>
                             </StackPanel>
@@ -188,7 +188,7 @@
                                         </StackPanel>
                                     </Border>
                                 </Grid>
-                                <TextBlock Text="Each value is from a fresh six-reading stable window. It remains the last observed value until a new sensor window passes."
+                                <TextBlock Text="Each reading is a trimmed center from 15 fresh sensor counts. Raw extrema and measured noise are retained; calibration is accepted only after distinct no-part and obstructed states are proven."
                                            FontSize="10" Foreground="#A4BCCD"
                                            TextWrapping="Wrap" Margin="0,8,0,0"/>
                             </StackPanel>

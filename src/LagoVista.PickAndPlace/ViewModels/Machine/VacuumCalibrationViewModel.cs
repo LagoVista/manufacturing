@@ -244,84 +244,57 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private async Task<VacuumPressureBand> CaptureAsync(
             int head, CancellationToken token, VacuumPressureBand idleBaseline = null,
-            string pressureStage = "pump-off baseline", int maxWindows = 3)
+            string pressureStage = "pump-off baseline")
         {
-            // Each attempt collects an independent fresh six-reading window.
-            // After a pump is activated, M400 acknowledges the COMMAND,
-            // not that the pressure has physically settled. The pump-on
-            // stage gets a bounded extra settling budget, but EVERY accepted
-            // window must pass the same original measured-noise threshold.
-            // No unstable observations are ever admitted to a candidate.
-            const int samplesPerWindow = 6;
-            if (maxWindows < 1 || maxWindows > 5)
-                throw new ArgumentOutOfRangeException(nameof(maxWindows));
-            for (var window = 1; window <= maxWindows; window++)
+            // The sensor is a part/no-part detector, not a precision gauge.
+            // Preserve every signed raw reading, but estimate state centers
+            // from 15 readings with a trimmed mean and measured noise envelope.
+            // Motion and saving remain gated on distinct physical states.
+            const int samplesPerWindow = 15;
+            ReportHardwareAction("Sampling " + pressureStage +
+                " (15 fresh readings, trimmed detector center)");
+            var samples = new List<VacuumPressureSample>(samplesPerWindow);
+            for (var i = 0; i < samplesPerWindow; i++)
             {
-                ReportHardwareAction("Sampling " + pressureStage +
-                    ", fresh window " + window + "/" + maxWindows +
-                    " (6 readings; original stability limits)");
-                var samples = new List<VacuumPressureSample>();
-                for (var i = 0; i < samplesPerWindow; i++)
+                token.ThrowIfCancellationRequested();
+                if (!ContextSafe(_phase == Phase.AtFiducial || _phase == Phase.AtPickHeight ||
+                    _phase == Phase.Sealed, out var reason))
+                    throw new InvalidOperationException(reason);
+
+                var result = head == 1
+                    ? await _machine.ReadLeftVacuumAsync()
+                    : await _machine.ReadRightVacuumAsync();
+                if (!result.Successful)
+                    throw new InvalidOperationException("Head " + head + ": " + result.ErrorMessage);
+                samples.Add(new VacuumPressureSample
                 {
-                    token.ThrowIfCancellationRequested();
-                    if (!ContextSafe(_phase == Phase.AtFiducial || _phase == Phase.AtPickHeight ||
-                    _phase == Phase.Sealed,
-                        out var reason))
-                        throw new InvalidOperationException(reason);
-
-                    var result = head == 1
-                        ? await _machine.ReadLeftVacuumAsync()
-                        : await _machine.ReadRightVacuumAsync();
-                    if (!result.Successful)
-                        throw new InvalidOperationException("Head " + head + ": " + result.ErrorMessage);
-                    samples.Add(new VacuumPressureSample
-                    {
-                        HeadIndex = head,
-                        RawCount = result.Result,
-                        CapturedAtUtc = DateTimeOffset.UtcNow
-                    });
-                    if (i < samplesPerWindow - 1)
-                        await Task.Delay(150, token);
-                }
-
-                var mean = samples.Average(s => (double)s.RawCount);
-                var spreadLimit = VacuumPressureSampling.AllowedRawSpread(idleBaseline, mean);
-                var accepted = VacuumPressureSampling.TryCaptureBand(
-                    samples, head, DateTimeOffset.UtcNow,
-                    TimeSpan.FromSeconds(8), samplesPerWindow, spreadLimit,
-                    out var band, out var failure);
-
-                var observed = String.Join(", ", samples.Select(s => s.RawCount.ToString()));
-                RawReading = "Head " + head + " " + pressureStage +
-                    " window " + window + "/" + maxWindows +
-                    ": [" + observed + "] | span " +
-                    (samples.Max(s => s.RawCount) - samples.Min(s => s.RawCount)) +
-                    " counts | " + (idleBaseline == null
-                        ? "idle noise baseline (not yet scaled)"
-                        : "limit " + spreadLimit.ToString("F1") + " counts");
-
-                if (accepted)
-                {
-                    // Only a fresh, stable, accepted sensor window counts as
-                    // a measured value. Never label commanded pump state
-                    // as sensor proof in the operator dashboard.
-                    RecordAcceptedVacuumBand(head, band);
-                    return band;
-                }
-
-                if (!failure.StartsWith("Pressure has not settled", StringComparison.Ordinal))
-                    throw new InvalidOperationException("Head " + head + ": " + failure);
-                if (window == maxWindows)
-                    throw new InvalidOperationException(
-                        VacuumPressureSampling.UnstableStageMessage(
-                            head, pressureStage, maxWindows, failure));
-
-                // Bounded pump-on stabilization only; no relaxed acceptance
-                // or movement to the next stage until the original stable-band
-                // test passes. Abort cancellation is honored at every delay.
-                await Task.Delay(maxWindows > 3 ? 750 : 600, token);
+                    HeadIndex = head,
+                    RawCount = result.Result,
+                    CapturedAtUtc = DateTimeOffset.UtcNow
+                });
+                if (i < samplesPerWindow - 1)
+                    await Task.Delay(150, token);
             }
-            throw new InvalidOperationException("Pressure sampling did not complete.");
+
+            var accepted = VacuumPressureSampling.TryCaptureRobustBand(
+                samples, head, DateTimeOffset.UtcNow,
+                TimeSpan.FromSeconds(12), samplesPerWindow,
+                out var band, out var failure);
+            RawReading = "Head " + head + " " + pressureStage +
+                ": [" + String.Join(", ", samples.Select(s => s.RawCount.ToString())) +
+                "] | raw range " + (samples.Max(s => s.RawCount) - samples.Min(s => s.RawCount)) +
+                (accepted
+                    ? " | trimmed center " + band.MeanRawCount.ToString("F0") +
+                      " | robust noise +/-" + band.NoiseRadiusRaw.ToString("F0")
+                    : " | rejected: " + failure);
+            if (!accepted)
+                throw new InvalidOperationException("Head " + head + " " + pressureStage +
+                    ": " + failure);
+
+            // Fresh sampling alone does not prove a pump/part state. That
+            // evidence is validated against idle/open/obstructed centers.
+            RecordAcceptedVacuumBand(head, band);
+            return band;
         }
 
         private void StopPumps()
@@ -723,19 +696,20 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             else _machine.RightVacuumPump = true;
             PumpActive = true;
             await WaitForActuatorIdleAsync("Open-nozzle pump-on", token);
-            // M400 only means the pump command was accepted. Give the
-            // real pump/air volume a bounded opportunity to settle before
-            // six-sample windows; open-nozzle response still must pass the
-            // original 8%-of-response stability limit without exception.
+            // M400 acknowledges the command, not settled pressure. Allow
+            // pump settling before taking a robust 15-reading detector window.
             ReportHardwareAction("Pump-on vacuum settling before open-nozzle sampling (1.2s)");
             await Task.Delay(1200, token);
             _open = await CaptureAsync(_head, token, _idle,
-                pressureStage: "pump-on / open nozzle", maxWindows: 5);
+                pressureStage: "pump-on / open nozzle");
             _oppositeOpen = await CaptureAsync(_head == 1 ? 2 : 1, token,
                 pressureStage: "inactive opposite head during pump-on");
             var minResponse = VacuumPressureSampling.RequiredResponse(_idle);
-            if (Math.Abs(_open.MeanRawCount - _idle.MeanRawCount) < minResponse)
-                throw new InvalidOperationException("Pump on did not produce distinguishable sensor response.");
+            var requiredOpenResponse = Math.Max(minResponse,
+                3.0 * (_idle.NoiseRadiusRaw + _open.NoiseRadiusRaw));
+            if (Math.Abs(_open.MeanRawCount - _idle.MeanRawCount) < requiredOpenResponse)
+                throw new InvalidOperationException(
+                    "Pump-on/no-part signal cannot be distinguished from its measured noise; no XY/Z movement attempted.");
             var maxOtherDrift = Math.Max(40.0, 3.0 * Math.Max(
                 _oppositeIdle.MaximumRawCount - _oppositeIdle.MinimumRawCount,
                 _oppositeOpen.MaximumRawCount - _oppositeOpen.MinimumRawCount));
@@ -916,7 +890,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             var summary = "Open 0% (" + candidate.NoPart.MeanRawCount.ToString("F0") +
                 ") | Obstructed 100% (" + candidate.Sealed.MeanRawCount.ToString("F0") +
                 ") | Part threshold " + candidate.PartPresentThresholdPercent.ToString("F0") +
-                "% | Idle reference " + candidate.Idle.MeanRawCount.ToString("F0");
+                "% | Robust gap " + candidate.ObservedBandGapRaw.ToString("F0") +
+                " counts | Idle reference " + candidate.Idle.MeanRawCount.ToString("F0");
             if (_head == 1) LeftSummary = summary;
             else RightSummary = summary;
             Status = ManufacturingResources.VacuumCalibration_ReleaseCaptured;
