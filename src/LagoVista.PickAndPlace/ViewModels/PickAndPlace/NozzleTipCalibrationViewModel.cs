@@ -786,11 +786,53 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _runoutOpticalLock = true;
                 capture.ResetDetections();
                 var tuned = tuneResponse.Result;
+
+                // A 24-frame free-diameter optical tune can be perfectly
+                // repeatable yet fail in the very next live frame when the
+                // diameter lock is enabled (seen on Head 2 N24).
+                // Do NOT report tune-image PASSED until the ACTUAL live
+                // production detector reacquires this same locked opening.
+                // Retry once at the unchanged, stationary inspection pose;
+                // never move the head based only on a raw auto-tune candidate.
+                NozzleRunoutSample firstLockedObservation = null;
+                for (var lockedAttempt = 0; lockedAttempt < 2 &&
+                    firstLockedObservation == null; lockedAttempt++)
+                {
+                    if (!ValidContext(out contextError) ||
+                        !await MotionIdleAsync(CancellationToken.None))
+                    {
+                        Stop(tuneStep, contextError ??
+                            "Machine became unavailable during locked-opening confirmation.");
+                        return false;
+                    }
+                    Status = $"Head {tool.HeadIndex}: raw auto-tune measured " +
+                        $"{tuned.DiameterMm:F3} mm. Confirming live diameter-locked " +
+                        $"opening ({lockedAttempt + 1}/2), with no XY motion.";
+                    firstLockedObservation = await ObserveFreshCircleAsync(
+                        0, CancellationToken.None);
+                }
+                if (firstLockedObservation == null)
+                {
+                    _runoutOpticalLock = false;
+                    Stop(tuneStep,
+                        $"Head {tool.HeadIndex}: {tuned.GoodFrames}/{tuned.TotalFrames} " +
+                        $"raw auto-tune frames found a {tuned.DiameterMm:F3} mm " +
+                        $"opening at {_cameraScale:F1} px/mm, but the LIVE " +
+                        "diameter-locked circle detector could not reacquire " +
+                        "it after 2 fresh observation windows. No optical " +
+                        "centering or rotation was commanded. Inspect the " +
+                        "bottom-camera EDGE/SHAPE/RING/CONTRAST diagnosis.");
+                    return false;
+                }
+
                 Pass(tuneStep,
                     $"Head {tool.HeadIndex}: {tuned.GoodFrames}/{tuned.TotalFrames} frames; " +
                     $"opening {tuned.DiameterMm:F3} mm, contrast {tuned.MedianContrast:F1}, " +
                     $"max center drift {tuned.MaxCenterDeviationMm:F3} mm; {_cameraScale:F1} px/mm. " +
-                    "Adaptive dark-opening detection locked for this run (not persisted).",
+                    $"Live diameter-locked reacquisition VERIFIED at " +
+                    $"X={firstLockedObservation.Xmm:+0.000;-0.000;0.000}, " +
+                    $"Y={firstLockedObservation.Ymm:+0.000;-0.000;0.000} mm. " +
+                    "Lock is session-only (not persisted).",
                     MachineOperationVerificationKind.VisionVerified, _cameraScale);
 
                 // The fixed bottom camera sees the nozzle move WITH the
@@ -811,7 +853,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         Stop(centerStep, contextError ?? "Machine was not idle before nozzle centering.");
                         return false;
                     }
-                    var observation = await ObserveFreshCircleAsync(0, CancellationToken.None);
+                    // The first observation was just freshly verified by
+                    // the LIVE diameter-locked detector without movement.
+                    // Reuse it rather than discarding the good track and
+                    // triggering a second identical detector race.
+                    var observation = centerAttempt == 0
+                        ? firstLockedObservation
+                        : await ObserveFreshCircleAsync(0, CancellationToken.None);
                     if (observation == null)
                     {
                         Stop(centerStep, "Could not reacquire the scale-locked dark opening for optical centering.");
