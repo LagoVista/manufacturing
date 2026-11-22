@@ -121,7 +121,7 @@
                     <TextBlock Text="{Binding SavedPickupStatus}" FontSize="12"
                                Foreground="#C5DCED" TextWrapping="Wrap"/>
                 </StackPanel>
-                <TextBlock Text="The final green ring is measured against the nozzle axis, NOT the camera crosshair. Only the operator-approved third pickup using the saved offset can turn green (radial residual <= 0.200 mm)."
+                <TextBlock Text="The final green ring is measured against the nozzle axis, NOT the camera crosshair. Only the operator-approved third pickup using the saved offset can turn green (radial residual &lt;= 0.200 mm)."
                            FontSize="11" Foreground="#B9C6D6" TextWrapping="Wrap" Margin="0,5,0,0"/>
             </StackPanel>
         </Border>
