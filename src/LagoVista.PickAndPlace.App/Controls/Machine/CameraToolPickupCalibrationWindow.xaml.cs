@@ -35,6 +35,25 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
                 await Procedure.RetryHistoryAsync();
         }
 
+        private async void SaveAndVerify_Click(object sender, RoutedEventArgs e)
+        {
+            if (Procedure?.CanSaveAndVerify != true)
+                return;
+
+            var confirmed = MessageBox.Show(this,
+                "Approve saving the measured camera-to-tool offset to Manufacturing " +
+                "and moving the REAL machine for a THIRD pickup using its normal " +
+                "SAVED offset (NO temporary jog)? The disc must be returned, " +
+                "the machine must be homed, idle and in Manual/camera mode. " +
+                "Keep the emergency stop accessible. A rejected pickup will " +
+                "attempt to restore the previous stored offset.",
+                "Approve persisted offset and supervised third pickup",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning,
+                MessageBoxResult.No);
+            if (confirmed == MessageBoxResult.Yes)
+                await Procedure.SaveAndVerifyAsync();
+        }
+
         private void CopyRunReport_Click(object sender, RoutedEventArgs e)
         {
             var report = Procedure?.DiagnosticReport;

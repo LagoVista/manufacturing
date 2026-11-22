@@ -104,10 +104,11 @@
                 <TextBlock Text="No head offsets are changed until the second independent pickup passes the acceptance threshold." FontSize="12" Foreground="#C9D5E3"
                            Margin="0,5,0,0" TextWrapping="Wrap"/>
                 <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
-                    <Ellipse Width="15" Height="15" Margin="0,0,7,0" StrokeThickness="2"
-                             Stroke="#9FB4CA" Fill="Transparent">
+                    <Ellipse Width="15" Height="15" Margin="0,0,7,0" StrokeThickness="2">
                         <Ellipse.Style>
                             <Style TargetType="Ellipse">
+                                <Setter Property="Stroke" Value="#9FB4CA"/>
+                                <Setter Property="Fill" Value="Transparent"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding SavedPickupVerified}" Value="True">
                                         <Setter Property="Fill" Value="#37C978"/>
