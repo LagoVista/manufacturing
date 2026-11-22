@@ -173,6 +173,10 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 var roundAccepted = 0;
                 var aspectAccepted = 0;
                 var roiAccepted = 0;
+                // Diagnostic only; retain at most four physical-radius matches.
+                // A contour may be bright and the right size but have a low
+                // roundness score because the dark nozzle occludes its edge.
+                var radiusMatchDetails = new System.Collections.Generic.List<string>();
                 double nearestOutsideMm = double.MaxValue;
                 CircleF? best = null;
                 var bestDistanceSquared = double.MaxValue;
@@ -191,21 +195,38 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                         if (requireCircularity)
                         {
                             var perimeter = CvInvoke.ArcLength(contour, true);
-                            if (perimeter <= 0 ||
-                                4 * Math.PI * moments.M00 / (perimeter * perimeter) < 0.78)
-                                continue;
-                        }
-                        roundAccepted++;
-
-                        if (requireCircularity)
-                        {
+                            var circularity = perimeter > 0
+                                ? 4 * Math.PI * moments.M00 / (perimeter * perimeter)
+                                : 0;
                             var bounds = CvInvoke.BoundingRectangle(contour);
-                            if (bounds.Width <= 0 || bounds.Height <= 0 ||
-                                (double)bounds.Width / bounds.Height < 0.85 ||
-                                (double)bounds.Width / bounds.Height > 1.15)
+                            var aspect = bounds.Height > 0
+                                ? (double)bounds.Width / bounds.Height : 0;
+                            if (radiusMatchDetails.Count < 4)
+                            {
+                                var cx = moments.M10 / moments.M00;
+                                var cy = moments.M01 / moments.M00;
+                                var centerDistanceMm = Math.Sqrt(
+                                    (cx - search.Center.X) * (cx - search.Center.X) +
+                                    (cy - search.Center.Y) * (cy - search.Center.Y)) / pixelsPerMM;
+                                radiusMatchDetails.Add(
+                                    $"D={2 * radius / pixelsPerMM:F2}mm " +
+                                    $"round={circularity:F3} (min .780) " +
+                                    $"aspect={aspect:F3} (0.85-1.15) " +
+                                    $"center=({cx:F0},{cy:F0})px " +
+                                    $"dist={centerDistanceMm:F2}mm");
+                            }
+                            if (perimeter <= 0 || circularity < 0.78)
                                 continue;
+                            roundAccepted++;
+                            if (aspect < 0.85 || aspect > 1.15)
+                                continue;
+                            aspectAccepted++;
                         }
-                        aspectAccepted++;
+                        else
+                        {
+                            roundAccepted++;
+                            aspectAccepted++;
+                        }
 
                         var candidate = new CircleF(
                             new System.Drawing.PointF((float)(moments.M10 / moments.M00),
@@ -240,7 +261,12 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     $"diameter range {2 * profile.HoughCirclesMinRadius:F1}-" +
                     $"{2 * profile.HoughCirclesMaxRadius:F1} mm, center ROI " +
                     $"{profile.TargetImageRadius:F1} mm, scale {pixelsPerMM:F1} px/mm" +
-                    outside + (best.HasValue ? "; centroid accepted" : "; no accepted centroid");
+                    outside +
+                    (radiusMatchDetails.Count > 0
+                        ? "; size-matched contours: " +
+                          String.Join(" | ", radiusMatchDetails)
+                        : "; no size-matched contour") +
+                    (best.HasValue ? "; centroid accepted" : "; no accepted centroid");
                 return best;
             }
         }
