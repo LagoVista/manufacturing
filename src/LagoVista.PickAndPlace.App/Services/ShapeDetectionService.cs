@@ -210,7 +210,8 @@ namespace LagoVista.PickAndPlace.App.Services
                 {
                     // Keep the observed nozzle visible instead of drawing full-frame
                     // candidate crosshairs and labels through its concentric features.
-                    DrawCircleCandidateMarker(img, foundCircle);
+                    DrawCircleCandidateMarker(img, foundCircle,
+                        camera.CurrentVisionProfile.Key != VisionProfile.VisionProfile_CalibrationDisc);
                 }
             }
             if (stagingHole && camera.CurrentVisionProfile.FindCircles)
@@ -300,12 +301,17 @@ namespace LagoVista.PickAndPlace.App.Services
         // Non-staging circle profiles draw only the candidate outline and a short
         // center marker. No candidate line spans the entire frame.
         private static void DrawCircleCandidateMarker(
-            IMVImage<IInputOutputArray> image, MVLocatedCircle circle)
+            IMVImage<IInputOutputArray> image, MVLocatedCircle circle,
+            bool permitImageCenteredGreen)
         {
             var center = new Point((int)Math.Round(circle.CenterPixels.X), (int)Math.Round(circle.CenterPixels.Y));
             var radius = Math.Max(1, (int)Math.Round(circle.RadiusPixels));
-            var color = circle.Centered ? new MCvScalar(0, 255, 0)
-                                        : new MCvScalar(0, 255, 255); // yellow until centered
+            // The calibration disc may be centered in the IMAGE yet still be
+            // off-center relative to the NOZZLE. Only the saved-offset third
+            // pickup overlay may turn that disc green.
+            var color = permitImageCenteredGreen && circle.Centered
+                ? new MCvScalar(0, 255, 0)
+                : new MCvScalar(0, 255, 255);
 
             CvInvoke.Circle(image.Image, center, radius, color, 2, LineType.AntiAlias);
             var cross = Math.Max(5, Math.Min(12, radius / 4));
@@ -339,11 +345,12 @@ namespace LagoVista.PickAndPlace.App.Services
             var offsetX = circle.OffsetPixels.X / scale;
             var offsetY = -circle.OffsetPixels.Y / scale;
             var diameter = circle.RadiusPixels * 2 / scale;
+            var disc = camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_CalibrationDisc;
             var status = !circle.Stabilized ? "TRACKING"
-                       : circle.Centered ? "CENTERED"
+                       : !disc && circle.Centered ? "CENTERED"
                        : circle.PositionStable ? "STABLE" : "DETECTED";
-            var color = circle.Centered ? new MCvScalar(0, 255, 0)
-                                        : new MCvScalar(0, 255, 255);
+            var color = !disc && circle.Centered ? new MCvScalar(0, 255, 0)
+                                                : new MCvScalar(0, 255, 255);
             var first = $"#{number} {status}  X {offsetX:+0.00;-0.00;0.00}  Y {offsetY:+0.00;-0.00;0.00} mm";
             var jitter = circle.PositionSpreadMM.HasValue
                 ? $"{circle.PositionSpreadMM.Value:0.00} mm" : "--";
