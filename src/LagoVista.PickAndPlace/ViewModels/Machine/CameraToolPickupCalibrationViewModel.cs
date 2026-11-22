@@ -111,6 +111,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 RaisePropertyChanged(nameof(ConfiguredHeights));
                 if (!CalibrationRunning)
                     PreviewSelectedHeadPlan();
+                RaisePropertyChanged(nameof(CanSaveAndVerify));
             }
         }
 
@@ -186,6 +187,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             {
                 Set(ref _running, value);
                 RaisePropertyChanged(nameof(CanOperate));
+                RaisePropertyChanged(nameof(CanSaveAndVerify));
             }
         }
         public bool PreviewBusy
@@ -265,6 +267,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 Status = "Previous physical run history is NOT saved. Retry History Save or copy the diagnostic report before starting another run.";
                 return;
             }
+            InvalidateSavedPickupCandidate();
             CalibrationRunning = true;
             CalibrationFinished = false;
             CandidateSummary = "No verified offset yet.";
@@ -524,6 +527,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 step.Detail = "Measured and verified only. Auto-save is OFF; the previous offset was preserved.";
                 step.Status = "Unsaved";
                 BlockHistoryStep("Both pickups verified. Candidate measurement only; offset intentionally UNSAVED pending supervised approval.");
+                PrepareSavedPickupCandidate(candidate);
                 return;
             }
             RequireValid();
@@ -1246,16 +1250,16 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 StepKey = key,
                 Name = detail,
                 Value = detail + ((key == "nozzle-reference" || key == "first-inspect" ||
-                    key == "second-inspect") && _lastBottomOpticalEvidence != null
+                    key == "second-inspect" || key == "inspect") && _lastBottomOpticalEvidence != null
                         ? " | " + _lastBottomOpticalEvidence : String.Empty),
                 Source = "T014.CameraToolPickupCalibrationViewModel",
                 VisionProfileKey = key == "first-target" || key == "second-target"
                     ? VisionProfile.VisionProfile_KnownLocation
                     : key == "nozzle-reference" ? VisionProfile.VisionProfile_Nozzle
-                    : key == "first-inspect" || key == "second-inspect"
+                    : key == "first-inspect" || key == "second-inspect" || key == "inspect"
                         ? VisionProfile.VisionProfile_CalibrationDisc : null,
                 PixelsPerMm = (key == "nozzle-reference" || key == "first-inspect" ||
-                    key == "second-inspect")
+                    key == "second-inspect" || key == "inspect")
                         ? _machine.PartInspectionCaptureService?.Camera?.EffectivePixelsPerMM
                         : null,
                 Verification = verification,
