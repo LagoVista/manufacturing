@@ -29,6 +29,19 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
                 await Procedure.StartAsync();
         }
 
+        private async void RetryHistory_Click(object sender, RoutedEventArgs e)
+        {
+            if (Procedure?.CanRetryHistory == true)
+                await Procedure.RetryHistoryAsync();
+        }
+
+        private void CopyRunReport_Click(object sender, RoutedEventArgs e)
+        {
+            var report = Procedure?.DiagnosticReport;
+            if (!String.IsNullOrWhiteSpace(report))
+                Clipboard.SetText(report);
+        }
+
         private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ClickCount == 1 && e.LeftButton == MouseButtonState.Pressed)
