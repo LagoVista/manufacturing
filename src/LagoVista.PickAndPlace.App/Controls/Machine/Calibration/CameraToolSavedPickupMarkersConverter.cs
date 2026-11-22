@@ -54,8 +54,8 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine.Calibration
                     CenterY = discY,
                     RadiusPixels = proof.DiscDiameterMm * pixelsPerMm / 2.0,
                     Label = proof.Verified
-                        ? $"GREEN - SAVED OFFSET {proof.ResidualMm:F3} mm"
-                        : $"NOT CENTERED {proof.ResidualMm:F3} mm"
+                        ? $"GREEN - CAMERA CENTER {proof.DiscCameraResidualMm:F3} mm"
+                        : $"NOT CAMERA CENTER {proof.DiscCameraResidualMm:F3} mm"
                 }
             };
         }

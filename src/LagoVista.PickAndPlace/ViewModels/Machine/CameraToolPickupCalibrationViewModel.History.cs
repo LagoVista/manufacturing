@@ -160,7 +160,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 }
                 RaisePropertyChanged(nameof(CanRetryHistory));
                 RaisePropertyChanged(nameof(DiagnosticReport));
-                await RetryHistoryAsync();
+                // This is the trusted, settled end-of-run path. The UI still
+                // treats the procedure as busy until this upload and session
+                // disposal complete; manual retry never bypasses that gate.
+                await RetryHistoryCoreAsync(allowWhileFinalizing: true);
             }
             catch (Exception ex)
             {
@@ -171,9 +174,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
         }
 
-        public async Task RetryHistoryAsync()
+        public Task RetryHistoryAsync() =>
+            RetryHistoryCoreAsync(allowWhileFinalizing: false);
+
+        private async Task RetryHistoryCoreAsync(bool allowWhileFinalizing)
         {
-            if (HistoryBusy || CalibrationRunning ||
+            if (HistoryBusy || (CalibrationRunning && !allowWhileFinalizing) ||
                 _pendingHistorySnapshot == null || _pendingHistoryDefinition == null)
                 return;
 

@@ -52,6 +52,8 @@ namespace LagoVista.PickAndPlace.Models
         public double NozzleOffsetYmm { get; set; }
         public double DiscDiameterMm { get; set; }
         public double ResidualMm { get; set; }
+        public double NozzleCameraResidualMm { get; set; }
+        public double DiscCameraResidualMm { get; set; }
         public bool Verified { get; set; }
     }
 }

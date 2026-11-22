@@ -190,6 +190,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _emptyNozzleOpticalLock = false;
             _emptyNozzleCameraId = null;
             _emptyNozzleCameraScale = 0;
+            // The saved offset changes physical positioning: reframe anew.
+            _inspectionFramingOffsetMm = null;
             SavedPickupStatus = "Saving approved offset; then independently verifying actual saved-offset pickup.";
             var oldOffset = new Point2D<double>(
                 candidate.PreviousOffsetMm.X, candidate.PreviousOffsetMm.Y);
@@ -285,9 +287,18 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     MachineOperationVerificationKind.VisionVerified);
 
                 Begin("verify", "Checking third-pickup residual against 0.200 mm radial tolerance.");
-                var passed = CameraToolPickupCalibrationMath.TryVerifySavedOffsetPickup(
-                    candidate, observed, DateTimeOffset.UtcNow,
-                    out var residual, out reason);
+                var pickupPassed =
+                    CameraToolPickupCalibrationMath.TryVerifySavedOffsetPickup(
+                        candidate, observed, DateTimeOffset.UtcNow,
+                        out var residual, out reason);
+                var pickupError = reason;
+                var cameraPassed =
+                    CameraToolBottomCameraFraming.TryVerifyCenteredPickup(
+                        nozzle.OffsetMm, disc.OffsetMm,
+                        out var nozzleCameraResidual, out var discCameraResidual,
+                        out var cameraError);
+                var passed = pickupPassed && cameraPassed;
+                reason = !pickupPassed ? pickupError : cameraError;
                 SavedPickupProof = new CameraToolSavedPickupProof
                 {
                     DiscOffsetXmm = disc.OffsetMm.X,
@@ -296,14 +307,21 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     NozzleOffsetYmm = nozzle.OffsetMm.Y,
                     DiscDiameterMm = disc.DiameterMm,
                     ResidualMm = residual,
+                    NozzleCameraResidualMm = nozzleCameraResidual,
+                    DiscCameraResidualMm = discCameraResidual,
                     Verified = passed
                 };
                 ShowSavedPickupRing = true;
                 SavedPickupStatus = passed
-                    ? $"GREEN: Head {head.HeadIndex} saved-offset pickup is centered " +
-                      $"within {residual:F3} mm (limit 0.200 mm). No temporary jog."
-                    : $"RED: Head {head.HeadIndex} saved-offset pickup residual " +
-                      $"{residual:F3} mm exceeds 0.200 mm. " + reason;
+                    ? $"GREEN: Head {head.HeadIndex} disc at CAMERA CENTER " +
+                      $"{discCameraResidual:F3} mm (max 0.200); nozzle at " +
+                      $"{nozzleCameraResidual:F3} mm (max 0.200); " +
+                      $"pickup residual {residual:F3} mm (max 0.200). " +
+                      "Saved-offset pickup, no temporary pickup jog."
+                    : $"RED: Head {head.HeadIndex}: disc-to-nozzle " +
+                      $"{residual:F3} mm, disc-to-camera " +
+                      $"{discCameraResidual:F3} mm, nozzle-to-camera " +
+                      $"{nozzleCameraResidual:F3} mm. " + reason;
                 // Hold the measured image while the machine remains stationary,
                 // so the operator can actually see the green/red disc outline.
                 await Task.Delay(1500);
@@ -313,8 +331,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 if (!passed)
                     throw new CalibrationStopped(reason);
                 SavedPickupVerified = true;
-                Pass("verify", $"GREEN center verified on THIRD pickup using " +
-                    $"SAVED offset: residual {residual:F3} mm <= 0.200 mm.",
+                Pass("verify", $"GREEN third pickup using SAVED offset: " +
+                    $"disc CAMERA CENTER residual {discCameraResidual:F3} mm " +
+                    $"within 0.200, nozzle camera residual {nozzleCameraResidual:F3} mm " +
+                    $"within 0.200, pickup residual {residual:F3} mm within 0.200.",
                     MachineOperationVerificationKind.VisionVerified);
 
                 Begin("return", "Returning the verified disc with the saved offset.");
@@ -407,11 +427,16 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 _emptyNozzleCameraScale = 0;
                 _head = null;
                 _machine = null;
-                CalibrationRunning = false;
-                CalibrationFinished = true;
-                await SaveSettledHistoryAsync();
-                _session = null;
-                RaisePropertyChanged(nameof(CanSaveAndVerify));
+                // The batch sequence shares this singleton VM between heads.
+                // Do not expose the green Completed state while the Head 1
+                // history save is still awaiting I/O and _session is live.
+                // Otherwise the batch auto-advances and late Head 1 cleanup
+                // clears Head 2's active operation at first-target.
+                await CameraToolCalibrationRunFinalization.FinishAsync(
+                    SaveSettledHistoryAsync,
+                    () => _session = null,
+                    () => CalibrationRunning = false,
+                    () => CalibrationFinished = true);
             }
         }
     }
