@@ -360,11 +360,22 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 _locator.UnregisterCircleLocatedHandler(this);
                 _head = null;
                 _machine = null;
-                CalibrationRunning = false;
-                CalibrationFinished = true;
-                // Remote history I/O happens only after recovery and settled motion.
-                await SaveSettledHistoryAsync();
-                _session = null;
+                // The VM is a singleton reused by the Head 2 step of Run All.
+                // Do NOT signal Finished/idle while async history publication
+                // still owns _session; that lets Head 2 start before Head 1
+                // clears it and causes "Lost procedure state at first-target".
+                // Keep this run busy until its session is completely retired.
+                try
+                {
+                    // Remote history I/O happens only after recovery and settled motion.
+                    await SaveSettledHistoryAsync();
+                }
+                finally
+                {
+                    _session = null;
+                    CalibrationRunning = false;
+                    CalibrationFinished = true;
+                }
             }
         }
 

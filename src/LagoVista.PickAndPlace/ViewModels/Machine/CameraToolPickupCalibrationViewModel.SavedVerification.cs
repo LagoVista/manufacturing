@@ -407,11 +407,22 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 _emptyNozzleCameraScale = 0;
                 _head = null;
                 _machine = null;
-                CalibrationRunning = false;
-                CalibrationFinished = true;
-                await SaveSettledHistoryAsync();
-                _session = null;
-                RaisePropertyChanged(nameof(CanSaveAndVerify));
+                // The batch sequence shares this singleton VM between heads.
+                // Do not expose the green Completed state while the Head 1
+                // history save is still awaiting I/O and _session is live.
+                // Otherwise the batch auto-advances and late Head 1 cleanup
+                // clears Head 2's active operation at first-target.
+                try
+                {
+                    await SaveSettledHistoryAsync();
+                }
+                finally
+                {
+                    _session = null;
+                    CalibrationRunning = false;
+                    CalibrationFinished = true;
+                    RaisePropertyChanged(nameof(CanSaveAndVerify));
+                }
             }
         }
     }
