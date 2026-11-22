@@ -4,6 +4,7 @@ using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
+using LagoVista.PickAndPlace.Models;
 using LagoVista.PickAndPlace.ViewModels.Machine;
 using System;
 using System.ComponentModel;
