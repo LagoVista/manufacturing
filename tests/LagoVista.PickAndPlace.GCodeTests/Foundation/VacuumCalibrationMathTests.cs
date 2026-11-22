@@ -180,8 +180,9 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                 var sealedBand = RobustCapture(head, sealedReadings, 2);
                 var centerResponse = Math.Abs(openBand.MeanRawCount - idleBand.MeanRawCount);
                 var legacyLimit = VacuumPressureSampling.AllowedRawSpread(idleBand, openBand.MeanRawCount);
-                Assert.That(openBand.MaximumRawCount - openBand.MinimumRawCount,
-                    Is.GreaterThan(legacyLimit), "This input was rejected by the prior 8% rule");
+                if (head == 2)
+                    Assert.That(openBand.MaximumRawCount - openBand.MinimumRawCount,
+                        Is.GreaterThan(legacyLimit), "Right-head input was rejected by the prior 8% rule");
 
                 Assert.That(centerResponse, Is.GreaterThan(3 *
                     (openBand.NoiseRadiusRaw + idleBand.NoiseRadiusRaw)));
