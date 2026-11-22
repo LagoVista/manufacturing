@@ -365,17 +365,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 // still owns _session; that lets Head 2 start before Head 1
                 // clears it and causes "Lost procedure state at first-target".
                 // Keep this run busy until its session is completely retired.
-                try
-                {
-                    // Remote history I/O happens only after recovery and settled motion.
-                    await SaveSettledHistoryAsync();
-                }
-                finally
-                {
-                    _session = null;
-                    CalibrationRunning = false;
-                    CalibrationFinished = true;
-                }
+                // Remote history I/O happens only after recovery and settled motion.
+                // Shared singleton cannot be reused until its old session is
+                // retired, even if the remote upload takes several seconds.
+                await CameraToolCalibrationRunFinalization.FinishAsync(
+                    SaveSettledHistoryAsync,
+                    () => _session = null,
+                    () => CalibrationRunning = false,
+                    () => CalibrationFinished = true);
             }
         }
 
