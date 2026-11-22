@@ -625,7 +625,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             return await ObserveBottomAsync(VisionProfile.VisionProfile_Nozzle, isCylinder:false);
         }
 
-        private async Task<BottomCircle> ObserveHeldCylinderAsync()
+        private async Task<BottomCircle> ObserveHeldCylinderAsync(bool retainFocusForSavedProof = false)
         {
             // The T004 nozzle-opening detector measures a dark opening; this
             // T003 target is the opposite: a filled white disc on black.
@@ -665,17 +665,23 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (!captureReady.Successful)
                 throw new CalibrationStopped("Calibration Disc bottom camera is not capturing fresh frames: " +
                     captureReady.ErrorMessage);
+            var acquired = false;
             try
             {
                 await MoveToInspectionCameraAsync(holdingCylinder:true);
-                return await ObserveBottomAsync(VisionProfile.VisionProfile_CalibrationDisc, isCylinder:true);
+                var result = await ObserveBottomAsync(
+                    VisionProfile.VisionProfile_CalibrationDisc, isCylinder:true);
+                acquired = true;
+                return result;
             }
             finally
             {
-                // Retract common Z even on failed centroid acquisition.
-                // The central failure handler separately returns any disc
-                // to its container with vacuum release if position is safe.
-                if (ValidMachine(out _) &&
+                // Always retract on failure and on regular first/second pick.
+                // ONLY the independent third acceptance may hold a known good,
+                // stationary focused frame for 1.5 seconds to show its ring;
+                // that caller must retract before returning the disc.
+                if ((!retainFocusForSavedProof || !acquired) &&
+                    ValidMachine(out _) &&
                     ReferenceEquals(_machine.CurrentMachineToolHead, _head))
                 {
                     _machine.SendSafeMoveHeight();

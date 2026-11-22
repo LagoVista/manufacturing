@@ -272,7 +272,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     MachineOperationVerificationKind.MachineObserved);
 
                 Begin("inspect", "Measuring held disc relative to fresh nozzle reference.");
-                var disc = await ObserveHeldCylinderAsync();
+                var disc = await ObserveHeldCylinderAsync(retainFocusForSavedProof: true);
                 var observed = CreateObservation(head, nozzle, disc, pickupMotionUtc);
                 Pass("inspect", $"Saved-offset disc minus nozzle: " +
                     $"X={observed.PartRelativeToNozzleMm.X:+0.000;-0.000;0.000}, " +
@@ -304,6 +304,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 // so the operator can actually see the green/red disc outline.
                 await Task.Delay(1500);
                 ShowSavedPickupRing = false;
+                machine.SendSafeMoveHeight();
+                await NeedIdleAsync("safe Z after focused saved-offset proof");
                 if (!passed)
                     throw new CalibrationStopped(reason);
                 SavedPickupVerified = true;
