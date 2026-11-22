@@ -15,6 +15,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         bool HistoryBusy { get; }
         string HistoryStatus { get; }
         string HistoryRunId { get; }
+        string LocalHistoryPath { get; }
         string DiagnosticReport { get; }
         bool PreviewBusy { get; }
         bool CanOperate { get; }
