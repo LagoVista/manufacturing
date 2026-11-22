@@ -1,6 +1,7 @@
 <Window x:Class="LagoVista.PickAndPlace.App.Controls.Machine.CameraToolPickupCalibrationWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:cal="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine.Calibration"
         Title="Camera-to-Tool XY Calibration"
         Width="1020" Height="790" MinWidth="820" MinHeight="590"
         WindowStartupLocation="CenterOwner" ResizeMode="CanResize"
@@ -150,47 +151,49 @@
             <TextBlock Grid.Column="4" Text="RETRIES" TextAlignment="Right" Foreground="#AAB8C9"/>
             </Grid>
         </Grid>
-        <Border Grid.Row="3" Background="#1D242F" BorderBrush="#374454"
-                BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,14">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding CalibrationSteps}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Style="{StaticResource ProcedureCard}">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="42"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="92"/>
-                                        <ColumnDefinition Width="82"/>
-                                        <ColumnDefinition Width="72"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="{Binding Number}"
-                                               VerticalAlignment="Center" Foreground="#98AFC8"
-                                               FontSize="15"/>
-                                    <StackPanel Grid.Column="1" Margin="0,0,12,0">
-                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold"
-                                                   FontSize="13" TextWrapping="Wrap"/>
-                                        <TextBlock Text="{Binding Detail}" Foreground="#BAC8D8"
-                                                   FontSize="11" TextWrapping="Wrap"
-                                                   Margin="0,3,0,0"/>
-                                    </StackPanel>
-                                    <TextBlock Grid.Column="2" Text="{Binding Status}"
-                                               Style="{StaticResource StepStatus}"
-                                               VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="3" Text="{Binding Duration}"
-                                               Foreground="#D4E1ED" FontFamily="Consolas"
-                                               TextAlignment="Right" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="4" Text="{Binding RetryCount}"
-                                               Foreground="#D4E1ED" FontFamily="Consolas"
-                                               TextAlignment="Right" VerticalAlignment="Center"/>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-        </Border>
+        <!-- Shared T008-T013 progress rail and real bottom-camera surface.
+             This view has no hardware side effects on opening. -->
+        <Grid Grid.Row="3" Margin="0,0,0,14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="315"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <cal:CalibrationStepRail Grid.Column="0"
+                                     Steps="{Binding CalibrationSteps}"
+                                     Margin="0,0,12,0"/>
+            <Border Grid.Column="1" Background="#0E1720"
+                    BorderBrush="#39516B" BorderThickness="1"
+                    CornerRadius="8" Padding="9">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <cal:CalibrationVideoSurface Grid.Row="0"
+                        FrameSource="{Binding CalibrationMachine.PartInspectionCaptureService.CaptureImage}"
+                        Caption="LIVE BOTTOM CAMERA · observe held calibration target and nozzle"/>
+                    <Border Grid.Row="1" Background="#1A2938"
+                            BorderBrush="#344A60" BorderThickness="1"
+                            CornerRadius="6" Padding="12" Margin="0,10,0,0">
+                        <StackPanel>
+                            <TextBlock Text="BOTTOM-CAMERA EVIDENCE"
+                                       FontWeight="Bold" Foreground="#91BDDE"
+                                       FontSize="11" Margin="0,0,0,6"/>
+                            <TextBlock Text="{Binding BottomVisionState}"
+                                       FontWeight="SemiBold" Foreground="#E9F5FF"
+                                       FontSize="14" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding BottomVisionMeasurements}"
+                                       FontFamily="Consolas" Foreground="#C0D5E5"
+                                       FontSize="12" TextWrapping="Wrap"
+                                       Margin="0,7,0,0"/>
+                            <TextBlock Text="Live camera frames are for observation. Only fresh vision and vacuum-sensor evidence can advance a calibration step."
+                                       Foreground="#A8BCCF" FontSize="10"
+                                       TextWrapping="Wrap" Margin="0,7,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
         <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>

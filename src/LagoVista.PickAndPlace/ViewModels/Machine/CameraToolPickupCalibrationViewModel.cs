@@ -97,6 +97,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 repo, locator, emitWarnings:false);
         }
 
+        public IMachine CalibrationMachine => _repo.CurrentMachine;
+
         public string HeadIndexText
         {
             get => _headIndexText;
@@ -168,6 +170,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             BottomVisionState = "WAITING FOR INSPECTION";
             BottomVisionMeasurements = "Bottom-camera measurements will appear here during acquisition.";
             _machine = _repo.CurrentMachine;
+            RaisePropertyChanged(nameof(CalibrationMachine));
             _head = null;
             _session = null;
             _emptyNozzleOpticalLock = false;
