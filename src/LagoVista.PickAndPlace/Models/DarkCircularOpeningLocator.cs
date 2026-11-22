@@ -33,6 +33,9 @@ namespace LagoVista.PickAndPlace.Models
             public int RejectedTooSmall { get; internal set; }
             public int RejectedTooLarge { get; internal set; }
             public int RejectedLockedDiameter { get; internal set; }
+            public double NearestQualifiedLockedDiameterMm { get; internal set; }
+            public double NearestQualifiedLockedDiameterDeltaMm { get; internal set; } = Double.PositiveInfinity;
+            public bool TinyRingGapRepairUsed { get; internal set; }
             public int RejectedShape { get; internal set; }
             public int RejectedOutsideSearch { get; internal set; }
             public int RejectedContrast { get; internal set; }
@@ -47,7 +50,9 @@ namespace LagoVista.PickAndPlace.Models
                     if (RejectedTooLarge > 0)
                         return $"OVERSIZE {LargestOversizeDiameterMm:F2} MM (> {MaximumOpeningDiameterMm:F2})";
                     if (RejectedLockedDiameter > 0)
-                        return "LOCKED DIAMETER MISMATCH";
+                        return NearestQualifiedLockedDiameterDeltaMm < Double.PositiveInfinity
+                            ? $"QUALIFIED RING WRONG DIAMETER {NearestQualifiedLockedDiameterMm:F2} MM"
+                            : "LOCKED DIAMETER MISMATCH";
                     if (RejectedAnnulus > 0)
                         return "INSUFFICIENT BRIGHT RING";
                     if (RejectedContrast > 0)
@@ -255,17 +260,9 @@ namespace LagoVista.PickAndPlace.Models
                         if (diagnostics != null) diagnostics.RejectedTooSmall++;
                         continue;
                     }
-                    // Do not count an arbitrary large dark connected region as
-                    // an oversize nozzle before proving its geometry/annulus.
-                    // That produced misleading OVERSIZE diagnostics for the
-                    // large dark background around Head 2.
-                    if (expectedDiameterMm > 0 &&
-                        Math.Abs(diameterMm - expectedDiameterMm) >
-                        Math.Max(0.12, expectedDiameterMm * 0.30))
-                    {
-                        if (diagnostics != null) diagnostics.RejectedLockedDiameter++;
-                        continue;
-                    }
+                    // A broken outer dark background must not masquerade as a
+                    // wrong nozzle diameter. Only report a diameter mismatch
+                    // AFTER the candidate proves shape and bright-ring support.
                     var aspect = (maxX - minX + 1.0) / (maxY - minY + 1.0);
                     if (aspect < 0.72 || aspect > 1.38)
                     {
@@ -370,6 +367,22 @@ namespace LagoVista.PickAndPlace.Models
                             diagnostics.RejectedTooLarge++;
                             diagnostics.LargestOversizeDiameterMm =
                                 Math.Max(diagnostics.LargestOversizeDiameterMm, diameterMm);
+                        }
+                        continue;
+                    }
+                    if (expectedDiameterMm > 0 &&
+                        Math.Abs(diameterMm - expectedDiameterMm) >
+                        Math.Max(0.12, expectedDiameterMm * 0.30))
+                    {
+                        if (diagnostics != null)
+                        {
+                            diagnostics.RejectedLockedDiameter++;
+                            var delta = Math.Abs(diameterMm - expectedDiameterMm);
+                            if (delta < diagnostics.NearestQualifiedLockedDiameterDeltaMm)
+                            {
+                                diagnostics.NearestQualifiedLockedDiameterDeltaMm = delta;
+                                diagnostics.NearestQualifiedLockedDiameterMm = diameterMm;
+                            }
                         }
                         continue;
                     }
