@@ -39,6 +39,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return DetailResponse<PickAndPlaceJob>.Create(await _pnpJobManager.GetPickAndPlaceJobAsync(id, OrgEntityHeader, UserEntityHeader));
         }
 
+        [McpEndpoint("manufacturing-job-factory", Description = "Get an initialized pick-and-place job model with organization and audit fields for creating a new job.", FamilyId = "manufacturing")]
         [HttpGet("/api/mfg/pnpjob/factory")]
         public DetailResponse<PickAndPlaceJob> CreatePickAndPlaceJob()
         {
@@ -54,6 +55,7 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return await _pnpJobManager.DeletePickAndPlaceJobAsync(id, OrgEntityHeader, UserEntityHeader);
         }
 
+        [McpEndpoint("manufacturing-job-create", Description = "Create a new pick-and-place job using a populated PickAndPlaceJob model. Use manufacturing-job-factory to obtain an initialized model.", FamilyId = "manufacturing")]
         [HttpPost("/api/mfg/pnpjob")]
         public Task<InvokeResult> AddPickAndPlaceJobAsync([FromBody] PickAndPlaceJob PickAndPlaceJob)
         {
