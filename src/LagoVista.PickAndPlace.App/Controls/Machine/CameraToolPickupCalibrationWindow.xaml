@@ -3,9 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:cal="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine.Calibration"
         Title="Camera-to-Tool XY Calibration"
-        Width="1020" Height="790" MinWidth="820" MinHeight="590"
-        WindowStartupLocation="CenterOwner" ResizeMode="CanResize"
-        Background="#181D26" Foreground="#EAF0F6"
+        Width="1160" Height="830" MinWidth="950" MinHeight="700"
+        WindowStartupLocation="CenterOwner" WindowStyle="None"
+        ResizeMode="NoResize" ShowInTaskbar="False"
+        Background="#161C25" Foreground="#EDF2F8"
         Closing="Window_Closing">
     <Window.Resources>
         <Style x:Key="ProcedureCard" TargetType="Border">
@@ -64,7 +65,9 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Border Background="#232B38" CornerRadius="10" Padding="18,16" Margin="0,0,0,12">
+        <Border Background="#222D3C" CornerRadius="9" Padding="15"
+                Margin="0,0,0,12" Cursor="SizeAll"
+                MouseLeftButtonDown="Header_MouseLeftButtonDown">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -77,7 +80,7 @@
                                FontSize="25" Margin="0,5,0,3"/>
                     <TextBlock Text="{Binding ToolHeadName}" Foreground="#DFE9F5"
                                FontSize="14"/>
-                    <TextBlock Text="Known Location · 7.5 mm white calibration disc" Foreground="#ACBDD0"
+                    <TextBlock Text="Known Location · nominal 7 mm white disc (verify actual fixture)" Foreground="#ACBDD0"
                                FontSize="12" Margin="0,2,0,0"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -112,12 +115,16 @@
             </Grid.RowDefinitions>
             <StackPanel Grid.Row="0" Margin="0,0,0,10">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Head (1/2):" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                    <TextBox Width="38" Text="{Binding HeadIndexText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,14,0"/>
-                    <CheckBox Content="Auto-save offset (disabled during initial machine verification)"
-                              IsChecked="{Binding SaveVerifiedOffset}" VerticalAlignment="Center"
-                              IsEnabled="False"
-                              ToolTip="Preserve original offsets until two-pick optical accuracy and hardware clearance are independently proven."/>
+                    <TextBlock Text="Physical head" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <ComboBox Width="166" Height="34" SelectedValuePath="Tag"
+                              SelectedValue="{Binding HeadIndexText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              IsEnabled="{Binding CanOperate}" Margin="0,0,16,0">
+                        <ComboBoxItem Content="Head 1" Tag="1"/>
+                        <ComboBoxItem Content="Head 2" Tag="2"/>
+                    </ComboBox>
+                    <TextBlock Text="OFFSET SAVE LOCKED · first machine verification is measurement-only"
+                               Foreground="#E8C58B" FontSize="11" VerticalAlignment="Center"
+                               TextWrapping="Wrap"/>
                 </StackPanel>
                 <TextBlock Text="{Binding ConfiguredHeights}" TextWrapping="Wrap"
                            Margin="0,7,0,2" FontWeight="SemiBold"/>
@@ -151,52 +158,61 @@
             <TextBlock Grid.Column="4" Text="RETRIES" TextAlignment="Right" Foreground="#AAB8C9"/>
             </Grid>
         </Grid>
-        <!-- Shared T008-T013 progress rail and real bottom-camera surface.
-             This view has no hardware side effects on opening. -->
-        <Grid Grid.Row="3" Margin="0,0,0,14">
+        <!-- Same T008-T013 operator layout: stage rail left and live vision right.
+             Camera tab selection is display-only and never commands machine motion. -->
+        <Grid Grid.Row="3" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="315"/>
+                <ColumnDefinition Width="285"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <cal:CalibrationStepRail Grid.Column="0"
                                      Steps="{Binding CalibrationSteps}"
                                      Margin="0,0,12,0"/>
-            <Border Grid.Column="1" Background="#0E1720"
-                    BorderBrush="#39516B" BorderThickness="1"
-                    CornerRadius="8" Padding="9">
+            <Border Grid.Column="1" Background="#101721"
+                    BorderBrush="#35475A" BorderThickness="1"
+                    CornerRadius="8" Padding="8">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <cal:CalibrationVideoSurface Grid.Row="0"
-                        FrameSource="{Binding CalibrationMachine.PartInspectionCaptureService.CaptureImage}"
-                        Caption="LIVE BOTTOM CAMERA · observe held calibration target and nozzle"/>
-                    <Border Grid.Row="1" Background="#1A2938"
-                            BorderBrush="#344A60" BorderThickness="1"
-                            CornerRadius="6" Padding="12" Margin="0,10,0,0">
-                        <StackPanel>
-                            <TextBlock Text="BOTTOM-CAMERA EVIDENCE"
-                                       FontWeight="Bold" Foreground="#91BDDE"
-                                       FontSize="11" Margin="0,0,0,6"/>
-                            <TextBlock Text="{Binding BottomVisionState}"
-                                       FontWeight="SemiBold" Foreground="#E9F5FF"
-                                       FontSize="14" TextWrapping="Wrap"/>
+                    <TabControl Grid.Row="0" Background="#172333" Foreground="#EDF4FA"
+                                SelectedIndex="1">
+                        <TabItem Header="Top camera - fixture">
+                            <cal:CalibrationVideoSurface
+                                FrameSource="{Binding CalibrationMachine.PositionImageCaptureService.CaptureImage}"
+                                Caption="LIVE POSITION CAMERA - known-location target, view only"/>
+                        </TabItem>
+                        <TabItem Header="Bottom camera - nozzle / disc">
+                            <cal:CalibrationVideoSurface
+                                FrameSource="{Binding CalibrationMachine.PartInspectionCaptureService.CaptureImage}"
+                                Caption="LIVE BOTTOM CAMERA - nozzle reference and held white disc"/>
+                        </TabItem>
+                    </TabControl>
+                    <Expander Grid.Row="1" Header="Optical diagnostics - bottom camera"
+                              IsExpanded="False" Background="#243040"
+                              Foreground="#EAF1FA" BorderBrush="#3C5066"
+                              BorderThickness="1" Padding="8" Margin="0,8,0,0">
+                        <StackPanel MaxHeight="155">
+                            <TextBlock Text="{Binding BottomVisionState}" FontWeight="SemiBold"
+                                       Foreground="#9FD5F5" FontSize="13"
+                                       TextWrapping="Wrap"/>
                             <TextBlock Text="{Binding BottomVisionMeasurements}"
-                                       FontFamily="Consolas" Foreground="#C0D5E5"
-                                       FontSize="12" TextWrapping="Wrap"
-                                       Margin="0,7,0,0"/>
-                            <TextBlock Text="Live camera frames are for observation. Only fresh vision and vacuum-sensor evidence can advance a calibration step."
+                                       FontFamily="Consolas" Foreground="#C5DFE8"
+                                       FontSize="11" TextWrapping="Wrap"
+                                       Margin="0,5,0,0"/>
+                            <TextBlock Text="Camera display is observational. Only fresh optical and vacuum evidence advances the procedure."
                                        Foreground="#A8BCCF" FontSize="10"
-                                       TextWrapping="Wrap" Margin="0,7,0,0"/>
+                                       TextWrapping="Wrap" Margin="0,6,0,0"/>
                         </StackPanel>
-                    </Border>
+                    </Expander>
                 </Grid>
             </Border>
         </Grid>
         <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
@@ -206,10 +222,14 @@
                 <TextBlock Text="First physical run must be attended. Emergency stop is independent. Closing the window is blocked while machine motion is active."
                            TextWrapping="Wrap" Foreground="#9DADC1" FontSize="10" Margin="0,5,0,0"/>
             </StackPanel>
-            <Button Grid.Column="1" Content="Start / Run Again" Style="{StaticResource ActionButton}"
-                    Click="RunAgain_Click" />
-            <Button Grid.Column="2" Content="Close" Style="{StaticResource ActionButton}"
-                    Click="Close_Click" IsEnabled="{Binding CalibrationFinished}"/>
+            <Button Grid.Column="1" Content="Preview Bottom Camera"
+                    Style="{StaticResource ActionButton}" Click="PreviewBottomCamera_Click"
+                    IsEnabled="{Binding CanOperate}"/>
+            <Button Grid.Column="2" Content="Start / Run Again"
+                    Style="{StaticResource ActionButton}" Click="RunAgain_Click"
+                    IsEnabled="{Binding CanOperate}"/>
+            <Button Grid.Column="3" Content="Close" Style="{StaticResource ActionButton}"
+                    Click="Close_Click" IsEnabled="{Binding CanOperate}"/>
         </Grid>
     </Grid>
 </Window>

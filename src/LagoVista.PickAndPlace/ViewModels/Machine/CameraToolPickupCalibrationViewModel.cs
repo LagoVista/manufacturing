@@ -66,6 +66,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private string _bottomVisionMeasurements = "Bottom-camera measurements will appear here during acquisition.";
         private string _toolHeadName = "Installed heads";
         private bool _running;
+        private bool _previewBusy;
         private bool _finished = true;
         private bool _autoSave;
         private ObservableCollection<FeederCalibrationFlowStep> _steps =
@@ -147,8 +148,22 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public bool CalibrationRunning
         {
             get => _running;
-            private set => Set(ref _running, value);
+            private set
+            {
+                Set(ref _running, value);
+                RaisePropertyChanged(nameof(CanOperate));
+            }
         }
+        public bool PreviewBusy
+        {
+            get => _previewBusy;
+            private set
+            {
+                Set(ref _previewBusy, value);
+                RaisePropertyChanged(nameof(CanOperate));
+            }
+        }
+        public bool CanOperate => !CalibrationRunning && !PreviewBusy;
         public bool CalibrationFinished
         {
             get => _finished;
@@ -160,9 +175,56 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             private set => Set(ref _steps, value);
         }
 
+        // Preview initializes only the bottom-camera stream. No homing, G92,
+        // head motion, vacuum command, vision-profile save, or offset write.
+        public async Task PreviewBottomCameraAsync()
+        {
+            if (!CanOperate)
+                return;
+            PreviewBusy = true;
+            try
+            {
+                var machine = _repo.CurrentMachine;
+                if (machine == null || !machine.Connected ||
+                    machine.Mode != OperatingMode.Manual ||
+                    machine.Busy || machine.IsLocating || _locator.IsLocating)
+                {
+                    Status = "Preview requires a connected, idle machine in Manual mode. No motion sent.";
+                    return;
+                }
+                var capture = machine.PartInspectionCaptureService;
+                if (capture == null)
+                {
+                    _bottomCameraBootstrap.CameraType = CameraTypes.PartInspection;
+                    capture = machine.PartInspectionCaptureService;
+                }
+                if (capture?.Camera == null || capture.CameraType != CameraTypes.PartInspection)
+                {
+                    Status = "Bottom camera is not configured. No motion sent.";
+                    return;
+                }
+                var ready = await capture.EnsureCaptureReadyAsync();
+                if (!ready.Successful)
+                {
+                    Status = "Bottom-camera preview unavailable: " + ready.ErrorMessage;
+                    return;
+                }
+                RaisePropertyChanged(nameof(CalibrationMachine));
+                Status = "Live bottom-camera preview ready with current profile. No machine motion or offset save.";
+            }
+            catch (Exception ex)
+            {
+                Status = "Bottom-camera preview failed without motion: " + ex.Message;
+            }
+            finally
+            {
+                PreviewBusy = false;
+            }
+        }
+
         public async Task StartAsync()
         {
-            if (CalibrationRunning)
+            if (!CanOperate)
                 return;
             CalibrationRunning = true;
             CalibrationFinished = false;
