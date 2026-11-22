@@ -828,7 +828,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     "returning to the measured holder before releasing vacuum.";
                 await ReturnCylinderAsync(_possibleDiscReturnTarget, _possibleDiscReturnCandidate);
                 return "Assumed disc was held: returned to its container, switched vacuum OFF, " +
-                    "and retracted to Safe Move Height. Stored offset unchanged.";
+                    "and retracted to Safe Move Height. " +
+                    (_savedOffsetVerificationActive
+                        ? "Saved-offset test was active; inspect rollback outcome below."
+                        : "Stored offset unchanged.");
             }
             catch (Exception recoveryError)
             {

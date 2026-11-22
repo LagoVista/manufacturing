@@ -24,6 +24,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private CameraToolSavedPickupProof _savedPickupProof;
         private bool _showSavedPickupRing;
         private bool _savedPickupVerified;
+        private bool _savedOffsetVerificationActive;
 
         public string SavedPickupStatus
         {
@@ -52,6 +53,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public bool CanSaveAndVerify =>
             !CalibrationRunning && !PreviewBusy && !HistoryBusy &&
             _pendingHistorySnapshot == null &&
+            HistoryStatus.StartsWith("RECORDED", StringComparison.Ordinal) &&
             _approvedCandidate != null &&
             ReferenceEquals(_repo.CurrentMachine, _approvedMachine) &&
             String.Equals(HeadIndexText,
@@ -162,6 +164,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 return;
             }
             var candidate = _approvedCandidate;
+            var twoPickRunId = _approvedTwoPickRunId;
             var machine = _repo.CurrentMachine;
             if (!VerifyApprovedPickupContext(candidate, machine, out var head, out var reason))
             {
@@ -172,6 +175,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             // This candidate is single-use. It must not survive a failed write
             // or a failed third pickup and accidentally be applied twice.
             InvalidateSavedPickupCandidate();
+            _savedOffsetVerificationActive = true;
             CalibrationRunning = true;
             CalibrationFinished = false;
             _machine = machine;
@@ -213,7 +217,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
                 Begin("readiness", "Confirming saved-offset pickup readiness and independent operator approval.");
                 RequireValid();
-                Pass("readiness", $"Explicitly approved candidate from two-pick run. " +
+                Pass("readiness", $"Explicitly approved candidate from two-pick run {twoPickRunId}. " +
                     $"Original ({oldOffset.X:F3},{oldOffset.Y:F3}), " +
                     $"proposed ({candidate.ProposedOffsetMm.X:F3},{candidate.ProposedOffsetMm.Y:F3}) mm. " +
                     "Third pickup MUST use stored offset and no correction jog.",
@@ -395,6 +399,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             finally
             {
                 ShowSavedPickupRing = false;
+                _savedOffsetVerificationActive = false;
                 lock (_observationGate) _pendingCircle = null;
                 _locator.UnregisterCircleLocatedHandler(this);
                 _emptyNozzleOpticalLock = false;
