@@ -649,6 +649,18 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         {
             var original = initial.OffsetMm;
             var probe = CameraToolBottomCameraFraming.ProbeMm;
+            try
+            {
+                // If already centered, avoid needless XY test motion.
+                if (CameraToolBottomCameraFraming.Radius(original) <=
+                    CameraToolBottomCameraFraming.NozzleCameraToleranceMm)
+                {
+                    _inspectionFramingOffsetMm = new Point2D<double>(0, 0);
+                    BottomVisionState = "NOZZLE ALREADY CENTERED";
+                    Status = $"Head {_head.HeadIndex}: nozzle already centered in " +
+                        $"bottom camera ({CameraToolBottomCameraFraming.Radius(original):F3} mm).";
+                    return initial;
+                }
             Status = $"Head {_head.HeadIndex}: Nozzle is " +
                 $"{CameraToolBottomCameraFraming.Radius(original):F3} mm " +
                 "from bottom camera center. Measuring small XY framing probes.";
@@ -692,6 +704,24 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 $"within {remaining:F3} mm; holding this camera inspection " +
                 "framing for each disc pickup.";
             return centered;
+            }
+            catch
+            {
+                // No unverified inspection framing may be reused.
+                _inspectionFramingOffsetMm = null;
+                throw;
+            }
+            finally
+            {
+                // The nozzle may be at optical Pick Height on ANY probe or
+                // detection failure. Never leave it low over the camera.
+                if (ValidMachine(out _) &&
+                    ReferenceEquals(_machine.CurrentMachineToolHead, _head))
+                {
+                    _machine.SendSafeMoveHeight();
+                    await NeedIdleAsync("safe Z after optical camera centering");
+                }
+            }
         }
 
         private async Task<BottomCircle> ObserveHeldCylinderAsync(bool retainFocusForSavedProof = false)
