@@ -1246,6 +1246,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private void Begin(string key, string description)
         {
+            // Session must be live BEFORE running any motion/vision stage.
+            // In particular, do not let a delayed singleton cleanup erase
+            // the operation and then proceed with another head's target jog.
+            if (_session?.Snapshot == null ||
+                _session.Snapshot.Status != MachineOperationRunStatus.Running)
+                throw new CalibrationStopped(
+                    "Missing active calibration session before " + key +
+                    ". No new procedure motion was requested.");
             RequireValid();
             var step = Step(key);
             if (step == null)
@@ -1258,8 +1266,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             bool saved = false)
         {
             var step = Step(key);
-            if (step == null || _session == null)
-                throw new CalibrationStopped("Lost procedure state at " + key);
+            if (_session == null)
+                throw new CalibrationStopped("Lost active procedure session at " + key +
+                    "; the run must be restarted after prior-session cleanup.");
+            if (step == null)
+                throw new CalibrationStopped("Lost procedure step at " + key +
+                    "; the selected head's step plan changed during the run.");
             var now = DateTimeOffset.UtcNow;
             _session.RecordEvidence(new MachineOperationEvidence
             {
