@@ -126,7 +126,7 @@ namespace LagoVista.PickAndPlace.Models
         /// locks subsequent tracking to the verified physical feature.</summary>
         public static Observation Find(byte[,,] gray, int width, int height,
             double pixelsPerMm, double searchRadiusMm, double expectedDiameterMm = 0,
-            RejectionDiagnostics diagnostics = null)
+            RejectionDiagnostics diagnostics = null, bool allowTinyRingGapRepair = true)
         {
             if (gray == null || width < 32 || height < 32 ||
                 gray.GetLength(0) < height || gray.GetLength(1) < width ||
@@ -399,7 +399,31 @@ namespace LagoVista.PickAndPlace.Models
                     });
                 }
             }
-            if (candidates.Count == 0) return null;
+            if (candidates.Count == 0)
+            {
+                // A one-pixel dark seam in the reflective metal annulus can
+                // connect a perfectly valid nozzle core to the outer black
+                // background. A flood-fill then reaches the ROI edge and
+                // incorrectly rejects every raw candidate. When a trusted
+                // diameter is already locked, permit ONE 3x3 grayscale bright
+                // closing recovery, then re-run ALL ordinary geometry, size,
+                // annular contrast and ambiguity acceptance checks. Reject
+                // larger gaps and unverified/no-tune profiles unchanged.
+                if (allowTinyRingGapRepair && expectedDiameterMm > 0)
+                {
+                    var bridged = CloseSinglePixelDarkSeams(gray, width, height);
+                    var recovered = Find(bridged, width, height, pixelsPerMm,
+                        searchRadiusMm, expectedDiameterMm,
+                        new RejectionDiagnostics(), allowTinyRingGapRepair:false);
+                    if (recovered != null &&
+                        RawAnnulusStillSupports(gray, width, height, recovered))
+                    {
+                        if (diagnostics != null) diagnostics.TinyRingGapRepairUsed = true;
+                        return recovered;
+                    }
+                }
+                return null;
+            }
             var ranked = candidates.OrderByDescending(c => c.Score).ToList();
             var best = ranked[0];
             // Similar-confidence, physically different targets are ambiguous.
@@ -415,6 +439,82 @@ namespace LagoVista.PickAndPlace.Models
                 }
             }
             return best;
+        }
+
+        /// <summary>
+        /// A tiny reflective-ring gap can allow the core to flood to the dark
+        /// ROI border. Bridge only black seams a single pixel across using
+        /// grayscale 3x3 bright closing (dilate, then erode). This is never
+        /// used for diameter discovery; only for an already-proven lock, and
+        /// acceptance still requires valid raw-image annular support.
+        /// </summary>
+        private static byte[,,] CloseSinglePixelDarkSeams(
+            byte[,,] source, int width, int height)
+        {
+            var expanded = new byte[height, width, 1];
+            var closed = new byte[height, width, 1];
+            for (var y = 0; y < height; y++)
+                for (var x = 0; x < width; x++)
+                {
+                    byte high = 0;
+                    for (var dy = -1; dy <= 1; dy++)
+                        for (var dx = -1; dx <= 1; dx++)
+                        {
+                            var xx = Math.Max(0, Math.Min(width - 1, x + dx));
+                            var yy = Math.Max(0, Math.Min(height - 1, y + dy));
+                            high = Math.Max(high, source[yy, xx, 0]);
+                        }
+                    expanded[y, x, 0] = high;
+                }
+            for (var y = 0; y < height; y++)
+                for (var x = 0; x < width; x++)
+                {
+                    byte low = 255;
+                    for (var dy = -1; dy <= 1; dy++)
+                        for (var dx = -1; dx <= 1; dx++)
+                        {
+                            var xx = Math.Max(0, Math.Min(width - 1, x + dx));
+                            var yy = Math.Max(0, Math.Min(height - 1, y + dy));
+                            low = Math.Min(low, expanded[yy, xx, 0]);
+                        }
+                    closed[y, x, 0] = low;
+                }
+            return closed;
+        }
+
+        // A repaired image must not manufacture nozzle-annulus evidence.
+        // Verify real raw pixels around the measured core at 24 directions.
+        private static bool RawAnnulusStillSupports(
+            byte[,,] raw, int width, int height, Observation feature)
+        {
+            if (feature == null || feature.RadiusPixels <= 0)
+                return false;
+            var supported = 0;
+            var quadrants = new bool[4];
+            for (var a = 0; a < 24; a++)
+            {
+                var angle = 2 * Math.PI * a / 24.0;
+                var dx = Math.Cos(angle);
+                var dy = Math.Sin(angle);
+                var innerX = (int)Math.Round(feature.X + dx * feature.RadiusPixels * 0.60);
+                var innerY = (int)Math.Round(feature.Y + dy * feature.RadiusPixels * 0.60);
+                var outerX = (int)Math.Round(feature.X + dx * feature.RadiusPixels * 1.45);
+                var outerY = (int)Math.Round(feature.Y + dy * feature.RadiusPixels * 1.45);
+                var outer2X = (int)Math.Round(feature.X + dx * feature.RadiusPixels * 1.85);
+                var outer2Y = (int)Math.Round(feature.Y + dy * feature.RadiusPixels * 1.85);
+                if (innerX < 0 || innerY < 0 || outerX < 0 || outerY < 0 ||
+                    outer2X < 0 || outer2Y < 0 || innerX >= width ||
+                    innerY >= height || outerX >= width || outerY >= height ||
+                    outer2X >= width || outer2Y >= height)
+                    continue;
+                var contrast = (raw[outerY, outerX, 0] +
+                    raw[outer2Y, outer2X, 0]) / 2.0 - raw[innerY, innerX, 0];
+                if (contrast < Math.Max(24, feature.Contrast * 0.35))
+                    continue;
+                supported++;
+                quadrants[a / 6] = true;
+            }
+            return supported >= 13 && quadrants.Count(q => q) >= 3;
         }
 
         /// <summary>Prove one physical feature across distinct captured frames.
