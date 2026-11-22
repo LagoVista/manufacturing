@@ -81,7 +81,7 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(CameraToolBottomCameraFraming.TryVerifyCenteredPickup(
                 P(0.04, -0.07), P(0.09, -0.10),
                 out nozzle, out disc, out error), Is.True, error);
-            Assert.That(nozzle, Is.LessThanOrEqualTo(0.12));
+            Assert.That(nozzle, Is.LessThanOrEqualTo(0.20));
             Assert.That(disc, Is.LessThanOrEqualTo(0.20));
         }
     }

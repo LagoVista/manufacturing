@@ -315,7 +315,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 SavedPickupStatus = passed
                     ? $"GREEN: Head {head.HeadIndex} disc at CAMERA CENTER " +
                       $"{discCameraResidual:F3} mm (max 0.200); nozzle at " +
-                      $"{nozzleCameraResidual:F3} mm (max 0.120); " +
+                      $"{nozzleCameraResidual:F3} mm (max 0.200); " +
                       $"pickup residual {residual:F3} mm (max 0.200). " +
                       "Saved-offset pickup, no temporary pickup jog."
                     : $"RED: Head {head.HeadIndex}: disc-to-nozzle " +
@@ -334,7 +334,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 Pass("verify", $"GREEN third pickup using SAVED offset: " +
                     $"disc CAMERA CENTER residual {discCameraResidual:F3} mm " +
                     $"within 0.200, nozzle camera residual {nozzleCameraResidual:F3} mm " +
-                    $"within 0.120, pickup residual {residual:F3} mm within 0.200.",
+                    $"within 0.200, pickup residual {residual:F3} mm within 0.200.",
                     MachineOperationVerificationKind.VisionVerified);
 
                 Begin("return", "Returning the verified disc with the saved offset.");
