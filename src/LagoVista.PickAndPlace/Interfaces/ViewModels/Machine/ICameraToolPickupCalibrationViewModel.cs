@@ -11,6 +11,12 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         Task StartAsync();
         Task PreviewBottomCameraAsync();
         Task RetryHistoryAsync();
+        Task SaveAndVerifyAsync();
+        bool CanSaveAndVerify { get; }
+        bool SavedPickupVerified { get; }
+        bool ShowSavedPickupRing { get; }
+        CameraToolSavedPickupProof SavedPickupProof { get; }
+        string SavedPickupStatus { get; }
         bool CanRetryHistory { get; }
         bool HistoryBusy { get; }
         string HistoryStatus { get; }

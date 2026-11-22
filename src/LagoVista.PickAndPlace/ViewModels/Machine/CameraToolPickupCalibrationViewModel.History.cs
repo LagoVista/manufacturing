@@ -217,6 +217,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 HistoryBusy = false;
                 RaisePropertyChanged(nameof(CanRetryHistory));
                 RaisePropertyChanged(nameof(DiagnosticReport));
+                RaisePropertyChanged(nameof(CanSaveAndVerify));
             }
         }
     }
