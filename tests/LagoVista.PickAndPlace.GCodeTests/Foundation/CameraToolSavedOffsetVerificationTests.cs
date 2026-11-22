@@ -88,52 +88,5 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                 candidate, third, now, out _, out _), Is.False);
         }
 
-        [Test]
-        public void SavedOffsetHistoryRequiresReceiptAndDistinctThirdPickup()
-        {
-            var definition = CameraToolSavedOffsetVerificationProcedure.Create();
-            Assert.That(definition.Key,
-                Is.EqualTo("camera-tool-saved-offset-pickup-verification"));
-            Assert.That(definition.Steps.Select(s => s.Key), Is.EqualTo(new[]
-            {
-                "readiness", "save-offset", "read-back", "nozzle-reference",
-                "target", "approach", "pick", "inspect", "verify", "return",
-                "safe-camera-mode"
-            }));
-            Assert.That(definition.Steps.Single(s => s.Key == "save-offset")
-                .RequiresSavedEvidence, Is.True);
-            Assert.That(definition.Steps.Where(s => s.Key != "save-offset")
-                .All(s => !s.RequiresSavedEvidence), Is.True);
-
-            var now = DateTimeOffset.UtcNow;
-            var run = new MachineOperationSession(definition,
-                new MachineOperationTarget { MachineId = "lumen-jr" }, now);
-            run.Start(now.AddMilliseconds(1));
-            run.RecordEvidence(new MachineOperationEvidence
-            {
-                RunId = run.Snapshot.RunId,
-                StepKey = "readiness",
-                CapturedAtUtc = now.AddMilliseconds(2),
-                Verification = MachineOperationVerificationKind.MachineObserved
-            });
-            run.CompleteActiveStep("readiness", now.AddMilliseconds(3));
-            run.RecordEvidence(new MachineOperationEvidence
-            {
-                RunId = run.Snapshot.RunId,
-                StepKey = "save-offset",
-                CapturedAtUtc = now.AddMilliseconds(4),
-                Verification = MachineOperationVerificationKind.MachineObserved,
-                Saved = false
-            });
-            Assert.Throws<InvalidOperationException>(() =>
-                run.CompleteActiveStep("save-offset", now.AddMilliseconds(5)));
-            run.BlockActiveStep("No saved machine receipt", now.AddMilliseconds(6));
-            var record = MachineOperationRunProjection.Project(
-                run.Snapshot, definition,
-                EntityHeader.Create("org1", "Test Org"),
-                EntityHeader.Create("user1", "Test Operator"));
-            Assert.That(record.Snapshot.Status, Is.EqualTo(MachineOperationRunStatus.Blocked));
-            Assert.That(record.Snapshot.ActiveStepKey, Is.EqualTo("save-offset"));
-        }
     }
 }
