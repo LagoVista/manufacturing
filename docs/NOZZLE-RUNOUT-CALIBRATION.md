@@ -40,6 +40,42 @@ scale-locked optical opening. The expanded settings/diagnostics area has
 one scrollbar and shows per-angle step duration/retries, measured offsets,
 pixel/mm, optical spread and the candidate logical zero.
 
+### Head 2 (N24) locked-opening consistency improvement — T015
+
+The operator observed that Head 2 could pass 24/24 free-diameter image-tune
+frames (measured opening **1.525 mm**, 12.5 px/mm, contrast **58.3**,
+max center drift **0.030 mm**) but then fail with **LOCKED DIAMETER MISMATCH**
+when the actual live nozzle detector tried to reacquire the same opening.
+
+A small seam through the metal nozzle's reflective bright annulus can
+connect its central dark core to the surrounding dark camera background,
+creating a spurious ROI-edge dark region. The detector now allows a single
+**3x3 bright-ring closing recovery**, but **only** for a previously verified
+physical opening with an active diameter lock and an ROI-edge rejection.
+It must re-pass the existing physical diameter, circularity, bright-annulus
+contrast/coverage, search ROI, and ambiguity checks; its recovered center
+also must pass an independent **raw-frame** bright-ring angular-support
+check. A large missing ring arc or wrong-sized nozzle stays rejected.
+The camera overlay explicitly says when the tiny-gap recovery was used.
+
+Diagnostics only report **WRONG DIAMETER** for a geometrically and
+optically qualified bright-ring candidate, including its measured diameter.
+An arbitrary dark background or edge-connected region is no longer
+misreported as a trustworthy nozzle-diameter mismatch.
+
+Most importantly, T004 does **not** mark the 24-frame tune stage Passed until
+the **live production diameter-locked detector** has reacquired a stable,
+profile- and head-verified opening at the stationary inspection pose. It
+may retry the stationary observation once; no XY centering or rotation
+occurs until this proof succeeds. The first verified live observation is
+reused to start optical centering, avoiding unnecessary reacquisition.
+If it still fails, the procedure blocks with clear guidance to inspect
+the detector's EDGE/SHAPE/RING/CONTRAST status.
+
+No persisted camera/nozzle settings, physical runout correction, T014
+pickup motion, or acceptance tolerance are altered. These synthetic tests
+do not replace a supervised Windows build and Head 2 real-camera test.
+
 Each installed head has an independent full step plan, optical session and
 runtime-only result. The shared rail follows all Head 1 steps and then all
 Head 2 steps under one operator Start. The verified optical result and
