@@ -86,7 +86,9 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 LatestNozzleRejection = opening == null
                     ? gray == null ? "INPUT IS NOT GRAYSCALE" :
                         rejection.PrimaryReason + " / " + rejection.ShortSummary
-                    : null;
+                    : rejection.TinyRingGapRepairUsed
+                        ? "LOCKED OPENING: TINY RING GAP REPAIRED / RAW RING VERIFIED"
+                        : null;
                 circles = opening == null ? Array.Empty<CircleF>() :
                     new[] { new CircleF(new System.Drawing.PointF(
                         (float)opening.X, (float)opening.Y), (float)opening.RadiusPixels) };

@@ -409,7 +409,8 @@ namespace LagoVista.PickAndPlace.Models
                 // closing recovery, then re-run ALL ordinary geometry, size,
                 // annular contrast and ambiguity acceptance checks. Reject
                 // larger gaps and unverified/no-tune profiles unchanged.
-                if (allowTinyRingGapRepair && expectedDiameterMm > 0)
+                if (allowTinyRingGapRepair && expectedDiameterMm > 0 &&
+                    (diagnostics == null || diagnostics.TouchingRoiEdge > 0))
                 {
                     var bridged = CloseSinglePixelDarkSeams(gray, width, height);
                     var recovered = Find(bridged, width, height, pixelsPerMm,

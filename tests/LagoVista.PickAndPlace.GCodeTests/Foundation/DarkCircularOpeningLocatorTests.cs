@@ -388,6 +388,19 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void WrongDiameterIsReportedOnlyForCircularBrightRingCandidate()
+        {
+            var diagnostic = new DarkCircularOpeningLocator.RejectionDiagnostics();
+            var frame = MakeLargeNozzleScene(100, 100, 9);
+            Assert.That(DarkCircularOpeningLocator.Find(frame,
+                200, 200, 12.5, 8.2, 0.55, diagnostic), Is.Null);
+            Assert.That(diagnostic.RejectedLockedDiameter, Is.GreaterThan(0));
+            Assert.That(diagnostic.NearestQualifiedLockedDiameterMm,
+                Is.InRange(1.2, 1.7));
+            Assert.That(diagnostic.PrimaryReason, Does.Contain("WRONG DIAMETER"));
+        }
+
+        [Test]
         public void LargeMissingRingArcRemainsUnqualifiedEvenWithTinyGapRecovery()
         {
             var damaged = MakeSeamedReflectiveNozzle(6);
