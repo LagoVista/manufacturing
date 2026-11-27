@@ -375,6 +375,7 @@ namespace LagoVista.PickAndPlace
         }
 
         private volatile bool _topLightOn;
+        private volatile bool _topLightDesiredOn;
         private readonly TopCameraIllumination _topIllumination;
         private TopCameraIllumination.Lease _manualTopLightLease;
         private readonly object _topLightCommandGate = new object();
@@ -435,6 +436,7 @@ namespace LagoVista.PickAndPlace
                 }
             }
 
+            _topLightDesiredOn = on;
             _topLightOn = on;
             _ = Task.Run(() => RaisePropertyChanged(nameof(TopLightOn)));
         }

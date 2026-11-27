@@ -9,6 +9,9 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
 using System.Diagnostics;
+using System;
+using System.Threading.Tasks;
+using LagoVista.Core.Models.Drawing;
 
 namespace LagoVista.PickAndPlace.ViewModels.Machine
 {
@@ -73,12 +76,21 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         }
 
         Stopwatch _originSW;
+        private bool _originRunning;
+        private TaskCompletionSource<OriginObservation> _originObservation;
+        private sealed class OriginObservation
+        {
+            public bool Centered;
+            public Point2D<double> Offset;
+        }
 
         public async void MachineVisionOrigin()
         {
-            if (_stagingPlateCalibration.Running)
+            if (_stagingPlateCalibration.Running || _originRunning)
                 return;
-
+            _originRunning = true;
+            try
+            {
             _originSW = Stopwatch.StartNew();
             Machine.DebugWriteLine("------------------------------------");
             Machine.DebugWriteLine("[MachineVisionOrigin] - Start");
@@ -98,7 +110,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 Machine.SendSafeMoveHeight();
                 await Machine.MoveToCameraAsync();
                 Machine.GotoPoint(MachineConfiguration.MachineFiducial);
-                await Machine.SpinUntilIdleAsync();
+                var positioned = await Machine.SpinUntilIdleAsync();
+                if (!positioned.Successful)
+                    throw new InvalidOperationException("Machine fiducial approach failed: " + positioned.ErrorMessage);
                 Machine.DebugWriteLine($"[MachineVisionOrigin] - Moved into position {_originSW.Elapsed.TotalMilliseconds}ms");
 
                 if (Machine.PositionImageCaptureService != null)
@@ -139,47 +153,83 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     }
                 }
 
-                _locatorViewModel.RegisterCircleLocatedHandler(this);
+                await RunOriginOpticalAsync(Machine);
+            }
+            }
+            catch (Exception ex)
+            {
+                Machine?.AddStatusMessage(StatusMessageTypes.Warning, "Machine vision origin stopped: " + ex.Message);
+            }
+            finally { _originRunning = false; }
+        }
+
+        // The legacy origin command uses the same per-observation permission
+        // as the newer calibration dialogs. No locator callback moves hardware.
+        private async Task RunOriginOpticalAsync(IMachine machine)
+        {
+            for (var correction = 0; correction <= FeederAutoCornerJogMath.MaxAutomaticJogs; correction++)
+            {
+                if (!ReferenceEquals(Machine, machine) || !machine.Connected || !machine.WasMachineHomed ||
+                    machine.CurrentMachineToolHead != null)
+                    throw new InvalidOperationException("Machine or camera navigation changed during origin calibration.");
+
+                OriginObservation found;
+                await using (var illumination = await machine.BeginTopCameraAcquisitionAsync(6000))
+                {
+                    machine.PositionImageCaptureService.ResetDetections();
+                    var request = new TaskCompletionSource<OriginObservation>(TaskCreationOptions.RunContinuationsAsynchronously);
+                    _originObservation = request;
+                    try
+                    {
+                        _locatorViewModel.RegisterCircleLocatedHandler(this, 5000);
+                        var completed = await Task.WhenAny(request.Task, Task.Delay(6000));
+                        illumination.ThrowIfInvalid();
+                        found = completed == request.Task ? await request.Task : null;
+                    }
+                    finally
+                    {
+                        _originObservation = null;
+                        _locatorViewModel.UnregisterCircleLocatedHandler(this);
+                    }
+                }
+
+                if (found == null)
+                    throw new InvalidOperationException("No stable machine fiducial circle within the observation window.");
+                if (!ReferenceEquals(Machine, machine) || !machine.Connected || machine.Busy ||
+                    machine.CurrentMachineToolHead != null)
+                    throw new InvalidOperationException("Machine changed after fiducial observation.");
+                if (found.Centered)
+                {
+                    var reset = await machine.ResetMachineCoordinates(MachineConfiguration.MachineFiducial);
+                    if (!reset.Successful)
+                        throw new InvalidOperationException("Origin reset not acknowledged: " + reset.ErrorMessage);
+                    machine.WasMachinOriginCalibrated = true;
+                    machine.AddStatusMessage(StatusMessageTypes.Info, "Found origin");
+                    machine.DebugWriteLine($"[MachineVisionOrigin] - Success {_originSW.Elapsed.TotalMilliseconds}ms");
+                    _ = _stagingPlateCalibration.RunAsync();
+                    return;
+                }
+                if (!FeederAutoCornerJogMath.CanJogAgain(correction))
+                    throw new InvalidOperationException("Machine fiducial correction limit reached.");
+                machine.GotoPoint(found.Offset, relativeMove: true);
+                var moved = await machine.SpinUntilIdleAsync(10000);
+                if (!moved.Successful)
+                    throw new InvalidOperationException("Fiducial correction not acknowledged: " + moved.ErrorMessage);
             }
         }
 
         public void CircleLocated(MVLocatedCircle circle)
         {
-            if (circle.Stabilized && !Machine.Busy)
+            if (circle.CameraType == CameraTypes.Position && circle.Stabilized && Machine?.Busy == false)
             {
-                if (circle.Centered)
-                {
-                    _locatorViewModel.UnregisterCircleLocatedHandler(this);
-                    Machine.AddStatusMessage(Manufacturing.Models.StatusMessageTypes.Info, "Found origin");
-                    Machine.WasMachinOriginCalibrated = true;
-                    Machine.ResetMachineCoordinates(MachineConfiguration.MachineFiducial);
-                    Machine.DebugWriteLine($"[MachineVisionOrigin] - Success {_originSW.Elapsed.TotalMilliseconds}ms");
-                    Machine.DebugWriteLine("-----------------------------");
-
-                    // Continue with an independent staging-plate runner. The Machine
-                    // Fiducial detector and origin-centering path remain unchanged.
-                    _ = _stagingPlateCalibration.RunAsync();
-                }
-                else
-                {
-                    Machine.GotoPoint(circle.OffsetMM, relativeMove: true);
-                }
-
-                circle.Reset();
+                var request = _originObservation;
+                if (request != null)
+                    request.TrySetResult(new OriginObservation { Centered = circle.Centered, Offset = circle.OffsetMM });
             }
         }
 
-        public void CircleLocatorTimeout()
-        {
-            _locatorViewModel.UnregisterCircleLocatedHandler(this);
-            Machine.DebugWriteLine($"[MachineVisionOrigin] - Failed {_originSW.Elapsed.TotalMilliseconds}ms");
-            Machine.DebugWriteLine("-----------------------------");
-        }
-
-        public void CircleLocatorAborted()
-        {
-            _locatorViewModel.UnregisterCircleLocatedHandler(this);
-        }
+        public void CircleLocatorTimeout() => _originObservation?.TrySetResult(null);
+        public void CircleLocatorAborted() => _originObservation?.TrySetResult(null);
 
         public RelayCommand HomeCommand { get;  }
         public RelayCommand SkipHomeCommand { get; }

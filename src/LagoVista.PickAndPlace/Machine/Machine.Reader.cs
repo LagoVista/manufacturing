@@ -39,11 +39,13 @@ namespace LagoVista.PickAndPlace
                     CompleteTopLightCommand();
                     return;
                 }
-                if (fullMessageLine.StartsWith("error:") || fullMessageLine.StartsWith("alarm:"))
+                if (fullMessageLine.StartsWith("error:"))
                 {
                     CompleteTopLightCommand(fullMessageLine);
                     return;
                 }
+                if (fullMessageLine.StartsWith("alarm:"))
+                    CompleteTopLightCommand(fullMessageLine); // preserve normal alarm handling below
             }
             if (fullMessageLine.StartsWith("ok") ||
                             fullMessageLine.StartsWith("<ok:"))

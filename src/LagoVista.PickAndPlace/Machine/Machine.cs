@@ -245,9 +245,8 @@ namespace LagoVista.PickAndPlace
             { 
                 if (profileName == camera.CurrentVisionProfile?.Key)
                 {
-                    // Re-selecting a profile must also restore its physical lighting.
-                    // Manual light controls can change hardware without changing the
-                    // active vision profile, so skipping this leaves state out of sync.
+                    // Re-selecting a profile restores its lighting preferences.
+                    // Only an explicit acquisition or timed preview can energize it.
                     camera.ProfileSource = VisionProfileSource.Camera;
                     camera.ProfileSourceId = null;
                     if (camera.CameraType.Value == CameraTypes.Position)

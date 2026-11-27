@@ -245,7 +245,7 @@ namespace LagoVista.PickAndPlace
             {
                 _topLightTransportFault = ex;
                 _topLightAwaitingAck = false;
-                if (_topLightOn) _topIllumination.Stop();
+                if (_topLightDesiredOn) _topIllumination.Stop();
                 AddStatusMessage(StatusMessageTypes.Warning, "Top light transmission failed: " + ex.Message);
                 throw;
             }
@@ -258,7 +258,7 @@ namespace LagoVista.PickAndPlace
             if (error != null)
             {
                 _topLightTransportFault = new InvalidOperationException(error);
-                if (_topLightOn) _topIllumination.Stop();
+                if (_topLightDesiredOn) _topIllumination.Stop();
                 AddStatusMessage(StatusMessageTypes.Warning, "Top light command rejected: " + error);
             }
             else _topLightTransportFault = null;

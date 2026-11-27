@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using LagoVista.PickAndPlace.Models;
 using NUnit.Framework;
 
@@ -160,6 +161,36 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             gate.Stop();
             using (gate.Begin(true, Window)) { }
             Assert.That(commands, Is.EqualTo(new[] { true, false, false, false, true, false }));
+        }
+
+        [Test]
+        public async Task AcquisitionDisposalSubmitsOffAndAwaitsAcknowledgementExactlyOnce()
+        {
+            var commands = new List<bool>();
+            var gate = new TopCameraIllumination(commands.Add);
+            var acknowledgement = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            int waits = 0;
+            var acquisition = new TopCameraIllumination.Acquisition(gate.Begin(true, Window), () =>
+            {
+                waits++;
+                return acknowledgement.Task;
+            });
+            var disposal = acquisition.DisposeAsync().AsTask();
+            Assert.That(commands, Is.EqualTo(new[] { true, false }));
+            Assert.That(disposal.IsCompleted, Is.False);
+            acknowledgement.SetResult(true);
+            await disposal;
+            await acquisition.DisposeAsync();
+            Assert.That(waits, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void AcquisitionReportsOffAcknowledgementFailure()
+        {
+            var gate = new TopCameraIllumination(_ => { });
+            var acquisition = new TopCameraIllumination.Acquisition(gate.Begin(true, Window),
+                () => Task.FromException(new InvalidOperationException("OFF not acknowledged")));
+            Assert.ThrowsAsync<InvalidOperationException>(async () => await acquisition.DisposeAsync());
         }
 
         [Test]
