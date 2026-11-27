@@ -210,7 +210,7 @@
                                 <Image Source="/imgs/SetTarget.png"/>
                             </Button.Content>
                         </Button>
-                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToCalculatedPickupCommand}"  ToolTip="Verify identity and move position camera to calculated pickup" Width="64" Height="64"  >
+                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToCalculatedPickupCommand}"  ToolTip="Move position camera to calculated pickup" Width="64" Height="64"  >
                             <Button.Content>
                                 <Image Source="/imgs/MoveToTarget.png"/>
                             </Button.Content>
@@ -222,7 +222,7 @@
                     <TextBlock Style="{StaticResource label}" Text="Feeder Fiducial"></TextBlock>
                     <TextBlock Style="{StaticResource content}" Text="{Binding Current.FiducialOffset}"></TextBlock>
                     <StackPanel Orientation="Horizontal">
-                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToCalculatedFiducialCommand}"  ToolTip="Verify identity and move position camera to calculated landmark" Width="64" Height="64"  >
+                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToCalculatedFiducialCommand}"  ToolTip="Move position camera to calculated landmark" Width="64" Height="64"  >
                             <Button.Content>
                                 <Image Source="/imgs/MoveToTarget.png"/>
                             </Button.Content>

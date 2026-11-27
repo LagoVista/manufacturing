@@ -335,7 +335,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (Machine.Mode != OperatingMode.Manual) return "Switch the machine to Manual.";
                 if (Machine.LeftVacuumPump || Machine.RightVacuumPump) return "Switch vacuum off.";
                 if (PlacementBusy || PhotonFeederViewModel.IsBusBusy || Machine.IsLocating) return "Operation in progress.";
-                return "Select a Go To target. Navigation waits for idle and checks live feeder identity.";
+                return "Select a Go To target. Navigation waits for machine idle; no feeder communication required.";
             }
         }
 
@@ -421,9 +421,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         throw new InvalidOperationException("Feeder or calculated target changed. Request navigation again.");
                 }
 
-                PlacementStatus = $"Checking slot {slot} identity before moving to {target}.";
-                var verified = await PhotonFeederViewModel.VerifyFeederIdentityAsync((byte)slot, id);
-                if (!verified.Successful) throw new InvalidOperationException(verified.ErrorMessage);
+                // Geometry inspection is independent of the feeder electronics.
+                // Retain configured slot/ID context and machine idle checks, but
+                // do not interrogate the feeder for camera-only navigation.
+                PlacementStatus = $"Preparing camera navigation to slot {slot} {target}.";
                 await PlacementIdleAsync(machine, feeder);
                 await CheckAsync();
                 var capture = machine.PositionImageCaptureService;
@@ -758,10 +759,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 await PlacementIdleAsync(machine, feeder);
                 if (generation != Volatile.Read(ref _placementGeneration) || !ConfiguredTestArmed)
                     throw new InvalidOperationException("Calibration context changed.");
-                PlacementStatus = $"Checking live Photon identity at slot {slot}.";
-                var identity = await PhotonFeederViewModel.VerifyFeederIdentityAsync((byte)slot, id);
-                if (!identity.Successful) throw new InvalidOperationException(identity.ErrorMessage + " Check the installed feeder and saved slot; no gantry movement was requested.");
-                PlacementStatus = "Live feeder identity verified. Preparing position camera.";
+                PlacementStatus = "Preparing position camera for optical measurement. Feeder communication is not required.";
                 await PlacementIdleAsync(machine, feeder);
                 var capture = machine.PositionImageCaptureService;
                 if (capture?.Camera?.CameraType?.Value != CameraTypes.Position)
@@ -856,10 +854,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (measured == null) throw new InvalidOperationException("No centered fiducial.");
                 await PlacementIdleAsync(machine, feeder);
                 Check();
-                PlacementStatus = "Rechecking live feeder identity before staging the measured offset.";
-                identity = await PhotonFeederViewModel.VerifyFeederIdentityAsync((byte)slot, id);
-                if (!identity.Successful) throw new InvalidOperationException(identity.ErrorMessage);
-                Check();
+                // Stage optical evidence without RS485. SaveCoreAsync still
+                // verifies the live identity before persisting to this feeder.
                 _placementCandidate = measured - origin.Result;
                 _placementOrigin = origin.Result;
                 _placementPrevious = previous;
@@ -867,7 +863,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _placementMachine = machine;
                 _placementSlot = slot;
                 _placementId = id;
-                PlacementStatus = $"Verified slot {slot}, measured {measured}; candidate offset {_placementCandidate}. Click Save to persist. Pick offset unchanged.";
+                PlacementStatus = $"Optically measured slot {slot}: {measured}; candidate offset {_placementCandidate}. Save verifies feeder identity before persisting. Pick offset unchanged.";
             }
             catch (Exception ex)
             {
