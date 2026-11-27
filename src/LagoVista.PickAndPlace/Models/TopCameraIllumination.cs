@@ -26,33 +26,44 @@ namespace LagoVista.PickAndPlace.Models
             if (maximum <= TimeSpan.Zero || maximum.TotalMilliseconds > int.MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(maximum));
 
+            Lease lease;
             lock (_gate)
             {
                 cancellation.ThrowIfCancellationRequested();
                 if (_active != null)
                     throw new InvalidOperationException("Top-camera illumination is already in use.");
 
-                var lease = new Lease(this, maximum, cancellation);
+                lease = new Lease(this, maximum, cancellation);
                 _active = lease;
                 try
                 {
-                    // Start the watchdog before submitting ON. Timer callbacks
-                    // serialize with ON/OFF and cannot affect a newer lease.
+                    // The watchdog and ON/OFF commands serialize. An old
+                    // timer cannot revoke or energize a newer permission.
                     lease.Timer = new Timer(_ => End(lease, EndReason.Timeout),
                         null, maximum, Timeout.InfiniteTimeSpan);
                     _command(requested);
-                    lease.Registration = cancellation.Register(() => End(lease, EndReason.Cancelled));
-                    lease.ThrowIfInvalid();
-                    return lease;
                 }
-                catch
+                catch (Exception ex)
                 {
                     End(lease, EndReason.Failed);
-                    // Do not synchronously dispose a cancellation registration
-                    // under this lock: its callback may be waiting for the lock.
-                    // The caller token owns the registration until cancellation or disposal.
+                    if (lease.OffError != null)
+                        throw new AggregateException("Top-camera light start and cleanup failed.", ex, lease.OffError);
                     throw;
                 }
+            }
+
+            // Register and dispose outside the lock; a cancellation callback
+            // may already be executing and need the same lock to submit OFF.
+            try
+            {
+                lease.Registration = cancellation.Register(() => End(lease, EndReason.Cancelled));
+                lease.ThrowIfInvalid();
+                return lease;
+            }
+            catch
+            {
+                lease.Dispose();
+                throw;
             }
         }
 
