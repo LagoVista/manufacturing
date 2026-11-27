@@ -35,14 +35,18 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             Job = _job;
             _jobManager.PropertyChanged += _jobManager_PropertyChanged;
 
-            GoToExpectedFiducialCommand = CreatedMachineConnectedCommand(GoToExpectedFiducial, () => SelectedFiducial != null && _alignment == null);
-            GoToActualFiducialCommand = CreatedMachineConnectedCommand(GoToActualFiducial, () => SelectedFiducial != null && SelectedFiducial.AbsoluteActual != null && IsBoardAligned && _alignment == null);
-            AlignCommand = CreatedMachineConnectedCommand(async () => await AlignBoardAsync(), () => Job != null && Job.BoardFiducials?.Count >= 2 && _alignment == null);
-            AlignFiducialCommand = CreatedMachineConnectedCommand(async () => await RunAlignmentAsync(false), () => SelectedFiducial != null && _alignment == null);
+            GoToExpectedFiducialCommand = CreatedMachineConnectedCommand(GoToExpectedFiducial, () => SelectedFiducial != null && _alignment == null && !_tuningExposure);
+            GoToActualFiducialCommand = CreatedMachineConnectedCommand(GoToActualFiducial, () => SelectedFiducial != null && SelectedFiducial.AbsoluteActual != null && IsBoardAligned && _alignment == null && !_tuningExposure);
+            AlignCommand = CreatedMachineConnectedCommand(async () => await AlignBoardAsync(), () => Job != null && Job.BoardFiducials?.Count >= 2 && _alignment == null && !_tuningExposure);
+            AlignFiducialCommand = CreatedMachineConnectedCommand(async () => await RunAlignmentAsync(false), () => SelectedFiducial != null && _alignment == null && !_tuningExposure);
             CancelAlignmentCommand = CreateCommand(() => _alignment?.Cancel(), () => _alignment != null);
+            TuneBoardExposureCommand = CreatedMachineConnectedCommand(async () => await TuneBoardExposureAsync(),
+                () => !_tuningExposure && _alignment == null);
         }
 
         private CancellationTokenSource _alignment;
+        private bool _tuningExposure;
+        private IMachine _watchedAlignmentMachine;
         private BoardRigidTransform _transform;
         private PickAndPlaceJob _alignedJob;
         private IMachine _alignedMachine;
@@ -55,7 +59,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         private async void NavigateFiducial(bool actual)
         {
-            if (_alignment != null || SelectedFiducial == null) return;
+            if (_alignment != null || _tuningExposure || SelectedFiducial == null) return;
             var operation = new CancellationTokenSource();
             _alignment = operation;
             RaiseCanExecuteChanged();
@@ -100,17 +104,45 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if (e.PropertyName == nameof(IJobManagementViewModel.Job)) Job = _jobManager.Job;
         }
 
+        private async Task TuneBoardExposureAsync()
+        {
+            if (_tuningExposure || _alignment != null) return;
+            _tuningExposure = true;
+            RaiseCanExecuteChanged();
+            var machine = Machine;
+            try
+            {
+                RequireMachine(machine, Job, CancellationToken.None, true);
+                var capture = machine.PositionImageCaptureService;
+                if (machine.Busy || machine.CurrentMachineToolHead != null ||
+                    capture?.Profile?.Key != VisionProfile.VisionProfile_BoardFiducial)
+                    throw new InvalidOperationException("Go to the expected board fiducial, leave the camera idle, then tune exposure.");
+                var result = await capture.AutoTuneExposureAsync();
+                if (!result.Successful) throw new InvalidOperationException(result.ErrorMessage);
+            }
+            catch (Exception ex)
+            {
+                machine?.AddStatusMessage(StatusMessageTypes.Warning, ex.Message);
+            }
+            finally
+            {
+                _tuningExposure = false;
+                RaiseCanExecuteChanged();
+            }
+        }
+
         public Task<InvokeResult> AlignBoardAsync() => RunAlignmentAsync(true);
 
         private async Task<InvokeResult> RunAlignmentAsync(bool entireBoard)
         {
-            if (_alignment != null) return InvokeResult.FromError("Board alignment is already in progress.");
+            if (_alignment != null || _tuningExposure) return InvokeResult.FromError("Board alignment or exposure tuning is already in progress.");
             var operation = new CancellationTokenSource();
             _alignment = operation;
             var token = operation.Token;
             var machine = Machine;
             var job = Job;
             var sw = Stopwatch.StartNew();
+            var selectedBoardProfile = false;
             IsBoardAligned = false;
             RaiseCanExecuteChanged();
             try
@@ -135,6 +167,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (capture?.Camera?.CameraType?.Value != CameraTypes.Position)
                     throw new InvalidOperationException("Position camera is unavailable.");
                 await ConfirmIdleAsync(machine, job, token);
+                selectedBoardProfile = true;
                 machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_BoardFiducial);
                 var ready = await capture.EnsureCaptureReadyAsync();
                 if (!ready.Successful) throw new InvalidOperationException(ready.ErrorMessage);
@@ -270,6 +303,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _transform = fit;
                 _alignedJob = job;
                 _alignedMachine = machine;
+                WatchAlignmentMachine(machine);
                 _alignedOrigin = origin;
                 _alignedExpected = expected;
                 _alignedRevision = revision;
@@ -289,6 +323,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
             finally
             {
+                if (selectedBoardProfile && machine?.Connected == true)
+                {
+                    try { machine.TopLightOn = false; }
+                    catch (Exception ex) { machine.AddStatusMessage(StatusMessageTypes.Warning, "Top light OFF command failed: " + ex.Message); }
+                }
                 _alignment = null;
                 operation.Dispose();
                 RaiseCanExecuteChanged();
@@ -542,9 +581,31 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             _alignment?.Cancel();
             IsBoardAligned = false;
+            WatchAlignmentMachine(machine);
+        }
+
+        private void WatchAlignmentMachine(IMachine machine)
+        {
+            if (ReferenceEquals(_watchedAlignmentMachine, machine)) return;
+            if (_watchedAlignmentMachine != null) _watchedAlignmentMachine.PropertyChanged -= AlignmentMachineChanged;
+            _watchedAlignmentMachine = machine;
+            if (machine != null) machine.PropertyChanged += AlignmentMachineChanged;
+        }
+
+        private void AlignmentMachineChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (!ReferenceEquals(sender, _watchedAlignmentMachine)) return;
+            if (e.PropertyName == nameof(IMachine.WasMachineHomed) ||
+                e.PropertyName == nameof(IMachine.WasMachinOriginCalibrated) ||
+                e.PropertyName == nameof(IMachine.Connected))
+            {
+                _alignment?.Cancel();
+                IsBoardAligned = false;
+            }
         }
 
         public RelayCommand CancelAlignmentCommand { get; }
+        public RelayCommand TuneBoardExposureCommand { get; }
         public RelayCommand AlignCommand { get; }
 
         public RelayCommand GoToExpectedFiducialCommand { get; }

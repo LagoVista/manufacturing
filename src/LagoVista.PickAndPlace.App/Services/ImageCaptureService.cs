@@ -93,6 +93,7 @@ namespace LagoVista.PickAndPlace.App.Services
         private const int AutoTuneMaximumIterations = 24;
 
         private bool _autoTuneExposureRequested;
+        private VisionProfile _autoTuneBoardProfile;
         private TaskCompletionSource<InvokeResult> _autoTuneExposureCompletion;
         private bool _nozzleTuneRequested;
         private TaskCompletionSource<InvokeResult<DarkCircularOpeningLocator.TuneResult>> _nozzleTuneCompletion;
@@ -633,8 +634,8 @@ namespace LagoVista.PickAndPlace.App.Services
 
         public async Task<InvokeResult> AutoTuneExposureAsync()
         {
-            if (_autoTuneExposureCompletion != null)
-                return InvokeResult.FromError("Camera Auto-Tune is already running.");
+            if (_autoTuneExposureCompletion != null || _nozzleTuneCompletion != null)
+                return InvokeResult.FromError("Camera Auto-Tune or nozzle tuning is already running.");
 
             if (_capture == null || !_running)
             {
@@ -647,6 +648,8 @@ namespace LagoVista.PickAndPlace.App.Services
                     return InvokeResult.FromError("Camera capture could not be started for Auto-Tune.");
             }
 
+            _autoTuneBoardProfile = CameraType == CameraTypes.Position &&
+                Profile?.Key == VisionProfile.VisionProfile_BoardFiducial ? Profile : null;
             _autoTuneExposureCompletion = new TaskCompletionSource<InvokeResult>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
             _autoTuneExposureRequested = true;
@@ -771,6 +774,145 @@ namespace LagoVista.PickAndPlace.App.Services
                         tuned.DiameterMm, camera.EffectivePixelsPerMM);
             }
             return InvokeResult<DarkCircularOpeningLocator.TuneResult>.Create(tuned);
+        }
+
+        /// <summary>
+        /// Explicit PCB-only exposure tune. The existing exposure capture owner
+        /// samples the physical board ROI; only the selected board profile may
+        /// be updated, never the calibrated camera-level exposure.
+        /// This is photometric qualification, not circle/board acceptance.
+        /// </summary>
+        private async Task<InvokeResult> RunBoardAutoTuneExposureAsync(VisionProfile profile)
+        {
+            var device = _capture;
+            var camera = Camera;
+            var machine = Machine;
+            var scale = camera?.EffectivePixelsPerMM ?? 0;
+            var search = profile.TargetImageRadius;
+            var maximumRadius = profile.HoughCirclesMaxRadius;
+            var original = profile.Exposure;
+            var starting = camera?.EffectiveExposure ?? 0;
+            var completion = _autoTuneExposureCompletion;
+            bool committed = false;
+
+            void Check()
+            {
+                if (!_running || device == null || !ReferenceEquals(device, _capture) ||
+                    !ReferenceEquals(completion, _autoTuneExposureCompletion) ||
+                    !ReferenceEquals(camera, Camera) || !ReferenceEquals(profile, Profile) ||
+                    !ReferenceEquals(machine, Machine) || machine == null ||
+                    !machine.Connected || !machine.WasMachineHomed || !machine.WasMachinOriginCalibrated ||
+                    machine.Mode != OperatingMode.Manual || machine.Busy || machine.IsLocating ||
+                    machine.CurrentMachineToolHead != null || machine.LeftVacuumPump || machine.RightVacuumPump ||
+                    CameraType != CameraTypes.Position || profile.Key != VisionProfile.VisionProfile_BoardFiducial ||
+                    !BoardRigidTransform.Finite(scale) || scale <= 0 ||
+                    !BoardRigidTransform.Finite(starting) ||
+                    !BoardRigidTransform.Finite(search) || search <= 0 ||
+                    !BoardRigidTransform.Finite(maximumRadius) || maximumRadius <= 0 ||
+                    camera.EffectivePixelsPerMM != scale || profile.TargetImageRadius != search ||
+                    profile.HoughCirclesMaxRadius != maximumRadius || profile.Exposure != original)
+                    throw new InvalidOperationException("Board exposure tuning requires unchanged, idle, homed camera navigation and valid board profile geometry.");
+            }
+
+            try
+            {
+                Check();
+                ExposureTuneProgress = null;
+                var candidates = new[] { 0, -1, 1, -2, 2, -3, 3, -4, 4 }
+                    .Select(delta => Math.Max(AutoTuneExposureMinimum,
+                        Math.Min(AutoTuneExposureMaximum, starting + delta))).Distinct();
+                foreach (var exposure in candidates)
+                {
+                    Check();
+                    device.Set(Emgu.CV.CvEnum.CapProp.Exposure, exposure);
+                    _lastExposure = exposure;
+                    for (int settle = 0; settle < AutoTuneSettleFrames; settle++)
+                    {
+                        Check();
+                        using (var ignored = device.QueryFrame()) { }
+                        await Task.Delay(50);
+                    }
+
+                    var thresholds = new List<double>();
+                    var separation = new List<double>();
+                    string rejection = "missing fresh frame";
+                    for (int sample = 0; sample < 5; sample++)
+                    {
+                        Check();
+                        using (var frame = device.QueryFrame())
+                        {
+                            if (frame != null)
+                            using (var raw = frame.ToImage<Gray, byte>())
+                            {
+                                // Capture's normal square crop is centered in
+                                // the sensor. A small centered ROI is equivalent
+                                // in uncropped coordinates and includes the full
+                                // configured fiducial size, not the machine disc.
+                                var extent = (search + maximumRadius) * scale;
+                                if (!BoardRigidTransform.Finite(extent) || extent < 3 ||
+                                    Math.Ceiling(extent) >= Math.Min(raw.Width, raw.Height) / 2.0)
+                                    throw new InvalidOperationException("Board search region does not fit the live camera frame.");
+                                int radius = (int)Math.Ceiling(extent);
+                                var roi = new System.Drawing.Rectangle(raw.Width / 2 - radius,
+                                    raw.Height / 2 - radius, 2 * radius, 2 * radius);
+                                using (var region = raw.GetSubRect(roi))
+                                using (var smooth = new Image<Gray, byte>(roi.Size))
+                                using (var binary = new Image<Gray, byte>(roi.Size))
+                                {
+                                    CvInvoke.GaussianBlur(region, smooth, new System.Drawing.Size(3, 3), 0);
+                                    var threshold = CvInvoke.Threshold(smooth, binary, 0, 255,
+                                        Emgu.CV.CvEnum.ThresholdType.Binary | Emgu.CV.CvEnum.ThresholdType.Otsu);
+                                    if (KnownLocationAutoThresholdGate.Assess(smooth.Data, region.Data,
+                                        (int)threshold, out var contrast, out rejection, 0.005))
+                                    {
+                                        thresholds.Add(threshold);
+                                        separation.Add(contrast);
+                                    }
+                                }
+                            }
+                        }
+                        await Task.Delay(50);
+                    }
+                    Check();
+                    bool stable = thresholds.Count == 5 &&
+                        thresholds.Max() - thresholds.Min() <= KnownLocationAutoThresholdGate.MaximumThresholdSpread;
+                    machine.AddStatusMessage(StatusMessageTypes.Info,
+                        $"Board exposure {exposure:F1}: {thresholds.Count}/5 valid fresh frames; " +
+                        (stable ? $"stable threshold {thresholds.Average():F0}/255, contrast {separation.Average():F0}." :
+                         thresholds.Count == 5 ? "threshold unstable." : rejection));
+                    if (!stable) continue;
+                    profile.Exposure = exposure;
+                    _lastExposure = exposure;
+                    committed = true;
+                    machine.AddStatusMessage(StatusMessageTypes.Info,
+                        $"Board profile exposure tuned to {exposure:F1}. Check unique circle detection before aligning.");
+                    return InvokeResult.Success;
+                }
+                return InvokeResult.FromError("No stable unsaturated board ROI in the bounded exposure search; previous profile exposure retained. Adjust lighting or framing.");
+            }
+            catch (Exception ex)
+            {
+                return InvokeResult.FromError("Board exposure tuning stopped: " + ex.Message);
+            }
+            finally
+            {
+                if (!committed && ReferenceEquals(device, _capture) && device != null)
+                {
+                    // Do not write shared camera calibration, including on
+                    // exceptions or when the operator switched profiles.
+                    try
+                    {
+                        var active = Camera?.EffectiveExposure ?? starting;
+                        device.Set(Emgu.CV.CvEnum.CapProp.Exposure, active);
+                        _lastExposure = active;
+                    }
+                    catch (Exception ex)
+                    {
+                        _lastExposure = -9999;
+                        machine?.DebugWriteLine("Board exposure restore failed: " + ex.Message);
+                    }
+                }
+            }
         }
 
         private async Task<InvokeResult> RunAutoTuneExposureAsync()
@@ -1011,6 +1153,7 @@ namespace LagoVista.PickAndPlace.App.Services
                 CaptureFrameSize = System.Drawing.Size.Empty;
 
                 _autoTuneExposureRequested = false;
+                _autoTuneBoardProfile = null;
                 _autoTuneExposureCompletion?.TrySetResult(
                     InvokeResult.FromError("Camera capture stopped before Auto-Tune completed."));
                 _autoTuneExposureCompletion = null;
@@ -1053,7 +1196,20 @@ namespace LagoVista.PickAndPlace.App.Services
                     if (_autoTuneExposureRequested)
                     {
                         var completion = _autoTuneExposureCompletion;
+                        var boardProfile = _autoTuneBoardProfile;
+                        _autoTuneBoardProfile = null;
                         _autoTuneExposureRequested = false;
+                        if (boardProfile != null)
+                        {
+                            try { completion?.TrySetResult(await RunBoardAutoTuneExposureAsync(boardProfile)); }
+                            catch (Exception ex) { completion?.TrySetResult(InvokeResult.FromError("Board exposure tuning stopped: " + ex.Message)); }
+                            finally
+                            {
+                                _shapeDetectorService.Reset();
+                                if (ReferenceEquals(_autoTuneExposureCompletion, completion)) _autoTuneExposureCompletion = null;
+                            }
+                            continue;
+                        }
 
                         // A failed sample can throw after changing the USB camera's
                         // physical exposure. Restore the saved baseline on every

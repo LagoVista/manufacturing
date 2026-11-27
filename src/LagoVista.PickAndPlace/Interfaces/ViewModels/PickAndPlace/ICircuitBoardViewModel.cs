@@ -27,6 +27,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand AlignFiducialCommand { get; }
         RelayCommand AlignCommand { get; }
         RelayCommand CancelAlignmentCommand { get; }
+        RelayCommand TuneBoardExposureCommand { get; }
 
         double AngleOffset { get; }
         Point2D<double> ScalingError { get; }

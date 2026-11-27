@@ -1,0 +1,21 @@
+# T002 — Board fiducial calibration engineering checkpoint
+
+Status: engineering changes on master; physical and desktop-app verification pending. T001 remains open and unchanged.
+
+- Active path: CircuitBoardViewModel and Board Fiducial profile; no legacy GRBL alignment or machine-origin mutation.
+- Board-local XY maps to calibrated camera-navigation machine XY through one rigid rotation/translation. Longest distinct nominal baseline, no scale/shear. Additional fiducials independent of fit. Optical centering uses radial error from unrounded pixel offsets, with saved board-profile tolerance. Engineering geometry consistency limits are 2x the profile tolerance (baseline and independent residual) and at least 10x tolerance baseline length; these are not physical PCB acceptance limits.
+- Machine preconditions: connected, homed, calibrated machine fiducial, Manual, vacuum off, valid position camera/scale, bounded work area, safe Z, camera navigation, motion acknowledgement and one-second settling. Unique consecutive stable optical evidence, bounded acquisition and correction, cancellation, no automatic pickup/placement.
+- Stage every observation; only a validated full-board result replaces the current job measurements. Failures invalidate current alignment; single-fiducial alignment reports a diagnostic measurement without committing a board transform. Alignment is current-job/setup/session scoped; there is no new persistent alignment store or physical board movement sensor.
+- Board Auto Threshold is opt-in, reuses ROI Otsu with board-specific physical radii, small foreground fraction, 3x3 blur, existing contrast/saturation and stability checks, optional inversion. Manual Hough path remains available; rejects ambiguous/missing circles. Board exposure tuning is explicit from an idle expected-fiducial view, samples a bounded local search, writes only the Board Fiducial profile on success, and leaves shared camera exposure unchanged. Contrast is not circle acceptance; verify unique detection afterward. Existing machine and Known Location profiles are unchanged.
+- Top light: board alignment submits OFF through the current runtime light control on exit. T001.5 foundation exists on master but global on-demand runtime integration/physical OFF feedback is not established; no claim of full thermal protection. Operator must monitor LED and turn it off manually as needed.
+- Initial proof at 18994a0943775be36cf2499a7484a3f93608cc04: Forge GCodeTests 521 passed, 0 failed, 0 skipped, journal 50c03f379084fadfd16508b9be143b54334e4bd884ad6c7245f7f7a03ab5610e; build-run succeeded as NuGet target, not a WPF app proof. Re-run proof after exposure follow-up.
+
+## Physical verification
+
+1. Build the Windows desktop app, connect/home and establish the existing machine fiducial and position-camera scale. No part pickup or placement.
+2. Secure a real PCB and set the existing coarse board origin. Confirm two sufficiently separated fiducials (prefer diagonal or longest baseline) and their expected locations.
+3. Select one fiducial, GoTo Expected Fiducial, frame the copper/contrast target. Tune Exposure explicitly if needed; enable Auto Threshold and verify the effective threshold/unique circle. Adjust board-profile radius range, search radius, polarity and centering tolerance if necessary; do not change T001 or the camera-wide calibration. Use manual threshold if the automatic path cannot reliably distinguish the target. Save vision-profile changes only after operator review.
+4. Align Board. Record rotation, baseline mismatch, signed XY and radial residuals. With two fiducials, fit residuals are not independent validation.
+5. Use camera navigation only to an independent known pad or third fiducial and report signed XY and radial residual in mm; confirm actual threshold with operator. Repeat alignment twice, compare results. Obscure a fiducial and verify failure preserves previous good measurements but denies current job alignment. Cancel and confirm no additional correction motion and light OFF command. No production placement authorization from this task alone.
+
+Desktop compile and actual PCB verification remain required before closure. Placement rotation/tool/nozzle verification is separate; T002 only establishes the board XY mapping.

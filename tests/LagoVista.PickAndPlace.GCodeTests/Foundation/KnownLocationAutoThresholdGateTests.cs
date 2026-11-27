@@ -70,5 +70,20 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
                     ? foreground : background);
             return frame;
         }
+        [Test]
+        public void BoardSmallForegroundUsesExplicitBoardFractionWithoutChangingKnownLocationDefault()
+        {
+            var gray = new byte[20, 20, 1];
+            for (int y = 0; y < 20; y++)
+            for (int x = 0; x < 20; x++)
+                gray[y, x, 0] = 50;
+            for (int y = 9; y < 11; y++)
+            for (int x = 9; x < 11; x++)
+                gray[y, x, 0] = 180;
+            Assert.That(KnownLocationAutoThresholdGate.Assess(gray, gray, 100, out _, out _), Is.False);
+            Assert.That(KnownLocationAutoThresholdGate.Assess(gray, gray, 100, out var contrast, out _, 0.005), Is.True);
+            Assert.That(contrast, Is.EqualTo(130));
+        }
+
     }
 }
