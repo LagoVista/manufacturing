@@ -24,6 +24,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private CameraToolNozzleCenterProof _headTwoCenterProof;
         private CameraToolNozzleCenterProof _visibleNozzleProof;
         private bool _sharedCandidateReady;
+        private string _headOnePickupState = "Pending";
+        private string _headTwoPickupState = "Pending";
+        private string _headOnePickupResult = "Not measured";
+        private string _headTwoPickupResult = "Not measured";
         private string _headOneDiscResult = "Not measured in this session";
         private string _headTwoDiscResult = "Not measured in this session";
         private string _headOneDiscState = "Pending";
@@ -60,6 +64,17 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             get => _visibleNozzleProof;
             private set => Set(ref _visibleNozzleProof, value);
         }
+        public string HeadOnePickupState { get => _headOnePickupState; private set => Set(ref _headOnePickupState, value); }
+        public string HeadTwoPickupState { get => _headTwoPickupState; private set => Set(ref _headTwoPickupState, value); }
+        public string HeadOnePickupResult { get => _headOnePickupResult; private set => Set(ref _headOnePickupResult, value); }
+        public string HeadTwoPickupResult { get => _headTwoPickupResult; private set => Set(ref _headTwoPickupResult, value); }
+
+        private void SetPickupResult(int index, string state, string result)
+        {
+            if (index == 1) { HeadOnePickupState = state; HeadOnePickupResult = result; }
+            else if (index == 2) { HeadTwoPickupState = state; HeadTwoPickupResult = result; }
+        }
+
         public string HeadOneDiscResult { get => _headOneDiscResult; private set => Set(ref _headOneDiscResult, value); }
         public string HeadTwoDiscResult { get => _headTwoDiscResult; private set => Set(ref _headTwoDiscResult, value); }
         public string HeadOneDiscState { get => _headOneDiscState; private set => Set(ref _headOneDiscState, value); }
@@ -305,8 +320,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     await NeedIdleAsync("safe Z after displayed shared pickup proof");
                 }
             }
-            SetDiscResult(index, displayPassed ? "Passed" : "Failed",
-                $"{(displayPassed ? "PASS" : "NOT CENTERED")} · disc {discCameraError:F3} mm · pickup {residual:F3} mm");
             SharedEvidence($"Head {index} {(frame ? "framed" : "uncorrected")} nozzle {Describe(nozzle.OffsetMm)}; disc {Describe(disc.OffsetMm)}; pickup residual {Describe(observation.PartRelativeToNozzleMm)}");
             await ReturnCylinderAsync(target, null);
             if (_machine.LeftVacuumPump || _machine.RightVacuumPump)
@@ -316,6 +329,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (residual > CameraToolBottomCameraFraming.NozzleCameraToleranceMm)
                 throw new CalibrationStopped($"Head {index} saved pickup residual {residual:F3} mm exceeds 0.200 mm.");
             CheckSharedStop();
+            SetDiscResult(index, displayPassed ? "Passed" : "Failed",
+                $"{(displayPassed ? "PASS" : "FAIL")} · {discCameraError:F3} mm");
             return residual;
         }
 

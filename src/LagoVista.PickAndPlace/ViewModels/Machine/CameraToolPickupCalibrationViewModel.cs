@@ -273,7 +273,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             ClearSharedCandidate();
             ResetNozzleResults();
             if (Int32.TryParse(HeadIndexText, out var displayHead) && (displayHead == 1 || displayHead == 2))
-                SetDiscResult(displayHead, "Pending", "Not yet verified for this pickup run");
+            {
+                SetPickupResult(displayHead, "Running", "Measuring...");
+                SetDiscResult(displayHead, "Pending", "Awaiting approval");
+            }
             InvalidateSavedPickupCandidate();
             CalibrationRunning = true;
             CalibrationFinished = false;
@@ -344,6 +347,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
             catch (Exception ex)
             {
+                if (displayHead == 1 || displayHead == 2)
+                    SetPickupResult(displayHead, "Failed", "STOPPED");
                 // Any failure after vacuum activation must assume the disc is
                 // still held. Do not rely on the vacuum classifier or the last
                 // successful vision measurement to decide whether to return it.
@@ -544,6 +549,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 step.Status = "Unsaved";
                 BlockHistoryStep("Both pickups verified. Candidate measurement only; offset intentionally UNSAVED pending supervised approval.");
                 PrepareSavedPickupCandidate(candidate);
+                SetPickupResult(head.HeadIndex, "Passed", $"PASS · {residual:F3} mm");
                 return;
             }
             RequireValid();

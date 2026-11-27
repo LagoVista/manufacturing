@@ -357,7 +357,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     $"third pickup GREEN, residual {residual:F3} mm. Camera mode restored.",
                     MachineOperationVerificationKind.MachineObserved);
 
-                SetDiscResult(head.HeadIndex, "Passed", $"PASS · disc {discCameraResidual:F3} mm · pickup {residual:F3} mm");
+                SetDiscResult(head.HeadIndex, "Passed", $"PASS · {discCameraResidual:F3} mm");
                 Status = SavedPickupStatus + " Offset saved and read back.";
             }
             catch (Exception ex)
