@@ -42,10 +42,16 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             RequireValid();
             if (_stopAutomatic || _stopShared)
                 throw new CalibrationStopped("Operator requested stop.");
-            if (_machine.Busy || _machine.ToSendQueueCount != 0 ||
-                _machine.UnacknowledgedBytesSent != 0 || _machine.IsLocating || _locator.IsLocating ||
-                !ReferenceEquals(_machine.CurrentMachineToolHead, _head))
-                throw new CalibrationStopped("Machine or head state changed during mechanical settling.");
+            if (!ReferenceEquals(_machine.CurrentMachineToolHead, _head))
+                throw new CalibrationStopped("Selected tool head changed during mechanical settling.");
+            // Reuse the established bounded controller-idle gate rather than
+            // treating a transient status update as a new safety failure.
+            await NeedIdleAsync(description + " after mechanical settling");
+            RequireValid();
+            if (!ReferenceEquals(_machine.CurrentMachineToolHead, _head))
+                throw new CalibrationStopped("Selected tool head changed after mechanical settling.");
+            if (_stopAutomatic || _stopShared)
+                throw new CalibrationStopped("Operator requested stop.");
         }
         private string _repeatabilityProgress = "";
         private string _fiducialCheckpointStatus = "";

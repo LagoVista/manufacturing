@@ -182,13 +182,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     {
                         HeadIndexText = index.ToString();
                         await StartCoreAsync();
-                        await RequireAutomaticBoundaryAsync();
                         if (!CanSaveAndVerify)
                             throw new CalibrationStopped("Head " + index + " did not produce a recorded two-pick candidate. " + Status);
-                        await SaveAndVerifyCoreAsync();
                         await RequireAutomaticBoundaryAsync();
+                        await SaveAndVerifyCoreAsync();
                         if (!SavedPickupVerified || CalibrationSteps.Any(s => s.Status != "Passed"))
                             throw new CalibrationStopped("Head " + index + " saved pickup did not pass. " + Status);
+                        await RequireAutomaticBoundaryAsync();
                         await RunFiducialCheckpointAsync("After Head " + index + " pickup acceptance");
                         await RequireAutomaticBoundaryAsync();
                         if (CalibrationSteps.Any(s => s.Status != "Passed"))
