@@ -142,6 +142,27 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void OffFailureBlocksNewPermissionUntilExplicitSuccessfulOff()
+        {
+            var failOff = true;
+            var commands = new List<bool>();
+            var gate = new TopCameraIllumination(on =>
+            {
+                commands.Add(on);
+                if (!on && failOff) throw new InvalidOperationException("OFF failed");
+            });
+            var lease = gate.Begin(true, Window);
+            Assert.Throws<InvalidOperationException>(() => lease.Dispose());
+            Assert.Throws<InvalidOperationException>(() => gate.Begin(true, Window));
+            Assert.That(commands, Is.EqualTo(new[] { true, false }));
+            Assert.Throws<InvalidOperationException>(() => gate.Stop());
+            failOff = false;
+            gate.Stop();
+            using (gate.Begin(true, Window)) { }
+            Assert.That(commands, Is.EqualTo(new[] { true, false, false, false, true, false }));
+        }
+
+        [Test]
         public void PreCancelledOperationNeverSubmitsOn()
         {
             var commands = new List<bool>();
