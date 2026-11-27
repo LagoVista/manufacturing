@@ -244,6 +244,43 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 " ms of status settling. No fiducial motion was issued.";
         }
 
+        // The firmware barrier has already completed. Allow asynchronous
+        // Busy/queue/locator status to settle before declaring a checkpoint
+        // failure. Never issue movement or override a hard context interlock.
+        private async Task<string> ConfirmReferenceIdleAsync(IMachine machine, string phase)
+        {
+            const int settleTimeoutMs = 1500;
+            var elapsed = Stopwatch.StartNew();
+            var idleReads = 0;
+            while (true)
+            {
+                if (!ContextValid(false, out var error))
+                    return error;
+                if (!ReferenceEquals(machine, MachineRepo.CurrentMachine) ||
+                    !machine.WasMachinOriginCalibrated || machine.CurrentMachineToolHead != null ||
+                    machine.LeftVacuumPump || machine.RightVacuumPump)
+                    return "Machine identity, calibrated origin, camera navigation or vacuum state changed.";
+
+                if (!machine.Busy && !machine.IsLocating && !_locator.IsLocating &&
+                    machine.ToSendQueueCount == 0 && machine.UnacknowledgedBytesSent == 0)
+                {
+                    if (++idleReads >= 2)
+                        return null;
+                }
+                else
+                {
+                    idleReads = 0;
+                    Status = "Waiting for fiducial checkpoint to settle: " + phase;
+                }
+
+                if (elapsed.ElapsedMilliseconds >= settleTimeoutMs)
+                    return $"Fiducial checkpoint still not idle after {settleTimeoutMs} ms ({phase}): " +
+                        $"Busy={machine.Busy}, machine locating={machine.IsLocating}, locator active={_locator.IsLocating}, " +
+                        $"queued={machine.ToSendQueueCount}, unacknowledged bytes={machine.UnacknowledgedBytesSent}.";
+                await Task.Delay(100);
+            }
+        }
+
         public Task RunAsync() => RunCoreAsync(false);
 
         public FiducialCircleObservation VerifiedReferenceObservation { get; private set; }
@@ -364,7 +401,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     Fail(preMoveError);
                     return;
                 }
-                if (!ContextValid(true, out var error))
+                var error = measureOnly ? await ConfirmReferenceIdleAsync(machine, "before safe Z") : null;
+                if (error != null || !ContextValid(!measureOnly, out error))
                 {
                     Fail(error);
                     return;
@@ -386,13 +424,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     machine.SendSafeMoveHeight();
                     var raised = await machine.SpinUntilIdleAsync(10000);
                     var actual = raised.Successful ? await machine.GetCurrentLocationAsync(5000) : null;
-                    if (!raised.Successful || actual == null || !actual.Successful ||
-                        !FiniteReference(machine.ToolCommonZ) || Math.Abs(machine.ToolCommonZ - safeZ) > 0.20 ||
-                        !ContextValid(true, out error) || !ReferenceEquals(machine, MachineRepo.CurrentMachine) ||
-                        machine.CurrentMachineToolHead != null || machine.LeftVacuumPump || machine.RightVacuumPump ||
-                        machine.IsLocating || _locator.IsLocating)
+                    error = raised.Successful && actual?.Successful == true
+                        ? await ConfirmReferenceIdleAsync(machine, "after safe Z read-back") : "Safe Z move/read-back failed.";
+                    if (error != null || !FiniteReference(machine.ToolCommonZ) ||
+                        Math.Abs(machine.ToolCommonZ - safeZ) > 0.20)
                     {
-                        Fail("Safe Z or machine state could not be verified for fiducial checkpoint.");
+                        Fail(error ?? "Safe Z could not be verified for fiducial checkpoint.");
                         return;
                     }
                 }
@@ -408,29 +445,33 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     Fail("Could not reach fiducial: " + positioning.ErrorMessage);
                     return;
                 }
+                if (measureOnly)
+                {
+                    error = await ConfirmReferenceIdleAsync(machine, "after fiducial XY move");
+                    if (error != null)
+                    {
+                        Fail(error);
+                        return;
+                    }
+                    if (mechanicalSettleMs > 0)
+                        await Task.Delay(mechanicalSettleMs);
+                    error = await ConfirmReferenceIdleAsync(machine, "after mechanical settling");
+                    if (error != null)
+                    {
+                        Fail(error);
+                        return;
+                    }
+                }
                 _moveCompletedUtc = DateTimeOffset.UtcNow;
                 _capture.ResetDetections();
                 RaisePropertyChanged(nameof(MachinePositionSummary));
-                if (!ContextValid(true, out error))
+                if (!ContextValid(!measureOnly, out error))
                 {
                     Fail(error);
                     return;
                 }
 
                 Step(2, "Acquiring a fresh stable Hough circle.");
-                if (measureOnly && mechanicalSettleMs > 0)
-                {
-                    await Task.Delay(mechanicalSettleMs);
-                    if (!ContextValid(true, out error) || !ReferenceEquals(machine, MachineRepo.CurrentMachine) ||
-                        !machine.WasMachinOriginCalibrated || machine.CurrentMachineToolHead != null ||
-                        machine.LeftVacuumPump || machine.RightVacuumPump || machine.IsLocating || _locator.IsLocating ||
-                        machine.ToSendQueueCount != 0 || machine.UnacknowledgedBytesSent != 0)
-                    {
-                        Fail("Machine state changed during fiducial mechanical settling.");
-                        return;
-                    }
-                    _moveCompletedUtc = DateTimeOffset.UtcNow;
-                }
                 var found = await WaitForStableCircleAsync();
                 if (found == null)
                 {
@@ -439,25 +480,21 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 }
                 if (measureOnly)
                 {
-                    if (!ContextValid(true, out error) || !ReferenceEquals(machine, MachineRepo.CurrentMachine) ||
-                        !machine.WasMachinOriginCalibrated || machine.CurrentMachineToolHead != null ||
-                        machine.LeftVacuumPump || machine.RightVacuumPump ||
-                        !FiducialCalibrationGate.TryQualify(found, _profile.Key, _scale,
+                    error = await ConfirmReferenceIdleAsync(machine, "after optical acquisition");
+                    if (error != null || !FiducialCalibrationGate.TryQualify(found, _profile.Key, _scale,
                             _moveCompletedUtc, DateTimeOffset.UtcNow, out error))
                     {
                         Fail("Reference evidence invalid: " + error);
                         return;
                     }
                     var actual = await machine.GetCurrentLocationAsync(5000);
-                    if (!actual.Successful || actual.Result == null ||
+                    error = await ConfirmReferenceIdleAsync(machine, "after controller XY read-back");
+                    if (error != null || !actual.Successful || actual.Result == null ||
                         !FeederOriginCalibrationMath.SamePosition(actual.Result, MachineConfiguration.MachineFiducial, 0.05) ||
-                        !ContextValid(true, out error) || !ReferenceEquals(machine, MachineRepo.CurrentMachine) ||
-                        !machine.WasMachinOriginCalibrated || machine.CurrentMachineToolHead != null ||
-                        machine.LeftVacuumPump || machine.RightVacuumPump ||
                         !FiducialCalibrationGate.TryQualify(found, _profile.Key, _scale,
                             _moveCompletedUtc, DateTimeOffset.UtcNow, out error))
                     {
-                        Fail("Fiducial checkpoint controller XY or optical evidence could not be verified.");
+                        Fail(error ?? "Fiducial checkpoint controller XY or optical evidence could not be verified.");
                         return;
                     }
                     VerifiedReferenceObservation = found;
