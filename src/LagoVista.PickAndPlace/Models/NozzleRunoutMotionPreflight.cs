@@ -92,6 +92,29 @@ namespace LagoVista.PickAndPlace.Models
             return true;
         }
 
+        // Returning to camera navigation moves the gantry by -headOffset.
+        // Validate both the current physical position and the camera-mode
+        // destination before issuing the existing coordinate transition.
+        public static bool TryValidateCameraReturn(Point2D<double> logicalXY,
+            Point2D<double> selectedHeadOffset, Point2D<double> workArea, out string reason)
+        {
+            reason = null;
+            if (!Valid(logicalXY) || !Valid(selectedHeadOffset) || !Valid(workArea) ||
+                workArea.X <= 2 * EdgeClearanceMm || workArea.Y <= 2 * EdgeClearanceMm)
+            {
+                reason = "Invalid current XY, head offset or work-area limits.";
+                return false;
+            }
+            var physical = new Point2D<double>(logicalXY.X + selectedHeadOffset.X,
+                logicalXY.Y + selectedHeadOffset.Y);
+            if (!WithinWorkArea(physical, workArea) || !WithinSafeArea(logicalXY, workArea))
+            {
+                reason = "Camera navigation return would exceed the safe XY travel envelope.";
+                return false;
+            }
+            return true;
+        }
+
         private static bool Valid(Point2D<double> point) =>
             point != null && Finite(point.X) && Finite(point.Y);
 

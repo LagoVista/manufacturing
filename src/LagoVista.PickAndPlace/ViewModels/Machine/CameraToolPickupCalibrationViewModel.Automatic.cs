@@ -38,7 +38,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private const int AutomaticBoundarySettleMs = 5000;
         private const int AutomaticBoundaryIdlePolls = 3;
 
-        private async Task RequireAutomaticBoundaryAsync(bool requireHistory = true)
+        private async Task RequireAutomaticBoundaryAsync(bool requireHistory = true, bool allowSelectedHead = false)
         {
             var elapsed = System.Diagnostics.Stopwatch.StartNew();
             var stableIdle = 0;
@@ -58,8 +58,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     throw new CalibrationStopped("Machine origin is not calibrated.");
                 if (m.Mode != OperatingMode.Manual)
                     throw new CalibrationStopped("Machine is not in Manual mode.");
-                if (m.CurrentMachineToolHead != null)
-                    throw new CalibrationStopped("Tool-head navigation is active; switch to camera mode.");
+                if (!allowSelectedHead && m.CurrentMachineToolHead != null)
+                    throw new CalibrationStopped("Camera navigation was not restored at the phase boundary.");
                 if (m.LeftVacuumPump || m.RightVacuumPump)
                     throw new CalibrationStopped($"Vacuum still enabled: left={m.LeftVacuumPump}, right={m.RightVacuumPump}.");
                 if (requireHistory && (_pendingHistorySnapshot != null || HistoryBusy ||
@@ -82,6 +82,50 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         (settling ?? "Insufficient consecutive idle samples."));
                 await Task.Delay(100);
             }
+        }
+
+        private async Task EnterAutomaticCameraNavigationAsync()
+        {
+            await RequireAutomaticBoundaryAsync(false, allowSelectedHead: true);
+            var m = _automaticMachine;
+            var head = m.CurrentMachineToolHead;
+            if (head == null) return;
+            Status = "Restoring camera navigation at safe move height...";
+            var safeZ = m.Settings.SafMoveHeight;
+            if (!Finite(safeZ))
+                throw new CalibrationStopped("Invalid configured safe move height.");
+            var before = await m.GetCurrentLocationAsync(5000);
+            if (!before.Successful || before.Result == null)
+                throw new CalibrationStopped("Cannot read controller XY for camera navigation return.");
+            if (!NozzleRunoutMotionPreflight.TryValidateCameraReturn(before.Result,
+                head.Offset, m.Settings.WorkAreaSize, out var reason))
+                throw new CalibrationStopped(reason);
+            await RequireAutomaticBoundaryAsync(false, allowSelectedHead: true);
+            if (!ReferenceEquals(head, m.CurrentMachineToolHead))
+                throw new CalibrationStopped("Selected head changed before camera navigation return.");
+            m.SendSafeMoveHeight();
+            var idle = await m.SpinUntilIdleAsync(10000);
+            if (!idle.Successful)
+                throw new CalibrationStopped("Safe height move did not settle.");
+            await RequireAutomaticBoundaryAsync(false, allowSelectedHead: true);
+            var raised = await m.GetCurrentLocationAsync(5000);
+            if (!raised.Successful || raised.Result == null || !Finite(m.ToolCommonZ) ||
+                Math.Abs(m.ToolCommonZ - safeZ) > 0.20 ||
+                !FeederOriginCalibrationMath.SamePosition(raised.Result, before.Result, 0.5))
+                throw new CalibrationStopped("Safe height or XY could not be verified before camera navigation return.");
+            await RequireAutomaticBoundaryAsync(false, allowSelectedHead: true);
+            if (!ReferenceEquals(head, m.CurrentMachineToolHead) ||
+                !NozzleRunoutMotionPreflight.TryValidateCameraReturn(raised.Result,
+                    head.Offset, m.Settings.WorkAreaSize, out _))
+                throw new CalibrationStopped("Head or return geometry changed before camera navigation.");
+            await m.MoveToCameraAsync();
+            await RequireAutomaticBoundaryAsync(false);
+            var after = await m.GetCurrentLocationAsync(5000);
+            if (!after.Successful || after.Result == null ||
+                !FeederOriginCalibrationMath.SamePosition(after.Result, before.Result, 0.5) ||
+                !Finite(m.ToolCommonZ) || Math.Abs(m.ToolCommonZ - safeZ) > 0.20)
+                throw new CalibrationStopped("Camera navigation return did not preserve controller XY and safe Z.");
+            await RequireAutomaticBoundaryAsync(false);
         }
 
         public async Task RunAutomaticAsync()
@@ -111,7 +155,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
             try
             {
-                await RequireAutomaticBoundaryAsync(false);
+                await EnterAutomaticCameraNavigationAsync();
                 var installed = _automaticMachine.Settings.ToolHeads.Where(h => h?.CurrentNozzle != null)
                     .Select(h => h.HeadIndex).OrderBy(i => i).ToArray();
                 if (!installed.SequenceEqual(new[] { 1, 2 }))

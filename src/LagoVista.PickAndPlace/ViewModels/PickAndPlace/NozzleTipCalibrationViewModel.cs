@@ -196,6 +196,17 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             return true;
         }
 
+        private bool CameraReturnContextValid(IMachine machine, MachineToolHead tool)
+        {
+            return ReferenceEquals(_machineRepo.CurrentMachine, machine) &&
+                machine.Connected && machine.WasMachineHomed && machine.WasMachinOriginCalibrated &&
+                machine.Mode == OperatingMode.Manual && machine.CurrentMachineToolHead == null &&
+                !machine.Busy && machine.ToSendQueueCount == 0 && machine.UnacknowledgedBytesSent == 0 &&
+                !machine.IsLocating && !_locator.IsLocating &&
+                !machine.LeftVacuumPump && !machine.RightVacuumPump &&
+                InstalledNozzleCalibrationPlan.MatchesPlannedInstallation(machine.Settings, tool, _activeNozzleId);
+        }
+
         private async Task<bool> MotionIdleAsync(CancellationToken token, uint timeout = 30000)
         {
             var idle = await _activeMachine.SpinUntilIdleAsync(timeout);
@@ -477,7 +488,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     CompletedRunoutSummaries.Add(
                         "Head " + tool.HeadIndex + " (" + tool.CurrentNozzle.Text +
                         ") ✓ Logical zero " + tool.RunoutZeroAngle?.ToString("F0") +
-                        "° · 12 offsets verified · safe Z confirmed");
+                        "° · 12 offsets verified · safe Z / camera mode confirmed");
                     RaisePropertyChanged(nameof(RunoutSequenceProgress));
 
                     var nextHead = installed.SkipWhile(
@@ -490,7 +501,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 }
                 Status = "Runout complete: " + installed.Count +
                     " installed head(s) verified independently in one run. " +
-                    "No placement compensation saved or rotational zero reset.";
+                    "Camera navigation restored at safe Z. No placement compensation saved or rotational zero reset.";
             }
             catch (Exception ex)
             {
@@ -1081,17 +1092,65 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         return false;
                     }
 
+                    // The current logical XY is still in the selected head's
+                    // navigation frame. Verify the return envelope and restore
+                    // camera coordinates before marking the head complete.
+                    if (finalPosition.Result == null || machine.LeftVacuumPump ||
+                        machine.RightVacuumPump || machine.IsLocating || _locator.IsLocating)
+                    {
+                        Stop(safeHeightStep, "Camera navigation return requires readable XY, idle locator and both vacuums off.");
+                        return false;
+                    }
+                    if (!NozzleRunoutMotionPreflight.TryValidateCameraReturn(finalPosition.Result,
+                        tool.Offset, machine.Settings.WorkAreaSize, out var returnError))
+                    {
+                        Stop(safeHeightStep, returnError);
+                        return false;
+                    }
+                    if (!await MotionIdleAsync(CancellationToken.None) ||
+                        !ValidContext(out contextError) || machine.LeftVacuumPump ||
+                        machine.RightVacuumPump || machine.IsLocating || _locator.IsLocating)
+                    {
+                        Stop(safeHeightStep, contextError ?? "Machine state changed before camera navigation return.");
+                        return false;
+                    }
+                    await machine.MoveToCameraAsync();
+                    if (!await MotionIdleAsync(CancellationToken.None) ||
+                        machine.CurrentMachineToolHead != null ||
+                        !ReferenceEquals(_machineRepo.CurrentMachine, machine) ||
+                        machine.Mode != OperatingMode.Manual || !machine.WasMachineHomed ||
+                        !machine.WasMachinOriginCalibrated || machine.LeftVacuumPump ||
+                        machine.RightVacuumPump)
+                    {
+                        Stop(safeHeightStep, "Camera navigation was not safely restored.");
+                        return false;
+                    }
+                    var cameraPosition = await machine.GetCurrentLocationAsync(5000);
+                    if (!cameraPosition.Successful || cameraPosition.Result == null ||
+                        !FeederOriginCalibrationMath.SamePosition(cameraPosition.Result, finalPosition.Result, 0.5) ||
+                        Double.IsNaN(machine.ToolCommonZ) || Double.IsInfinity(machine.ToolCommonZ) ||
+                        Math.Abs(machine.ToolCommonZ - targetSafeHeight) > 0.20)
+                    {
+                        Stop(safeHeightStep, "Camera navigation return did not preserve controller XY and safe Z.");
+                        return false;
+                    }
+                    if (!await MotionIdleAsync(CancellationToken.None) ||
+                        !CameraReturnContextValid(machine, tool))
+                    {
+                        Stop(safeHeightStep, "Machine or nozzle context changed after camera navigation return.");
+                        return false;
+                    }
+
                     PassMachineStep(safeHeightStep,
-                        $"Machine reached its existing configured safe move height: " +
-                        $"Z={machine.ToolCommonZ:F2} mm. Setting unchanged; safe to " +
-                        $"proceed to next head or finish.");
+                        $"Safe height Z={machine.ToolCommonZ:F2} mm and camera navigation verified. " +
+                        "Controller XY preserved; setting unchanged.");
                 }
 
                 // Both the 12-angle optical proof and safe-Z are now verified.
-                if (!ValidContext(out var completionError))
+                if (isFinalHead ? !CameraReturnContextValid(machine, tool) : !ValidContext(out _))
                 {
-                    Stop(Step("safe-height"), completionError ??
-                        "Nozzle changed during safe-Z verification; runout not committed.");
+                    Stop(Step("safe-height"),
+                        "Machine or nozzle changed during safe-Z/navigation verification; runout not committed.");
                     return false;
                 }
                 tool.CompleteRunoutCalibration(_activeNozzleId,

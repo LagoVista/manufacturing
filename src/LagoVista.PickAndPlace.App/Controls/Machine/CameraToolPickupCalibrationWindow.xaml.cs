@@ -15,7 +15,7 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
         public CameraToolPickupCalibrationWindow()
         {
             InitializeComponent();
-            // Approximately twice the original area, constrained to the display.
+            // Original preferred window size, constrained to the display.
             Width = Math.Min(Width, SystemParameters.WorkArea.Width);
             Height = Math.Min(Height, SystemParameters.WorkArea.Height);
             MinWidth = Math.Min(MinWidth, Width);

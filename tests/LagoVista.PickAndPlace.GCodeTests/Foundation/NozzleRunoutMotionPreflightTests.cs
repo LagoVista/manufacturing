@@ -9,6 +9,18 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         private static Point2D<double> XY(double x, double y) =>
             new Point2D<double>(x, y);
 
+        [TestCase(100, 100, 23, 65, true)]
+        [TestCase(2, 100, 23, 65, false)]
+        [TestCase(100, 100, 350, 0, false)]
+        [TestCase(100, 100, double.NaN, 0, false)]
+        public void CameraNavigationReturnChecksPhysicalAndLogicalEndpoints(
+            double x, double y, double dx, double dy, bool expected)
+        {
+            Assert.That(NozzleRunoutMotionPreflight.TryValidateCameraReturn(
+                new Point2D<double>(x, y), new Point2D<double>(dx, dy),
+                new Point2D<double>(400, 400), out _), Is.EqualTo(expected));
+        }
+
         [Test]
         public void AllowsShortWellBoundedMovement()
         {

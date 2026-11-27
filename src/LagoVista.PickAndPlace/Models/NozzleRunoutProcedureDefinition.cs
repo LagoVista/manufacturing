@@ -79,8 +79,8 @@ namespace LagoVista.PickAndPlace.Models
             if (includeFinalSafeHeight)
                 definition.Steps.Add(new MachineOperationStepDefinition
                 {
-                    Key="safe-height", Title="Return to configured machine safe move height",
-                    Instructions="Move to the existing machine DefaultSafeMoveHeight, verify controller Z, and stop. Do not capture or change the setting.",
+                    Key="safe-height", Title="Return to safe move height and camera navigation",
+                    Instructions="Verify existing safe Z, preflight the camera navigation return, restore camera mode and verify XY/Z. Do not change the setting.",
                     RequiredVerification=MachineOperationVerificationKind.MachineObserved
                 });
             return definition;

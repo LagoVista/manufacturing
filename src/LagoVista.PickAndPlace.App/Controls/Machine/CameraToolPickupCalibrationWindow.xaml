@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:cal="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine.Calibration"
         Title="Camera-to-Tool XY Calibration"
-        Width="1640" Height="1170" MinWidth="950" MinHeight="700"
+        Width="1160" Height="830" MinWidth="950" MinHeight="700"
         WindowStartupLocation="CenterOwner" WindowStyle="None"
         ResizeMode="CanResizeWithGrip" ShowInTaskbar="False"
         Background="#161C25" Foreground="#EDF2F8"
@@ -70,7 +70,7 @@
         </Grid>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="450" MinWidth="380"/>
+                <ColumnDefinition Width="380" MinWidth="340"/>
                 <ColumnDefinition Width="12"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
