@@ -486,6 +486,21 @@
                                        Foreground="#E7AFAB" Margin="0,6,0,0"/>
                         </StackPanel>
                     </Grid>
+                    <Border Background="#1B2734" BorderBrush="#35475A" BorderThickness="1"
+                            CornerRadius="6" Margin="0,14,0,0" Padding="10">
+                        <StackPanel>
+                            <TextBlock Text="GEOMETRY DIAGNOSTIC (NO SAVE)" Foreground="#91BEE0" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding GeometrySummary}" TextWrapping="Wrap" Margin="0,5,0,5"/>
+                            <ItemsControl ItemsSource="{Binding GeometryResults}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="11"
+                                                   TextWrapping="Wrap" Margin="0,0,0,4"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
                     <Border Background="#1B2734" BorderBrush="#35475A"
                             BorderThickness="1" CornerRadius="6"
                             Margin="0,14,0,0" Padding="10">
@@ -515,9 +530,13 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <CheckBox Content="Geometry diagnostics (measure only, no save)"
+                          IsChecked="{Binding GeometryDiagnosticMode, Mode=TwoWay}"
+                          IsEnabled="{Binding CanClose}" Foreground="#EAF3FE" Margin="0,0,0,5"/>
+                <TextBlock Text="{Binding GeometryPlan}" TextWrapping="Wrap" Foreground="#99B7D2" FontSize="11"/>
                 <TextBlock Text="{Binding Status}" Foreground="#EAF3FE"
                            FontWeight="SemiBold" TextWrapping="Wrap"/>
-                <TextBlock Text="Opening this window never moves the machine. Run requires a verified machine origin; only the selected plate is calibrated."
+                <TextBlock Text="Opening this window never moves the machine. Run requires a verified origin. Inspect all diagnostic holes for clearance before running."
                            Foreground="#99B7D2" FontSize="11" TextWrapping="Wrap"
                            Margin="0,4,0,0"/>
             </StackPanel>

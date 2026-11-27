@@ -68,6 +68,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             {
                 if (Running || TuningBusy || MotionSettingsBusy) return;
                 Set(ref _selectedPlate, value);
+                GeometryResults.Clear();
+                GeometrySummary = "Not measured";
+                RaisePropertyChanged(nameof(GeometryPlan));
                 LoadMotionSettings();
                 ClearPreviousMeasurement();
                 RaisePropertyChanged(nameof(CanRun));
@@ -173,6 +176,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 {
                     Name = name, Status = "Pending"
                 });
+            if (GeometryDiagnosticMode)
+            {
+                Steps.Clear();
+                foreach (var name in new[] { "Check machine, origin and plate", "Measure reference hole 1", "Measure reference hole 2", "Measure cross hole 1", "Measure cross hole 2", "Return to reference hole 1", "Report geometry (no save)" })
+                    Steps.Add(new StagingPlateCalibrationStep { Name = name, Status = "Pending" });
+            }
             _currentStage = -1;
         }
 
@@ -205,6 +214,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             FinishCurrentStage("Failed");
             if (_currentStage >= 0) Steps[_currentStage].Detail = reason;
             Status = reason;
+            if (GeometryDiagnosticMode) GeometrySummary = "Incomplete (no save): " + reason;
             Log("FAILED: " + reason);
             Machine?.AddStatusMessage(StatusMessageTypes.Warning, reason);
         }
@@ -308,6 +318,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             ResetStages();
             EventLog.Clear();
             ClearPreviousMeasurement();
+            GeometryResults.Clear();
+            GeometrySummary = GeometryDiagnosticMode ? "Measuring; no alignment will be saved." : "Not measured";
             _clock.Restart();
             LastPlannedMove = "No target calculated yet.";
             _capture = null;
@@ -375,6 +387,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     Fail(!captureReady.Successful
                         ? "Live camera unavailable: " + captureReady.ErrorMessage
                         : error);
+                    return;
+                }
+
+                if (GeometryDiagnosticMode)
+                {
+                    await RunGeometryDiagnosticAsync(selected);
                     return;
                 }
 
@@ -581,6 +599,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     Fail("Stale or invalid circle: " + reason);
                     return null;
                 }
+
+                if (GeometryDiagnosticMode && n == 0)
+                    GeometryResults.Add($"{label} initial optical correction X={circle.OffsetXmm:+0.000;-0.000;0.000}, Y={circle.OffsetYmm:+0.000;-0.000;0.000} mm");
 
                 if (FiducialCalibrationGate.CanCommitOrigin(
                     circle, _profile.Key, _scale, _moveCompletedUtc,
