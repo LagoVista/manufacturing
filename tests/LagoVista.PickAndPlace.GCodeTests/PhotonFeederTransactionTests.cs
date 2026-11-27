@@ -76,6 +76,16 @@ namespace LagoVista.PickAndPlace.GCodeTests
         }
 
         [Test]
+        public async Task PlacementIdentityCheckIsReadOnlyAndRejectsMismatch()
+        {
+            _machine.SetupGet(m => m.Mode).Returns(LagoVista.Manufacturing.Models.OperatingMode.Manual);
+            Assert.That((await _vm.VerifyFeederIdentityAsync(Slot, Id)).Successful, Is.True);
+            Assert.That((await _vm.VerifyFeederIdentityAsync(Slot, "FFFFFFFFFFFFFFFFFFFFFFFF")).Successful, Is.False);
+            Assert.That(_sent, Is.EqualTo(new[] { FeederCommands.GetId, FeederCommands.GetId }));
+            Assert.That(_handlers, Is.Null);
+        }
+
+        [Test]
         public async Task ManualReadinessDoesNotFlickerWithTransportTraffic()
         {
             _machine.SetupGet(m => m.Mode).Returns(LagoVista.Manufacturing.Models.OperatingMode.Manual);

@@ -265,6 +265,22 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             });
         }
 
+        public Task<InvokeResult> VerifyFeederIdentityAsync(byte slot, string id)
+        {
+            if (slot == 0 || slot == 255 || !PhotonProtocolHandler.IsFeederId(id))
+                return Task.FromResult(InvokeResult.FromError("Invalid slot or feeder ID."));
+            if (!IsManualIdle())
+                return Task.FromResult(InvokeResult.FromError("Machine must be idle in Manual mode."));
+            return OnBusAsync($"Verify slot {slot} ({id})", async (machine, generation) =>
+            {
+                var actual = await ReadIdAsync(machine, generation, slot);
+                if (string.Equals(actual, id, StringComparison.OrdinalIgnoreCase))
+                    return InvokeResult.Success;
+                _initialized.TryRemove(slot, out _);
+                return InvokeResult.FromError($"Feeder identity mismatch: expected {id}, received {actual}.");
+            });
+        }
+
         public Task<InvokeResult> InitializeFeederAsync(byte slot, string id)
         {
             if (slot == 0 || slot == 255 || !PhotonProtocolHandler.IsFeederId(id))

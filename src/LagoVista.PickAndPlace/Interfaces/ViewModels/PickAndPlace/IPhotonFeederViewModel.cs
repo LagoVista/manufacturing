@@ -38,6 +38,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand DiscoverFeedersCommand { get; }
         RelayCommand AddFeederCommand { get; }
 
+        Task<InvokeResult> VerifyFeederIdentityAsync(byte slot, string id);
         Task<InvokeResult> InitializeFeederAsync(byte slotIndex, string feederId);
         Task<InvokeResult> AdvanceFeed(byte slotIndex, double mm, string feederId = null);
         Task<InvokeResult> RetractFeed(byte slotIndex, double mm, string feederId = null);

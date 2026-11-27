@@ -84,13 +84,13 @@
                     <TextBlock Style="{StaticResource label}" Text="Feeder Fiducial"></TextBlock>
                     <TextBlock Style="{StaticResource content}" Text="{Binding Current.FiducialOffset}"></TextBlock>
                     <StackPanel Orientation="Horizontal">
-                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetFeederFiducialLocationCommand}"  ToolTip="Set Reference Hole for Feeder Row" Width="64" Height="64"  >
+                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding SetFeederFiducialLocationCommand}"  ToolTip="Calibrate feeder fiducial optically; confirm clearance and unlock settings first, then Save to persist" Width="64" Height="64"  >
                             <Button.Content>
                                 <Image Source="/imgs/SetTarget.png"/>
                             </Button.Content>
                         </Button>
 
-                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToFiducialCommand}"  ToolTip="Move To Reference Hole for Feeder Row" Width="64" Height="64"  >
+                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToFiducialCommand}"  ToolTip="Move position camera to saved feeder fiducial" Width="64" Height="64"  >
                             <Button.Content>
                                 <Image Source="/imgs/MoveToTarget.png"/>
                             </Button.Content>
@@ -101,6 +101,9 @@
 
             </StackPanel>
             
+            <Button Content="Calibrate Feeder Placement" Command="{Binding SetFeederFiducialLocationCommand}" Style="{StaticResource CommandButton}" />
+            <TextBlock Text="{Binding PlacementStatus}" TextWrapping="Wrap" Margin="0,4,0,6"/>
+            <Button Content="Reload Feeder" Command="{Binding ReloadFeederCommand}" Style="{StaticResource CommandButton}" />
             <TextBlock Text="{Binding ConfiguredFeederStatus}" TextWrapping="Wrap" FontWeight="Bold" />
             <TextBlock Text="{Binding PhotonFeederViewModel.Status}" TextWrapping="Wrap" />
             <TextBlock Text="{Binding Current.FeederId, StringFormat='Feeder ID: {0}'}" TextWrapping="Wrap" />
