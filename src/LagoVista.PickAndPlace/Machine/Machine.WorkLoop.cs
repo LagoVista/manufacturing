@@ -49,9 +49,9 @@ namespace LagoVista.PickAndPlace
                 _writer.Flush();
             }
         }
-        private void SendNormalPriorityItems()
+        private void SendNormalPriorityItems(string illuminationLine = null)
         {
-            var send_line = _toSend.Peek();
+            var send_line = illuminationLine ?? _toSend.Peek();
             if(String.IsNullOrEmpty(send_line))
             {
                 Debug.WriteLine("EMPTY SEND LINE!");
@@ -96,7 +96,7 @@ namespace LagoVista.PickAndPlace
             }
 
             _sentQueue.Enqueue(send_line);
-            _toSend.Dequeue();
+            if (illuminationLine == null) _toSend.Dequeue();
 
             if(send_line != "M114")
                 AddSentMessage(StatusMessageTypes.Info, send_line);
@@ -214,11 +214,29 @@ namespace LagoVista.PickAndPlace
             }
         }
 
+        // Ordinary newline-delimited acknowledged G-code, ahead of motion.
+        private bool ServiceTopLightCommands()
+        {
+            string line;
+            lock (_topLightCommandGate)
+            {
+                if (_topLightCommands.Count == 0) return false;
+                line = _topLightCommands.Peek();
+                if (!HasBufferSpaceAvailableForByteCount(line.Length + 1)) return true;
+                _topLightCommands.Dequeue();
+                _topLightSending = true;
+            }
+            try { SendNormalPriorityItems(line); }
+            finally { lock (_topLightCommandGate) _topLightSending = false; }
+            return true;
+        }
+
         DateTime _nextSend = DateTime.MinValue;
 
         private void Send()
         {
             SendHighPriorityItems();
+            if (ServiceTopLightCommands()) return;
 
             if (!_isOnHold)
             {
@@ -337,6 +355,8 @@ namespace LagoVista.PickAndPlace
                 await GrblErrorProvider.InitAsync();
 
                 UnacknowledgedBytesSent = 0;
+                if (IsPnPMachine || Settings.GcodeMapping?.Value != null)
+                    _topIllumination.Stop();
 
                 if (Settings.FirmwareType == FirmwareTypes.LagoVista_PnP)
                 {

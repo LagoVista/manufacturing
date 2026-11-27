@@ -383,6 +383,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         ready.ErrorMessage;
                     return;
                 }
+                await using var illumination = await Machine.BeginTopCameraAcquisitionAsync(9000);
                 capture.ResetDetections();
                 CurrentObservation = null;
                 PreviewObservationCount = 0;
@@ -392,6 +393,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 _locator.RegisterCircleLocatedHandler(handler, 9000);
                 ManualStatus = "Observing real Hough-circle detections for 8 seconds. Machine will not move.";
                 await Task.Delay(8000);
+                illumination.ThrowIfInvalid();
                 ManualStatus = "Preview finished: " + PreviewObservationCount +
                     " observed circle updates. Measurements are historical; use fresh evidence for origin reset.";
                 Log(ManualStatus);

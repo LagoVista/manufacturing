@@ -1053,6 +1053,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             // Stale detection history from earlier pockets is never evidence.
             // Snapshot the monotonic camera frame counter, then clear detector
             // history, requiring all future evidence to come from NEW frames.
+            await using var illumination = await _machine.BeginTopCameraAcquisitionAsync(8000, token);
             var baselineId = capture.LatestRectangleFrame?.FrameId ?? 0;
             capture.ResetDetections();
             var start = DateTimeOffset.UtcNow;
@@ -1084,6 +1085,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     if (!previous && decision == PocketPresenceDecision.Empty)
                         return Block("CURRENT PART MISSING: no component rectangle in the fresh camera observation window.");
 
+                    illumination.ThrowIfInvalid();
+                    await illumination.DisposeAsync();
                     var measured = await _machine.GetCurrentLocationAsync(5000);
                     if (!measured.Successful ||
                         !FeederOriginCalibrationMath.SamePosition(measured.Result, _pocketTarget, 0.1) ||
@@ -1299,6 +1302,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
             try
             {
+                await using var illumination = await _machine.BeginTopCameraAcquisitionAsync(8000, token);
                 _machine.PositionImageCaptureService.ResetDetections();
                 _locator.RegisterCircleLocatedHandler(this, 7500);
                 _circleRegistered = true;
@@ -1306,6 +1310,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 var timeout = await Task.WhenAny(request.Task, Task.Delay(8000, token));
                 if (timeout != request.Task)
                     return null;
+                illumination.ThrowIfInvalid();
                 return await request.Task;
             }
             finally
@@ -1384,6 +1389,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 // Only register during the explicit verification action. The
                 // locator's IsLocating state otherwise disables normal Jog.
+                await using var illumination = await _machine.BeginTopCameraAcquisitionAsync(8000, token);
                 _machine.PositionImageCaptureService.ResetDetections();
                 _locator.RegisterCornerLocatedHandler(this, 7500);
                 _registered = true;
@@ -1391,6 +1397,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 var timedOut = await Task.WhenAny(request.Task, Task.Delay(8000, token));
                 if (timedOut != request.Task)
                     return null;
+                illumination.ThrowIfInvalid();
                 return await request.Task;
             }
             finally

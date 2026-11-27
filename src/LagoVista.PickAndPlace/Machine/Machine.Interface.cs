@@ -151,6 +151,16 @@ namespace LagoVista.PickAndPlace
 
         public async Task DisconnectAsync()
         {
+            _topLightDisconnecting = true;
+            if (Connected && (IsPnPMachine || Settings.GcodeMapping?.Value != null))
+            {
+                try
+                {
+                    _topIllumination.Stop();
+                    await WaitForTopLightCommandAsync(1000);
+                }
+                catch (Exception ex) { AddStatusMessage(StatusMessageTypes.Warning, "Top light OFF could not be confirmed: " + ex.Message); }
+            }
             lock (this)
             {
                 if (!Connected)
@@ -233,7 +243,7 @@ namespace LagoVista.PickAndPlace
             {
                 lock (_queueAccessLocker)
                 {
-                    return _toSend.Count;
+                    return _toSend.Count + PendingTopLightCommands;
                 }
             }
         }
@@ -268,6 +278,8 @@ namespace LagoVista.PickAndPlace
                 }
 
                 UnacknowledgedBytesSent = 0;
+                if (IsPnPMachine || Settings.GcodeMapping?.Value != null)
+                    _topIllumination.Stop();
             }
         }
 

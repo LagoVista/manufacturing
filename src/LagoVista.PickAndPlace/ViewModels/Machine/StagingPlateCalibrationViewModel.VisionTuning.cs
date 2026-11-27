@@ -551,6 +551,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         : reason;
                     return;
                 }
+                await using var illumination = await Machine.BeginTopCameraAcquisitionAsync(9000);
                 capture.ResetDetections();
                 PreviewCircleCount = 0;
                 CurrentObservation = null;
@@ -560,6 +561,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 _locator.RegisterCircleLocatedHandler(handler, 9000);
                 TuningStatus = "Observing staging-hole centroid detector for 8 seconds. Machine will not move.";
                 await Task.Delay(8000);
+                illumination.ThrowIfInvalid();
                 TuningStatus = "Preview completed: " + PreviewCircleCount +
                     " centroid observations. Old preview frames cannot authorize machine motion.";
                 Log(TuningStatus);

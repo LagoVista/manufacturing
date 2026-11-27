@@ -679,6 +679,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private async Task<FiducialCircleObservation> WaitForFreshStableCircleAsync()
         {
+            await using var illumination = await Machine.BeginTopCameraAcquisitionAsync(ObservationTimeoutMs + 1000);
             var completion = new TaskCompletionSource<FiducialCircleObservation>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
             _capture.ResetDetections();
@@ -695,6 +696,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     LastRejection = "No qualified circle received within bounded detection timeout.";
                     return null;
                 }
+                illumination.ThrowIfInvalid();
                 return await completion.Task;
             }
             finally

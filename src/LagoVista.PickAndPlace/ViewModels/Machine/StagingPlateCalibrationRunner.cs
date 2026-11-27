@@ -187,21 +187,26 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
                 // Reuse the existing detector. Clear only its previous hole history;
                 // never alter the profile, preprocessing, or detection algorithm.
+                Point2D<double> offset;
+                await using (var illumination = await machine.BeginTopCameraAcquisitionAsync(11000))
+                {
                 machine.PositionImageCaptureService.ResetDetections();
                 var completion = new TaskCompletionSource<Point2D<double>>(
                     TaskCreationOptions.RunContinuationsAsynchronously);
                 _pendingObservation = completion;
                 _locator.RegisterCircleLocatedHandler(this, 10000);
 
-                Point2D<double> offset;
                 try
                 {
                     offset = await completion.Task;
+                    illumination.ThrowIfInvalid();
                 }
                 finally
                 {
                     _locator.UnregisterCircleLocatedHandler(this);
                     _pendingObservation = null;
+                }
+
                 }
 
                 if (offset == null)

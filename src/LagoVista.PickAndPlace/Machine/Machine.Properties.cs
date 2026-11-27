@@ -6,6 +6,7 @@ using LagoVista.Core.Models;
 using LagoVista.Core.PlatformSupport;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
+using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -304,27 +305,21 @@ namespace LagoVista.PickAndPlace
             }
         }
 
+        private bool _topLightRequested;
+        // Stored preferences are not permission to energize the LED.
         public void ConfigureTopLight(bool on, byte power, byte red, byte green, byte blue)
         {
-            if (Settings.GcodeMapping != null)
-            {
-                _topLightOn = on;
-                _topPower = power;
-                _topRed = red;
-                _topGreen = green;
-                _topBlue = blue;
-
-                if (!_topLightOn)
-                    Enqueue(Settings.GcodeMapping.Value.TopLightOff);
-
-                UpdateTopLight();
-
-                RaisePropertyChanged(nameof(TopLightOn));
-                RaisePropertyChanged(nameof(TopPower));
-                RaisePropertyChanged(nameof(TopRed));
-                RaisePropertyChanged(nameof(TopBlue));
-                RaisePropertyChanged(nameof(TopGreen));
-            }
+            _topLightRequested = on;
+            _topPower = power;
+            _topRed = red;
+            _topGreen = green;
+            _topBlue = blue;
+            if (Connected && (IsPnPMachine || Settings.GcodeMapping?.Value != null))
+                _topIllumination.Stop();
+            RaisePropertyChanged(nameof(TopPower));
+            RaisePropertyChanged(nameof(TopRed));
+            RaisePropertyChanged(nameof(TopBlue));
+            RaisePropertyChanged(nameof(TopGreen));
         }
         public void ConfigureBottomLight(bool on, byte power, byte red, byte green, byte blue)
         {
@@ -349,15 +344,9 @@ namespace LagoVista.PickAndPlace
             }
         }
 
-        private void UpdateTopLight()
-        {
-            if (TopLightOn && Connected)
-            {
-                var gcode = ConvertTopLightColors(Settings.GcodeMapping.Value.TopLightOn);
-                Enqueue(gcode);
-            }
-        }
-        
+        // RGB/power edits are preferences for the next explicit acquisition.
+        private void UpdateTopLight() { }
+
         private void UpdateBottomLight()
         { 
             if (BottomLightOn && Connected)
@@ -385,30 +374,128 @@ namespace LagoVista.PickAndPlace
                         .Replace("{pwr}", BottomPower.ToString());
         }
 
-        private bool _topLightOn = false;
+        private volatile bool _topLightOn;
+        private readonly TopCameraIllumination _topIllumination;
+        private TopCameraIllumination.Lease _manualTopLightLease;
+        private readonly object _topLightCommandGate = new object();
+        private readonly Queue<string> _topLightCommands = new Queue<string>();
+        private bool _topLightSending;
+        private volatile bool _topLightDisconnecting;
+
+        private int PendingTopLightCommands
+        {
+            get { lock (_topLightCommandGate) return _topLightCommands.Count + (_topLightSending ? 1 : 0); }
+        }
+
+        // The watchdog must not call the synchronous UI dispatcher or normal
+        // Enqueue while holding its lease lock. Replace unsent ON with OFF.
+        private void SubmitTopLightCommand(bool on)
+        {
+            if (on && (!Connected || _topLightDisconnecting))
+                throw new InvalidOperationException("Cannot illuminate a disconnected position camera.");
+
+            if (Connected)
+            {
+                var mapping = Settings.GcodeMapping?.Value;
+                string command = on ? mapping?.TopLightOn : mapping?.TopLightOff;
+                if (String.IsNullOrWhiteSpace(command))
+                {
+                    switch (Settings.FirmwareType)
+                    {
+                        case FirmwareTypes.Repeteir_PnP: command = $"M42 P31 S{(on ? 0 : 255)}"; break;
+                        case FirmwareTypes.LagoVista_PnP: command = $"M60 S{(on ? 255 : 0)}"; break;
+                    }
+                }
+                if (String.IsNullOrWhiteSpace(command))
+                    throw new InvalidOperationException("Top-light G-code mapping is missing.");
+                if (on) command = ConvertTopLightColors(command);
+                lock (_topLightCommandGate)
+                {
+                    _topLightCommands.Clear();
+                    foreach (var line in command.Split('|'))
+                        if (!String.IsNullOrWhiteSpace(line))
+                            _topLightCommands.Enqueue(line.Trim());
+                }
+            }
+            else
+            {
+                lock (_topLightCommandGate) _topLightCommands.Clear();
+            }
+
+            _topLightOn = on;
+            _ = Task.Run(() => RaisePropertyChanged(nameof(TopLightOn)));
+        }
+
+        private async Task WaitForTopLightCommandAsync(int timeoutMs = 5000)
+        {
+            var timeout = Stopwatch.StartNew();
+            while (Connected && timeout.ElapsedMilliseconds < timeoutMs)
+            {
+                if (PendingTopLightCommands == 0 && UnacknowledgedBytesSent == 0)
+                    return;
+                await Task.Delay(25);
+            }
+            throw new InvalidOperationException("Top-camera light command did not drain and acknowledge while connected.");
+        }
+
+        public async Task<TopCameraIllumination.Acquisition> BeginTopCameraAcquisitionAsync(
+            int observationTimeoutMs, CancellationToken cancellation = default)
+        {
+            if (observationTimeoutMs <= 0 || observationTimeoutMs > 120000)
+                throw new ArgumentOutOfRangeException(nameof(observationTimeoutMs));
+            cancellation.ThrowIfCancellationRequested();
+            var capture = PositionImageCaptureService;
+            if (!Connected || _topLightDisconnecting || capture?.Camera == null || !capture.IsCapturing ||
+                capture.CameraType != CameraTypes.Position)
+                throw new InvalidOperationException("A connected live position camera is required for illumination.");
+
+            // Automatic work supersedes a preview, never another acquisition.
+            _manualTopLightLease?.Dispose();
+            _manualTopLightLease = null;
+            var lease = _topIllumination.Begin(capture.Profile?.LightOn ?? _topLightRequested,
+                TimeSpan.FromMilliseconds(observationTimeoutMs + 7000), cancellation);
+            try
+            {
+                await WaitForTopLightCommandAsync();
+                lease.ThrowIfInvalid();
+                await Task.Delay(250, cancellation);
+                var settled = DateTimeOffset.UtcNow;
+                var frameWait = Stopwatch.StartNew();
+                while (capture.LastProcessedFrameUtc <= settled)
+                {
+                    lease.ThrowIfInvalid();
+                    if (!Connected || !capture.IsCapturing || !ReferenceEquals(capture, PositionImageCaptureService) ||
+                        frameWait.ElapsedMilliseconds >= 1000)
+                        throw new InvalidOperationException("No fresh position-camera frame after illumination settled.");
+                    await Task.Delay(25, cancellation);
+                }
+                lease.ThrowIfInvalid();
+                return new TopCameraIllumination.Acquisition(lease, () => WaitForTopLightCommandAsync());
+            }
+            catch
+            {
+                lease.Dispose();
+                if (Connected) await WaitForTopLightCommandAsync();
+                throw;
+            }
+        }
+
         public bool TopLightOn
         {
             get { return _topLightOn; }
             set
-            {                
-                switch (Settings.FirmwareType)
+            {
+                if (!value)
                 {
-                    case FirmwareTypes.Repeteir_PnP: Enqueue($"M42 P31 S{(value ? 0 : 255)}"); break;
-                    case FirmwareTypes.LagoVista_PnP: Enqueue($"M60 S{(value ? 255 : 0)}"); break;
-                    default:
-                        if (Settings.GcodeMapping.Value != null)
-                        {
-                            if (value)
-                                Enqueue(ConvertTopLightColors(Settings.GcodeMapping.Value.TopLightOn));
-                            else
-                                Enqueue(Settings.GcodeMapping.Value.TopLightOff);
-                        }
-                        break;
+                    _topIllumination.Stop();
+                    _manualTopLightLease?.Dispose();
+                    _manualTopLightLease = null;
+                    return;
                 }
-
-                // Keep the UI state consistent with the hardware command issued above.
-                _topLightOn = value;
-                RaisePropertyChanged();
+                if (!Connected || _topLightDisconnecting) return;
+                _manualTopLightLease?.Dispose();
+                _manualTopLightLease = null;
+                _manualTopLightLease = _topIllumination.Begin(true, TimeSpan.FromSeconds(30));
             }
         }
 

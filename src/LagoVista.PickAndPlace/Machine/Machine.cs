@@ -38,6 +38,7 @@ namespace LagoVista.PickAndPlace
 
         public Machine()
         {
+            _topIllumination = new TopCameraIllumination(SubmitTopLightCommand);
             Settings = new Manufacturing.Models.Machine()
             {
                 Name = "No Machine",

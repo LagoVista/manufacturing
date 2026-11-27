@@ -124,6 +124,28 @@ namespace LagoVista.PickAndPlace.Models
             }
         }
 
+        public sealed class Acquisition : IAsyncDisposable
+        {
+            private readonly Lease _lease;
+            private readonly Func<System.Threading.Tasks.Task> _waitForOff;
+            private int _disposed;
+
+            public Acquisition(Lease lease, Func<System.Threading.Tasks.Task> waitForOff)
+            {
+                _lease = lease;
+                _waitForOff = waitForOff;
+            }
+
+            public void ThrowIfInvalid() => _lease.ThrowIfInvalid();
+
+            public async System.Threading.Tasks.ValueTask DisposeAsync()
+            {
+                if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+                _lease.Dispose();
+                await _waitForOff();
+            }
+        }
+
         internal enum EndReason { Active, Completed, Stopped, Cancelled, Timeout, Failed }
 
         public sealed class Lease : IDisposable

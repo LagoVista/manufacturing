@@ -133,6 +133,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         }
                         if (acquisition == 2)
                             Status = "Known Location circle not yet stable; reacquiring a fresh frame (attempt 2 of 2).";
+                        await using (var illumination = await machine.BeginTopCameraAcquisitionAsync(11000))
+                        {
                         capture.ResetDetections();
                         var request = new TaskCompletionSource<CircleObservation>(
                             TaskCreationOptions.RunContinuationsAsynchronously);
@@ -143,6 +145,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         try
                         {
                             var completed = await Task.WhenAny(request.Task, Task.Delay(11000));
+                            illumination.ThrowIfInvalid();
                             observation = completed == request.Task ? await request.Task : null;
                         }
                         finally
@@ -153,6 +156,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                                 if (_pending == request)
                                     _pending = null;
                             }
+                        }
+
                         }
 
                         // Do not conceal a real machine/camera/profile change

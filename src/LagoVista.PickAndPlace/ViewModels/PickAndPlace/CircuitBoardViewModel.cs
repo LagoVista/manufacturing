@@ -375,6 +375,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private async Task<FiducialCircleObservation> ObserveAsync(IImageCaptureService capture,
             VisionProfile profile, double scale, DateTimeOffset settled, CancellationToken token)
         {
+            await using var illumination = await Machine.BeginTopCameraAcquisitionAsync(11000, token);
             capture.ResetDetections();
             var handler = new BoardObservationHandler(capture, profile, scale, settled);
             _locatorViewModel.RegisterCircleLocatedHandler(handler, 10000);
@@ -382,6 +383,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 var completed = await Task.WhenAny(handler.Completion.Task, Task.Delay(11000, token));
                 token.ThrowIfCancellationRequested();
+                illumination.ThrowIfInvalid();
                 return completed == handler.Completion.Task ? await handler.Completion.Task : null;
             }
             finally

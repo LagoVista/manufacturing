@@ -79,6 +79,8 @@ namespace LagoVista.PickAndPlace.Interfaces
 
 
         bool TopLightOn { get; set; }
+        Task<TopCameraIllumination.Acquisition> BeginTopCameraAcquisitionAsync(int observationTimeoutMs,
+            System.Threading.CancellationToken cancellation = default);
         bool BottomLightOn { get; set; }
 
 
