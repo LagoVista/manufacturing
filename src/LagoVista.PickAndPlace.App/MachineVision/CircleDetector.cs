@@ -72,7 +72,9 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 profile.Key == VisionProfile.VisionProfile_FeederFiducial;
             var feederLandmark = camera.CameraType?.Value == CameraTypes.Position &&
                 profile.Key == VisionProfile.VisionProfile_FeederLandmark;
-            var uniqueFiducial = boardFiducial || feederFiducial || feederLandmark;
+            var autoAdditional = camera.CameraType?.Value == CameraTypes.Position &&
+                CircleAutoThresholdProfiles.IsAdditional(profile.Key) && profile.AutoThreshold;
+            var uniqueFiducial = boardFiducial || feederFiducial || feederLandmark || autoAdditional;
             if (feederLandmark != _feederLandmark)
             {
                 _foundCircles.Clear();
@@ -162,7 +164,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
             var candidates = circles.Where(circle => uniqueFiducial
                 ? BoardFiducialImageGeometry.IsCandidate(circle.Center.X, circle.Center.Y, circle.Radius,
-                    size.Width, size.Height, search.Center.X, search.Center.Y, search.Radius)
+                    size.Width, size.Height, search.Center.X, search.Center.Y, search.Radius) &&
+                    (!autoAdditional || (feederFiducial && !profile.ApplyMask) || search.WithinRadius(circle))
                 : search.WithinRadius(circle)).ToArray();
             if (uniqueFiducial)
             {
@@ -187,8 +190,13 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 if (candidates.Length != 1)
                 {
                     _foundCircles.Clear();
+                    if (autoAdditional) _autoCircleGate.Reset();
                     return;
                 }
+                if (autoAdditional &&
+                    !_autoCircleGate.ObserveCircle(candidates[0].Center.X, candidates[0].Center.Y,
+                        candidates[0].Radius * 2, camera.EffectivePixelsPerMM))
+                    _foundCircles.Clear();
                 if (_foundCircles.Any(track => track.Iteration != _iteration - 1) ||
                     (_foundCircles.Count > 0 && _foundCircles.FindPrevious(candidates[0], 10) == null))
                     _foundCircles.Clear();
