@@ -107,6 +107,28 @@ namespace LagoVista.PickAndPlace.Models
             return true;
         }
 
+        // Head 1 alone establishes the common logical camera coordinate.
+        // Head 2 is used solely for physical travel preflight, never averaging.
+        public static bool TryProposeSharedCamera(Point2D<double> cameraXY,
+            Point2D<double> headOneOffset, Point2D<double> headTwoOffset,
+            Point2D<double> headOneCorrection, Point2D<double> workArea,
+            out Point2D<double> candidate, out string error)
+        {
+            candidate = null;
+            if (!TryValidateInspectionXY(cameraXY, headOneOffset, headOneCorrection,
+                workArea, out var proposed, out error))
+                return false;
+            if (!TryValidateInspectionXY(proposed, headTwoOffset, new Point2D<double>(0, 0),
+                workArea, out _, out error))
+                return false;
+            candidate = proposed;
+            return true;
+        }
+
+        public static bool BothHeadsPassUncorrected(double headOneMm, double headTwoMm) =>
+            Finite(headOneMm) && Finite(headTwoMm) && headOneMm >= 0 && headTwoMm >= 0 &&
+            headOneMm <= NozzleCameraToleranceMm && headTwoMm <= NozzleCameraToleranceMm;
+
         public static bool TryVerifyCenteredPickup(
             Point2D<double> nozzleImageOffset,
             Point2D<double> discImageOffset,

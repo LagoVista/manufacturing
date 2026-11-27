@@ -174,6 +174,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
             // This candidate is single-use. It must not survive a failed write
             // or a failed third pickup and accidentally be applied twice.
+            ClearSharedCandidate();
             InvalidateSavedPickupCandidate();
             _savedOffsetVerificationActive = true;
             CalibrationRunning = true;

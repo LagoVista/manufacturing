@@ -31,6 +31,34 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void SharedCameraUsesOnlyHeadOneCorrectionAndChecksBothTravelEnvelopes()
+        {
+            var headOne = P(23, 65);
+            var headTwo = P(-23, 65);
+            var previous = P(145, 120);
+            Assert.That(CameraToolBottomCameraFraming.TryProposeSharedCamera(previous,
+                headOne, headTwo, P(0.555, 1.689), P(400, 400), out var candidate, out var reason), Is.True, reason);
+            Assert.That(candidate.X, Is.EqualTo(145.555).Within(0.000001));
+            Assert.That(candidate.Y, Is.EqualTo(121.689).Within(0.000001));
+            Assert.That(previous.X, Is.EqualTo(145));
+            Assert.That(headOne.X, Is.EqualTo(23));
+            Assert.That(headTwo.X, Is.EqualTo(-23));
+            Assert.That(CameraToolBottomCameraFraming.TryProposeSharedCamera(P(25, 120),
+                headOne, headTwo, P(0, 0), P(400, 400), out candidate, out _), Is.False);
+            Assert.That(candidate, Is.Null);
+        }
+
+        [TestCase(0.2, 0.2, true)]
+        [TestCase(0.01, 0.201, false)]
+        [TestCase(0.201, 0.01, false)]
+        [TestCase(double.NaN, 0.01, false)]
+        [TestCase(0.01, double.PositiveInfinity, false)]
+        public void IndependentUncorrectedProofCannotAverageOrHideFailures(double one, double two, bool expected)
+        {
+            Assert.That(CameraToolBottomCameraFraming.BothHeadsPassUncorrected(one, two), Is.EqualTo(expected));
+        }
+
+        [Test]
         public void CameraOrientationCanBeMirroredAndRotatedWithoutGuessingAxisSigns()
         {
             var initial = P(-0.555, -1.689);

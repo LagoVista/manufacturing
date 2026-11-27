@@ -270,6 +270,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 Status = "Previous physical run history is NOT saved. Retry History Save or copy the diagnostic report before starting another run.";
                 return;
             }
+            ClearSharedCandidate();
             InvalidateSavedPickupCandidate();
             CalibrationRunning = true;
             CalibrationFinished = false;
@@ -564,9 +565,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             return result.Result;
         }
 
-        private async Task<BottomCircle> MeasureEmptyNozzleAsync(MachineToolHead head)
+        private async Task<BottomCircle> MeasureEmptyNozzleAsync(MachineToolHead head, bool frame = true)
         {
             RequireValid();
+            _inspectionFramingOffsetMm = null;
             _emptyNozzleOpticalLock = false;
             _emptyNozzleCameraId = null;
             _emptyNozzleCameraScale = 0;
@@ -599,6 +601,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (!Finite(_emptyNozzleCameraScale) || _emptyNozzleCameraScale <= 0)
                 throw new CalibrationStopped("T004 nozzle reference: invalid bottom-camera pixel scale.");
 
+            if (_sharedOperationActive && !ReferenceEquals(capture.Camera, SharedCamera()))
+                throw new CalibrationStopped("Live bottom-camera configuration differs from the saved machine camera.");
             await SwitchToHeadAsync(head);
             _machine.ClearToolHeadAngle();
             await NeedIdleAsync("nozzle zero-angle positioning");
@@ -636,7 +640,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
             var initial = await ObserveBottomAsync(VisionProfile.VisionProfile_Nozzle,
                 isCylinder:false);
-            return await CenterNozzleInBottomCameraAsync(initial);
+            if (_sharedOperationActive)
+                SharedEvidence($"Head {head.HeadIndex} INITIAL UNCORRECTED nozzle: {Describe(initial.OffsetMm)}");
+            if (frame)
+                return await CenterNozzleInBottomCameraAsync(initial);
+            // Uncorrected proof must not inherit or compute a framing jog.
+            _machine.SendSafeMoveHeight();
+            await NeedIdleAsync("safe Z after uncorrected nozzle observation");
+            return initial;
         }
 
         /// <summary>
@@ -678,12 +689,16 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 original, xProbe.OffsetMm, yProbe.OffsetMm, probe,
                 out var correction, out var reason))
                 throw new CalibrationStopped("Nozzle camera framing rejected: " + reason);
+            if (_sharedOperationActive)
+                SharedEvidence($"Head {_head.HeadIndex} deliberate X probe {Describe(xProbe.OffsetMm)}, Y probe {Describe(yProbe.OffsetMm)}; computed machine XY correction {Describe(correction)}");
             _inspectionFramingOffsetMm = correction;
             // All XY changes use safe Z first; now prove the computed result.
             await MoveToInspectionCameraAsync(holdingCylinder:false);
             var centered = await ObserveBottomAsync(
                 VisionProfile.VisionProfile_Nozzle, isCylinder:false);
             var remaining = CameraToolBottomCameraFraming.Radius(centered.OffsetMm);
+            if (_sharedOperationActive)
+                SharedEvidence($"Head {_head.HeadIndex} FINAL FRAMED reference: {Describe(centered.OffsetMm)}");
             if (remaining > CameraToolBottomCameraFraming.NozzleCameraToleranceMm)
                 throw new CalibrationStopped(
                     $"Bottom-camera nozzle centering did not converge: " +

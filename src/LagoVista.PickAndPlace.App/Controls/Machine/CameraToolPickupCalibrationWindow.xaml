@@ -3,9 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:cal="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine.Calibration"
         Title="Camera-to-Tool XY Calibration"
-        Width="1160" Height="830" MinWidth="950" MinHeight="700"
+        Width="1640" Height="1170" MinWidth="950" MinHeight="700"
         WindowStartupLocation="CenterOwner" WindowStyle="None"
-        ResizeMode="NoResize" ShowInTaskbar="False"
+        ResizeMode="CanResizeWithGrip" ShowInTaskbar="False"
         Background="#161C25" Foreground="#EDF2F8"
         Closing="Window_Closing">
     <Window.Resources>
@@ -145,6 +145,18 @@
                                Foreground="#E8C58B" FontSize="11" VerticalAlignment="Center"
                                TextWrapping="Wrap"/>
                 </StackPanel>
+                <WrapPanel Margin="0,8,0,3">
+                    <CheckBox Content="Full Diagnostics" IsChecked="{Binding FullDiagnostics, Mode=TwoWay}"
+                              IsEnabled="{Binding CanOperate}" Foreground="#EDF2F8" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <Button Content="Verify both saved pickups + propose camera" Click="ProposeCamera_Click" IsEnabled="{Binding CanOperate}" Margin="0,0,8,0" Padding="8,4"/>
+                    <Button Content="Approve shared camera &amp; validate both" Click="ApproveCamera_Click" IsEnabled="{Binding CanOperate}" Margin="0,0,8,0" Padding="8,4"/>
+                    <Button Content="Validate both (no correction)" Click="ValidateCamera_Click" IsEnabled="{Binding CanOperate}" Margin="0,0,8,0" Padding="8,4"/>
+                    <TextBlock Text="Iterations/head:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                    <TextBox Width="48" Text="{Binding DiagnosticIterations, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanOperate}" Margin="0,0,8,0"/>
+                    <Button Content="Run extended diagnostics" Click="RunDiagnostics_Click" IsEnabled="{Binding CanOperate}" Margin="0,0,8,0" Padding="8,4"/>
+                    <Button Content="Stop after safe boundary" Click="StopDiagnostics_Click" IsEnabled="{Binding SharedOperationActive}" Padding="8,4"/>
+                </WrapPanel>
+                <TextBlock Text="{Binding SharedCameraStatus}" TextWrapping="Wrap" Foreground="#A2C9D7" Margin="0,3,0,3"/>
                 <TextBlock Text="{Binding ConfiguredHeights}" TextWrapping="Wrap"
                            Margin="0,7,0,2" FontWeight="SemiBold"/>
                 <TextBlock Text="Pickup/return use the selected head's saved Pick/Place heights. Held-disc inspection completes XY travel at Safe Move Height, then moves common Z to the selected head's configured Pick Height. Verify fixture clearance and optical focus during supervised testing."

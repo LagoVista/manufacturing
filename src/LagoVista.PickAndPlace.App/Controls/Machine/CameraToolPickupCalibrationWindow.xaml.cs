@@ -12,6 +12,11 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
         public CameraToolPickupCalibrationWindow()
         {
             InitializeComponent();
+            // Approximately twice the original area, constrained to the display.
+            Width = Math.Min(Width, SystemParameters.WorkArea.Width);
+            Height = Math.Min(Height, SystemParameters.WorkArea.Height);
+            MinWidth = Math.Min(MinWidth, Width);
+            MinHeight = Math.Min(MinHeight, Height);
         }
 
         private ICameraToolPickupCalibrationViewModel Procedure =>
@@ -53,6 +58,37 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
             if (confirmed == MessageBoxResult.Yes)
                 await Procedure.SaveAndVerifyAsync();
         }
+
+        private async void ProposeCamera_Click(object sender, RoutedEventArgs e)
+        {
+            if (Procedure?.CanOperate == true && ConfirmMotion("Verify both persisted pickup offsets, then measure Head 1's shared bottom-camera candidate. Nothing will be saved."))
+                await Procedure.ProposeSharedCameraAsync();
+        }
+
+        private async void ApproveCamera_Click(object sender, RoutedEventArgs e)
+        {
+            if (Procedure?.CanOperate == true && ConfirmMotion(Procedure.SharedCameraStatus + "\n\nApprove saving this shared camera candidate and independently approaching it with both heads?"))
+                await Procedure.ApproveSharedCameraAsync();
+        }
+
+        private async void ValidateCamera_Click(object sender, RoutedEventArgs e)
+        {
+            if (Procedure?.CanOperate == true && ConfirmMotion("Approach the saved bottom-camera position with both heads without optical correction."))
+                await Procedure.ValidateSharedCameraAsync();
+        }
+
+        private async void RunDiagnostics_Click(object sender, RoutedEventArgs e)
+        {
+            if (Procedure?.CanOperate == true && ConfirmMotion("Run supervised repeated saved-offset pickups and uncorrected bottom-camera approaches for both heads. No settings will be written."))
+                await Procedure.RunFullDiagnosticsAsync();
+        }
+
+        private void StopDiagnostics_Click(object sender, RoutedEventArgs e) => Procedure?.RequestDiagnosticStop();
+
+        private bool ConfirmMotion(string message) => MessageBox.Show(this,
+            message + "\n\nConfirm fixture clearance, both nozzles installed, and emergency stop accessible.",
+            "Supervised T001 calibration", MessageBoxButton.YesNo, MessageBoxImage.Warning,
+            MessageBoxResult.No) == MessageBoxResult.Yes;
 
         private void CopyRunReport_Click(object sender, RoutedEventArgs e)
         {
