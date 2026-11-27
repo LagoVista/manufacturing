@@ -8,6 +8,31 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
     {
         private static Point2D<double> XY(double x, double y) => new Point2D<double>(x, y);
 
+        [TestCase(0.02, 0.03, true, false)]
+        [TestCase(0.3, -0.4, true, true)]
+        [TestCase(1.1, 0.0, false, false)]
+        [TestCase(0.0, -1.1, false, false)]
+        [TestCase(double.NaN, 0.0, false, false)]
+        public void FirstStableKnownLocationRefreshIsBoundedAndSkipsNoise(
+            double dx, double dy, bool allowed, bool shouldWrite)
+        {
+            var previous = new Point2D<double>(100, 100);
+            var measured = new Point2D<double>(100 + dx, 100 + dy);
+            var area = new Point2D<double>(400, 400);
+            Assert.That(KnownLocationCylinderCenteringMath.TryPlanKnownLocationUpdate(
+                previous, measured, area, out var write), Is.EqualTo(allowed));
+            Assert.That(write, Is.EqualTo(shouldWrite));
+        }
+
+        [Test]
+        public void KnownLocationRefreshCannotWriteOutsideTravelMargin()
+        {
+            Assert.That(KnownLocationCylinderCenteringMath.TryPlanKnownLocationUpdate(
+                new Point2D<double>(5.1, 100), new Point2D<double>(4.9, 100),
+                new Point2D<double>(400, 400), out var write), Is.False);
+            Assert.That(write, Is.False);
+        }
+
         [Test]
         public void ExistingCenteredSevenMmCylinderNeedsNoJog()
         {

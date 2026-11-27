@@ -51,12 +51,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             {
                 Set(ref _historyBusy, value);
                 RaisePropertyChanged(nameof(CanOperate));
+                RaisePropertyChanged(nameof(CanStartAutomatic));
                 RaisePropertyChanged(nameof(CanRetryHistory));
             }
         }
 
         public bool CanRetryHistory =>
-            !CalibrationRunning && !HistoryBusy && _pendingHistorySnapshot != null;
+            !AutomaticRunActive && !CalibrationRunning && !HistoryBusy && _pendingHistorySnapshot != null;
 
         // Offline diagnostic escape hatch when Manufacturing REST is unavailable.
         public string DiagnosticReport

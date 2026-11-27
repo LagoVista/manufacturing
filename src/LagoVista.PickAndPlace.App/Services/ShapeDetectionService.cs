@@ -98,6 +98,12 @@ namespace LagoVista.PickAndPlace.App.Services
 
         private void RenderOutput(IMVImage<IInputOutputArray> img, MachineCamera camera, System.Drawing.Size size)
         {
+            // During final stationary disc proof, the WPF overlay is the only
+            // source of the acceptance outline and crosshair. The detector
+            // still runs on every frame; only these raw annotations are hidden.
+            if (camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_CalibrationDisc &&
+                camera.CurrentVisionProfile.HideCalibrationDiscCandidateOverlay)
+                return;
             if (camera.CurrentVisionProfile.ShowCrossHairs) _imageHelper.DrawCrossHairs(img, camera, size);
             if (camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_FeederBarcode)
             {

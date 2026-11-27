@@ -28,6 +28,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 Set(ref _automaticRunActive, value);
                 RaisePropertyChanged(nameof(CanOperate));
                 RaisePropertyChanged(nameof(CanStartAutomatic));
+                RaisePropertyChanged(nameof(CanRetryHistory));
             }
         }
         public bool AutomaticRunVerified { get => _automaticRunVerified; private set => Set(ref _automaticRunVerified, value); }
@@ -148,14 +149,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             RequireValid();
             _firstKnownLocationHandled = true;
             var old = _machine.Settings.KnownCalibrationPoint;
-            if (old == null || !Finite(old.X) || !Finite(old.Y) ||
-                !Finite(measured.X) || !Finite(measured.Y) ||
-                Math.Abs(measured.X - old.X) > KnownLocationCylinderCenteringMath.MaximumJogPerAxisMm ||
-                Math.Abs(measured.Y - old.Y) > KnownLocationCylinderCenteringMath.MaximumJogPerAxisMm)
+            if (!KnownLocationCylinderCenteringMath.TryPlanKnownLocationUpdate(old, measured,
+                _machine.Settings.WorkAreaSize, out var shouldWrite))
                 throw new CalibrationStopped("Measured disc center is beyond the allowed Known Location update; inspect fixture.");
-            if (Math.Abs(measured.X - old.X) <= KnownLocationCylinderCenteringMath.CenterToleranceMm &&
-                Math.Abs(measured.Y - old.Y) <= KnownLocationCylinderCenteringMath.CenterToleranceMm)
-                return;
+            if (!shouldWrite) return;
             if (_stopAutomatic) throw new CalibrationStopped("Stopped before Known Location save.");
             await NeedIdleAsync("Known Location save preflight");
             if (_machine.CurrentMachineToolHead != null || _machine.LeftVacuumPump || _machine.RightVacuumPump)
@@ -163,7 +160,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             var persisted = await ReadSharedGeometryAsync();
             if (!SameXY(persisted.KnownCalibrationPoint, old))
                 throw new CalibrationStopped("Stored Known Location changed; reload before calibration.");
-            if (_stopAutomatic) throw new CalibrationStopped("Stopped before Known Location save.");
+            RequireValid();
+            if (_stopAutomatic || _machine.Busy || _machine.ToSendQueueCount != 0 ||
+                _machine.UnacknowledgedBytesSent != 0 || _machine.CurrentMachineToolHead != null ||
+                _machine.LeftVacuumPump || _machine.RightVacuumPump)
+                throw new CalibrationStopped("Machine readiness changed before Known Location save.");
             persisted.KnownCalibrationPoint = new Point2D<double>(measured.X, measured.Y);
             var saved = await _restClient.PutAsync("/api/mfg/machine", persisted);
             if (!saved.Successful)

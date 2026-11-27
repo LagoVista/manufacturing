@@ -134,6 +134,16 @@ namespace LagoVista.PickAndPlace.Models
             set => Set(ref _showFoundObjectsList, value);
         }
 
+        // Display-only arbitration while the stationary T001 acceptance proof
+        // is on screen. Never persisted, never used by the detector.
+        private volatile bool _hideCalibrationDiscCandidateOverlay;
+        [Newtonsoft.Json.JsonIgnore]
+        public bool HideCalibrationDiscCandidateOverlay
+        {
+            get => _hideCalibrationDiscCandidateOverlay;
+            set => _hideCalibrationDiscCandidateOverlay = value;
+        }
+
         private bool _showCrosshairs = true;
         public bool ShowCrossHairs
         {

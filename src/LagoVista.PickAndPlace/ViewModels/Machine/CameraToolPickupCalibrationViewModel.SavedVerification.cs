@@ -23,6 +23,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             "Complete a verified two-pick calibration before approving a saved-offset pickup.";
         private CameraToolSavedPickupProof _savedPickupProof;
         private bool _showSavedPickupRing;
+        private VisionProfile _proofDisplayProfile;
         private bool _savedPickupVerified;
         private bool _savedOffsetVerificationActive;
 
@@ -41,7 +42,24 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public bool ShowSavedPickupRing
         {
             get => _showSavedPickupRing;
-            private set => Set(ref _showSavedPickupRing, value);
+            private set
+            {
+                // Scope raw-renderer suppression to the exact live disc profile.
+                // Clear it even if camera/profile selection changes while unwinding.
+                if (_proofDisplayProfile != null)
+                    _proofDisplayProfile.HideCalibrationDiscCandidateOverlay = false;
+                _proofDisplayProfile = null;
+                if (value)
+                {
+                    var profile = _machine?.PartInspectionCaptureService?.Profile;
+                    if (profile?.Key == VisionProfile.VisionProfile_CalibrationDisc)
+                    {
+                        _proofDisplayProfile = profile;
+                        profile.HideCalibrationDiscCandidateOverlay = true;
+                    }
+                }
+                Set(ref _showSavedPickupRing, value);
+            }
         }
 
         public bool SavedPickupVerified

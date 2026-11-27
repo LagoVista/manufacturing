@@ -87,6 +87,25 @@ namespace LagoVista.PickAndPlace.Models
             return true;
         }
 
+        // The first stable observation in a full calibration may refresh
+        // the stored seed once. Never persist accumulated large jogs or
+        // sub-tolerance noise. Validation-only does not call this writer.
+        public static bool TryPlanKnownLocationUpdate(Point2D<double> previous,
+            Point2D<double> measured, Point2D<double> workArea, out bool shouldWrite)
+        {
+            shouldWrite = false;
+            if (!Valid(previous) || !Valid(measured) || !Valid(workArea) ||
+                !Safe(previous.X, previous.Y, workArea) ||
+                !Safe(measured.X, measured.Y, workArea))
+                return false;
+            var dx = Math.Abs(measured.X - previous.X);
+            var dy = Math.Abs(measured.Y - previous.Y);
+            if (dx > MaximumJogPerAxisMm || dy > MaximumJogPerAxisMm)
+                return false;
+            shouldWrite = dx > CenterToleranceMm || dy > CenterToleranceMm;
+            return true;
+        }
+
         private static bool Valid(Point2D<double> value) =>
             value != null && Finite(value.X) && Finite(value.Y);
         private static bool Finite(double value) =>
