@@ -36,9 +36,10 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="1" Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}" >
-            <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Save" Command="{Binding SaveCommand}"></Button>
-            <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Cancel" Command="{Binding CancelCommand}"></Button>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="1">
+            <Button Style="{StaticResource CommandButton}" Content="Calibrate Feeders" Click="OpenPlacementCalibration_Click" Width="Auto" Padding="8,0"/>
+            <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Save" Command="{Binding SaveCommand}" Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}"></Button>
+            <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Cancel" Command="{Binding CancelCommand}" Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}"></Button>
         </StackPanel>
 
 
@@ -95,12 +96,11 @@
 
             </StackPanel>
             
-            <TextBlock Text="Unlock settings and enable manual testing below before calibration. Save explicitly after a verified result." TextWrapping="Wrap"/>
-            <Button Content="Calibrate Feeder Placement" Command="{Binding SetFeederFiducialLocationCommand}" Style="{StaticResource CommandButton}" />
-            <TextBlock Text="{Binding PlacementStatus}" TextWrapping="Wrap" Margin="0,4,0,6"/>
+            <Button Content="Calibrate Feeder Placement" Click="OpenPlacementCalibration_Click" Style="{StaticResource CommandButton}" />
+            <TextBlock Text="{Binding PlacementStatus}" Foreground="White" FontSize="16" TextWrapping="Wrap" Margin="0,4,0,6"/>
             <Button Content="Reload Feeder" Command="{Binding ReloadFeederCommand}" Style="{StaticResource CommandButton}" />
-            <TextBlock Text="{Binding ConfiguredFeederStatus}" TextWrapping="Wrap" FontWeight="Bold" />
-            <TextBlock Text="{Binding PhotonFeederViewModel.Status}" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding ConfiguredFeederStatus}" Foreground="White" FontSize="16" TextWrapping="Wrap" FontWeight="Bold" />
+            <TextBlock Text="{Binding PhotonFeederViewModel.Status}" Foreground="White" FontSize="16" TextWrapping="Wrap" />
             <TextBlock Text="{Binding Current.FeederId, StringFormat='Feeder ID: {0}'}" TextWrapping="Wrap" />
             <TextBlock Text="{Binding Current.Slot, StringFormat='Slot: {0}'}" />
             <TextBlock Text="{Binding CurrentComponentPackage.TapePitch, StringFormat='Configured pitch: {0}'}" />

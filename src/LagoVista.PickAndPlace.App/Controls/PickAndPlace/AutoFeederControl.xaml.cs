@@ -31,5 +31,12 @@ namespace LagoVista.PickAndPlace.App.Controls.PickAndPlace
         {
             InitializeComponent();
         }
+
+        private void OpenPlacementCalibration_Click(object sender, RoutedEventArgs e)
+        {
+            if (!(DataContext is IAutoFeederViewModel vm) || vm.PlacementBusy) return;
+            var dialog = new AutoFeederCalibrationWindow(vm) { Owner = Window.GetWindow(this) };
+            dialog.ShowDialog();
+        }
     }
 }

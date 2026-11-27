@@ -29,6 +29,13 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand CreateAutoFeederFromTemplateCommand { get; }
         RelayCommand SetPartPickLocationCommand { get; }
         RelayCommand SetFeederFiducialLocationCommand { get; }
+        RelayCommand SavePlacementCommand { get; }
+        bool PlacementBusy { get; }
+        bool HasPlacementCandidate { get; }
+        bool ConfiguredTestArmed { get; set; }
+        string PlacementStatus { get; }
+        ObservableCollection<string> PlacementMessages { get; }
+        void ResetPlacementDialog();
 
         InvokeResult<Point2D<double>> FindFeederFiducial();
         InvokeResult<Point2D<double>> FindPickLocation();
