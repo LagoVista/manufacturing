@@ -139,6 +139,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _automaticMachine = _repo.CurrentMachine;
             ClearSharedCandidate();
             ResetNozzleResults();
+            _firstFiducialVector = null;
+            RepeatabilityProgress = "";
+            FiducialCheckpointStatus = "";
             if (_pendingHistorySnapshot != null)
             {
                 Status = "Previous run history is pending. Retry History Save first.";
@@ -170,6 +173,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 SaveVerifiedOffset = false; // retain the independent two-pick candidate gate
                 if (_automaticFull)
                 {
+                    await RunFiducialCheckpointAsync("Before pickup calibration");
+                    await RequireAutomaticBoundaryAsync();
+                    if (CalibrationSteps.Any(s => s.Status != "Passed"))
+                        throw new CalibrationStopped("Initial machine fiducial check did not pass. " + Status);
                     foreach (var index in installed)
                     {
                         HeadIndexText = index.ToString();
@@ -181,6 +188,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         await RequireAutomaticBoundaryAsync();
                         if (!SavedPickupVerified || CalibrationSteps.Any(s => s.Status != "Passed"))
                             throw new CalibrationStopped("Head " + index + " saved pickup did not pass. " + Status);
+                        await RunFiducialCheckpointAsync("After Head " + index + " pickup acceptance");
+                        await RequireAutomaticBoundaryAsync();
+                        if (CalibrationSteps.Any(s => s.Status != "Passed"))
+                            throw new CalibrationStopped("Machine fiducial check did not pass. " + Status);
                     }
                     await ProposeSharedCameraCoreAsync();
                     await RequireAutomaticBoundaryAsync();
@@ -190,6 +201,10 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     await RequireAutomaticBoundaryAsync();
                     if (!SharedCameraVerified || CalibrationSteps.Any(s => s.Status != "Passed"))
                         throw new CalibrationStopped("Shared camera verification failed. " + Status);
+                    await RunFiducialCheckpointAsync("After shared camera acceptance");
+                    await RequireAutomaticBoundaryAsync();
+                    if (CalibrationSteps.Any(s => s.Status != "Passed"))
+                        throw new CalibrationStopped("Machine fiducial check did not pass. " + Status);
                     await RunFullDiagnosticsCoreAsync();
                 }
                 else

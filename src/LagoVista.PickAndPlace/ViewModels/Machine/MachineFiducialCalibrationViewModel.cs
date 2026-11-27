@@ -244,7 +244,21 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 " ms of status settling. No fiducial motion was issued.";
         }
 
-        public async Task RunAsync()
+        public Task RunAsync() => RunCoreAsync(false);
+
+        public FiducialCircleObservation VerifiedReferenceObservation { get; private set; }
+
+        // A read-only optical checkpoint. It moves to the configured fiducial
+        // but never centers, resets G92, invalidates plates or saves settings.
+        public async Task<FiducialCircleObservation> MeasureReferenceAsync()
+        {
+            if (!CanRun) return null;
+            VerifiedReferenceObservation = null;
+            await RunCoreAsync(true);
+            return VerifiedReferenceObservation;
+        }
+
+        private async Task RunCoreAsync(bool measureOnly)
         {
             if (Running || ManualBusy) return;
             if (HasUnsavedTuning)
@@ -289,6 +303,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 if (initialIdleError != null)
                 {
                     Fail(initialIdleError);
+                    return;
+                }
+
+                if (measureOnly && (!machine.WasMachinOriginCalibrated ||
+                    machine.CurrentMachineToolHead != null || machine.LeftVacuumPump || machine.RightVacuumPump))
+                {
+                    Fail("Reference measurement requires calibrated origin, camera navigation and vacuum off.");
                     return;
                 }
 
@@ -343,8 +364,38 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     Fail(error);
                     return;
                 }
-                machine.SendSafeMoveHeight();
-                await machine.MoveToCameraAsync();
+                if (measureOnly)
+                {
+                    var point = MachineConfiguration.MachineFiducial;
+                    var area = machine.Settings.WorkAreaSize;
+                    var safeZ = machine.Settings.SafMoveHeight;
+                    if (area == null || !FiniteReference(point.X) || !FiniteReference(point.Y) ||
+                        !FiniteReference(area.X) || !FiniteReference(area.Y) || !FiniteReference(safeZ) ||
+                        point.X < 5 || point.Y < 5 || point.X > area.X - 5 || point.Y > area.Y - 5 ||
+                        !ReferenceEquals(machine, MachineRepo.CurrentMachine) ||
+                        machine.CurrentMachineToolHead != null || machine.LeftVacuumPump || machine.RightVacuumPump)
+                    {
+                        Fail("Unsafe fiducial checkpoint geometry or machine state.");
+                        return;
+                    }
+                    machine.SendSafeMoveHeight();
+                    var raised = await machine.SpinUntilIdleAsync(10000);
+                    var actual = raised.Successful ? await machine.GetCurrentLocationAsync(5000) : null;
+                    if (!raised.Successful || actual == null || !actual.Successful ||
+                        !FiniteReference(machine.ToolCommonZ) || Math.Abs(machine.ToolCommonZ - safeZ) > 0.20 ||
+                        !ContextValid(true, out error) || !ReferenceEquals(machine, MachineRepo.CurrentMachine) ||
+                        machine.CurrentMachineToolHead != null || machine.LeftVacuumPump || machine.RightVacuumPump ||
+                        machine.IsLocating || _locator.IsLocating)
+                    {
+                        Fail("Safe Z or machine state could not be verified for fiducial checkpoint.");
+                        return;
+                    }
+                }
+                else
+                {
+                    machine.SendSafeMoveHeight();
+                    await machine.MoveToCameraAsync();
+                }
                 machine.GotoPoint(MachineConfiguration.MachineFiducial);
                 var positioning = await machine.SpinUntilIdleAsync(10000);
                 if (!positioning.Successful)
@@ -366,6 +417,35 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 if (found == null)
                 {
                     Fail("No verified stable circle: " + LastRejection);
+                    return;
+                }
+                if (measureOnly)
+                {
+                    if (!ContextValid(true, out error) || !ReferenceEquals(machine, MachineRepo.CurrentMachine) ||
+                        !machine.WasMachinOriginCalibrated || machine.CurrentMachineToolHead != null ||
+                        machine.LeftVacuumPump || machine.RightVacuumPump ||
+                        !FiducialCalibrationGate.TryQualify(found, _profile.Key, _scale,
+                            _moveCompletedUtc, DateTimeOffset.UtcNow, out error))
+                    {
+                        Fail("Reference evidence invalid: " + error);
+                        return;
+                    }
+                    var actual = await machine.GetCurrentLocationAsync(5000);
+                    if (!actual.Successful || actual.Result == null ||
+                        !FeederOriginCalibrationMath.SamePosition(actual.Result, MachineConfiguration.MachineFiducial, 0.05) ||
+                        !ContextValid(true, out error) || !ReferenceEquals(machine, MachineRepo.CurrentMachine) ||
+                        !machine.WasMachinOriginCalibrated || machine.CurrentMachineToolHead != null ||
+                        machine.LeftVacuumPump || machine.RightVacuumPump ||
+                        !FiducialCalibrationGate.TryQualify(found, _profile.Key, _scale,
+                            _moveCompletedUtc, DateTimeOffset.UtcNow, out error))
+                    {
+                        Fail("Fiducial checkpoint controller XY or optical evidence could not be verified.");
+                        return;
+                    }
+                    VerifiedReferenceObservation = found;
+                    FinishCurrentStep("Passed");
+                    Status = "Fiducial reference measured; origin and staging plates unchanged.";
+                    Log(Status);
                     return;
                 }
                 Step(3, "Centering the camera; verifying fresh circle after each move.");
@@ -507,6 +587,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 Running = false;
             }
         }
+
+        private static bool FiniteReference(double value) =>
+            !Double.IsNaN(value) && !Double.IsInfinity(value);
 
         private async Task<FiducialCircleObservation> WaitForStableCircleAsync()
         {

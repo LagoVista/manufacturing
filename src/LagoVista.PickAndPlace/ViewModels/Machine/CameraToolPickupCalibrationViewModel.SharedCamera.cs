@@ -15,6 +15,46 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
     public sealed partial class CameraToolPickupCalibrationViewModel
     {
         private const bool DefaultFullDiagnostics = true;
+        private string _repeatabilityProgress = "";
+        private string _fiducialCheckpointStatus = "";
+        private MachineFiducialCalibrationViewModel _referenceRunner;
+        private Point2D<double> _firstFiducialVector;
+        public string RepeatabilityProgress { get => _repeatabilityProgress; private set => Set(ref _repeatabilityProgress, value); }
+        public string FiducialCheckpointStatus { get => _fiducialCheckpointStatus; private set => Set(ref _fiducialCheckpointStatus, value); }
+
+        private async Task<bool> MeasureFiducialCheckpointAsync(string label)
+        {
+            CheckSharedStop();
+            await NeedIdleAsync("fiducial checkpoint preflight");
+            CheckSharedReadiness();
+            _referenceRunner ??= new MachineFiducialCalibrationViewModel(_repo, _locator);
+            Status = "Measuring machine fiducial: " + label;
+            var observation = await _referenceRunner.MeasureReferenceAsync();
+            if (observation == null)
+                throw new CalibrationStopped("Fiducial checkpoint failed: " + _referenceRunner.Status);
+            CheckSharedStop();
+            await NeedIdleAsync("fiducial checkpoint settled");
+            CheckSharedReadiness();
+            // Use the same machine-axis signs as the production fiducial
+            // correction, but without OffsetMM's 0.1 mm rounding.
+            var vector = new Point2D<double>(observation.OffsetXpx / observation.PixelsPerMillimeter,
+                -observation.OffsetYpx / observation.PixelsPerMillimeter);
+            _firstFiducialVector ??= vector;
+            var delta = new Point2D<double>(vector.X - _firstFiducialVector.X, vector.Y - _firstFiducialVector.Y);
+            var tolerance = observation.ErrorToleranceMm;
+            var pass = Finite(tolerance) && tolerance > 0 && Math.Abs(vector.X) < tolerance &&
+                Math.Abs(vector.Y) < tolerance;
+            FiducialCheckpointStatus = $"{label}: {(pass ? "PASS" : "FAIL")} · X {vector.X:+0.000;-0.000;0.000}, Y {vector.Y:+0.000;-0.000;0.000} mm";
+            SharedEvidence($"Fiducial {label}; machine-axis correction vector {Describe(vector)}; change since baseline {Describe(delta)}; existing per-axis tolerance {tolerance:F3}; {(pass ? "PASS" : "FAIL")}; no origin reset.");
+            return pass;
+        }
+
+        private Task RunFiducialCheckpointAsync(string label) => RunSharedAsync("fiducial-check", async () =>
+        {
+            if (!await MeasureFiducialCheckpointAsync(label))
+                throw new CalibrationStopped("Machine fiducial outside existing tolerance. Recalibrate machine reference before further calibration writes.");
+            SharedCameraStatus = FiducialCheckpointStatus;
+        });
         private bool _fullDiagnostics = DefaultFullDiagnostics;
         private string _diagnosticIterations = "10";
         private string _sharedCameraStatus = "Complete and approve both pickup offsets first. Then verify both saved pickups and propose the shared bottom camera.";
@@ -274,15 +314,24 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         }
 
         private async Task<double> SharedPickupAsync(int index, bool frame,
-            Action<double> cameraSample = null, Action<double> pickupSample = null)
+            Action<CameraToolRepeatabilitySample> sampleRecorded = null)
         {
             SelectSharedHead(index);
             SetDiscResult(index, "Pending", "Measuring...");
             var nozzle = await MeasureEmptyNozzleAsync(_head, frame, displayUncorrectedProof: false);
             var nozzleError = CameraToolBottomCameraFraming.Radius(nozzle.OffsetMm);
-            cameraSample?.Invoke(nozzleError);
+            var sample = new CameraToolRepeatabilitySample { Nozzle = nozzle.OffsetMm };
             if (!frame && nozzleError > CameraToolBottomCameraFraming.NozzleCameraToleranceMm)
-                throw new CalibrationStopped($"Head {index} uncorrected camera error {nozzleError:F3} mm.");
+            {
+                if (sampleRecorded == null || !Finite(nozzleError))
+                    throw new CalibrationStopped($"Head {index} uncorrected camera error {nozzleError:F3} mm.");
+                await SharedCameraModeAsync();
+                CheckSharedStop();
+                SetDiscResult(index, "Failed", "SKIPPED · nozzle out of tolerance");
+                SharedEvidence($"Head {index} nozzle outside tolerance; pickup skipped, camera mode restored.");
+                sampleRecorded(sample);
+                return Double.NaN;
+            }
             CheckSharedStop();
             var target = await LocateCylinderAsync();
             CheckSharedStop();
@@ -293,7 +342,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             var disc = await ObserveHeldCylinderAsync(retainFocusForSavedProof: true);
             var observation = CreateObservation(_head, nozzle, disc, motion);
             var residual = CameraToolBottomCameraFraming.Radius(observation.PartRelativeToNozzleMm);
-            pickupSample?.Invoke(residual);
+            sample.Pickup = observation.PartRelativeToNozzleMm;
+            sample.Disc = disc.OffsetMm;
             var discCameraError = CameraToolBottomCameraFraming.Radius(disc.OffsetMm);
             var displayPassed = residual <= CameraToolBottomCameraFraming.NozzleCameraToleranceMm &&
                 CameraToolBottomCameraFraming.TryVerifyCenteredPickup(nozzle.OffsetMm, disc.OffsetMm,
@@ -326,12 +376,17 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 throw new CalibrationStopped("Vacuum OFF state did not verify after disc return.");
             SharedEvidence($"Head {index} disc returned; vacuum OFF command settled and safe retract completed.");
             await SharedCameraModeAsync();
-            if (!displayPassed)
+            CheckSharedStop();
+            if (!Finite(nozzleError) || !Finite(discCameraError) || !Finite(residual))
+                throw new CalibrationStopped("Invalid optical measurement; cannot continue repeatability.");
+            if (!displayPassed && sampleRecorded == null)
             {
                 SetDiscResult(index, "Failed", $"FAIL · {discCameraError:F3} mm");
                 throw new CalibrationStopped($"Head {index} saved pickup failed: nozzle {nozzleError:F3}, disc {discCameraError:F3}, pickup {residual:F3} mm (max 0.200 each).");
             }
-            CheckSharedStop();
+            sample.Passed = displayPassed;
+            sampleRecorded?.Invoke(sample);
+            SharedEvidence($"Head {index} sample {(displayPassed ? "PASS" : "FAIL")}; safe return confirmed.");
             SetDiscResult(index, displayPassed ? "Passed" : "Failed",
                 $"{(displayPassed ? "PASS" : "FAIL")} · {discCameraError:F3} mm");
             return residual;
@@ -426,27 +481,51 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
             return RunSharedAsync("repeatability", async () =>
             {
-                var errors = new Dictionary<int, List<double>> { { 1, new List<double>() }, { 2, new List<double>() } };
-                var pickups = new Dictionary<int, List<double>> { { 1, new List<double>() }, { 2, new List<double>() } };
+                SharedCameraVerified = false;
+                var samples = new Dictionary<int, List<CameraToolRepeatabilitySample>>
+                    { { 1, new List<CameraToolRepeatabilitySample>() }, { 2, new List<CameraToolRepeatabilitySample>() } };
+                var fiducialPass = true;
+                RepeatabilityProgress = $"Repeatability: 0/{count * 2} samples";
                 try
                 {
                     for (var n = 1; n <= count; n++)
+                    {
                         foreach (var i in new[] { 1, 2 })
                         {
                             CheckSharedStop();
+                            RepeatabilityProgress = $"Repeatability {n}/{count} · Head {i} · {samples.Values.SelectMany(v => v).Count(s => !s.Passed)} failed so far";
                             SharedEvidence($"Iteration {n}/{count}, Head {i}; uncorrected validation, no writes.");
-                            await SharedPickupAsync(i, false, errors[i].Add, pickups[i].Add);
+                            await SharedPickupAsync(i, false, samples[i].Add);
                         }
+                        // Sample the fixed machine reference between paired
+                        // head cycles. Never re-zero during an experiment.
+                        fiducialPass &= await MeasureFiducialCheckpointAsync($"After repeatability pair {n}/{count}");
+                    }
+                    var total = samples.Values.SelectMany(v => v).ToArray();
+                    var passed = total.Count(s => s.Passed);
+                    RepeatabilityProgress = $"Repeatability complete · {passed}/{count * 2} passed";
+                    foreach (var i in new[] { 1, 2 })
+                    {
+                        var failures = samples[i].Count(s => !s.Passed);
+                        SetDiscResult(i, failures == 0 ? "Passed" : "Failed",
+                            $"{count - failures}/{count} passed");
+                    }
+                    if (passed != count * 2 || !fiducialPass)
+                        throw new CalibrationStopped($"Repeatability completed: {passed}/{count * 2} passed; fiducial checkpoints {(fiducialPass ? "PASS" : "FAIL")}. No calibration values changed.");
                     SharedCameraVerified = true;
                     SharedCameraStatus = $"PASS: {count} supervised iterations per head; no optical correction or settings writes.";
                 }
                 finally
                 {
                     foreach (var i in new[] { 1, 2 })
-                        foreach (var group in new[] { (Name: "camera", Values: errors[i]), (Name: "pickup", Values: pickups[i]) })
-                            SharedEvidence(group.Values.Count == 0
-                                ? $"Head {i} {group.Name}: no passing samples."
-                                : $"Head {i} {group.Name}: {group.Values.Count}/{count} measured samples; min {group.Values.Min():F3}, max {group.Values.Max():F3}, mean {group.Values.Average():F3} mm.");
+                    {
+                        foreach (var group in new[] { (Name: "nozzle", Values: samples[i].Select(s => s.Nozzle)),
+                            (Name: "disc", Values: samples[i].Select(s => s.Disc)),
+                            (Name: "pickup", Values: samples[i].Select(s => s.Pickup)) })
+                            SharedEvidence($"Head {i} {group.Name} camera-frame vector statistics: " +
+                                CameraToolRepeatabilityStatistics.Summarize(group.Values));
+                        SharedEvidence($"Head {i}: {samples[i].Count(s => s.Passed)}/{count} passed; {samples[i].Count} measured cycles.");
+                    }
                 }
             });
         }
