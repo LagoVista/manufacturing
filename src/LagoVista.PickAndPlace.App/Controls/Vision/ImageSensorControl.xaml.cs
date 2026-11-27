@@ -54,6 +54,13 @@ namespace LagoVista.PickAndPlace.App.Controls
             var mvDialog = new VisionSettingsView();
             mvDialog.Owner = Window.GetWindow(this); 
             mvDialog.DataContext = vm;
+            var machine = ViewModel.Machine;
+            if (CameraType == CameraTypes.Position)
+                mvDialog.Closed += (_, __) =>
+                {
+                    try { if (machine?.Connected == true) machine.TopLightOn = false; }
+                    catch (System.Exception ex) { machine?.AddStatusMessage(StatusMessageTypes.Warning, "Top light OFF failed: " + ex.Message); }
+                };
             mvDialog.Show();
         }
     }

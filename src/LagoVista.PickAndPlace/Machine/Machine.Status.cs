@@ -329,7 +329,11 @@ namespace LagoVista.PickAndPlace
                     return;
 
                 _connected = value;
-                if (value) _topLightDisconnecting = false;
+                if (value)
+                {
+                    _topLightDisconnecting = false;
+                    _topLightTransportFault = null;
+                }
                 else _topIllumination.Stop();
 
                 // Every new physical controller connection is a new machine

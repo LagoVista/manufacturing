@@ -94,6 +94,7 @@ namespace LagoVista.PickAndPlace.App.Services
 
         private bool _autoTuneExposureRequested;
         private VisionProfile _autoTuneBoardProfile;
+        private TopCameraIllumination.Acquisition _exposureIllumination;
         private TaskCompletionSource<InvokeResult> _autoTuneExposureCompletion;
         private bool _nozzleTuneRequested;
         private TaskCompletionSource<InvokeResult<DarkCircularOpeningLocator.TuneResult>> _nozzleTuneCompletion;
@@ -201,6 +202,7 @@ namespace LagoVista.PickAndPlace.App.Services
                 return InvokeResult<byte[]>.FromError(
                     "Start the position camera, select Feeder Barcode, and select a feeder orientation.");
 
+            await using var illumination = await Machine.BeginTopCameraAcquisitionAsync(2500);
             TaskCompletionSource<byte[]> request;
             lock (_captureLocker)
             {
@@ -222,6 +224,7 @@ namespace LagoVista.PickAndPlace.App.Services
                 return InvokeResult<byte[]>.FromError("Timed out capturing a fresh feeder barcode frame.");
             }
 
+            illumination.ThrowIfInvalid();
             var sample = await request.Task;
             return sample == null
                 ? InvokeResult<byte[]>.FromError("Camera capture stopped during feeder barcode scan.")
@@ -648,12 +651,37 @@ namespace LagoVista.PickAndPlace.App.Services
                     return InvokeResult.FromError("Camera capture could not be started for Auto-Tune.");
             }
 
-            _autoTuneBoardProfile = CameraType == CameraTypes.Position &&
-                Profile?.Key == VisionProfile.VisionProfile_BoardFiducial ? Profile : null;
-            _autoTuneExposureCompletion = new TaskCompletionSource<InvokeResult>(
+            var request = new TaskCompletionSource<InvokeResult>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
-            _autoTuneExposureRequested = true;
-            return await _autoTuneExposureCompletion.Task;
+            _autoTuneExposureCompletion = request;
+            var isPosition = CameraType == CameraTypes.Position;
+            var board = isPosition && Profile?.Key == VisionProfile.VisionProfile_BoardFiducial ? Profile : null;
+            var budget = board == null ? 45000 : 20000;
+            bool submitted = false;
+            try
+            {
+                // Acquire on the calling path while the live frame loop is
+                // still running; the exposure sampler itself owns the camera.
+                var ready = await EnsureCaptureReadyAsync();
+                if (!ready.Successful) return InvokeResult.FromError(ready.ErrorMessage);
+                await using var illumination = isPosition
+                    ? await Machine.BeginTopCameraAcquisitionAsync(budget) : null;
+                _exposureIllumination = illumination;
+                _autoTuneBoardProfile = board;
+                _autoTuneExposureRequested = true;
+                submitted = true;
+                if (isPosition && await Task.WhenAny(request.Task, Task.Delay(budget)) != request.Task)
+                    return InvokeResult.FromError("Position-camera exposure sampling exceeded its bounded illumination window.");
+                return await request.Task;
+            }
+            catch (Exception ex) { return InvokeResult.FromError("Camera exposure illumination/tuning failed: " + ex.Message); }
+            finally
+            {
+                // Once submitted, the capture owner clears its request after
+                // restoring exposure, even if the calling scope timed out.
+                if (!submitted && ReferenceEquals(_autoTuneExposureCompletion, request))
+                    _autoTuneExposureCompletion = null;
+            }
         }
 
         public async Task<InvokeResult<DarkCircularOpeningLocator.TuneResult>> TuneNozzleOpeningAsync()
@@ -782,7 +810,7 @@ namespace LagoVista.PickAndPlace.App.Services
         /// be updated, never the calibrated camera-level exposure.
         /// This is photometric qualification, not circle/board acceptance.
         /// </summary>
-        private async Task<InvokeResult> RunBoardAutoTuneExposureAsync(VisionProfile profile)
+        private async Task<InvokeResult> RunBoardAutoTuneExposureAsync(VisionProfile profile, TopCameraIllumination.Acquisition illumination)
         {
             var device = _capture;
             var camera = Camera;
@@ -797,6 +825,7 @@ namespace LagoVista.PickAndPlace.App.Services
 
             void Check()
             {
+                illumination?.ThrowIfInvalid();
                 if (!_running || device == null || !ReferenceEquals(device, _capture) ||
                     !ReferenceEquals(completion, _autoTuneExposureCompletion) ||
                     !ReferenceEquals(camera, Camera) || !ReferenceEquals(profile, Profile) ||
@@ -913,7 +942,7 @@ namespace LagoVista.PickAndPlace.App.Services
             }
         }
 
-        private async Task<InvokeResult> RunAutoTuneExposureAsync()
+        private async Task<InvokeResult> RunAutoTuneExposureAsync(TopCameraIllumination.Acquisition illumination)
         {
             var originalExposure = Camera.Exposure;
             var candidate = Math.Max(AutoTuneExposureMinimum,
@@ -928,7 +957,9 @@ namespace LagoVista.PickAndPlace.App.Services
 
             for (var iteration = 0; iteration < AutoTuneMaximumIterations; iteration++)
             {
+                illumination?.ThrowIfInvalid();
                 var sample = await MeasureReferenceTargetAsync(candidate);
+                illumination?.ThrowIfInvalid();
                 lastSample = sample;
                 Machine.DebugWriteLine(
                     $"[AutoTuneExposure] exposure={candidate:F1}, dark={sample.Dark:F1}, white={sample.White:F1}, darkRange={sample.DarkRange:F1}, whiteRange={sample.WhiteRange:F1}");
@@ -965,6 +996,7 @@ namespace LagoVista.PickAndPlace.App.Services
                 };
                 if (preferred || usable)
                 {
+                    illumination?.ThrowIfInvalid();
                     Camera.Exposure = candidate;
                     _lastExposure = candidate;
                     Machine.AddStatusMessage(StatusMessageTypes.Info,
@@ -1199,7 +1231,7 @@ namespace LagoVista.PickAndPlace.App.Services
                         _autoTuneExposureRequested = false;
                         if (boardProfile != null)
                         {
-                            try { completion?.TrySetResult(await RunBoardAutoTuneExposureAsync(boardProfile)); }
+                            try { completion?.TrySetResult(await RunBoardAutoTuneExposureAsync(boardProfile, _exposureIllumination)); }
                             catch (Exception ex) { completion?.TrySetResult(InvokeResult.FromError("Board exposure tuning stopped: " + ex.Message)); }
                             finally
                             {
@@ -1215,7 +1247,7 @@ namespace LagoVista.PickAndPlace.App.Services
                         var originalExposure = Camera?.Exposure ?? 0;
                         try
                         {
-                            completion?.TrySetResult(await RunAutoTuneExposureAsync());
+                            completion?.TrySetResult(await RunAutoTuneExposureAsync(_exposureIllumination));
                         }
                         catch (Exception ex)
                         {

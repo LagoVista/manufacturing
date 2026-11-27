@@ -86,6 +86,7 @@ public sealed class WorkbenchMachineControl : IDisposable
             profile.LightRed ?? camera.LightRed,
             profile.LightGreen ?? camera.LightGreen,
             profile.LightBlue ?? camera.LightBlue);
+        Machine.TopLightOn = profile.LightOn;
     }
 
     public void TurnOffTopLight()
@@ -93,7 +94,7 @@ public sealed class WorkbenchMachineControl : IDisposable
         if (!Machine.Connected)
             return;
 
-        Machine.ConfigureTopLight(false, 0, 0, 0, 0);
+        Machine.TopLightOn = false;
     }
 
     public void ApplyBottomLight(MachineCamera camera, VisionProfile profile)

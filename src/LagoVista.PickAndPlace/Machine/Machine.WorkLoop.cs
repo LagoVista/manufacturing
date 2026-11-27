@@ -49,9 +49,9 @@ namespace LagoVista.PickAndPlace
                 _writer.Flush();
             }
         }
-        private void SendNormalPriorityItems(string illuminationLine = null)
+        private void SendNormalPriorityItems()
         {
-            var send_line = illuminationLine ?? _toSend.Peek();
+            var send_line = _toSend.Peek();
             if(String.IsNullOrEmpty(send_line))
             {
                 Debug.WriteLine("EMPTY SEND LINE!");
@@ -96,7 +96,7 @@ namespace LagoVista.PickAndPlace
             }
 
             _sentQueue.Enqueue(send_line);
-            if (illuminationLine == null) _toSend.Dequeue();
+            _toSend.Dequeue();
 
             if(send_line != "M114")
                 AddSentMessage(StatusMessageTypes.Info, send_line);
@@ -214,21 +214,56 @@ namespace LagoVista.PickAndPlace
             }
         }
 
-        // Ordinary newline-delimited acknowledged G-code, ahead of motion.
+        // Send one acknowledged light command in isolation from normal motion.
+        // Otherwise a priority light ACK would incorrectly consume the normal
+        // pending-queue entry, particularly on Marlin/Repetier.
         private bool ServiceTopLightCommands()
         {
+            if (_topLightAwaitingAck) return true;
             string line;
             lock (_topLightCommandGate)
             {
                 if (_topLightCommands.Count == 0) return false;
+                if (UnacknowledgedBytesSent != 0 || _sentQueue.Count != 0) return true;
                 line = _topLightCommands.Peek();
                 if (!HasBufferSpaceAvailableForByteCount(line.Length + 1)) return true;
                 _topLightCommands.Dequeue();
                 _topLightSending = true;
             }
-            try { SendNormalPriorityItems(line); }
+            try
+            {
+                // No synchronous dispatcher between dequeuing permission and
+                // sending. Any later OFF replaces the remaining unsent ONs.
+                _writer.Write(line);
+                _writer.Write('\n');
+                _writer.Flush();
+                _topLightAwaitingAck = true;
+                UnacknowledgedBytesSent = line.Length + 1;
+                AddStatusMessage(StatusMessageTypes.SentLine, line);
+            }
+            catch (Exception ex)
+            {
+                _topLightTransportFault = ex;
+                _topLightAwaitingAck = false;
+                if (_topLightOn) _topIllumination.Stop();
+                AddStatusMessage(StatusMessageTypes.Warning, "Top light transmission failed: " + ex.Message);
+                throw;
+            }
             finally { lock (_topLightCommandGate) _topLightSending = false; }
             return true;
+        }
+
+        private void CompleteTopLightCommand(string error = null)
+        {
+            if (error != null)
+            {
+                _topLightTransportFault = new InvalidOperationException(error);
+                if (_topLightOn) _topIllumination.Stop();
+                AddStatusMessage(StatusMessageTypes.Warning, "Top light command rejected: " + error);
+            }
+            else _topLightTransportFault = null;
+            UnacknowledgedBytesSent = 0;
+            _topLightAwaitingAck = false;
         }
 
         DateTime _nextSend = DateTime.MinValue;
@@ -355,7 +390,7 @@ namespace LagoVista.PickAndPlace
                 await GrblErrorProvider.InitAsync();
 
                 UnacknowledgedBytesSent = 0;
-                if (IsPnPMachine || Settings.GcodeMapping?.Value != null)
+                if (SupportsTopIllumination)
                     _topIllumination.Stop();
 
                 if (Settings.FirmwareType == FirmwareTypes.LagoVista_PnP)

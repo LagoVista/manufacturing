@@ -314,7 +314,7 @@ namespace LagoVista.PickAndPlace
             _topRed = red;
             _topGreen = green;
             _topBlue = blue;
-            if (Connected && (IsPnPMachine || Settings.GcodeMapping?.Value != null))
+            if (Connected && SupportsTopIllumination)
                 _topIllumination.Stop();
             RaisePropertyChanged(nameof(TopPower));
             RaisePropertyChanged(nameof(TopRed));
@@ -380,11 +380,18 @@ namespace LagoVista.PickAndPlace
         private readonly object _topLightCommandGate = new object();
         private readonly Queue<string> _topLightCommands = new Queue<string>();
         private bool _topLightSending;
+        private volatile bool _topLightAwaitingAck;
+        private volatile Exception _topLightTransportFault;
+
+        private bool SupportsTopIllumination => Settings != null &&
+            (Settings.FirmwareType == FirmwareTypes.Repeteir_PnP || Settings.FirmwareType == FirmwareTypes.LagoVista_PnP ||
+             (!String.IsNullOrWhiteSpace(Settings.GcodeMapping?.Value?.TopLightOn) &&
+              !String.IsNullOrWhiteSpace(Settings.GcodeMapping?.Value?.TopLightOff)));
         private volatile bool _topLightDisconnecting;
 
         private int PendingTopLightCommands
         {
-            get { lock (_topLightCommandGate) return _topLightCommands.Count + (_topLightSending ? 1 : 0); }
+            get { lock (_topLightCommandGate) return _topLightCommands.Count + (_topLightSending || _topLightAwaitingAck ? 1 : 0); }
         }
 
         // The watchdog must not call the synchronous UI dispatcher or normal
@@ -394,6 +401,8 @@ namespace LagoVista.PickAndPlace
             if (on && (!Connected || _topLightDisconnecting))
                 throw new InvalidOperationException("Cannot illuminate a disconnected position camera.");
 
+            if (on && _topLightTransportFault != null)
+                throw new InvalidOperationException("Previous top-light transport failed; switch OFF and verify before starting again.", _topLightTransportFault);
             if (Connected)
             {
                 var mapping = Settings.GcodeMapping?.Value;
@@ -419,7 +428,11 @@ namespace LagoVista.PickAndPlace
             }
             else
             {
-                lock (_topLightCommandGate) _topLightCommands.Clear();
+                lock (_topLightCommandGate)
+                {
+                    _topLightCommands.Clear();
+                    _topLightAwaitingAck = false;
+                }
             }
 
             _topLightOn = on;
@@ -432,7 +445,11 @@ namespace LagoVista.PickAndPlace
             while (Connected && timeout.ElapsedMilliseconds < timeoutMs)
             {
                 if (PendingTopLightCommands == 0 && UnacknowledgedBytesSent == 0)
+                {
+                    if (_topLightTransportFault != null)
+                        throw new InvalidOperationException("Top-light command failed at the controller or transport.", _topLightTransportFault);
                     return;
+                }
                 await Task.Delay(25);
             }
             throw new InvalidOperationException("Top-camera light command did not drain and acknowledge while connected.");
@@ -445,6 +462,8 @@ namespace LagoVista.PickAndPlace
                 throw new ArgumentOutOfRangeException(nameof(observationTimeoutMs));
             cancellation.ThrowIfCancellationRequested();
             var capture = PositionImageCaptureService;
+            var camera = capture?.Camera;
+            var profile = capture?.Profile;
             if (!Connected || _topLightDisconnecting || capture?.Camera == null || !capture.IsCapturing ||
                 capture.CameraType != CameraTypes.Position)
                 throw new InvalidOperationException("A connected live position camera is required for illumination.");
@@ -452,6 +471,9 @@ namespace LagoVista.PickAndPlace
             // Automatic work supersedes a preview, never another acquisition.
             _manualTopLightLease?.Dispose();
             _manualTopLightLease = null;
+            // Confirm any preceding OFF before granting the next ON.
+            if (PendingTopLightCommands != 0 || _topLightTransportFault != null)
+                await WaitForTopLightCommandAsync();
             var lease = _topIllumination.Begin(capture.Profile?.LightOn ?? _topLightRequested,
                 TimeSpan.FromMilliseconds(observationTimeoutMs + 7000), cancellation);
             try
@@ -470,6 +492,9 @@ namespace LagoVista.PickAndPlace
                     await Task.Delay(25, cancellation);
                 }
                 lease.ThrowIfInvalid();
+                if (!Connected || !capture.IsCapturing || !ReferenceEquals(capture, PositionImageCaptureService) ||
+                    !ReferenceEquals(camera, capture.Camera) || !ReferenceEquals(profile, capture.Profile))
+                    throw new InvalidOperationException("Position camera/profile changed during illumination settling.");
                 return new TopCameraIllumination.Acquisition(lease, () => WaitForTopLightCommandAsync());
             }
             catch
@@ -495,7 +520,8 @@ namespace LagoVista.PickAndPlace
                 if (!Connected || _topLightDisconnecting) return;
                 _manualTopLightLease?.Dispose();
                 _manualTopLightLease = null;
-                _manualTopLightLease = _topIllumination.Begin(true, TimeSpan.FromSeconds(30));
+                try { _manualTopLightLease = _topIllumination.Begin(true, TimeSpan.FromSeconds(30)); }
+                catch (InvalidOperationException ex) { AddStatusMessage(StatusMessageTypes.Warning, ex.Message); }
             }
         }
 

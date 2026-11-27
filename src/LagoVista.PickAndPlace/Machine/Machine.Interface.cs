@@ -152,7 +152,7 @@ namespace LagoVista.PickAndPlace
         public async Task DisconnectAsync()
         {
             _topLightDisconnecting = true;
-            if (Connected && (IsPnPMachine || Settings.GcodeMapping?.Value != null))
+            if (Connected && SupportsTopIllumination)
             {
                 try
                 {
@@ -278,7 +278,8 @@ namespace LagoVista.PickAndPlace
                 }
 
                 UnacknowledgedBytesSent = 0;
-                if (IsPnPMachine || Settings.GcodeMapping?.Value != null)
+                lock (_topLightCommandGate) _topLightAwaitingAck = false;
+                if (SupportsTopIllumination)
                     _topIllumination.Stop();
             }
         }

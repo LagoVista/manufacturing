@@ -32,6 +32,19 @@ namespace LagoVista.PickAndPlace
         private void ParseMessage(string fullMessageLine)
         {
             fullMessageLine = fullMessageLine.ToLower();
+            if (_topLightAwaitingAck)
+            {
+                if (fullMessageLine.StartsWith("ok") || fullMessageLine.StartsWith("<ok:"))
+                {
+                    CompleteTopLightCommand();
+                    return;
+                }
+                if (fullMessageLine.StartsWith("error:") || fullMessageLine.StartsWith("alarm:"))
+                {
+                    CompleteTopLightCommand(fullMessageLine);
+                    return;
+                }
+            }
             if (fullMessageLine.StartsWith("ok") ||
                             fullMessageLine.StartsWith("<ok:"))
             {
