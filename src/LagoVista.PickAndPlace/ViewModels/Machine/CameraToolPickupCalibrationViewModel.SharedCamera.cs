@@ -15,6 +15,38 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
     public sealed partial class CameraToolPickupCalibrationViewModel
     {
         private const bool DefaultFullDiagnostics = true;
+        private string _mechanicalSettleMilliseconds = CameraToolBottomCameraFraming.DefaultMechanicalSettleMs.ToString();
+        public string MechanicalSettleMilliseconds
+        {
+            get => _mechanicalSettleMilliseconds;
+            set => Set(ref _mechanicalSettleMilliseconds, value);
+        }
+
+        private int GetMechanicalSettleMs()
+        {
+            if (!CameraToolBottomCameraFraming.TryParseMechanicalSettle(
+                MechanicalSettleMilliseconds, out var milliseconds))
+                throw new CalibrationStopped("Mechanical settling must be 0–2000 milliseconds.");
+            return milliseconds;
+        }
+
+        private async Task WaitForMechanicalSettleAsync(string description)
+        {
+            await NeedIdleAsync(description);
+            var milliseconds = GetMechanicalSettleMs();
+            if (milliseconds > 0)
+            {
+                Status = $"Mechanical settling: {milliseconds} ms before {description}.";
+                await Task.Delay(milliseconds);
+            }
+            RequireValid();
+            if (_stopAutomatic || _stopShared)
+                throw new CalibrationStopped("Operator requested stop.");
+            if (_machine.Busy || _machine.ToSendQueueCount != 0 ||
+                _machine.UnacknowledgedBytesSent != 0 || _machine.IsLocating || _locator.IsLocating ||
+                !ReferenceEquals(_machine.CurrentMachineToolHead, _head))
+                throw new CalibrationStopped("Machine or head state changed during mechanical settling.");
+        }
         private string _repeatabilityProgress = "";
         private string _fiducialCheckpointStatus = "";
         private MachineFiducialCalibrationViewModel _referenceRunner;
@@ -29,7 +61,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             CheckSharedReadiness();
             _referenceRunner ??= new MachineFiducialCalibrationViewModel(_repo, _locator);
             Status = "Measuring machine fiducial: " + label;
-            var observation = await _referenceRunner.MeasureReferenceAsync();
+            var observation = await _referenceRunner.MeasureReferenceAsync(GetMechanicalSettleMs());
             if (observation == null)
                 throw new CalibrationStopped("Fiducial checkpoint failed: " + _referenceRunner.Status);
             CheckSharedStop();
@@ -403,23 +435,34 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             // no repeat write of its pickup offset is needed.
             await SharedPickupAsync(1, true);
             await SharedPickupAsync(2, true);
-            SelectSharedHead(1);
-            await MeasureEmptyNozzleAsync(_head);
+            // Measure both corrections even when a head is already inside
+            // tolerance. A zero correction here would bias the midpoint.
             var camera = SharedCamera();
-            var jog = _inspectionFramingOffsetMm;
-            if (jog == null) throw new CalibrationStopped("No verified Head 1 framing correction.");
+            var corrections = new Dictionary<int, Point2D<double>>();
+            foreach (var index in new[] { 1, 2 })
+            {
+                SelectSharedHead(index);
+                await MeasureEmptyNozzleAsync(_head, forceFramingProbe: true);
+                var jog = _inspectionFramingOffsetMm;
+                if (jog == null) throw new CalibrationStopped($"No verified Head {index} framing correction.");
+                corrections[index] = jog;
+                SharedEvidence($"Head {index} independently measured machine-axis centering correction: {Describe(jog)}");
+                await SharedCameraModeAsync();
+                CheckSharedStop();
+            }
             if (!CameraToolBottomCameraFraming.TryProposeSharedCamera(camera.AbsolutePosition,
-                SharedHead(1).Offset, SharedHead(2).Offset, jog, _machine.Settings.WorkAreaSize,
-                out var candidate, out var reason))
+                SharedHead(1).Offset, SharedHead(2).Offset, corrections[1], corrections[2],
+                _machine.Settings.WorkAreaSize, out var candidate, out var reason))
                 throw new CalibrationStopped(reason);
-            await SharedCameraModeAsync();
+            SharedEvidence($"Two-head midpoint correction: {Describe(new Point2D<double>(
+                candidate.X - camera.AbsolutePosition.X, candidate.Y - camera.AbsolutePosition.Y))}");
             CheckSharedStop();
             _sharedCandidateMachine = _machine;
             _sharedCandidateIdentity = SharedIdentity();
             _sharedCandidate = candidate;
             _sharedCandidateAt = DateTimeOffset.UtcNow;
             SharedCandidateReady = true;
-            SharedCameraStatus = $"UNSAVED shared camera: ({camera.AbsolutePosition.X:F3}, {camera.AbsolutePosition.Y:F3}) -> ({candidate.X:F3}, {candidate.Y:F3}) mm. Head 1 reference; both saved pickups reverified. Approve explicitly.";
+            SharedCameraStatus = $"UNSAVED shared camera: ({camera.AbsolutePosition.X:F3}, {camera.AbsolutePosition.Y:F3}) -> ({candidate.X:F3}, {candidate.Y:F3}) mm. Two-head midpoint; both saved pickups reverified. Independent uncorrected acceptance required.";
             SharedEvidence(SharedCameraStatus);
         });
 
@@ -580,6 +623,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 _session.Start(DateTimeOffset.UtcNow);
                 NewHistorySession(_session);
                 uiStep.Begin(definition.Title);
+                SharedEvidence($"Mechanical settling interval: {GetMechanicalSettleMs()} ms before precision optical acquisition.");
                 CheckSharedReadiness();
                 await ReadSharedGeometryAsync();
                 CheckSharedStop();

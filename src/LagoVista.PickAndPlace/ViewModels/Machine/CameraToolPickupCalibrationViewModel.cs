@@ -575,7 +575,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private async Task<Point2D<double>> LocateCylinderAsync()
         {
             RequireValid();
-            var result = await _knownLocation.RunAsync();
+            var result = await _knownLocation.RunAsync(GetMechanicalSettleMs());
             if (!result.Successful || result.Result == null)
                 throw new CalibrationStopped(_knownLocation.Status);
             if (_automaticFull && !_firstKnownLocationHandled)
@@ -583,7 +583,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             return result.Result;
         }
 
-        private async Task<BottomCircle> MeasureEmptyNozzleAsync(MachineToolHead head, bool frame = true, bool displayUncorrectedProof = false)
+        private async Task<BottomCircle> MeasureEmptyNozzleAsync(MachineToolHead head, bool frame = true, bool displayUncorrectedProof = false, bool forceFramingProbe = false)
         {
             RequireValid();
             _inspectionFramingOffsetMm = null;
@@ -625,7 +625,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _machine.ClearToolHeadAngle();
             await NeedIdleAsync("nozzle zero-angle positioning");
             await MoveToInspectionCameraAsync(holdingCylinder:false);
-            await NeedIdleAsync("nozzle image auto-tune readiness");
+            await WaitForMechanicalSettleAsync("nozzle image auto-tune");
 
             // Reuse T004's proven 24-fresh-frame dark-opening tuning. Each
             // head is tuned separately, with no camera-exposure writes and
@@ -661,7 +661,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (_sharedOperationActive)
                 SharedEvidence($"Head {head.HeadIndex} INITIAL UNCORRECTED nozzle: {Describe(initial.OffsetMm)}");
             if (frame)
-                return await CenterNozzleInBottomCameraAsync(initial);
+                return await CenterNozzleInBottomCameraAsync(initial, forceFramingProbe);
             // Display only while stationary at the measured pose, and hide before retracting.
             try
             {
@@ -682,14 +682,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         /// observations to solve image orientation. All inspected discs will
         /// use the very same temporary camera-framing XY translation.
         /// </summary>
-        private async Task<BottomCircle> CenterNozzleInBottomCameraAsync(BottomCircle initial)
+        private async Task<BottomCircle> CenterNozzleInBottomCameraAsync(BottomCircle initial, bool forceProbe = false)
         {
             var original = initial.OffsetMm;
             var probe = CameraToolBottomCameraFraming.ProbeMm;
             try
             {
                 // If already centered, avoid needless XY test motion.
-                if (CameraToolBottomCameraFraming.Radius(original) <=
+                if (!forceProbe && CameraToolBottomCameraFraming.Radius(original) <=
                     CameraToolBottomCameraFraming.NozzleCameraToleranceMm)
                 {
                     _inspectionFramingOffsetMm = new Point2D<double>(0, 0);
@@ -1045,6 +1045,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private async Task<BottomCircle> ObserveBottomAsync(string profileKey, bool isCylinder)
         {
+            await WaitForMechanicalSettleAsync("bottom-camera precision observation");
             var capture = _machine.PartInspectionCaptureService;
             if (capture == null || capture.Camera == null)
                 throw new CalibrationStopped("Bottom camera is unavailable.");

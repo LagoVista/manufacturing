@@ -31,21 +31,55 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
-        public void SharedCameraUsesOnlyHeadOneCorrectionAndChecksBothTravelEnvelopes()
+        public void SharedCameraUsesBothIndependentCorrectionsAndChecksBothTravelEnvelopes()
         {
             var headOne = P(23, 65);
             var headTwo = P(-23, 65);
             var previous = P(145, 120);
             Assert.That(CameraToolBottomCameraFraming.TryProposeSharedCamera(previous,
-                headOne, headTwo, P(0.555, 1.689), P(400, 400), out var candidate, out var reason), Is.True, reason);
-            Assert.That(candidate.X, Is.EqualTo(145.555).Within(0.000001));
-            Assert.That(candidate.Y, Is.EqualTo(121.689).Within(0.000001));
+                headOne, headTwo, P(0.555, 1.689), P(-0.155, -1.089),
+                P(400, 400), out var candidate, out var reason), Is.True, reason);
+            Assert.That(candidate.X, Is.EqualTo(145.200).Within(0.000001));
+            Assert.That(candidate.Y, Is.EqualTo(120.300).Within(0.000001));
             Assert.That(previous.X, Is.EqualTo(145));
             Assert.That(headOne.X, Is.EqualTo(23));
             Assert.That(headTwo.X, Is.EqualTo(-23));
             Assert.That(CameraToolBottomCameraFraming.TryProposeSharedCamera(P(25, 120),
-                headOne, headTwo, P(0, 0), P(400, 400), out candidate, out _), Is.False);
+                headOne, headTwo, P(0, 0), P(0, 0), P(400, 400), out candidate, out _), Is.False);
             Assert.That(candidate, Is.Null);
+        }
+
+        [Test]
+        public void HeadAlreadyWithinToleranceStillContributesItsMeasuredCorrection()
+        {
+            Assert.That(CameraToolBottomCameraFraming.TryProposeSharedCamera(
+                P(164.839, 148.915), P(23, 65), P(-23, 65),
+                P(0.065, 0.001), P(0.070, -0.193), P(330, 355),
+                out var candidate, out var error), Is.True, error);
+            Assert.That(candidate.X, Is.EqualTo(164.9065).Within(0.000001));
+            Assert.That(candidate.Y, Is.EqualTo(148.819).Within(0.000001));
+        }
+
+        [Test]
+        public void RejectsUnboundedOrMissingCorrectionEvenWhenMeanWouldBeSafe()
+        {
+            Assert.That(CameraToolBottomCameraFraming.TryProposeSharedCamera(
+                P(145, 120), P(23, 65), P(-23, 65),
+                P(5, 0), P(-5, 0), P(400, 400), out _, out _), Is.False);
+            Assert.That(CameraToolBottomCameraFraming.TryProposeSharedCamera(
+                P(145, 120), P(23, 65), P(-23, 65),
+                P(0, 0), null, P(400, 400), out _, out _), Is.False);
+        }
+
+        [TestCase("0", true)]
+        [TestCase("500", true)]
+        [TestCase("2000", true)]
+        [TestCase("-1", false)]
+        [TestCase("2001", false)]
+        [TestCase("bad", false)]
+        public void MechanicalSettleIsBounded(string value, bool valid)
+        {
+            Assert.That(CameraToolBottomCameraFraming.TryParseMechanicalSettle(value, out _), Is.EqualTo(valid));
         }
 
         [TestCase(0.0, true)]

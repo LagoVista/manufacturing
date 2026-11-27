@@ -250,15 +250,20 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         // A read-only optical checkpoint. It moves to the configured fiducial
         // but never centers, resets G92, invalidates plates or saves settings.
-        public async Task<FiducialCircleObservation> MeasureReferenceAsync()
+        public async Task<FiducialCircleObservation> MeasureReferenceAsync(int mechanicalSettleMs = 0)
         {
             if (!CanRun) return null;
             VerifiedReferenceObservation = null;
-            await RunCoreAsync(true);
+            if (mechanicalSettleMs < 0 || mechanicalSettleMs > CameraToolBottomCameraFraming.MaximumMechanicalSettleMs)
+            {
+                Status = "Invalid mechanical settling interval.";
+                return null;
+            }
+            await RunCoreAsync(true, mechanicalSettleMs);
             return VerifiedReferenceObservation;
         }
 
-        private async Task RunCoreAsync(bool measureOnly)
+        private async Task RunCoreAsync(bool measureOnly, int mechanicalSettleMs = 0)
         {
             if (Running || ManualBusy) return;
             if (HasUnsavedTuning)
@@ -413,6 +418,19 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 }
 
                 Step(2, "Acquiring a fresh stable Hough circle.");
+                if (measureOnly && mechanicalSettleMs > 0)
+                {
+                    await Task.Delay(mechanicalSettleMs);
+                    if (!ContextValid(true, out error) || !ReferenceEquals(machine, MachineRepo.CurrentMachine) ||
+                        !machine.WasMachinOriginCalibrated || machine.CurrentMachineToolHead != null ||
+                        machine.LeftVacuumPump || machine.RightVacuumPump || machine.IsLocating || _locator.IsLocating ||
+                        machine.ToSendQueueCount != 0 || machine.UnacknowledgedBytesSent != 0)
+                    {
+                        Fail("Machine state changed during fiducial mechanical settling.");
+                        return;
+                    }
+                    _moveCompletedUtc = DateTimeOffset.UtcNow;
+                }
                 var found = await WaitForStableCircleAsync();
                 if (found == null)
                 {

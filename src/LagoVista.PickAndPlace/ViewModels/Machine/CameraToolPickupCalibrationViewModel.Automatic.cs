@@ -158,6 +158,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
             try
             {
+                GetMechanicalSettleMs(); // validate operator input before motion
                 await EnterAutomaticCameraNavigationAsync();
                 var installed = _automaticMachine.Settings.ToolHeads.Where(h => h?.CurrentNozzle != null)
                     .Select(h => h.HeadIndex).OrderBy(i => i).ToArray();

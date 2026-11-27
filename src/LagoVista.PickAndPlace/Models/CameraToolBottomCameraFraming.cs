@@ -107,23 +107,38 @@ namespace LagoVista.PickAndPlace.Models
             return true;
         }
 
-        // Head 1 alone establishes the common logical camera coordinate.
-        // Head 2 is used solely for physical travel preflight, never averaging.
+        // Each independently probed machine-axis correction locates the
+        // camera center for one head. Their midpoint minimizes the maximum
+        // machine-coordinate distance to those two estimates. This is a
+        // proposal only; independent uncorrected proof is still mandatory.
         public static bool TryProposeSharedCamera(Point2D<double> cameraXY,
             Point2D<double> headOneOffset, Point2D<double> headTwoOffset,
-            Point2D<double> headOneCorrection, Point2D<double> workArea,
-            out Point2D<double> candidate, out string error)
+            Point2D<double> headOneCorrection, Point2D<double> headTwoCorrection,
+            Point2D<double> workArea, out Point2D<double> candidate, out string error)
         {
             candidate = null;
             if (!TryValidateInspectionXY(cameraXY, headOneOffset, headOneCorrection,
-                workArea, out var proposed, out error))
+                workArea, out _, out error) ||
+                !TryValidateInspectionXY(cameraXY, headTwoOffset, headTwoCorrection,
+                workArea, out _, out error))
                 return false;
-            if (!TryValidateInspectionXY(proposed, headTwoOffset, new Point2D<double>(0, 0),
+            var midpoint = new Point2D<double>(
+                (headOneCorrection.X + headTwoCorrection.X) / 2,
+                (headOneCorrection.Y + headTwoCorrection.Y) / 2);
+            if (!TryValidateInspectionXY(cameraXY, headOneOffset, midpoint,
+                workArea, out var proposed, out error) ||
+                !TryValidateInspectionXY(cameraXY, headTwoOffset, midpoint,
                 workArea, out _, out error))
                 return false;
             candidate = proposed;
             return true;
         }
+
+        public const int DefaultMechanicalSettleMs = 500;
+        public const int MaximumMechanicalSettleMs = 2000;
+        public static bool TryParseMechanicalSettle(string text, out int milliseconds) =>
+            Int32.TryParse(text, out milliseconds) &&
+            milliseconds >= 0 && milliseconds <= MaximumMechanicalSettleMs;
 
         public static bool BothHeadsPassUncorrected(double headOneMm, double headTwoMm) =>
             Finite(headOneMm) && Finite(headTwoMm) && headOneMm >= 0 && headTwoMm >= 0 &&

@@ -50,8 +50,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _emitWarnings = emitWarnings;
         }
 
-        public async Task<InvokeResult<Point2D<double>>> RunAsync()
+        public Task<InvokeResult<Point2D<double>>> RunAsync() => RunAsync(0);
+
+        public async Task<InvokeResult<Point2D<double>>> RunAsync(int mechanicalSettleMs)
         {
+            if (mechanicalSettleMs < 0 || mechanicalSettleMs > CameraToolBottomCameraFraming.MaximumMechanicalSettleMs)
+                return InvokeResult<Point2D<double>>.FromError("Invalid mechanical settling interval.");
             if (Running)
                 return InvokeResult<Point2D<double>>.FromError("Cylinder centering is already running.");
 
@@ -121,6 +125,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         if (check != null)
                             return Failure(check);
 
+                        if (mechanicalSettleMs > 0)
+                        {
+                            await Task.Delay(mechanicalSettleMs);
+                            check = await WaitForReadyContextAsync();
+                            if (check != null) return Failure(check);
+                        }
                         if (acquisition == 2)
                             Status = "Known Location circle not yet stable; reacquiring a fresh frame (attempt 2 of 2).";
                         capture.ResetDetections();

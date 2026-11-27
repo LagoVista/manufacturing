@@ -235,6 +235,8 @@
                         
                         <TextBlock Text="Iterations/head:" VerticalAlignment="Center" Margin="0,0,4,0"/>
                         <TextBox Width="48" Text="{Binding DiagnosticIterations, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanOperate}"/>
+                        <TextBlock Text="Settle (ms):" VerticalAlignment="Center" Margin="8,0,4,0"/>
+                        <TextBox Width="58" Text="{Binding MechanicalSettleMilliseconds, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanOperate}" ToolTip="0–2000 ms; default 500. Extra settling before precision optical measurement."/>
                         
                         
                         <Button Content="Preview bottom camera" Click="PreviewBottomCamera_Click" IsEnabled="{Binding CanOperate}" Margin="8,0,0,0" Padding="6,4"/>
