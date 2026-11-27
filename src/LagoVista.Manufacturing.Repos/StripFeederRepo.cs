@@ -11,6 +11,7 @@ using LagoVista.Manufacturing.Interfaces.Repos;
 using LagoVista.Manufacturing.Models;
 using LagoVista.Manufacturing.Repos;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace LagoVista.Manufacturing.Repo.Repos
 {
@@ -46,6 +47,16 @@ namespace LagoVista.Manufacturing.Repo.Repos
         public Task<ListResponse<StripFeederSummary>> GetStripFeederSummariesAsync(string orgId, ListRequest listRequest)
         {
             return base.QuerySummaryAsync<StripFeederSummary, StripFeeder>(qry => qry.IsPublic == true || qry.OwnerOrganization.Id == orgId, itm => itm.Name, listRequest);
+        }
+
+        public Task<ListResponse<StripFeederSummary>> GetOwnedStripFeederSummariesAsync(string orgId, ListRequest listRequest)
+        {
+            return base.QuerySummaryAsync<StripFeederSummary, StripFeeder>(qry => qry.OwnerOrganization.Id == orgId, itm => itm.Name, listRequest);
+        }
+
+        public Task<IEnumerable<StripFeeder>> GetOwnedStripFeedersAsync(string orgId)
+        {
+            return base.QueryAsync(fdr => fdr.OwnerOrganization.Id == orgId);
         }
 
         public Task UpdateStripFeederAsync(StripFeeder stripFeeder)
