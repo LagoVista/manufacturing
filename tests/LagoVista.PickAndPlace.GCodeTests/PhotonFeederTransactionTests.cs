@@ -76,6 +76,35 @@ namespace LagoVista.PickAndPlace.GCodeTests
         }
 
         [Test]
+        public async Task ManualReadinessDoesNotFlickerWithTransportTraffic()
+        {
+            _machine.SetupGet(m => m.Mode).Returns(LagoVista.Manufacturing.Models.OperatingMode.Manual);
+            _machine.SetupGet(m => m.WasMachineHomed).Returns(true);
+            _machine.SetupGet(m => m.WasMachinOriginCalibrated).Returns(true);
+            Assert.That((await _vm.InitializeFeederAsync(Slot, Id)).Successful, Is.True);
+            _vm.SelectedPhotonFeeder = new LagoVista.PickAndPlace.Models.PhotonFeeder { Slot = Slot, Address = Id };
+            _vm.ManualDistanceText = "4";
+            _vm.ManualTestArmed = true;
+            var ready = _vm.ManualTestStatus;
+            Assert.That(ready, Does.Contain("ready to advance"));
+            var command = (System.Windows.Input.ICommand)_vm.AdvanceCommand;
+            Assert.That(command.CanExecute(null), Is.True);
+            Assert.That(((System.Windows.Input.ICommand)_vm.ReconcileCommand).CanExecute(null), Is.False);
+            var count = _sent.Count;
+            _machine.SetupGet(m => m.Busy).Returns(true);
+            _machine.SetupGet(m => m.UnacknowledgedBytesSent).Returns(5);
+            Assert.That(_vm.ManualTestStatus, Is.EqualTo(ready));
+            Assert.That(command.CanExecute(null), Is.True);
+            command.Execute(null);
+            Assert.That(_sent.Count, Is.EqualTo(count));
+            Assert.That(_vm.Status, Does.Contain("No feeder command sent"));
+            Assert.That(_vm.ManualTestArmed, Is.True);
+            _machine.SetupGet(m => m.Busy).Returns(false);
+            _machine.SetupGet(m => m.UnacknowledgedBytesSent).Returns(0);
+            Assert.That(_vm.ManualTestStatus, Is.EqualTo(ready));
+        }
+
+        [Test]
         public async Task ImmediateRepliesAndFeedStatusConfirmForwardAndReverse()
         {
             Assert.That((await _vm.InitializeFeederAsync(Slot, Id)).Successful, Is.True);

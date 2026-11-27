@@ -315,8 +315,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             get => _configuredTestArmed;
             set { Set(ref _configuredTestArmed, value); RaiseCanExecuteChanged(); }
         }
-        private bool CanTestConfigured() => ValidCurrent && Machine != null && Machine.Connected && !Machine.Busy &&
-            Machine.Mode == OperatingMode.Manual && !Machine.IsLocating && Machine.ToSendQueueCount == 0 && Machine.UnacknowledgedBytesSent == 0 &&
+        private bool CanTestConfigured() => ValidCurrent && Machine != null && Machine.Connected &&
+            Machine.Mode == OperatingMode.Manual && !Machine.IsLocating &&
             !PhotonFeederViewModel.IsBusBusy && ConfiguredTestArmed &&
             PhotonFeederViewModel.DiscoveredFeeders.Any(f => f.Slot == Current.Slot && string.Equals(f.Address, Current.FeederId, StringComparison.OrdinalIgnoreCase));
         private bool CanMoveConfigured() => CanTestConfigured() && PhotonFeederViewModel.IsInitialized((byte)Current.Slot, Current.FeederId) &&
@@ -324,6 +324,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private async Task TestConfiguredAsync(bool? forward)
         {
             if (forward.HasValue ? !CanMoveConfigured() : !CanTestConfigured()) return;
+            if (Machine.Busy || Machine.ToSendQueueCount != 0 || Machine.UnacknowledgedBytesSent != 0)
+            {
+                PhotonFeederViewModel.Status = "Machine is busy. No feeder command sent; try again when idle.";
+                return;
+            }
             var feeder = Current;
             var distance = PhotonFeederViewModel.ManualDistance;
             var result = !forward.HasValue ? await PhotonFeederViewModel.InitializeFeederAsync((byte)feeder.Slot, feeder.FeederId) :

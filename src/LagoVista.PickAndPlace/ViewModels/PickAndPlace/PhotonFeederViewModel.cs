@@ -38,7 +38,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public string ManualDistanceText { get => _distanceText; set { Set(ref _distanceText, value); RaisePropertyChanged(nameof(ManualDistance)); RaiseCanExecuteChanged(); } }
         public double ManualDistance => double.TryParse(ManualDistanceText, NumberStyles.Float, CultureInfo.CurrentCulture, out var value) ? value : double.NaN;
         public string GetDiscoveryStatus(byte slot) => _discoveryStatus.TryGetValue(slot, out var status) ? status : "Not scanned; communication unknown.";
-        private bool IsManualIdle() => Machine != null && Machine.Connected && !Machine.Busy && !Machine.IsLocating && Machine.Mode == OperatingMode.Manual && Machine.ToSendQueueCount == 0 && Machine.UnacknowledgedBytesSent == 0;
+        // Transport traffic (including periodic polling) is not an operator mode transition.
+        // Keep presentation stable; recheck the actual queue immediately before an operator request.
+        private bool IsManualSession() => Machine != null && Machine.Connected && !Machine.IsLocating && Machine.Mode == OperatingMode.Manual;
+        private bool IsManualIdle() => IsManualSession() && !Machine.Busy && Machine.ToSendQueueCount == 0 && Machine.UnacknowledgedBytesSent == 0;
+        private bool CanDispatchManualRequest()
+        {
+            if (IsManualIdle()) return true;
+            Status = "Machine is busy or not in manual mode. No feeder command sent; try again when idle.";
+            return false;
+        }
         public RelayCommand IdentifyCommand { get; }
         public RelayCommand InitializeCommand { get; }
         public RelayCommand AdvanceCommand { get; }
@@ -49,20 +58,20 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             _protocolHandler = protocolHandler ?? throw new ArgumentNullException(nameof(protocolHandler));
             ObserveMachine(Machine);
-            DiscoverFeedersCommand = CreatedMachineConnectedCommand(Discover, () => !IsBusBusy && IsManualIdle());
+            DiscoverFeedersCommand = CreatedMachineConnectedCommand(Discover, () => !IsBusBusy && IsManualSession());
             IdentifyCommand = CreatedMachineConnectedCommand(async () => await TestSelectedAsync(FeederCommands.IdentifyFeeder), CanTest);
             InitializeCommand = CreatedMachineConnectedCommand(async () => await TestSelectedAsync(FeederCommands.Initialize), CanTest);
             AdvanceCommand = CreatedMachineConnectedCommand(async () => await TestSelectedAsync(FeederCommands.MoveFeedForward), CanMove);
             RetractCommand = CreatedMachineConnectedCommand(async () => await TestSelectedAsync(FeederCommands.MoveFeedBackward), CanMove);
             ReconcileCommand = CreatedMachineConnectedCommand(() =>
             {
-                if (!CanTest()) return;
+                if (!CanResetFeedError()) return;
                 var slot = (byte)SelectedPhotonFeeder.Slot;
                 _uncertain.TryRemove(slot, out _);
                 _initialized.TryRemove(slot, out _);
                 ManualTestArmed = false;
                 Status = $"Slot {slot}: operator confirmed tape reconciliation; initialize again.";
-            }, CanTest);
+            }, CanResetFeedError);
         }
 
         public string ManualTestStatus
@@ -72,7 +81,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 var feeder = SelectedPhotonFeeder;
                 if (feeder == null) return "Select a discovered feeder.";
                 if (IsBusBusy) return "Feeder command in progress.";
-                if (!IsManualIdle()) return "Waiting for machine manual/idle state.";
+                if (!IsManualSession()) return "Waiting for machine manual mode.";
                 if (!Machine.WasMachineHomed || !Machine.WasMachinOriginCalibrated) return "Complete machine homing and origin calibration.";
                 if (feeder.Slot < 1 || feeder.Slot > 254 || !PhotonProtocolHandler.IsFeederId(feeder.Address)) return "Invalid feeder identity.";
                 if (_uncertain.ContainsKey((byte)feeder.Slot)) return "Tape position uncertain; inspect and reconcile before initializing.";
@@ -87,9 +96,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             base.RaiseCanExecuteChanged();
             RaisePropertyChanged(nameof(ManualTestStatus));
         }
-        private bool CanTest() => !IsBusBusy && IsManualIdle() &&
+        private bool CanTest() => !IsBusBusy && IsManualSession() &&
             ManualTestArmed && SelectedPhotonFeeder != null && SelectedPhotonFeeder.Slot > 0 &&
             SelectedPhotonFeeder.Slot < 255 && PhotonProtocolHandler.IsFeederId(SelectedPhotonFeeder.Address);
+        private bool CanResetFeedError() => CanTest() && _uncertain.ContainsKey((byte)SelectedPhotonFeeder.Slot);
         private bool CanMove() => CanTest() && PhotonProtocolHandler.TryEncodeDistance(ManualDistance, out _) &&
             IsInitialized((byte)SelectedPhotonFeeder.Slot, SelectedPhotonFeeder.Address);
 
@@ -119,8 +129,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
         private void FeederMachinePropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName != nameof(IMachine.Mode) && e.PropertyName != nameof(IMachine.Busy) &&
-                e.PropertyName != nameof(IMachine.ToSendQueueCount) && e.PropertyName != nameof(IMachine.UnacknowledgedBytesSent)) return;
+            if (e.PropertyName != nameof(IMachine.Mode)) return;
             DispatcherServices.Invoke(() =>
             {
                 if (!ReferenceEquals(sender, Machine)) return;
@@ -224,7 +233,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public async void Discover()
         {
-            if (!IsManualIdle() || IsBusBusy) return;
+            if (!IsManualSession() || IsBusBusy || !CanDispatchManualRequest()) return;
             var count = SlotsToSearch;
             if (count == 0 || count == 255) { Status = "Search 1–254 slots."; return; }
             await OnBusAsync("Discovery", async (machine, generation) =>
@@ -340,6 +349,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             bool move = command == FeederCommands.MoveFeedForward || command == FeederCommands.MoveFeedBackward;
             if (move ? !CanMove() : !CanTest()) return;
+            if (!CanDispatchManualRequest()) return;
             var slot = (byte)SelectedPhotonFeeder.Slot;
             var id = SelectedPhotonFeeder.Address;
             var mm = ManualDistance;

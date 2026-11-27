@@ -151,7 +151,7 @@
                         <WrapPanel>
                             <Button Content="Advance" Command="{Binding AdvanceCommand}" Style="{StaticResource PanelButton}" Background="#277EC4"/>
                             <Button Content="Retract" Command="{Binding RetractCommand}" Style="{StaticResource PanelButton}"/>
-                            <Button Content="Confirm tape reconciled" Command="{Binding ReconcileCommand}" Style="{StaticResource PanelButton}"/>
+                            <Button Content="Reset Feed Error" ToolTip="Only after physically checking the tape position; reinitialize before feeding again." Command="{Binding ReconcileCommand}" Style="{StaticResource PanelButton}"/>
                         </WrapPanel>
                         <TextBlock Text="Select a known safe distance. Verify actual tape motion independently." Foreground="#B4C5D9" FontSize="12" TextWrapping="Wrap"/>
                     </StackPanel>
