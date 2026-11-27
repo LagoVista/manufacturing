@@ -48,6 +48,18 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(candidate, Is.Null);
         }
 
+        [TestCase(0.0, true)]
+        [TestCase(0.2, true)]
+        [TestCase(0.201, false)]
+        [TestCase(double.NaN, false)]
+        [TestCase(double.PositiveInfinity, false)]
+        public void NozzleDisplayProofUsesUncorrectedRadialTolerance(double error, bool expected)
+        {
+            var proof = new CameraToolNozzleCenterProof { HeadIndex = 2, ResidualMm = error };
+            Assert.That(proof.Verified, Is.EqualTo(expected));
+            Assert.That(proof.Summary, Does.Contain(expected ? "PASS" : "FAIL"));
+        }
+
         [TestCase(0.2, 0.2, true)]
         [TestCase(0.01, 0.201, false)]
         [TestCase(0.201, 0.01, false)]

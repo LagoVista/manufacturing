@@ -322,6 +322,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public Task ProposeSharedCameraAsync() => RunSharedAsync("propose", async () =>
         {
             ClearSharedCandidate();
+            ResetNozzleResults();
+            SetDiscResult(1, "Pending", "Awaiting saved-offset recheck");
+            SetDiscResult(2, "Pending", "Awaiting saved-offset recheck");
             // Reprove current saved offsets, including a previously accepted Head 2;
             // no repeat write of its pickup offset is needed.
             await SharedPickupAsync(1, true);
@@ -486,6 +489,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             catch (Exception ex)
             {
                 ClearSharedCandidate();
+                if (_head != null && (mode == "propose" || mode == "repeatability"))
+                {
+                    var state = _head.HeadIndex == 1 ? HeadOneDiscState : HeadTwoDiscState;
+                    if (state == "Pending") SetDiscResult(_head.HeadIndex, "Failed", "STOPPED · pickup proof incomplete");
+                }
                 var recovery = await RecoverPossibleDiscAsync();
                 if (!_possibleDiscHeld && ValidMachine(out _) &&
                     !_machine.Busy && _machine.ToSendQueueCount == 0 &&
