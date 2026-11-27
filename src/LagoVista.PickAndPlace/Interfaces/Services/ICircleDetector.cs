@@ -21,6 +21,7 @@ namespace LagoVista.PickAndPlace.Interfaces.Services
         // Diagnostic only: reason for the latest adaptive nozzle rejection.
         string LatestNozzleRejection { get; }
         string LatestCalibrationDiscDiagnostic { get; }
+        string LatestBoardFiducialDiagnostic { get; }
         MVLocatedCircle FoundCircle { get; }
         ObservableCollection<MVLocatedCircle> FoundCircles { get; }
     }

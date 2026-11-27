@@ -537,7 +537,8 @@ namespace LagoVista.PickAndPlace.App.Services
                         // The circular mask used for holes can truncate a long
                         // feeder barcode. Leave the entire camera image available
                         // to the independent rectangular barcode sampler.
-                        if (camera.CurrentVisionProfile.ApplyMask && !feederBarcodeMode)
+                        if (camera.CurrentVisionProfile.ApplyMask && !feederBarcodeMode &&
+                            camera.CurrentVisionProfile.Key != VisionProfile.VisionProfile_BoardFiducial)
                         {
                             using (var mask = new Image<Gray, byte>(size))
                             {
@@ -597,7 +598,8 @@ namespace LagoVista.PickAndPlace.App.Services
                             // detection to select the mask background instead of the hole.
                             // Restore a black exterior after all image processing, without
                             // changing the proven centroid detector or the mask-off path.
-                            if (camera.CurrentVisionProfile.ApplyMask && camera.CurrentVisionProfile.Invert && !feederBarcodeMode)
+                            if (camera.CurrentVisionProfile.ApplyMask && camera.CurrentVisionProfile.Invert && !feederBarcodeMode &&
+                                camera.CurrentVisionProfile.Key != VisionProfile.VisionProfile_BoardFiducial)
                             {
                                 using (var finalMask = new Image<Gray, byte>(size))
                                 {
@@ -762,12 +764,16 @@ namespace LagoVista.PickAndPlace.App.Services
                 // largest accepted target so the histogram never cuts a valid edge.
                 var extent = (p.TargetImageRadius + (boardFiducial ? p.HoughCirclesMaxRadius : Math.Min(p.HoughCirclesMaxRadius,
                     KnownLocationCylinderCenteringMath.MaximumDiameterMm / 2))) * scale;
-                var valid = !Double.IsNaN(extent) && !Double.IsInfinity(extent) &&
-                    extent >= 3 && scale > 0 && p.TargetImageRadius > 0 &&
-                    extent < Math.Min(size.Width, size.Height) / 2.0;
+                int boardSamplingRadius = 0;
+                var valid = boardFiducial
+                    ? BoardFiducialImageGeometry.TrySamplingRadius(size.Width, size.Height, scale,
+                        p.TargetImageRadius, p.HoughCirclesMaxRadius, out boardSamplingRadius)
+                    : !Double.IsNaN(extent) && !Double.IsInfinity(extent) &&
+                        extent >= 3 && scale > 0 && p.TargetImageRadius > 0 &&
+                        extent < Math.Min(size.Width, size.Height) / 2.0;
                 if (valid)
                 {
-                    var radius = (int)Math.Ceiling(extent);
+                    var radius = boardFiducial ? boardSamplingRadius : (int)Math.Ceiling(extent);
                     var roi = new Rectangle(size.Width / 2 - radius, size.Height / 2 - radius,
                         radius * 2, radius * 2);
                     CvInvoke.GaussianBlur(gray, smoothed, boardFiducial ? new Size(3, 3) : new Size(5, 5), 0);
@@ -812,6 +818,10 @@ namespace LagoVista.PickAndPlace.App.Services
                     DrawFeederCornerLabel(display, size, label, 0, new MCvScalar(255, 255, 255));
                     DrawFeederCornerLabel(display, size, $"{status} / CONTRAST {separation:F0}", 1,
                         status.StartsWith("STABLE ") ? new MCvScalar(0, 255, 0) : new MCvScalar(0, 255, 255));
+                    if (boardFiducial && valid)
+                        DrawFeederCornerLabel(display, size,
+                            _circleDetector.LatestBoardFiducialDiagnostic ?? $"ROI {boardSamplingRadius * 2}px",
+                            2, new MCvScalar(255, 255, 255));
                     return display.Clone();
                 }
             }

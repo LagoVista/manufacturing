@@ -848,11 +848,9 @@ namespace LagoVista.PickAndPlace.App.Services
                                 // the sensor. A small centered ROI is equivalent
                                 // in uncropped coordinates and includes the full
                                 // configured fiducial size, not the machine disc.
-                                var extent = (search + maximumRadius) * scale;
-                                if (!BoardRigidTransform.Finite(extent) || extent < 3 ||
-                                    Math.Ceiling(extent) >= Math.Min(raw.Width, raw.Height) / 2.0)
-                                    throw new InvalidOperationException("Board search region does not fit the live camera frame.");
-                                int radius = (int)Math.Ceiling(extent);
+                                if (!BoardFiducialImageGeometry.TrySamplingRadius(raw.Width, raw.Height,
+                                    scale, search, maximumRadius, out var radius))
+                                    throw new InvalidOperationException("Invalid board image geometry: check calibrated scale and profile radii.");
                                 var roi = new System.Drawing.Rectangle(raw.Width / 2 - radius,
                                     raw.Height / 2 - radius, 2 * radius, 2 * radius);
                                 using (var region = raw.GetSubRect(roi))

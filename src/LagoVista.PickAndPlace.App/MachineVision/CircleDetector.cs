@@ -27,6 +27,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         private readonly KnownLocationAutoThresholdGate _autoCircleGate = new KnownLocationAutoThresholdGate();
 
         public string LatestNozzleRejection { get; private set; }
+        public string LatestBoardFiducialDiagnostic { get; private set; }
         public string LatestCalibrationDiscDiagnostic { get; private set; } =
             "No calibration-disc frame processed yet.";
 
@@ -40,6 +41,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         {
             _iteration++;
             LatestNozzleRejection = null;
+            LatestBoardFiducialDiagnostic = null;
 
             var profile = camera.CurrentVisionProfile;
             var center = size.Center();
@@ -80,7 +82,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 // ShapeDetectionService supplies the exact ROI-derived binary
                 // preview. Reuse the bright-disc centroid and geometry gates.
                 var located = FindStagingPlateHole(input, camera, profile, search,
-                    center, true, out _, presegmentedKnownLocation: true, boardFiducial: boardFiducial);
+                    center, true, out var contourDiagnostic, presegmentedKnownLocation: true, boardFiducial: boardFiducial);
+                if (boardFiducial) LatestBoardFiducialDiagnostic = contourDiagnostic;
                 if (!located.HasValue)
                 {
                     _foundCircles.Clear();
@@ -141,11 +144,30 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     Convert.ToInt32(profile.HoughCirclesMaxRadius * camera.EffectivePixelsPerMM));
             }
 
-            var candidates = circles.Where(circle => search.WithinRadius(circle)).ToArray();
+            var candidates = circles.Where(circle => boardFiducial
+                ? BoardFiducialImageGeometry.IsCandidate(circle.Center.X, circle.Center.Y, circle.Radius,
+                    size.Width, size.Height, search.Center.X, search.Center.Y, search.Radius)
+                : search.WithinRadius(circle)).ToArray();
             if (boardFiducial)
             {
+                if (!autoKnownLocation)
+                {
+                    var edges = candidates.Length;
+                    // Inner and outer edges of the same plated ring do not
+                    // constitute two different fiducials. Retain the outer
+                    // circle only when every other edge is tightly concentric.
+                    if (candidates.Length > 1)
+                    {
+                        var outer = candidates.OrderByDescending(c => c.Radius).First();
+                        if (candidates.All(c => BoardFiducialImageGeometry.SameRing(
+                            outer.Center.X, outer.Center.Y, outer.Radius,
+                            c.Center.X, c.Center.Y, c.Radius, camera.EffectivePixelsPerMM)))
+                            candidates = new[] { outer };
+                    }
+                    LatestBoardFiducialDiagnostic = $"HOUGH: {edges} edges / {candidates.Length} targets";
+                }
                 // No first/nearest candidate wins. Require exactly one
-                // eligible circle and consecutive frames of the same track.
+                // eligible physical target and consecutive frames of the same track.
                 if (candidates.Length != 1)
                 {
                     _foundCircles.Clear();
@@ -302,7 +324,12 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                         var candidate = new CircleF(
                             new System.Drawing.PointF((float)(moments.M10 / moments.M00),
                                 (float)(moments.M01 / moments.M00)), (float)radius);
-                        if (!search.WithinRadius(candidate))
+                        var inside = boardFiducial
+                            ? BoardFiducialImageGeometry.IsCandidate(candidate.Center.X, candidate.Center.Y,
+                                candidate.Radius, binary.Width, binary.Height,
+                                search.Center.X, search.Center.Y, search.Radius)
+                            : search.WithinRadius(candidate);
+                        if (!inside)
                         {
                             var deltaX = candidate.Center.X - search.Center.X;
                             var deltaY = candidate.Center.Y - search.Center.Y;
@@ -339,6 +366,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                           String.Join(" | ", radiusMatchDetails)
                         : "; no size-matched contour") +
                     (best.HasValue ? "; centroid accepted" : "; no accepted centroid");
+                if (boardFiducial)
+                    diagnostics = $"CONTOURS {contours.Size} / SIZE {sizeAccepted} / ROUND {roundAccepted} / TARGETS {roiAccepted}";
                 // Never choose the nearest of multiple plausible pilot targets.
                 return presegmentedKnownLocation && roiAccepted != 1 ? null : best;
             }
@@ -355,6 +384,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             _autoKnownLocation = false;
             FoundCircle = null;
             LatestNozzleRejection = null;
+            LatestBoardFiducialDiagnostic = null;
             LatestCalibrationDiscDiagnostic = "No calibration-disc frame processed since reset.";
         }
     }
