@@ -554,6 +554,14 @@ namespace LagoVista.PickAndPlace.Models
             set { _applyMask = value; RaisePropertyChanged(); }
         }
 
+        // Opt-in pilot; absent in older persisted profiles means manual mode.
+        private bool _autoThreshold;
+        public bool AutoThreshold
+        {
+            get => _autoThreshold;
+            set => Set(ref _autoThreshold, value);
+        }
+
         private bool _applyThreshold = false;
         public bool ApplyThreshold
         {

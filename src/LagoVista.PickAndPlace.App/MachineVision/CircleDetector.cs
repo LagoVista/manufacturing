@@ -23,6 +23,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         private readonly ILocatorViewModel _locatorViewModel;
 
         int _iteration = 0;
+        private bool _autoKnownLocation;
+        private readonly KnownLocationAutoThresholdGate _autoCircleGate = new KnownLocationAutoThresholdGate();
 
         public string LatestNozzleRejection { get; private set; }
         public string LatestCalibrationDiscDiagnostic { get; private set; } =
@@ -61,8 +63,38 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             var search = new CircleF(new System.Drawing.PointF(
                 (float)searchCenter.X, (float)searchCenter.Y), scaledTarget);
             var calibrationDisc = profile.Key == VisionProfile.VisionProfile_CalibrationDisc;
+            var autoKnownLocation = camera.CameraType?.Value == CameraTypes.Position &&
+                profile.Key == VisionProfile.VisionProfile_KnownLocation && profile.AutoThreshold;
+            if (_autoKnownLocation != autoKnownLocation)
+            {
+                _foundCircles.Clear();
+                _autoCircleGate.Reset();
+                _autoKnownLocation = autoKnownLocation;
+            }
+
             CircleF[] circles;
-            if (stagingPlateHole || calibrationDisc)
+            if (autoKnownLocation)
+            {
+                // ShapeDetectionService supplies the exact ROI-derived binary
+                // preview. Reuse the bright-disc centroid and geometry gates.
+                var located = FindStagingPlateHole(input, camera, profile, search,
+                    center, true, out _, presegmentedKnownLocation: true);
+                if (!located.HasValue)
+                {
+                    _foundCircles.Clear();
+                    _autoCircleGate.Reset();
+                    circles = Array.Empty<CircleF>();
+                }
+                else
+                {
+                    var c = located.Value;
+                    if (!_autoCircleGate.ObserveCircle(c.Center.X, c.Center.Y,
+                        c.Radius * 2, camera.EffectivePixelsPerMM))
+                        _foundCircles.Clear();
+                    circles = new[] { c };
+                }
+            }
+            else if (stagingPlateHole || calibrationDisc)
             {
                 // Both are bright filled targets on dark backgrounds. Reuse
                 // Otsu/contour-area centroids instead of a jittery Hough edge.
@@ -115,19 +147,19 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 // Otherwise one hole appears as two overlapping tracks for
                 // a couple of frames despite Hough minDist working correctly.
                 var previous = _foundCircles.FindPrevious(circle,
-                    stagingPlateHole || calibrationDisc ? 20 : 10);
+                    stagingPlateHole || calibrationDisc || autoKnownLocation ? 20 : 10);
                 if (previous != null)
                 {
                     previous.Iteration = _iteration;
                     previous.Add(circle.Center, circle.Radius);
                     _locatorViewModel.CircleLocated(previous);
                 }
-                else if (!(stagingPlateHole || calibrationDisc) || _foundCircles.Count == 0)
+                else if (!(stagingPlateHole || calibrationDisc || autoKnownLocation) || _foundCircles.Count == 0)
                 {
                     var foundCircle = new MVLocatedCircle(
                         camera.CameraType.Value, center, camera.EffectivePixelsPerMM,
                         profile.ErrorToleranceMM, profile.StabilizationCount,
-                        stagingPlateHole || calibrationDisc,
+                        stagingPlateHole || calibrationDisc || autoKnownLocation,
                         positionStabilityToleranceMm: adaptiveNozzle ? 0.20 : 0.10);
                     foundCircle.Add(circle.Center, circle.Radius);
                     foundCircle.Iteration = _iteration;
@@ -152,11 +184,16 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
         private CircleF? FindStagingPlateHole(IMVImage<IInputOutputArray> input, MachineCamera camera,
             VisionProfile profile, CircleF search, LagoVista.Core.Models.Drawing.Point2D<int> frameCenter,
-            bool requireCircularity, out string diagnostics)
+            bool requireCircularity, out string diagnostics, bool presegmentedKnownLocation = false)
         {
             var pixelsPerMM = camera.EffectivePixelsPerMM;
             var minimumRadius = profile.HoughCirclesMinRadius * pixelsPerMM;
             var maximumRadius = profile.HoughCirclesMaxRadius * pixelsPerMM;
+            if (presegmentedKnownLocation)
+            {
+                minimumRadius = Math.Max(minimumRadius, KnownLocationCylinderCenteringMath.MinimumDiameterMm * pixelsPerMM / 2);
+                maximumRadius = Math.Min(maximumRadius, KnownLocationCylinderCenteringMath.MaximumDiameterMm * pixelsPerMM / 2);
+            }
             var previous = _foundCircles.FirstOrDefault();
             var expectedX = previous == null ? frameCenter.X : previous.CenterPixels.X;
             var expectedY = previous == null ? frameCenter.Y : previous.CenterPixels.Y;
@@ -171,14 +208,16 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 // Smooth only CalibrationDisc before Otsu (NOT staging holes,
                 // nozzle runout, or any other shape detector). The displayed
                 // CalibrationDisc preview uses the identical 5x5 pipeline.
-                if (requireCircularity)
+                if (requireCircularity && !presegmentedKnownLocation)
                     CvInvoke.GaussianBlur(input.Image, smoothed,
                         new System.Drawing.Size(5, 5), 0);
-                var otsu = requireCircularity
-                    ? CvInvoke.Threshold(smoothed, binary, 0, 255,
-                        ThresholdType.Binary | ThresholdType.Otsu)
-                    : CvInvoke.Threshold(input.Image, binary, 0, 255,
-                        ThresholdType.Binary | ThresholdType.Otsu);
+                var otsu = presegmentedKnownLocation
+                    ? CvInvoke.Threshold(input.Image, binary, 127, 255, ThresholdType.Binary)
+                    : requireCircularity
+                        ? CvInvoke.Threshold(smoothed, binary, 0, 255,
+                            ThresholdType.Binary | ThresholdType.Otsu)
+                        : CvInvoke.Threshold(input.Image, binary, 0, 255,
+                            ThresholdType.Binary | ThresholdType.Otsu);
                 CvInvoke.FindContours(binary, contours, null, RetrType.External,
                     ChainApproxMethod.ChainApproxSimple);
 
@@ -212,6 +251,10 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                                 ? 4 * Math.PI * moments.M00 / (perimeter * perimeter)
                                 : 0;
                             var bounds = CvInvoke.BoundingRectangle(contour);
+                            if (presegmentedKnownLocation &&
+                                (bounds.Left <= 0 || bounds.Top <= 0 ||
+                                 bounds.Right >= binary.Width || bounds.Bottom >= binary.Height))
+                                continue;
                             var aspect = bounds.Height > 0
                                 ? (double)bounds.Width / bounds.Height : 0;
                             if (radiusMatchDetails.Count < 4)
@@ -281,7 +324,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                           String.Join(" | ", radiusMatchDetails)
                         : "; no size-matched contour") +
                     (best.HasValue ? "; centroid accepted" : "; no accepted centroid");
-                return best;
+                // Never choose the nearest of multiple plausible pilot targets.
+                return presegmentedKnownLocation && roiAccepted != 1 ? null : best;
             }
         }
 
@@ -292,6 +336,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
         public void Reset()
         {
             _foundCircles.Clear();
+            _autoCircleGate.Reset();
+            _autoKnownLocation = false;
             FoundCircle = null;
             LatestNozzleRejection = null;
             LatestCalibrationDiscDiagnostic = "No calibration-disc frame processed since reset.";

@@ -37,6 +37,9 @@ namespace LagoVista.PickAndPlace.App.Services
             new NozzleOpeningHeadContext();
         private double? _activeNozzleExpectedDiameterMm;
         private int? _activeNozzleHeadIndex;
+        private readonly KnownLocationAutoThresholdGate _autoThresholdGate = new KnownLocationAutoThresholdGate();
+        private VisionProfile _autoProfile;
+        private (double Scale, double Search, double Min, double Max, double Tolerance, int Count) _autoGeometry;
 
         public byte[] LatestFeederBarcodeSignal => _feederBarcode?.Signal;
         private string _latestCalibrationDiscDiagnostic =
@@ -502,6 +505,17 @@ namespace LagoVista.PickAndPlace.App.Services
                     }
 
                     var raw = img;
+                    var profile = camera.CurrentVisionProfile;
+                    var autoKnownLocation = camera.CameraType?.Value == CameraTypes.Position &&
+                        profile.Key == VisionProfile.VisionProfile_KnownLocation && profile.AutoThreshold;
+                    if (autoKnownLocation)
+                        return PerformKnownLocationAutoThreshold(img, camera, size);
+                    if (_autoProfile != null)
+                    {
+                        _autoProfile = null;
+                        _autoThresholdGate.Reset();
+                        _circleDetector.Reset();
+                    }
 
                     // The adaptive nozzle detector must see the REAL camera
                     // pixels, before any profile mask/threshold/inversion.
@@ -667,6 +681,7 @@ namespace LagoVista.PickAndPlace.App.Services
                             if (camera.CurrentVisionProfile.ShowOriginalImage)
                             {
                                 RenderOutput(new MVImage<IInputOutputArray>(img), camera, size);
+                                DrawKnownLocationManualThreshold(img, camera, size);
                                 return raw.Clone();
                             }
                             else
@@ -674,6 +689,7 @@ namespace LagoVista.PickAndPlace.App.Services
                                 using (Image<Bgr, byte> final = input.Convert<Bgr, byte>())
                                 {
                                     RenderOutput(new MVImage<IInputOutputArray>(final), camera, size);
+                                    DrawKnownLocationManualThreshold(final, camera, size);
                                     return final.Clone();
                                 }
                             }
@@ -686,10 +702,108 @@ namespace LagoVista.PickAndPlace.App.Services
                 if (camera?.CurrentVisionProfile?.Key ==
                     VisionProfile.VisionProfile_CalibrationDisc)
                     _latestCalibrationDiscDiagnostic = "Disc detector threw: " + ex.Message;
+                if (_autoProfile != null)
+                {
+                    _autoThresholdGate.Reset();
+                    _circleDetector.Reset();
+                }
                 Debug.WriteLine(ex.Message);
                 Debug.WriteLine(ex.StackTrace);
                 /*NOP, sometimes OpenCV acts a little funny. */
                 return null;
+            }
+        }
+
+        private void DrawKnownLocationManualThreshold(IInputOutputArray image, MachineCamera camera, Size size)
+        {
+            var p = camera.CurrentVisionProfile;
+            if (camera.CameraType?.Value != CameraTypes.Position || p.Key != VisionProfile.VisionProfile_KnownLocation)
+                return;
+            var label = p.ApplyThreshold
+                ? $"MANUAL THRESHOLD {p.PrimaryThreshold / 100.0 * 255:F0}/255 ({p.PrimaryThreshold}/100)"
+                : "MANUAL THRESHOLD OFF";
+            DrawFeederCornerLabel(image, size, label, 0, new MCvScalar(255, 255, 255));
+        }
+
+        private Image<Bgr, byte> PerformKnownLocationAutoThreshold(Image<Bgr, byte> raw,
+            MachineCamera camera, Size size)
+        {
+            var p = camera.CurrentVisionProfile;
+            var scale = camera.EffectivePixelsPerMM;
+            var geometry = (scale, p.TargetImageRadius, p.HoughCirclesMinRadius,
+                p.HoughCirclesMaxRadius, p.ErrorToleranceMM, p.StabilizationCount);
+            if (!ReferenceEquals(_autoProfile, p) || !_autoGeometry.Equals(geometry))
+            {
+                _autoProfile = p;
+                _autoGeometry = geometry;
+                _autoThresholdGate.Reset();
+                _circleDetector.Reset();
+                _cornerDetector.Reset();
+                _rectangleDetector.Reset();
+                _lineDetector.Reset();
+            }
+
+            using (var gray = raw.Convert<Gray, byte>())
+            using (var smoothed = new Image<Gray, byte>(gray.Size))
+            using (var binary = new Image<Gray, byte>(gray.Size))
+            {
+                string status = "INVALID CALIBRATED SEARCH REGION";
+                double? threshold = null;
+                var separation = 0.0;
+                // The center gate is unchanged. Include room for the complete
+                // largest accepted target so the histogram never cuts a valid edge.
+                var extent = (p.TargetImageRadius + Math.Min(p.HoughCirclesMaxRadius,
+                    KnownLocationCylinderCenteringMath.MaximumDiameterMm / 2)) * scale;
+                var valid = !Double.IsNaN(extent) && !Double.IsInfinity(extent) &&
+                    extent >= 3 && scale > 0 && p.TargetImageRadius > 0 &&
+                    extent < Math.Min(size.Width, size.Height) / 2.0;
+                if (valid)
+                {
+                    var radius = (int)Math.Ceiling(extent);
+                    var roi = new Rectangle(size.Width / 2 - radius, size.Height / 2 - radius,
+                        radius * 2, radius * 2);
+                    CvInvoke.GaussianBlur(gray, smoothed, new Size(5, 5), 0);
+                    using (var region = smoothed.GetSubRect(roi))
+                    using (var rawRegion = gray.GetSubRect(roi))
+                    using (var regionBinary = new Image<Gray, byte>(roi.Size))
+                    {
+                        threshold = CvInvoke.Threshold(region, regionBinary, 0, 255,
+                            ThresholdType.Binary | ThresholdType.Otsu);
+                        // Same thresholded pixels feed the preview and centroid detector.
+                        CvInvoke.Threshold(smoothed, binary, threshold.Value, 255, ThresholdType.Binary);
+                        valid = KnownLocationAutoThresholdGate.Assess(region.Data, rawRegion.Data,
+                            (int)threshold.Value, out separation, out status);
+                    }
+                }
+
+                if (!valid || _machineRepo.CurrentMachine.Busy ||
+                    !p.PerformShapeDetection || !p.FindCircles)
+                {
+                    _autoThresholdGate.Reset();
+                    _circleDetector.Reset();
+                    if (valid) status = "DETECTION PAUSED";
+                }
+                else
+                {
+                    if (!_autoThresholdGate.ObserveThreshold(threshold.Value))
+                        _circleDetector.Reset();
+                    _circleDetector.FindCircles(new MVImage<IInputOutputArray>(binary), camera, size);
+                    var tracked = _circleDetector.FoundCircles.FirstOrDefault();
+                    status = tracked == null ? "NO UNIQUE VALID DISC" :
+                        tracked.Stabilized && tracked.PositionStable ? "STABLE DISC" : "ACQUIRING FRESH DISC";
+                }
+
+                using (var display = p.ShowOriginalImage ? raw.Clone() : binary.Convert<Bgr, byte>())
+                {
+                    RenderOutput(new MVImage<IInputOutputArray>(display), camera, size);
+                    var label = threshold.HasValue
+                        ? $"AUTO OTSU {threshold.Value:F0}/255 ({threshold.Value * 100 / 255:F1}/100)"
+                        : "AUTO OTSU UNAVAILABLE";
+                    DrawFeederCornerLabel(display, size, label, 0, new MCvScalar(255, 255, 255));
+                    DrawFeederCornerLabel(display, size, $"{status} / CONTRAST {separation:F0}", 1,
+                        status == "STABLE DISC" ? new MCvScalar(0, 255, 0) : new MCvScalar(0, 255, 255));
+                    return display.Clone();
+                }
             }
         }
 
@@ -705,7 +819,9 @@ namespace LagoVista.PickAndPlace.App.Services
             _feederBarcodeVertical = null;
             _feederBarcodeTemporal.Reset();
             _latestCalibrationDiscDiagnostic = "No calibration-disc frame processed since reset.";
-            _circleDetector.FoundCircles.Clear();
+            _autoThresholdGate.Reset();
+            _autoProfile = null;
+            _circleDetector.Reset();
             _rectangleDetector.FoundRectangles.Clear();
             _cornerDetector.FoundCorners.Clear();
             _lineDetector.Reset();
