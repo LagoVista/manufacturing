@@ -54,5 +54,11 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand RetractFeedCommand { get; }
         RelayCommand GoToPickLocationCommand { get; }
         RelayCommand GoToFiducialCommand { get; }
+        RelayCommand GoToRailReferenceCommand { get; }
+        RelayCommand GoToSlotOriginCommand { get; }
+        RelayCommand GoToCalculatedFiducialCommand { get; }
+        RelayCommand GoToCalculatedPickupCommand { get; }
+        RelayCommand RefreshGeometryCommand { get; }
+        RelayCommand PreviewGeometryCommand { get; }
     }
 }

@@ -47,6 +47,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             SetPartPickLocationCommand = CreatedMachineConnectedSettingsCommand(SetPickLocationCommand, () => Current != null && !_placementRunning && !_saving);
 
             GoToFiducialCommand = CreatedMachineConnectedCommand(GoToFeederFiducial, () => ValidCurrent && !_placementRunning && !_saving);
+            GoToRailReferenceCommand = CreateCommand(async () => await NavigateGeometryAsync(GeometryTarget.RailReference), CanNavigateGeometry);
+            GoToSlotOriginCommand = CreateCommand(async () => await NavigateGeometryAsync(GeometryTarget.SlotOrigin), CanNavigateGeometry);
+            GoToCalculatedFiducialCommand = CreateCommand(async () => await NavigateGeometryAsync(GeometryTarget.Fiducial), CanNavigateGeometry);
+            GoToCalculatedPickupCommand = CreateCommand(async () => await NavigateGeometryAsync(GeometryTarget.Pickup), CanNavigateGeometry);
+            RefreshGeometryCommand = CreateCommand(NotifyGeometryChanged);
+            PreviewGeometryCommand = CreateCommand(async () => await PreviewGeometryAsync(), CanNavigateGeometry);
             GoToPickLocationCommand = CreatedMachineConnectedCommand(GoToPickLocation, () => Current != null && !_placementRunning && !_saving);
 
             InitializeFeederCommand = CreatedMachineConnectedCommand(async () => await TestConfiguredAsync(null), CanTestConfigured);
@@ -292,6 +298,182 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return origin;
         }
 
+        // Geometry diagnostics deliberately use the same production origin and
+        // offset functions as calibration/pickup. No motion on selection.
+        private enum GeometryTarget { RailReference, SlotOrigin, Fiducial, Pickup }
+
+        private static string FormatGeometry(Point2D<double> point) =>
+            BoardRigidTransform.Valid(point) ? $"X {point.X:F3}   Y {point.Y:F3}" : "Unavailable";
+
+        private static string FormatGeometry(InvokeResult<Point2D<double>> result) =>
+            result.Successful ? FormatGeometry(result.Result) : "Unavailable";
+
+        public string GeometryRailSummary
+        {
+            get
+            {
+                var rail = GetRail();
+                return rail == null ? "No unique configured rail" :
+                    $"{rail.Name}  |  {rail.Rotation?.Value.ToString() ?? "Unknown orientation"}  |  {rail.SlotWidth:F3} mm pitch  |  First slot {rail.SlotStartIndex}";
+            }
+        }
+        public string GeometryRailReference => FormatGeometry(GetRail()?.FirstFeederOrigin);
+        public string GeometrySlotOrigin => FormatGeometry(GetCurrentFeederOrigin());
+        public string GeometryFiducial => FormatGeometry(FindFeederFiducial());
+        public string GeometryPickup => FormatGeometry(FindPickLocation());
+        public string GeometryFiducialOffset => FormatGeometry(Current?.FiducialOffset);
+        public string GeometryPickOffset => FormatGeometry(Current?.PickOffset);
+        public string GeometryPreflight
+        {
+            get
+            {
+                if (Current == null) return "Select a configured feeder.";
+                if (Machine == null || !Machine.Connected) return "Connect the machine.";
+                if (!Machine.WasMachineHomed) return "Home the machine.";
+                if (!Machine.WasMachinOriginCalibrated) return "Calibrate machine origin.";
+                if (Machine.Mode != OperatingMode.Manual) return "Switch the machine to Manual.";
+                if (Machine.LeftVacuumPump || Machine.RightVacuumPump) return "Switch vacuum off.";
+                if (!ConfiguredTestArmed) return "Confirm safe machine clearance below.";
+                if (PlacementBusy || PhotonFeederViewModel.IsBusBusy || Machine.IsLocating) return "Operation in progress.";
+                return "Ready for requested navigation. Live identity is checked before movement.";
+            }
+        }
+
+        private void NotifyGeometryChanged()
+        {
+            RaisePropertyChanged(nameof(GeometryRailSummary));
+            RaisePropertyChanged(nameof(GeometryRailReference));
+            RaisePropertyChanged(nameof(GeometrySlotOrigin));
+            RaisePropertyChanged(nameof(GeometryFiducial));
+            RaisePropertyChanged(nameof(GeometryPickup));
+            RaisePropertyChanged(nameof(GeometryFiducialOffset));
+            RaisePropertyChanged(nameof(GeometryPickOffset));
+            RaisePropertyChanged(nameof(GeometryPreflight));
+        }
+
+        private bool CanNavigateGeometry() => !PlacementBusy && ValidCurrent && Machine != null && Machine.Connected;
+
+        private InvokeResult<Point2D<double>> GeometryPoint(GeometryTarget target)
+        {
+            switch (target)
+            {
+                case GeometryTarget.RailReference:
+                    var rail = GetRail();
+                    return rail != null && BoardRigidTransform.Valid(rail.FirstFeederOrigin)
+                        ? InvokeResult<Point2D<double>>.Create(rail.FirstFeederOrigin)
+                        : InvokeResult<Point2D<double>>.FromError("Rail reference unavailable.");
+                case GeometryTarget.SlotOrigin: return GetCurrentFeederOrigin();
+                case GeometryTarget.Fiducial: return FindFeederFiducial();
+                default: return FindPickLocation();
+            }
+        }
+
+        private void RequireGeometryIdle(IMachine machine, AutoFeeder feeder)
+        {
+            RequirePlacementMachine(machine, feeder);
+            if (!ConfiguredTestArmed || machine.Busy || machine.ToSendQueueCount != 0 || machine.UnacknowledgedBytesSent != 0)
+                throw new InvalidOperationException("Confirm clearance and wait for the machine to be idle.");
+            if (!_isEding || !Feeders.Contains(feeder))
+                throw new InvalidOperationException("Select a saved feeder before navigation.");
+        }
+
+        private async Task NavigateGeometryAsync(GeometryTarget target)
+        {
+            if (!CanNavigateGeometry()) return;
+            var machine = Machine;
+            var feeder = Current;
+            var slot = feeder.Slot;
+            var id = feeder.FeederId;
+            var generation = Volatile.Read(ref _placementGeneration);
+            _placementRunning = true;
+            RaiseCanExecuteChanged();
+            try
+            {
+                RequireGeometryIdle(machine, feeder);
+                var result = GeometryPoint(target);
+                if (!result.Successful || !BoardRigidTransform.InWorkArea(result.Result, machine.Settings.WorkAreaSize))
+                    throw new InvalidOperationException("Calculated target is missing or outside the work area.");
+                var point = new Point2D<double>(result.Result.X, result.Result.Y);
+                void Check()
+                {
+                    RequireGeometryIdle(machine, feeder);
+                    var actual = GeometryPoint(target);
+                    if (generation != Volatile.Read(ref _placementGeneration) || feeder.Slot != slot || feeder.FeederId != id ||
+                        !actual.Successful || !BoardRigidTransform.InWorkArea(actual.Result, machine.Settings.WorkAreaSize) ||
+                        BoardRigidTransform.Distance(actual.Result, point) > 0.000001)
+                        throw new InvalidOperationException("Feeder or calculated target changed. Request navigation again.");
+                }
+
+                PlacementStatus = $"Checking slot {slot} identity before moving to {target}.";
+                var verified = await PhotonFeederViewModel.VerifyFeederIdentityAsync((byte)slot, id);
+                if (!verified.Successful) throw new InvalidOperationException(verified.ErrorMessage);
+                await PlacementIdleAsync(machine, feeder);
+                Check();
+                var capture = machine.PositionImageCaptureService;
+                if (capture?.Camera?.CameraType?.Value != CameraTypes.Position)
+                    throw new InvalidOperationException("Position camera unavailable.");
+                machine.SetVisionProfile(CameraTypes.Position, target == GeometryTarget.Fiducial
+                    ? VisionProfile.VisionProfile_FeederLandmark : VisionProfile.VisionProfile_Defauilt);
+                var ready = await capture.EnsureCaptureReadyAsync();
+                if (!ready.Successful) throw new InvalidOperationException(ready.ErrorMessage);
+                Check();
+                machine.SendSafeMoveHeight();
+                await PlacementIdleAsync(machine, feeder);
+                Check();
+                await machine.MoveToCameraAsync();
+                await PlacementIdleAsync(machine, feeder);
+                Check();
+                if (machine.CurrentMachineToolHead != null) throw new InvalidOperationException("Camera navigation unavailable.");
+                PlacementStatus = $"Moving to {target}: {FormatGeometry(point)}.";
+                machine.GotoPoint(point);
+                await PlacementIdleAsync(machine, feeder);
+                Check();
+                var location = await machine.GetCurrentLocationAsync(5000);
+                await PlacementIdleAsync(machine, feeder);
+                Check();
+                if (!location.Successful || !BoardRigidTransform.Valid(location.Result))
+                    throw new InvalidOperationException("Could not verify arrived position.");
+                PlacementStatus = $"Requested {FormatGeometry(point)}; actual {FormatGeometry(location.Result)}; difference {BoardRigidTransform.Distance(point, location.Result):F3} mm. Inspect the live camera; no offsets changed.";
+                machine.TopLightOn = true; // Existing bounded 30-second preview.
+            }
+            catch (Exception ex)
+            {
+                PlacementStatus = "Navigation stopped: " + ex.Message;
+                machine?.AddStatusMessage(StatusMessageTypes.Warning, PlacementStatus);
+            }
+            finally { _placementRunning = false; NotifyGeometryChanged(); RaiseCanExecuteChanged(); }
+        }
+
+        private async Task PreviewGeometryAsync()
+        {
+            if (!CanNavigateGeometry()) return;
+            var machine = Machine;
+            var feeder = Current;
+            _placementRunning = true;
+            RaiseCanExecuteChanged();
+            try
+            {
+                RequireGeometryIdle(machine, feeder);
+                var capture = machine.PositionImageCaptureService;
+                if (capture?.Camera?.CameraType?.Value != CameraTypes.Position)
+                    throw new InvalidOperationException("Position camera unavailable.");
+                var ready = await capture.EnsureCaptureReadyAsync();
+                if (!ready.Successful) throw new InvalidOperationException(ready.ErrorMessage);
+                RequireGeometryIdle(machine, feeder);
+                machine.TopLightOn = true;
+                PlacementStatus = "Position camera preview requested (30-second illumination).";
+            }
+            catch (Exception ex) { PlacementStatus = "Preview unavailable: " + ex.Message; }
+            finally { _placementRunning = false; RaiseCanExecuteChanged(); }
+        }
+
+        public RelayCommand GoToRailReferenceCommand { get; }
+        public RelayCommand GoToSlotOriginCommand { get; }
+        public RelayCommand GoToCalculatedFiducialCommand { get; }
+        public RelayCommand GoToCalculatedPickupCommand { get; }
+        public RelayCommand RefreshGeometryCommand { get; }
+        public RelayCommand PreviewGeometryCommand { get; }
+
         public async void GoToFeederFiducial()
         {
             if (_placementRunning || _saving) return;
@@ -479,6 +661,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             base.RaiseCanExecuteChanged();
             RaisePropertyChanged(nameof(PlacementBusy));
             RaisePropertyChanged(nameof(HasPlacementCandidate));
+            RaisePropertyChanged(nameof(GeometryPreflight));
         }
 
         public void ResetPlacementDialog()
@@ -727,6 +910,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if(origin.Successful)
             {
                 Current.PickOffset = (Machine.MachinePosition.ToPoint2D() - (Current.FiducialOffset + origin.Result)).Round(2);
+                NotifyGeometryChanged();
             }
             else
             {
@@ -813,7 +997,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 PlacementStatus = "Save failed: " + ex.Message + (candidate == null ? "" : " Previous offset retained locally; reload if server outcome is uncertain.");
                 Machine?.AddStatusMessage(StatusMessageTypes.FatalError, PlacementStatus);
             }
-            finally { _saving = false; RaiseCanExecuteChanged(); }
+            finally { _saving = false; NotifyGeometryChanged(); RaiseCanExecuteChanged(); }
         }
 
         public void Cancel()
@@ -859,6 +1043,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 ClearPlacementCandidate();
                 Set(ref _current, value);
                 ConfiguredTestArmed = false;
+                NotifyGeometryChanged();
                 RaisePropertyChanged(nameof(ConfiguredFeederStatus));
                 _isEding = true;
                 RaiseCanExecuteChanged();

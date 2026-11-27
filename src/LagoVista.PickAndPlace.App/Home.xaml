@@ -62,6 +62,15 @@
             </Grid.ColumnDefinitions>
 
             <Grid>
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsSelected, ElementName=AutoFeedersTab}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="32" />
                     <RowDefinition Height="auto" />
@@ -85,7 +94,18 @@
                 
             </Grid>
 
-            <Grid Grid.Column="1" >
+            <Grid>
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Grid.Column" Value="1"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsSelected, ElementName=AutoFeedersTab}" Value="True">
+                                <Setter Property="Grid.Column" Value="0"/>
+                                <Setter Property="Grid.ColumnSpan" Value="2"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="auto" />
@@ -126,11 +146,8 @@
                     <TabItem Header="Feeders" >
                         <pnpc:StripFeederControl></pnpc:StripFeederControl>
                     </TabItem>
-                    <TabItem Header="Auto Feeders">
-                        <StackPanel>
-                            <pnpc:AutoFeederControl Grid.Row="1"></pnpc:AutoFeederControl>
-                            <pnpc:PhotonFeedersControl Grid.Row="2"></pnpc:PhotonFeedersControl>
-                        </StackPanel>
+                    <TabItem Header="Auto Feeders" x:Name="AutoFeedersTab">
+                        <pnpc:AutoFeederControl/>
                     </TabItem>
                     
                     <TabItem Header="Machine">

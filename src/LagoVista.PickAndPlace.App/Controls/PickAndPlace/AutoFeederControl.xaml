@@ -6,12 +6,147 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:LagoVista.PickAndPlace.App.Controls.PickAndPlace"
              xmlns:fa="clr-namespace:FontAwesome.WPF;assembly=FontAwesome.WPF"
+             xmlns:cal="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine.Calibration"
              xmlns:ucb="clr-namespace:LagoVista.XPlat;assembly=LagoVista.XPlat.WPF"             
              xmlns:vm="clr-namespace:LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;assembly=LagoVista.PickAndPlace"                                        
              d:DataContext="{d:DesignInstance vm:IAutoFeederViewModel }"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid Margin="10">
+    <ucb:VMBoundUserControl.Resources>
+        <Style x:Key="WorkbenchButton" TargetType="Button">
+            <Setter Property="Background" Value="#246CA5"/><Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#4D94CD"/><Setter Property="Padding" Value="12,7"/>
+            <Setter Property="MinHeight" Value="34"/><Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Margin" Value="0,0,7,0"/>
+        </Style>
+        <Style x:Key="GeometryCard" TargetType="Border">
+            <Setter Property="Background" Value="#232F3D"/><Setter Property="BorderBrush" Value="#394B60"/>
+            <Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="10"/><Setter Property="Margin" Value="0,0,0,7"/>
+        </Style>
+        <Style x:Key="WorkbenchText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/><Setter Property="FontSize" Value="15"/>
+        </Style>
+        <Style x:Key="IdleFeederList" TargetType="ListBox">
+            <Setter Property="IsEnabled" Value="True"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding PlacementBusy}" Value="True"><Setter Property="IsEnabled" Value="False"/></DataTrigger>
+                <DataTrigger Binding="{Binding PhotonFeederViewModel.IsBusBusy}" Value="True"><Setter Property="IsEnabled" Value="False"/></DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </ucb:VMBoundUserControl.Resources>
+    <Grid Background="#181F29">
+      <TabControl Background="#181F29" BorderThickness="0" Padding="0">
+        <TabItem Header="Workbench">
+          <Grid Margin="14" TextElement.Foreground="White" TextElement.FontSize="15">
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <Border Background="#263342" CornerRadius="8" Padding="14" Margin="0,0,0,12">
+              <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <StackPanel>
+                  <TextBlock Text="MACHINE PREPARATION / AUTOMATIC FEEDERS" Foreground="#A7D6FF" FontSize="12" FontWeight="Bold"/>
+                  <TextBlock Text="Automatic Feeder Workbench" FontSize="26" FontWeight="SemiBold" Margin="0,3"/>
+                  <TextBlock Text="Select a feeder, verify its calculated position, then calibrate the physical landmark and pickup." Foreground="#D0DEEB" TextWrapping="Wrap"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                  <Button Content="Discover Feeders" Command="{Binding PhotonFeederViewModel.DiscoverFeedersCommand}" Style="{StaticResource WorkbenchButton}"/>
+                  <Button Content="Refresh Geometry" Command="{Binding RefreshGeometryCommand}" Style="{StaticResource WorkbenchButton}"/>
+                </StackPanel>
+              </Grid>
+            </Border>
+            <Grid Grid.Row="1">
+              <Grid.ColumnDefinitions><ColumnDefinition Width="250"/><ColumnDefinition Width="*"/><ColumnDefinition Width="320"/></Grid.ColumnDefinitions>
+              <Border Background="#202B38" CornerRadius="8" Padding="10" Margin="0,0,10,0">
+                <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                  <StackPanel Margin="0,0,0,8"><TextBlock Text="CONFIGURED FEEDERS" FontSize="12" Foreground="#A7D6FF" FontWeight="Bold"/><TextBlock Text="{Binding Feeders.Count, StringFormat='{}{0} feeders'}" FontSize="22" FontWeight="SemiBold" Margin="0,3"/></StackPanel>
+                  <ListBox Grid.Row="1" ItemsSource="{Binding Feeders}" SelectedItem="{Binding Current, Mode=TwoWay}" Style="{StaticResource IdleFeederList}" Background="#202B38" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch">
+                    <ListBox.ItemContainerStyle><Style TargetType="ListBoxItem"><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0,0,0,6"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Template"><Setter.Value>
+                      <ControlTemplate TargetType="ListBoxItem"><Border x:Name="Tile" Background="#2A3949" BorderBrush="#3C4E61" BorderThickness="1" CornerRadius="6" Padding="10"><ContentPresenter/></Border><ControlTemplate.Triggers><Trigger Property="IsSelected" Value="True"><Setter TargetName="Tile" Property="Background" Value="#28567C"/><Setter TargetName="Tile" Property="BorderBrush" Value="#6FB9F5"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Tile" Property="BorderBrush" Value="#8AC7F5"/></Trigger></ControlTemplate.Triggers></ControlTemplate>
+                    </Setter.Value></Setter></Style></ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate><DataTemplate>
+                      <Grid TextElement.Foreground="White"><Grid.ColumnDefinitions><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <Border Background="#172637" CornerRadius="5" Padding="5" Margin="0,0,9,0" VerticalAlignment="Center"><TextBlock Text="{Binding Slot}" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
+                        <StackPanel Grid.Column="1"><TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Component.Text}" Foreground="#C9D9E9" FontSize="13" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding PartCount, StringFormat='{}{0} parts'}" FontSize="12" Foreground="#AEC5DB"/></StackPanel>
+                      </Grid>
+                    </DataTemplate></ListBox.ItemTemplate>
+                  </ListBox>
+                  <StackPanel Grid.Row="2" Margin="0,8,0,0"><TextBlock Text="{Binding PhotonFeederViewModel.DiscoveredFeeders.Count, StringFormat='{}{0} responding in latest scan'}" Foreground="#C3D7E9" TextWrapping="Wrap" FontSize="13"/><TextBlock Text="{Binding PhotonFeederViewModel.Status}" Foreground="White" FontSize="13" TextWrapping="Wrap"/></StackPanel>
+                </Grid>
+              </Border>
+              <Grid Grid.Column="1" Margin="0,0,10,0">
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="120"/></Grid.RowDefinitions>
+                <Border Background="#263342" CornerRadius="8" Padding="12" Margin="0,0,0,8">
+                  <StackPanel><TextBlock Text="{Binding Current.Name, TargetNullValue='Select a feeder'}" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding Current.Slot, StringFormat='Slot {0}'}" FontSize="15" Foreground="#A7D6FF"/>
+                    <TextBlock Text="{Binding Current.FeederId, StringFormat='Photon ID: {0}'}" FontFamily="Consolas" FontSize="14" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding ConfiguredFeederStatus}" Foreground="White" FontSize="14" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                  </StackPanel>
+                </Border>
+                <Border Grid.Row="1" Background="#0C121B" BorderBrush="#3A4C60" BorderThickness="1" CornerRadius="8" ClipToBounds="True">
+                  <cal:CalibrationVideoSurface FrameSource="{Binding Machine.PositionImageCaptureService.CaptureImage}" Caption="LIVE POSITION CAMERA  /  GEOMETRY PREVIEW"/>
+                </Border>
+                <WrapPanel Grid.Row="2" Margin="0,8,0,8">
+                  <Button Content="Preview Light (30s)" Command="{Binding PreviewGeometryCommand}" Style="{StaticResource WorkbenchButton}"/>
+                  <TextBlock Text="Camera preview only — no automatic centering." Foreground="#C9D8E7" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                </WrapPanel>
+                <Border Grid.Row="3" Background="#101721" CornerRadius="6" Padding="8">
+                  <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <TextBlock Text="ACTIVITY / EVIDENCE" Foreground="#A7D6FF" FontSize="12" FontWeight="Bold"/>
+                    <ListBox Grid.Row="1" ItemsSource="{Binding PlacementMessages}" Background="#101721" Foreground="White" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled"><ListBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" Foreground="White" TextWrapping="Wrap" FontSize="13"/></DataTemplate></ListBox.ItemTemplate></ListBox>
+                  </Grid>
+                </Border>
+              </Grid>
+              <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel>
+                  <TextBlock Text="GEOMETRY DIAGNOSTICS" FontSize="12" Foreground="#A7D6FF" FontWeight="Bold"/>
+                  <TextBlock Text="{Binding GeometryRailSummary}" Foreground="White" FontSize="15" TextWrapping="Wrap" Margin="0,5,0,10"/>
+                  <Border Style="{StaticResource GeometryCard}">
+ <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+ <StackPanel><TextBlock Text="Rail reference" FontWeight="SemiBold" FontSize="16"/><TextBlock Text="First slot reference" Foreground="#B4C5D9" FontSize="12" Margin="0,2"/><TextBlock Text="{Binding GeometryRailReference}" FontFamily="Consolas" FontSize="15" Foreground="#A9D9FF"/></StackPanel>
+ <Button Grid.Column="1" Content="Go To" Command="{Binding GoToRailReferenceCommand}" Style="{StaticResource WorkbenchButton}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+ </Grid></Border>
+<Border Style="{StaticResource GeometryCard}">
+ <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+ <StackPanel><TextBlock Text="Slot origin" FontWeight="SemiBold" FontSize="16"/><TextBlock Text="Rail + slot pitch" Foreground="#B4C5D9" FontSize="12" Margin="0,2"/><TextBlock Text="{Binding GeometrySlotOrigin}" FontFamily="Consolas" FontSize="15" Foreground="#A9D9FF"/></StackPanel>
+ <Button Grid.Column="1" Content="Go To" Command="{Binding GoToSlotOriginCommand}" Style="{StaticResource WorkbenchButton}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+ </Grid></Border>
+<Border Style="{StaticResource GeometryCard}">
+ <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+ <StackPanel><TextBlock Text="Calculated landmark" FontWeight="SemiBold" FontSize="16"/><TextBlock Text="Slot + fiducial offset" Foreground="#B4C5D9" FontSize="12" Margin="0,2"/><TextBlock Text="{Binding GeometryFiducial}" FontFamily="Consolas" FontSize="15" Foreground="#A9D9FF"/></StackPanel>
+ <Button Grid.Column="1" Content="Go To" Command="{Binding GoToCalculatedFiducialCommand}" Style="{StaticResource WorkbenchButton}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+ </Grid></Border>
+<Border Style="{StaticResource GeometryCard}">
+ <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+ <StackPanel><TextBlock Text="Calculated pickup" FontWeight="SemiBold" FontSize="16"/><TextBlock Text="Landmark + pickup offset" Foreground="#B4C5D9" FontSize="12" Margin="0,2"/><TextBlock Text="{Binding GeometryPickup}" FontFamily="Consolas" FontSize="15" Foreground="#A9D9FF"/></StackPanel>
+ <Button Grid.Column="1" Content="Go To" Command="{Binding GoToCalculatedPickupCommand}" Style="{StaticResource WorkbenchButton}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+ </Grid></Border>
+                  <Border Style="{StaticResource GeometryCard}"><StackPanel>
+                    <TextBlock Text="Saved offsets (mm)" FontSize="15" FontWeight="SemiBold"/>
+                    <TextBlock Text="Fiducial from slot" Foreground="#C9D8E7" FontSize="12" Margin="0,5,0,0"/><TextBlock Text="{Binding GeometryFiducialOffset}" FontFamily="Consolas" FontSize="14"/>
+                    <TextBlock Text="Pickup from fiducial" Foreground="#C9D8E7" FontSize="12" Margin="0,5,0,0"/><TextBlock Text="{Binding GeometryPickOffset}" FontFamily="Consolas" FontSize="14"/>
+                  </StackPanel></Border>
+                  <Border Style="{StaticResource GeometryCard}"><StackPanel>
+                    <TextBlock Text="Next calibration stages" FontSize="15" FontWeight="SemiBold"/>
+                    <TextBlock Text="01  Three-dot landmark" FontSize="14" Margin="0,6,0,0"/>
+                    <TextBlock Text="Detector pending — verify geometry first." FontSize="12" Foreground="#C9D8E7" TextWrapping="Wrap"/>
+                    <TextBlock Text="02  Part presentation" FontSize="14" Margin="0,6,0,0"/>
+                    <TextBlock Text="Pending T007" FontSize="12" Foreground="#C9D8E7"/>
+                  </StackPanel></Border>
+                </StackPanel>
+              </ScrollViewer>
+            </Grid>
+            <Border Grid.Row="2" Background="#263342" CornerRadius="8" Padding="12" Margin="0,12,0,0">
+              <StackPanel>
+                <CheckBox Content="I confirm the selected feeder and safe machine clearance" IsChecked="{Binding ConfiguredTestArmed, Mode=TwoWay}" Foreground="White" FontSize="16" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding GeometryPreflight}" Foreground="#B9DFFF" FontSize="15" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                <TextBlock Text="{Binding PlacementStatus}" Foreground="White" FontSize="16" TextWrapping="Wrap" Margin="0,5,0,0"/>
+              </StackPanel>
+            </Border>
+          </Grid>
+        </TabItem>
+        <TabItem Header="Configuration">
+          <TabItem.Style><Style TargetType="TabItem"><Style.Triggers><DataTrigger Binding="{Binding PlacementBusy}" Value="True"><Setter Property="IsEnabled" Value="False"/></DataTrigger></Style.Triggers></Style></TabItem.Style>
+          <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+              <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
@@ -146,5 +281,14 @@
             </StackPanel>
         </StackPanel>
 
+    </Grid>
+
+          </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Diagnostics">
+          <TabItem.Style><Style TargetType="TabItem"><Style.Triggers><DataTrigger Binding="{Binding PlacementBusy}" Value="True"><Setter Property="IsEnabled" Value="False"/></DataTrigger></Style.Triggers></Style></TabItem.Style>
+          <local:PhotonFeedersControl/>
+        </TabItem>
+      </TabControl>
     </Grid>
 </ucb:VMBoundUserControl>
