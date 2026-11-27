@@ -62,6 +62,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             AddCommand = CreateCommand(Add, () => MachineRepo.HasValidMachine && SelectedTemplateId.HasValidId() && CurrentPhotonFeeder != null);
             SaveCommand = CreateCommand(Save, () => Current != null && !_placementRunning && !_saving);
             SavePlacementCommand = CreateCommand(async () => await SaveCoreAsync(true), () => HasPlacementCandidate && !PlacementBusy);
+            SaveRailReferenceCommand = CreateCommand(async () => await SaveRailReferenceAsync(), () => HasRailReferenceCandidate && !PlacementBusy);
             CancelCommand = CreateCommand(Cancel, () => Current != null && !_placementRunning && !_saving);
             ReloadFeederCommand = CreateCommand(ReloadFeeder, () => Current != null && !_placementRunning && !_saving);
         }
@@ -658,6 +659,69 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private IMachine _placementMachine;
         private int _placementSlot;
         private string _placementId;
+        private MachineFeederRail _placementRail;
+        private double? _placementRailPitch;
+        private FeederRotations? _placementRailRotation;
+        private int? _placementRailCount;
+
+        private bool TryRailReferenceCandidate(out Point2D<double> candidate)
+        {
+            candidate = null;
+            var rail = GetRail();
+            return HasPlacementCandidate && rail != null && ReferenceEquals(rail, _placementRail) &&
+                Current?.Slot == rail.SlotStartIndex && Current.Slot == _placementSlot &&
+                rail.SlotWidth == _placementRailPitch && rail.Rotation?.Value == _placementRailRotation &&
+                rail.NumberSlots == _placementRailCount &&
+                BoardRigidTransform.Valid(rail.FirstFeederOrigin) &&
+                BoardRigidTransform.Distance(rail.FirstFeederOrigin, _placementOrigin) <= 0.000001 &&
+                BoardRigidTransform.Valid(Current.FiducialOffset) &&
+                BoardRigidTransform.Distance(Current.FiducialOffset, _placementPrevious) <= 0.000001 &&
+                AutoFeederPlacementMath.TryBackfillFirstSlot(rail.FirstFeederOrigin, _placementCandidate,
+                    _placementPrevious, Current.Slot, rail.SlotStartIndex, Machine?.Settings?.WorkAreaSize, out candidate);
+        }
+        public bool HasRailReferenceCandidate => TryRailReferenceCandidate(out _);
+        public string RailReferenceCandidateText => TryRailReferenceCandidate(out var p)
+            ? $"Proposed rail reference: {FormatGeometry(p)} (shift {BoardRigidTransform.Distance(p, _placementOrigin):F3} mm). Uses existing fiducial offset as nominal; affects every slot on this rail."
+            : "Rail reference adjustment is available after measuring the first slot.";
+        public RelayCommand SaveRailReferenceCommand { get; }
+
+        private async Task SaveRailReferenceAsync()
+        {
+            if (PlacementBusy || !TryRailReferenceCandidate(out var candidate)) return;
+            var machine = Machine;
+            var feeder = Current;
+            var rail = GetRail();
+            var previous = rail.FirstFeederOrigin;
+            var applied = false;
+            _saving = true;
+            RaiseCanExecuteChanged();
+            try
+            {
+                RequirePlacementMachine(machine, feeder);
+                if (machine.AreSettingsLocked || !ReferenceEquals(machine, _placementMachine) ||
+                    !ReferenceEquals(feeder, _placementFeeder) || feeder.FeederId != _placementId)
+                    throw new InvalidOperationException("Calibration context changed or settings locked.");
+                await PlacementIdleAsync(machine, feeder);
+                if (!TryRailReferenceCandidate(out var rechecked) ||
+                    BoardRigidTransform.Distance(candidate, rechecked) > 0.000001 ||
+                    machine.AreSettingsLocked || !ReferenceEquals(machine, _placementMachine) ||
+                    !ReferenceEquals(feeder, _placementFeeder) || feeder.FeederId != _placementId)
+                    throw new InvalidOperationException("Rail or calibration context changed.");
+                rail.FirstFeederOrigin = candidate;
+                applied = true;
+                var result = await MachineRepo.SaveCurrentMachineAsync();
+                if (!result.Successful) throw new InvalidOperationException(result.ErrorMessage);
+                ClearPlacementCandidate();
+                PlacementStatus = $"Rail {rail.Name} reference saved at {FormatGeometry(candidate)}. Feeder offsets and slot numbering unchanged.";
+            }
+            catch (Exception ex)
+            {
+                if (applied) rail.FirstFeederOrigin = previous;
+                PlacementStatus = "Rail reference save failed: " + ex.Message + ". Previous origin retained locally; reload if server outcome is uncertain.";
+                machine?.AddStatusMessage(StatusMessageTypes.Warning, PlacementStatus);
+            }
+            finally { _saving = false; NotifyGeometryChanged(); RaiseCanExecuteChanged(); }
+        }
         private string _placementStatus = "Select a saved feeder, confirm clearance, then calibrate its fiducial.";
         public ObservableCollection<string> PlacementMessages { get; } = new ObservableCollection<string>();
         public string PlacementStatus
@@ -679,6 +743,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             base.RaiseCanExecuteChanged();
             RaisePropertyChanged(nameof(PlacementBusy));
             RaisePropertyChanged(nameof(HasPlacementCandidate));
+            RaisePropertyChanged(nameof(HasRailReferenceCandidate));
+            RaisePropertyChanged(nameof(RailReferenceCandidateText));
             RaisePropertyChanged(nameof(GeometryPreflight));
         }
 
@@ -688,7 +754,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             ClearPlacementCandidate();
             ConfiguredTestArmed = false;
             PlacementMessages.Clear();
-            PlacementStatus = "Select a saved feeder, unlock settings, confirm clearance and press Run Calibration.";
+            PlacementStatus = "Select a saved feeder, unlock settings and press Calibrate Landmark.";
             RaiseCanExecuteChanged();
         }
 
@@ -700,11 +766,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _placementCandidate = null;
             _placementFeeder = null;
             _placementMachine = null;
+            _placementRail = null;
             RaisePropertyChanged(nameof(HasPlacementCandidate));
+            RaisePropertyChanged(nameof(HasRailReferenceCandidate));
+            RaisePropertyChanged(nameof(RailReferenceCandidateText));
         }
 
         private bool CanCalibratePlacement() => !_placementRunning && !_saving && ValidCurrent && _isEding &&
-            ConfiguredTestArmed && Machine != null && Machine.Connected && !Machine.AreSettingsLocked &&
+            Machine != null && Machine.Connected && !Machine.AreSettingsLocked &&
             Machine.Mode == OperatingMode.Manual && Machine.WasMachineHomed && Machine.WasMachinOriginCalibrated &&
             !Machine.IsLocating && !PhotonFeederViewModel.IsBusBusy;
 
@@ -757,27 +826,33 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     throw new InvalidOperationException("Invalid feeder rail or fiducial target.");
                 var previous = new Point2D<double>(feeder.FiducialOffset.X, feeder.FiducialOffset.Y);
                 await PlacementIdleAsync(machine, feeder);
-                if (generation != Volatile.Read(ref _placementGeneration) || !ConfiguredTestArmed)
+                if (generation != Volatile.Read(ref _placementGeneration))
                     throw new InvalidOperationException("Calibration context changed.");
                 PlacementStatus = "Preparing position camera for optical measurement. Feeder communication is not required.";
                 await PlacementIdleAsync(machine, feeder);
                 var capture = machine.PositionImageCaptureService;
                 if (capture?.Camera?.CameraType?.Value != CameraTypes.Position)
                     throw new InvalidOperationException("Position camera unavailable.");
-                machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_FeederFiducial);
+                machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_FeederLandmark);
+                // Earlier navigation may have created an unconfigured profile.
+                // Initialize it only if detection was never enabled.
+                var selectedProfile = capture.Camera.CurrentVisionProfile;
+                if (selectedProfile?.Key == VisionProfile.VisionProfile_FeederLandmark &&
+                    (!selectedProfile.FindCircles || !selectedProfile.PerformShapeDetection))
+                    FeederLandmarkGeometry.InitializeProfile(selectedProfile);
                 var ready = await capture.EnsureCaptureReadyAsync();
                 if (!ready.Successful) throw new InvalidOperationException(ready.ErrorMessage);
                 var profile = capture.Profile;
                 var camera = capture.Camera;
                 var scale = camera.EffectivePixelsPerMM;
-                if (profile?.Key != VisionProfile.VisionProfile_FeederFiducial || !profile.PerformShapeDetection ||
+                if (profile?.Key != VisionProfile.VisionProfile_FeederLandmark || !profile.PerformShapeDetection ||
                     !profile.FindCircles || !BoardRigidTransform.Finite(scale) || scale <= 0 ||
                     !BoardRigidTransform.Finite(profile.ErrorToleranceMM) || profile.ErrorToleranceMM <= 0 ||
                     !BoardRigidTransform.Finite(profile.TargetImageRadius) || profile.TargetImageRadius <= 0 ||
                     !BoardRigidTransform.Finite(profile.HoughCirclesMinRadius) || !BoardRigidTransform.Finite(profile.HoughCirclesMaxRadius) ||
                     profile.HoughCirclesMinRadius <= 0 || profile.HoughCirclesMaxRadius <= profile.HoughCirclesMinRadius ||
                     profile.StabilizationCount < 2)
-                    throw new InvalidOperationException("Feeder Fiducial profile requires calibrated scale, circle detection, radius range and stabilization.");
+                    throw new InvalidOperationException("Feeder Landmark profile requires calibrated scale, circle detection, radius range and stabilization.");
                 var tolerance = profile.ErrorToleranceMM;
                 var radius = profile.TargetImageRadius;
                 var min = profile.HoughCirclesMinRadius;
@@ -787,11 +862,22 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 var auto = profile.AutoThreshold;
                 var invert = profile.Invert;
                 var exposure = camera.EffectiveExposure;
+                var centerDiameter = profile.FeederLandmarkCenterDotDiameterMm;
+                var sideDiameter = profile.FeederLandmarkSideDotDiameterMm;
+                var spacing = profile.FeederLandmarkCenterToSideSpacingMm;
+                var rail = GetRail();
+                var railId = rail?.Id;
+                var railStart = rail?.SlotStartIndex;
+                var railPitch = rail?.SlotWidth;
+                var railRotation = rail?.Rotation?.Value;
+                // Release a prior timed preview before acquiring an exclusive light lease.
+                machine.TopLightOn = false;
+                await PlacementIdleAsync(machine, feeder);
                 void Check()
                 {
                     RequirePlacementMachine(machine, feeder);
                     var actualOrigin = GetCurrentFeederOrigin();
-                    if (generation != Volatile.Read(ref _placementGeneration) || !ConfiguredTestArmed ||
+                    if (generation != Volatile.Read(ref _placementGeneration) ||
                         feeder.Slot != slot || feeder.FeederId != id || machine.AreSettingsLocked ||
                         !actualOrigin.Successful || BoardRigidTransform.Distance(actualOrigin.Result, origin.Result) > 0.000001 ||
                         !BoardRigidTransform.Valid(feeder.FiducialOffset) || BoardRigidTransform.Distance(feeder.FiducialOffset, previous) > 0.000001 ||
@@ -800,7 +886,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         Math.Abs(camera.EffectivePixelsPerMM - scale) > 0.0001 || profile.ErrorToleranceMM != tolerance ||
                         profile.TargetImageRadius != radius || profile.HoughCirclesMinRadius != min || profile.HoughCirclesMaxRadius != max ||
                         profile.StabilizationCount != count || profile.PrimaryThreshold != threshold || profile.AutoThreshold != auto ||
-                        profile.Invert != invert || camera.EffectiveExposure != exposure || !profile.FindCircles || !profile.PerformShapeDetection)
+                        profile.Invert != invert || camera.EffectiveExposure != exposure || !profile.FindCircles || !profile.PerformShapeDetection ||
+                        profile.FeederLandmarkCenterDotDiameterMm != centerDiameter || profile.FeederLandmarkSideDotDiameterMm != sideDiameter ||
+                        profile.FeederLandmarkCenterToSideSpacingMm != spacing || GetRail()?.Id != railId ||
+                        GetRail()?.SlotStartIndex != railStart || GetRail()?.SlotWidth != railPitch || GetRail()?.Rotation?.Value != railRotation)
                         throw new InvalidOperationException("Feeder, rail or camera context changed; restart calibration.");
                 }
                 Check();
@@ -819,7 +908,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 {
                     Check();
                     if (machine.Busy || machine.CurrentMachineToolHead != null) throw new InvalidOperationException("Machine moved during acquisition.");
-                    PlacementStatus = $"Acquiring fresh feeder fiducial (observation {attempt + 1}).";
+                    PlacementStatus = $"Acquiring fresh three-dot landmark (observation {attempt + 1}).";
                     FiducialCircleObservation observation;
                     await using (var light = await machine.BeginTopCameraAcquisitionAsync(11000))
                     {
@@ -835,7 +924,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         finally { _locatorViewModel.UnregisterCircleLocatedHandler(handler); }
                     }
                     Check();
-                    if (observation == null) throw new InvalidOperationException("No fresh stable feeder fiducial; check the Feeder Fiducial profile and lighting.");
+                    if (observation == null) throw new InvalidOperationException("No fresh stable feeder fiducial; check the Feeder Landmark profile and lighting.");
                     if (machine.Busy || machine.CurrentMachineToolHead != null) throw new InvalidOperationException("Machine moved during observation.");
                     var position = await machine.GetCurrentLocationAsync(5000);
                     Check();
@@ -863,7 +952,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _placementMachine = machine;
                 _placementSlot = slot;
                 _placementId = id;
-                PlacementStatus = $"Optically measured slot {slot}: {measured}; candidate offset {_placementCandidate}. Save verifies feeder identity before persisting. Pick offset unchanged.";
+                _placementRail = rail;
+                _placementRailPitch = railPitch;
+                _placementRailRotation = railRotation;
+                _placementRailCount = rail?.NumberSlots;
+                PlacementStatus = $"Optically measured slot {slot}: {measured}; candidate offset {_placementCandidate}. " +
+                    (HasRailReferenceCandidate ? "First slot: choose Save Rail Reference or Save Feeder Offset, not both." : "Save Feeder Offset verifies live identity.");
+                RaisePropertyChanged(nameof(RailReferenceCandidateText));
             }
             catch (Exception ex)
             {

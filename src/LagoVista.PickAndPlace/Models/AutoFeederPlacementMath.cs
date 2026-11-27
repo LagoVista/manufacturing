@@ -22,6 +22,18 @@ namespace LagoVista.PickAndPlace.Models
             return true;
         }
 
+        public static bool TryBackfillFirstSlot(Point2D<double> oldOrigin, Point2D<double> measuredOffset,
+            Point2D<double> nominalOffset, int slot, int firstSlot, Point2D<double> workArea, out Point2D<double> origin)
+        {
+            origin = null;
+            if (slot != firstSlot || slot < 1 || slot > 254 || !BoardRigidTransform.Valid(oldOrigin) ||
+                !BoardRigidTransform.Valid(measuredOffset) || !BoardRigidTransform.Valid(nominalOffset)) return false;
+            var candidate = oldOrigin + measuredOffset - nominalOffset;
+            if (!BoardRigidTransform.InWorkArea(candidate, workArea)) return false;
+            origin = candidate;
+            return true;
+        }
+
         public static bool TryMeasure(Point2D<double> position, Point2D<double> approach,
             FiducialCircleObservation observation, double scale, double radius, double min, double max,
             Point2D<double> workArea, out Point2D<double> target, out double residual)

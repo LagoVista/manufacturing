@@ -25,6 +25,19 @@ namespace LagoVista.PickAndPlace.GCodeTests
         }
 
         [Test]
+        public void BackfillsFirstSlotUsingNominalOffsetWithoutDoubleCounting()
+        {
+            Assert.That(AutoFeederPlacementMath.TryBackfillFirstSlot(new Point2D<double>(66,4),
+                new Point2D<double>(9,7),new Point2D<double>(7,4),26,26,
+                new Point2D<double>(500,500),out var origin),Is.True);
+            Assert.That(origin.X,Is.EqualTo(68));
+            Assert.That(origin.Y,Is.EqualTo(7));
+            Assert.That(AutoFeederPlacementMath.TryBackfillFirstSlot(new Point2D<double>(66,4),
+                new Point2D<double>(9,7),new Point2D<double>(7,4),35,26,
+                new Point2D<double>(500,500),out _),Is.False);
+        }
+
+        [Test]
         public void OpticalResidualUsesCalibratedScaleAndInvertedImageY()
         {
             var p = new Point2D<double>(100, 20);

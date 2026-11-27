@@ -30,6 +30,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         RelayCommand SetPartPickLocationCommand { get; }
         RelayCommand SetFeederFiducialLocationCommand { get; }
         RelayCommand SavePlacementCommand { get; }
+        RelayCommand SaveRailReferenceCommand { get; }
         bool PlacementBusy { get; }
         bool HasPlacementCandidate { get; }
         bool ConfiguredTestArmed { get; set; }
