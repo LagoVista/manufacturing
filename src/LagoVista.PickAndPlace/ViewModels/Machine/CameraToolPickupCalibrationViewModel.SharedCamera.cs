@@ -454,8 +454,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 SharedHead(1).Offset, SharedHead(2).Offset, corrections[1], corrections[2],
                 _machine.Settings.WorkAreaSize, out var candidate, out var reason))
                 throw new CalibrationStopped(reason);
-            SharedEvidence($"Two-head midpoint correction: {Describe(new Point2D<double>(
-                candidate.X - camera.AbsolutePosition.X, candidate.Y - camera.AbsolutePosition.Y))}");
+            SharedEvidence($"Two-head midpoint correction: {Describe(new Point2D<double>(candidate.X - camera.AbsolutePosition.X, candidate.Y - camera.AbsolutePosition.Y))}");
             CheckSharedStop();
             _sharedCandidateMachine = _machine;
             _sharedCandidateIdentity = SharedIdentity();
