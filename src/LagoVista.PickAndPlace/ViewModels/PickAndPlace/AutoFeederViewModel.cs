@@ -426,7 +426,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 // Retain configured slot/ID context and machine idle checks, but
                 // do not interrogate the feeder for camera-only navigation.
                 PlacementStatus = $"Preparing camera navigation to slot {slot} {target}.";
-                await PlacementIdleAsync(machine, feeder);
                 await CheckAsync();
                 var capture = machine.PositionImageCaptureService;
                 if (capture?.Camera?.CameraType?.Value != CameraTypes.Position)
@@ -448,7 +447,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 await PlacementIdleAsync(machine, feeder);
                 await CheckAsync();
                 var location = await machine.GetCurrentLocationAsync(5000);
-                await PlacementIdleAsync(machine, feeder);
                 await CheckAsync();
                 if (!location.Successful || !BoardRigidTransform.Valid(location.Result))
                     throw new InvalidOperationException("Could not verify arrived position.");
@@ -787,7 +785,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 throw new InvalidOperationException("Requires selected feeder on the connected, homed, origin-calibrated Manual machine, vacuum off and no conflicting operation.");
         }
 
-        private async Task<DateTimeOffset> PlacementIdleAsync(IMachine machine, AutoFeeder feeder)
+        private async Task<DateTimeOffset> PlacementIdleAsync(IMachine machine, AutoFeeder feeder, bool opticalSettle = false)
         {
             RequirePlacementMachine(machine, feeder);
             var idle = await machine.SpinUntilIdleAsync(10000);
@@ -797,7 +795,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 RequirePlacementMachine(machine, feeder);
                 quiet = machine.Busy ? 0 : quiet + 1;
-                if (quiet >= 11) return DateTimeOffset.UtcNow;
+                if (quiet >= (opticalSettle ? 11 : 1)) return DateTimeOffset.UtcNow;
                 await Task.Delay(100);
             }
             throw new InvalidOperationException("Machine did not settle.");
@@ -829,7 +827,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (generation != Volatile.Read(ref _placementGeneration))
                     throw new InvalidOperationException("Calibration context changed.");
                 PlacementStatus = "Preparing position camera for optical measurement. Feeder communication is not required.";
-                await PlacementIdleAsync(machine, feeder);
                 var capture = machine.PositionImageCaptureService;
                 if (capture?.Camera?.CameraType?.Value != CameraTypes.Position)
                     throw new InvalidOperationException("Position camera unavailable.");
@@ -902,7 +899,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (machine.CurrentMachineToolHead != null) throw new InvalidOperationException("Camera navigation unavailable.");
                 PlacementStatus = $"Moving to slot {slot} fiducial at {approach.Result}.";
                 machine.GotoPoint(approach.Result);
-                var settled = await PlacementIdleAsync(machine, feeder);
+                var settled = await PlacementIdleAsync(machine, feeder, opticalSettle: true);
                 Point2D<double> measured = null;
                 for (int attempt = 0; attempt <= FeederAutoCornerJogMath.MaxAutomaticJogs; attempt++)
                 {
@@ -938,7 +935,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     if (!FeederAutoCornerJogMath.CanJogAgain(attempt)) throw new InvalidOperationException("Fiducial did not center within five corrections.");
                     Check();
                     machine.GotoPoint(target);
-                    settled = await PlacementIdleAsync(machine, feeder);
+                    settled = await PlacementIdleAsync(machine, feeder, opticalSettle: true);
                 }
                 if (measured == null) throw new InvalidOperationException("No centered fiducial.");
                 await PlacementIdleAsync(machine, feeder);
@@ -1000,7 +997,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     RadiusPx = circle.RadiusPixels, RadiusMm = circle.RadiusPixels / _scale,
                     ErrorToleranceMm = _profile.ErrorToleranceMM
                 };
-                if (FiducialCalibrationGate.TryQualify(snapshot, VisionProfile.VisionProfile_FeederFiducial,
+                if (FiducialCalibrationGate.TryQualify(snapshot, VisionProfile.VisionProfile_FeederLandmark,
                     _scale, _settled, DateTimeOffset.UtcNow, out _)) Completion.TrySetResult(snapshot);
             }
             public void CircleLocatorTimeout() => Completion.TrySetResult(null);

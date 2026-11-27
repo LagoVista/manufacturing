@@ -399,7 +399,11 @@ namespace LagoVista.PickAndPlace
                 bldr.AppendLine("Start waiting");
             }
 
-            System.Threading.SpinWait.SpinUntil(() => ToSendQueueCount == 0, 5000);
+            // Do not block the WPF dispatcher while transport acknowledgements drain.
+            while (ToSendQueueCount != 0 && sw.ElapsedMilliseconds < 5000)
+                await Task.Delay(25);
+            if (ToSendQueueCount != 0)
+                return InvokeResult.FromError("Timed out waiting for outgoing machine commands to drain.");
             if (verbose)
             {
                 DebugWriteLine($"[Machine__SpinUntilIdleAsync] To Send Queue Count = 0 {sw.Elapsed.TotalMilliseconds}ms");
@@ -407,7 +411,10 @@ namespace LagoVista.PickAndPlace
 
             sw.Restart();
 
-            System.Threading.SpinWait.SpinUntil(() => UnacknowledgedBytesSent == 0, 5000);
+            while (UnacknowledgedBytesSent != 0 && sw.ElapsedMilliseconds < 5000)
+                await Task.Delay(25);
+            if (UnacknowledgedBytesSent != 0)
+                return InvokeResult.FromError("Timed out waiting for machine command acknowledgements.");
 
             if (verbose)
             {
