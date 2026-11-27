@@ -68,6 +68,7 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine.Calibration
                     CenterX = discX,
                     CenterY = discY,
                     RadiusPixels = proof.DiscDiameterMm * pixelsPerMm / 2.0,
+                    ShowCenterCrosshair = true,
                     Label = proof.Verified
                         ? $"PASS - DISC CENTER {proof.DiscCameraResidualMm:F3} mm"
                         : $"NOT CAMERA CENTER {proof.DiscCameraResidualMm:F3} mm"

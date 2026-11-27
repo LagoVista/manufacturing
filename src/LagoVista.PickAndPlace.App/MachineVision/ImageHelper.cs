@@ -92,6 +92,19 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     size.Width, size.Height, camera.EffectivePixelsPerMM, profile.TargetImageRadius)
                 : profile.TargetImageRadius * camera.EffectivePixelsPerMM;
 
+            // The calibration-disc search radius is not the measured disc perimeter.
+            // Keep a short neutral optical-center reference instead of a second,
+            // yellow circle that competes with the saved-pickup acceptance overlay.
+            if (profile.Key == VisionProfile.VisionProfile_CalibrationDisc)
+            {
+                const int centerArm = 8;
+                Line(destImage, center.X - centerArm, center.Y, center.X + centerArm, center.Y,
+                    System.Drawing.Color.Cyan, 1);
+                Line(destImage, center.X, center.Y - centerArm, center.X, center.Y + centerArm,
+                    System.Drawing.Color.Cyan, 1);
+                return;
+            }
+
             // Staging-hole ROI may be shifted while the machine's physical
             // centering target must remain the optical frame center.
             if (profile.Key == VisionProfile.VisionProfile_StagingPlateHole)

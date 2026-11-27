@@ -22,6 +22,7 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine.Calibration
         public double RadiusPixels { get; set; }
         public string Label { get; set; }
         public CalibrationMarkerKind Kind { get; set; }
+        public bool ShowCenterCrosshair { get; set; }
     }
 
     /// <summary>
@@ -108,7 +109,18 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine.Calibration
                     marker.Kind == CalibrationMarkerKind.Candidate ? Brushes.Gold : Brushes.DeepSkyBlue;
                 var point = Map(marker.CenterX, marker.CenterY);
                 var radius = marker.RadiusPixels * scale;
-                drawingContext.DrawEllipse(null, new Pen(paint, 2), point, radius, radius);
+                var pen = new Pen(paint, 2);
+                drawingContext.DrawEllipse(null, pen, point, radius, radius);
+                if (marker.ShowCenterCrosshair)
+                {
+                    // The measured center and measured perimeter share one proof color.
+                    // Draw over the detector candidate's short crosshair at the actual image scale.
+                    var arm = Math.Max(8, Math.Max(5, Math.Min(12, marker.RadiusPixels / 4)) * scale);
+                    drawingContext.DrawLine(pen, new Point(point.X - arm, point.Y),
+                        new Point(point.X + arm, point.Y));
+                    drawingContext.DrawLine(pen, new Point(point.X, point.Y - arm),
+                        new Point(point.X, point.Y + arm));
+                }
                 if (!String.IsNullOrWhiteSpace(marker.Label))
                     DrawLabel(drawingContext, marker.Label,
                         new Point(point.X + radius + 7, point.Y - radius), paint);
