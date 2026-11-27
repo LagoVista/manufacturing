@@ -139,8 +139,7 @@
             </Grid>
             <Border Grid.Row="2" Background="#263342" CornerRadius="8" Padding="12" Margin="0,12,0,0">
               <StackPanel>
-                <CheckBox Content="I confirm the selected feeder and safe machine clearance" IsChecked="{Binding ConfiguredTestArmed, Mode=TwoWay}" Foreground="White" FontSize="16" FontWeight="SemiBold"/>
-                <TextBlock Text="{Binding GeometryPreflight}" Foreground="#B9DFFF" FontSize="15" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                 <TextBlock Text="{Binding GeometryPreflight}" Foreground="#B9DFFF" FontSize="15" TextWrapping="Wrap" Margin="0,5,0,0"/>
                 <TextBlock Text="{Binding PlacementStatus}" Foreground="White" FontSize="16" TextWrapping="Wrap" Margin="0,5,0,0"/>
               </StackPanel>
             </Border>

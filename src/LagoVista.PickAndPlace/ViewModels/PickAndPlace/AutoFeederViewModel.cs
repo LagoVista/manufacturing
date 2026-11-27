@@ -334,9 +334,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (!Machine.WasMachinOriginCalibrated) return "Calibrate machine origin.";
                 if (Machine.Mode != OperatingMode.Manual) return "Switch the machine to Manual.";
                 if (Machine.LeftVacuumPump || Machine.RightVacuumPump) return "Switch vacuum off.";
-                if (!ConfiguredTestArmed) return "Confirm safe machine clearance below.";
                 if (PlacementBusy || PhotonFeederViewModel.IsBusBusy || Machine.IsLocating) return "Operation in progress.";
-                return "Clearance confirmed. Each Go To checks live machine state and feeder identity before movement.";
+                return "Select a Go To target. Navigation waits for idle and checks live feeder identity.";
             }
         }
 
@@ -370,13 +369,28 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        private void RequireGeometryIdle(IMachine machine, AutoFeeder feeder)
+        private void RequireGeometryContext(IMachine machine, AutoFeeder feeder)
         {
             RequirePlacementMachine(machine, feeder);
-            if (!ConfiguredTestArmed || machine.Busy || machine.ToSendQueueCount != 0 || machine.UnacknowledgedBytesSent != 0)
-                throw new InvalidOperationException("Confirm clearance and wait for the machine to be idle.");
             if (!_isEding || Feeders == null || !Feeders.Contains(feeder))
                 throw new InvalidOperationException("Select a saved feeder before navigation.");
+        }
+
+        // Periodic transport traffic is normal. Wait for a usable idle window
+        // rather than rejecting an operator request on a single busy sample.
+        // This is not a motion retry and never bypasses the machine/context checks.
+        private async Task WaitGeometryIdleAsync(IMachine machine, AutoFeeder feeder)
+        {
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            while (true)
+            {
+                RequireGeometryContext(machine, feeder);
+                if (!machine.Busy && machine.ToSendQueueCount == 0 && machine.UnacknowledgedBytesSent == 0)
+                    return;
+                if (clock.ElapsedMilliseconds >= 5000)
+                    throw new InvalidOperationException($"Machine did not become idle (busy={machine.Busy}, queued={machine.ToSendQueueCount}, unacknowledged bytes={machine.UnacknowledgedBytesSent}).");
+                await Task.Delay(50);
+            }
         }
 
         private async Task NavigateGeometryAsync(GeometryTarget target)
@@ -391,14 +405,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RaiseCanExecuteChanged();
             try
             {
-                RequireGeometryIdle(machine, feeder);
+                PlacementStatus = $"Waiting for idle before moving to {target}.";
+                await WaitGeometryIdleAsync(machine, feeder);
                 var result = GeometryPoint(target);
                 if (!result.Successful || !BoardRigidTransform.InWorkArea(result.Result, machine.Settings.WorkAreaSize))
                     throw new InvalidOperationException("Calculated target is missing or outside the work area.");
                 var point = new Point2D<double>(result.Result.X, result.Result.Y);
-                void Check()
+                async Task CheckAsync()
                 {
-                    RequireGeometryIdle(machine, feeder);
+                    await WaitGeometryIdleAsync(machine, feeder);
                     var actual = GeometryPoint(target);
                     if (generation != Volatile.Read(ref _placementGeneration) || feeder.Slot != slot || feeder.FeederId != id ||
                         !actual.Successful || !BoardRigidTransform.InWorkArea(actual.Result, machine.Settings.WorkAreaSize) ||
@@ -410,7 +425,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 var verified = await PhotonFeederViewModel.VerifyFeederIdentityAsync((byte)slot, id);
                 if (!verified.Successful) throw new InvalidOperationException(verified.ErrorMessage);
                 await PlacementIdleAsync(machine, feeder);
-                Check();
+                await CheckAsync();
                 var capture = machine.PositionImageCaptureService;
                 if (capture?.Camera?.CameraType?.Value != CameraTypes.Position)
                     throw new InvalidOperationException("Position camera unavailable.");
@@ -418,21 +433,21 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     ? VisionProfile.VisionProfile_FeederLandmark : VisionProfile.VisionProfile_Defauilt);
                 var ready = await capture.EnsureCaptureReadyAsync();
                 if (!ready.Successful) throw new InvalidOperationException(ready.ErrorMessage);
-                Check();
+                await CheckAsync();
                 machine.SendSafeMoveHeight();
                 await PlacementIdleAsync(machine, feeder);
-                Check();
+                await CheckAsync();
                 await machine.MoveToCameraAsync();
                 await PlacementIdleAsync(machine, feeder);
-                Check();
+                await CheckAsync();
                 if (machine.CurrentMachineToolHead != null) throw new InvalidOperationException("Camera navigation unavailable.");
                 PlacementStatus = $"Moving to {target}: {FormatGeometry(point)}.";
                 machine.GotoPoint(point);
                 await PlacementIdleAsync(machine, feeder);
-                Check();
+                await CheckAsync();
                 var location = await machine.GetCurrentLocationAsync(5000);
                 await PlacementIdleAsync(machine, feeder);
-                Check();
+                await CheckAsync();
                 if (!location.Successful || !BoardRigidTransform.Valid(location.Result))
                     throw new InvalidOperationException("Could not verify arrived position.");
                 PlacementStatus = $"Requested {FormatGeometry(point)}; actual {FormatGeometry(location.Result)}; difference {BoardRigidTransform.Distance(point, location.Result):F3} mm. Inspect the live camera; no offsets changed.";
@@ -455,13 +470,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RaiseCanExecuteChanged();
             try
             {
-                RequireGeometryIdle(machine, feeder);
+                await WaitGeometryIdleAsync(machine, feeder);
                 var capture = machine.PositionImageCaptureService;
                 if (capture?.Camera?.CameraType?.Value != CameraTypes.Position)
                     throw new InvalidOperationException("Position camera unavailable.");
                 var ready = await capture.EnsureCaptureReadyAsync();
                 if (!ready.Successful) throw new InvalidOperationException(ready.ErrorMessage);
-                RequireGeometryIdle(machine, feeder);
+                await WaitGeometryIdleAsync(machine, feeder);
                 machine.TopLightOn = true;
                 PlacementStatus = "Position camera preview requested (30-second illumination).";
             }
@@ -1049,7 +1064,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 {
                     PlacementMessages.Clear();
                     PlacementStatus = value == null ? "Select a feeder to inspect its geometry." :
-                        $"Selected slot {value.Slot}: {value.Name}. Confirm clearance before requesting navigation.";
+                        $"Selected slot {value.Slot}: {value.Name}. Select a calculated target to navigate.";
                 }
                 NotifyGeometryChanged();
                 RaisePropertyChanged(nameof(ConfiguredFeederStatus));
