@@ -1,6 +1,6 @@
 # T005 engineering review — 2026-11-27
 
-Status: source integrated on master; headless engineering evidence passed; Windows WPF application and supervised physical acceptance pending.
+Status: Accepted / closed — November 27, 2026. Operator-confirmed physical operation; residual follow-up below.
 
 ## Provenance
 
@@ -32,3 +32,11 @@ Photon uses an eight-bit packet ID; correlation rejects unrelated frames while I
 
 Opulo publishes different V1 and V2 firmware images. Their documented feeder update uses an external programmer and STM32CubeProgrammer, not an RS485 update command. The published Photon protocol provides normal operating commands but no documented firmware-transfer command. RS485 is a feasible transport for a purpose-built addressed bootloader, but support on the installed feeder and M485 bridge must be established before implementation. No firmware update action should be exposed in T005.
 References: https://docs.opulo.io/misc/photon/ ; https://docs.opulo.io/feeders/3-software-update/ ; https://docs.opulo.io/software-updates/ .
+
+## Final acceptance — November 27, 2026
+
+- Final integrated source: [6c984840](https://github.com/LagoVista/manufacturing/commit/6c98484041fe5265a8dda3d2801eb5fd4b2a8b19). Includes the dedicated WPF modal, timestamped RS485 console, distance presets, persistent manual test confirmation, and stable readiness presentation with the queue safety check retained at dispatch. Reset Feed Error is only available for uncertain feed position.
+- Exact-commit catalog build succeeded (NuGetPackage), process 39159ac6bc154a8c90cc3afcd6953913. Full headless GCodeTests: 551 passed, 0 failed, 0 skipped, process 5ff76a8b039847bda8b245c7cde44757, journal receipt 34cf9a4cdacb266eec77255aabaa5d1685f6d5d3e7216276c6aee6239cd85ff4.
+- Operator previously confirmed real feeder discovery, identification and initialization, and now explicitly reports "advance and retract worked! Console looked good". This establishes practical physical acceptance of the core controls and console. The local application was exercised; no separate automated Windows WPF build proof, exact tested distances, deliberate fault injection, explicit inventory observation, or post-fix flicker observation was provided. Do not interpret closure as certification of all failure cases or positioning accuracy.
+- Firmware work is deferred independently: softwarelogistics/opulo_pnp_photon builds with PlatformIO; optional UART console compiled; physical UART bootloader handshake unresolved; firmware version query and independent peel control remain follow-ups. No firmware update required for T005 acceptance.
+- T005 closed at the pragmatic operator acceptance boundary; proceed to T006 placement calibration, then T007 part location/presence. Preserve existing interlocks and manual-only operation.
