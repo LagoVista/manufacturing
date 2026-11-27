@@ -14,7 +14,7 @@ Keep this pragmatic: reuse existing models, APIs, WPF tools, vision profiles and
 | --- | --- | --- |
 | [T000.5](T000.5.md) | Automatic vision threshold tuning | Accepted / closed |
 | [T001](T001.md) | Finish tool head / camera offset calibration | Accepted / closed |
-| [T001.5](T001.5.md) | On-demand top-camera illumination | Physical verification in progress |
+| [T001.5](T001.5.md) | On-demand top-camera illumination | Accepted / closed |
 | [T002](T002.md) | Board fiducial calibration | Accepted / closed |
 | [T003](T003.md) | Feeder code label printing | Accepted / closed |
 | [T004](T004.md) | X gantry discussion | Accepted / closed (production follow-up deferred) |
