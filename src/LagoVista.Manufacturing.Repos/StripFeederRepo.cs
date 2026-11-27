@@ -48,6 +48,11 @@ namespace LagoVista.Manufacturing.Repo.Repos
             return base.QuerySummaryAsync<StripFeederSummary, StripFeeder>(qry => qry.IsPublic == true || qry.OwnerOrganization.Id == orgId, itm => itm.Name, listRequest);
         }
 
+        public Task<ListResponse<StripFeederSummary>> GetOwnedStripFeederSummariesAsync(string orgId, ListRequest listRequest)
+        {
+            return base.QuerySummaryAsync<StripFeederSummary, StripFeeder>(qry => qry.OwnerOrganization.Id == orgId, itm => itm.Name, listRequest);
+        }
+
         public Task UpdateStripFeederAsync(StripFeeder stripFeeder)
         {
             foreach(var row in stripFeeder.Rows)

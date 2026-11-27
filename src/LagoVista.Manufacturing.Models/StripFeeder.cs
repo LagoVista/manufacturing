@@ -297,6 +297,8 @@ namespace LagoVista.Manufacturing.Models
                 Machine = Machine?.Text,
                 MachineId = Machine?.Id,
                 TapeSizeId = TapeSize.Id,
+                FeederId = FeederId,
+                Orientation = Orientation?.Key,
             };
         }
 
@@ -411,6 +413,8 @@ namespace LagoVista.Manufacturing.Models
             DeleteUrl: "/api/mfg/stripfeeder/{id}", ListUIUrl: "/mfg/stripfeeders", EditUIUrl: "/mfg/stripfeeder/{id}", CreateUIUrl: "/mfg/stripfeeder/add")]
     public class StripFeederSummary : SummaryData
     {
+        public string FeederId { get; set; }
+        public string Orientation { get; set; }
         public string TapeSize { get; set; }
         public string TapeSizeId { get; set; }
     

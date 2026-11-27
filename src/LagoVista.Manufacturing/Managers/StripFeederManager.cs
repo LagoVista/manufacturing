@@ -177,6 +177,12 @@ namespace LagoVista.Manufacturing.Managers
             return await _stripFeederRepo.GetStripFeederSummariesAsync(org.Id, listRequest);
         }
 
+        public async Task<ListResponse<StripFeederSummary>> GetOwnedStripFeederSummariesAsync(ListRequest listRequest, EntityHeader org, EntityHeader user)
+        {
+            await AuthorizeOrgAccessAsync(user, org.Id, typeof(StripFeeder));
+            return await _stripFeederRepo.GetOwnedStripFeederSummariesAsync(org.Id, listRequest);
+        }
+
         public async Task<InvokeResult> UpdateStripFeederAsync(StripFeeder feeder, EntityHeader org, EntityHeader user)
         {
             await AuthorizeAsync(feeder, AuthorizeActions.Update, user, org);

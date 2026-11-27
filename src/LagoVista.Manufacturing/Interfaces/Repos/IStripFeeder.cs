@@ -11,6 +11,7 @@ namespace LagoVista.Manufacturing.Interfaces.Repos
 {
     public interface IStripFeederRepo
     {
+        Task<ListResponse<StripFeederSummary>> GetOwnedStripFeederSummariesAsync(string orgId, ListRequest listRequest);
         Task AddStripFeederAsync(StripFeeder feeder);
         Task UpdateStripFeederAsync(StripFeeder feeder);
         Task<ListResponse<StripFeederSummary>> GetStripFeederSummariesAsync(string id, ListRequest listRequest);

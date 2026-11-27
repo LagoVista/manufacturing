@@ -102,6 +102,12 @@ namespace LagoVista.Manufacturing.Rest.Controllers
             return _mgr.UpdateStripFeederAsync(feeder, OrgEntityHeader, UserEntityHeader);
         }
 
+        [HttpGet("/api/mfg/stripfeeders/labels")]
+        public Task<ListResponse<StripFeederSummary>> GetStripFeedersForLabels()
+        {
+            return _mgr.GetOwnedStripFeederSummariesAsync(GetListRequestFromHeader(), OrgEntityHeader, UserEntityHeader);
+        }
+
         [HttpGet("/api/mfg/stripfeeders")]
         public Task<ListResponse<StripFeederSummary>> GetStripFeedersForOrg()
         {
