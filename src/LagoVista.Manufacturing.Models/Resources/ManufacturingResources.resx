@@ -1496,6 +1496,9 @@
   <data name="VisionProfile_FeederFiducial" xml:space="preserve">
     <value>Feeder Fiducial</value>
   </data>
+  <data name="VisionProfile_FeederLandmark" xml:space="preserve">
+    <value>Feeder Landmark (3 Dots)</value>
+  </data>
   <data name="StripFeederRowStatus_None" xml:space="preserve">
     <value>None</value>
   </data>

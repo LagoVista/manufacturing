@@ -55,7 +55,9 @@ namespace LagoVista.PickAndPlace.Models
                     EntityHeader.Create(VisionProfile_PartInBlackTape, VisionProfile_PartInBlackTape, ManufacturingResources.VisionProfile_PartInBlackTape),
                     EntityHeader.Create(VisionProfile_PartInClearTape, VisionProfile_PartInClearTape, ManufacturingResources.VisionProfile_PartInClearTape),
                     EntityHeader.Create(VisionProfile_PartOnBoard, VisionProfile_PartOnBoard, ManufacturingResources.VisionProfile_PartOnBoard),
-                    EntityHeader.Create(VisionProfile_Custom, VisionProfile_Custom, ManufacturingResources.VisionProfile_FeederFiducial),
+                    EntityHeader.Create(VisionProfile_FeederFiducial, VisionProfile_FeederFiducial, ManufacturingResources.VisionProfile_FeederFiducial),
+                    EntityHeader.Create(VisionProfile_FeederLandmark, VisionProfile_FeederLandmark, ManufacturingResources.VisionProfile_FeederLandmark),
+                    EntityHeader.Create(VisionProfile_Custom, VisionProfile_Custom, ManufacturingResources.VisionProfile_Custom),
                 };
             }
         }
@@ -76,6 +78,7 @@ namespace LagoVista.PickAndPlace.Models
         public const string VisionProfile_CalibrationDisc = "calibrationdisc";
         public const string VisionProfile_PartOnBoard = "partonboard";
         public const string VisionProfile_FeederFiducial = "feederfiducial";
+        public const string VisionProfile_FeederLandmark = "feederlandmark";
         public const string VisionProfile_StagingPlateHole = "stagingplatehole";
         public const string VisionProfile_FeederOrigin = "feederorigin";
         public const string VisionProfile_FeederBarcode = "feederbarcode";
@@ -259,6 +262,31 @@ namespace LagoVista.PickAndPlace.Models
             get => _darkOpeningTunedPixelsPerMM;
             set => Set(ref _darkOpeningTunedPixelsPerMM,
                 value.HasValue ? Math.Round(value.Value, 3) : (double?)null);
+        }
+
+        // Physical dimensions of the fixed three-dot feeder landmark, in mm.
+        // Null means not yet measured. These fields do not authorize detection
+        // or movement; a future landmark detector must validate its geometry.
+        // Existing profiles retain their settings and default to null.
+        private double? _feederLandmarkCenterDotDiameterMm;
+        public double? FeederLandmarkCenterDotDiameterMm
+        {
+            get => _feederLandmarkCenterDotDiameterMm;
+            set => Set(ref _feederLandmarkCenterDotDiameterMm, value);
+        }
+
+        private double? _feederLandmarkSideDotDiameterMm;
+        public double? FeederLandmarkSideDotDiameterMm
+        {
+            get => _feederLandmarkSideDotDiameterMm;
+            set => Set(ref _feederLandmarkSideDotDiameterMm, value);
+        }
+
+        private double? _feederLandmarkCenterToSideSpacingMm;
+        public double? FeederLandmarkCenterToSideSpacingMm
+        {
+            get => _feederLandmarkCenterToSideSpacingMm;
+            set => Set(ref _feederLandmarkCenterToSideSpacingMm, value);
         }
 
         private bool _findCircles;
