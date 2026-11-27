@@ -16,8 +16,8 @@ Keep this pragmatic: reuse existing models, APIs, WPF tools, vision profiles and
 | [T001](T001.md) | Finish tool head / camera offset calibration | Planned |
 | [T001.5](T001.5.md) | On-demand top-camera illumination | Authorized |
 | [T002](T002.md) | Board fiducial calibration | Planned |
-| [T003](T003.md) | Feeder code label printing | Planned |
-| [T004](T004.md) | X gantry discussion | Planned |
+| [T003](T003.md) | Feeder code label printing | Accepted / closed |
+| [T004](T004.md) | X gantry discussion | In discussion |
 | [T005](T005.md) | Auto feeder control panel | Planned |
 | [T006](T006.md) | Auto feeder placement calibration | Planned |
 | [T007](T007.md) | Auto feeder part location and presence calibration | Planned |
