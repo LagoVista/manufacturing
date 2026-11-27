@@ -12,7 +12,8 @@
              d:DataContext="{d:DesignInstance vm:IAutoFeederViewModel }"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <ucb:VMBoundUserControl.Resources>
+    <Grid Background="#181F29">
+    <Grid.Resources>
         <Style x:Key="WorkbenchButton" TargetType="Button">
             <Setter Property="Background" Value="#246CA5"/><Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderBrush" Value="#4D94CD"/><Setter Property="Padding" Value="12,7"/>
@@ -34,11 +35,11 @@
                 <DataTrigger Binding="{Binding PhotonFeederViewModel.IsBusBusy}" Value="True"><Setter Property="IsEnabled" Value="False"/></DataTrigger>
             </Style.Triggers>
         </Style>
-    </ucb:VMBoundUserControl.Resources>
-    <Grid Background="#181F29">
+    </Grid.Resources>
       <TabControl Background="#181F29" BorderThickness="0" Padding="0">
         <TabItem Header="Workbench">
           <Grid Margin="14" TextElement.Foreground="White" TextElement.FontSize="15">
+            <Grid.Resources><Style TargetType="TextBlock" BasedOn="{StaticResource WorkbenchText}"/></Grid.Resources>
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
             <Border Background="#263342" CornerRadius="8" Padding="14" Margin="0,0,0,12">
               <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
@@ -48,7 +49,9 @@
                   <TextBlock Text="Select a feeder, verify its calculated position, then calibrate the physical landmark and pickup." Foreground="#D0DEEB" TextWrapping="Wrap"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                  <Button Content="Discover Feeders" Command="{Binding PhotonFeederViewModel.DiscoverFeedersCommand}" Style="{StaticResource WorkbenchButton}"/>
+                  <Button Content="Discover Feeders" Command="{Binding PhotonFeederViewModel.DiscoverFeedersCommand}">
+                    <Button.Style><Style TargetType="Button" BasedOn="{StaticResource WorkbenchButton}"><Style.Triggers><DataTrigger Binding="{Binding PlacementBusy}" Value="True"><Setter Property="IsEnabled" Value="False"/></DataTrigger></Style.Triggers></Style></Button.Style>
+                  </Button>
                   <Button Content="Refresh Geometry" Command="{Binding RefreshGeometryCommand}" Style="{StaticResource WorkbenchButton}"/>
                 </StackPanel>
               </Grid>
@@ -75,7 +78,7 @@
               <Grid Grid.Column="1" Margin="0,0,10,0">
                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="120"/></Grid.RowDefinitions>
                 <Border Background="#263342" CornerRadius="8" Padding="12" Margin="0,0,0,8">
-                  <StackPanel><TextBlock Text="{Binding Current.Name, TargetNullValue='Select a feeder'}" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                  <StackPanel><TextBlock Text="{Binding Current.Name, TargetNullValue='Select a feeder', FallbackValue='Select a feeder'}" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap"/>
                     <TextBlock Text="{Binding Current.Slot, StringFormat='Slot {0}'}" FontSize="15" Foreground="#A7D6FF"/>
                     <TextBlock Text="{Binding Current.FeederId, StringFormat='Photon ID: {0}'}" FontFamily="Consolas" FontSize="14" TextWrapping="Wrap"/>
                     <TextBlock Text="{Binding ConfiguredFeederStatus}" Foreground="White" FontSize="14" TextWrapping="Wrap" Margin="0,4,0,0"/>
@@ -172,7 +175,7 @@
         </DataGrid>
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Column="1">
-            <Button Style="{StaticResource CommandButton}" Content="Calibrate Feeders" Click="OpenPlacementCalibration_Click" Width="Auto" Padding="8,0"/>
+
             <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Save" Command="{Binding SaveCommand}" Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}"></Button>
             <Button HorizontalAlignment="Right" Style="{StaticResource CommandButton}" Content="Cancel" Command="{Binding CancelCommand}" Visibility="{Binding Current, Converter={StaticResource NoTNullToVisibilityConverter}}"></Button>
         </StackPanel>
@@ -208,7 +211,7 @@
                                 <Image Source="/imgs/SetTarget.png"/>
                             </Button.Content>
                         </Button>
-                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToPickLocationCommand}"  ToolTip="Move To Reference Hole for Feeder Row" Width="64" Height="64"  >
+                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToCalculatedPickupCommand}"  ToolTip="Verify identity and move position camera to calculated pickup" Width="64" Height="64"  >
                             <Button.Content>
                                 <Image Source="/imgs/MoveToTarget.png"/>
                             </Button.Content>
@@ -220,7 +223,7 @@
                     <TextBlock Style="{StaticResource label}" Text="Feeder Fiducial"></TextBlock>
                     <TextBlock Style="{StaticResource content}" Text="{Binding Current.FiducialOffset}"></TextBlock>
                     <StackPanel Orientation="Horizontal">
-                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToFiducialCommand}"  ToolTip="Move position camera to saved feeder fiducial" Width="64" Height="64"  >
+                        <Button BorderBrush="Transparent"  Background="Transparent" Command="{Binding GoToCalculatedFiducialCommand}"  ToolTip="Verify identity and move position camera to calculated landmark" Width="64" Height="64"  >
                             <Button.Content>
                                 <Image Source="/imgs/MoveToTarget.png"/>
                             </Button.Content>
@@ -231,7 +234,7 @@
 
             </StackPanel>
             
-            <Button Content="Calibrate Feeder Placement" Click="OpenPlacementCalibration_Click" Style="{StaticResource CommandButton}" />
+            <TextBlock Text="Use the Workbench tab for landmark geometry verification. Automatic three-dot calibration is pending." Foreground="White" FontSize="15" TextWrapping="Wrap"/>
             <TextBlock Text="{Binding PlacementStatus}" Foreground="White" FontSize="16" TextWrapping="Wrap" Margin="0,4,0,6"/>
             <Button Content="Reload Feeder" Command="{Binding ReloadFeederCommand}" Style="{StaticResource CommandButton}" />
             <TextBlock Text="{Binding ConfiguredFeederStatus}" Foreground="White" FontSize="16" TextWrapping="Wrap" FontWeight="Bold" />

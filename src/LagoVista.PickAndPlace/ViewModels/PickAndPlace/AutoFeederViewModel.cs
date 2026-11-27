@@ -259,6 +259,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 await LoadFeeders();
             }
+            NotifyGeometryChanged();
             base.MachineChanged(machine);
         }
 
@@ -267,7 +268,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             if (Current == null || MachineConfiguration?.FeederRails == null) return null;
             var rails = MachineConfiguration.FeederRails.Where(rl =>
-                AutoFeederPlacementMath.ContainsSlot(rl.SlotStartIndex, rl.NumberSlots, Current.Slot)).ToArray();
+                rl != null && AutoFeederPlacementMath.ContainsSlot(rl.SlotStartIndex, rl.NumberSlots, Current.Slot)).ToArray();
             return rails.Length == 1 ? rails[0] : null;
         }
 
@@ -335,7 +336,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (Machine.LeftVacuumPump || Machine.RightVacuumPump) return "Switch vacuum off.";
                 if (!ConfiguredTestArmed) return "Confirm safe machine clearance below.";
                 if (PlacementBusy || PhotonFeederViewModel.IsBusBusy || Machine.IsLocating) return "Operation in progress.";
-                return "Ready for requested navigation. Live identity is checked before movement.";
+                return "Clearance confirmed. Each Go To checks live machine state and feeder identity before movement.";
             }
         }
 
@@ -351,7 +352,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RaisePropertyChanged(nameof(GeometryPreflight));
         }
 
-        private bool CanNavigateGeometry() => !PlacementBusy && ValidCurrent && Machine != null && Machine.Connected;
+        private bool CanNavigateGeometry() => !PlacementBusy && ValidCurrent && Machine != null && Machine.Connected &&
+            !PhotonFeederViewModel.IsBusBusy;
 
         private InvokeResult<Point2D<double>> GeometryPoint(GeometryTarget target)
         {
@@ -373,7 +375,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RequirePlacementMachine(machine, feeder);
             if (!ConfiguredTestArmed || machine.Busy || machine.ToSendQueueCount != 0 || machine.UnacknowledgedBytesSent != 0)
                 throw new InvalidOperationException("Confirm clearance and wait for the machine to be idle.");
-            if (!_isEding || !Feeders.Contains(feeder))
+            if (!_isEding || Feeders == null || !Feeders.Contains(feeder))
                 throw new InvalidOperationException("Select a saved feeder before navigation.");
         }
 
@@ -1043,6 +1045,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 ClearPlacementCandidate();
                 Set(ref _current, value);
                 ConfiguredTestArmed = false;
+                if (!PlacementBusy)
+                {
+                    PlacementMessages.Clear();
+                    PlacementStatus = value == null ? "Select a feeder to inspect its geometry." :
+                        $"Selected slot {value.Slot}: {value.Name}. Confirm clearance before requesting navigation.";
+                }
                 NotifyGeometryChanged();
                 RaisePropertyChanged(nameof(ConfiguredFeederStatus));
                 _isEding = true;
