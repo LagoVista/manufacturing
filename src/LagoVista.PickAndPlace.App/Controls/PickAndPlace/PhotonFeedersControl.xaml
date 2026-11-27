@@ -24,8 +24,23 @@
             <StackPanel Visibility="{Binding Status, Converter={StaticResource NoTNullToVisibilityConverter}}">
                 <TextBlock Text="{Binding Status, FallbackValue=Idle}" FontWeight="Bold" FontSize="16"></TextBlock>
                 <ProgressBar Margin="0,10,0,10" Maximum="{Binding SlotsToSearch}" Height="20" Value="{Binding SlotSearchIndex}" ></ProgressBar>
-                <DataGrid ItemsSource="{Binding DiscoveredFeeders}" SelectedItem="{Binding SelectedPhotonFeeder, Mode=TwoWay}">
+                <DataGrid IsReadOnly="True" CanUserAddRows="False" ItemsSource="{Binding DiscoveredFeeders}" SelectedItem="{Binding SelectedPhotonFeeder, Mode=TwoWay}">
                 </DataGrid>
+                <TextBlock Text="{Binding SelectedPhotonFeeder.Address, StringFormat='Selected feeder: {0}'}" />
+                <TextBlock Text="{Binding SelectedPhotonFeeder.Slot, StringFormat='Slot: {0}'}" />
+                <CheckBox Content="I confirmed the selected feeder, clearance and safe test conditions" IsChecked="{Binding ManualTestArmed, Mode=TwoWay}" />
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Test distance (mm):" VerticalAlignment="Center" />
+                    <TextBox Width="70" Text="{Binding ManualDistance, UpdateSourceTrigger=LostFocus}" />
+                </StackPanel>
+                <WrapPanel>
+                    <Button Content="Identify" Command="{Binding IdentifyCommand}" Style="{StaticResource CommandButton}" />
+                    <Button Content="Initialize" Command="{Binding InitializeCommand}" Style="{StaticResource CommandButton}" />
+                    <Button Content="Advance" Command="{Binding AdvanceCommand}" Style="{StaticResource CommandButton}" />
+                    <Button Content="Retract" Command="{Binding RetractCommand}" Style="{StaticResource CommandButton}" />
+                    <Button Content="Confirm tape reconciled" Command="{Binding ReconcileCommand}" Style="{StaticResource CommandButton}" />
+                </WrapPanel>
+                <TextBlock Text="Manual test only; no inventory change. Reconfirm before each command. Verify tape motion independently." TextWrapping="Wrap" />
             </StackPanel>
 
         </StackPanel>

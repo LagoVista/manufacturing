@@ -28,6 +28,37 @@ namespace LagoVista.PickAndPlace.GCodeTests
             _commandResponseQUeue = new List<string>();
         }
 
+        [TestCase(0.1, true, 1)]
+        [TestCase(4.0, true, 40)]
+        [TestCase(25.5, true, 255)]
+        [TestCase(0.0, false, 0)]
+        [TestCase(-1.0, false, 0)]
+        [TestCase(25.6, false, 0)]
+        [TestCase(4.01, false, 0)]
+        public void DistanceEncoding(double mm, bool valid, int expected)
+        {
+            Assert.That(PhotonProtocolHandler.TryEncodeDistance(mm, out var encoded), Is.EqualTo(valid));
+            Assert.That(encoded, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void CorrelationAndValidation()
+        {
+            var bytes = new List<byte> { 0, 4, 77, 1, 0 };
+            bytes.Insert(4, _support.CalcCRC(bytes));
+            var frame = string.Concat(bytes.Select(b => b.ToString("X2")));
+            var response = _support.ParseResponse(frame);
+            Assert.That(PhotonProtocolHandler.MatchesResponse(response, 77, 4), Is.True);
+            Assert.That(PhotonProtocolHandler.MatchesResponse(response, 78, 4), Is.False);
+            Assert.That(PhotonProtocolHandler.MatchesResponse(response, 77, 5), Is.False);
+            response.ToAddress = 1;
+            Assert.That(PhotonProtocolHandler.MatchesResponse(response, 77, 4), Is.False);
+            Assert.Throws<FormatException>(() => _support.ParseResponse("00044D02"));
+            Assert.Throws<FormatException>(() => _support.ParseResponse("GG"));
+            Assert.Throws<FormatException>(() => _support.ParseResponse(frame + "00"));
+            Assert.Throws<ArgumentException>(() => _support.GenerateGCode(FeederCommands.MoveFeedForward, 4));
+        }
+
         [Test]
         public void Generate()
         {

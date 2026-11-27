@@ -20,13 +20,22 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         byte SlotSearchIndex { get; set; }
         string Status { get; set; }
 
+        bool IsBusBusy { get; }
+        bool ManualTestArmed { get; set; }
+        double ManualDistance { get; set; }
+        bool IsInitialized(byte slot, string id);
+        RelayCommand IdentifyCommand { get; }
+        RelayCommand InitializeCommand { get; }
+        RelayCommand AdvanceCommand { get; }
+        RelayCommand RetractCommand { get; }
+        RelayCommand ReconcileCommand { get; }
         RelayCommand<int> NextPartCommand { get; }
         RelayCommand DiscoverFeedersCommand { get; }
         RelayCommand AddFeederCommand { get; }
 
         Task<InvokeResult> InitializeFeederAsync(byte slotIndex, string feederId);
-        Task<InvokeResult> AdvanceFeed(byte slotIndex, double mm);
-        Task<InvokeResult> RetractFeed(byte slotIndex, double mm);
+        Task<InvokeResult> AdvanceFeed(byte slotIndex, double mm, string feederId = null);
+        Task<InvokeResult> RetractFeed(byte slotIndex, double mm, string feederId = null);
 
 
 

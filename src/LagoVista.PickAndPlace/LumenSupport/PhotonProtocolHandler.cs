@@ -94,6 +94,7 @@ namespace LagoVista.PickAndPlace.LumenSupport
 
         public static List<byte> GetByteArray(string hex)
         {
+            if (string.IsNullOrEmpty(hex) || !Regex.IsMatch(hex, @"\A[0-9A-Fa-f]+\z")) throw new FormatException("Invalid Photon hex.");
             if (hex.Length % 2 == 1)
                 throw new Exception("The binary key cannot have an odd number of digits");
 
@@ -107,10 +108,23 @@ namespace LagoVista.PickAndPlace.LumenSupport
             return new List<byte>(arr);
         }
 
+        public static bool IsFeederId(string id) => id != null && Regex.IsMatch(id, @"\A[0-9A-Fa-f]{24}\z");
+        public static bool MatchesResponse(PhotonResponse response, byte packetId, byte slot) => response != null && response.ToAddress == 0 && response.FromAddress == slot && response.PacketId == packetId;
+        public static bool TryEncodeDistance(double mm, out byte distance)
+        {
+            distance = 0;
+            if (double.IsNaN(mm) || double.IsInfinity(mm) || mm < 0.1 || mm > 25.5) return false;
+            var scaled = mm * 10;
+            if (Math.Abs(scaled - Math.Round(scaled)) > 0.000001) return false;
+            distance = (byte)Math.Round(scaled);
+            return true;
+        }
+
         public PhotonResponse ParseResponse(string packet)
         {
             var response = new PhotonResponse();
             var buffer = GetByteArray(packet);
+            if (buffer.Count < 6 || buffer[3] != buffer.Count - 5) throw new FormatException("Invalid Photon response length.");
             response.ToAddress = buffer[0];
             response.FromAddress = buffer[1];
             response.PacketId = buffer[2];
@@ -148,7 +162,7 @@ namespace LagoVista.PickAndPlace.LumenSupport
                 throw new ArgumentException($"Command {command} expects target");
             }
 
-            if (cmdStructure.PayloadLength > 1 && (payload.Count == 0)) 
+            if (cmdStructure.PayloadLength > 0 && payload.Count != cmdStructure.PayloadLength) 
             {
                 throw new ArgumentException($"Command {command} expects a payload");
             }

@@ -101,20 +101,30 @@
 
             </StackPanel>
             
+            <TextBlock Text="{Binding ConfiguredFeederStatus}" TextWrapping="Wrap" FontWeight="Bold" />
+            <TextBlock Text="{Binding PhotonFeederViewModel.Status}" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding Current.FeederId, StringFormat='Feeder ID: {0}'}" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding Current.Slot, StringFormat='Slot: {0}'}" />
+            <TextBlock Text="{Binding CurrentComponentPackage.TapePitch, StringFormat='Configured pitch: {0}'}" />
+            <CheckBox Content="Confirm selected feeder and safe test clearance" IsChecked="{Binding PhotonFeederViewModel.ManualTestArmed, Mode=TwoWay}" />
             <StackPanel Orientation="Horizontal">
-                <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="Previous Part" Command="{Binding InitializeFeederCommand}" >
+                <TextBlock Text="Manual test distance (mm):" VerticalAlignment="Center" />
+                <TextBox Width="70" Text="{Binding PhotonFeederViewModel.ManualDistance, UpdateSourceTrigger=LostFocus}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="Initialize feeder" Command="{Binding InitializeFeederCommand}" >
                     <Button.Content>
                         <fa:FontAwesome Icon="PlayCircleOutline"  />
                     </Button.Content>
                 </Button>
 
-                <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="Previous Part" Command="{Binding RetractFeedCommand}" >
+                <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="Retract test distance" Command="{Binding RetractFeedCommand}" >
                     <Button.Content>
                         <fa:FontAwesome Icon="Backward"  />
                     </Button.Content>
                 </Button>
 
-                <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="Next part" Command="{Binding AdvanceFeedCommand}" >
+                <Button Width="60" Style="{StaticResource CommandButton}" ToolTip="Advance test distance" Command="{Binding AdvanceFeedCommand}" >
                     <Button.Content>
                         <fa:FontAwesome Icon="Forward"  />
                     </Button.Content>
