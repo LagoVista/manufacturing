@@ -12,7 +12,7 @@ Keep this pragmatic: reuse existing models, APIs, WPF tools, vision profiles and
 
 | ID | Task | Status |
 | --- | --- | --- |
-| [T000.5](T000.5.md) | Automatic vision threshold tuning | Authorized |
+| [T000.5](T000.5.md) | Automatic vision threshold tuning | Accepted / closed |
 | [T001](T001.md) | Finish tool head / camera offset calibration | Planned |
 | [T001.5](T001.5.md) | On-demand top-camera illumination | Authorized |
 | [T002](T002.md) | Board fiducial calibration | Planned |
