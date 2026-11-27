@@ -155,7 +155,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         /// ordinary saved-head selection (never a temporary XY correction jog).
         /// A failed third pass attempts safe recovery and offset rollback.
         /// </summary>
-        public async Task SaveAndVerifyAsync()
+        public Task SaveAndVerifyAsync() => CanOperate ? SaveAndVerifyCoreAsync() : Task.CompletedTask;
+
+        private async Task SaveAndVerifyCoreAsync()
         {
             if (!CanSaveAndVerify)
             {
@@ -220,7 +222,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
                 Begin("readiness", "Confirming saved-offset pickup readiness and independent operator approval.");
                 RequireValid();
-                Pass("readiness", $"Explicitly approved candidate from two-pick run {twoPickRunId}. " +
+                Pass("readiness", $"{(_automaticFull ? "Full Diagnostics automatic acceptance" : "Explicitly approved candidate")} from two-pick run {twoPickRunId}. " +
                     $"Original ({oldOffset.X:F3},{oldOffset.Y:F3}), " +
                     $"proposed ({candidate.ProposedOffsetMm.X:F3},{candidate.ProposedOffsetMm.Y:F3}) mm. " +
                     "Third pickup MUST use stored offset and no correction jog.",

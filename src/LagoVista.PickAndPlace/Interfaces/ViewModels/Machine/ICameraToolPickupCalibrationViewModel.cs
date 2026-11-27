@@ -9,6 +9,10 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
     public interface ICameraToolPickupCalibrationViewModel
     {
         Task StartAsync();
+        Task RunAutomaticAsync();
+        bool AutomaticRunActive { get; }
+        bool AutomaticRunVerified { get; }
+        bool CanStartAutomatic { get; }
         Task PreviewBottomCameraAsync();
         Task RetryHistoryAsync();
         Task SaveAndVerifyAsync();

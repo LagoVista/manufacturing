@@ -121,6 +121,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         public void RequestDiagnosticStop()
         {
+            if (AutomaticRunActive) _stopAutomatic = true;
             if (_sharedOperationActive)
             {
                 _stopShared = true;
@@ -130,7 +131,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private void CheckSharedStop()
         {
-            if (_stopShared) throw new CalibrationStopped("Operator requested stop.");
+            if (_stopShared || _stopAutomatic) throw new CalibrationStopped("Operator requested stop.");
             RequireValid();
         }
 
@@ -277,7 +278,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         {
             SelectSharedHead(index);
             SetDiscResult(index, "Pending", "Measuring...");
-            var nozzle = await MeasureEmptyNozzleAsync(_head, frame);
+            var nozzle = await MeasureEmptyNozzleAsync(_head, frame, displayUncorrectedProof: false);
             var nozzleError = CameraToolBottomCameraFraming.Radius(nozzle.OffsetMm);
             cameraSample?.Invoke(nozzleError);
             if (!frame && nozzleError > CameraToolBottomCameraFraming.NozzleCameraToleranceMm)
@@ -289,7 +290,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             await PickCylinderAsync(target, null);
             SharedEvidence($"Head {index} vacuum confirmed pickup; saved offset, no candidate jog.");
             var motion = DateTimeOffset.UtcNow;
-            var disc = await ObserveHeldCylinderAsync(retainFocusForSavedProof: frame);
+            var disc = await ObserveHeldCylinderAsync(retainFocusForSavedProof: true);
             var observation = CreateObservation(_head, nozzle, disc, motion);
             var residual = CameraToolBottomCameraFraming.Radius(observation.PartRelativeToNozzleMm);
             pickupSample?.Invoke(residual);
@@ -297,7 +298,6 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             var displayPassed = residual <= CameraToolBottomCameraFraming.NozzleCameraToleranceMm &&
                 CameraToolBottomCameraFraming.TryVerifyCenteredPickup(nozzle.OffsetMm, disc.OffsetMm,
                     out _, out _, out _);
-            if (frame)
             {
                 SavedPickupProof = new CameraToolSavedPickupProof
                 {
@@ -326,15 +326,19 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 throw new CalibrationStopped("Vacuum OFF state did not verify after disc return.");
             SharedEvidence($"Head {index} disc returned; vacuum OFF command settled and safe retract completed.");
             await SharedCameraModeAsync();
-            if (residual > CameraToolBottomCameraFraming.NozzleCameraToleranceMm)
-                throw new CalibrationStopped($"Head {index} saved pickup residual {residual:F3} mm exceeds 0.200 mm.");
+            if (!displayPassed)
+            {
+                SetDiscResult(index, "Failed", $"FAIL · {discCameraError:F3} mm");
+                throw new CalibrationStopped($"Head {index} saved pickup failed: nozzle {nozzleError:F3}, disc {discCameraError:F3}, pickup {residual:F3} mm (max 0.200 each).");
+            }
             CheckSharedStop();
             SetDiscResult(index, displayPassed ? "Passed" : "Failed",
                 $"{(displayPassed ? "PASS" : "FAIL")} · {discCameraError:F3} mm");
             return residual;
         }
 
-        public Task ProposeSharedCameraAsync() => RunSharedAsync("propose", async () =>
+        public Task ProposeSharedCameraAsync() => CanOperate ? ProposeSharedCameraCoreAsync() : Task.CompletedTask;
+        private Task ProposeSharedCameraCoreAsync() => RunSharedAsync("propose", async () =>
         {
             ClearSharedCandidate();
             ResetNozzleResults();
@@ -364,7 +368,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             SharedEvidence(SharedCameraStatus);
         });
 
-        public Task ApproveSharedCameraAsync() => RunSharedAsync("approve", async () =>
+        public Task ApproveSharedCameraAsync() => CanOperate ? ApproveSharedCameraCoreAsync() : Task.CompletedTask;
+        private Task ApproveSharedCameraCoreAsync() => RunSharedAsync("approve", async () =>
         {
             if (_sharedCandidate == null || !ReferenceEquals(_sharedCandidateMachine, _machine) ||
                 DateTimeOffset.UtcNow - _sharedCandidateAt > TimeSpan.FromMinutes(15) ||
@@ -392,23 +397,27 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
             camera.AbsolutePosition = new Point2D<double>(candidate.X, candidate.Y);
             await ReadSharedGeometryAsync();
-            SharedEvidence($"Explicitly approved shared camera saved and read back: ({candidate.X:F3}, {candidate.Y:F3}) mm.", true);
+            SharedEvidence($"{(_automaticFull ? "Full Diagnostics accepted" : "Explicitly approved")} shared camera saved and read back: ({candidate.X:F3}, {candidate.Y:F3}) mm.", true);
             ResetNozzleResults();
             await ValidateBothSharedNozzlesAsync();
             SharedCameraVerified = true;
             SharedCameraStatus = "PASS: shared camera saved/read back; both heads independently within 0.200 mm without correction.";
         });
 
-        public Task ValidateSharedCameraAsync() => RunSharedAsync("validate", async () =>
+        public Task ValidateSharedCameraAsync() => CanOperate ? ValidateSharedCameraCoreAsync() : Task.CompletedTask;
+        private Task ValidateSharedCameraCoreAsync() => RunSharedAsync("validate", async () =>
         {
             SharedCameraVerified = false;
             ResetNozzleResults();
             await ValidateBothSharedNozzlesAsync();
+            await SharedPickupAsync(1, false);
+            await SharedPickupAsync(2, false);
             SharedCameraVerified = true;
-            SharedCameraStatus = "PASS: both saved inspection approaches within 0.200 mm before any correction.";
+            SharedCameraStatus = "PASS: both saved nozzle approaches and disc pickups within 0.200 mm without correction.";
         });
 
-        public Task RunFullDiagnosticsAsync()
+        public Task RunFullDiagnosticsAsync() => CanOperate ? RunFullDiagnosticsCoreAsync() : Task.CompletedTask;
+        private Task RunFullDiagnosticsCoreAsync()
         {
             if (!FullDiagnostics || !Int32.TryParse(DiagnosticIterations, out var count) || count < 1 || count > 100)
             {
@@ -444,7 +453,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private async Task RunSharedAsync(string mode, Func<Task> action)
         {
-            if (!CanOperate || _pendingHistorySnapshot != null)
+            if (!StageIdle || _pendingHistorySnapshot != null)
             {
                 SharedCameraStatus = "Machine or history busy; settle previous run first.";
                 return;

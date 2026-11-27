@@ -9,6 +9,9 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
     /// <summary>Matches the nozzle-runout modal's procedure-first pattern.</summary>
     public partial class CameraToolPickupCalibrationWindow : Window
     {
+        private bool _startedOnLoad;
+        public bool AutoStart { get; set; } = true;
+
         public CameraToolPickupCalibrationWindow()
         {
             InitializeComponent();
@@ -17,6 +20,13 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
             Height = Math.Min(Height, SystemParameters.WorkArea.Height);
             MinWidth = Math.Min(MinWidth, Width);
             MinHeight = Math.Min(MinHeight, Height);
+            Loaded += async (sender, args) =>
+            {
+                if (!AutoStart || _startedOnLoad) return;
+                _startedOnLoad = true;
+                if (Procedure?.CanStartAutomatic == true)
+                    await Procedure.RunAutomaticAsync();
+            };
         }
 
         private ICameraToolPickupCalibrationViewModel Procedure =>
@@ -30,13 +40,13 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
 
         private async void RunAgain_Click(object sender, RoutedEventArgs e)
         {
-            if (Procedure?.CanOperate == true)
-                await Procedure.StartAsync();
+            if (Procedure?.CanStartAutomatic == true)
+                await Procedure.RunAutomaticAsync();
         }
 
         private async void RetryHistory_Click(object sender, RoutedEventArgs e)
         {
-            if (Procedure?.CanRetryHistory == true)
+            if (Procedure?.CanOperate == true && Procedure.CanRetryHistory)
                 await Procedure.RetryHistoryAsync();
         }
 

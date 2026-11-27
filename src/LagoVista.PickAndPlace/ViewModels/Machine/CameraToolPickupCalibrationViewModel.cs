@@ -190,6 +190,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             {
                 Set(ref _running, value);
                 RaisePropertyChanged(nameof(CanOperate));
+                RaisePropertyChanged(nameof(CanStartAutomatic));
                 RaisePropertyChanged(nameof(CanSaveAndVerify));
             }
         }
@@ -200,9 +201,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             {
                 Set(ref _previewBusy, value);
                 RaisePropertyChanged(nameof(CanOperate));
+                RaisePropertyChanged(nameof(CanStartAutomatic));
             }
         }
-        public bool CanOperate => !CalibrationRunning && !PreviewBusy && !HistoryBusy;
+        private bool StageIdle => !CalibrationRunning && !PreviewBusy && !HistoryBusy;
+        public bool CanOperate => StageIdle && !AutomaticRunActive;
+        public bool CanStartAutomatic => CanOperate;
         public bool CalibrationFinished
         {
             get => _finished;
@@ -261,9 +265,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
         }
 
-        public async Task StartAsync()
+        public Task StartAsync() => CanOperate ? StartCoreAsync() : Task.CompletedTask;
+
+        private async Task StartCoreAsync()
         {
-            if (!CanOperate)
+            if (!StageIdle)
                 return;
             if (_pendingHistorySnapshot != null)
             {
@@ -572,6 +578,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             var result = await _knownLocation.RunAsync();
             if (!result.Successful || result.Result == null)
                 throw new CalibrationStopped(_knownLocation.Status);
+            if (_automaticFull && !_firstKnownLocationHandled)
+                await RememberFirstKnownLocationAsync(result.Result);
             return result.Result;
         }
 

@@ -110,12 +110,14 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
         private void OpenCameraToolPickup_Click(object sender, RoutedEventArgs e)
         {
             var vm = SLWIOC.Get<ICameraToolPickupCalibrationViewModel>();
+            vm.FullDiagnostics = CameraToolFullDiagnostics.IsChecked == true;
             var dialog = new CameraToolPickupCalibrationWindow
             {
                 DataContext = vm,
                 Owner = Window.GetWindow(this)
             };
             dialog.ShowDialog();
+            CameraToolFullDiagnostics.IsChecked = vm.FullDiagnostics;
         }
 
         private void OpenNozzleRunout_Click(object sender, RoutedEventArgs e)

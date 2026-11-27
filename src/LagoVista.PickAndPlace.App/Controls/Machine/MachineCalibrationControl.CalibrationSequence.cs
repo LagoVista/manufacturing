@@ -95,77 +95,6 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
             return accepted;
         }
 
-        /// <summary>
-        /// T014's first two pickups produce only an UNSAVED candidate. The
-        /// operator must then explicitly approve the stored offset and third
-        /// independent pickup in this dialog. Only green, durable evidence
-        /// permits the full sequence to proceed to another head.
-        /// </summary>
-        private bool RunSavedOffsetApprovalWindow(
-            CameraToolPickupCalibrationWindow window,
-            ICameraToolPickupCalibrationViewModel vm, string stageName)
-        {
-            var accepted = false;
-            var started = false;
-            window.Owner = Window.GetWindow(this);
-            var notifier = vm as INotifyPropertyChanged;
-            PropertyChangedEventHandler onChanged = null;
-            bool Verified() =>
-                vm.CalibrationFinished && !vm.CalibrationRunning &&
-                !vm.HistoryBusy && vm.SavedPickupVerified &&
-                vm.HistoryStatus.StartsWith("RECORDED", StringComparison.Ordinal) &&
-                vm.CalibrationSteps.Count ==
-                    CameraToolSavedOffsetVerificationProcedure.Create().Steps.Count &&
-                StepsPassed(vm.CalibrationSteps.Select(s => s.Status));
-            onChanged = (sender, args) =>
-            {
-                if (args.PropertyName != nameof(vm.HistoryBusy) &&
-                    args.PropertyName != nameof(vm.HistoryStatus) &&
-                    args.PropertyName != nameof(vm.SavedPickupVerified) &&
-                    args.PropertyName != nameof(vm.CalibrationFinished))
-                    return;
-                if (!accepted && Verified())
-                {
-                    accepted = true;
-                    window.Close();
-                }
-            };
-            if (notifier != null)
-                notifier.PropertyChanged += onChanged;
-            window.Closed += (sender, args) =>
-            {
-                if (notifier != null)
-                    notifier.PropertyChanged -= onChanged;
-            };
-            window.Loaded += async (sender, args) =>
-            {
-                if (started)
-                    return;
-                started = true;
-                try
-                {
-                    await vm.StartAsync();
-                    if (vm.CanSaveAndVerify)
-                        SetCalibrationSequenceStatus(stageName +
-                            ": two pickups verified. Review the candidate and " +
-                            "click Approve, Save & Verify Third Pickup in the " +
-                            "open window; no stored offset has changed yet.");
-                    else
-                        SetCalibrationSequenceStatus(stageName +
-                            ": first two pickups did not produce an approved " +
-                            "candidate or durable history. Review the dialog; " +
-                            "no later calibration runs until this stage passes.");
-                }
-                catch (Exception ex)
-                {
-                    SetCalibrationSequenceStatus(stageName +
-                        " stopped: " + ex.Message + ". Review the dialog.");
-                }
-            };
-            window.ShowDialog();
-            return accepted;
-        }
-
         private void RunAllCalibrations_Click(object sender, RoutedEventArgs e)
         {
             if (_allCalibrationsRunning)
@@ -196,11 +125,10 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
                     "No staging plates are configured. The full sequence cannot be verified.");
                 return;
             }
-            if (installed == null || installed.Count == 0 ||
-                installed.Any(head => head.HeadIndex != 1 && head.HeadIndex != 2))
+            if (installed == null || !installed.Select(h => h.HeadIndex).SequenceEqual(new[] { 1, 2 }))
             {
                 SetCalibrationSequenceStatus(
-                    "The full sequence requires one or two supported installed nozzle heads.");
+                    "The full sequence requires both supported installed nozzle heads.");
                 return;
             }
 
@@ -217,7 +145,7 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
 
             _allCalibrationsRunning = true;
             AllCalibrationSequenceButton.IsEnabled = false;
-            var count = 3 + plates.Count + installed.Count + (installed.Count == 2 ? 1 : 0);
+            var count = 4 + plates.Count;
             var step = 0;
             try
             {
@@ -295,44 +223,17 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
                         () => nozzleVm.Status)))
                     return;
 
-                foreach (var head in installed)
-                {
-                    var vm = SLWIOC.Get<ICameraToolPickupCalibrationViewModel>();
-                    vm.HeadIndexText = head.HeadIndex.ToString();
-                    vm.SaveVerifiedOffset = false;
-                    var dialog = new CameraToolPickupCalibrationWindow
-                    {
-                        DataContext = vm
-                    };
-                    if (!Next("Camera-to-tool XY: Head " + head.HeadIndex, () =>
-                        RunSavedOffsetApprovalWindow(
-                            dialog, vm, "Camera-to-tool XY: Head " + head.HeadIndex)))
-                        return;
-                }
+                var pickupVm = SLWIOC.Get<ICameraToolPickupCalibrationViewModel>();
+                pickupVm.FullDiagnostics = CameraToolFullDiagnostics.IsChecked == true;
+                var pickupDialog = new CameraToolPickupCalibrationWindow { DataContext = pickupVm, AutoStart = false };
+                if (!Next("Tool heads and shared bottom camera", () =>
+                    RunSequenceWindow(pickupDialog, "Tool heads and shared bottom camera",
+                        () => pickupVm.RunAutomaticAsync(),
+                        () => pickupVm.AutomaticRunVerified,
+                        () => pickupVm.Status)))
+                    return;
 
-                if (installed.Count == 2)
-                {
-                    var vm = SLWIOC.Get<ICameraToolPickupCalibrationViewModel>();
-                    if (!Next("Shared bottom-camera geometry", () =>
-                    {
-                        var dialog = new CameraToolPickupCalibrationWindow
-                        {
-                            DataContext = vm,
-                            Owner = Window.GetWindow(this)
-                        };
-                        // No automatic motion: the operator explicitly proposes,
-                        // approves, validates and optionally runs repeatability.
-                        dialog.ShowDialog();
-                        return vm.SharedCameraVerified && !vm.CalibrationRunning &&
-                            !vm.HistoryBusy && vm.HistoryStatus.StartsWith("RECORDED", StringComparison.Ordinal);
-                    }))
-                        return;
-                }
-                SetCalibrationSequenceStatus(
-                    "All " + count + " scheduled calibration stages VERIFIED. Vacuum calibration was not run. " +
-                    (installed.Count == 2
-                        ? "Both saved pickup offsets and shared uncorrected inspection geometry verified."
-                        : "Shared two-head inspection validation was not run (requires both installed heads)."));
+                SetCalibrationSequenceStatus("All " + count + " scheduled calibration stages VERIFIED. Vacuum calibration was not run.");
             }
             catch (Exception ex)
             {
