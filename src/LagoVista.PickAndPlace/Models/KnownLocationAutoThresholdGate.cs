@@ -41,7 +41,7 @@ namespace LagoVista.PickAndPlace.Models
         // Evaluate class separation in smoothed grayscale, and clipping in
         // the original ROI. The threshold itself is OpenCV's existing Otsu.
         public static bool Assess(byte[,,] smoothed, byte[,,] raw, int threshold,
-            out double separation, out string reason)
+            out double separation, out string reason, double minimumClassFraction = 0.05)
         {
             separation = 0;
             long dark = 0, bright = 0, darkSum = 0, brightSum = 0;
@@ -65,7 +65,7 @@ namespace LagoVista.PickAndPlace.Models
                 }
             }
             var count = dark + bright;
-            if (count == 0 || dark < count * 0.05 || bright < count * 0.05)
+            if (count == 0 || dark < count * minimumClassFraction || bright < count * minimumClassFraction)
             {
                 reason = "INSUFFICIENT FOREGROUND/BACKGROUND";
                 return false;

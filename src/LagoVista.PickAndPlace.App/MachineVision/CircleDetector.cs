@@ -63,8 +63,10 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             var search = new CircleF(new System.Drawing.PointF(
                 (float)searchCenter.X, (float)searchCenter.Y), scaledTarget);
             var calibrationDisc = profile.Key == VisionProfile.VisionProfile_CalibrationDisc;
+            var boardFiducial = camera.CameraType?.Value == CameraTypes.Position &&
+                profile.Key == VisionProfile.VisionProfile_BoardFiducial;
             var autoKnownLocation = camera.CameraType?.Value == CameraTypes.Position &&
-                profile.Key == VisionProfile.VisionProfile_KnownLocation && profile.AutoThreshold;
+                (profile.Key == VisionProfile.VisionProfile_KnownLocation || boardFiducial) && profile.AutoThreshold;
             if (_autoKnownLocation != autoKnownLocation)
             {
                 _foundCircles.Clear();
@@ -78,7 +80,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 // ShapeDetectionService supplies the exact ROI-derived binary
                 // preview. Reuse the bright-disc centroid and geometry gates.
                 var located = FindStagingPlateHole(input, camera, profile, search,
-                    center, true, out _, presegmentedKnownLocation: true);
+                    center, true, out _, presegmentedKnownLocation: true, boardFiducial: boardFiducial);
                 if (!located.HasValue)
                 {
                     _foundCircles.Clear();
@@ -139,7 +141,20 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     Convert.ToInt32(profile.HoughCirclesMaxRadius * camera.EffectivePixelsPerMM));
             }
 
-            var candidates = circles.Where(circle => search.WithinRadius(circle));
+            var candidates = circles.Where(circle => search.WithinRadius(circle)).ToArray();
+            if (boardFiducial)
+            {
+                // No first/nearest candidate wins. Require exactly one
+                // eligible circle and consecutive frames of the same track.
+                if (candidates.Length != 1)
+                {
+                    _foundCircles.Clear();
+                    return;
+                }
+                if (_foundCircles.Any(track => track.Iteration != _iteration - 1) ||
+                    (_foundCircles.Count > 0 && _foundCircles.FindPrevious(candidates[0], 10) == null))
+                    _foundCircles.Clear();
+            }
 
             foreach (var circle in candidates)
             {
@@ -159,8 +174,8 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                     var foundCircle = new MVLocatedCircle(
                         camera.CameraType.Value, center, camera.EffectivePixelsPerMM,
                         profile.ErrorToleranceMM, profile.StabilizationCount,
-                        stagingPlateHole || calibrationDisc || autoKnownLocation,
-                        positionStabilityToleranceMm: adaptiveNozzle ? 0.20 : 0.10);
+                        stagingPlateHole || calibrationDisc || autoKnownLocation || boardFiducial,
+                        positionStabilityToleranceMm: adaptiveNozzle ? 0.20 : boardFiducial ? Math.Min(0.10, profile.ErrorToleranceMM) : 0.10);
                     foundCircle.Add(circle.Center, circle.Radius);
                     foundCircle.Iteration = _iteration;
                     _foundCircles.Add(foundCircle);
@@ -184,12 +199,12 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
         private CircleF? FindStagingPlateHole(IMVImage<IInputOutputArray> input, MachineCamera camera,
             VisionProfile profile, CircleF search, LagoVista.Core.Models.Drawing.Point2D<int> frameCenter,
-            bool requireCircularity, out string diagnostics, bool presegmentedKnownLocation = false)
+            bool requireCircularity, out string diagnostics, bool presegmentedKnownLocation = false, bool boardFiducial = false)
         {
             var pixelsPerMM = camera.EffectivePixelsPerMM;
             var minimumRadius = profile.HoughCirclesMinRadius * pixelsPerMM;
             var maximumRadius = profile.HoughCirclesMaxRadius * pixelsPerMM;
-            if (presegmentedKnownLocation)
+            if (presegmentedKnownLocation && !boardFiducial)
             {
                 minimumRadius = Math.Max(minimumRadius, KnownLocationCylinderCenteringMath.MinimumDiameterMm * pixelsPerMM / 2);
                 maximumRadius = Math.Min(maximumRadius, KnownLocationCylinderCenteringMath.MaximumDiameterMm * pixelsPerMM / 2);

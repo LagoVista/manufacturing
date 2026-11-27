@@ -513,7 +513,8 @@ namespace LagoVista.PickAndPlace.App.Services
                     var raw = img;
                     var profile = camera.CurrentVisionProfile;
                     var autoKnownLocation = camera.CameraType?.Value == CameraTypes.Position &&
-                        profile.Key == VisionProfile.VisionProfile_KnownLocation && profile.AutoThreshold;
+                        (profile.Key == VisionProfile.VisionProfile_KnownLocation ||
+                         profile.Key == VisionProfile.VisionProfile_BoardFiducial) && profile.AutoThreshold;
                     if (autoKnownLocation)
                         return PerformKnownLocationAutoThreshold(img, camera, size);
                     if (_autoProfile != null)
@@ -723,7 +724,7 @@ namespace LagoVista.PickAndPlace.App.Services
         private void DrawKnownLocationManualThreshold(IInputOutputArray image, MachineCamera camera, Size size)
         {
             var p = camera.CurrentVisionProfile;
-            if (camera.CameraType?.Value != CameraTypes.Position || p.Key != VisionProfile.VisionProfile_KnownLocation)
+            if (camera.CameraType?.Value != CameraTypes.Position || (p.Key != VisionProfile.VisionProfile_KnownLocation && p.Key != VisionProfile.VisionProfile_BoardFiducial))
                 return;
             var label = p.ApplyThreshold
                 ? $"MANUAL THRESHOLD {p.PrimaryThreshold / 100.0 * 255:F0}/255 ({p.PrimaryThreshold}/100)"
@@ -736,6 +737,7 @@ namespace LagoVista.PickAndPlace.App.Services
         {
             var p = camera.CurrentVisionProfile;
             var scale = camera.EffectivePixelsPerMM;
+            var boardFiducial = p.Key == VisionProfile.VisionProfile_BoardFiducial;
             var geometry = (scale, p.TargetImageRadius, p.HoughCirclesMinRadius,
                 p.HoughCirclesMaxRadius, p.ErrorToleranceMM, p.StabilizationCount);
             if (!ReferenceEquals(_autoProfile, p) || !_autoGeometry.Equals(geometry))
@@ -758,8 +760,8 @@ namespace LagoVista.PickAndPlace.App.Services
                 var separation = 0.0;
                 // The center gate is unchanged. Include room for the complete
                 // largest accepted target so the histogram never cuts a valid edge.
-                var extent = (p.TargetImageRadius + Math.Min(p.HoughCirclesMaxRadius,
-                    KnownLocationCylinderCenteringMath.MaximumDiameterMm / 2)) * scale;
+                var extent = (p.TargetImageRadius + (boardFiducial ? p.HoughCirclesMaxRadius : Math.Min(p.HoughCirclesMaxRadius,
+                    KnownLocationCylinderCenteringMath.MaximumDiameterMm / 2))) * scale;
                 var valid = !Double.IsNaN(extent) && !Double.IsInfinity(extent) &&
                     extent >= 3 && scale > 0 && p.TargetImageRadius > 0 &&
                     extent < Math.Min(size.Width, size.Height) / 2.0;
@@ -768,7 +770,7 @@ namespace LagoVista.PickAndPlace.App.Services
                     var radius = (int)Math.Ceiling(extent);
                     var roi = new Rectangle(size.Width / 2 - radius, size.Height / 2 - radius,
                         radius * 2, radius * 2);
-                    CvInvoke.GaussianBlur(gray, smoothed, new Size(5, 5), 0);
+                    CvInvoke.GaussianBlur(gray, smoothed, boardFiducial ? new Size(3, 3) : new Size(5, 5), 0);
                     using (var region = smoothed.GetSubRect(roi))
                     using (var rawRegion = gray.GetSubRect(roi))
                     using (var regionBinary = new Image<Gray, byte>(roi.Size))
@@ -776,9 +778,10 @@ namespace LagoVista.PickAndPlace.App.Services
                         threshold = CvInvoke.Threshold(region, regionBinary, 0, 255,
                             ThresholdType.Binary | ThresholdType.Otsu);
                         // Same thresholded pixels feed the preview and centroid detector.
-                        CvInvoke.Threshold(smoothed, binary, threshold.Value, 255, ThresholdType.Binary);
+                        CvInvoke.Threshold(smoothed, binary, threshold.Value, 255,
+                            boardFiducial && p.Invert ? ThresholdType.BinaryInv : ThresholdType.Binary);
                         valid = KnownLocationAutoThresholdGate.Assess(region.Data, rawRegion.Data,
-                            (int)threshold.Value, out separation, out status);
+                            (int)threshold.Value, out separation, out status, boardFiducial ? 0.005 : 0.05);
                     }
                 }
 
@@ -795,8 +798,9 @@ namespace LagoVista.PickAndPlace.App.Services
                         _circleDetector.Reset();
                     _circleDetector.FindCircles(new MVImage<IInputOutputArray>(binary), camera, size);
                     var tracked = _circleDetector.FoundCircles.FirstOrDefault();
-                    status = tracked == null ? "NO UNIQUE VALID DISC" :
-                        tracked.Stabilized && tracked.PositionStable ? "STABLE DISC" : "ACQUIRING FRESH DISC";
+                    var targetName = boardFiducial ? "PCB FIDUCIAL" : "DISC";
+                    status = tracked == null ? "NO UNIQUE VALID " + targetName :
+                        tracked.Stabilized && tracked.PositionStable ? "STABLE " + targetName : "ACQUIRING FRESH " + targetName;
                 }
 
                 using (var display = p.ShowOriginalImage ? raw.Clone() : binary.Convert<Bgr, byte>())
@@ -807,7 +811,7 @@ namespace LagoVista.PickAndPlace.App.Services
                         : "AUTO OTSU UNAVAILABLE";
                     DrawFeederCornerLabel(display, size, label, 0, new MCvScalar(255, 255, 255));
                     DrawFeederCornerLabel(display, size, $"{status} / CONTRAST {separation:F0}", 1,
-                        status == "STABLE DISC" ? new MCvScalar(0, 255, 0) : new MCvScalar(0, 255, 255));
+                        status.StartsWith("STABLE ") ? new MCvScalar(0, 255, 0) : new MCvScalar(0, 255, 255));
                     return display.Clone();
                 }
             }

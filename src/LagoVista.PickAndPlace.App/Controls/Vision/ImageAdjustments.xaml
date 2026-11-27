@@ -72,13 +72,16 @@
                         <Label Content="{Binding Profile.PrimaryThreshold, FallbackValue=3}" Style="{StaticResource Value}" />
                     </StackPanel>
                     <Slider Value="{Binding Path=Profile.PrimaryThreshold, Mode=TwoWay}" Minimum="0" Maximum="100" SmallChange="0" LargeChange="5" ToolTip="{Binding CannyLowThresholdHelp}" />
-                    <CheckBox Content="Auto Threshold (Known Location)" IsChecked="{Binding Profile.AutoThreshold, Mode=TwoWay}"
+                    <CheckBox Content="Auto Threshold" IsChecked="{Binding Profile.AutoThreshold, Mode=TwoWay}"
                               Margin="0,8,0,0" ToolTip="Uses fresh grayscale ROI Otsu segmentation. Uncheck to restore manual threshold.">
                         <CheckBox.Style>
                             <Style TargetType="CheckBox">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding Profile.Key}" Value="knownlocation">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Profile.Key}" Value="brdfiducial">
                                         <Setter Property="Visibility" Value="Visible"/>
                                     </DataTrigger>
                                 </Style.Triggers>

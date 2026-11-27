@@ -28,6 +28,7 @@
             <Button Command="{Binding GoToActualFiducialCommand}" Style="{StaticResource CommandButton}">GoTo Actual Fiducial</Button>
             <Button Command="{Binding AlignFiducialCommand}" Style="{StaticResource CommandButton}">Align Fiducial</Button>
             <Button Command="{Binding AlignCommand}" Style="{StaticResource CommandButton}">Align Board</Button>
+            <Button Command="{Binding CancelAlignmentCommand}" Style="{StaticResource CommandButton}">Cancel Alignment</Button>
         </StackPanel>
     </Grid>
 </ucb:VMBoundUserControl>
