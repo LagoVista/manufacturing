@@ -217,7 +217,7 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
 
             _allCalibrationsRunning = true;
             AllCalibrationSequenceButton.IsEnabled = false;
-            var count = 3 + plates.Count + installed.Count;
+            var count = 3 + plates.Count + installed.Count + (installed.Count == 2 ? 1 : 0);
             var step = 0;
             try
             {
@@ -310,9 +310,29 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
                         return;
                 }
 
+                if (installed.Count == 2)
+                {
+                    var vm = SLWIOC.Get<ICameraToolPickupCalibrationViewModel>();
+                    if (!Next("Shared bottom-camera geometry", () =>
+                    {
+                        var dialog = new CameraToolPickupCalibrationWindow
+                        {
+                            DataContext = vm,
+                            Owner = Window.GetWindow(this)
+                        };
+                        // No automatic motion: the operator explicitly proposes,
+                        // approves, validates and optionally runs repeatability.
+                        dialog.ShowDialog();
+                        return vm.SharedCameraVerified && !vm.CalibrationRunning &&
+                            !vm.HistoryBusy && vm.HistoryStatus.StartsWith("RECORDED", StringComparison.Ordinal);
+                    }))
+                        return;
+                }
                 SetCalibrationSequenceStatus(
-                    "All " + count + " calibration stages VERIFIED. Vacuum calibration was not " +
-                    "run. Both saved tool-head offsets completed their independent third-pickup acceptance.");
+                    "All " + count + " scheduled calibration stages VERIFIED. Vacuum calibration was not run. " +
+                    (installed.Count == 2
+                        ? "Both saved pickup offsets and shared uncorrected inspection geometry verified."
+                        : "Shared two-head inspection validation was not run (requires both installed heads)."));
             }
             catch (Exception ex)
             {

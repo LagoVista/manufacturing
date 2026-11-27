@@ -20,6 +20,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
         Task ValidateSharedCameraAsync();
         Task RunFullDiagnosticsAsync();
         bool SharedOperationActive { get; }
+        bool SharedCameraVerified { get; }
         void RequestDiagnosticStop();
         bool CanSaveAndVerify { get; }
         bool SavedPickupVerified { get; }

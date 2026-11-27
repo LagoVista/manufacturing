@@ -19,6 +19,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private string _diagnosticIterations = "10";
         private string _sharedCameraStatus = "Complete and approve both pickup offsets first. Then verify both saved pickups and propose the shared bottom camera.";
         private bool _sharedOperationActive;
+        private bool _sharedCameraVerified;
         private bool _stopShared;
         private IMachine _sharedCandidateMachine;
         private string _sharedCandidateIdentity;
@@ -31,6 +32,11 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public string SharedCameraStatus { get => _sharedCameraStatus; private set => Set(ref _sharedCameraStatus, value); }
 
         public bool SharedOperationActive => _sharedOperationActive;
+        public bool SharedCameraVerified
+        {
+            get => _sharedCameraVerified;
+            private set => Set(ref _sharedCameraVerified, value);
+        }
 
         public void RequestDiagnosticStop()
         {
@@ -49,6 +55,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
         private void ClearSharedCandidate()
         {
+            SharedCameraVerified = false;
             _sharedCandidate = null;
             _sharedCandidateMachine = null;
             _sharedCandidateIdentity = null;
@@ -106,7 +113,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
         }
 
-        private async Task ReadSharedGeometryAsync()
+        private async Task<LagoVista.Manufacturing.Models.Machine> ReadSharedGeometryAsync()
         {
             var remote = await _restClient.GetAsync<DetailResponse<LagoVista.Manufacturing.Models.Machine>>(
                 $"/api/mfg/machine/{_machine.Settings.Id}");
@@ -125,6 +132,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 if (rh == null || !SameXY(rh.Offset, h.Offset))
                     throw new CalibrationStopped($"Head {i} authoritative saved pickup offset differs; reload before motion.");
             }
+            return saved;
         }
 
         private void SharedEvidence(string detail, bool saved = false)
@@ -136,7 +144,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 Name = detail,
                 Value = detail,
                 Source = "T001.SharedBottomCamera",
-                Verification = MachineOperationVerificationKind.VisionVerified,
+                Verification = saved ? MachineOperationVerificationKind.MachineObserved : MachineOperationVerificationKind.VisionVerified,
                 Saved = saved,
                 CapturedAtUtc = DateTimeOffset.UtcNow
             });
@@ -182,11 +190,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 throw new CalibrationStopped($"Saved inspection geometry disagrees: Head 1 {one:F3}, Head 2 {two:F3} mm (max 0.200 each). Do not change pickup offsets or frame into a pass.");
         }
 
-        private async Task<double> SharedPickupAsync(int index, bool frame)
+        private async Task<double> SharedPickupAsync(int index, bool frame,
+            Action<double> cameraSample = null, Action<double> pickupSample = null)
         {
             SelectSharedHead(index);
             var nozzle = await MeasureEmptyNozzleAsync(_head, frame);
             var nozzleError = CameraToolBottomCameraFraming.Radius(nozzle.OffsetMm);
+            cameraSample?.Invoke(nozzleError);
             if (!frame && nozzleError > CameraToolBottomCameraFraming.NozzleCameraToleranceMm)
                 throw new CalibrationStopped($"Head {index} uncorrected camera error {nozzleError:F3} mm.");
             CheckSharedStop();
@@ -199,9 +209,12 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             var disc = await ObserveHeldCylinderAsync();
             var observation = CreateObservation(_head, nozzle, disc, motion);
             var residual = CameraToolBottomCameraFraming.Radius(observation.PartRelativeToNozzleMm);
+            pickupSample?.Invoke(residual);
             SharedEvidence($"Head {index} {(frame ? "framed" : "uncorrected")} nozzle {Describe(nozzle.OffsetMm)}; disc {Describe(disc.OffsetMm)}; pickup residual {Describe(observation.PartRelativeToNozzleMm)}");
             await ReturnCylinderAsync(target, null);
-            SharedEvidence($"Head {index} disc returned; vacuum release and safe retract completed.");
+            if (_machine.LeftVacuumPump || _machine.RightVacuumPump)
+                throw new CalibrationStopped("Vacuum OFF state did not verify after disc return.");
+            SharedEvidence($"Head {index} disc returned; vacuum OFF command settled and safe retract completed.");
             await SharedCameraModeAsync();
             if (residual > CameraToolBottomCameraFraming.NozzleCameraToleranceMm)
                 throw new CalibrationStopped($"Head {index} saved pickup residual {residual:F3} mm exceeds 0.200 mm.");
@@ -242,31 +255,38 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 _sharedCandidateIdentity != SharedIdentity())
                 throw new CalibrationStopped("No current shared camera candidate, or its machine/head/camera context changed. Re-propose.");
             var camera = SharedCamera();
-            var old = camera.AbsolutePosition;
             var candidate = _sharedCandidate;
+            // Use a fresh authoritative model for the existing machine PUT.
+            // Do not persist local transient detector tuning or unrelated edits.
+            var persisted = await ReadSharedGeometryAsync();
+            var remoteCamera = persisted.Cameras.Single(c =>
+                c.CameraType?.Value == CameraTypes.PartInspection);
             ClearSharedCandidate();
             CheckSharedStop();
-            camera.AbsolutePosition = candidate;
+            remoteCamera.AbsolutePosition = candidate;
             try
             {
-                var result = await _repo.SaveCurrentMachineAsync();
+                var result = await _restClient.PutAsync("/api/mfg/machine", persisted);
                 if (!result.Successful)
                     throw new CalibrationStopped("Shared camera save not acknowledged: " + result.ErrorMessage);
             }
             catch
             {
-                camera.AbsolutePosition = old;
                 throw new CalibrationStopped("Shared camera save uncertain; inspect/reload authoritative settings before further motion.");
             }
+            camera.AbsolutePosition = new Point2D<double>(candidate.X, candidate.Y);
             await ReadSharedGeometryAsync();
             SharedEvidence($"Explicitly approved shared camera saved and read back: ({candidate.X:F3}, {candidate.Y:F3}) mm.", true);
             await ValidateBothSharedNozzlesAsync();
+            SharedCameraVerified = true;
             SharedCameraStatus = "PASS: shared camera saved/read back; both heads independently within 0.200 mm without correction.";
         });
 
         public Task ValidateSharedCameraAsync() => RunSharedAsync("validate", async () =>
         {
+            SharedCameraVerified = false;
             await ValidateBothSharedNozzlesAsync();
+            SharedCameraVerified = true;
             SharedCameraStatus = "PASS: both saved inspection approaches within 0.200 mm before any correction.";
         });
 
@@ -288,12 +308,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                         {
                             CheckSharedStop();
                             SharedEvidence($"Iteration {n}/{count}, Head {i}; uncorrected validation, no writes.");
-                            var error = await SharedNozzleAsync(i);
-                            errors[i].Add(error);
-                            if (!CameraToolBottomCameraFraming.BothHeadsPassUncorrected(error, 0))
-                                throw new CalibrationStopped($"Head {i} uncorrected error {error:F3} mm exceeds 0.200; repeatability stopped.");
-                            pickups[i].Add(await SharedPickupAsync(i, false));
+                            await SharedPickupAsync(i, false, errors[i].Add, pickups[i].Add);
                         }
+                    SharedCameraVerified = true;
                     SharedCameraStatus = $"PASS: {count} supervised iterations per head; no optical correction or settings writes.";
                 }
                 finally
@@ -349,7 +366,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 _session = new MachineOperationSession(definition, new MachineOperationTarget
                 {
                     MachineId = Convert.ToString(_machine?.Settings?.Id),
-                    CameraId = Convert.ToString(_machine?.PartInspectionCaptureService?.Camera?.Id)
+                    CameraId = Convert.ToString(_machine?.Settings?.Cameras?.FirstOrDefault(c => c?.CameraType?.Value == CameraTypes.PartInspection)?.Id)
                 }, DateTimeOffset.UtcNow);
                 _session.Start(DateTimeOffset.UtcNow);
                 NewHistorySession(_session);
