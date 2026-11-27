@@ -49,10 +49,14 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             matrix.RotateAt(rect.RotatedRect.Angle, rect.RotatedRect.Center);
             matrix.TransformPoints(p);
 
-            Line(img, (int)p[0].X, (int)p[0].Y, (int)p[1].X, (int)p[1].Y, color, 1);
-            Line(img, (int)p[1].X, (int)p[1].Y, (int)p[2].X, (int)p[2].Y, color, 1);
-            Line(img, (int)p[2].X, (int)p[2].Y, (int)p[3].X, (int)p[3].Y, color, 1);
-            Line(img, (int)p[3].X, (int)p[3].Y, (int)p[0].X, (int)p[0].Y, color, 1);
+            // Diagnostic overlay only: three-pixel anti-aliased outline is
+            // visible on high-contrast black tape even at a reduced zoom.
+            // Does not modify detected rectangle geometry or acceptance.
+            const int outlineThickness = 3;
+            Line(img, (int)p[0].X, (int)p[0].Y, (int)p[1].X, (int)p[1].Y, color, outlineThickness);
+            Line(img, (int)p[1].X, (int)p[1].Y, (int)p[2].X, (int)p[2].Y, color, outlineThickness);
+            Line(img, (int)p[2].X, (int)p[2].Y, (int)p[3].X, (int)p[3].Y, color, outlineThickness);
+            Line(img, (int)p[3].X, (int)p[3].Y, (int)p[0].X, (int)p[0].Y, color, outlineThickness);
         }
 
         public void ShowCalibrationSquare(IMVImage<IInputOutputArray> destImage, Size size)
@@ -77,7 +81,33 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 Y = size.Height / 2
             };
 
-            var scaledRadius = profile.TargetImageRadius * camera.EffectivePixelsPerMM;
+            // Draw the actual adaptive nozzle acquisition window. Otherwise
+            // the UI suggests a 2 mm/25 px search even while the detector
+            // correctly uses a broader bounded pixel-space window.
+            var adaptiveNozzle = profile.UseAdaptiveDarkOpening &&
+                (profile.Key == VisionProfile.VisionProfile_Nozzle ||
+                 profile.Key == VisionProfile.VisionProfile_NozzleCalibration);
+            var scaledRadius = adaptiveNozzle
+                ? DarkCircularOpeningLocator.EffectiveAcquisitionRadiusPixels(
+                    size.Width, size.Height, camera.EffectivePixelsPerMM, profile.TargetImageRadius)
+                : profile.TargetImageRadius * camera.EffectivePixelsPerMM;
+
+            // Staging-hole ROI may be shifted while the machine's physical
+            // centering target must remain the optical frame center.
+            if (profile.Key == VisionProfile.VisionProfile_StagingPlateHole)
+            {
+                var roi = StagingHoleSearchRegion.Center(size.Width, size.Height,
+                    camera.EffectivePixelsPerMM, profile.StagingSearchOffsetXmm,
+                    profile.StagingSearchOffsetYmm);
+                Circle(destImage, (int)Math.Round(roi.X), (int)Math.Round(roi.Y),
+                    (int)scaledRadius, System.Drawing.Color.Yellow);
+                const int arm = 15;
+                Line(destImage, center.X - arm, center.Y, center.X + arm, center.Y,
+                    System.Drawing.Color.Cyan, 1);
+                Line(destImage, center.X, center.Y - arm, center.X, center.Y + arm,
+                    System.Drawing.Color.Cyan, 1);
+                return;
+            }
 
             Line(destImage, 0, center.Y, center.X - (int)scaledRadius, center.Y, System.Drawing.Color.Yellow);
             Line(destImage, center.X + (int)scaledRadius, center.Y, size.Width, center.Y, System.Drawing.Color.Yellow);

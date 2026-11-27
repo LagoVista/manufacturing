@@ -7,6 +7,7 @@ using LagoVista.Core.Models.Drawing;
 using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.ViewModels.PickAndPlace;
+using LagoVista.PickAndPlace.Models;
 using System.Collections.ObjectModel;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
@@ -27,12 +28,22 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 
         ObservableCollection<StripFeeder> Feeders { get; }
 
+        // Feeder-level procedure rendered by the WPF modal dialog.
+        ObservableCollection<FeederCalibrationFlowStep> FeederFlowSteps { get; }
+        string FeederFlowStatus { get; }
+        bool FeederFlowRunning { get; }
+        bool FeederFlowFinished { get; }
+        System.Threading.Tasks.Task StartFeederCalibrationFlowAsync();
+
         ObservableCollection<FeederCalibrationStepDisplay> FeederCalibrationSteps { get; }
         string FeederCalibrationStatus { get; }
         string FeederCalibrationMeasurement { get; }
         string FeederCalibrationHistoryStatus { get; }
         string FeederCalibrationActionLabel { get; }
+        string FeederCalibrationAutoRunLabel { get; }
+        string FeederCalibrationAutoRunStatus { get; }
         RelayCommand FeederCalibrationNextCommand { get; }
+        RelayCommand FeederCalibrationAutoRunCommand { get; }
         RelayCommand FeederCalibrationRetryCommand { get; }
         RelayCommand FeederCalibrationCancelCommand { get; }
         RelayCommand FeederCalibrationNewRunCommand { get; }

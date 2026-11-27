@@ -30,5 +30,22 @@ namespace LagoVista.PickAndPlace.App.Controls.PickAndPlace
         {
             InitializeComponent();
         }
+
+        private void OpenFeederCalibration_Click(object sender, RoutedEventArgs e)
+        {
+            if (!(DataContext is IStripFeederViewModel vm) || vm.Current == null)
+            {
+                MessageBox.Show("Select a saved strip feeder before starting calibration.",
+                    "Feeder calibration", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var dialog = new FeederCalibrationProgressWindow
+            {
+                DataContext = vm,
+                Owner = Window.GetWindow(this)
+            };
+            dialog.ShowDialog();
+        }
     }
 }

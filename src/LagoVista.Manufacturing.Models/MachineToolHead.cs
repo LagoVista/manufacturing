@@ -52,10 +52,70 @@ namespace LagoVista.Manufacturing.Models
         EntityHeader<ToolNozzleTip> _currentNozzle;
         [FormField(LabelResource: ManufacturingResources.Names.MachineToolHead_CurrentNozzle, WaterMark: ManufacturingResources.Names.MachineToolHead_CurrentNozzle_Select,
             FieldType: FieldTypes.EntityHeaderPicker, IsRequired: false, EntityHeaderPickerUrl: "/api/mfg/pnp/nozzletips    ", ResourceType: typeof(ManufacturingResources))]
-        public EntityHeader<ToolNozzleTip> CurrentNozzle 
+        public EntityHeader<ToolNozzleTip> CurrentNozzle
         {
             get => _currentNozzle;
-            set => Set(ref _currentNozzle, value);
+            set
+            {
+                // An installation/assignment change invalidates the measured
+                // rotational runout, including a new header for the same
+                // nozzle ID (which may have been physically re-seated).
+                if (!ReferenceEquals(_currentNozzle, value))
+                    InvalidateRunoutCalibration();
+                Set(ref _currentNozzle, value);
+            }
+        }
+
+        private bool _isCalibrated;
+        /// <summary>
+        /// Session-only runout calibration for the nozzle installed in this
+        /// specific head. Never inherited from saved machine settings.
+        /// </summary>
+        [Newtonsoft.Json.JsonIgnore]
+        public bool IsCalibrated
+        {
+            get => _isCalibrated;
+            set => Set(ref _isCalibrated, value);
+        }
+
+        /// <summary>The 30-degree high-Y reference for this installation only.</summary>
+        private double? _runoutZeroAngle;
+        [Newtonsoft.Json.JsonIgnore]
+        public double? RunoutZeroAngle
+        {
+            get => _runoutZeroAngle;
+            private set => Set(ref _runoutZeroAngle, value);
+        }
+
+        /// <summary>
+        /// Call on any physical nozzle removal/reseating, even when the nozzle
+        /// identifier is unchanged. Runtime compensation is invalid afterward.
+        /// </summary>
+        public void InvalidateRunoutCalibration()
+        {
+            IsCalibrated = false;
+            RunoutZeroAngle = null;
+            RotationOffsets = new List<RotationOffset>();
+        }
+
+        /// <summary>
+        /// Commit measured session-only compensation after full optical
+        /// verification, for the currently installed nozzle on this head.
+        /// Does not write firmware coordinates or persist settings.
+        /// </summary>
+        public void CompleteRunoutCalibration(string nozzleId,
+            double logicalZeroAngle, IReadOnlyList<RotationOffset> samples)
+        {
+            if (_currentNozzle == null ||
+                !String.Equals(Convert.ToString(_currentNozzle.Id),
+                    nozzleId, StringComparison.Ordinal) ||
+                samples == null || samples.Count != 12)
+                throw new InvalidOperationException(
+                    "Runout proof must match the currently installed nozzle and all twelve samples.");
+
+            RotationOffsets = new List<RotationOffset>(samples);
+            RunoutZeroAngle = logicalZeroAngle;
+            IsCalibrated = true;
         }
 
         [FormField(LabelResource: ManufacturingResources.Names.MachineToolHead_Type, WaterMark: ManufacturingResources.Names.MachineToolHead_Type_Select, EnumType: typeof(ToolHeadTypes), FieldType: FieldTypes.Picker, IsRequired: true, ResourceType: typeof(ManufacturingResources))]
@@ -149,6 +209,9 @@ namespace LagoVista.Manufacturing.Models
         /// accuracy we need to account for this.  Think about a pencil if it was perfectly vertical and you rotate it, it will always poinat 
         /// at the same location.  If it' soff by a couple of degrees from vetical, it will point at a different location as you rotate it.  This is the same thing.
         /// </summary>
+        // Historical persisted curves are not reliable after a nozzle change.
+        // Runtime optical calibration is authoritative for this machine session.
+        [Newtonsoft.Json.JsonIgnore]
         public List<RotationOffset> RotationOffsets { get; set; } = new List<RotationOffset>();
 
         public List<string> GetFormFields()

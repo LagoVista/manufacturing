@@ -330,6 +330,13 @@ namespace LagoVista.PickAndPlace
 
                 _connected = value;
 
+                // Every new physical controller connection is a new machine
+                // session. Likewise a disconnect invalidates previously
+                // acquired nozzle-tip runout and zero references.
+                if (Settings?.ToolHeads != null)
+                    foreach (var head in Settings.ToolHeads)
+                        head?.InvalidateRunoutCalibration();
+
                 if (!Connected)
                     Mode = OperatingMode.Disconnected;
 

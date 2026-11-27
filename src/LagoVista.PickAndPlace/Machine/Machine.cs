@@ -273,11 +273,14 @@ namespace LagoVista.PickAndPlace
                     else
                     {
                         var defaultProfile = camera.VisionProfiles.FirstOrDefault(vp => vp.Key == VisionProfile.VisionProfile_Defauilt);
-                        // Barcode starts from the feeder-origin camera tuning,
-                        // then becomes its own independent, editable profile.
+                        // Barcode and calibration disc start from the closest
+                        // existing camera tuning, then become separate editable
+                        // profiles. Neither changes its source profile.
                         var sourceProfile = profileName == VisionProfile.VisionProfile_FeederBarcode
                             ? camera.VisionProfiles.FirstOrDefault(vp => vp.Key == VisionProfile.VisionProfile_FeederOrigin) ?? defaultProfile
-                            : defaultProfile;
+                            : profileName == VisionProfile.VisionProfile_CalibrationDisc
+                                ? camera.VisionProfiles.FirstOrDefault(vp => vp.Key == VisionProfile.VisionProfile_PartInspection) ?? defaultProfile
+                                : defaultProfile;
                         var newProfile = JsonConvert.DeserializeObject<VisionProfile>(JsonConvert.SerializeObject(sourceProfile));
                         newProfile.Key = ehProfile.Key;
                         newProfile.Id = ehProfile.Id;
@@ -472,6 +475,8 @@ namespace LagoVista.PickAndPlace
 
         public Task GoToPartInspectionCameraAsync(double? rotate)
         {
+            // Preserve the legacy camera-only XY navigation when no tool
+            // head is selected. Only lower a nozzle if a selected head exists.
             var partInspectionCamera = Settings.Cameras.FirstOrDefault(cam => cam.CameraType.Value == CameraTypes.PartInspection);
             if (partInspectionCamera != null)
             {
@@ -483,7 +488,10 @@ namespace LagoVista.PickAndPlace
 
                 if (partInspectionCamera.CurrentVisionProfile.DetectionHeight.HasValue)
                 {
-                    this.SendCommand($"G0 ZL{partInspectionCamera.CurrentVisionProfile.DetectionHeight.Value}");
+                    // Never lower the wrong (or an unselected) nozzle. This
+                    // branch previously always commanded the LEFT head.
+                    if (CurrentMachineToolHead != null)
+                        this.SendCommand($"G0 {(_leftToolHead ? "ZL" : "ZR")}{partInspectionCamera.CurrentVisionProfile.DetectionHeight.Value}");
                 }
                 else
                 {

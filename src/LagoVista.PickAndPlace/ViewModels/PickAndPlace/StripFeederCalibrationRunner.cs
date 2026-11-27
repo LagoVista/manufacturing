@@ -14,11 +14,11 @@ using System.Threading.Tasks;
 namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 {
     /// <summary>
-    /// Operator-supervised strip feeder calibration. Steps 1–5 are available.
-    /// Steps 6–7 remain visible but await pocket-verification implementation.
+    /// Operator-initiated, seven-step feeder calibration.
+    /// Steps 6–7 use fresh processed rectangle evidence without picking.
     /// Strongly typed C# handlers, never data-only DTOs, own machine motion.
     /// </summary>
-    internal sealed class StripFeederCalibrationRunner : IMachineOperation, ICornerLocatedHandler, ICircleLocatedHandler
+    internal sealed class StripFeederCalibrationRunner : IMachineOperation, ICornerLocatedHandler, ICircleLocatedHandler, IDisposable
     {
         private sealed class CornerProof
         {
@@ -27,15 +27,18 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             public double OffsetX { get; set; }
             public double OffsetY { get; set; }
             public double PixelsPerMm { get; set; }
+            public bool Centered { get; set; }
         }
 
         private sealed class CircleProof
         {
+            public Guid DetectionId { get; set; }
             public Point2D<double> MachinePosition { get; set; }
             public double OffsetX { get; set; }
             public double OffsetY { get; set; }
             public double RadiusMm { get; set; }
             public double PixelsPerMm { get; set; }
+            public bool Centered { get; set; }
         }
 
         private readonly IMachine _machine;
@@ -45,9 +48,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private readonly Func<InvokeResult<Point2D<double>>> _resolveCalculatedOrigin;
         private readonly Func<InvokeResult<Point2D<double>>> _resolveFirstTapeHole;
         private readonly Func<double> _getTapePitch;
+        private readonly Func<int, InvokeResult<Point2D<double>>> _resolvePocket;
         private readonly Func<StripFeeder, Task<InvokeResult>> _saveFeeder;
         private readonly Func<bool> _contextIsCurrent;
         private readonly MachineOperationSession _session;
+        private readonly StripFeederCalibrationScope _scope;
         private readonly object _observationGate = new object();
 
         private readonly string _plateId;
@@ -62,6 +67,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private bool _registered;
         private bool _circleRegistered;
         private string _approachedHoleStep;
+        private string _approachedPocketStep;
+        private Point2D<double> _pocketTarget;
+        private int _pocketIndex;
+        private string _pocketProfileKey;
+        private string _pocketCameraId;
+        private double _pocketCameraScale;
         private string _tapeProfileKey;
         private string _tapeCameraId;
         private double _tapeCameraScale;
@@ -69,6 +80,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private Point2D<double> _firstHoleRowOffset;
         private bool _busy;
         private bool _disposed;
+        private bool _autoCenterRequested;
+        private string _automaticJogStepKey;
+        private int _automaticJogCount;
+        private bool _acceptOffCenterCorner;
+        private bool _acceptOffCenterCircle;
+        private string _autoCenterError;
         private Point2D<double> _calculatedOrigin;
         private string _cameraId;
         private double _cameraScale;
@@ -79,6 +96,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public MachineOperationRunSnapshot Current => _session.Snapshot;
         public IReadOnlyList<MachineOperationAction> AvailableActions => _session.AvailableActions;
         public bool IsBusy => _busy;
+        public string AutomaticJogStepKey => _automaticJogStepKey;
+        public int AutomaticJogCount => _automaticJogCount;
+        // Automation is an operator-supervised convenience: no automatic saves,
+        // inventory updates, or visual part-presence confirmations.
+        public bool CanAutoAdvance => !_disposed && !_busy &&
+            FeederCalibrationAutoAdvancePolicy.CanAdvance(
+                Current.Status, Current.ActiveStepKey,
+                _approachedHoleStep == Current.ActiveStepKey,
+                _approachedPocketStep == Current.ActiveStepKey);
         public string StatusText { get; private set; } =
             "Ready. Move to the calculated feeder origin to start calibration.";
         public string MeasurementText { get; private set; } =
@@ -92,7 +118,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                Current.ActiveStepKey == "center-fiducial" ||
                Current.ActiveStepKey == "save-origin" ||
                Current.ActiveStepKey == "first-tape-hole" ||
-               Current.ActiveStepKey == "last-tape-hole")));
+               Current.ActiveStepKey == "last-tape-hole" ||
+               Current.ActiveStepKey == "verify-current-part" ||
+               Current.ActiveStepKey == "verify-previous-empty")));
 
         public bool CanRetry => !_disposed && !_busy &&
                                 Current.Status == MachineOperationRunStatus.Blocked;
@@ -117,7 +145,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         ? "Verify first centered tape hole" : "Move to first tape hole";
                     case "last-tape-hole": return _approachedHoleStep == "last-tape-hole"
                         ? "Verify & save first/last holes" : "Move to last tape hole";
-                    default: return "Pocket verification pending";
+                    case "verify-current-part": return _approachedPocketStep == "verify-current-part"
+                        ? "Confirm current part PRESENT" : "Move to current part";
+                    case "verify-previous-empty": return _approachedPocketStep == "verify-previous-empty"
+                        ? "Confirm previous pocket EMPTY" : "Move to previous pocket";
+                    default: return "Awaiting operation";
                 }
             }
         }
@@ -127,8 +159,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             Func<InvokeResult<Point2D<double>>> resolveCalculatedOrigin,
             Func<InvokeResult<Point2D<double>>> resolveFirstTapeHole,
             Func<double> getTapePitch,
+            Func<int, InvokeResult<Point2D<double>>> resolvePocket,
             Func<StripFeeder, Task<InvokeResult>> saveFeeder,
-            Func<bool> contextIsCurrent)
+            Func<bool> contextIsCurrent,
+            StripFeederCalibrationScope scope = StripFeederCalibrationScope.Full)
         {
             _machine = machine ?? throw new ArgumentNullException(nameof(machine));
             _locator = locator ?? throw new ArgumentNullException(nameof(locator));
@@ -137,8 +171,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _resolveCalculatedOrigin = resolveCalculatedOrigin ?? throw new ArgumentNullException(nameof(resolveCalculatedOrigin));
             _resolveFirstTapeHole = resolveFirstTapeHole ?? throw new ArgumentNullException(nameof(resolveFirstTapeHole));
             _getTapePitch = getTapePitch ?? throw new ArgumentNullException(nameof(getTapePitch));
+            _resolvePocket = resolvePocket ?? throw new ArgumentNullException(nameof(resolvePocket));
             _saveFeeder = saveFeeder ?? throw new ArgumentNullException(nameof(saveFeeder));
             _contextIsCurrent = contextIsCurrent ?? throw new ArgumentNullException(nameof(contextIsCurrent));
+            _scope = scope;
 
             _plateId = feeder.StagingPlate?.Id.ToString();
             _referenceRowId = feeder.ReferenceHoleRow?.Id.ToString();
@@ -149,7 +185,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _mountY = feeder.MountingHoleOffset.Y;
 
             _session = new MachineOperationSession(
-                StripFeederCalibrationDefinition.Create(),
+                StripFeederProcedureDefinition.CreateForScope(scope),
                 new MachineOperationTarget
                 {
                     MachineId = machine.Settings?.Id.ToString(),
@@ -160,19 +196,66 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 }, DateTimeOffset.UtcNow);
         }
 
+        /// <summary>
+        /// Guided mode may use the existing camera Jog. Manual Next remains
+        /// verify-only and will not automatically move toward observations.
+        /// </summary>
+        public async Task<MachineOperationActionResult> ExecuteAutoNextAsync(CancellationToken token)
+        {
+            if (!CanExecuteNext)
+                return Result(false, "The operation cannot advance from its current state.");
+            _autoCenterRequested = true;
+            try
+            {
+                return await ExecuteNextAsync(token);
+            }
+            finally
+            {
+                _autoCenterRequested = false;
+            }
+        }
+
         public async Task<MachineOperationActionResult> ExecuteNextAsync(CancellationToken cancellationToken)
         {
             if (!CanExecuteNext)
                 return Result(false, "The operation cannot advance from its current state.");
+            if (_automaticJogStepKey != Current.ActiveStepKey)
+            {
+                _automaticJogStepKey = Current.ActiveStepKey;
+                _automaticJogCount = 0;
+            }
             _busy = true;
             Signal();
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
+
+                // A previous M400 may have completed before the serial Busy
+                // indicator and outstanding acknowledgements have settled.
+                // Allow guided transitions only after two quiet observations.
+                if (Current.Status == MachineOperationRunStatus.Running)
+                {
+                    var settled = await WaitForSerialQuietAsync(cancellationToken);
+                    if (!settled.Successful)
+                        return Block("Previous machine operation did not settle: " + settled.ErrorMessage);
+                }
+
                 if (Current.Status == MachineOperationRunStatus.Pending)
                 {
                     if (!ReadyForAction(false, false, out var reason))
                         return Result(false, reason);
+
+                    if (_scope == StripFeederCalibrationScope.InstalledTape)
+                    {
+                        // The common origin has already been physically
+                        // measured, saved and barcode-verified by the feeder
+                        // procedure. Resolve the current calculated origin
+                        // only for row geometry; do not move back to it.
+                        var origin = _resolveCalculatedOrigin();
+                        if (!origin.Successful || origin.Result == null)
+                            return Result(false, origin.ErrorMessage ?? "Feeder origin is unavailable.");
+                        _calculatedOrigin = origin.Result;
+                    }
                     _session.Start(DateTimeOffset.UtcNow);
                 }
 
@@ -188,8 +271,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         return await AdvanceTapeHoleAsync(false, cancellationToken);
                     case "last-tape-hole":
                         return await AdvanceTapeHoleAsync(true, cancellationToken);
+                    case "verify-current-part":
+                        return await AdvancePocketAsync(false, cancellationToken);
+                    case "verify-previous-empty":
+                        return await AdvancePocketAsync(true, cancellationToken);
                     default:
-                        return Result(false, "Tape-hole and pocket verification will be enabled in subsequent Workstream tasks.");
+                        return Result(false, "Unknown guided calibration step.");
                 }
             }
             catch (OperationCanceledException)
@@ -207,6 +294,33 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
+        /// <summary>
+        /// Add full CRC-verified feeder identity proof only while waiting to
+        /// commit the calibrated origin. This is diagnostic evidence, NOT a
+        /// substitute for the fresh centered corner and saved-origin proof.
+        /// </summary>
+        public void RecordBarcodeIdentityEvidence(string expectedId, string decodedId)
+        {
+            if (_scope != StripFeederCalibrationScope.FeederOrigin ||
+                Current.Status != MachineOperationRunStatus.Running ||
+                Current.ActiveStepKey != "save-origin" ||
+                !String.Equals(expectedId, decodedId, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Matching feeder identity is required before recording barcode proof.");
+
+            _session.RecordEvidence(new MachineOperationEvidence
+            {
+                RunId = Current.RunId,
+                StepKey = "save-origin",
+                Name = "Verified physical feeder identity",
+                Value = $"Barcode ID {decodedId}; expected {expectedId}; full scan CRC-2 OK",
+                Source = "Position camera / full feeder barcode scan",
+                Verification = MachineOperationVerificationKind.VisionVerified,
+                CapturedAtUtc = DateTimeOffset.UtcNow,
+                VisionProfileKey = VisionProfile.VisionProfile_FeederBarcode
+            });
+            Signal();
+        }
+
         public Task<MachineOperationActionResult> ConfirmAsync(CancellationToken cancellationToken)
         {
             if (Current.Status != MachineOperationRunStatus.Running ||
@@ -220,6 +334,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if (!CanRetry)
                 return Task.FromResult(Result(false, "Only a blocked step can be retried."));
             _session.Retry(DateTimeOffset.UtcNow);
+            if (Current.ActiveStepKey == "verify-current-part" ||
+                Current.ActiveStepKey == "verify-previous-empty")
+            {
+                _approachedPocketStep = null;
+                _pocketTarget = null;
+            }
             StatusText = "Retry is ready. Press the primary action to repeat only this step.";
             Signal();
             return Task.FromResult(Result(true));
@@ -291,7 +411,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             token.ThrowIfCancellationRequested();
 
             _machine.SendSafeMoveHeight();
-            var safeHeight = await _machine.SpinUntilIdleAsync(10000);
+            var safeHeight = await WaitForMotionAndSerialIdleAsync(10000, token);
             if (!safeHeight.Successful)
                 return Block("Safe-height move did not finish: " + safeHeight.ErrorMessage);
             if (!ReadyForAction(true, false, out reason) || Current.Status != MachineOperationRunStatus.Running)
@@ -299,7 +419,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             capture.ResetDetections();
             _machine.GotoPoint(point);
-            var idle = await _machine.SpinUntilIdleAsync(30000);
+            var idle = await WaitForMotionAndSerialIdleAsync(30000, token);
             if (!idle.Successful)
                 return Block("Calculated-origin move did not finish: " + idle.ErrorMessage);
             if (!ReadyForAction(true, false, out reason) || Current.Status != MachineOperationRunStatus.Running)
@@ -336,9 +456,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 return Block(reason);
             StatusText = "Acquiring a fresh stable and CENTERED corner. Please keep the machine still.";
             Signal();
-            var corner = await AcquireFreshCornerAsync(token);
+            _autoCenterError = null;
+            var corner = _autoCenterRequested
+                ? await AutoCenterCornerAsync(token)
+                : await AcquireFreshCornerAsync(token);
             if (corner == null)
-                return Block("No fresh stable, centered corner was acquired. Jog using the camera control and retry verification.");
+                return Block(_autoCenterError ??
+                    "No fresh stable, centered corner was acquired. Jog using the camera control and retry verification.");
             if (!ReadyForAction(true, false, out reason) || Current.Status != MachineOperationRunStatus.Running)
                 return Block(reason ?? "Operation was cancelled during corner verification.");
 
@@ -363,9 +487,113 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             });
             _session.CompleteActiveStep("center-fiducial", now);
             MeasurementText = $"Corner X {corner.OffsetX:+0.00;-0.00;0.00}, Y {corner.OffsetY:+0.00;-0.00;0.00} mm; scale {corner.PixelsPerMm:F1} px/mm";
-            StatusText = "Corner verified and centered. Press Capture & save origin offset to recheck and persist the measured position.";
+            StatusText = _autoCenterRequested
+                ? "Corner verified within profile tolerance. Guided sequence will recheck and save the feeder origin."
+                : "Corner verified and centered. Press Capture & save origin offset to recheck and persist the measured position.";
             Signal();
             return Result(true);
+        }
+
+        /// <summary>
+        /// Guided mode reuses the second Play camera jog, then reacquires new
+        /// evidence. A locked off-center corner never counts as verified.
+        /// </summary>
+        private async Task<CornerProof> AutoCenterCornerAsync(CancellationToken token)
+        {
+            const int maxJogs = FeederAutoCornerJogMath.MaxAutomaticJogs;
+            for (var jogCount = 0; jogCount <= maxJogs; jogCount++)
+            {
+                var corner = await AcquireFreshCornerAsync(token, acceptOffCenter: true);
+                if (corner == null)
+                {
+                    _autoCenterError = "No fresh stable white corner found. Inspect camera and retry; no jog sent.";
+                    return null;
+                }
+                if (!ReadyForAction(true, false, out var reason) ||
+                    Current.Status != MachineOperationRunStatus.Running)
+                {
+                    _autoCenterError = reason ?? "Calibration context changed during vision acquisition.";
+                    return null;
+                }
+
+                if (corner.Centered)
+                    return corner;
+                if (!FeederAutoCornerJogMath.CanJogAgain(jogCount))
+                {
+                    _autoCenterError = "White corner remains outside the active vision profile tolerance after five bounded camera jogs. Inspect manually.";
+                    return null;
+                }
+
+                var before = await _machine.GetCurrentLocationAsync(5000);
+                if (!before.Successful ||
+                    !FeederOriginCalibrationMath.SamePosition(before.Result, corner.MachinePosition, 0.1))
+                {
+                    _autoCenterError = "Machine moved after white corner observation. No jog sent.";
+                    return null;
+                }
+
+                if (!FeederAutoCornerJogMath.TryTarget(before.Result,
+                    corner.OffsetX, corner.OffsetY, _machine.Settings.WorkAreaSize,
+                    out var expected))
+                {
+                    _autoCenterError = "White corner correction exceeds 10 mm or the work area. No jog sent.";
+                    return null;
+                }
+
+                var jog = _machine.PositionImageCaptureService?.CenterFoundItemCommand;
+                if (jog == null || !jog.CanExecute(null))
+                {
+                    _autoCenterError = "The existing second Play camera Jog is unavailable. Switch to Manual.";
+                    return null;
+                }
+
+                _machine.SendSafeMoveHeight();
+                var safe = await WaitForMotionAndSerialIdleAsync(10000, token);
+                if (!safe.Successful)
+                {
+                    _autoCenterError = "Safe height failed before camera Jog: " + safe.ErrorMessage;
+                    return null;
+                }
+                if (!ReadyForAction(true, false, out reason) ||
+                    Current.Status != MachineOperationRunStatus.Running)
+                {
+                    _autoCenterError = reason ?? "Calibration cancelled before corner jog.";
+                    return null;
+                }
+
+                StatusText = $"Second Play jog {jogCount + 1}/{maxJogs}: X {corner.OffsetX:+0.00;-0.00;0.00}, Y {corner.OffsetY:+0.00;-0.00;0.00} mm.";
+                Signal();
+                token.ThrowIfCancellationRequested();
+                jog.Execute(null);
+                _automaticJogCount++;
+                Signal();
+                var moved = await WaitForMotionAndSerialIdleAsync(30000, token);
+                if (!moved.Successful)
+                {
+                    _autoCenterError = "Corner camera Jog did not finish: " + moved.ErrorMessage;
+                    return null;
+                }
+                if (!ReadyForAction(true, false, out reason) ||
+                    Current.Status != MachineOperationRunStatus.Running)
+                {
+                    _autoCenterError = reason ?? "Calibration cancelled after corner jog.";
+                    return null;
+                }
+
+                var actual = await _machine.GetCurrentLocationAsync(5000);
+                if (!actual.Successful ||
+                    !FeederOriginCalibrationMath.SamePosition(actual.Result, expected, 0.5))
+                {
+                    _autoCenterError = "Camera Jog missed its expected bounded target. Inspect machine before retry.";
+                    return null;
+                }
+
+                StatusText = "Corner jog complete; reacquiring fresh centered vision evidence.";
+                Signal();
+            }
+
+            _autoCenterError = "Automatic white-corner centering did not complete.";
+            return null;
         }
 
         private async Task<MachineOperationActionResult> CaptureAndSaveOriginAsync(CancellationToken token)
@@ -422,13 +650,38 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Name = "Saved feeder OriginOffset",
                 Value = $"X {newOffset.X:+0.00;-0.00;0.00}, Y {newOffset.Y:+0.00;-0.00;0.00}",
                 Unit = "mm",
-                Source = "Operator confirmation / Manufacturing feeder PUT",
+                // The operator's Start authorizes saving newly verified
+                // feeder offsets. A per-step click is not required, but this
+                // authorization is never used for part presence/absence.
+                Source = _autoCenterRequested
+                    ? "Operator Start authorization; fresh centered vision and Manufacturing feeder PUT"
+                    : "Operator per-step confirmation / Manufacturing feeder PUT",
                 Verification = MachineOperationVerificationKind.OperatorConfirmed,
                 Saved = true,
                 CapturedAtUtc = now,
                 VisionProfileKey = VisionProfile.VisionProfile_FeederOrigin,
                 PixelsPerMm = corner.PixelsPerMm
             });
+            if (_autoCenterRequested)
+            {
+                // Record the fresh vision observation independently of the
+                // Start authorization that the existing operation schema
+                // requires for a saved-origin checkpoint.
+                _session.RecordEvidence(new MachineOperationEvidence
+                {
+                    RunId = Current.RunId,
+                    StepKey = "save-origin",
+                    Name = "Fresh verified centered feeder corner at saved origin",
+                    Value = $"X {corner.OffsetX:+0.00;-0.00;0.00}, Y {corner.OffsetY:+0.00;-0.00;0.00}",
+                    Unit = "mm",
+                    Source = "Position camera / feeder origin profile",
+                    Verification = MachineOperationVerificationKind.VisionVerified,
+                    Saved = true,
+                    CapturedAtUtc = now,
+                    VisionProfileKey = VisionProfile.VisionProfile_FeederOrigin,
+                    PixelsPerMm = corner.PixelsPerMm
+                });
+            }
             _session.CompleteActiveStep("save-origin", now);
             MeasurementText = $"SAVED OriginOffset X {newOffset.X:+0.00;-0.00;0.00}, Y {newOffset.Y:+0.00;-0.00;0.00} mm";
             StatusText = "Feeder origin saved. Next: move to the first complete tape hole. Manual camera Jog remains available.";
@@ -502,7 +755,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             token.ThrowIfCancellationRequested();
 
             _machine.SendSafeMoveHeight();
-            var safe = await _machine.SpinUntilIdleAsync(10000);
+            var safe = await WaitForMotionAndSerialIdleAsync(10000, token);
             if (!safe.Successful)
                 return Block("Safe-height move failed: " + safe.ErrorMessage);
             if (!ReadyForAction(false, false, out var reason) || !TapeCameraUnchanged() ||
@@ -511,7 +764,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             capture.ResetDetections();
             _machine.GotoPoint(target);
-            var moved = await _machine.SpinUntilIdleAsync(30000);
+            var moved = await WaitForMotionAndSerialIdleAsync(30000, token);
             if (!moved.Successful)
                 return Block("Tape-hole approach failed: " + moved.ErrorMessage);
             if (!ReadyForAction(false, false, out reason) || !TapeCameraUnchanged() ||
@@ -523,9 +776,31 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 !FeederOriginCalibrationMath.SamePosition(actual.Result, target, 0.5))
                 return Block("The machine did not confirm reaching the calculated tape-hole target.");
 
+            // Mark the target as approached before camera auto-centering.
+            // If no stable circle is detected here, Retry must let the operator
+            // jog at this location rather than blindly returning to the same
+            // predicted coordinate and losing the manual correction.
             _approachedHoleStep = stepKey;
-            MeasurementText = $"Approached {(lastHole ? "last" : "first")} hole at X {actual.Result.X:F2}, Y {actual.Result.Y:F2} mm";
-            StatusText = "Use the existing camera Jog to center the intended complete tape hole, then press Verify. No offset is saved until BOTH holes are captured.";
+
+            // The last tape-hole capture is a persisted paired-offset commit,
+            // so guided mode jogs NOW, then stops for operator approval to save.
+            CircleProof centered = null;
+            if (lastHole && _autoCenterRequested)
+            {
+                _autoCenterError = null;
+                centered = await AutoCenterTapeHoleAsync(token);
+                if (centered == null)
+                    return Block((_autoCenterError ?? "Could not center the last tape hole.") +
+                        $" Predicted last-hole XY: X {actual.Result.X:F2}, Y {actual.Result.Y:F2}. " +
+                        "Inspect the camera and jog to the intended complete hole; Retry then uses the current position.");
+            }
+
+            MeasurementText = centered == null
+                ? $"Approached {(lastHole ? "last" : "first")} hole at X {actual.Result.X:F2}, Y {actual.Result.Y:F2} mm"
+                : $"Centered last hole within profile tolerance: residual X {centered.OffsetX:+0.00;-0.00;0.00}, Y {centered.OffsetY:+0.00;-0.00;0.00} mm";
+            StatusText = centered == null
+                ? "Use existing camera Jog to center the intended complete tape hole, then Verify. No offset is saved until BOTH holes are captured."
+                : "Last tape hole centered within profile tolerance. Inspect the image, then explicitly Verify & Save the paired offsets.";
             Signal();
             return Result(true);
         }
@@ -538,9 +813,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             StatusText = "Acquiring a fresh stable, centered tape hole at the current camera position.";
             Signal();
-            var circle = await AcquireFreshCircleAsync(token);
+            _autoCenterError = null;
+            var circle = _autoCenterRequested
+                ? await AutoCenterTapeHoleAsync(token)
+                : await AcquireFreshCircleAsync(token);
             if (circle == null)
-                return Block("No stable centered tape hole was found. Jog and retry this step.");
+                return Block(_autoCenterError ??
+                    "No stable centered tape hole was found. Jog and retry this step.");
             if (!ReadyForAction(false, lastHole, out reason) || !TapeCameraUnchanged() ||
                 Current.Status != MachineOperationRunStatus.Running)
                 return Block(reason ?? "Machine context changed during tape-hole verification.");
@@ -631,9 +910,252 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _session.CompleteActiveStep("last-tape-hole", now);
             _approachedHoleStep = null;
             MeasurementText = $"SAVED tape holes: first X {_firstHoleRowOffset.X:F3}, Y {_firstHoleRowOffset.Y:F3}; last X {rowOffset.X:F3}, Y {rowOffset.Y:F3}";
-            StatusText = "First and last tape-hole offsets saved together. Pocket checks are the next task; no parts have been picked.";
+            StatusText = "First and last tape-hole offsets saved after fresh centered vision verification. Next: inspect the current pocket. No picking.";
             Signal();
             return Result(true);
+        }
+
+
+        // Camera moves and visual confirmation are separate operator actions.
+        // Neither action picks a component or updates inventory/CurrentPartIndex.
+        private async Task<MachineOperationActionResult> AdvancePocketAsync(
+            bool previous, CancellationToken token)
+        {
+            if (!ReadyForAction(false, false, out var reason))
+                return Block(reason);
+            if (_row.CurrentPartIndex != (Current.Target.StartingPartIndex ?? 0))
+                return Block("Feeder row current-part index changed. Restart calibration.");
+            if (!FeederPocketVerificationMath.TryGetInspectionIndex(
+                    (Current.Target.StartingPartIndex ?? 0), _row.PartCapacity, previous, out var index))
+                return Block(previous
+                    ? "Part 1 has no preceding pocket; no move sent."
+                    : "Current part index is outside feeder capacity.");
+
+            var key = previous ? "verify-previous-empty" : "verify-current-part";
+            return _approachedPocketStep == key
+                ? await VerifyPocketFromFreshRectanglesAsync(previous, token)
+                : await MoveToPocketAsync(previous, index, token);
+        }
+
+        private async Task<MachineOperationActionResult> MoveToPocketAsync(
+            bool previous, int index, CancellationToken token)
+        {
+            var key = previous ? "verify-previous-empty" : "verify-current-part";
+            var target = _resolvePocket(index);
+            if (!target.Successful || target.Result == null)
+                return Block(target.ErrorMessage ?? "Could not resolve pocket position.");
+            var point = target.Result;
+            var capture = _machine.PositionImageCaptureService;
+            if (capture?.Camera == null || capture.Profile == null)
+                return Block("Position camera or part-in-tape profile unavailable.");
+            _pocketCameraId = capture.Camera.Id.ToString();
+            _pocketCameraScale = capture.Camera.EffectivePixelsPerMM;
+            _pocketProfileKey = capture.Profile.Key;
+            if (!IsPartInTapeProfile(_pocketProfileKey) ||
+                !capture.Profile.PerformShapeDetection ||
+                !capture.Profile.FindRectangles)
+                return Block("Pocket inspection requires the active part-in-tape profile with rectangle detection enabled.");
+            if (_pocketCameraScale <= 0 || Double.IsNaN(_pocketCameraScale) ||
+                Double.IsInfinity(_pocketCameraScale) || !PocketCameraUnchanged())
+                return Block("Invalid position camera scale/profile.");
+
+            var workArea = _machine.Settings.WorkAreaSize;
+            if (Double.IsNaN(point.X) || Double.IsNaN(point.Y) ||
+                Double.IsInfinity(point.X) || Double.IsInfinity(point.Y) ||
+                point.X < 0 || point.Y < 0 ||
+                point.X > workArea.X || point.Y > workArea.Y)
+                return Block("Pocket target is outside machine work area; no move sent.");
+
+            StatusText = $"Moving CAMERA to pocket {index}: X={point.X:F2}, Y={point.Y:F2} mm; no pick.";
+            Signal();
+            token.ThrowIfCancellationRequested();
+            _machine.SendSafeMoveHeight();
+            var safe = await WaitForMotionAndSerialIdleAsync(10000, token);
+            if (!safe.Successful)
+                return Block("Safe-height move failed: " + safe.ErrorMessage);
+            if (!PocketContextReady(out var reason) ||
+                Current.Status != MachineOperationRunStatus.Running)
+                return Block(reason ?? "Machine or camera changed before pocket move.");
+
+            capture.ResetDetections();
+            _machine.GotoPoint(point);
+            var moved = await WaitForMotionAndSerialIdleAsync(30000, token);
+            if (!moved.Successful)
+                return Block("Pocket camera move failed: " + moved.ErrorMessage);
+            if (!PocketContextReady(out reason) ||
+                Current.Status != MachineOperationRunStatus.Running)
+                return Block(reason ?? "Machine or camera changed after pocket move.");
+
+            var actual = await _machine.GetCurrentLocationAsync(5000);
+            if (!actual.Successful ||
+                !FeederOriginCalibrationMath.SamePosition(actual.Result, point, 0.5))
+                return Block("Machine did not confirm pocket arrival.");
+
+            _pocketTarget = new Point2D<double>(actual.Result.X, actual.Result.Y);
+            _pocketIndex = index;
+            _approachedPocketStep = key;
+            var now = DateTimeOffset.UtcNow;
+            _session.RecordEvidence(new MachineOperationEvidence
+            {
+                RunId = Current.RunId,
+                StepKey = key,
+                Name = "Camera position at pocket",
+                Value = $"index {index}; X {actual.Result.X:F3}, Y {actual.Result.Y:F3}",
+                Unit = "mm",
+                Source = "Machine position readback",
+                Verification = MachineOperationVerificationKind.MachineObserved,
+                CapturedAtUtc = now,
+                VisionProfileKey = _pocketProfileKey,
+                PixelsPerMm = _pocketCameraScale
+            });
+            MeasurementText = $"Pocket {index}: X {actual.Result.X:F3}, Y {actual.Result.Y:F3} mm";
+            StatusText = previous
+                ? "Camera arrived. Observing fresh frames for a sustained EMPTY result without rectangles."
+                : "Camera arrived. Waiting for a stabilized, centered component rectangle.";
+            Signal();
+            return Result(true);
+        }
+
+        private static bool IsPartInTapeProfile(string key) =>
+            key == VisionProfile.VisionProfile_PartInWhiteTape ||
+            key == VisionProfile.VisionProfile_PartInBlackTape ||
+            key == VisionProfile.VisionProfile_PartInClearTape;
+
+        /// <summary>
+        /// Confirms the occupied/current and empty/previous pockets using only
+        /// the existing position camera's rectangle detector. A green rectangle
+        /// is stabilized+centered under the active profile; an empty pocket
+        /// requires many fresh, successfully processed frames without ANY
+        /// detected rectangles. No pick or feeder-index mutation is performed.
+        /// </summary>
+        private async Task<MachineOperationActionResult> VerifyPocketFromFreshRectanglesAsync(
+            bool previous, CancellationToken token)
+        {
+            if (!PocketContextReady(out var reason) || _pocketTarget == null)
+                return Block(reason ?? "Pocket camera observation is stale; repeat approach.");
+
+            var capture = _machine.PositionImageCaptureService;
+            if (capture?.Profile == null || !IsPartInTapeProfile(_pocketProfileKey) ||
+                !capture.Profile.PerformShapeDetection || !capture.Profile.FindRectangles)
+                return Block("The part-in-tape rectangle detector is not enabled for the selected camera profile.");
+
+            token.ThrowIfCancellationRequested();
+            var actual = await _machine.GetCurrentLocationAsync(5000);
+            if (!actual.Successful ||
+                !FeederOriginCalibrationMath.SamePosition(actual.Result, _pocketTarget, 0.1))
+                return Block("Machine moved after reaching pocket. Cannot verify presence or absence.");
+
+            var settled = await WaitForSerialQuietAsync(token);
+            if (!settled.Successful || !PocketContextReady(out reason) ||
+                Current.Status != MachineOperationRunStatus.Running)
+                return Block(reason ?? "Camera or machine changed before pocket inspection.");
+
+            // Stale detection history from earlier pockets is never evidence.
+            // Snapshot the monotonic camera frame counter, then clear detector
+            // history, requiring all future evidence to come from NEW frames.
+            var baselineId = capture.LatestRectangleFrame?.FrameId ?? 0;
+            capture.ResetDetections();
+            var start = DateTimeOffset.UtcNow;
+            PocketRectangleFrameObservation last = null;
+
+            for (var poll = 0; poll < 65; poll++)
+            {
+                token.ThrowIfCancellationRequested();
+                if (!PocketContextReady(out reason) ||
+                    Current.Status != MachineOperationRunStatus.Running)
+                    return Block(reason ?? "Pocket machine/feeder/vision context changed during observation.");
+
+                var now = DateTimeOffset.UtcNow;
+                last = capture.LatestRectangleFrame;
+                var decision = PocketPresenceObservationPolicy.Evaluate(
+                    last, baselineId, start, now, _pocketCameraId,
+                    _pocketProfileKey, capture.Profile.StabilizationCount);
+
+                if (decision == PocketPresenceDecision.CameraUnavailable)
+                    return Block("Part-in-tape camera frames are stale, invalid or from the wrong camera/profile.");
+                if (decision == PocketPresenceDecision.Ambiguous)
+                    return Block("More than one stable centered rectangle detected in a single pocket. Cannot classify safely.");
+
+                if (decision == PocketPresenceDecision.Present ||
+                    decision == PocketPresenceDecision.Empty)
+                {
+                    if (previous && decision == PocketPresenceDecision.Present)
+                        return Block("PREVIOUS POCKET NOT EMPTY: stabilized component rectangle detected. Check tape position.");
+                    if (!previous && decision == PocketPresenceDecision.Empty)
+                        return Block("CURRENT PART MISSING: no component rectangle in the fresh camera observation window.");
+
+                    var measured = await _machine.GetCurrentLocationAsync(5000);
+                    if (!measured.Successful ||
+                        !FeederOriginCalibrationMath.SamePosition(measured.Result, _pocketTarget, 0.1) ||
+                        !PocketContextReady(out reason) ||
+                        Current.Status != MachineOperationRunStatus.Running)
+                        return Block(reason ?? "Machine moved or context changed while verifying pocket evidence.");
+
+                    var key = previous ? "verify-previous-empty" : "verify-current-part";
+                    var observedAt = DateTimeOffset.UtcNow;
+                    var proof = previous
+                        ? $"EMPTY: {last.FrameId - baselineId} fresh processed frames; no rectangle; " +
+                          $"index {_pocketIndex}; X {measured.Result.X:F3}, Y {measured.Result.Y:F3}"
+                        : $"PRESENT: stabilized centered rectangle; observations {last.StableCenteredFoundCount}; " +
+                          $"size {last.CenteredWidthMm:F2} x {last.CenteredHeightMm:F2} mm; " +
+                          $"offset X {last.CenteredOffsetXmm:+0.00;-0.00;0.00}, Y {last.CenteredOffsetYmm:+0.00;-0.00;0.00} mm; index {_pocketIndex}";
+
+                    _session.RecordEvidence(new MachineOperationEvidence
+                    {
+                        RunId = Current.RunId,
+                        StepKey = key,
+                        Name = previous ? "Vision verified EMPTY pocket" : "Vision verified PRESENT component",
+                        Value = proof,
+                        Unit = "mm",
+                        Source = "Position camera / existing part-in-tape rectangle detector; fresh frames",
+                        Verification = MachineOperationVerificationKind.VisionVerified,
+                        CapturedAtUtc = observedAt,
+                        VisionProfileKey = _pocketProfileKey,
+                        PixelsPerMm = _pocketCameraScale
+                    });
+                    _session.CompleteActiveStep(key, observedAt);
+                    _approachedPocketStep = null;
+                    _pocketTarget = null;
+                    MeasurementText = proof;
+                    StatusText = previous
+                        ? "All seven calibration steps passed. Verified preceding pocket EMPTY by vision."
+                        : "Verified current component PRESENT by vision. Next: preceding pocket EMPTY check.";
+                    Signal();
+                    return Result(true);
+                }
+
+                await Task.Delay(100, token);
+            }
+
+            var count = last == null ? 0 : Math.Max(0, last.FrameId - baselineId);
+            return Block($"Pocket inspection was inconclusive after 6.5 seconds and {count} fresh frames. " +
+                (last == null || count == 0
+                    ? "Camera did not produce fresh processed rectangle-detection frames."
+                    : last.LastRectangleFrameId > baselineId
+                        ? "Rectangle candidates appeared but did not stabilize centered; cannot claim EMPTY or PRESENT."
+                        : "Not enough validated camera evidence to establish the expected pocket state.") +
+                " Inspect camera and profile, then Reset.");
+        }
+
+        private bool PocketContextReady(out string reason)
+        {
+            if (!ReadyForAction(false, false, out reason))
+                return false;
+            if (_row.CurrentPartIndex != (Current.Target.StartingPartIndex ?? 0))
+                reason = "Feeder row current-part index changed during pocket check.";
+            else if (!PocketCameraUnchanged())
+                reason = "Position camera or vision profile changed during pocket check.";
+            return reason == null;
+        }
+
+        private bool PocketCameraUnchanged()
+        {
+            var capture = _machine.PositionImageCaptureService;
+            return FeederOriginCalibrationMath.CameraProfileUnchanged(
+                _pocketCameraId, _pocketCameraScale,
+                capture?.Camera?.Id.ToString(),
+                capture?.Camera?.EffectivePixelsPerMM ?? 0,
+                capture?.Profile?.Key, _pocketProfileKey);
         }
 
         private bool TapeCameraUnchanged()
@@ -646,7 +1168,126 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 capture?.Profile?.Key, _tapeProfileKey);
         }
 
-        private async Task<CircleProof> AcquireFreshCircleAsync(CancellationToken token)
+        /// <summary>
+        /// Mirrors staging-plate calibration: stable circle -> profile-based
+        /// Centered check -> bounded jog -> fresh observation, up to five jogs.
+        /// Does not save the first or last tape-hole offsets.
+        /// </summary>
+        private async Task<CircleProof> AutoCenterTapeHoleAsync(CancellationToken token)
+        {
+            var capture = _machine.PositionImageCaptureService;
+            var label = Current.ActiveStepKey == "last-tape-hole" ? "last" : "first";
+            for (var jogCount = 0;
+                 jogCount <= FeederAutoCornerJogMath.MaxAutomaticJogs; jogCount++)
+            {
+                var observed = await AcquireFreshCircleAsync(token, acceptOffCenter: true);
+                if (observed == null)
+                {
+                    _autoCenterError = $"No fresh stable {label} tape hole was detected. Inspect the camera; no jog sent.";
+                    return null;
+                }
+
+                if (!ReadyForAction(false, false, out var reason) ||
+                    !TapeCameraUnchanged() ||
+                    Current.Status != MachineOperationRunStatus.Running)
+                {
+                    _autoCenterError = reason ?? "Tape-hole profile or machine context changed.";
+                    return null;
+                }
+
+                // Circle.Centered is determined by the active vision profile's
+                // ErrorToleranceMM, not exact zero or a hard-coded threshold.
+                if (observed.Centered)
+                    return observed;
+                if (!FeederAutoCornerJogMath.CanJogAgain(jogCount))
+                {
+                    _autoCenterError = $"{label} tape hole remains outside vision profile tolerance after five jogs. Inspect manually.";
+                    return null;
+                }
+
+                var before = await _machine.GetCurrentLocationAsync(5000);
+                if (!before.Successful ||
+                    !FeederOriginCalibrationMath.SamePosition(
+                        before.Result, observed.MachinePosition, 0.1))
+                {
+                    _autoCenterError = "Machine moved after the stable tape-hole observation. No jog sent.";
+                    return null;
+                }
+
+                if (!FeederAutoCornerJogMath.TryTarget(before.Result,
+                    observed.OffsetX, observed.OffsetY,
+                    _machine.Settings.WorkAreaSize, out var expected))
+                {
+                    _autoCenterError = "Tape-hole correction exceeds 10 mm per axis or machine work area. No jog sent.";
+                    return null;
+                }
+
+                token.ThrowIfCancellationRequested();
+                _machine.SendSafeMoveHeight();
+                var safe = await WaitForMotionAndSerialIdleAsync(10000, token);
+                if (!safe.Successful)
+                {
+                    _autoCenterError = "Tape-hole safe Z did not finish: " + safe.ErrorMessage;
+                    return null;
+                }
+                if (!ReadyForAction(false, false, out reason) ||
+                    !TapeCameraUnchanged() ||
+                    Current.Status != MachineOperationRunStatus.Running)
+                {
+                    _autoCenterError = reason ?? "Calibration context changed before tape-hole jog.";
+                    return null;
+                }
+
+                StatusText = $"Centering {label} tape hole, jog {jogCount + 1}/{FeederAutoCornerJogMath.MaxAutomaticJogs}: " +
+                    $"X {observed.OffsetX:+0.00;-0.00;0.00}, Y {observed.OffsetY:+0.00;-0.00;0.00} mm.";
+                Signal();
+
+                // Shared with the camera's second Play: exact detector identity,
+                // active profile, stable observation and limits are rechecked
+                // before the relative machine motion is actually queued.
+                var jogged = capture.TryJogToObservedCircle(
+                    observed.DetectionId, observed.OffsetX, observed.OffsetY,
+                    _tapeProfileKey);
+                if (!jogged.Successful)
+                {
+                    _autoCenterError = "Existing tape-hole Jog declined motion: " + jogged.ErrorMessage;
+                    return null;
+                }
+
+                _automaticJogCount++;
+                Signal();
+                var idle = await WaitForMotionAndSerialIdleAsync(30000, token);
+                if (!idle.Successful)
+                {
+                    _autoCenterError = "Tape-hole centering move did not finish: " + idle.ErrorMessage;
+                    return null;
+                }
+                if (!ReadyForAction(false, false, out reason) ||
+                    !TapeCameraUnchanged() ||
+                    Current.Status != MachineOperationRunStatus.Running)
+                {
+                    _autoCenterError = reason ?? "Calibration context changed after tape-hole jog.";
+                    return null;
+                }
+
+                var actual = await _machine.GetCurrentLocationAsync(5000);
+                if (!actual.Successful ||
+                    !FeederOriginCalibrationMath.SamePosition(actual.Result, expected, 0.5))
+                {
+                    _autoCenterError = "Tape-hole jog did not reach its bounded target. Inspect the machine before retry.";
+                    return null;
+                }
+
+                StatusText = $"Tape-hole jog {jogCount + 1} complete; reacquiring fresh stable circle.";
+                Signal();
+            }
+
+            _autoCenterError = "Tape-hole centering stopped without an accepted observation.";
+            return null;
+        }
+
+        private async Task<CircleProof> AcquireFreshCircleAsync(
+            CancellationToken token, bool acceptOffCenter = false)
         {
             TaskCompletionSource<CircleProof> request;
             lock (_observationGate)
@@ -654,6 +1295,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 request = new TaskCompletionSource<CircleProof>(
                     TaskCreationOptions.RunContinuationsAsynchronously);
                 _pendingCircle = request;
+                _acceptOffCenterCircle = acceptOffCenter;
             }
             try
             {
@@ -680,7 +1322,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             if (request == null || _disposed || circle == null ||
                 circle.CameraType != CameraTypes.Position ||
-                !circle.Stabilized || !circle.PositionStable || !circle.Centered ||
+                !circle.Stabilized || !circle.PositionStable ||
+                (!circle.Centered && !_acceptOffCenterCircle) ||
                 circle.RadiusMM <= 0 || _machine.Busy || !_machine.Connected ||
                 _machine.Mode != OperatingMode.Manual || !TapeCameraUnchanged())
                 return;
@@ -689,11 +1332,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var offset = circle.OffsetMM;
             request.TrySetResult(new CircleProof
             {
+                DetectionId = circle.Id,
                 MachinePosition = new Point2D<double>(position.X, position.Y),
                 OffsetX = offset.X,
                 OffsetY = offset.Y,
                 RadiusMm = circle.RadiusMM,
-                PixelsPerMm = _tapeCameraScale
+                PixelsPerMm = _tapeCameraScale,
+                Centered = circle.Centered
             });
         }
 
@@ -715,6 +1360,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 _pendingCircle?.TrySetResult(null);
                 _pendingCircle = null;
+                _acceptOffCenterCircle = false;
             }
             if (_circleRegistered)
             {
@@ -723,13 +1369,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
         }
 
-        private async Task<CornerProof> AcquireFreshCornerAsync(CancellationToken token)
+        private async Task<CornerProof> AcquireFreshCornerAsync(
+            CancellationToken token, bool acceptOffCenter = false)
         {
             TaskCompletionSource<CornerProof> request;
             lock (_observationGate)
             {
                 request = new TaskCompletionSource<CornerProof>(TaskCreationOptions.RunContinuationsAsynchronously);
                 _pendingCorner = request;
+                _acceptOffCenterCorner = acceptOffCenter;
             }
 
             try
@@ -759,7 +1407,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             if (request == null || _disposed || corner == null ||
                 corner.Camera != CameraTypes.Position ||
-                !corner.Stabilized || !corner.PositionStable || !corner.Centered ||
+                !corner.Stabilized || !corner.PositionStable ||
+                (!corner.Centered && !_acceptOffCenterCorner) ||
                 _machine.Busy || !_machine.Connected ||
                 _machine.Mode != OperatingMode.Manual)
                 return;
@@ -780,7 +1429,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 MachinePosition = new Point2D<double>(machinePosition.X, machinePosition.Y),
                 OffsetX = offset.X,
                 OffsetY = offset.Y,
-                PixelsPerMm = corner.PixelsPerMm
+                PixelsPerMm = corner.PixelsPerMm,
+                Centered = corner.Centered
             });
         }
 
@@ -802,12 +1452,54 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 _pendingCorner?.TrySetResult(null);
                 _pendingCorner = null;
+                _acceptOffCenterCorner = false;
             }
             if (_registered)
             {
                 _registered = false;
                 _locator.UnRegisterCornerLocatedHandler(this);
             }
+        }
+
+        /// <summary>
+        /// A firmware M400 response establishes physical movement completion.
+        /// It does not guarantee the host's transmit counters have cleared.
+        /// Require two consecutive idle observations before the next action.
+        /// This method never sends motion or changes the machine lock.
+        /// </summary>
+        private async Task<InvokeResult> WaitForSerialQuietAsync(CancellationToken token)
+        {
+            var consecutiveQuiet = 0;
+            for (var poll = 0; poll < 40; poll++)
+            {
+                token.ThrowIfCancellationRequested();
+                if (_disposed || !_contextIsCurrent() || !_machine.Connected)
+                    return InvokeResult.FromError("Machine disconnected or calibration selection changed.");
+
+                if (FeederCalibrationAutoAdvancePolicy.SerialChannelQuiet(
+                    _machine.Connected, _machine.Busy, _machine.ToSendQueueCount,
+                    _machine.UnacknowledgedBytesSent))
+                {
+                    if (++consecutiveQuiet >= 2)
+                        return InvokeResult.Success;
+                }
+                else
+                    consecutiveQuiet = 0;
+
+                await Task.Delay(75, token);
+            }
+
+            return InvokeResult.FromError(
+                "M400 finished, but the machine command channel did not become idle within three seconds.");
+        }
+
+        private async Task<InvokeResult> WaitForMotionAndSerialIdleAsync(
+            uint timeoutMs, CancellationToken token)
+        {
+            var completion = await _machine.SpinUntilIdleAsync(timeoutMs);
+            if (!completion.Successful)
+                return completion;
+            return await WaitForSerialQuietAsync(token);
         }
 
         private bool ReadyForAction(bool requireProfile, bool saving, out string reason)
@@ -838,8 +1530,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                          _machine.PositionImageCaptureService.Profile?.Key,
                          VisionProfile.VisionProfile_FeederOrigin))
                 reason = "Position camera, Feeder Origin profile or camera scale changed; start over.";
-            else if (saving && _machine.AreSettingsLocked)
-                reason = "Machine settings are locked; unlock before saving calibration.";
+            // AreSettingsLocked guards machine configuration editing. This
+            // operation persists a separate StripFeeder entity, never Machine
+            // settings, so its operator-approved save does not require a global
+            // machine-settings unlock. Homing/manual/idle checks still apply.
             return reason == null;
         }
 

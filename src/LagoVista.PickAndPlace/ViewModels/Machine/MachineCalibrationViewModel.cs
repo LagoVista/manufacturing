@@ -6,15 +6,27 @@ using LagoVista.Core.Commanding;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Models;
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using System;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.ViewModels.Machine
 {
     public class MachineCalibrationViewModel : MachineViewModelBase, IMachineCalibrationViewModel
     {
-        public MachineCalibrationViewModel(IMachineRepo machineRepo) : base(machineRepo)
+        private readonly KnownLocationCylinderCenteringRunner _cylinderCentering;
+
+        public MachineCalibrationViewModel(IMachineRepo machineRepo, ILocatorViewModel locator)
+            : base(machineRepo)
         {
+            // Even before the first run, show the operator the complete
+            // independent exposure procedure in the shared step panel.
+            ResetExposureSteps();
+            _cylinderCentering = new KnownLocationCylinderCenteringRunner(machineRepo, locator);
+            VerifyKnownLocationCylinderCommand = new RelayCommand(
+                async () => await VerifyKnownLocationCylinderAsync(),
+                () => !_cylinderCentering.Running);
 
             SetStagingPlateReferenceHole1LocationCommand = CreatedMachineConnectedSettingsCommand(() =>
             {
@@ -52,7 +64,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 () => SelectedMachineCamera != null &&
                       SelectedMachineCamera.CameraType?.Value == CameraTypes.Position &&
                       Machine.PositionImageCaptureService != null &&
-                      !MachineConfiguration.MachineFiducial.IsOrigin());
+                      !MachineConfiguration.MachineFiducial.IsOrigin() &&
+                      !ExposureCalibrationRunning);
 
             SetCameraPixelsPerMMCommand = new RelayCommand(
                 async () => await SetCameraPixelsPerMMAsync(),
@@ -82,6 +95,34 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         }
 
 
+
+        private string _cylinderCenterStatus =
+            "Ready: verify the cylinder with the existing Known Location circle profile.";
+        public string CylinderCenterStatus
+        {
+            get => _cylinderCenterStatus;
+            private set => Set(ref _cylinderCenterStatus, value);
+        }
+        public RelayCommand VerifyKnownLocationCylinderCommand { get; }
+
+        private async Task VerifyKnownLocationCylinderAsync()
+        {
+            if (_cylinderCentering.Running) return;
+            CylinderCenterStatus = "Locating and checking the calibration cylinder...";
+            VerifyKnownLocationCylinderCommand.RaiseCanExecuteChanged();
+            try
+            {
+                var result = await _cylinderCentering.RunAsync();
+                CylinderCenterStatus = _cylinderCentering.Status;
+                Machine?.AddStatusMessage(
+                    result.Successful ? StatusMessageTypes.Info : StatusMessageTypes.Warning,
+                    CylinderCenterStatus);
+            }
+            finally
+            {
+                VerifyKnownLocationCylinderCommand.RaiseCanExecuteChanged();
+            }
+        }
 
         private bool _savingCameraPixelsPerMM;
         // Text-backed input lets the operator type intermediate values such as "2."
@@ -150,76 +191,230 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
         }
 
+        private readonly System.Diagnostics.Stopwatch _exposureRunClock = new System.Diagnostics.Stopwatch();
+        private TimeSpan _exposureStepStarted;
+        private int _exposureCurrentStep = -1;
+        private bool _exposureCalibrationRunning;
+        private string _exposureCalibrationStatus = "Ready for exposure calibration.";
+
+        public ObservableCollection<ExposureCalibrationStep> ExposureSteps { get; } =
+            new ObservableCollection<ExposureCalibrationStep>();
+
+        public bool ExposureCalibrationRunning
+        {
+            get => _exposureCalibrationRunning;
+            private set
+            {
+                if (Set(ref _exposureCalibrationRunning, value))
+                {
+                    RaisePropertyChanged(nameof(ExposureCalibrationCanRun));
+                    AutoTuneCameraExposureCommand.RaiseCanExecuteChanged();
+                }
+            }
+        }
+
+        public bool ExposureCalibrationCanRun => !ExposureCalibrationRunning;
+
+        public string ExposureCalibrationStatus
+        {
+            get => _exposureCalibrationStatus;
+            private set => Set(ref _exposureCalibrationStatus, value);
+        }
+
+        public string ExposureElapsed => _exposureRunClock.Elapsed.TotalSeconds.ToString("F1") + " s";
+
+        private void ResetExposureSteps()
+        {
+            ExposureSteps.Clear();
+            foreach (var name in new[]
+            {
+                "Check camera", "Position camera", "Tune exposure",
+                "Verify result", "Save calibration"
+            })
+                ExposureSteps.Add(new ExposureCalibrationStep { Name = name, Status = "Pending" });
+            _exposureCurrentStep = -1;
+        }
+
+        private void StartExposureStep(int index, string detail)
+        {
+            if (_exposureCurrentStep >= 0)
+            {
+                var previous = ExposureSteps[_exposureCurrentStep];
+                if (previous.Status == "Running")
+                {
+                    previous.Status = "Passed";
+                    previous.Duration = (_exposureRunClock.Elapsed - _exposureStepStarted)
+                        .TotalSeconds.ToString("F1") + " s";
+                }
+            }
+
+            _exposureCurrentStep = index;
+            _exposureStepStarted = _exposureRunClock.Elapsed;
+            ExposureSteps[index].Status = "Running";
+            ExposureSteps[index].Detail = detail;
+            ExposureCalibrationStatus = detail;
+            RaisePropertyChanged(nameof(ExposureElapsed));
+        }
+
+        private void FailExposureStep(string reason)
+        {
+            if (_exposureCurrentStep >= 0)
+            {
+                var step = ExposureSteps[_exposureCurrentStep];
+                step.Status = "Failed";
+                step.Detail = reason;
+                step.Duration = (_exposureRunClock.Elapsed - _exposureStepStarted)
+                    .TotalSeconds.ToString("F1") + " s";
+            }
+            ExposureCalibrationStatus = reason;
+            Machine?.AddStatusMessage(StatusMessageTypes.Warning, reason);
+            RaisePropertyChanged(nameof(ExposureElapsed));
+        }
+
+        // Standalone operation: no machine-origin reset, staging plate calibration
+        // or automatic chaining. Also used by the legacy camera Auto-Tune command.
+        public async Task RunExposureCalibrationAsync()
+        {
+            if (ExposureCalibrationRunning)
+                return;
+
+            ExposureCalibrationRunning = true;
+            ResetExposureSteps();
+            _exposureRunClock.Restart();
+            MachineCamera camera = null;
+            VisionProfile fiducialProfile = null;
+            double previousExposure = 0;
+            double? previousProfileExposure = null;
+            var tuned = false;
+            var saved = false;
+            try
+            {
+                StartExposureStep(0, "Checking position camera, machine and live video.");
+                var machine = Machine;
+                var service = machine?.PositionImageCaptureService;
+                camera = SelectedMachineCamera;
+                // Exposure calibration is a supervised, self-contained operation.
+                // The global settings lock is a UI editing guard, not a machine
+                // safety interlock. Do not flip it for this operation: allow
+                // calibration with the existing lock state unchanged while still
+                // requiring the machine to be connected, homed and idle.
+                if (machine == null || !machine.Connected || !machine.WasMachineHomed ||
+                    machine.Busy || machine.IsLocating)
+                {
+                    FailExposureStep("Connect and home an idle machine before calibration.");
+                    return;
+                }
+                if (camera == null || camera.CameraType?.Value != CameraTypes.Position ||
+                    service == null || service.Camera == null ||
+                    !ReferenceEquals(service.Camera, camera))
+                {
+                    FailExposureStep("Select the active position camera before calibrating exposure.");
+                    return;
+                }
+                if (MachineConfiguration.MachineFiducial.IsOrigin())
+                {
+                    FailExposureStep("Configure the machine fiducial location before calibrating exposure.");
+                    return;
+                }
+
+                var ready = await service.EnsureCaptureReadyAsync();
+                if (!ready.Successful)
+                {
+                    FailExposureStep("No fresh live camera frames: " + ready.ErrorMessage);
+                    return;
+                }
+
+                previousExposure = camera.Exposure;
+                StartExposureStep(1, "Moving safely to the machine fiducial.");
+                machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_MachineFiducual);
+                fiducialProfile = camera.CurrentVisionProfile;
+                if (fiducialProfile?.Key != VisionProfile.VisionProfile_MachineFiducual)
+                {
+                    FailExposureStep("The required machine-fiducial vision profile is unavailable.");
+                    return;
+                }
+                previousProfileExposure = fiducialProfile.Exposure;
+
+                machine.SendSafeMoveHeight();
+                await machine.MoveToCameraAsync();
+                machine.GotoPoint(MachineConfiguration.MachineFiducial);
+                var move = await machine.SpinUntilIdleAsync(10000);
+                if (!move.Successful)
+                {
+                    FailExposureStep("Camera positioning failed: " + move.ErrorMessage);
+                    return;
+                }
+
+                if (!machine.Connected || !ReferenceEquals(service.Camera, camera) ||
+                    !ReferenceEquals(camera.CurrentVisionProfile, fiducialProfile))
+                {
+                    FailExposureStep("Machine or active camera/profile changed before tuning.");
+                    return;
+                }
+
+                StartExposureStep(2, "Sampling the live fiducial and tuning dark/white levels.");
+                var result = await service.AutoTuneExposureAsync();
+                if (!result.Successful)
+                {
+                    FailExposureStep("Exposure tuning failed: " + result.ErrorMessage);
+                    return;
+                }
+                tuned = true;
+
+                StartExposureStep(3, "Checking the measured contrast and camera identity.");
+                if (!machine.Connected || !ReferenceEquals(service.Camera, camera) ||
+                    !ReferenceEquals(camera.CurrentVisionProfile, fiducialProfile) ||
+                    service.ExposureTuneProgress?.Usable != true)
+                {
+                    FailExposureStep("The verified image measurement or active camera/profile changed; nothing saved.");
+                    return;
+                }
+
+                // Only the machine-fiducial profile inherits this new camera baseline.
+                // Unrelated illumination and exposure overrides remain untouched.
+                StartExposureStep(4, "Saving the verified camera baseline.");
+                fiducialProfile.Exposure = null;
+                var persisted = await MachineRepo.SaveCurrentMachineAsync();
+                if (!persisted.Successful)
+                {
+                    FailExposureStep("Exposure verified but save failed: " + persisted.ErrorMessage);
+                    return;
+                }
+                saved = true;
+                var step = ExposureSteps[4];
+                step.Status = "Passed";
+                step.Detail = "Saved exposure " + camera.Exposure.ToString("F1") +
+                    " with actual dark/white image measurements.";
+                step.Duration = (_exposureRunClock.Elapsed - _exposureStepStarted)
+                    .TotalSeconds.ToString("F1") + " s";
+                ExposureCalibrationStatus = "Exposure calibrated and saved: " +
+                    camera.Exposure.ToString("F1") + ".";
+                machine.AddStatusMessage(StatusMessageTypes.Info, ExposureCalibrationStatus);
+            }
+            catch (Exception ex)
+            {
+                FailExposureStep("Camera exposure calibration stopped: " + ex.Message);
+            }
+            finally
+            {
+                // The sampling engine restores failed tuning itself. Restore the
+                // original camera baseline and profile override when verification
+                // or persistence fails AFTER a successful candidate measurement.
+                if (tuned && !saved && camera != null)
+                {
+                    camera.Exposure = previousExposure;
+                    if (fiducialProfile != null)
+                        fiducialProfile.Exposure = previousProfileExposure;
+                }
+                _exposureRunClock.Stop();
+                RaisePropertyChanged(nameof(ExposureElapsed));
+                ExposureCalibrationRunning = false;
+            }
+        }
+
         private async Task AutoTuneCameraExposureAsync()
         {
-            if (SelectedMachineCamera == null ||
-                SelectedMachineCamera.CameraType?.Value != CameraTypes.Position ||
-                Machine.PositionImageCaptureService == null)
-            {
-                Machine.AddStatusMessage(StatusMessageTypes.Warning,
-                    "Select the position camera before running Camera Auto-Tune.");
-                return;
-            }
-
-            if (Machine.PositionImageCaptureService.Camera?.Id != SelectedMachineCamera.Id)
-            {
-                Machine.AddStatusMessage(StatusMessageTypes.Warning,
-                    "The selected position camera is not the active capture camera.");
-                return;
-            }
-
-            if (MachineConfiguration.MachineFiducial.IsOrigin())
-            {
-                Machine.AddStatusMessage(StatusMessageTypes.Warning,
-                    "Set the Machine Fiducial before running Camera Auto-Tune.");
-                return;
-            }
-
-            Machine.SetVisionProfile(
-                CameraTypes.Position,
-                VisionProfile.VisionProfile_MachineFiducual);
-
-            Machine.AddStatusMessage(StatusMessageTypes.Info,
-                "Camera Auto-Tune moving to Machine Fiducial.");
-
-            Machine.SendSafeMoveHeight();
-            await Machine.MoveToCameraAsync();
-            Machine.GotoPoint(MachineConfiguration.MachineFiducial);
-
-            var moveResult = await Machine.SpinUntilIdleAsync(10000);
-            if (!moveResult.Successful)
-            {
-                Machine.AddStatusMessage(StatusMessageTypes.Warning,
-                    $"Could not reach the Machine Fiducial: {moveResult.ErrorMessage}");
-                return;
-            }
-
-            var result = await Machine.PositionImageCaptureService.AutoTuneExposureAsync();
-            if (!result.Successful)
-            {
-                Machine.AddStatusMessage(StatusMessageTypes.Warning, result.ErrorMessage);
-                return;
-            }
-
-            // The Machine Fiducial inherits the calibrated camera baseline.
-            // Preserve other profile overrides for their own lighting conditions.
-            foreach (var profile in SelectedMachineCamera.VisionProfiles)
-            {
-                if (profile.Key == VisionProfile.VisionProfile_MachineFiducual)
-                    profile.Exposure = null;
-            }
-
-            var saveResult = await MachineRepo.SaveCurrentMachineAsync();
-            if (saveResult.Successful)
-            {
-                Machine.AddStatusMessage(StatusMessageTypes.Info,
-                    $"Saved camera exposure baseline {SelectedMachineCamera.Exposure:F1}.");
-            }
-            else
-            {
-                Machine.AddStatusMessage(StatusMessageTypes.Warning,
-                    $"Camera exposure tuned but could not be saved: {saveResult.ErrorMessage}");
-            }
+            await RunExposureCalibrationAsync();
         }
 
         protected void MoveToSelectedCamera()
@@ -230,6 +425,13 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
             else
             {
+                // The fixed bottom camera is located using the moving top
+                // (Position) camera. Activate the locator profile on the
+                // viewing camera, not on the bottom camera being located.
+                // Keep other camera-selection operations unchanged.
+                if (SelectedMachineCamera.CameraType?.Value == CameraTypes.PartInspection)
+                    Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_CameraLocator);
+
                 Machine.GotoPoint(SelectedMachineCamera.AbsolutePosition);
                 Machine.SendCommand($"G0 Z{SelectedMachineCamera.FocusHeight}");
             }

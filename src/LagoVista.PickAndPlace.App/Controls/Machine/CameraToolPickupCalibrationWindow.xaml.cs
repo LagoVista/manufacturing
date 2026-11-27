@@ -1,0 +1,85 @@
+using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
+using System;
+using System.ComponentModel;
+using System.Windows.Input;
+using System.Windows;
+
+namespace LagoVista.PickAndPlace.App.Controls.Machine
+{
+    /// <summary>Matches the nozzle-runout modal's procedure-first pattern.</summary>
+    public partial class CameraToolPickupCalibrationWindow : Window
+    {
+        public CameraToolPickupCalibrationWindow()
+        {
+            InitializeComponent();
+        }
+
+        private ICameraToolPickupCalibrationViewModel Procedure =>
+            DataContext as ICameraToolPickupCalibrationViewModel;
+
+        private async void PreviewBottomCamera_Click(object sender, RoutedEventArgs e)
+        {
+            if (Procedure?.CanOperate == true)
+                await Procedure.PreviewBottomCameraAsync();
+        }
+
+        private async void RunAgain_Click(object sender, RoutedEventArgs e)
+        {
+            if (Procedure?.CanOperate == true)
+                await Procedure.StartAsync();
+        }
+
+        private async void RetryHistory_Click(object sender, RoutedEventArgs e)
+        {
+            if (Procedure?.CanRetryHistory == true)
+                await Procedure.RetryHistoryAsync();
+        }
+
+        private async void SaveAndVerify_Click(object sender, RoutedEventArgs e)
+        {
+            if (Procedure?.CanSaveAndVerify != true)
+                return;
+
+            var confirmed = MessageBox.Show(this,
+                "Approve saving the measured camera-to-tool offset to Manufacturing " +
+                "and moving the REAL machine for a THIRD pickup using its normal " +
+                "SAVED offset (NO temporary jog)? The disc must be returned, " +
+                "the machine must be homed, idle and in Manual/camera mode. " +
+                "Keep the emergency stop accessible. A rejected pickup will " +
+                "attempt to restore the previous stored offset.",
+                "Approve persisted offset and supervised third pickup",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning,
+                MessageBoxResult.No);
+            if (confirmed == MessageBoxResult.Yes)
+                await Procedure.SaveAndVerifyAsync();
+        }
+
+        private void CopyRunReport_Click(object sender, RoutedEventArgs e)
+        {
+            var report = Procedure?.DiagnosticReport;
+            if (!String.IsNullOrWhiteSpace(report))
+                Clipboard.SetText(report);
+        }
+
+        private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ClickCount == 1 && e.LeftButton == MouseButtonState.Pressed)
+            {
+                try { DragMove(); }
+                catch (InvalidOperationException) { }
+            }
+        }
+
+        private void Close_Click(object sender, RoutedEventArgs e)
+        {
+            if (Procedure?.CanOperate != false)
+                Close();
+        }
+
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            if (Procedure?.CanOperate == false)
+                e.Cancel = true;
+        }
+    }
+}

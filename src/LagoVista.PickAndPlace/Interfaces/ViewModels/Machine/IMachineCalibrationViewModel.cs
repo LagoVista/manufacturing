@@ -5,6 +5,9 @@
 using LagoVista.Core.Commanding;
 using LagoVista.Core.Models.Drawing;
 using LagoVista.Manufacturing.Models;
+using LagoVista.PickAndPlace.Models;
+using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
 {
@@ -30,6 +33,13 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
 
         RelayCommand SetCameraLocationCommand { get; }
         RelayCommand AutoTuneCameraExposureCommand { get; }
+
+        ObservableCollection<ExposureCalibrationStep> ExposureSteps { get; }
+        bool ExposureCalibrationRunning { get; }
+        bool ExposureCalibrationCanRun { get; }
+        string ExposureCalibrationStatus { get; }
+        string ExposureElapsed { get; }
+        Task RunExposureCalibrationAsync();
         RelayCommand MoveToCameraLocationCommand { get; }
 
         string CameraMeasuredMM { get; set; }
@@ -42,5 +52,9 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.Machine
 
         RelayCommand CaptureKnownLocationCommand { get; }
         RelayCommand MoveToKnownLocationCommand { get; }
+
+        // T003 first-pass optical proof at MachineConfiguration.KnownCalibrationPoint.
+        RelayCommand VerifyKnownLocationCylinderCommand { get; }
+        string CylinderCenterStatus { get; }
     }
 }

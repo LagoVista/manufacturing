@@ -33,8 +33,23 @@ namespace LagoVista.PickAndPlace.App.Services
         FeederBarcodeDetector.Observation _feederBarcode;
         bool? _feederBarcodeVertical;
         private readonly FeederBarcodeTemporalMonitor _feederBarcodeTemporal = new FeederBarcodeTemporalMonitor();
+        private readonly NozzleOpeningHeadContext _nozzleOpeningHeadContext =
+            new NozzleOpeningHeadContext();
+        private double? _activeNozzleExpectedDiameterMm;
+        private int? _activeNozzleHeadIndex;
 
         public byte[] LatestFeederBarcodeSignal => _feederBarcode?.Signal;
+        private string _latestCalibrationDiscDiagnostic =
+            "No calibration-disc frame processed.";
+        public string LatestCalibrationDiscDiagnostic => _latestCalibrationDiscDiagnostic;
+
+        public void RegisterVerifiedNozzleOpening(string nozzleIdentity,
+            double diameterMm, double pixelsPerMm)
+        {
+            _nozzleOpeningHeadContext.RegisterVerifiedTune(
+                nozzleIdentity, diameterMm, pixelsPerMm);
+            _circleDetector.Reset();
+        }
 
         public ShapeDetectionService(IMachineRepo machineRepo,
             IImageHelper<IInputOutputArray> imageHelper, IRectangleDetector<IInputOutputArray> rectLocator,
@@ -182,24 +197,80 @@ namespace LagoVista.PickAndPlace.App.Services
             }
 
             var stagingHole = camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_StagingPlateHole;
-            var circleNumber = 0;
-            foreach (var foundCircle in _circleDetector.FoundCircles)
+            var circles = _circleDetector.FoundCircles.ToList();
+            foreach (var foundCircle in circles)
             {
-                _imageHelper.Circle(img, camera.CurrentVisionProfile.ZoomLevel, foundCircle, size);
                 if (stagingHole)
+                {
+                    // Preserve the staging-hole rendering and its guided calibration display.
+                    _imageHelper.Circle(img, camera.CurrentVisionProfile.ZoomLevel, foundCircle, size);
                     DrawStagingHoleOutline(img, foundCircle);
+                }
                 else if (camera.CurrentVisionProfile.FindCircles)
-                    DrawCircleCandidateAnnotation(img, camera, foundCircle, size, ++circleNumber);
+                {
+                    // Keep the observed nozzle visible instead of drawing full-frame
+                    // candidate crosshairs and labels through its concentric features.
+                    DrawCircleCandidateMarker(img, foundCircle,
+                        camera.CurrentVisionProfile.Key != VisionProfile.VisionProfile_CalibrationDisc);
+                }
             }
             if (stagingHole && camera.CurrentVisionProfile.FindCircles)
                 DrawStagingHoleMeasurements(img, camera, size);
+            else if (camera.CurrentVisionProfile.FindCircles)
+            {
+                // Render all candidate measurements at a fixed top position.
+                // Draw text after candidate markers so no crosshair covers it.
+                for (var index = 0; index < circles.Count; index++)
+                    DrawCircleCandidateAnnotation(img, camera, circles[index], size, index + 1);
+            }
 
-            
+            // A failed nozzle acquisition must still tell the operator which
+            // calibration is actually active. No measurements are drawn near
+            // the opening itself. This is diagnostic UI only, not input.
+            var activeProfile = camera.CurrentVisionProfile;
+            var nozzleProfile = activeProfile.Key == VisionProfile.VisionProfile_Nozzle ||
+                                activeProfile.Key == VisionProfile.VisionProfile_NozzleCalibration;
+            if (nozzleProfile && circles.Count == 0 && size.Width >= 260)
+            {
+                var scale = camera.EffectivePixelsPerMM;
+                var source = activeProfile.PixelsPerMM.HasValue ? "PROFILE" : "CAMERA";
+                var enabled = activeProfile.PerformShapeDetection && activeProfile.FindCircles;
+                var state = !enabled ? "DETECTION OFF" :
+                    activeProfile.UseAdaptiveDarkOpening ? "NO OPENING LOCK" : "NO HOUGH CIRCLE";
+                var expected = _activeNozzleExpectedDiameterMm ??
+                    DarkOpeningScaleGuard.EffectiveExpectedDiameterMm(
+                        activeProfile.ExpectedDarkOpeningDiameterMm,
+                        activeProfile.DarkOpeningTunedPixelsPerMM, scale);
+                var headLabel = _activeNozzleHeadIndex.HasValue
+                    ? $"HEAD {_activeNozzleHeadIndex.Value}" : "NO HEAD";
+                var mode = expected > 0
+                    ? $"{headLabel} DIA {expected:F2} MM"
+                    : $"{headLabel} DIA REACQUIRE";
+                var acquisitionPx = activeProfile.UseAdaptiveDarkOpening
+                    ? DarkCircularOpeningLocator.EffectiveAcquisitionRadiusPixels(
+                        size.Width, size.Height, scale, activeProfile.TargetImageRadius)
+                    : activeProfile.TargetImageRadius * scale;
+                DrawOutlinedCircleText(img.Image,
+                    $"{state}  {scale:F1} PX/MM ({source})",
+                    new Point(10, 22), 0.46, 1, new MCvScalar(0, 255, 255));
+                DrawOutlinedCircleText(img.Image,
+                    $"ROI {acquisitionPx:F0} PX  BASE {activeProfile.TargetImageRadius:F1} MM  {mode}",
+                    new Point(10, 43), 0.43, 1, new MCvScalar(0, 255, 255));
+                // These counts come from raw grayscale candidates, not the
+                // thresholded display. Diagnostic-only: never influences lock.
+                if (activeProfile.UseAdaptiveDarkOpening &&
+                    !String.IsNullOrWhiteSpace(_circleDetector.LatestNozzleRejection))
+                    DrawOutlinedCircleText(img.Image,
+                        _circleDetector.LatestNozzleRejection,
+                        new Point(10, 64), 0.36, 1, new MCvScalar(0, 255, 255));
+            }
+
             if (camera.CurrentVisionProfile.LocateByPads)
             {
                 foreach(var rect in _rectangleDetector.FoundRectangles)
                 {
-                    _imageHelper.DrawRect(img, camera.CurrentVisionProfile.ZoomLevel, rect, rect.Centered ? System.Drawing.Color.Green : System.Drawing.Color.Red);
+                    _imageHelper.DrawRect(img, camera.CurrentVisionProfile.ZoomLevel, rect,
+                        rect.Centered ? System.Drawing.Color.Lime : System.Drawing.Color.Red);
                 }
             }
             else
@@ -207,7 +278,8 @@ namespace LagoVista.PickAndPlace.App.Services
                 var rect = _rectangleDetector.FoundRectangles.OrderByDescending(rect => rect.FoundCount).FirstOrDefault();
                 if (rect != null)
                 {
-                    _imageHelper.DrawRect(img, camera.CurrentVisionProfile.ZoomLevel, rect, rect.Centered ? System.Drawing.Color.Green : System.Drawing.Color.Red);
+                    _imageHelper.DrawRect(img, camera.CurrentVisionProfile.ZoomLevel, rect,
+                        rect.Centered ? System.Drawing.Color.Lime : System.Drawing.Color.Red);
                 }
              
             }
@@ -226,48 +298,79 @@ namespace LagoVista.PickAndPlace.App.Services
             CvInvoke.Circle(image.Image, center, radius, color, 2, LineType.AntiAlias);
         }
 
-        // Other circle-detection profiles may show several candidates in a single frame.
-        // Attach measurements to each visible crosshair rather than a shared unlabelled list.
+        // Non-staging circle profiles draw only the candidate outline and a short
+        // center marker. No candidate line spans the entire frame.
+        private static void DrawCircleCandidateMarker(
+            IMVImage<IInputOutputArray> image, MVLocatedCircle circle,
+            bool permitImageCenteredGreen)
+        {
+            var center = new Point((int)Math.Round(circle.CenterPixels.X), (int)Math.Round(circle.CenterPixels.Y));
+            var radius = Math.Max(1, (int)Math.Round(circle.RadiusPixels));
+            // The calibration disc may be centered in the IMAGE yet still be
+            // off-center relative to the NOZZLE. Only the saved-offset third
+            // pickup overlay may turn that disc green.
+            var color = permitImageCenteredGreen && circle.Centered
+                ? new MCvScalar(0, 255, 0)
+                : new MCvScalar(0, 255, 255);
+
+            CvInvoke.Circle(image.Image, center, radius, color, 2, LineType.AntiAlias);
+            var cross = Math.Max(5, Math.Min(12, radius / 4));
+            CvInvoke.Line(image.Image, new Point(center.X - cross, center.Y),
+                new Point(center.X + cross, center.Y), color, 2, LineType.AntiAlias);
+            CvInvoke.Line(image.Image, new Point(center.X, center.Y - cross),
+                new Point(center.X, center.Y + cross), color, 2, LineType.AntiAlias);
+        }
+
+        // Keep the diagnostics at the top of the camera preview, away from the
+        // centered nozzle. Multiple tracked circles get distinct rows. The
+        // existing diagnostics list below the video remains available as well.
         private static void DrawCircleCandidateAnnotation(
             IMVImage<IInputOutputArray> image, MachineCamera camera,
             MVLocatedCircle circle, Size size, int number)
         {
-            if (camera.EffectivePixelsPerMM <= 0 || size.Width < 260 || size.Height < 50)
+            if (camera.EffectivePixelsPerMM <= 0 || size.Width < 260 || size.Height < 90)
+                return;
+
+            var fontScale = Math.Max(0.5, Math.Min(2.2, size.Width / 1000.0));
+            var thickness = Math.Max(1, (int)Math.Round(fontScale));
+            var lineHeight = Math.Max(20, (int)Math.Round(27 * fontScale));
+            var rowHeight = lineHeight * 2 + 10;
+            var firstBaseline = 8 + (number - 1) * rowHeight + lineHeight;
+            // Cap annotations to the top third of the preview. Additional
+            // candidates still appear in the existing diagnostic list.
+            if (firstBaseline + lineHeight > size.Height / 3)
                 return;
 
             var scale = camera.EffectivePixelsPerMM;
-            var center = new Point((int)Math.Round(circle.CenterPixels.X), (int)Math.Round(circle.CenterPixels.Y));
-            var radius = Math.Max(1, (int)Math.Round(circle.RadiusPixels));
-            var color = circle.Centered ? new MCvScalar(0, 255, 0)
-                      : circle.PositionStable ? new MCvScalar(0, 255, 255)
-                      : new MCvScalar(0, 0, 255);
-
-            CvInvoke.Circle(image.Image, center, radius, color, 2, LineType.AntiAlias);
-
-            const int labelWidth = 245;
-            var labelX = center.X + radius + 8;
-            if (labelX + labelWidth > size.Width)
-                labelX = center.X - radius - labelWidth - 8;
-            labelX = Math.Max(6, Math.Min(labelX, size.Width - labelWidth - 3));
-            var labelY = Math.Max(19, Math.Min(center.Y, size.Height - 25));
-
             var offsetX = circle.OffsetPixels.X / scale;
             var offsetY = -circle.OffsetPixels.Y / scale;
             var diameter = circle.RadiusPixels * 2 / scale;
+            var disc = camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_CalibrationDisc;
             var status = !circle.Stabilized ? "TRACKING"
-                       : circle.Centered ? "CENTERED"
+                       : !disc && circle.Centered ? "CENTERED"
                        : circle.PositionStable ? "STABLE" : "DETECTED";
+            var color = !disc && circle.Centered ? new MCvScalar(0, 255, 0)
+                                                : new MCvScalar(0, 255, 255);
+            var first = $"#{number} {status}  X {offsetX:+0.00;-0.00;0.00}  Y {offsetY:+0.00;-0.00;0.00} mm";
+            var jitter = circle.PositionSpreadMM.HasValue
+                ? $"{circle.PositionSpreadMM.Value:0.00} mm" : "--";
+            var second = $"D {diameter:0.00} mm   JIT {jitter}   N={circle.FoundCount}";
 
-            CvInvoke.Rectangle(image.Image, new Rectangle(labelX - 3, labelY - 15, labelWidth, 38),
-                new MCvScalar(0, 0, 0), -1);
-            CvInvoke.PutText(image.Image,
-                $"#{number} X {offsetX:+0.00;-0.00;0.00} Y {offsetY:+0.00;-0.00;0.00} mm",
-                new Point(labelX, labelY),
-                FontFace.HersheySimplex, 0.38, new MCvScalar(255, 255, 255), 1, LineType.AntiAlias);
-            CvInvoke.PutText(image.Image,
-                $"D {diameter:0.00} mm  {status}  N={circle.FoundCount}",
-                new Point(labelX, labelY + 17),
-                FontFace.HersheySimplex, 0.38, new MCvScalar(255, 255, 255), 1, LineType.AntiAlias);
+            // Black stroke keeps colored text legible on both grayscale and
+            // thresholded images without a solid box obscuring the camera.
+            DrawOutlinedCircleText(image.Image, first, new Point(12, firstBaseline),
+                fontScale, thickness, color);
+            DrawOutlinedCircleText(image.Image, second, new Point(12, firstBaseline + lineHeight),
+                fontScale, thickness, color);
+        }
+
+        private static void DrawOutlinedCircleText(IInputOutputArray image, string text,
+            Point position, double fontScale, int thickness, MCvScalar color)
+        {
+            CvInvoke.PutText(image, text, position, FontFace.HersheySimplex,
+                fontScale, new MCvScalar(0, 0, 0), thickness + 4, LineType.AntiAlias);
+            CvInvoke.PutText(image, text, position, FontFace.HersheySimplex,
+                fontScale, color, thickness, LineType.AntiAlias);
         }
 
         private void DrawStagingHoleMeasurements(IMVImage<IInputOutputArray> image, MachineCamera camera, Size size)
@@ -309,11 +412,23 @@ namespace LagoVista.PickAndPlace.App.Services
                 FontFace.HersheySimplex, 0.42, new MCvScalar(255, 255, 255), 1, LineType.AntiAlias);
         }
 
-        private void FindShapes(IMVImage<IInputOutputArray> input, IInputOutputArray output, MachineCamera camera, System.Drawing.Size size)
+        private void FindShapes(IMVImage<IInputOutputArray> input, IInputOutputArray output,
+            MachineCamera camera, System.Drawing.Size size, double? expectedOpeningDiameterOverrideMm)
         {
             if (!_machineRepo.CurrentMachine.Busy)
             {
-                if (camera.CurrentVisionProfile.FindCircles) _circleDetector.FindCircles(input, camera, size); else _circleDetector.Reset();
+                if (camera.CurrentVisionProfile.FindCircles)
+                {
+                    _circleDetector.FindCircles(input, camera, size, expectedOpeningDiameterOverrideMm);
+                    if (camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_CalibrationDisc)
+                        _latestCalibrationDiscDiagnostic = _circleDetector.LatestCalibrationDiscDiagnostic;
+                }
+                else
+                {
+                    _circleDetector.Reset();
+                    if (camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_CalibrationDisc)
+                        _latestCalibrationDiscDiagnostic = "Circle detection disabled in active profile.";
+                }
                 if (camera.CurrentVisionProfile.FindCorners) _cornerDetector.FindCorners(input, camera, size); else _cornerDetector.Reset();
                 if (camera.CurrentVisionProfile.FindRectangles) _rectangleDetector.FindRectangles(input, camera, size); else _rectangleDetector.Reset();
                 if (camera.CurrentVisionProfile.FindLines) _lineDetector.FindLines(input, camera, size); else _lineDetector.Reset();
@@ -321,6 +436,8 @@ namespace LagoVista.PickAndPlace.App.Services
             }
             else
             {
+                if (camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_CalibrationDisc)
+                    _latestCalibrationDiscDiagnostic = "Detector paused: machine Busy.";
             //    _cornerDetector.Reset();
             //    _circleDetector.Reset();
             //    _rectangleDetector.Reset();
@@ -340,6 +457,33 @@ namespace LagoVista.PickAndPlace.App.Services
             _feederBarcodeVertical = feederBarcodeVertical;
             var feederBarcodeMode = camera.CurrentVisionProfile.Key ==
                 VisionProfile.VisionProfile_FeederBarcode;
+            var adaptiveNozzle = camera.CurrentVisionProfile.UseAdaptiveDarkOpening &&
+                (camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_Nozzle ||
+                 camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_NozzleCalibration);
+
+            // The camera's saved Nozzle profile is shared across both installed
+            // heads. Never enforce Head 1's diameter against Head 2 on selection.
+            // A new head acquires without an expected diameter until fresh tuning
+            // associates a dimension with that nozzle in this session.
+            double? expectedOpeningDiameterOverrideMm = null;
+            _activeNozzleExpectedDiameterMm = null;
+            _activeNozzleHeadIndex = null;
+            if (adaptiveNozzle && camera.CameraType?.Value == CameraTypes.PartInspection)
+            {
+                var head = _machineRepo.CurrentMachine?.CurrentMachineToolHead;
+                var nozzleId = head?.CurrentNozzle == null ? null
+                    : Convert.ToString(head.CurrentNozzle.Id);
+                var identity = String.IsNullOrWhiteSpace(nozzleId) ? null
+                    : $"{head.HeadIndex}:{nozzleId}";
+                var effectiveDiameter = _nozzleOpeningHeadContext.Resolve(
+                    identity, camera.CurrentVisionProfile,
+                    camera.EffectivePixelsPerMM, out var headChanged);
+                if (headChanged)
+                    _circleDetector.Reset();
+                expectedOpeningDiameterOverrideMm = effectiveDiameter;
+                _activeNozzleExpectedDiameterMm = effectiveDiameter;
+                _activeNozzleHeadIndex = head?.HeadIndex;
+            }
 
             try
             {
@@ -359,6 +503,13 @@ namespace LagoVista.PickAndPlace.App.Services
 
                     var raw = img;
 
+                    // The adaptive nozzle detector must see the REAL camera
+                    // pixels, before any profile mask/threshold/inversion.
+                    // With a newly calibrated px/mm value, the old circular
+                    // mask can otherwise clip the off-center nozzle completely.
+                    // Preserve all legacy display processing and other detectors.
+                    using (var unmaskedNozzleGray = adaptiveNozzle
+                        ? img.Convert<Gray, byte>() : null)
                     using (var masked = new Image<Bgr, byte>(size))
                     {
 
@@ -369,7 +520,18 @@ namespace LagoVista.PickAndPlace.App.Services
                         {
                             using (var mask = new Image<Gray, byte>(size))
                             {
-                                CvInvoke.Circle(mask, new System.Drawing.Point() { X = size.Width / 2, Y = size.Height / 2 },
+                                var isStagingHole = camera.CurrentVisionProfile.Key ==
+                                    VisionProfile.VisionProfile_StagingPlateHole;
+                                var searchCenter = isStagingHole
+                                    ? StagingHoleSearchRegion.Center(size.Width, size.Height,
+                                        camera.EffectivePixelsPerMM,
+                                        camera.CurrentVisionProfile.StagingSearchOffsetXmm,
+                                        camera.CurrentVisionProfile.StagingSearchOffsetYmm)
+                                    : new LagoVista.Core.Models.Drawing.Point2D<double>(
+                                        size.Width / 2, size.Height / 2);
+                                CvInvoke.Circle(mask, new System.Drawing.Point(
+                                        (int)Math.Round(searchCenter.X),
+                                        (int)Math.Round(searchCenter.Y)),
                                 Convert.ToInt32(camera.CurrentVisionProfile.TargetImageRadius * camera.EffectivePixelsPerMM),
                                  new Bgr(System.Drawing.Color.White).MCvScalar,
                                     -1, LineType.AntiAlias);
@@ -418,7 +580,18 @@ namespace LagoVista.PickAndPlace.App.Services
                             {
                                 using (var finalMask = new Image<Gray, byte>(size))
                                 {
-                                    CvInvoke.Circle(finalMask, new Point(size.Width / 2, size.Height / 2),
+                                    var isStagingHole = camera.CurrentVisionProfile.Key ==
+                                        VisionProfile.VisionProfile_StagingPlateHole;
+                                    var searchCenter = isStagingHole
+                                        ? StagingHoleSearchRegion.Center(size.Width, size.Height,
+                                            camera.EffectivePixelsPerMM,
+                                            camera.CurrentVisionProfile.StagingSearchOffsetXmm,
+                                            camera.CurrentVisionProfile.StagingSearchOffsetYmm)
+                                        : new LagoVista.Core.Models.Drawing.Point2D<double>(
+                                            size.Width / 2, size.Height / 2);
+                                    CvInvoke.Circle(finalMask, new Point(
+                                        (int)Math.Round(searchCenter.X),
+                                        (int)Math.Round(searchCenter.Y)),
                                         Convert.ToInt32(camera.CurrentVisionProfile.TargetImageRadius * camera.EffectivePixelsPerMM),
                                         new MCvScalar(255), -1, LineType.AntiAlias);
                                     CvInvoke.BitwiseAnd(input, input, invertedMasked, finalMask);
@@ -444,12 +617,43 @@ namespace LagoVista.PickAndPlace.App.Services
                                 // actual black/white pixels. Do not pass the
                                 // feeder-origin profile's inverted/blurred/masked
                                 // display image to the corner detector.
-                                var cornerInput =
-                                    camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_FeederOrigin
-                                    ? (IInputOutputArray)gray
-                                    : input;
-                                FindShapes(new MVImage<IInputOutputArray>(cornerInput),
-                                    output, camera, size);
+                                // A white calibration disc must be segmented
+                                // from original grayscale, regardless of the
+                                // selected profile's display threshold or mask.
+                                var shapeInput = adaptiveNozzle
+                                    ? (IInputOutputArray)unmaskedNozzleGray
+                                    : camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_FeederOrigin ||
+                                      camera.CurrentVisionProfile.Key == VisionProfile.VisionProfile_CalibrationDisc
+                                        ? (IInputOutputArray)gray
+                                        : input;
+                                FindShapes(new MVImage<IInputOutputArray>(shapeInput),
+                                    output, camera, size, expectedOpeningDiameterOverrideMm);
+                            }
+
+                            // Visualize the very same Otsu binary segmentation
+                            // consumed by CalibrationDisc contour detection.
+                            // This changes display only, never detection input.
+                            if (camera.CurrentVisionProfile.Key ==
+                                    VisionProfile.VisionProfile_CalibrationDisc &&
+                                !camera.CurrentVisionProfile.ShowOriginalImage)
+                            {
+                                using (var smoothedDisc = new Image<Gray, byte>(gray.Size))
+                                using (var binaryDisc = new Image<Gray, byte>(gray.Size))
+                                {
+                                    // Match the CalibrationDisc detector precisely.
+                                    // Blur reduces single-pixel edge noise before
+                                    // thresholding without changing acceptance gates.
+                                    CvInvoke.GaussianBlur(gray, smoothedDisc,
+                                        new Size(5, 5), 0);
+                                    CvInvoke.Threshold(smoothedDisc, binaryDisc, 0, 255,
+                                        ThresholdType.Binary | ThresholdType.Otsu);
+                                    using (var displayDisc = binaryDisc.Convert<Bgr, byte>())
+                                    {
+                                        RenderOutput(new MVImage<IInputOutputArray>(displayDisc),
+                                            camera, size);
+                                        return displayDisc.Clone();
+                                    }
+                                }
                             }
 
                             if(camera.CurrentVisionProfile.ShowRectLocatorImage)
@@ -479,6 +683,9 @@ namespace LagoVista.PickAndPlace.App.Services
             }
             catch (Exception ex)
             {
+                if (camera?.CurrentVisionProfile?.Key ==
+                    VisionProfile.VisionProfile_CalibrationDisc)
+                    _latestCalibrationDiscDiagnostic = "Disc detector threw: " + ex.Message;
                 Debug.WriteLine(ex.Message);
                 Debug.WriteLine(ex.StackTrace);
                 /*NOP, sometimes OpenCV acts a little funny. */
@@ -497,6 +704,7 @@ namespace LagoVista.PickAndPlace.App.Services
             _feederBarcode = null;
             _feederBarcodeVertical = null;
             _feederBarcodeTemporal.Reset();
+            _latestCalibrationDiscDiagnostic = "No calibration-disc frame processed since reset.";
             _circleDetector.FoundCircles.Clear();
             _rectangleDetector.FoundRectangles.Clear();
             _cornerDetector.FoundCorners.Clear();

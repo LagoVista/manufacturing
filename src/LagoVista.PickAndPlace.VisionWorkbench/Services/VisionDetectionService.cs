@@ -23,7 +23,7 @@ public sealed class VisionDetectionResult
 /// </summary>
 public sealed class VisionDetectionService
 {
-    public VisionDetectionResult Detect(BitmapSource source, VisionProfile profile)
+    public VisionDetectionResult Detect(BitmapSource source, VisionProfile profile, double cameraPixelsPerMm)
     {
         var result = new VisionDetectionResult();
         if (!profile.FindCircles && !profile.FindRectangles) return result;
@@ -56,7 +56,10 @@ public sealed class VisionDetectionService
 
         if (profile.FindCircles)
         {
-            var ppm = Math.Max(0.001, profile.PixelsPerMM);
+            // A profile may inherit its optical scale from the selected camera.
+            var ppm = profile.PixelsPerMM ?? cameraPixelsPerMm;
+            if (!double.IsFinite(ppm) || ppm <= 0)
+                throw new InvalidOperationException("A positive calibrated camera pixels/mm value is required for circle detection.");
             var minRadius = Math.Max(1, (int)Math.Round(profile.HoughCirclesMinRadius * ppm));
             var maxRadius = Math.Max(minRadius + 1, (int)Math.Round(profile.HoughCirclesMaxRadius * ppm));
             var circles = CvInvoke.HoughCircles(work, HoughModes.Gradient,

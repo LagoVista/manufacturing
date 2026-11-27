@@ -28,6 +28,7 @@ namespace LagoVista.PickAndPlace.Models
         private double _errorMargin;
         private int _stabilizationCount;
         private readonly bool _requirePositionStability;
+        private readonly double _positionStabilityToleranceMm;
         private Point2D<float> _viewCenter;
 
         private int _foundCount;
@@ -41,7 +42,10 @@ namespace LagoVista.PickAndPlace.Models
         public Guid Id { get; }
 
 
-        public MVLocatedCircle(CameraTypes cameraType, Point2D<int> viewCenter, double pixelsPerMM, double erorMargin, int stabilizationCount, bool requirePositionStability = false)
+        public MVLocatedCircle(CameraTypes cameraType, Point2D<int> viewCenter,
+            double pixelsPerMM, double erorMargin, int stabilizationCount,
+            bool requirePositionStability = false,
+            double positionStabilityToleranceMm = 0.10)
         {
             _viewCenter = new Point2D<float>(viewCenter.X, viewCenter.Y);
             _pixelsPerMM = pixelsPerMM;
@@ -49,6 +53,11 @@ namespace LagoVista.PickAndPlace.Models
             CameraType = cameraType;
             _stabilizationCount = stabilizationCount;
             _requirePositionStability = requirePositionStability;
+            _positionStabilityToleranceMm =
+                !double.IsNaN(positionStabilityToleranceMm) &&
+                !double.IsInfinity(positionStabilityToleranceMm) &&
+                positionStabilityToleranceMm > 0
+                    ? positionStabilityToleranceMm : 0.10;
             Id = Guid.NewGuid();
         }
 
@@ -93,11 +102,14 @@ namespace LagoVista.PickAndPlace.Models
             RaisePropertyChanged(nameof(FoundCount));
             RaisePropertyChanged(nameof(Stabilized));
             RaisePropertyChanged(nameof(PositionStable));
+            RaisePropertyChanged(nameof(PositionSpreadMM));
         }
 
         // StabilizationCount alone only means enough detections were observed.
-        // Check that their actual centers agree within 0.1 mm before allowing
-        // the staging plate's auto-jog to use the result.
+        // Check that the recent centers fit within this track's physical
+        // jitter tolerance. The default remains 0.10 mm; adaptive nozzle
+        // tracks use a slightly wider 0.20 mm to account for pixel quantization
+        // on the larger illuminated opening at 12.5 px/mm.
         public bool PositionStable
         {
             get
@@ -109,9 +121,22 @@ namespace LagoVista.PickAndPlace.Models
                 if (samples.Count < Math.Min(FILTER_SIZE, Math.Max(2, _stabilizationCount)))
                     return false;
 
-                var maxSpreadPixels = 0.1 * _pixelsPerMM;
+                var maxSpreadPixels = _positionStabilityToleranceMm * _pixelsPerMM;
                 return samples.Max(pt => pt.X) - samples.Min(pt => pt.X) <= maxSpreadPixels &&
                        samples.Max(pt => pt.Y) - samples.Min(pt => pt.Y) <= maxSpreadPixels;
+            }
+        }
+
+        public double? PositionSpreadMM
+        {
+            get
+            {
+                if (_pixelsPerMM <= 0) return null;
+                var samples = _centers.Where(pt => pt != null).ToList();
+                if (samples.Count < 2) return null;
+                var spreadX = samples.Max(pt => pt.X) - samples.Min(pt => pt.X);
+                var spreadY = samples.Max(pt => pt.Y) - samples.Min(pt => pt.Y);
+                return Math.Max(spreadX, spreadY) / _pixelsPerMM;
             }
         }
 
@@ -122,6 +147,10 @@ namespace LagoVista.PickAndPlace.Models
                                 Math.Abs(OffsetPixels.Y / _pixelsPerMM) < _errorMargin;
 
         public Point2D<float> CenterPixels  { get => _filteredCenter;  }
+
+        // Immutable pixel scale captured when this circle track was created.
+        // The camera/profile may subsequently be recalibrated.
+        public double PixelsPerMM => _pixelsPerMM;
 
         public Point2D<float> OffsetPixels { get => _filteredCenter - _viewCenter; }
         

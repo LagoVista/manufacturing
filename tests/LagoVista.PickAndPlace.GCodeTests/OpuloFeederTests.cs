@@ -36,7 +36,11 @@ namespace LagoVista.PickAndPlace.GCodeTests
             Console.WriteLine(pCmd.GCode);
         }
 
+        // Only valid with a powered Opulo feeder reachable on the local
+        // 10.1.1.x network. Never run in the canonical headless unit suite.
         [Test]
+        [Category("Integration")]
+        [Explicit("Requires a live physical Opulo feeder at 10.1.1.246:3000")]
         public async Task Test1()
         {
             var socketClient = new SocketClient();

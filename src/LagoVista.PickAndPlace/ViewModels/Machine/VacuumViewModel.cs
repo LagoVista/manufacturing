@@ -7,6 +7,7 @@ using LagoVista.Core.Validation;
 using LagoVista.Manufacturing.Models;
 using LagoVista.PickAndPlace.Interfaces;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
+using LagoVista.PickAndPlace.Models;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -86,7 +87,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
             var done = false;
             var timeout = DateTime.Now.AddMilliseconds(timeoutMS);
-            Threshold = Machine.CurrentMachineToolHead.NoPartPickedVacuum *( Machine.CurrentMachineToolHead.PercentAboveNoPartPicked / 100.0) + Machine.CurrentMachineToolHead.NoPartPickedVacuum;
+            var calibrated = VacuumCalibrationProfile.TryFromHead(ToolHead, out var profile);
+            Threshold = calibrated ? profile.ThresholdRaw :
+                ToolHead.NoPartPickedVacuum * (1 + ToolHead.PercentAboveNoPartPicked / 100.0);
 
             while (!done && DateTime.Now < timeout)
             {
@@ -94,10 +97,21 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 if (result.Successful)
                 {
                     Vacuum = result.Result;
-                    AboveThreshold = result.Result - Machine.CurrentMachineToolHead.NoPartPickedVacuum;
-                    PercentAboveThreshold = (AboveThreshold / Machine.CurrentMachineToolHead.NoPartPickedVacuum) * 100.0;
+                    if (calibrated)
+                    {
+                        AboveThreshold = result.Result - Threshold;
+                        PercentAboveThreshold = profile.Normalize(result.Result);
+                    }
+                    else
+                    {
+                        AboveThreshold = result.Result - ToolHead.NoPartPickedVacuum;
+                        PercentAboveThreshold = ToolHead.NoPartPickedVacuum == 0 ? null :
+                            (AboveThreshold / ToolHead.NoPartPickedVacuum) * 100.0;
+                    }
 
-                    if (Vacuum < Threshold)
+                    if (calibrated
+                        ? profile.Classify(result.Result) == VacuumPickupClassification.NoPart
+                        : Vacuum < Threshold)
                     {
                         return InvokeResult.Success;
 
@@ -108,7 +122,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
 
             if (Vacuum != null)
-                return InvokeResult.FromError($"Part was Detected, it should not be. Pressure Detected {Vacuum}, Expected {Threshold} .");
+                return InvokeResult.FromError(calibrated
+                    ? $"No-part check failed: normalized {profile.Normalize(Vacuum.Value):F1}% at threshold {profile.ThresholdPercent:F1}%."
+                    : $"Part was Detected, it should not be. Pressure Detected {Vacuum}, Expected {Threshold} .");
 
 
             return InvokeResult.FromError($"Could not read vacuum.");
@@ -138,7 +154,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
             var done = false;
             var timeout = DateTime.Now.AddMilliseconds(timeoutMS);
-            Threshold = Machine.CurrentMachineToolHead.NoPartPickedVacuum * (Machine.CurrentMachineToolHead.PercentAboveNoPartPicked / 100.0) + Machine.CurrentMachineToolHead.NoPartPickedVacuum;
+            var calibrated = VacuumCalibrationProfile.TryFromHead(ToolHead, out var profile);
+            Threshold = calibrated ? profile.ThresholdRaw :
+                ToolHead.NoPartPickedVacuum * (1 + ToolHead.PercentAboveNoPartPicked / 100.0);
 
             while (!done && DateTime.Now < timeout)
             {
@@ -146,10 +164,21 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 if (result.Successful)
                 {
                     Vacuum = result.Result;
-                    AboveThreshold = result.Result - Machine.CurrentMachineToolHead.NoPartPickedVacuum;
-                    PercentAboveThreshold = (AboveThreshold / Machine.CurrentMachineToolHead.NoPartPickedVacuum) * 100.0;
+                    if (calibrated)
+                    {
+                        AboveThreshold = result.Result - Threshold;
+                        PercentAboveThreshold = profile.Normalize(result.Result);
+                    }
+                    else
+                    {
+                        AboveThreshold = result.Result - ToolHead.NoPartPickedVacuum;
+                        PercentAboveThreshold = ToolHead.NoPartPickedVacuum == 0 ? null :
+                            (AboveThreshold / ToolHead.NoPartPickedVacuum) * 100.0;
+                    }
 
-                    if (Vacuum > Threshold)
+                    if (calibrated
+                        ? profile.Classify(result.Result) == VacuumPickupClassification.PartPresent
+                        : Vacuum > Threshold)
                     {
                         Machine.DebugWriteLine($"[CheckPartPresent] Success in {sw.Elapsed.TotalMilliseconds} ms ");
                         Machine.DebugWriteLine("-----------------------------");
@@ -164,7 +193,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             {
 
                 Machine.DebugWriteLine("-----------------------------");
-                return InvokeResult.FromError($"Part Not Detected Pressure Detected {Vacuum}, Expected {Threshold}.");
+                return InvokeResult.FromError(calibrated
+                    ? $"Part-presence check failed: normalized {profile.Normalize(Vacuum.Value):F1}% at threshold {profile.ThresholdPercent:F1}%."
+                    : $"Part Not Detected Pressure Detected {Vacuum}, Expected {Threshold}.");
             }
 
 
@@ -192,6 +223,42 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 return await Machine.ReadVacuumAsync();
 
             return InvokeResult<long>.FromError("No current tool head, could not read vacuum.");
+        }
+
+        /// <summary>
+        /// Public live observation path used by machine diagnostics and other
+        /// in-process features (for example, T003). Reuses the same calibrated
+        /// classifier as the existing production part-presence checks.
+        /// Does not move the machine or change vacuum actuator state.
+        /// </summary>
+        public async Task<InvokeResult<VacuumDetectionResult>> ReadVacuumDetectionAsync()
+        {
+            if (Machine?.Connected != true)
+                return InvokeResult<VacuumDetectionResult>.FromError(
+                    "Machine is not connected.");
+
+            var head = Machine.CurrentMachineToolHead;
+            if (head == null)
+                return InvokeResult<VacuumDetectionResult>.FromError(
+                    "Select a tool head before reading part detection.");
+
+            if (!VacuumCalibrationProfile.TryFromHead(head, out var profile))
+                return InvokeResult<VacuumDetectionResult>.FromError(
+                    "Selected tool head has no valid saved vacuum calibration. Run and apply vacuum calibration first.");
+
+            var reading = await Machine.ReadVacuumAsync();
+            if (!reading.Successful)
+                return InvokeResult<VacuumDetectionResult>.FromError(
+                    reading.ErrorMessage ?? "Could not read the vacuum sensor.");
+
+            // Avoid attributing a reading from one head to the other if the
+            // operator changes head selection during the asynchronous read.
+            if (!ReferenceEquals(head, Machine.CurrentMachineToolHead))
+                return InvokeResult<VacuumDetectionResult>.FromError(
+                    "Selected tool head changed while reading vacuum.");
+
+            return InvokeResult<VacuumDetectionResult>.Create(
+                profile.Observe(head.HeadIndex, reading.Result, DateTimeOffset.UtcNow));
         }
 
         public RelayCommand ReadVacuumCommand { get; }

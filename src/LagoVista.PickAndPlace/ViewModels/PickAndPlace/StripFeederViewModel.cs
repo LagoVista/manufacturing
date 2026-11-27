@@ -17,6 +17,7 @@ using LagoVista.PickAndPlace.Interfaces.ViewModels.Machine;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace;
 using LagoVista.PickAndPlace.Interfaces.ViewModels.Vision;
 using LagoVista.PickAndPlace.Models;
+using LagoVista.PickAndPlace.Operations;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -48,7 +49,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         FeederPickLocation,
     }
 
-    public class StripFeederViewModel : FeederViewModel, IStripFeederViewModel
+    public partial class StripFeederViewModel : FeederViewModel, IStripFeederViewModel
     {
         ObservableCollection<StripFeeder> _stripFeeders;
         private readonly IRestClient _restClient;
@@ -79,6 +80,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         private StripFeederCalibrationRunner _feederCalibration;
         private bool _calibrationHistoryWriting;
+        private bool _calibrationAutoRunEnabled;
+        private bool _calibrationAutoRunAdvancing;
+        private string _calibrationProcedureStatus =
+            "Ready. Start runs the complete procedure and stops if a verification or save fails.";
         private MachineOperationRunSnapshot _pendingHistorySnapshot;
         private MachineOperationDefinition _pendingHistoryDefinition;
         private string _calibrationHistoryStatus = "Run history will be recorded as calibration progresses.";
@@ -109,10 +114,21 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public bool FeederCalibrationCanContinue =>
             CalibrationSelectionReady && !_calibrationHistoryWriting &&
+            !_calibrationAutoRunAdvancing &&
             _feederCalibration?.CanExecuteNext == true;
         public bool FeederCalibrationCanRetry =>
             CalibrationSelectionReady && !_calibrationHistoryWriting &&
+            !_calibrationAutoRunAdvancing &&
             _feederCalibration?.CanRetry == true;
+        public bool FeederCalibrationCanToggleAutoRun =>
+            CalibrationSelectionReady && !_calibrationHistoryWriting &&
+            !_calibrationAutoRunAdvancing && _pendingHistorySnapshot == null &&
+            _feederCalibration?.Current.Status == MachineOperationRunStatus.Pending;
+        public string FeederCalibrationAutoRunLabel => "Start";
+        public string FeederCalibrationAutoRunStatus =>
+            _calibrationAutoRunAdvancing
+                ? "Procedure running. Do not leave the machine unattended. The step list updates automatically; failures stop the procedure."
+                : _calibrationProcedureStatus;
         public bool FeederCalibrationCanCancel => _feederCalibration?.CanCancel == true;
 
         private bool CalibrationSelectionReady =>
@@ -129,7 +145,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private void RefreshFeederCalibration()
         {
             var definition = _feederCalibration?.Definition ??
-                StripFeederCalibrationDefinition.Create();
+                StripFeederProcedureDefinition.Create();
             var runSteps = _feederCalibration?.Current?.Steps;
             FeederCalibrationSteps = new ObservableCollection<FeederCalibrationStepDisplay>(
                 definition.Steps.Select((step, index) =>
@@ -152,11 +168,17 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RaisePropertyChanged(nameof(FeederCalibrationCanRetry));
             RaisePropertyChanged(nameof(FeederCalibrationCanCancel));
             RaisePropertyChanged(nameof(FeederCalibrationHistoryStatus));
+            RaisePropertyChanged(nameof(FeederCalibrationAutoRunLabel));
+            RaisePropertyChanged(nameof(FeederCalibrationAutoRunStatus));
+            RaisePropertyChanged(nameof(FeederCalibrationCanToggleAutoRun));
             RaiseCanExecuteChanged();
         }
 
         private void ResetFeederCalibration()
         {
+            _calibrationAutoRunEnabled = false;
+            _calibrationProcedureStatus =
+                "Ready. Start runs the procedure until completion or a verified failure.";
             if (_feederCalibration != null)
             {
                 _feederCalibration.StateChanged -= OnFeederCalibrationChanged;
@@ -174,6 +196,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     () => FindLocation(StripFeederLocationTypes.FeederOrigin),
                     () => FindLocation(StripFeederLocationTypes.FirstFeederRowReferenceHole, true),
                     () => TapePitch?.ToDouble() ?? 0,
+                    index => ResolvePocketForCalibration(index),
                     item => _restClient.PutAsync("/api/mfg/stripfeeder", item),
                     () => ReferenceEquals(Machine, machine) &&
                           ReferenceEquals(Current, feeder) &&
@@ -187,7 +210,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private async Task RunFeederCalibrationNextAsync()
         {
             var operation = _feederCalibration;
-            if (operation == null)
+            if (operation == null || _calibrationAutoRunAdvancing)
                 return;
             var result = operation.Current.ActiveStepKey == "save-origin"
                 ? await operation.ConfirmAsync(System.Threading.CancellationToken.None)
@@ -196,24 +219,132 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Machine?.AddStatusMessage(StatusMessageTypes.Warning, result.ErrorMessage);
             await SaveFeederCalibrationRunHistoryAsync(operation);
             if (ReferenceEquals(operation, _feederCalibration))
+            {
                 RefreshFeederCalibration();
+                if (result.Successful && _calibrationAutoRunEnabled &&
+                    _pendingHistorySnapshot == null)
+                    await AdvanceFeederCalibrationAutoRunAsync(operation);
+            }
+        }
+
+        private async Task ToggleFeederCalibrationAutoRunAsync()
+        {
+            var operation = _feederCalibration;
+            if (!FeederCalibrationCanToggleAutoRun || operation == null)
+                return;
+
+            _calibrationAutoRunEnabled = true;
+            _calibrationProcedureStatus = "Running the ordered strip-feeder calibration procedure.";
+            RefreshFeederCalibration();
+            await AdvanceFeederCalibrationAutoRunAsync(operation);
+        }
+
+        private async Task AdvanceFeederCalibrationAutoRunAsync(StripFeederCalibrationRunner operation)
+        {
+            if (_calibrationAutoRunAdvancing || !_calibrationAutoRunEnabled)
+                return;
+
+            _calibrationAutoRunAdvancing = true;
+            RefreshFeederCalibration();
+            try
+            {
+                // MachineOperationDefinition and MachineOperationSession own the
+                // seven ordered steps and evidence. This reusable executor only
+                // continues the current strongly typed action and checkpoints it.
+                // No WPF button is involved in normal step-to-step progress.
+                var outcome = await MachineOperationProcedureExecutor.RunAsync(
+                    () => operation.Current,
+                    token => operation.ExecuteAutoNextAsync(token),
+                    async token =>
+                    {
+                        if (!ReferenceEquals(operation, _feederCalibration) ||
+                            !CalibrationSelectionReady)
+                            return false;
+
+                        await SaveFeederCalibrationRunHistoryAsync(operation);
+                        return _pendingHistorySnapshot == null;
+                    },
+                    System.Threading.CancellationToken.None);
+
+                if (ReferenceEquals(operation, _feederCalibration))
+                    _calibrationProcedureStatus = outcome.Completed
+                        ? "Procedure completed successfully. All required steps have verified evidence."
+                        : $"Procedure stopped at {operation.Current.ActiveStepKey ?? "checkpoint"}: {outcome.Message}. Inspect the highlighted step, then Reset to start again.";
+            }
+            catch (Exception ex)
+            {
+                if (ReferenceEquals(operation, _feederCalibration))
+                {
+                    _calibrationProcedureStatus =
+                        "Procedure stopped unexpectedly: " + ex.Message + ". Inspect the machine before Reset.";
+                    Machine?.AddStatusMessage(StatusMessageTypes.Warning, _calibrationProcedureStatus);
+                }
+            }
+            finally
+            {
+                _calibrationAutoRunEnabled = false;
+                _calibrationAutoRunAdvancing = false;
+                RefreshFeederCalibration();
+            }
+        }
+
+        private async Task ResetFeederCalibrationProcedureAsync()
+        {
+            if (!CalibrationSelectionReady || _calibrationAutoRunAdvancing ||
+                _calibrationHistoryWriting || _feederCalibration?.IsBusy == true)
+                return;
+
+            // Do not discard a failed durable history checkpoint on Reset.
+            if (_pendingHistorySnapshot != null)
+            {
+                await RetryFeederCalibrationHistoryAsync();
+                if (_pendingHistorySnapshot != null)
+                {
+                    _calibrationProcedureStatus =
+                        "Reset stopped: the previous run history has not been saved. Check the API connection and try Reset again.";
+                    RefreshFeederCalibration();
+                    return;
+                }
+            }
+
+            var operation = _feederCalibration;
+            if (operation != null && operation.CanCancel)
+            {
+                await operation.CancelAsync(System.Threading.CancellationToken.None);
+                await SaveFeederCalibrationRunHistoryAsync(operation);
+                if (_pendingHistorySnapshot != null)
+                {
+                    _calibrationProcedureStatus =
+                        "Reset stopped: the cancelled run history must be saved before starting a new one.";
+                    RefreshFeederCalibration();
+                    return;
+                }
+            }
+
+            ResetFeederCalibration();
         }
 
         private async Task RetryFeederCalibrationAsync()
         {
             var operation = _feederCalibration;
-            if (operation == null)
+            if (operation == null || _calibrationAutoRunAdvancing)
                 return;
             var result = await operation.RetryAsync(System.Threading.CancellationToken.None);
             if (!result.Successful && !String.IsNullOrEmpty(result.ErrorMessage))
                 Machine?.AddStatusMessage(StatusMessageTypes.Warning, result.ErrorMessage);
             await SaveFeederCalibrationRunHistoryAsync(operation);
             if (ReferenceEquals(operation, _feederCalibration))
+            {
                 RefreshFeederCalibration();
+                if (result.Successful && _calibrationAutoRunEnabled &&
+                    _pendingHistorySnapshot == null)
+                    await AdvanceFeederCalibrationAutoRunAsync(operation);
+            }
         }
 
         private async Task CancelFeederCalibrationAsync()
         {
+            _calibrationAutoRunEnabled = false;
             var operation = _feederCalibration;
             if (operation == null)
                 return;
@@ -312,12 +443,17 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
             FeederCalibrationNextCommand = CreateCommand(async () => await RunFeederCalibrationNextAsync(),
                 () => FeederCalibrationCanContinue);
+            FeederCalibrationAutoRunCommand = CreateCommand(
+                async () => await ToggleFeederCalibrationAutoRunAsync(),
+                () => FeederCalibrationCanToggleAutoRun);
             FeederCalibrationRetryCommand = CreateCommand(async () => await RetryFeederCalibrationAsync(),
                 () => FeederCalibrationCanRetry);
             FeederCalibrationCancelCommand = CreateCommand(async () => await CancelFeederCalibrationAsync(),
                 () => FeederCalibrationCanCancel);
-            FeederCalibrationNewRunCommand = CreateCommand(ResetFeederCalibration,
+            FeederCalibrationNewRunCommand = CreateCommand(
+                async () => await ResetFeederCalibrationProcedureAsync(),
                 () => CalibrationSelectionReady && !_calibrationHistoryWriting &&
+                    !_calibrationAutoRunAdvancing &&
                     _feederCalibration?.IsBusy != true);
             FeederCalibrationRetryHistoryCommand = CreateCommand(
                 async () => await RetryFeederCalibrationHistoryAsync(),
@@ -536,6 +672,18 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 ? new Point2D<double>(calibratedOrigin.X + verticalBarcodeCenterOffsetMm, calibratedOrigin.Y - shiftMm)
                 : new Point2D<double>(calibratedOrigin.X + shiftMm, calibratedOrigin.Y);
 
+            // The barcode framing move has a small expected offset, but
+            // still must respect the full XY work area like every other
+            // procedure move. Invalid geometry cannot queue motion.
+            var area = Machine.Settings.WorkAreaSize;
+            if (framed.X < 0 || framed.Y < 0 ||
+                framed.X > area.X || framed.Y > area.Y)
+            {
+                Machine.AddStatusMessage(StatusMessageTypes.Warning,
+                    "Barcode frame target is outside the machine work area; no move sent.");
+                return;
+            }
+
             Machine.SendSafeMoveHeight();
             Machine.GotoPoint(framed);
             Machine.AddStatusMessage(StatusMessageTypes.Info,
@@ -551,8 +699,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         // No feeder coordinates, identity or calibration settings are persisted.
         private async void ScanFeederBarcode()
         {
+            await ScanFeederBarcodeAsync();
+        }
+
+        // Both the diagnostic button and feeder-level procedure use exactly
+        // the same multi-capture, CRC-verified physical barcode scanner.
+        private async Task<InvokeResult<string>> ScanFeederBarcodeAsync()
+        {
             if (_barcodeScanInProgress || Current == null)
-                return;
+                return InvokeResult<string>.FromError("Barcode scan is busy or no feeder is selected.");
 
             _barcodeScanInProgress = true;
             FeederBarcodeScanVerified = false;
@@ -567,13 +722,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 {
                     FeederBarcodeScanStatus = "Select Frame Barcode with the position camera running first.";
                     Machine?.AddStatusMessage(StatusMessageTypes.Warning, FeederBarcodeScanStatus);
-                    return;
+                    return InvokeResult<string>.FromError(FeederBarcodeScanStatus);
                 }
                 if (Machine.Mode != OperatingMode.Manual)
                 {
                     FeederBarcodeScanStatus = "Barcode scan requires Manual machine mode.";
                     Machine.AddStatusMessage(StatusMessageTypes.Warning, FeederBarcodeScanStatus);
-                    return;
+                    return InvokeResult<string>.FromError(FeederBarcodeScanStatus);
                 }
 
                 var vertical = feeder.Orientation.Value == FeederOrientations.Vertical;
@@ -637,7 +792,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                             $"alignment {scan.LastRegistrationCorrectionMm:+0.00;-0.00;0.00} mm";
                         FeederBarcodeScanVerified = true;
                         Machine.AddStatusMessage(StatusMessageTypes.Info, scan.Status);
-                        return;
+                        return InvokeResult<string>.Create(scan.FeederId.Value.ToString("X4"));
                     }
 
                     FeederBarcodeScanStatus = scan.Status;
@@ -688,6 +843,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _barcodeScanInProgress = false;
                 RaiseCanExecuteChanged();
             }
+            return InvokeResult<string>.FromError(FeederBarcodeScanStatus);
         }
 
         public async void RemoveCurrent()
@@ -739,6 +895,16 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             if (Current != null)
             {
+                // A physical barcode is optional; preserve the exact four-digit
+                // hexadecimal representation (including leading zeroes).
+                if (!FeederBarcodeIdFormat.TryNormalize(Current.FeederId, out var normalizedId))
+                {
+                    const string error = "Feeder ID must be blank or exactly 4 hexadecimal digits (0000-FFFF).";
+                    Machine?.AddStatusMessage(StatusMessageTypes.Warning, error);
+                    return InvokeResult.FromError(error);
+                }
+                Current.FeederId = normalizedId;
+
                 var result = _isEditing ? await _restClient.PutAsync("/api/mfg/stripfeeder", Current) :
                                 await _restClient.PostAsync("/api/mfg/stripfeeder", Current);
                 if (result.Successful)
@@ -946,7 +1112,30 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             return ResolvePartInTape(feederOrigin);
         }
 
-        private InvokeResult<Point2D<double>> ResolvePartInTape(Point2D<double> feederOrigin)
+        // Read-only pocket geometry: does NOT change CurrentPartIndex or inventory.
+        private InvokeResult<Point2D<double>> ResolvePocketForCalibration(int index)
+        {
+            if (Current == null || CurrentRow == null || Current.StagingPlate == null)
+                return InvokeResult<Point2D<double>>.FromError(
+                    "Select an existing feeder, staging plate, and row.");
+            if (index < 1 || index > TotalPartsInFeederRow)
+                return InvokeResult<Point2D<double>>.FromError("Pocket index is outside the feeder capacity.");
+
+            var plate = MachineConfiguration.StagingPlates.SingleOrDefault(
+                sp => sp.Id == Current.StagingPlate.Id);
+            if (plate == null)
+                return InvokeResult<Point2D<double>>.FromError("Configured staging plate not found.");
+            var anchor = StagingPlateUtils.ResolveStagePlateWorkSpakeLocation(
+                plate, Current.ReferenceHoleColumn, Current.ReferenceHoleRow);
+            if (anchor == null)
+                return InvokeResult<Point2D<double>>.FromError("Staging-plate reference row/column is missing.");
+
+            SetPartInTapeHoleProfile();
+            return ResolvePartInTape(ResolveFeederOrigin(anchor, Current), index);
+        }
+
+        private InvokeResult<Point2D<double>> ResolvePartInTape(Point2D<double> feederOrigin,
+            int? indexOverride = null)
         {
             if (Current == null)
             {
@@ -982,10 +1171,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
 
 
-            CurrentPartIndex = Math.Max(1, CurrentPartIndex);
-            CurrentPartIndex = Math.Min(CurrentPartIndex, TotalPartsInFeederRow);
+            var index = Math.Max(1, Math.Min(indexOverride ?? CurrentPartIndex,
+                TotalPartsInFeederRow));
+            if (!indexOverride.HasValue)
+                CurrentPartIndex = index;
 
-            Machine.DebugWriteLine($"  RESOLVE LOCATION {CurrentPartIndex}, FEED LOCATION: {Current.FeedDirection.Value}");
+            Machine.DebugWriteLine($"  RESOLVE LOCATION {index}, FEED LOCATION: {Current.FeedDirection.Value}");
 
             if (CurrentComponentPackage == null)
                 return InvokeResult<Point2D<double>>.FromError("No component package, can not move to part.");
@@ -997,7 +1188,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 Current.Orientation.Value == FeederOrientations.Vertical,
                 Current.TapeHolesOnTop,
                 Current.FeedDirection.Value == FeedDirections.Forward,
-                CurrentPartIndex,
+                index,
                 CurrentComponentPackage.CustomTapePitch ?? TapePitch.ToDouble(),
                 TapeSize.ToDouble(),
                 CurrentComponentPackage.XOffsetFromReferenceHole,
@@ -1192,6 +1383,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public ObservableCollection<StripFeeder> Feeders { get => _stripFeeders; }
 
         public RelayCommand FeederCalibrationNextCommand { get; }
+        public RelayCommand FeederCalibrationAutoRunCommand { get; }
         public RelayCommand FeederCalibrationRetryCommand { get; }
         public RelayCommand FeederCalibrationCancelCommand { get; }
         public RelayCommand FeederCalibrationNewRunCommand { get; }

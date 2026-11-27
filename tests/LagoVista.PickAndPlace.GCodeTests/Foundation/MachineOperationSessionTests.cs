@@ -152,6 +152,42 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void CameraArrivalAloneCannotPassEitherPocketConfirmation()
+        {
+            var session = NewSession();
+            session.Start(T0);
+            for (var i = 0; i < 5; i++)
+            {
+                var step = session.Definition.Steps[i];
+                var observed = T0.AddSeconds(i * 2 + 1);
+                session.RecordEvidence(Proof(session, step.RequiredVerification,
+                    observed, step.RequiresSavedEvidence));
+                session.CompleteActiveStep(step.Key, observed.AddSeconds(1));
+            }
+
+            Assert.That(session.Snapshot.ActiveStepKey, Is.EqualTo("verify-current-part"));
+            session.RecordEvidence(Proof(session, MachineOperationVerificationKind.MachineObserved,
+                T0.AddSeconds(11)));
+            Assert.Throws<InvalidOperationException>(() =>
+                session.CompleteActiveStep("verify-current-part", T0.AddSeconds(12)));
+            session.RecordEvidence(Proof(session, MachineOperationVerificationKind.OperatorConfirmed,
+                T0.AddSeconds(13)));
+            session.CompleteActiveStep("verify-current-part", T0.AddSeconds(14));
+
+            Assert.That(session.Snapshot.ActiveStepKey, Is.EqualTo("verify-previous-empty"));
+            session.RecordEvidence(Proof(session, MachineOperationVerificationKind.MachineObserved,
+                T0.AddSeconds(15)));
+            Assert.Throws<InvalidOperationException>(() =>
+                session.CompleteActiveStep("verify-previous-empty", T0.AddSeconds(16)));
+            session.RecordEvidence(Proof(session, MachineOperationVerificationKind.OperatorConfirmed,
+                T0.AddSeconds(17)));
+            session.CompleteActiveStep("verify-previous-empty", T0.AddSeconds(18));
+
+            Assert.That(session.Snapshot.Status, Is.EqualTo(MachineOperationRunStatus.Completed));
+            Assert.That(session.Snapshot.Target.StartingPartIndex, Is.EqualTo(24));
+        }
+
+        [Test]
         public void CancellationDoesNotAdvanceOrClaimCompletion()
         {
             var session = NewSession();

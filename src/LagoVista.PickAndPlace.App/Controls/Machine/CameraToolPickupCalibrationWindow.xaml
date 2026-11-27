@@ -1,0 +1,281 @@
+<Window x:Class="LagoVista.PickAndPlace.App.Controls.Machine.CameraToolPickupCalibrationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:cal="clr-namespace:LagoVista.PickAndPlace.App.Controls.Machine.Calibration"
+        Title="Camera-to-Tool XY Calibration"
+        Width="1160" Height="830" MinWidth="950" MinHeight="700"
+        WindowStartupLocation="CenterOwner" WindowStyle="None"
+        ResizeMode="NoResize" ShowInTaskbar="False"
+        Background="#161C25" Foreground="#EDF2F8"
+        Closing="Window_Closing">
+    <Window.Resources>
+        <cal:CameraToolSavedPickupMarkersConverter x:Key="SavedPickupMarkers"/>
+        <Style x:Key="ProcedureCard" TargetType="Border">
+            <Setter Property="Background" Value="#252E3B"/>
+            <Setter Property="BorderBrush" Value="#3A4556"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="9"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="Margin" Value="0,0,0,7"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Status}" Value="Running">
+                    <Setter Property="BorderBrush" Value="#55B7FF"/>
+                    <Setter Property="Background" Value="#26394A"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="Passed">
+                    <Setter Property="BorderBrush" Value="#3E7961"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="Failed">
+                    <Setter Property="BorderBrush" Value="#D55F66"/>
+                    <Setter Property="Background" Value="#3B2A32"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="StepStatus" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#A4B1C0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Status}" Value="Running">
+                    <Setter Property="Foreground" Value="#90D3FF"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="Passed">
+                    <Setter Property="Foreground" Value="#79EDAD"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Status}" Value="Failed">
+                    <Setter Property="Foreground" Value="#FF9299"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="MinWidth" Value="110"/>
+            <Setter Property="Margin" Value="8,0,0,0"/>
+            <Setter Property="Padding" Value="16,7"/>
+            <Setter Property="Background" Value="#277EC4"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#4F9BD8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+    </Window.Resources>
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Border Background="#222D3C" CornerRadius="9" Padding="15"
+                Margin="0,0,0,12" Cursor="SizeAll"
+                MouseLeftButtonDown="Header_MouseLeftButtonDown">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="CAMERA → TOOL / TWO-PASS PICKUP"
+                               FontWeight="Bold" FontSize="11" Foreground="#8FBFE9"/>
+                    <TextBlock Text="Pickup Offset Calibration" FontWeight="SemiBold"
+                               FontSize="25" Margin="0,5,0,3"/>
+                    <TextBlock Text="{Binding ToolHeadName}" Foreground="#DFE9F5"
+                               FontSize="14"/>
+                    <TextBlock Text="Known Location · nominal 7 mm white disc (verify actual fixture)" Foreground="#ACBDD0"
+                               FontSize="12" Margin="0,2,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <TextBlock Text="MEASUREMENT PLAN" Foreground="#91A5BC"
+                               HorizontalAlignment="Right" FontSize="10"/>
+                    <TextBlock Text="Two pickups · selected head 1 or 2"
+                               FontWeight="SemiBold" FontSize="16" HorizontalAlignment="Right"/>
+                    <TextBlock Text="Top-camera reference · bottom-camera verification"
+                               Foreground="#B6C3D2" FontSize="11" HorizontalAlignment="Right"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+        <Border Grid.Row="1" BorderBrush="#375B75" BorderThickness="1" Background="#213341"
+                CornerRadius="8" Padding="12" Margin="0,0,0,12">
+            <StackPanel>
+                <TextBlock Text="VERIFIED CANDIDATE / SAVED-OFFSET ACCEPTANCE" FontSize="10"
+                           Foreground="#93BAD9" FontWeight="Bold"/>
+                <TextBlock Text="{Binding CandidateSummary}" FontSize="17" FontWeight="SemiBold"
+                           Foreground="#F1F8FF" Margin="0,3,0,0"/>
+                <TextBlock Text="No head offsets are changed until the second independent pickup passes the acceptance threshold." FontSize="12" Foreground="#C9D5E3"
+                           Margin="0,5,0,0" TextWrapping="Wrap"/>
+                <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
+                    <Ellipse Width="15" Height="15" Margin="0,0,7,0" StrokeThickness="2">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Stroke" Value="#9FB4CA"/>
+                                <Setter Property="Fill" Value="Transparent"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SavedPickupVerified}" Value="True">
+                                        <Setter Property="Fill" Value="#37C978"/>
+                                        <Setter Property="Stroke" Value="#9AF4BF"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <TextBlock Text="{Binding SavedPickupStatus}" FontSize="12"
+                               Foreground="#C5DCED" TextWrapping="Wrap"/>
+                </StackPanel>
+
+                <TextBlock Text="GREEN requires the saved-offset third pickup to center the disc in the BOTTOM CAMERA within 0.200 mm, the nozzle within 0.200 mm, and the disc relative to the nozzle within 0.200 mm. A temporary measured inspection-only correction is used; it never changes the saved camera-to-tool offset."
+                           FontSize="11" Foreground="#B9C6D6" TextWrapping="Wrap" Margin="0,5,0,0"/>
+            </StackPanel>
+        </Border>
+        <Grid Grid.Row="2" Margin="4,0,4,8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Physical head" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <ComboBox Width="166" Height="34" SelectedValuePath="Tag"
+                              SelectedValue="{Binding HeadIndexText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              IsEnabled="{Binding CanOperate}" Margin="0,0,16,0">
+                        <ComboBoxItem Content="Head 1" Tag="1"/>
+                        <ComboBoxItem Content="Head 2" Tag="2"/>
+                    </ComboBox>
+                    <TextBlock Text="OFFSET SAVE REQUIRES AN EXPLICIT APPROVAL AFTER TWO VERIFIED PICKUPS"
+                               Foreground="#E8C58B" FontSize="11" VerticalAlignment="Center"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+                <TextBlock Text="{Binding ConfiguredHeights}" TextWrapping="Wrap"
+                           Margin="0,7,0,2" FontWeight="SemiBold"/>
+                <TextBlock Text="Pickup/return use the selected head's saved Pick/Place heights. Held-disc inspection completes XY travel at Safe Move Height, then moves common Z to the selected head's configured Pick Height. Verify fixture clearance and optical focus during supervised testing."
+                           FontSize="11" Foreground="#B9C6D6" TextWrapping="Wrap"/>
+            </StackPanel>
+            <Border Grid.Row="1" Background="#1C3039" BorderBrush="#426876"
+                    BorderThickness="1" CornerRadius="7" Padding="10,7" Margin="0,0,0,9">
+                <StackPanel>
+                    <TextBlock Text="BOTTOM CAMERA / CALIBRATION DISC CENTROID"
+                               FontSize="10" Foreground="#A2C9D7" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding BottomVisionState}" FontSize="12"
+                               Foreground="#E8F1F8" FontWeight="SemiBold" Margin="0,3,0,1"/>
+                    <TextBlock Text="{Binding BottomVisionMeasurements}" FontSize="11"
+                               FontFamily="Consolas" Foreground="#C5DFE8"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+            <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="42"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="92"/>
+                <ColumnDefinition Width="82"/>
+                <ColumnDefinition Width="72"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="#" Foreground="#AAB8C9"/>
+            <TextBlock Grid.Column="1" Text="STAGE / MEASUREMENT" Foreground="#AAB8C9"/>
+            <TextBlock Grid.Column="2" Text="STATUS" Foreground="#AAB8C9"/>
+            <TextBlock Grid.Column="3" Text="ELAPSED" TextAlignment="Right" Foreground="#AAB8C9"/>
+            <TextBlock Grid.Column="4" Text="RETRIES" TextAlignment="Right" Foreground="#AAB8C9"/>
+            </Grid>
+        </Grid>
+        <!-- Same T008-T013 operator layout: stage rail left and live vision right.
+             Camera tab selection is display-only and never commands machine motion. -->
+        <Grid Grid.Row="3" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="285"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <cal:CalibrationStepRail Grid.Column="0"
+                                     Steps="{Binding CalibrationSteps}"
+                                     Margin="0,0,12,0"/>
+            <Border Grid.Column="1" Background="#101721"
+                    BorderBrush="#35475A" BorderThickness="1"
+                    CornerRadius="8" Padding="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TabControl Grid.Row="0" Background="#172333" Foreground="#EDF4FA"
+                                SelectedIndex="1">
+                        <TabItem Header="Top camera - fixture">
+                            <cal:CalibrationVideoSurface
+                                FrameSource="{Binding CalibrationMachine.PositionImageCaptureService.CaptureImage}"
+                                Caption="LIVE POSITION CAMERA - known-location target, view only"/>
+                        </TabItem>
+                        <TabItem Header="Bottom camera - nozzle / disc">
+                            <cal:CalibrationVideoSurface
+                                FrameSource="{Binding CalibrationMachine.PartInspectionCaptureService.CaptureImage}"
+                                Caption="LIVE BOTTOM CAMERA - green only for saved-offset nozzle-relative proof">
+                                <cal:CalibrationVideoSurface.Markers>
+                                    <MultiBinding Converter="{StaticResource SavedPickupMarkers}">
+                                        <Binding Path="SavedPickupProof"/>
+                                        <Binding Path="CalibrationMachine.PartInspectionCaptureService.CaptureImage"/>
+                                        <Binding Path="CalibrationMachine.PartInspectionCaptureService.Camera.EffectivePixelsPerMM"/>
+                                        <Binding Path="ShowSavedPickupRing"/>
+                                        <Binding Path="CalibrationMachine.PartInspectionCaptureService.Profile.Key"/>
+                                    </MultiBinding>
+                                </cal:CalibrationVideoSurface.Markers>
+                            </cal:CalibrationVideoSurface>
+                        </TabItem>
+                    </TabControl>
+                    <Expander Grid.Row="1" Header="Optical diagnostics - bottom camera"
+                              IsExpanded="False" Background="#243040"
+                              Foreground="#EAF1FA" BorderBrush="#3C5066"
+                              BorderThickness="1" Padding="8" Margin="0,8,0,0">
+                        <StackPanel MaxHeight="155">
+                            <TextBlock Text="{Binding BottomVisionState}" FontWeight="SemiBold"
+                                       Foreground="#9FD5F5" FontSize="13"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding BottomVisionMeasurements}"
+                                       FontFamily="Consolas" Foreground="#C5DFE8"
+                                       FontSize="11" TextWrapping="Wrap"
+                                       Margin="0,5,0,0"/>
+                            <TextBlock Text="Camera display is observational. Only fresh optical and vacuum evidence advances the procedure."
+                                       Foreground="#A8BCCF" FontSize="10"
+                                       TextWrapping="Wrap" Margin="0,6,0,0"/>
+                        </StackPanel>
+                    </Expander>
+                </Grid>
+            </Border>
+        </Grid>
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel VerticalAlignment="Center" Margin="0,0,10,0">
+                <TextBlock Text="{Binding Status}" TextWrapping="Wrap"
+                           FontSize="13" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding HistoryStatus}" TextWrapping="Wrap"
+                           Foreground="#9CD6BE" FontSize="11" Margin="0,5,0,0"/>
+                <TextBlock Text="{Binding HistoryRunId, StringFormat='Run ID: {0}'}"
+                           TextWrapping="Wrap" Foreground="#8FAAC8" FontSize="10"/>
+                <TextBlock Text="{Binding LocalHistoryPath, StringFormat='Local JSON: {0}'}"
+                           TextWrapping="Wrap" Foreground="#8FAAC8" FontSize="10"/>
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                    <Button Content="Retry History Save" Click="RetryHistory_Click"
+                            IsEnabled="{Binding CanRetryHistory}" Height="27"
+                            MinWidth="125" Margin="0,0,5,0" Padding="6,2"/>
+                    <Button Content="Copy Run Report" Click="CopyRunReport_Click"
+                            Height="27" MinWidth="120" Padding="6,2"/>
+                </StackPanel>
+                <TextBlock Text="Supervise motion; emergency stop is independent. Third pickup requires explicit saved-offset approval."
+                           TextWrapping="Wrap" Foreground="#9DADC1" FontSize="10" Margin="0,5,0,0"/>
+            </StackPanel>
+            <Button Grid.Column="1" Content="Preview Bottom Camera"
+                    Style="{StaticResource ActionButton}" Click="PreviewBottomCamera_Click"
+                    IsEnabled="{Binding CanOperate}"/>
+            <Button Grid.Column="2" Content="Start / Run Again"
+                    Style="{StaticResource ActionButton}" Click="RunAgain_Click"
+                    IsEnabled="{Binding CanOperate}"/>
+            <Button Grid.Column="3" Content="Approve, Save &amp; Verify Third Pickup"
+                    Style="{StaticResource ActionButton}" Click="SaveAndVerify_Click"
+                    IsEnabled="{Binding CanSaveAndVerify}"/>
+            <Button Grid.Column="4" Content="Close" Style="{StaticResource ActionButton}"
+                    Click="Close_Click" IsEnabled="{Binding CanOperate}"/>
+        </Grid>
+    </Grid>
+</Window>
