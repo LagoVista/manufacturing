@@ -66,7 +66,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if (_autoFeeders == null) return;
             foreach(var feeder in _autoFeeders.ToArray())
             {
-                if (Machine == null || !Machine.Connected || Machine.Busy) break;
+                if (Machine == null || !Machine.Connected) break;
                 if (feeder.Slot < 1 || feeder.Slot > 254) continue;
                 var result = await PhotonFeederViewModel.InitializeFeederAsync((byte)feeder.Slot, feeder.FeederId);
                 if (result.Successful)
@@ -76,6 +76,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         private void PhotonFeederViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
+            if (e.PropertyName == nameof(IPhotonFeederViewModel.ManualDistanceText) || e.PropertyName == nameof(IPhotonFeederViewModel.IsBusBusy)) ConfiguredTestArmed = false;
             RaisePropertyChanged(nameof(ConfiguredFeederStatus));
             RaiseCanExecuteChanged();
             if(e.PropertyName == nameof(IPhotonFeederViewModel.SelectedPhotonFeeder))
@@ -294,14 +295,21 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             {
                 if (!ValidCurrent) return "No valid configured slot.";
                 var found = PhotonFeederViewModel.DiscoveredFeeders.FirstOrDefault(f => f.Slot == Current.Slot);
-                if (found == null) return "Not observed in discovery; missing or unknown.";
+                if (found == null) return PhotonFeederViewModel.GetDiscoveryStatus((byte)Current.Slot);
                 if (!string.Equals(found.Address, Current.FeederId, StringComparison.OrdinalIgnoreCase)) return "Mismatched feeder: " + found.Address;
                 return PhotonFeederViewModel.IsInitialized((byte)Current.Slot, Current.FeederId)
                     ? "Discovered and initialized" : "Discovered; initialization unknown or tape position uncertain.";
             }
         }
+        private bool _configuredTestArmed;
+        public bool ConfiguredTestArmed
+        {
+            get => _configuredTestArmed;
+            set { Set(ref _configuredTestArmed, value); RaiseCanExecuteChanged(); }
+        }
         private bool CanTestConfigured() => ValidCurrent && Machine != null && Machine.Connected && !Machine.Busy &&
-            !PhotonFeederViewModel.IsBusBusy && PhotonFeederViewModel.ManualTestArmed &&
+            Machine.Mode == OperatingMode.Manual && !Machine.IsLocating && Machine.ToSendQueueCount == 0 && Machine.UnacknowledgedBytesSent == 0 &&
+            !PhotonFeederViewModel.IsBusBusy && ConfiguredTestArmed &&
             PhotonFeederViewModel.DiscoveredFeeders.Any(f => f.Slot == Current.Slot && string.Equals(f.Address, Current.FeederId, StringComparison.OrdinalIgnoreCase));
         private bool CanMoveConfigured() => CanTestConfigured() && PhotonFeederViewModel.IsInitialized((byte)Current.Slot, Current.FeederId) &&
             LagoVista.PickAndPlace.LumenSupport.PhotonProtocolHandler.TryEncodeDistance(PhotonFeederViewModel.ManualDistance, out _);
@@ -310,7 +318,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if (forward.HasValue ? !CanMoveConfigured() : !CanTestConfigured()) return;
             var feeder = Current;
             var distance = PhotonFeederViewModel.ManualDistance;
-            PhotonFeederViewModel.ManualTestArmed = false;
+            ConfiguredTestArmed = false;
             var result = !forward.HasValue ? await PhotonFeederViewModel.InitializeFeederAsync((byte)feeder.Slot, feeder.FeederId) :
                 forward.Value ? await PhotonFeederViewModel.AdvanceFeed((byte)feeder.Slot, distance, feeder.FeederId) :
                 await PhotonFeederViewModel.RetractFeed((byte)feeder.Slot, distance, feeder.FeederId);
@@ -324,50 +332,6 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public Task<InvokeResult> RetractFeedAsync() => !ValidCurrent || CurrentComponentPackage?.TapePitch == null || CurrentComponent?.Id != Current.Component?.Id
             ? Task.FromResult(InvokeResult.FromError("Valid feeder and assigned component pitch required."))
             : PhotonFeederViewModel.RetractFeed((byte)Current.Slot, CurrentComponentPackage.TapePitch.ToDouble(), Current.FeederId);
-
-        public InvokeResult<Point2D<double>> FindFeederFiducial()
-        {
-            var origin = GetCurrentFeederOrigin();
-            if (origin.Successful)
-            {
-                var fiducialLocation = origin.Result + Current.FiducialOffset;
-                return InvokeResult<Point2D<double>>.Create(fiducialLocation);
-            }
-            else
-                return origin;
-        }
-
-        public void GoToFeederFiducial()
-        {
-            var result = FindFeederFiducial();
-            if (result.Successful)
-            {
-                Machine.SetVisionProfile(CameraTypes.Position, VisionProfile.VisionProfile_FeederFiducial);
-                Machine.GotoPoint(result.Result);
-                //MachineConfiguration.PositioningCamera.CurrentVisionProfile = MachineConfiguration.PositioningCamera.VisionProfiles.FirstOrDefault(prf => prf.Key == VisionProfile.VisionProfile_BoardFiducial);
-            }
-            else
-            {
-                Machine.AddStatusMessage(StatusMessageTypes.FatalError, result.ErrorMessage);
-            }
-        }
-
-        public async Task<InvokeResult> InitializeFeederAsync()
-        {
-            return await PhotonFeederViewModel.InitializeFeederAsync((byte)Current.Slot, Current.FeederId);
-        }
-
-        public async Task<InvokeResult> AdvanceFeedAsync()
-        {
-            var result = await PhotonFeederViewModel.AdvanceFeed((byte)Current.Slot, CurrentComponentPackage.TapePitch.ToDouble());
-            return result;
-        
-        }
-
-        public async Task<InvokeResult> RetractFeedAsync()
-        {
-            return await PhotonFeederViewModel.RetractFeed((byte)Current.Slot, 4);
-        }
 
         public InvokeResult<Point2D<double>> FindFeederFiducial(string autoFeederId)
         {
@@ -554,7 +518,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     return;
 
                 Set(ref _current, value);
-                PhotonFeederViewModel.ManualTestArmed = false;
+                ConfiguredTestArmed = false;
                 RaisePropertyChanged(nameof(ConfiguredFeederStatus));
                 _isEding = true;
                 RaiseCanExecuteChanged();

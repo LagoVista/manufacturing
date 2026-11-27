@@ -31,7 +31,7 @@
                 <CheckBox Content="I confirmed the selected feeder, clearance and safe test conditions" IsChecked="{Binding ManualTestArmed, Mode=TwoWay}" />
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="Test distance (mm):" VerticalAlignment="Center" />
-                    <TextBox Width="70" Text="{Binding ManualDistance, UpdateSourceTrigger=LostFocus}" />
+                    <TextBox Width="70" Text="{Binding ManualDistanceText, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
                 <WrapPanel>
                     <Button Content="Identify" Command="{Binding IdentifyCommand}" Style="{StaticResource CommandButton}" />

@@ -22,7 +22,9 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 
         bool IsBusBusy { get; }
         bool ManualTestArmed { get; set; }
-        double ManualDistance { get; set; }
+        string ManualDistanceText { get; set; }
+        double ManualDistance { get; }
+        string GetDiscoveryStatus(byte slot);
         bool IsInitialized(byte slot, string id);
         RelayCommand IdentifyCommand { get; }
         RelayCommand InitializeCommand { get; }

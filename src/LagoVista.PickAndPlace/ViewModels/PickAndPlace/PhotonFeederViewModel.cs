@@ -14,6 +14,7 @@ using LagoVista.PickAndPlace.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Globalization;
 using LagoVista.PickAndPlace.LumenSupport;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -30,10 +31,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         private readonly ConcurrentDictionary<byte, bool> _uncertain = new ConcurrentDictionary<byte, bool>();
         private int _busy, _generation;
         private bool _armed;
-        private double _distance;
+        private string _distanceText = "";
+        private readonly ConcurrentDictionary<byte, string> _discoveryStatus = new ConcurrentDictionary<byte, string>();
         public bool IsBusBusy => Volatile.Read(ref _busy) != 0;
         public bool ManualTestArmed { get => _armed; set { Set(ref _armed, value); RaiseCanExecuteChanged(); } }
-        public double ManualDistance { get => _distance; set { Set(ref _distance, value); RaiseCanExecuteChanged(); } }
+        public string ManualDistanceText { get => _distanceText; set { Set(ref _distanceText, value); ManualTestArmed = false; RaisePropertyChanged(nameof(ManualDistance)); RaiseCanExecuteChanged(); } }
+        public double ManualDistance => double.TryParse(ManualDistanceText, NumberStyles.Float, CultureInfo.CurrentCulture, out var value) ? value : double.NaN;
+        public string GetDiscoveryStatus(byte slot) => _discoveryStatus.TryGetValue(slot, out var status) ? status : "Not scanned; communication unknown.";
+        private bool IsManualIdle() => Machine != null && Machine.Connected && !Machine.Busy && !Machine.IsLocating && Machine.Mode == OperatingMode.Manual && Machine.ToSendQueueCount == 0 && Machine.UnacknowledgedBytesSent == 0;
         public RelayCommand IdentifyCommand { get; }
         public RelayCommand InitializeCommand { get; }
         public RelayCommand AdvanceCommand { get; }
@@ -43,7 +48,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public PhotonFeederViewModel(IMachineRepo machineRepo, IPhotonProtocolHandler protocolHandler, IRestClient restClient, ILogger logger) : base(machineRepo)
         {
             _protocolHandler = protocolHandler ?? throw new ArgumentNullException(nameof(protocolHandler));
-            DiscoverFeedersCommand = CreatedMachineConnectedCommand(Discover, () => !IsBusBusy && !Machine.Busy);
+            DiscoverFeedersCommand = CreatedMachineConnectedCommand(Discover, () => !IsBusBusy && IsManualIdle());
             IdentifyCommand = CreatedMachineConnectedCommand(async () => await TestSelectedAsync(FeederCommands.IdentifyFeeder), CanTest);
             InitializeCommand = CreatedMachineConnectedCommand(async () => await TestSelectedAsync(FeederCommands.Initialize), CanTest);
             AdvanceCommand = CreatedMachineConnectedCommand(async () => await TestSelectedAsync(FeederCommands.MoveFeedForward), CanMove);
@@ -59,7 +64,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }, CanTest);
         }
 
-        private bool CanTest() => !IsBusBusy && Machine != null && Machine.Connected && !Machine.Busy &&
+        private bool CanTest() => !IsBusBusy && IsManualIdle() &&
             ManualTestArmed && SelectedPhotonFeeder != null && SelectedPhotonFeeder.Slot > 0 &&
             SelectedPhotonFeeder.Slot < 255 && PhotonProtocolHandler.IsFeederId(SelectedPhotonFeeder.Address);
         private bool CanMove() => CanTest() && PhotonProtocolHandler.TryEncodeDistance(ManualDistance, out _) &&
@@ -72,6 +77,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             Interlocked.Increment(ref _generation);
             _initialized.Clear();
+            _discoveryStatus.Clear();
             DispatcherServices.Invoke(() =>
             {
                 ManualTestArmed = false;
@@ -103,7 +109,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 RaiseCanExecuteChanged();
                 var result = Connected(machine, generation) ? await action(machine, generation) :
                     InvokeResult.FromError("Machine disconnected.");
-                Status = description + (result.Successful ? " — confirmed" : " — " + result.ErrorMessage);
+                if (description != "Discovery" || !result.Successful)
+                    Status = description + (result.Successful ? " — confirmed" : " — " + result.ErrorMessage);
                 return result;
             }
             catch (Exception ex)
@@ -167,7 +174,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public async void Discover()
         {
-            if (Machine == null || !Machine.Connected || Machine.Busy || IsBusBusy) return;
+            if (!IsManualIdle() || IsBusBusy) return;
             var count = SlotsToSearch;
             if (count == 0 || count == 255) { Status = "Search 1–254 slots."; return; }
             await OnBusAsync("Discovery", async (machine, generation) =>
@@ -175,11 +182,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 ManualTestArmed = false;
                 SelectedPhotonFeeder = null;
                 DiscoveredFeeders.Clear();
+                _discoveryStatus.Clear();
                 SlotSearchIndex = 0;
                 int missing = 0, errors = 0;
                 for (int i = 1; i <= count; i++)
                 {
-                    if (!Connected(machine, generation)) return InvokeResult.FromError("Disconnected; discovery incomplete.");
+                    if (!Connected(machine, generation) || machine.Mode != OperatingMode.Manual || machine.IsLocating) return InvokeResult.FromError("Machine disconnected or no longer in manual mode; discovery incomplete.");
                     var slot = (byte)i;
                     SlotSearchIndex = slot;
                     try
@@ -190,10 +198,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         DiscoveredFeeders.Add(new PhotonFeeder { Address = id, Slot = slot });
                         Status = $"Slot {slot}: found {id}";
                     }
-                    catch (TimeoutException) { _initialized.TryRemove(slot, out _); missing++; Status = $"Slot {slot}: no response"; }
-                    catch (Exception ex) { _initialized.TryRemove(slot, out _); errors++; Status = $"Slot {slot}: {ex.Message}"; }
+                    catch (TimeoutException) { _initialized.TryRemove(slot, out _); missing++; _discoveryStatus[slot] = "Missing / no response in latest scan"; Status = $"Slot {slot}: no response"; }
+                    catch (Exception ex) { _initialized.TryRemove(slot, out _); errors++; _discoveryStatus[slot] = "Unknown / communication error: " + ex.Message; Status = $"Slot {slot}: {ex.Message}"; }
                 }
-                return InvokeResult.FromError($"Scan complete: {DiscoveredFeeders.Count} found, {missing} no response, {errors} errors. No response is not proof of absence.");
+                Status = $"Scan complete: {DiscoveredFeeders.Count} found, {missing} no response, {errors} errors. No response is not proof of absence.";
+                return errors == 0 ? InvokeResult.Success : InvokeResult.FromError(Status);
             });
         }
 
