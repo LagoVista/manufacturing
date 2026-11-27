@@ -20,7 +20,7 @@ Keep this pragmatic: reuse existing models, APIs, WPF tools, vision profiles and
 | [T003](T003.md) | Feeder code label printing | Accepted / closed |
 | [T004](T004.md) | X gantry discussion | Accepted / closed (production follow-up deferred) |
 | [T005](T005.md) | Auto feeder control panel | Accepted / closed |
-| [T006](T006.md) | Auto feeder placement calibration | Planned |
+| [T006](T006.md) | Auto feeder placement calibration | Integrated; physical verification pending |
 | [T007](T007.md) | Auto feeder part location and presence calibration | Planned |
 | [T008](T008.md) | Part inspection calibration (bottom camera) | Planned |
 | [T009](T009.md) | Part on board calibration | Planned |
