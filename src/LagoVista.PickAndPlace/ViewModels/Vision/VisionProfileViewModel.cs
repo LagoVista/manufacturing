@@ -280,6 +280,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Vision
                         newProfile.Key = ehProfile.Key;
                         newProfile.Id = ehProfile.Id;
                         newProfile.Name = ehProfile.Text;
+                        if (newProfile.Key == VisionProfile.VisionProfile_FeederLandmark)
+                            FeederLandmarkGeometry.InitializeProfile(newProfile);
                         Camera.VisionProfiles.Add(newProfile);
                         Camera.CurrentVisionProfile = newProfile;
                     }

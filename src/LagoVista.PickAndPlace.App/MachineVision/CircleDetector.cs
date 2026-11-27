@@ -24,6 +24,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
 
         int _iteration = 0;
         private bool _autoKnownLocation;
+        private bool _feederLandmark;
         private readonly KnownLocationAutoThresholdGate _autoCircleGate = new KnownLocationAutoThresholdGate();
 
         public string LatestNozzleRejection { get; private set; }
@@ -69,7 +70,14 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 profile.Key == VisionProfile.VisionProfile_BoardFiducial;
             var feederFiducial = camera.CameraType?.Value == CameraTypes.Position &&
                 profile.Key == VisionProfile.VisionProfile_FeederFiducial;
-            var uniqueFiducial = boardFiducial || feederFiducial;
+            var feederLandmark = camera.CameraType?.Value == CameraTypes.Position &&
+                profile.Key == VisionProfile.VisionProfile_FeederLandmark;
+            var uniqueFiducial = boardFiducial || feederFiducial || feederLandmark;
+            if (feederLandmark != _feederLandmark)
+            {
+                _foundCircles.Clear();
+                _feederLandmark = feederLandmark;
+            }
             var autoKnownLocation = camera.CameraType?.Value == CameraTypes.Position &&
                 (profile.Key == VisionProfile.VisionProfile_KnownLocation || boardFiducial) && profile.AutoThreshold;
             if (_autoKnownLocation != autoKnownLocation)
@@ -80,7 +88,12 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             }
 
             CircleF[] circles;
-            if (autoKnownLocation)
+            if (feederLandmark)
+            {
+                var located = FindFeederLandmark(input, camera, profile, search, size);
+                circles = located.HasValue ? new[] { located.Value } : Array.Empty<CircleF>();
+            }
+            else if (autoKnownLocation)
             {
                 // ShapeDetectionService supplies the exact ROI-derived binary
                 // preview. Reuse the bright-disc centroid and geometry gates.
@@ -153,7 +166,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
                 : search.WithinRadius(circle)).ToArray();
             if (uniqueFiducial)
             {
-                if (!autoKnownLocation)
+                if (!autoKnownLocation && !feederLandmark)
                 {
                     var edges = candidates.Length;
                     // Inner and outer edges of the same plated ring do not
@@ -220,6 +233,39 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             {
                 FoundCircles.Remove(rect);
             }
+        }
+
+        private CircleF? FindFeederLandmark(IMVImage<IInputOutputArray> input, MachineCamera camera,
+            VisionProfile profile, CircleF search, System.Drawing.Size size)
+        {
+            var dots = new System.Collections.Generic.List<FeederLandmarkGeometry.Dot>();
+            using (var contours = new VectorOfVectorOfPoint())
+            {
+                CvInvoke.FindContours(input.Image, contours, null, RetrType.External, ChainApproxMethod.ChainApproxSimple);
+                for (var i=0;i<contours.Size;i++)
+                {
+                    using (var contour=contours[i])
+                    using (var moments=CvInvoke.Moments(contour))
+                    {
+                        if (moments.M00<12) continue;
+                        var bounds=CvInvoke.BoundingRectangle(contour);
+                        if (bounds.Left<=0 || bounds.Top<=0 || bounds.Right>=size.Width ||
+                            bounds.Bottom>=size.Height || bounds.Height<=0) continue;
+                        var aspect=(double)bounds.Width/bounds.Height;
+                        var perimeter=CvInvoke.ArcLength(contour,true);
+                        if (aspect<0.75 || aspect>1.33 || perimeter<=0 ||
+                            4*Math.PI*moments.M00/(perimeter*perimeter)<0.72) continue;
+                        dots.Add(new FeederLandmarkGeometry.Dot(moments.M10/moments.M00,
+                            moments.M01/moments.M00,Math.Sqrt(moments.M00/Math.PI)));
+                    }
+                }
+            }
+            var center=FeederLandmarkGeometry.Find(dots,search.Center.X,search.Center.Y,search.Radius,
+                camera.EffectivePixelsPerMM,profile.HoughCirclesMinRadius,profile.HoughCirclesMaxRadius,
+                profile.FeederLandmarkCenterDotDiameterMm,profile.FeederLandmarkSideDotDiameterMm,
+                profile.FeederLandmarkCenterToSideSpacingMm);
+            return center==null ? (CircleF?)null : new CircleF(
+                new System.Drawing.PointF((float)center.X,(float)center.Y),(float)center.Radius);
         }
 
         private CircleF? FindStagingPlateHole(IMVImage<IInputOutputArray> input, MachineCamera camera,
@@ -385,6 +431,7 @@ namespace LagoVista.PickAndPlace.App.MachineVision
             _foundCircles.Clear();
             _autoCircleGate.Reset();
             _autoKnownLocation = false;
+            _feederLandmark = false;
             FoundCircle = null;
             LatestNozzleRejection = null;
             LatestBoardFiducialDiagnostic = null;

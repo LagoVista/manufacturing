@@ -515,6 +515,9 @@ namespace LagoVista.PickAndPlace.App.Services
                     var autoKnownLocation = camera.CameraType?.Value == CameraTypes.Position &&
                         (profile.Key == VisionProfile.VisionProfile_KnownLocation ||
                          profile.Key == VisionProfile.VisionProfile_BoardFiducial) && profile.AutoThreshold;
+                    if (camera.CameraType?.Value == CameraTypes.Position &&
+                        profile.Key == VisionProfile.VisionProfile_FeederLandmark)
+                        return PerformFeederLandmark(img, camera, size);
                     if (autoKnownLocation)
                         return PerformKnownLocationAutoThreshold(img, camera, size);
                     if (_autoProfile != null)
@@ -732,6 +735,51 @@ namespace LagoVista.PickAndPlace.App.Services
                 ? $"MANUAL THRESHOLD {p.PrimaryThreshold / 100.0 * 255:F0}/255 ({p.PrimaryThreshold}/100)"
                 : "MANUAL THRESHOLD OFF";
             DrawFeederCornerLabel(image, size, label, 0, new MCvScalar(255, 255, 255));
+        }
+
+        private Image<Bgr, byte> PerformFeederLandmark(Image<Bgr, byte> raw, MachineCamera camera, Size size)
+        {
+            var p=camera.CurrentVisionProfile;
+            var geometry=(camera.EffectivePixelsPerMM,p.TargetImageRadius,p.HoughCirclesMinRadius,
+                p.HoughCirclesMaxRadius,p.ErrorToleranceMM,p.StabilizationCount);
+            if(!ReferenceEquals(_autoProfile,p) || !_autoGeometry.Equals(geometry))
+            {
+                _autoProfile=p; _autoGeometry=geometry; _autoThresholdGate.Reset();
+                _circleDetector.Reset(); _cornerDetector.Reset(); _rectangleDetector.Reset(); _lineDetector.Reset();
+            }
+            using(var gray=raw.Convert<Gray,byte>())
+            using(var smoothed=new Image<Gray,byte>(gray.Size))
+            using(var binary=new Image<Gray,byte>(gray.Size))
+            {
+                CvInvoke.GaussianBlur(gray,smoothed,new Size(3,3),0);
+                var type=p.Invert ? ThresholdType.BinaryInv : ThresholdType.Binary;
+                var threshold=CvInvoke.Threshold(smoothed,binary,p.AutoThreshold ? 0 : p.PrimaryThreshold*255.0/100.0,
+                    255,p.AutoThreshold ? type | ThresholdType.Otsu : type);
+                var status="DETECTION PAUSED";
+                var scale=camera.EffectivePixelsPerMM;
+                if(_machineRepo.CurrentMachine.Busy || !p.PerformShapeDetection || !p.FindCircles ||
+                    double.IsNaN(scale) || double.IsInfinity(scale) || scale<=0 ||
+                    double.IsNaN(p.TargetImageRadius) || double.IsInfinity(p.TargetImageRadius) || p.TargetImageRadius<=0 ||
+                    p.TargetImageRadius*scale>int.MaxValue)
+                {
+                    _circleDetector.Reset(); _autoThresholdGate.Reset();
+                }
+                else
+                {
+                    if(!_autoThresholdGate.ObserveThreshold(threshold)) _circleDetector.Reset();
+                    _circleDetector.FindCircles(new MVImage<IInputOutputArray>(binary),camera,size);
+                    var tracked=_circleDetector.FoundCircles.FirstOrDefault();
+                    status=tracked==null ? "NO UNIQUE THREE-DOT LANDMARK" :
+                        tracked.Stabilized && tracked.PositionStable ? "STABLE THREE-DOT LANDMARK" : "ACQUIRING THREE-DOT LANDMARK";
+                }
+                using(var display=p.ShowOriginalImage ? raw.Clone() : binary.Convert<Bgr,byte>())
+                {
+                    RenderOutput(new MVImage<IInputOutputArray>(display),camera,size);
+                    DrawFeederCornerLabel(display,size,$"{(p.AutoThreshold ? "AUTO OTSU" : "MANUAL")} {threshold:F0}/255",0,new MCvScalar(255,255,255));
+                    DrawFeederCornerLabel(display,size,status,1,status.StartsWith("STABLE") ? new MCvScalar(0,255,0) : new MCvScalar(0,255,255));
+                    return display.Clone();
+                }
+            }
         }
 
         private Image<Bgr, byte> PerformKnownLocationAutoThreshold(Image<Bgr, byte> raw,
