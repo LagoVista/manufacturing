@@ -39,7 +39,7 @@ namespace LagoVista.PickAndPlace.App.Services
         private int? _activeNozzleHeadIndex;
         private readonly KnownLocationAutoThresholdGate _autoThresholdGate = new KnownLocationAutoThresholdGate();
         private VisionProfile _autoProfile;
-        private (double Scale, double Search, double Min, double Max, double Tolerance, int Count) _autoGeometry;
+        private object _autoGeometry;
 
         public byte[] LatestFeederBarcodeSignal => _feederBarcode?.Signal;
         private string _latestCalibrationDiscDiagnostic =
@@ -513,8 +513,7 @@ namespace LagoVista.PickAndPlace.App.Services
                     var raw = img;
                     var profile = camera.CurrentVisionProfile;
                     var autoKnownLocation = camera.CameraType?.Value == CameraTypes.Position &&
-                        (profile.Key == VisionProfile.VisionProfile_KnownLocation ||
-                         profile.Key == VisionProfile.VisionProfile_BoardFiducial) && profile.AutoThreshold;
+                        CircleAutoThresholdProfiles.IsSupported(profile.Key) && profile.AutoThreshold;
                     if (autoKnownLocation)
                         return PerformKnownLocationAutoThreshold(img, camera, size);
                     if (_autoProfile != null)
@@ -726,7 +725,7 @@ namespace LagoVista.PickAndPlace.App.Services
         private void DrawKnownLocationManualThreshold(IInputOutputArray image, MachineCamera camera, Size size)
         {
             var p = camera.CurrentVisionProfile;
-            if (camera.CameraType?.Value != CameraTypes.Position || (p.Key != VisionProfile.VisionProfile_KnownLocation && p.Key != VisionProfile.VisionProfile_BoardFiducial))
+            if (camera.CameraType?.Value != CameraTypes.Position || !CircleAutoThresholdProfiles.IsSupported(p.Key))
                 return;
             var label = p.ApplyThreshold
                 ? $"MANUAL THRESHOLD {p.PrimaryThreshold / 100.0 * 255:F0}/255 ({p.PrimaryThreshold}/100)"
@@ -740,9 +739,15 @@ namespace LagoVista.PickAndPlace.App.Services
             var p = camera.CurrentVisionProfile;
             var scale = camera.EffectivePixelsPerMM;
             var boardFiducial = p.Key == VisionProfile.VisionProfile_BoardFiducial;
+            var additional = CircleAutoThresholdProfiles.IsAdditional(p.Key);
             var geometry = (scale, p.TargetImageRadius, p.HoughCirclesMinRadius,
-                p.HoughCirclesMaxRadius, p.ErrorToleranceMM, p.StabilizationCount);
-            if (!ReferenceEquals(_autoProfile, p) || !_autoGeometry.Equals(geometry))
+                p.HoughCirclesMaxRadius, p.ErrorToleranceMM, p.StabilizationCount,
+                p.Key, p.Invert, p.ApplyMask, p.UseBlurredImage, p.GausianKernellSize,
+                p.GaussianSigma, p.HoughCirclesDP, p.HoughCirclesMinDistance,
+                p.HoughCirclesParam1, p.HoughCirclesParam2, camera.EffectiveExposure,
+                camera.MirrorXAxis, camera.MirrorYAxis, size.Width, size.Height,
+                p.FindCircles, p.PerformShapeDetection);
+            if (!ReferenceEquals(_autoProfile, p) || !Equals(_autoGeometry, geometry))
             {
                 _autoProfile = p;
                 _autoGeometry = geometry;
@@ -765,7 +770,7 @@ namespace LagoVista.PickAndPlace.App.Services
                 var extent = (p.TargetImageRadius + (boardFiducial ? p.HoughCirclesMaxRadius : Math.Min(p.HoughCirclesMaxRadius,
                     KnownLocationCylinderCenteringMath.MaximumDiameterMm / 2))) * scale;
                 int boardSamplingRadius = 0;
-                var valid = boardFiducial
+                var valid = boardFiducial || additional
                     ? BoardFiducialImageGeometry.TrySamplingRadius(size.Width, size.Height, scale,
                         p.TargetImageRadius, p.HoughCirclesMaxRadius, out boardSamplingRadius)
                     : !Double.IsNaN(extent) && !Double.IsInfinity(extent) &&
@@ -773,10 +778,21 @@ namespace LagoVista.PickAndPlace.App.Services
                         extent < Math.Min(size.Width, size.Height) / 2.0;
                 if (valid)
                 {
-                    var radius = boardFiducial ? boardSamplingRadius : (int)Math.Ceiling(extent);
+                    var radius = boardFiducial || additional ? boardSamplingRadius : (int)Math.Ceiling(extent);
                     var roi = new Rectangle(size.Width / 2 - radius, size.Height / 2 - radius,
                         radius * 2, radius * 2);
-                    CvInvoke.GaussianBlur(gray, smoothed, boardFiducial ? new Size(3, 3) : new Size(5, 5), 0);
+                    if (additional)
+                    {
+                        // Use configured blur on grayscale without modifying saved settings.
+                        var kernel = p.UseBlurredImage
+                            ? CircleAutoThresholdProfiles.BlurKernel(p.GausianKernellSize) : 1;
+                        if (kernel > 1)
+                            CvInvoke.GaussianBlur(gray, smoothed, new Size(kernel, kernel), Math.Max(0, p.GaussianSigma));
+                        else
+                            gray.CopyTo(smoothed);
+                    }
+                    else
+                        CvInvoke.GaussianBlur(gray, smoothed, boardFiducial ? new Size(3, 3) : new Size(5, 5), 0);
                     using (var region = smoothed.GetSubRect(roi))
                     using (var rawRegion = gray.GetSubRect(roi))
                     using (var regionBinary = new Image<Gray, byte>(roi.Size))
@@ -785,9 +801,21 @@ namespace LagoVista.PickAndPlace.App.Services
                             ThresholdType.Binary | ThresholdType.Otsu);
                         // Same thresholded pixels feed the preview and centroid detector.
                         CvInvoke.Threshold(smoothed, binary, threshold.Value, 255,
-                            boardFiducial && p.Invert ? ThresholdType.BinaryInv : ThresholdType.Binary);
+                            (boardFiducial || additional) && p.Invert ? ThresholdType.BinaryInv : ThresholdType.Binary);
+                        var fraction = additional
+                            ? CircleAutoThresholdProfiles.MinimumClassFraction(p.HoughCirclesMinRadius, scale, radius)
+                            : boardFiducial ? 0.005 : 0.05;
                         valid = KnownLocationAutoThresholdGate.Assess(region.Data, rawRegion.Data,
-                            (int)threshold.Value, out separation, out status, boardFiducial ? 0.005 : 0.05);
+                            (int)threshold.Value, out separation, out status, fraction);
+                        if (additional && p.ApplyMask)
+                        {
+                            using (var mask = new Image<Gray, byte>(size))
+                            {
+                                CvInvoke.Circle(mask, new Point(size.Width / 2, size.Height / 2),
+                                    Convert.ToInt32(p.TargetImageRadius * scale), new MCvScalar(255), -1);
+                                CvInvoke.BitwiseAnd(binary, binary, binary, mask);
+                            }
+                        }
                     }
                 }
 
@@ -804,7 +832,7 @@ namespace LagoVista.PickAndPlace.App.Services
                         _circleDetector.Reset();
                     _circleDetector.FindCircles(new MVImage<IInputOutputArray>(binary), camera, size);
                     var tracked = _circleDetector.FoundCircles.FirstOrDefault();
-                    var targetName = boardFiducial ? "PCB FIDUCIAL" : "DISC";
+                    var targetName = additional ? p.Key.ToUpperInvariant() : boardFiducial ? "PCB FIDUCIAL" : "DISC";
                     status = tracked == null ? "NO UNIQUE VALID " + targetName :
                         tracked.Stabilized && tracked.PositionStable ? "STABLE " + targetName : "ACQUIRING FRESH " + targetName;
                 }
