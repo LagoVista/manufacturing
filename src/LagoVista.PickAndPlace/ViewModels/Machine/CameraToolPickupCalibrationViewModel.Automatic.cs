@@ -33,20 +33,55 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         }
         public bool AutomaticRunVerified { get => _automaticRunVerified; private set => Set(ref _automaticRunVerified, value); }
 
-        private void RequireAutomaticBoundary(bool requireHistory = true)
+        // Match Known Location's bounded settling policy: require three
+        // consecutive idle samples. Never wait out a lost safety invariant.
+        private const int AutomaticBoundarySettleMs = 5000;
+        private const int AutomaticBoundaryIdlePolls = 3;
+
+        private async Task RequireAutomaticBoundaryAsync(bool requireHistory = true)
         {
-            if (_stopAutomatic) throw new CalibrationStopped("Operator stopped at a safe phase boundary.");
-            var m = _automaticMachine;
-            if (m == null || !ReferenceEquals(m, _repo.CurrentMachine) ||
-                !m.Connected || !m.WasMachineHomed || !m.WasMachinOriginCalibrated ||
-                m.Mode != OperatingMode.Manual ||
-                m.Busy || m.IsLocating || _locator.IsLocating ||
-                m.ToSendQueueCount != 0 || m.UnacknowledgedBytesSent != 0 ||
-                m.CurrentMachineToolHead != null || m.LeftVacuumPump || m.RightVacuumPump)
-                throw new CalibrationStopped("Machine must remain homed, connected, idle in Manual camera mode, both vacuums off.");
-            if (requireHistory && (_pendingHistorySnapshot != null || HistoryBusy ||
-                !HistoryStatus.StartsWith("RECORDED", StringComparison.Ordinal)))
-                throw new CalibrationStopped("Previous phase history is not recorded. No further motion.");
+            var elapsed = System.Diagnostics.Stopwatch.StartNew();
+            var stableIdle = 0;
+            string settling = null;
+            while (true)
+            {
+                if (_stopAutomatic)
+                    throw new CalibrationStopped("Operator stopped at a safe phase boundary.");
+                var m = _automaticMachine;
+                if (m == null || !ReferenceEquals(m, _repo.CurrentMachine))
+                    throw new CalibrationStopped("Selected machine changed or is unavailable.");
+                if (!m.Connected)
+                    throw new CalibrationStopped("Machine disconnected.");
+                if (!m.WasMachineHomed)
+                    throw new CalibrationStopped("Machine is not homed.");
+                if (!m.WasMachinOriginCalibrated)
+                    throw new CalibrationStopped("Machine origin is not calibrated.");
+                if (m.Mode != OperatingMode.Manual)
+                    throw new CalibrationStopped("Machine is not in Manual mode.");
+                if (m.CurrentMachineToolHead != null)
+                    throw new CalibrationStopped("Tool-head navigation is active; switch to camera mode.");
+                if (m.LeftVacuumPump || m.RightVacuumPump)
+                    throw new CalibrationStopped($"Vacuum still enabled: left={m.LeftVacuumPump}, right={m.RightVacuumPump}.");
+                if (requireHistory && (_pendingHistorySnapshot != null || HistoryBusy ||
+                    !HistoryStatus.StartsWith("RECORDED", StringComparison.Ordinal)))
+                    throw new CalibrationStopped("Previous phase history is not recorded. No further motion.");
+
+                if (m.Busy || m.IsLocating || _locator.IsLocating ||
+                    m.ToSendQueueCount != 0 || m.UnacknowledgedBytesSent != 0)
+                {
+                    stableIdle = 0;
+                    settling = $"Busy={m.Busy}, machine locating={m.IsLocating}, locator active={_locator.IsLocating}, " +
+                        $"queued={m.ToSendQueueCount}, unacknowledged bytes={m.UnacknowledgedBytesSent}.";
+                    Status = "Waiting for controller to settle: " + settling;
+                }
+                else if (++stableIdle >= AutomaticBoundaryIdlePolls)
+                    return;
+
+                if (elapsed.ElapsedMilliseconds >= AutomaticBoundarySettleMs)
+                    throw new CalibrationStopped("Controller did not reach stable idle within 5 seconds. " +
+                        (settling ?? "Insufficient consecutive idle samples."));
+                await Task.Delay(100);
+            }
         }
 
         public async Task RunAutomaticAsync()
@@ -76,7 +111,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
             try
             {
-                RequireAutomaticBoundary(false);
+                await RequireAutomaticBoundaryAsync(false);
                 var installed = _automaticMachine.Settings.ToolHeads.Where(h => h?.CurrentNozzle != null)
                     .Select(h => h.HeadIndex).OrderBy(i => i).ToArray();
                 if (!installed.SequenceEqual(new[] { 1, 2 }))
@@ -87,7 +122,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 _machine = _automaticMachine;
                 try { CheckSharedReadiness(); await ReadSharedGeometryAsync(); }
                 finally { _machine = null; }
-                RequireAutomaticBoundary(false);
+                await RequireAutomaticBoundaryAsync(false);
                 SaveVerifiedOffset = false; // retain the independent two-pick candidate gate
                 if (_automaticFull)
                 {
@@ -95,20 +130,20 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     {
                         HeadIndexText = index.ToString();
                         await StartCoreAsync();
-                        RequireAutomaticBoundary();
+                        await RequireAutomaticBoundaryAsync();
                         if (!CanSaveAndVerify)
                             throw new CalibrationStopped("Head " + index + " did not produce a recorded two-pick candidate. " + Status);
                         await SaveAndVerifyCoreAsync();
-                        RequireAutomaticBoundary();
+                        await RequireAutomaticBoundaryAsync();
                         if (!SavedPickupVerified || CalibrationSteps.Any(s => s.Status != "Passed"))
                             throw new CalibrationStopped("Head " + index + " saved pickup did not pass. " + Status);
                     }
                     await ProposeSharedCameraCoreAsync();
-                    RequireAutomaticBoundary();
+                    await RequireAutomaticBoundaryAsync();
                     if (!SharedCandidateReady || CalibrationSteps.Any(s => s.Status != "Passed"))
                         throw new CalibrationStopped("Shared camera proposal did not pass. " + Status);
                     await ApproveSharedCameraCoreAsync();
-                    RequireAutomaticBoundary();
+                    await RequireAutomaticBoundaryAsync();
                     if (!SharedCameraVerified || CalibrationSteps.Any(s => s.Status != "Passed"))
                         throw new CalibrationStopped("Shared camera verification failed. " + Status);
                     await RunFullDiagnosticsCoreAsync();
@@ -118,7 +153,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     // No candidate creation, correction jog, or configuration writes.
                     await ValidateSharedCameraCoreAsync();
                 }
-                RequireAutomaticBoundary();
+                await RequireAutomaticBoundaryAsync();
                 if (!SharedCameraVerified || CalibrationSteps.Any(s => s.Status != "Passed") ||
                     HeadOneDiscState != "Passed" || HeadTwoDiscState != "Passed")
                     throw new CalibrationStopped("Final validation did not pass. " + Status);
