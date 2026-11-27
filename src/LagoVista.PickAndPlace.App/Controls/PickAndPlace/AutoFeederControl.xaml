@@ -106,7 +106,7 @@
             <TextBlock Text="{Binding Current.FeederId, StringFormat='Feeder ID: {0}'}" TextWrapping="Wrap" />
             <TextBlock Text="{Binding Current.Slot, StringFormat='Slot: {0}'}" />
             <TextBlock Text="{Binding CurrentComponentPackage.TapePitch, StringFormat='Configured pitch: {0}'}" />
-            <CheckBox Content="Confirm selected feeder and safe test clearance" IsChecked="{Binding ConfiguredTestArmed, Mode=TwoWay}" />
+            <CheckBox Content="Enable manual testing (selected feeder and safe clearance confirmed)" IsChecked="{Binding ConfiguredTestArmed, Mode=TwoWay}" />
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Manual test distance (mm):" VerticalAlignment="Center" />
                 <TextBox Width="70" Text="{Binding PhotonFeederViewModel.ManualDistanceText, UpdateSourceTrigger=PropertyChanged}" />

@@ -76,7 +76,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         private void PhotonFeederViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(IPhotonFeederViewModel.ManualDistanceText) || e.PropertyName == nameof(IPhotonFeederViewModel.IsBusBusy)) ConfiguredTestArmed = false;
+            if (Machine == null || !Machine.Connected || Machine.Mode != OperatingMode.Manual ||
+                e.PropertyName == nameof(IPhotonFeederViewModel.SelectedPhotonFeeder)) ConfiguredTestArmed = false;
             RaisePropertyChanged(nameof(ConfiguredFeederStatus));
             RaiseCanExecuteChanged();
             if(e.PropertyName == nameof(IPhotonFeederViewModel.SelectedPhotonFeeder))
@@ -232,8 +233,15 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             SelectedTemplateId = StringExtensions.NotSelectedId;
         }
 
+        protected override void OnMachineDisconnected()
+        {
+            ConfiguredTestArmed = false;
+            base.OnMachineDisconnected();
+        }
+
         protected async override void MachineChanged(IMachine machine)
         {
+            ConfiguredTestArmed = false;
             if (MachineRepo.HasValidMachine)
             {
                 await LoadFeeders();
@@ -318,11 +326,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             if (forward.HasValue ? !CanMoveConfigured() : !CanTestConfigured()) return;
             var feeder = Current;
             var distance = PhotonFeederViewModel.ManualDistance;
-            ConfiguredTestArmed = false;
             var result = !forward.HasValue ? await PhotonFeederViewModel.InitializeFeederAsync((byte)feeder.Slot, feeder.FeederId) :
                 forward.Value ? await PhotonFeederViewModel.AdvanceFeed((byte)feeder.Slot, distance, feeder.FeederId) :
                 await PhotonFeederViewModel.RetractFeed((byte)feeder.Slot, distance, feeder.FeederId);
-            if (!result.Successful) PhotonFeederViewModel.Status = result.ErrorMessage;
+            if (!result.Successful)
+            {
+                ConfiguredTestArmed = false;
+                PhotonFeederViewModel.Status = result.ErrorMessage;
+            }
         }
         public Task<InvokeResult> InitializeFeederAsync() => !ValidCurrent ? Task.FromResult(InvokeResult.FromError("No valid feeder selected.")) :
             PhotonFeederViewModel.InitializeFeederAsync((byte)Current.Slot, Current.FeederId);

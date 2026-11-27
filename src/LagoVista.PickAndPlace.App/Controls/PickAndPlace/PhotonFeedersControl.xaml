@@ -28,7 +28,8 @@
                 </DataGrid>
                 <TextBlock Text="{Binding SelectedPhotonFeeder.Address, StringFormat='Selected feeder: {0}'}" />
                 <TextBlock Text="{Binding SelectedPhotonFeeder.Slot, StringFormat='Slot: {0}'}" />
-                <CheckBox Content="I confirmed the selected feeder, clearance and safe test conditions" IsChecked="{Binding ManualTestArmed, Mode=TwoWay}" />
+                <CheckBox Content="Enable manual testing (selected feeder and safe clearance confirmed)" IsChecked="{Binding ManualTestArmed, Mode=TwoWay}" />
+                <TextBlock Text="{Binding ManualTestStatus}" TextWrapping="Wrap" FontWeight="SemiBold" Foreground="White" Margin="0,6" />
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="Test distance (mm):" VerticalAlignment="Center" />
                     <TextBox Width="70" Text="{Binding ManualDistanceText, UpdateSourceTrigger=PropertyChanged}" />
@@ -40,7 +41,7 @@
                     <Button Content="Retract" Command="{Binding RetractCommand}" Style="{StaticResource CommandButton}" />
                     <Button Content="Confirm tape reconciled" Command="{Binding ReconcileCommand}" Style="{StaticResource CommandButton}" />
                 </WrapPanel>
-                <TextBlock Text="Manual test only; no inventory change. Reconfirm before each command. Verify tape motion independently." TextWrapping="Wrap" />
+                <TextBlock Text="Manual test only; no inventory change. Enable once for this feeder. Verify tape motion independently." TextWrapping="Wrap" />
             </StackPanel>
 
         </StackPanel>

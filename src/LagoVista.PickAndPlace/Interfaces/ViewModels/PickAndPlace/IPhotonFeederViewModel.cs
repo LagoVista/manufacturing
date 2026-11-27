@@ -22,6 +22,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
 
         bool IsBusBusy { get; }
         bool ManualTestArmed { get; set; }
+        string ManualTestStatus { get; }
         string ManualDistanceText { get; set; }
         double ManualDistance { get; }
         string GetDiscoveryStatus(byte slot);
