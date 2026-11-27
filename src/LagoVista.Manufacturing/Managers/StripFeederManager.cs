@@ -199,7 +199,7 @@ namespace LagoVista.Manufacturing.Managers
             return await WithFeederIdLockAsync(org.Id, async () =>
             {
                 var owned = (await _stripFeederRepo.GetOwnedStripFeedersAsync(org.Id)).ToList();
-                var feeder = owned.SingleOrDefault(f => f.Id == id);
+                var feeder = owned.SingleOrDefault(f => String.Equals(f.Id.ToString(), id, StringComparison.OrdinalIgnoreCase));
                 if (feeder == null)
                     return InvokeResult<StripFeederSummary>.FromError("Strip feeder not found in the authenticated organization.");
                 await AuthorizeAsync(feeder, AuthorizeActions.Update, user, org);
@@ -207,7 +207,7 @@ namespace LagoVista.Manufacturing.Managers
                     return InvokeResult<StripFeederSummary>.FromError("The feeder has an invalid legacy ID. Correct the ID explicitly before printing.");
                 if (existing != null)
                 {
-                    if (owned.Any(f => f.Id != id && StripFeederIdentity.Matches(f.FeederId, existing)))
+                    if (owned.Any(f => f.Id != feeder.Id && StripFeederIdentity.Matches(f.FeederId, existing)))
                         return InvokeResult<StripFeederSummary>.FromError("This feeder ID is already assigned to another feeder.");
                     return InvokeResult<StripFeederSummary>.Create(feeder.CreateSummary());
                 }

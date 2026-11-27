@@ -15,8 +15,8 @@ namespace Mfg.ServicesTests
 {
     public class StripFeederAssignmentTests
     {
-        private readonly EntityHeader _org = EntityHeader.Create("ORG1", "Organization");
-        private readonly EntityHeader _user = EntityHeader.Create("USER1", "User");
+        private readonly EntityHeader _org = EntityHeader.Create("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD", "Organization");
+        private readonly EntityHeader _user = EntityHeader.Create("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE", "User");
         private Mock<IStripFeederRepo> _repo;
         private Mock<ICacheProvider> _cache;
         private StripFeederManager _manager;
@@ -48,8 +48,8 @@ namespace Mfg.ServicesTests
         [Test]
         public async Task AssignsNextIdAndReassignmentIsIdempotent()
         {
-            Add("other", "0001");
-            var target = Add("target", null);
+            Add("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB", "0001");
+            var target = Add("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", null);
             var first = await _manager.AssignStripFeederIdAsync(target.Id, _org, _user);
             var second = await _manager.AssignStripFeederIdAsync(target.Id, _org, _user);
             Assert.That(first.Successful && second.Successful, Is.True);
@@ -62,7 +62,7 @@ namespace Mfg.ServicesTests
         [Test]
         public async Task RefusesAnIdOutsideTheOwnedFeederList()
         {
-            var response = await _manager.AssignStripFeederIdAsync("other-org", _org, _user);
+            var response = await _manager.AssignStripFeederIdAsync("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC", _org, _user);
             Assert.That(response.Successful, Is.False);
             _repo.Verify(r => r.UpdateStripFeederAsync(It.IsAny<StripFeeder>()), Times.Never);
             _repo.Verify(r => r.GetOwnedStripFeedersAsync(_org.Id), Times.Once);
@@ -71,8 +71,8 @@ namespace Mfg.ServicesTests
         [Test]
         public async Task RefusesConflictingExistingIdentity()
         {
-            Add("other", "00AF");
-            var target = Add("target", "00af");
+            Add("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB", "00AF");
+            var target = Add("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "00af");
             var response = await _manager.AssignStripFeederIdAsync(target.Id, _org, _user);
             Assert.That(response.Successful, Is.False);
             _repo.Verify(r => r.UpdateStripFeederAsync(It.IsAny<StripFeeder>()), Times.Never);
@@ -81,7 +81,7 @@ namespace Mfg.ServicesTests
         [Test]
         public async Task LockContentionNeverWrites()
         {
-            var target = Add("target", null);
+            var target = Add("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", null);
             _cache.Setup(c => c.AttemptAcquireLockAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan?>())).ReturnsAsync(false);
             var response = await _manager.AssignStripFeederIdAsync(target.Id, _org, _user);
             Assert.That(response.Successful, Is.False);
@@ -92,8 +92,8 @@ namespace Mfg.ServicesTests
         [Test]
         public async Task NormalUpdateCannotChangeAnAssignedIdentity()
         {
-            Add("target", "1234");
-            var update = new StripFeeder { Id = "target", Name = "target", FeederId = "5678", OwnerOrganization = _org, IsDraft = true };
+            Add("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "1234");
+            var update = new StripFeeder { Id = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", Name = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", FeederId = "5678", OwnerOrganization = _org, IsDraft = true };
             var response = await _manager.UpdateStripFeederAsync(update, _org, _user);
             Assert.That(response.Successful, Is.False);
             _repo.Verify(r => r.UpdateStripFeederAsync(It.IsAny<StripFeeder>()), Times.Never);
@@ -102,9 +102,9 @@ namespace Mfg.ServicesTests
         [Test]
         public async Task NormalUpdateCannotIntroduceDuplicateId()
         {
-            Add("other", "00AB");
-            Add("target", null);
-            var update = new StripFeeder { Id = "target", Name = "target", FeederId = "00ab", OwnerOrganization = _org, IsDraft = true };
+            Add("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB", "00AB");
+            Add("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", null);
+            var update = new StripFeeder { Id = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", Name = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", FeederId = "00ab", OwnerOrganization = _org, IsDraft = true };
             var response = await _manager.UpdateStripFeederAsync(update, _org, _user);
             Assert.That(response.Successful, Is.False);
             _repo.Verify(r => r.UpdateStripFeederAsync(It.IsAny<StripFeeder>()), Times.Never);
@@ -113,7 +113,7 @@ namespace Mfg.ServicesTests
         [Test]
         public void SummaryCarriesIdentityAndOrientation()
         {
-            var target = Add("target", "000A");
+            var target = Add("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", "000A");
             target.Orientation = EntityHeader<FeederOrientations>.Create(FeederOrientations.Vertical);
             var summary = target.CreateSummary();
             Assert.That(summary.FeederId, Is.EqualTo("000A"));
