@@ -67,7 +67,7 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine
 
         private async void ApproveCamera_Click(object sender, RoutedEventArgs e)
         {
-            if (Procedure?.CanOperate == true && ConfirmMotion(Procedure.SharedCameraStatus + "\n\nApprove saving this shared camera candidate and independently approaching it with both heads?"))
+            if (Procedure?.CanOperate == true && Procedure.SharedCandidateReady && ConfirmMotion(Procedure.SharedCameraStatus + "\n\nApprove saving this shared camera candidate and independently approaching it with both heads?"))
                 await Procedure.ApproveSharedCameraAsync();
         }
 

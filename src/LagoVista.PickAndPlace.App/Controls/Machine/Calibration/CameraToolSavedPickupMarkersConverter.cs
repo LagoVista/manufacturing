@@ -19,18 +19,33 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine.Calibration
             CultureInfo culture)
         {
             if (values == null || values.Length < 5 ||
-                !(values[0] is CameraToolSavedPickupProof proof) ||
                 !(values[1] is BitmapSource frame) ||
                 !(values[2] is double pixelsPerMm) || pixelsPerMm <= 0 ||
                 Double.IsNaN(pixelsPerMm) || Double.IsInfinity(pixelsPerMm) ||
-                !(values[3] is bool visible) || !visible ||
                 !(values[4] is string profileKey) ||
-                profileKey != VisionProfile.VisionProfile_CalibrationDisc ||
                 frame.PixelWidth <= 0 || frame.PixelHeight <= 0)
                 return null;
 
             var centerX = frame.PixelWidth / 2.0;
             var centerY = frame.PixelHeight / 2.0;
+            if (values.Length > 5 && values[5] is CameraToolNozzleCenterProof nozzle &&
+                profileKey == VisionProfile.VisionProfile_Nozzle)
+                return new List<CalibrationVideoMarker>
+                {
+                    new CalibrationVideoMarker
+                    {
+                        Kind = nozzle.Verified ? CalibrationMarkerKind.Accepted : CalibrationMarkerKind.Rejected,
+                        CenterX = centerX + nozzle.Xmm * pixelsPerMm,
+                        CenterY = centerY - nozzle.Ymm * pixelsPerMm,
+                        RadiusPixels = nozzle.DiameterMm * pixelsPerMm / 2.0,
+                        Label = nozzle.Summary + " UNCORRECTED"
+                    }
+                };
+            if (!(values[0] is CameraToolSavedPickupProof proof) ||
+                !(values[3] is bool visible) || !visible ||
+                profileKey != VisionProfile.VisionProfile_CalibrationDisc)
+                return null;
+
             var nozzleX = centerX + proof.NozzleOffsetXmm * pixelsPerMm;
             var nozzleY = centerY - proof.NozzleOffsetYmm * pixelsPerMm;
             var discX = centerX + proof.DiscOffsetXmm * pixelsPerMm;
@@ -54,7 +69,7 @@ namespace LagoVista.PickAndPlace.App.Controls.Machine.Calibration
                     CenterY = discY,
                     RadiusPixels = proof.DiscDiameterMm * pixelsPerMm / 2.0,
                     Label = proof.Verified
-                        ? $"GREEN - CAMERA CENTER {proof.DiscCameraResidualMm:F3} mm"
+                        ? $"PASS - DISC CENTER {proof.DiscCameraResidualMm:F3} mm"
                         : $"NOT CAMERA CENTER {proof.DiscCameraResidualMm:F3} mm"
                 }
             };

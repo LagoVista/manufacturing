@@ -57,237 +57,177 @@
             <Setter Property="BorderBrush" Value="#4F9BD8"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
+
+        <Style x:Key="PhaseCard" TargetType="Border">
+            <Setter Property="Background" Value="#222D3C"/>
+            <Setter Property="BorderBrush" Value="#40546A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+        </Style>
+        <Style x:Key="PhaseTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#F2F6FC"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+        <Style x:Key="ResultText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#B9C6D6"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,3,0,3"/>
+        </Style>
+        <Style x:Key="NozzleResult" TargetType="TextBlock" BasedOn="{StaticResource ResultText}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Verified}" Value="True">
+                    <Setter Property="Foreground" Value="#79EDAD"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Verified}" Value="False">
+                    <Setter Property="Foreground" Value="#FF9299"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="PhaseButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
+            <Setter Property="Margin" Value="0,4,0,0"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Height" Value="36"/>
+        </Style>
     </Window.Resources>
-    <Grid Margin="20">
+    <Grid Margin="16">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Border Background="#222D3C" CornerRadius="9" Padding="15"
-                Margin="0,0,0,12" Cursor="SizeAll"
-                MouseLeftButtonDown="Header_MouseLeftButtonDown">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel>
-                    <TextBlock Text="CAMERA → TOOL / TWO-PASS PICKUP"
-                               FontWeight="Bold" FontSize="11" Foreground="#8FBFE9"/>
-                    <TextBlock Text="Pickup Offset Calibration" FontWeight="SemiBold"
-                               FontSize="25" Margin="0,5,0,3"/>
-                    <TextBlock Text="{Binding ToolHeadName}" Foreground="#DFE9F5"
-                               FontSize="14"/>
-                    <TextBlock Text="Known Location · nominal 7 mm white disc (verify actual fixture)" Foreground="#ACBDD0"
-                               FontSize="12" Margin="0,2,0,0"/>
-                </StackPanel>
-                <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <TextBlock Text="MEASUREMENT PLAN" Foreground="#91A5BC"
-                               HorizontalAlignment="Right" FontSize="10"/>
-                    <TextBlock Text="Two pickups · selected head 1 or 2"
-                               FontWeight="SemiBold" FontSize="16" HorizontalAlignment="Right"/>
-                    <TextBlock Text="Top-camera reference · bottom-camera verification"
-                               Foreground="#B6C3D2" FontSize="11" HorizontalAlignment="Right"/>
-                </StackPanel>
-            </Grid>
-        </Border>
-        <Border Grid.Row="1" BorderBrush="#375B75" BorderThickness="1" Background="#213341"
-                CornerRadius="8" Padding="12" Margin="0,0,0,12">
+        <Grid Margin="0,0,0,12" MouseLeftButtonDown="Header_MouseLeftButtonDown">
             <StackPanel>
-                <TextBlock Text="VERIFIED CANDIDATE / SAVED-OFFSET ACCEPTANCE" FontSize="10"
-                           Foreground="#93BAD9" FontWeight="Bold"/>
-                <TextBlock Text="{Binding CandidateSummary}" FontSize="17" FontWeight="SemiBold"
-                           Foreground="#F1F8FF" Margin="0,3,0,0"/>
-                <TextBlock Text="No head offsets are changed until the second independent pickup passes the acceptance threshold." FontSize="12" Foreground="#C9D5E3"
-                           Margin="0,5,0,0" TextWrapping="Wrap"/>
-                <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
-                    <Ellipse Width="15" Height="15" Margin="0,0,7,0" StrokeThickness="2">
-                        <Ellipse.Style>
-                            <Style TargetType="Ellipse">
-                                <Setter Property="Stroke" Value="#9FB4CA"/>
-                                <Setter Property="Fill" Value="Transparent"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding SavedPickupVerified}" Value="True">
-                                        <Setter Property="Fill" Value="#37C978"/>
-                                        <Setter Property="Stroke" Value="#9AF4BF"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Ellipse.Style>
-                    </Ellipse>
-                    <TextBlock Text="{Binding SavedPickupStatus}" FontSize="12"
-                               Foreground="#C5DCED" TextWrapping="Wrap"/>
-                </StackPanel>
-
-                <TextBlock Text="GREEN requires the saved-offset third pickup to center the disc in the BOTTOM CAMERA within 0.200 mm, the nozzle within 0.200 mm, and the disc relative to the nozzle within 0.200 mm. A temporary measured inspection-only correction is used; it never changes the saved camera-to-tool offset."
-                           FontSize="11" Foreground="#B9C6D6" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                <TextBlock Text="Tool head &amp; bottom-camera calibration" FontSize="26" FontWeight="SemiBold"/>
+                <TextBlock Text="Complete phases 1 and 2 for both heads, then phase 3. Maximum radial error: 0.200 mm."
+                           Foreground="#B9C6D6" FontSize="14" Margin="0,4,0,0"/>
             </StackPanel>
-        </Border>
-        <Grid Grid.Row="2" Margin="4,0,4,8">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <StackPanel Grid.Row="0" Margin="0,0,0,10">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Physical head" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <ComboBox Width="166" Height="34" SelectedValuePath="Tag"
-                              SelectedValue="{Binding HeadIndexText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              IsEnabled="{Binding CanOperate}" Margin="0,0,16,0">
-                        <ComboBoxItem Content="Head 1" Tag="1"/>
-                        <ComboBoxItem Content="Head 2" Tag="2"/>
-                    </ComboBox>
-                    <TextBlock Text="OFFSET SAVE REQUIRES AN EXPLICIT APPROVAL AFTER TWO VERIFIED PICKUPS"
-                               Foreground="#E8C58B" FontSize="11" VerticalAlignment="Center"
-                               TextWrapping="Wrap"/>
-                </StackPanel>
-                <WrapPanel Margin="0,8,0,3">
-                    <CheckBox Content="Full Diagnostics" IsChecked="{Binding FullDiagnostics, Mode=TwoWay}"
-                              IsEnabled="{Binding CanOperate}" Foreground="#EDF2F8" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <Button Content="Verify both saved pickups + propose camera" Click="ProposeCamera_Click" IsEnabled="{Binding CanOperate}" Margin="0,0,8,0" Padding="8,4"/>
-                    <Button Content="Approve shared camera &amp; validate both" Click="ApproveCamera_Click" IsEnabled="{Binding CanOperate}" Margin="0,0,8,0" Padding="8,4"/>
-                    <Button Content="Validate both (no correction)" Click="ValidateCamera_Click" IsEnabled="{Binding CanOperate}" Margin="0,0,8,0" Padding="8,4"/>
-                    <TextBlock Text="Iterations/head:" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                    <TextBox Width="48" Text="{Binding DiagnosticIterations, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanOperate}" Margin="0,0,8,0"/>
-                    <Button Content="Run extended diagnostics" Click="RunDiagnostics_Click" IsEnabled="{Binding CanOperate}" Margin="0,0,8,0" Padding="8,4"/>
-                    <Button Content="Stop after safe boundary" Click="StopDiagnostics_Click" IsEnabled="{Binding SharedOperationActive}" Padding="8,4"/>
-                </WrapPanel>
-                <TextBlock Text="{Binding SharedCameraStatus}" TextWrapping="Wrap" Foreground="#A2C9D7" Margin="0,3,0,3"/>
-                <TextBlock Text="{Binding ConfiguredHeights}" TextWrapping="Wrap"
-                           Margin="0,7,0,2" FontWeight="SemiBold"/>
-                <TextBlock Text="Pickup/return use the selected head's saved Pick/Place heights. Held-disc inspection completes XY travel at Safe Move Height, then moves common Z to the selected head's configured Pick Height. Verify fixture clearance and optical focus during supervised testing."
-                           FontSize="11" Foreground="#B9C6D6" TextWrapping="Wrap"/>
-            </StackPanel>
-            <Border Grid.Row="1" Background="#1C3039" BorderBrush="#426876"
-                    BorderThickness="1" CornerRadius="7" Padding="10,7" Margin="0,0,0,9">
-                <StackPanel>
-                    <TextBlock Text="BOTTOM CAMERA / CALIBRATION DISC CENTROID"
-                               FontSize="10" Foreground="#A2C9D7" FontWeight="Bold"/>
-                    <TextBlock Text="{Binding BottomVisionState}" FontSize="12"
-                               Foreground="#E8F1F8" FontWeight="SemiBold" Margin="0,3,0,1"/>
-                    <TextBlock Text="{Binding BottomVisionMeasurements}" FontSize="11"
-                               FontFamily="Consolas" Foreground="#C5DFE8"
-                               TextWrapping="Wrap"/>
-                </StackPanel>
-            </Border>
-            <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="42"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="92"/>
-                <ColumnDefinition Width="82"/>
-                <ColumnDefinition Width="72"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="#" Foreground="#AAB8C9"/>
-            <TextBlock Grid.Column="1" Text="STAGE / MEASUREMENT" Foreground="#AAB8C9"/>
-            <TextBlock Grid.Column="2" Text="STATUS" Foreground="#AAB8C9"/>
-            <TextBlock Grid.Column="3" Text="ELAPSED" TextAlignment="Right" Foreground="#AAB8C9"/>
-            <TextBlock Grid.Column="4" Text="RETRIES" TextAlignment="Right" Foreground="#AAB8C9"/>
-            </Grid>
-        </Grid>
-        <!-- Same T008-T013 operator layout: stage rail left and live vision right.
-             Camera tab selection is display-only and never commands machine motion. -->
-        <Grid Grid.Row="3" Margin="0,0,0,12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="285"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <cal:CalibrationStepRail Grid.Column="0"
-                                     Steps="{Binding CalibrationSteps}"
-                                     Margin="0,0,12,0"/>
-            <Border Grid.Column="1" Background="#101721"
-                    BorderBrush="#35475A" BorderThickness="1"
-                    CornerRadius="8" Padding="8">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TabControl Grid.Row="0" Background="#172333" Foreground="#EDF4FA"
-                                SelectedIndex="1">
-                        <TabItem Header="Top camera - fixture">
-                            <cal:CalibrationVideoSurface
-                                FrameSource="{Binding CalibrationMachine.PositionImageCaptureService.CaptureImage}"
-                                Caption="LIVE POSITION CAMERA - known-location target, view only"/>
-                        </TabItem>
-                        <TabItem Header="Bottom camera - nozzle / disc">
-                            <cal:CalibrationVideoSurface
-                                FrameSource="{Binding CalibrationMachine.PartInspectionCaptureService.CaptureImage}"
-                                Caption="LIVE BOTTOM CAMERA - green only for saved-offset nozzle-relative proof">
-                                <cal:CalibrationVideoSurface.Markers>
-                                    <MultiBinding Converter="{StaticResource SavedPickupMarkers}">
-                                        <Binding Path="SavedPickupProof"/>
-                                        <Binding Path="CalibrationMachine.PartInspectionCaptureService.CaptureImage"/>
-                                        <Binding Path="CalibrationMachine.PartInspectionCaptureService.Camera.EffectivePixelsPerMM"/>
-                                        <Binding Path="ShowSavedPickupRing"/>
-                                        <Binding Path="CalibrationMachine.PartInspectionCaptureService.Profile.Key"/>
-                                    </MultiBinding>
-                                </cal:CalibrationVideoSurface.Markers>
-                            </cal:CalibrationVideoSurface>
-                        </TabItem>
-                    </TabControl>
-                    <Expander Grid.Row="1" Header="Optical diagnostics - bottom camera"
-                              IsExpanded="False" Background="#243040"
-                              Foreground="#EAF1FA" BorderBrush="#3C5066"
-                              BorderThickness="1" Padding="8" Margin="0,8,0,0">
-                        <StackPanel MaxHeight="155">
-                            <TextBlock Text="{Binding BottomVisionState}" FontWeight="SemiBold"
-                                       Foreground="#9FD5F5" FontSize="13"
-                                       TextWrapping="Wrap"/>
-                            <TextBlock Text="{Binding BottomVisionMeasurements}"
-                                       FontFamily="Consolas" Foreground="#C5DFE8"
-                                       FontSize="11" TextWrapping="Wrap"
-                                       Margin="0,5,0,0"/>
-                            <TextBlock Text="Camera display is observational. Only fresh optical and vacuum evidence advances the procedure."
-                                       Foreground="#A8BCCF" FontSize="10"
-                                       TextWrapping="Wrap" Margin="0,6,0,0"/>
-                        </StackPanel>
-                    </Expander>
-                </Grid>
-            </Border>
-        </Grid>
-        <Grid Grid.Row="4">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <StackPanel VerticalAlignment="Center" Margin="0,0,10,0">
-                <TextBlock Text="{Binding Status}" TextWrapping="Wrap"
-                           FontSize="13" FontWeight="SemiBold"/>
-                <TextBlock Text="{Binding HistoryStatus}" TextWrapping="Wrap"
-                           Foreground="#9CD6BE" FontSize="11" Margin="0,5,0,0"/>
-                <TextBlock Text="{Binding HistoryRunId, StringFormat='Run ID: {0}'}"
-                           TextWrapping="Wrap" Foreground="#8FAAC8" FontSize="10"/>
-                <TextBlock Text="{Binding LocalHistoryPath, StringFormat='Local JSON: {0}'}"
-                           TextWrapping="Wrap" Foreground="#8FAAC8" FontSize="10"/>
-                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                    <Button Content="Retry History Save" Click="RetryHistory_Click"
-                            IsEnabled="{Binding CanRetryHistory}" Height="27"
-                            MinWidth="125" Margin="0,0,5,0" Padding="6,2"/>
-                    <Button Content="Copy Run Report" Click="CopyRunReport_Click"
-                            Height="27" MinWidth="120" Padding="6,2"/>
-                </StackPanel>
-                <TextBlock Text="Supervise motion; emergency stop is independent. Third pickup requires explicit saved-offset approval."
-                           TextWrapping="Wrap" Foreground="#9DADC1" FontSize="10" Margin="0,5,0,0"/>
-            </StackPanel>
-            <Button Grid.Column="1" Content="Preview Bottom Camera"
-                    Style="{StaticResource ActionButton}" Click="PreviewBottomCamera_Click"
-                    IsEnabled="{Binding CanOperate}"/>
-            <Button Grid.Column="2" Content="Start / Run Again"
-                    Style="{StaticResource ActionButton}" Click="RunAgain_Click"
-                    IsEnabled="{Binding CanOperate}"/>
-            <Button Grid.Column="3" Content="Approve, Save &amp; Verify Third Pickup"
-                    Style="{StaticResource ActionButton}" Click="SaveAndVerify_Click"
-                    IsEnabled="{Binding CanSaveAndVerify}"/>
-            <Button Grid.Column="4" Content="Close" Style="{StaticResource ActionButton}"
+            <Button HorizontalAlignment="Right" VerticalAlignment="Top" Content="Close" Style="{StaticResource ActionButton}"
                     Click="Close_Click" IsEnabled="{Binding CanOperate}"/>
         </Grid>
+        <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,12">
+            <Border Style="{StaticResource PhaseCard}">
+                <StackPanel>
+                    <TextBlock Text="1  ·  Calibrate pickup offset" Style="{StaticResource PhaseTitle}"/>
+                    <ComboBox Height="32" SelectedValuePath="Tag" SelectedValue="{Binding HeadIndexText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              IsEnabled="{Binding CanOperate}">
+                        <ComboBoxItem Content="Head 1 – Left" Tag="1"/>
+                        <ComboBoxItem Content="Head 2 – Right" Tag="2"/>
+                    </ComboBox>
+                    <TextBlock Text="{Binding CandidateSummary}" Style="{StaticResource ResultText}"/>
+                    <Button Content="Run two-pick calibration" Click="RunAgain_Click" IsEnabled="{Binding CanOperate}" Style="{StaticResource PhaseButton}"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource PhaseCard}">
+                <StackPanel>
+                    <TextBlock Text="2  ·  Approve &amp; verify pickup" Style="{StaticResource PhaseTitle}"/>
+                    <TextBlock Text="Third pickup using the saved offset. Disc and nozzle measured at the camera." Foreground="#B9C6D6" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding HeadOneDiscResult, StringFormat='Head 1: {0}'}">
+                            <TextBlock.Style><Style TargetType="TextBlock" BasedOn="{StaticResource ResultText}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HeadOneDiscState}" Value="Passed"><Setter Property="Foreground" Value="#79EDAD"/></DataTrigger>
+                                    <DataTrigger Binding="{Binding HeadOneDiscState}" Value="Failed"><Setter Property="Foreground" Value="#FF9299"/></DataTrigger>
+                                </Style.Triggers>
+                            </Style></TextBlock.Style>
+                        </TextBlock>
+                    <TextBlock Text="{Binding HeadTwoDiscResult, StringFormat='Head 2: {0}'}">
+                            <TextBlock.Style><Style TargetType="TextBlock" BasedOn="{StaticResource ResultText}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HeadTwoDiscState}" Value="Passed"><Setter Property="Foreground" Value="#79EDAD"/></DataTrigger>
+                                    <DataTrigger Binding="{Binding HeadTwoDiscState}" Value="Failed"><Setter Property="Foreground" Value="#FF9299"/></DataTrigger>
+                                </Style.Triggers>
+                            </Style></TextBlock.Style>
+                        </TextBlock>
+                    <Button Content="Approve &amp; verify third pickup" Click="SaveAndVerify_Click" IsEnabled="{Binding CanSaveAndVerify}" Style="{StaticResource PhaseButton}"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource PhaseCard}" Margin="0">
+                <StackPanel>
+                    <TextBlock Text="3  ·  Calibrate bottom camera" Style="{StaticResource PhaseTitle}"/>
+                    <TextBlock DataContext="{Binding HeadOneCenterProof}" Style="{StaticResource NozzleResult}"
+                            Text="{Binding Summary, FallbackValue='Head 1: not yet validated', TargetNullValue='Head 1: not yet validated'}"/>
+                    <TextBlock DataContext="{Binding HeadTwoCenterProof}" Style="{StaticResource NozzleResult}"
+                            Text="{Binding Summary, FallbackValue='Head 2: not yet validated', TargetNullValue='Head 2: not yet validated'}"/>
+                    <TextBlock Text="Uncorrected nozzle-to-camera error" Foreground="#B9C6D6" FontSize="12"/>
+                    <Button Content="Measure shared camera (Head 1)" Click="ProposeCamera_Click" IsEnabled="{Binding CanOperate}" Style="{StaticResource PhaseButton}"/>
+                    <Button Content="Approve &amp; validate both nozzles" Click="ApproveCamera_Click">
+                        <Button.Style><Style TargetType="Button" BasedOn="{StaticResource PhaseButton}">
+                            <Setter Property="IsEnabled" Value="False"/>
+                            <Style.Triggers><MultiDataTrigger><MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding CanOperate}" Value="True"/>
+                                <Condition Binding="{Binding SharedCandidateReady}" Value="True"/>
+                            </MultiDataTrigger.Conditions><Setter Property="IsEnabled" Value="True"/></MultiDataTrigger></Style.Triggers>
+                        </Style></Button.Style>
+                    </Button>
+                    <TextBlock Text="{Binding SharedCameraStatus}" TextWrapping="Wrap" Foreground="#A2C9D7" Margin="0,6,0,0" FontSize="12"/>
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+        <Border Grid.Row="2" Background="#101721" BorderBrush="#35475A" BorderThickness="1" CornerRadius="8" Padding="8">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TabControl Background="#172333" Foreground="#EDF4FA" SelectedIndex="1">
+                    <TabItem Header="Top camera – fixture">
+                        <cal:CalibrationVideoSurface FrameSource="{Binding CalibrationMachine.PositionImageCaptureService.CaptureImage}"
+                                                     Caption="LIVE TOP CAMERA"/>
+                    </TabItem>
+                    <TabItem Header="Bottom camera – nozzle / disc">
+                        <cal:CalibrationVideoSurface FrameSource="{Binding CalibrationMachine.PartInspectionCaptureService.CaptureImage}"
+                                                     Caption="LIVE BOTTOM CAMERA · green = measured acceptance">
+                            <cal:CalibrationVideoSurface.Markers>
+                                <MultiBinding Converter="{StaticResource SavedPickupMarkers}">
+                                    <Binding Path="SavedPickupProof"/>
+                                    <Binding Path="CalibrationMachine.PartInspectionCaptureService.CaptureImage"/>
+                                    <Binding Path="CalibrationMachine.PartInspectionCaptureService.Camera.EffectivePixelsPerMM"/>
+                                    <Binding Path="ShowSavedPickupRing"/>
+                                    <Binding Path="CalibrationMachine.PartInspectionCaptureService.Profile.Key"/>
+                                    <Binding Path="VisibleNozzleProof"/>
+                                </MultiBinding>
+                            </cal:CalibrationVideoSurface.Markers>
+                        </cal:CalibrationVideoSurface>
+                    </TabItem>
+                </TabControl>
+                <TextBlock Grid.Row="1" Text="{Binding Status}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" Margin="8,8,8,4"/>
+            </Grid>
+        </Border>
+        <Expander Grid.Row="3" Header="Diagnostics, repeatability &amp; run history" IsExpanded="False"
+                  Foreground="#EDF2F8" Margin="0,8,0,0">
+            <ScrollViewer MaxHeight="250" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="4,4,4,0">
+                    <WrapPanel>
+                        <CheckBox Content="Full Diagnostics" IsChecked="{Binding FullDiagnostics, Mode=TwoWay}"
+                                  IsEnabled="{Binding CanOperate}" Foreground="#EDF2F8" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <TextBlock Text="Iterations/head:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <TextBox Width="48" Text="{Binding DiagnosticIterations, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanOperate}"/>
+                        <Button Content="Run extended diagnostics" Click="RunDiagnostics_Click" IsEnabled="{Binding CanOperate}" Margin="8,0,0,0" Padding="6,4"/>
+                        <Button Content="Validate both again (no correction)" Click="ValidateCamera_Click" IsEnabled="{Binding CanOperate}" Margin="8,0,0,0" Padding="6,4"/>
+                        <Button Content="Preview bottom camera" Click="PreviewBottomCamera_Click" IsEnabled="{Binding CanOperate}" Margin="8,0,0,0" Padding="6,4"/>
+                        <Button Content="Retry history save" Click="RetryHistory_Click" IsEnabled="{Binding CanRetryHistory}" Margin="8,0,0,0" Padding="6,4"/>
+                        <Button Content="Copy run report" Click="CopyRunReport_Click" Margin="8,0,0,0" Padding="6,4"/>
+                    </WrapPanel>
+                    <TextBlock Text="{Binding ConfiguredHeights}" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                    <TextBlock Text="{Binding SavedPickupStatus}" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding BottomVisionState}" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding BottomVisionMeasurements}" TextWrapping="Wrap" FontFamily="Consolas"/>
+                    <TextBlock Text="{Binding HistoryStatus}" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding HistoryRunId, StringFormat='Run ID: {0}'}"/>
+                    <TextBlock Text="{Binding LocalHistoryPath}" TextWrapping="Wrap"/>
+                    <cal:CalibrationStepRail Steps="{Binding CalibrationSteps}" Height="130"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Expander>
+        <Button Grid.Row="0" Content="Stop after safe boundary" Click="StopDiagnostics_Click"
+                IsEnabled="{Binding SharedOperationActive}" HorizontalAlignment="Right" VerticalAlignment="Top"
+                Margin="0,0,120,0" Style="{StaticResource ActionButton}"/>
     </Grid>
 </Window>

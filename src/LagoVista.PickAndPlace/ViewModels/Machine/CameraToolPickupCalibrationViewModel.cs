@@ -271,6 +271,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 return;
             }
             ClearSharedCandidate();
+            ResetNozzleResults();
+            if (Int32.TryParse(HeadIndexText, out var displayHead) && (displayHead == 1 || displayHead == 2))
+                SetDiscResult(displayHead, "Pending", "Not yet verified for this pickup run");
             InvalidateSavedPickupCandidate();
             CalibrationRunning = true;
             CalibrationFinished = false;
@@ -565,7 +568,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             return result.Result;
         }
 
-        private async Task<BottomCircle> MeasureEmptyNozzleAsync(MachineToolHead head, bool frame = true)
+        private async Task<BottomCircle> MeasureEmptyNozzleAsync(MachineToolHead head, bool frame = true, bool displayUncorrectedProof = false)
         {
             RequireValid();
             _inspectionFramingOffsetMm = null;
@@ -644,9 +647,17 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 SharedEvidence($"Head {head.HeadIndex} INITIAL UNCORRECTED nozzle: {Describe(initial.OffsetMm)}");
             if (frame)
                 return await CenterNozzleInBottomCameraAsync(initial);
-            // Uncorrected proof must not inherit or compute a framing jog.
-            _machine.SendSafeMoveHeight();
-            await NeedIdleAsync("safe Z after uncorrected nozzle observation");
+            // Display only while stationary at the measured pose, and hide before retracting.
+            try
+            {
+                if (displayUncorrectedProof)
+                    await DisplayUncorrectedNozzleAsync(head, initial);
+            }
+            finally
+            {
+                _machine.SendSafeMoveHeight();
+                await NeedIdleAsync("safe Z after uncorrected nozzle observation");
+            }
             return initial;
         }
 

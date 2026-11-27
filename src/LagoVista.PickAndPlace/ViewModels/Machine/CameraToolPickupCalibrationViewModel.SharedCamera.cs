@@ -20,6 +20,14 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private string _sharedCameraStatus = "Complete and approve both pickup offsets first. Then verify both saved pickups and propose the shared bottom camera.";
         private bool _sharedOperationActive;
         private bool _sharedCameraVerified;
+        private CameraToolNozzleCenterProof _headOneCenterProof;
+        private CameraToolNozzleCenterProof _headTwoCenterProof;
+        private CameraToolNozzleCenterProof _visibleNozzleProof;
+        private bool _sharedCandidateReady;
+        private string _headOneDiscResult = "Not measured in this session";
+        private string _headTwoDiscResult = "Not measured in this session";
+        private string _headOneDiscState = "Pending";
+        private string _headTwoDiscState = "Pending";
         private bool _stopShared;
         private IMachine _sharedCandidateMachine;
         private string _sharedCandidateIdentity;
@@ -32,6 +40,64 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public string SharedCameraStatus { get => _sharedCameraStatus; private set => Set(ref _sharedCameraStatus, value); }
 
         public bool SharedOperationActive => _sharedOperationActive;
+        public bool SharedCandidateReady
+        {
+            get => _sharedCandidateReady;
+            private set => Set(ref _sharedCandidateReady, value);
+        }
+        public CameraToolNozzleCenterProof HeadOneCenterProof
+        {
+            get => _headOneCenterProof;
+            private set => Set(ref _headOneCenterProof, value);
+        }
+        public CameraToolNozzleCenterProof HeadTwoCenterProof
+        {
+            get => _headTwoCenterProof;
+            private set => Set(ref _headTwoCenterProof, value);
+        }
+        public CameraToolNozzleCenterProof VisibleNozzleProof
+        {
+            get => _visibleNozzleProof;
+            private set => Set(ref _visibleNozzleProof, value);
+        }
+        public string HeadOneDiscResult { get => _headOneDiscResult; private set => Set(ref _headOneDiscResult, value); }
+        public string HeadTwoDiscResult { get => _headTwoDiscResult; private set => Set(ref _headTwoDiscResult, value); }
+        public string HeadOneDiscState { get => _headOneDiscState; private set => Set(ref _headOneDiscState, value); }
+        public string HeadTwoDiscState { get => _headTwoDiscState; private set => Set(ref _headTwoDiscState, value); }
+
+        private void ResetNozzleResults()
+        {
+            HeadOneCenterProof = null;
+            HeadTwoCenterProof = null;
+            VisibleNozzleProof = null;
+        }
+
+        private void SetDiscResult(int index, string state, string result)
+        {
+            if (index == 1) { HeadOneDiscState = state; HeadOneDiscResult = result; }
+            else { HeadTwoDiscState = state; HeadTwoDiscResult = result; }
+        }
+
+        private async Task DisplayUncorrectedNozzleAsync(MachineToolHead head, BottomCircle circle)
+        {
+            var proof = new CameraToolNozzleCenterProof
+            {
+                HeadIndex = head.HeadIndex,
+                Xmm = circle.OffsetMm.X,
+                Ymm = circle.OffsetMm.Y,
+                DiameterMm = circle.DiameterMm,
+                ResidualMm = CameraToolBottomCameraFraming.Radius(circle.OffsetMm)
+            };
+            if (head.HeadIndex == 1) HeadOneCenterProof = proof;
+            else HeadTwoCenterProof = proof;
+            VisibleNozzleProof = proof;
+            try
+            {
+                Status = proof.Summary + " — uncorrected bottom-camera approach";
+                await Task.Delay(3000);
+            }
+            finally { VisibleNozzleProof = null; }
+        }
         public bool SharedCameraVerified
         {
             get => _sharedCameraVerified;
@@ -56,6 +122,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private void ClearSharedCandidate()
         {
             SharedCameraVerified = false;
+            SharedCandidateReady = false;
             _sharedCandidate = null;
             _sharedCandidateMachine = null;
             _sharedCandidateIdentity = null;
@@ -174,7 +241,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private async Task<double> SharedNozzleAsync(int index)
         {
             SelectSharedHead(index);
-            var nozzle = await MeasureEmptyNozzleAsync(_head, frame: false);
+            var nozzle = await MeasureEmptyNozzleAsync(_head, frame: false, displayUncorrectedProof: true);
             var error = CameraToolBottomCameraFraming.Radius(nozzle.OffsetMm);
             SharedEvidence($"Head {index} saved camera UNCORRECTED: {Describe(nozzle.OffsetMm)}; {(error <= CameraToolBottomCameraFraming.NozzleCameraToleranceMm ? "PASS" : "FAIL")}");
             await SharedCameraModeAsync();
@@ -194,6 +261,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             Action<double> cameraSample = null, Action<double> pickupSample = null)
         {
             SelectSharedHead(index);
+            SetDiscResult(index, "Pending", "Measuring saved-offset pickup...");
             var nozzle = await MeasureEmptyNozzleAsync(_head, frame);
             var nozzleError = CameraToolBottomCameraFraming.Radius(nozzle.OffsetMm);
             cameraSample?.Invoke(nozzleError);
@@ -206,10 +274,39 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             await PickCylinderAsync(target, null);
             SharedEvidence($"Head {index} vacuum confirmed pickup; saved offset, no candidate jog.");
             var motion = DateTimeOffset.UtcNow;
-            var disc = await ObserveHeldCylinderAsync();
+            var disc = await ObserveHeldCylinderAsync(retainFocusForSavedProof: frame);
             var observation = CreateObservation(_head, nozzle, disc, motion);
             var residual = CameraToolBottomCameraFraming.Radius(observation.PartRelativeToNozzleMm);
             pickupSample?.Invoke(residual);
+            var discCameraError = CameraToolBottomCameraFraming.Radius(disc.OffsetMm);
+            var displayPassed = residual <= CameraToolBottomCameraFraming.NozzleCameraToleranceMm &&
+                CameraToolBottomCameraFraming.TryVerifyCenteredPickup(nozzle.OffsetMm, disc.OffsetMm,
+                    out _, out _, out _);
+            if (frame)
+            {
+                SavedPickupProof = new CameraToolSavedPickupProof
+                {
+                    DiscOffsetXmm = disc.OffsetMm.X,
+                    DiscOffsetYmm = disc.OffsetMm.Y,
+                    NozzleOffsetXmm = nozzle.OffsetMm.X,
+                    NozzleOffsetYmm = nozzle.OffsetMm.Y,
+                    DiscDiameterMm = disc.DiameterMm,
+                    ResidualMm = residual,
+                    NozzleCameraResidualMm = nozzleError,
+                    DiscCameraResidualMm = discCameraError,
+                    Verified = displayPassed
+                };
+                ShowSavedPickupRing = true;
+                try { await Task.Delay(3000); }
+                finally
+                {
+                    ShowSavedPickupRing = false;
+                    _machine.SendSafeMoveHeight();
+                    await NeedIdleAsync("safe Z after displayed shared pickup proof");
+                }
+            }
+            SetDiscResult(index, displayPassed ? "Passed" : "Failed",
+                $"{(displayPassed ? "PASS" : "NOT CENTERED")} · disc {discCameraError:F3} mm · pickup {residual:F3} mm");
             SharedEvidence($"Head {index} {(frame ? "framed" : "uncorrected")} nozzle {Describe(nozzle.OffsetMm)}; disc {Describe(disc.OffsetMm)}; pickup residual {Describe(observation.PartRelativeToNozzleMm)}");
             await ReturnCylinderAsync(target, null);
             if (_machine.LeftVacuumPump || _machine.RightVacuumPump)
@@ -244,6 +341,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             _sharedCandidateIdentity = SharedIdentity();
             _sharedCandidate = candidate;
             _sharedCandidateAt = DateTimeOffset.UtcNow;
+            SharedCandidateReady = true;
             SharedCameraStatus = $"UNSAVED shared camera: ({camera.AbsolutePosition.X:F3}, {camera.AbsolutePosition.Y:F3}) -> ({candidate.X:F3}, {candidate.Y:F3}) mm. Head 1 reference; both saved pickups reverified. Approve explicitly.";
             SharedEvidence(SharedCameraStatus);
         });
@@ -277,6 +375,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             camera.AbsolutePosition = new Point2D<double>(candidate.X, candidate.Y);
             await ReadSharedGeometryAsync();
             SharedEvidence($"Explicitly approved shared camera saved and read back: ({candidate.X:F3}, {candidate.Y:F3}) mm.", true);
+            ResetNozzleResults();
             await ValidateBothSharedNozzlesAsync();
             SharedCameraVerified = true;
             SharedCameraStatus = "PASS: shared camera saved/read back; both heads independently within 0.200 mm without correction.";
@@ -285,6 +384,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         public Task ValidateSharedCameraAsync() => RunSharedAsync("validate", async () =>
         {
             SharedCameraVerified = false;
+            ResetNozzleResults();
             await ValidateBothSharedNozzlesAsync();
             SharedCameraVerified = true;
             SharedCameraStatus = "PASS: both saved inspection approaches within 0.200 mm before any correction.";
@@ -339,6 +439,9 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             CalibrationRunning = true;
             CalibrationFinished = false;
             _sharedOperationActive = true;
+            SharedCameraStatus = mode == "propose" ? "Phase 3: verifying saved pickups and measuring Head 1 camera reference..." :
+                mode == "approve" || mode == "validate" ? "Phase 3: validating saved camera with both heads..." :
+                "Extended diagnostics running...";
             RaisePropertyChanged(nameof(SharedOperationActive));
             _stopShared = false;
             _machine = _repo.CurrentMachine;
@@ -405,6 +508,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 _emptyNozzleCameraId = null;
                 _emptyNozzleCameraScale = 0;
                 _inspectionFramingOffsetMm = null;
+                VisibleNozzleProof = null;
+                ShowSavedPickupRing = false;
                 _sharedOperationActive = false;
                 RaisePropertyChanged(nameof(SharedOperationActive));
                 _head = null;

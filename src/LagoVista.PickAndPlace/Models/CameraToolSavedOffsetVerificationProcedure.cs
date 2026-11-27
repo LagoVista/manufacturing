@@ -43,6 +43,19 @@ namespace LagoVista.PickAndPlace.Models
         }
     }
 
+    /// <summary>Fresh uncorrected nozzle observation; never a framing result.</summary>
+    public sealed class CameraToolNozzleCenterProof
+    {
+        public int HeadIndex { get; set; }
+        public double Xmm { get; set; }
+        public double Ymm { get; set; }
+        public double DiameterMm { get; set; }
+        public double ResidualMm { get; set; }
+        public bool Verified => !double.IsNaN(ResidualMm) && !double.IsInfinity(ResidualMm) &&
+            ResidualMm >= 0 && ResidualMm <= CameraToolBottomCameraFraming.NozzleCameraToleranceMm;
+        public string Summary => $"Head {HeadIndex}: {(Verified ? "PASS" : "FAIL")} · {ResidualMm:F3} mm";
+    }
+
     /// <summary>Captured at the final held-disc inspection; overlay is display-only.</summary>
     public sealed class CameraToolSavedPickupProof
     {

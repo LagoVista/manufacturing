@@ -325,7 +325,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                       $"{nozzleCameraResidual:F3} mm. " + reason;
                 // Hold the measured image while the machine remains stationary,
                 // so the operator can actually see the green/red disc outline.
-                await Task.Delay(1500);
+                await Task.Delay(3000);
                 ShowSavedPickupRing = false;
                 machine.SendSafeMoveHeight();
                 await NeedIdleAsync("safe Z after focused saved-offset proof");
@@ -357,6 +357,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                     $"third pickup GREEN, residual {residual:F3} mm. Camera mode restored.",
                     MachineOperationVerificationKind.MachineObserved);
 
+                SetDiscResult(head.HeadIndex, "Passed", $"PASS · disc {discCameraResidual:F3} mm · pickup {residual:F3} mm");
                 Status = SavedPickupStatus + " Offset saved and read back.";
             }
             catch (Exception ex)
@@ -408,6 +409,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 else
                     rollback = "No confirmed saved-offset change.";
 
+                SetDiscResult(head.HeadIndex, "Failed", "FAIL · saved-offset pickup not verified");
                 SavedPickupVerified = false;
                 Status = "Saved-offset acceptance FAILED: " + ex.Message +
                     " " + recovery + " " + rollback;
