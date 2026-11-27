@@ -15,6 +15,7 @@ namespace LagoVista.PickAndPlace.Models
         private readonly object _gate = new object();
         private readonly Action<bool> _command;
         private Lease _active;
+        private Exception _offFault;
 
         public TopCameraIllumination(Action<bool> command)
         {
@@ -32,6 +33,8 @@ namespace LagoVista.PickAndPlace.Models
                 cancellation.ThrowIfCancellationRequested();
                 if (_active != null)
                     throw new InvalidOperationException("Top-camera illumination is already in use.");
+                if (_offFault != null)
+                    throw new InvalidOperationException("Top-camera OFF previously failed. Explicitly switch OFF before starting another acquisition.", _offFault);
 
                 lease = new Lease(this, maximum, cancellation);
                 _active = lease;
@@ -73,7 +76,18 @@ namespace LagoVista.PickAndPlace.Models
             lock (_gate)
             {
                 if (_active == null)
-                    _command(false);
+                {
+                    try
+                    {
+                        _command(false);
+                        _offFault = null;
+                    }
+                    catch (Exception ex)
+                    {
+                        _offFault = ex;
+                        throw;
+                    }
+                }
                 else
                 {
                     var lease = _active;
@@ -101,6 +115,7 @@ namespace LagoVista.PickAndPlace.Models
                     // A watchdog callback must never crash the process. Retain
                     // the failure for the acquisition owner to report.
                     lease.OffError = ex;
+                    _offFault = ex;
                 }
                 finally
                 {
