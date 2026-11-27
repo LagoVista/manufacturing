@@ -6,12 +6,14 @@ using LagoVista.Core.Models;
 using LagoVista.Core.Models.UIMetaData;
 using LagoVista.Manufacturing.Models;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace LagoVista.Manufacturing.Interfaces.Repos
 {
     public interface IStripFeederRepo
     {
         Task<ListResponse<StripFeederSummary>> GetOwnedStripFeederSummariesAsync(string orgId, ListRequest listRequest);
+        Task<IEnumerable<StripFeeder>> GetOwnedStripFeedersAsync(string orgId);
         Task AddStripFeederAsync(StripFeeder feeder);
         Task UpdateStripFeederAsync(StripFeeder feeder);
         Task<ListResponse<StripFeederSummary>> GetStripFeederSummariesAsync(string id, ListRequest listRequest);
