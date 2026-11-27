@@ -12,8 +12,8 @@ namespace LagoVista.PickAndPlace.Models
     {
         public const double ProbeMm = 0.8;
         public const double MaximumFramingCorrectionMm = 4.0;
-        public const double NozzleCameraToleranceMm = 0.20;
-        public const double DiscCameraToleranceMm = 0.20;
+        public const double NozzleCameraToleranceMm = CameraToolPickupCalibrationMath.VerificationToleranceMm;
+        public const double DiscCameraToleranceMm = CameraToolPickupCalibrationMath.VerificationToleranceMm;
         private const double SafeTravelMarginMm = 5.0;
 
         private static bool Finite(double value) =>

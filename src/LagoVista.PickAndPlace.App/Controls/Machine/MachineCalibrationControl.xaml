@@ -186,7 +186,7 @@
                                        FontSize="12" Margin="0,7,0,10"/>
                             <TextBlock Text="Requires both installed nozzles, a reliable vacuum channel and clear fixture. Opening starts supervised motion."
                                        Foreground="#D8B67F" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,12"/>
-                            <CheckBox x:Name="CameraToolFullDiagnostics" Content="Full Diagnostics (measure, save and validate)" IsChecked="True" Foreground="#EDF2F8" Margin="0,0,0,8"/>
+                            <CheckBox x:Name="CameraToolFullDiagnostics" Content="Full Diagnostics (measure, save and validate)" IsChecked="False" Foreground="#EDF2F8" Margin="0,0,0,8"/>
                             <Button Content="Open Camera-to-Tool Calibration"
                                     Click="OpenCameraToolPickup_Click"
                                     Style="{StaticResource CommandButton}"

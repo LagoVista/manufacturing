@@ -63,7 +63,7 @@
             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <StackPanel MouseLeftButtonDown="Header_MouseLeftButtonDown">
                 <TextBlock Text="Tool head &amp; bottom-camera calibration" FontSize="26" FontWeight="SemiBold"/>
-                <TextBlock Text="Complete both heads in order · radial tolerance 0.200 mm" FontSize="14" Foreground="#B9C6D6"/>
+                <TextBlock Text="Complete both heads in order · radial tolerance 0.250 mm" FontSize="14" Foreground="#B9C6D6"/>
             </StackPanel>
             <Button Grid.Column="1" Content="Stop after safe boundary" Click="StopDiagnostics_Click" IsEnabled="{Binding AutomaticRunActive}" Style="{StaticResource ActionButton}" Margin="8,0"/>
             <Button Grid.Column="2" Content="Close" Click="Close_Click" IsEnabled="{Binding CanOperate}" Style="{StaticResource ActionButton}"/>

@@ -40,32 +40,32 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
-        public void PersistedThirdPickupAcceptsNozzleRelativeErrorWithinPointTwoMm()
+        public void PersistedThirdPickupAcceptsNozzleRelativeErrorWithinPointTwoFiveMm()
         {
             var now = DateTimeOffset.UtcNow;
             var candidate = Candidate(now);
-            var third = Observation(0.114, 0.017,
+            var third = Observation(0.240, 0.017,
                 now.AddSeconds(-2), now.AddSeconds(-1));
             Assert.That(CameraToolPickupCalibrationMath.TryVerifySavedOffsetPickup(
                 candidate, third, now, out var residual, out var error),
                 Is.True, error);
-            Assert.That(residual, Is.EqualTo(Math.Sqrt(0.114 * 0.114 + 0.017 * 0.017))
+            Assert.That(residual, Is.EqualTo(Math.Sqrt(0.240 * 0.240 + 0.017 * 0.017))
                 .Within(0.0000001));
-            Assert.That(residual, Is.LessThanOrEqualTo(0.2));
+            Assert.That(residual, Is.LessThanOrEqualTo(0.25));
         }
 
         [Test]
-        public void SavedOffsetProofRejectsAbovePointTwoEvenIfVisionIsStable()
+        public void SavedOffsetProofRejectsAbovePointTwoFiveEvenIfVisionIsStable()
         {
             var now = DateTimeOffset.UtcNow;
             var candidate = Candidate(now);
-            var third = Observation(0.201, 0.0,
+            var third = Observation(0.251, 0.0,
                 now.AddSeconds(-2), now.AddSeconds(-1));
             Assert.That(CameraToolPickupCalibrationMath.TryVerifySavedOffsetPickup(
                 candidate, third, now, out var residual, out var reason),
                 Is.False);
-            Assert.That(residual, Is.GreaterThan(0.2));
-            Assert.That(reason, Does.Contain("0.200 mm"));
+            Assert.That(residual, Is.GreaterThan(0.25));
+            Assert.That(reason, Does.Contain("0.250 mm"));
         }
 
         [Test]

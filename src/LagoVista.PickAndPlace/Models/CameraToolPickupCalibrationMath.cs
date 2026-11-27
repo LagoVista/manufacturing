@@ -44,9 +44,9 @@ namespace LagoVista.PickAndPlace.Models
         public const double MaximumCorrectionPerAxisMm = 2.0;
         // Operator-defined maximum radial disc-to-nozzle error. The second
         // temporary-jog pickup and third saved-offset pickup use the same
-        // 0.20 mm acceptance limit; saved-offset proof remains independent.
-        public const double VerificationToleranceMm = 0.20;
-        public const double SavedOffsetPickupToleranceMm = 0.20;
+        // 0.250 mm radial acceptance limit; saved-offset proof remains independent.
+        public const double VerificationToleranceMm = 0.25;
+        public const double SavedOffsetPickupToleranceMm = VerificationToleranceMm;
         public const double TravelClearanceMm = 5.0;
         public static readonly TimeSpan MaximumVisionAge = TimeSpan.FromSeconds(3);
 

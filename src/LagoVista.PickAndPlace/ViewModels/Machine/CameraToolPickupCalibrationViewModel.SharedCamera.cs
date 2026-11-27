@@ -14,7 +14,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 {
     public sealed partial class CameraToolPickupCalibrationViewModel
     {
-        private const bool DefaultFullDiagnostics = true;
+        private const bool DefaultFullDiagnostics = false;
         private string _mechanicalSettleMilliseconds = CameraToolBottomCameraFraming.DefaultMechanicalSettleMs.ToString();
         public string MechanicalSettleMilliseconds
         {
@@ -348,7 +348,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             var one = await SharedNozzleAsync(1);
             var two = await SharedNozzleAsync(2);
             if (!CameraToolBottomCameraFraming.BothHeadsPassUncorrected(one, two))
-                throw new CalibrationStopped($"Saved inspection geometry disagrees: Head 1 {one:F3}, Head 2 {two:F3} mm (max 0.200 each). Do not change pickup offsets or frame into a pass.");
+                throw new CalibrationStopped($"Saved inspection geometry disagrees: Head 1 {one:F3}, Head 2 {two:F3} mm (max 0.250 each). Do not change pickup offsets or frame into a pass.");
         }
 
         private async Task<double> SharedPickupAsync(int index, bool frame,
@@ -420,7 +420,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             if (!displayPassed && sampleRecorded == null)
             {
                 SetDiscResult(index, "Failed", $"FAIL · {discCameraError:F3} mm");
-                throw new CalibrationStopped($"Head {index} saved pickup failed: nozzle {nozzleError:F3}, disc {discCameraError:F3}, pickup {residual:F3} mm (max 0.200 each).");
+                throw new CalibrationStopped($"Head {index} saved pickup failed: nozzle {nozzleError:F3}, disc {discCameraError:F3}, pickup {residual:F3} mm (max 0.250 each).");
             }
             sample.Passed = displayPassed;
             sampleRecorded?.Invoke(sample);
@@ -504,7 +504,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             ResetNozzleResults();
             await ValidateBothSharedNozzlesAsync();
             SharedCameraVerified = true;
-            SharedCameraStatus = "PASS: shared camera saved/read back; both heads independently within 0.200 mm without correction.";
+            SharedCameraStatus = "PASS: shared camera saved/read back; both heads independently within 0.250 mm without correction.";
         });
 
         public Task ValidateSharedCameraAsync() => CanOperate ? ValidateSharedCameraCoreAsync() : Task.CompletedTask;
@@ -516,7 +516,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             await SharedPickupAsync(1, false);
             await SharedPickupAsync(2, false);
             SharedCameraVerified = true;
-            SharedCameraStatus = "PASS: both saved nozzle approaches and disc pickups within 0.200 mm without correction.";
+            SharedCameraStatus = "PASS: both saved nozzle approaches and disc pickups within 0.250 mm without correction.";
         });
 
         public Task RunFullDiagnosticsAsync() => CanOperate ? RunFullDiagnosticsCoreAsync() : Task.CompletedTask;

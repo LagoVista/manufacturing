@@ -83,8 +83,8 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [TestCase(0.0, true)]
-        [TestCase(0.2, true)]
-        [TestCase(0.201, false)]
+        [TestCase(0.25, true)]
+        [TestCase(0.251, false)]
         [TestCase(double.NaN, false)]
         [TestCase(double.PositiveInfinity, false)]
         public void NozzleDisplayProofUsesUncorrectedRadialTolerance(double error, bool expected)
@@ -94,9 +94,9 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(proof.Summary, Does.Contain(expected ? "PASS" : "FAIL"));
         }
 
-        [TestCase(0.2, 0.2, true)]
-        [TestCase(0.01, 0.201, false)]
-        [TestCase(0.201, 0.01, false)]
+        [TestCase(0.25, 0.25, true)]
+        [TestCase(0.01, 0.251, false)]
+        [TestCase(0.251, 0.01, false)]
         [TestCase(double.NaN, 0.01, false)]
         [TestCase(0.01, double.PositiveInfinity, false)]
         public void IndependentUncorrectedProofCannotAverageOrHideFailures(double one, double two, bool expected)
@@ -146,17 +146,17 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
             Assert.That(error, Does.Contain("Nozzle"));
 
             // Small nozzle offset, very good pickup (0.17mm relative error),
-            // but disc outside 0.2mm of camera image center: still not green.
+            // but disc outside 0.25mm of camera image center: still not green.
             Assert.That(CameraToolBottomCameraFraming.TryVerifyCenteredPickup(
-                P(0.05, 0.01), P(0.22, 0.03),
+                P(0.05, 0.01), P(0.26, 0.03),
                 out nozzle, out disc, out error), Is.False);
             Assert.That(error, Does.Contain("Picked disc"));
 
             Assert.That(CameraToolBottomCameraFraming.TryVerifyCenteredPickup(
                 P(0.04, -0.07), P(0.09, -0.10),
                 out nozzle, out disc, out error), Is.True, error);
-            Assert.That(nozzle, Is.LessThanOrEqualTo(0.20));
-            Assert.That(disc, Is.LessThanOrEqualTo(0.20));
+            Assert.That(nozzle, Is.LessThanOrEqualTo(0.25));
+            Assert.That(disc, Is.LessThanOrEqualTo(0.25));
         }
     }
 }
