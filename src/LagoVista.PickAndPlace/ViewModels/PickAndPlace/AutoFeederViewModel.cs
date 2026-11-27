@@ -212,8 +212,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 {
                     if (!ReferenceEquals(Current, selected)) return;
                     var index = _autoFeeders.IndexOf(selected);
-                    if (index >= 0) _autoFeeders[index] = result.Result.Model;
                     Current = result.Result.Model;
+                    if (index >= 0) _autoFeeders[index] = result.Result.Model;
                 }
             }
         }
@@ -451,6 +451,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
 
         private bool _placementRunning, _saving;
+        private int _placementGeneration;
         private Point2D<double> _placementCandidate, _placementOrigin, _placementPrevious;
         private AutoFeeder _placementFeeder;
         private IMachine _placementMachine;
@@ -461,6 +462,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         private void ClearPlacementCandidate()
         {
+            if (_placementCandidate != null)
+                PlacementStatus = "Unsaved placement candidate cleared; calibrate again before saving.";
+            Interlocked.Increment(ref _placementGeneration);
             _placementCandidate = null;
             _placementFeeder = null;
             _placementMachine = null;
@@ -506,6 +510,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var id = feeder.FeederId;
             _placementRunning = true;
             ClearPlacementCandidate();
+            var generation = Volatile.Read(ref _placementGeneration);
             RaiseCanExecuteChanged();
             try
             {
@@ -517,6 +522,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     throw new InvalidOperationException("Invalid feeder rail or fiducial target.");
                 var previous = new Point2D<double>(feeder.FiducialOffset.X, feeder.FiducialOffset.Y);
                 await PlacementIdleAsync(machine, feeder);
+                if (generation != Volatile.Read(ref _placementGeneration) || !ConfiguredTestArmed)
+                    throw new InvalidOperationException("Calibration context changed.");
                 var identity = await PhotonFeederViewModel.VerifyFeederIdentityAsync((byte)slot, id);
                 if (!identity.Successful) throw new InvalidOperationException(identity.ErrorMessage);
                 await PlacementIdleAsync(machine, feeder);
@@ -550,7 +557,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 {
                     RequirePlacementMachine(machine, feeder);
                     var actualOrigin = GetCurrentFeederOrigin();
-                    if (feeder.Slot != slot || feeder.FeederId != id || machine.AreSettingsLocked ||
+                    if (generation != Volatile.Read(ref _placementGeneration) || !ConfiguredTestArmed ||
+                        feeder.Slot != slot || feeder.FeederId != id || machine.AreSettingsLocked ||
                         !actualOrigin.Successful || BoardRigidTransform.Distance(actualOrigin.Result, origin.Result) > 0.000001 ||
                         !BoardRigidTransform.Valid(feeder.FiducialOffset) || BoardRigidTransform.Distance(feeder.FiducialOffset, previous) > 0.000001 ||
                         !ReferenceEquals(machine.PositionImageCaptureService, capture) || !ReferenceEquals(capture.Camera, camera) ||
@@ -610,6 +618,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 }
                 if (measured == null) throw new InvalidOperationException("No centered fiducial.");
                 await PlacementIdleAsync(machine, feeder);
+                Check();
                 identity = await PhotonFeederViewModel.VerifyFeederIdentityAsync((byte)slot, id);
                 if (!identity.Successful) throw new InvalidOperationException(identity.ErrorMessage);
                 Check();
@@ -671,6 +680,11 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
 
         public void SetPickLocationCommand()
         {
+            if (_placementRunning || _saving || _placementCandidate != null)
+            {
+                PlacementStatus = "Finish or discard the placement calibration before changing pickup offset.";
+                return;
+            }
             var origin = GetCurrentFeederOrigin();
             if(origin.Successful)
             {
@@ -733,7 +747,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     var identity = await PhotonFeederViewModel.VerifyFeederIdentityAsync((byte)feeder.Slot, feeder.FeederId);
                     if (!identity.Successful) throw new InvalidOperationException(identity.ErrorMessage);
                     RequirePlacementMachine(machine, feeder);
-                    if (!ReferenceEquals(_placementCandidate, candidate) || feeder.Slot != _placementSlot || feeder.FeederId != _placementId)
+                    origin = GetCurrentFeederOrigin();
+                    if (!ReferenceEquals(_placementCandidate, candidate) || feeder.Slot != _placementSlot || feeder.FeederId != _placementId ||
+                        machine.AreSettingsLocked || !origin.Successful ||
+                        BoardRigidTransform.Distance(origin.Result, _placementOrigin) > 0.000001 ||
+                        !BoardRigidTransform.Valid(feeder.FiducialOffset) ||
+                        BoardRigidTransform.Distance(feeder.FiducialOffset, _placementPrevious) > 0.000001)
                         throw new InvalidOperationException("Calibration context changed.");
                     feeder.FiducialOffset = candidate;
                 }
