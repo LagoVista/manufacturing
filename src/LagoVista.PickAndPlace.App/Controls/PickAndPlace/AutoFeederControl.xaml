@@ -93,8 +93,8 @@
                 </WrapPanel>
                 <Border Grid.Row="3" Background="#101721" CornerRadius="6" Padding="8">
                   <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                    <TextBlock Text="ACTIVITY / EVIDENCE" Foreground="#A7D6FF" FontSize="12" FontWeight="Bold"/>
-                    <ListBox Grid.Row="1" ItemsSource="{Binding PlacementMessages}" Background="#101721" Foreground="White" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled"><ListBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" Foreground="White" TextWrapping="Wrap" FontSize="13"/></DataTemplate></ListBox.ItemTemplate></ListBox>
+                    <TextBlock Text="ACTIVITY / EVIDENCE (LATEST FIRST)" Foreground="#A7D6FF" FontSize="12" FontWeight="Bold"/>
+                    <ListBox Grid.Row="1" ItemsSource="{Binding PlacementMessages}" Background="#101721" Foreground="White" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch"><ListBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" Foreground="White" TextWrapping="Wrap" FontSize="13"/></DataTemplate></ListBox.ItemTemplate></ListBox>
                   </Grid>
                 </Border>
               </Grid>
@@ -143,8 +143,23 @@
             </Grid>
             <Border Grid.Row="2" Background="#263342" CornerRadius="8" Padding="12" Margin="0,12,0,0">
               <StackPanel>
-                 <TextBlock Text="{Binding GeometryPreflight}" Foreground="#B9DFFF" FontSize="15" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                <TextBlock Text="{Binding LandmarkState, StringFormat='LANDMARK: {0}'}" FontSize="20" FontWeight="Bold">
+                  <TextBlock.Style><Style TargetType="TextBlock" BasedOn="{StaticResource WorkbenchText}">
+                    <Setter Property="Foreground" Value="#B9DFFF"/>
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding LandmarkState}" Value="Measuring"><Setter Property="Foreground" Value="#FFD37B"/></DataTrigger>
+                      <DataTrigger Binding="{Binding LandmarkState}" Value="Measured - not saved"><Setter Property="Foreground" Value="#79E1A3"/></DataTrigger>
+                      <DataTrigger Binding="{Binding LandmarkState}" Value="Rail reference saved"><Setter Property="Foreground" Value="#79E1A3"/></DataTrigger>
+                      <DataTrigger Binding="{Binding LandmarkState}" Value="Feeder offset saved"><Setter Property="Foreground" Value="#79E1A3"/></DataTrigger>
+                      <DataTrigger Binding="{Binding LandmarkState}" Value="Failed - not saved"><Setter Property="Foreground" Value="#FF9999"/></DataTrigger>
+                      <DataTrigger Binding="{Binding LandmarkState}" Value="Save failed"><Setter Property="Foreground" Value="#FF9999"/></DataTrigger>
+                    </Style.Triggers>
+                  </Style></TextBlock.Style>
+                </TextBlock>
+                <ProgressBar Height="5" Margin="0,6,0,3" IsIndeterminate="{Binding PlacementBusy}" Visibility="{Binding PlacementBusy, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <TextBlock Text="{Binding LandmarkResult}" Foreground="#B9DFFF" FontSize="15" TextWrapping="Wrap" Margin="0,4,0,0"/>
                 <TextBlock Text="{Binding PlacementStatus}" Foreground="White" FontSize="16" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                <TextBlock Text="{Binding GeometryPreflight}" Foreground="#B9DFFF" FontSize="13" TextWrapping="Wrap" Margin="0,5,0,0"/>
               </StackPanel>
             </Border>
           </Grid>

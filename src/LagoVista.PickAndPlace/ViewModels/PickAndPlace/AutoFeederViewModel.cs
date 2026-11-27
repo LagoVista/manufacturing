@@ -710,17 +710,28 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 var result = await MachineRepo.SaveCurrentMachineAsync();
                 if (!result.Successful) throw new InvalidOperationException(result.ErrorMessage);
                 ClearPlacementCandidate();
+                LandmarkState = "Rail reference saved";
                 PlacementStatus = $"Rail {rail.Name} reference saved at {FormatGeometry(candidate)}. Feeder offsets and slot numbering unchanged.";
             }
             catch (Exception ex)
             {
                 if (applied) rail.FirstFeederOrigin = previous;
+                LandmarkState = "Save failed";
                 PlacementStatus = "Rail reference save failed: " + ex.Message + ". Previous origin retained locally; reload if server outcome is uncertain.";
                 machine?.AddStatusMessage(StatusMessageTypes.Warning, PlacementStatus);
             }
             finally { _saving = false; NotifyGeometryChanged(); RaiseCanExecuteChanged(); }
         }
-        private string _placementStatus = "Select a saved feeder, confirm clearance, then calibrate its fiducial.";
+        private string _landmarkState = "Not measured";
+        public string LandmarkState
+        {
+            get => _landmarkState;
+            private set => Set(ref _landmarkState, value);
+        }
+        public string LandmarkResult => HasPlacementCandidate
+            ? $"Measured XY: {FormatGeometry(_placementOrigin + _placementCandidate)} | Correction: {FormatGeometry(_placementCandidate - _placementPrevious)} mm"
+            : "No unsaved landmark measurement.";
+        private string _placementStatus = "Select a saved feeder, then calibrate its landmark.";
         public ObservableCollection<string> PlacementMessages { get; } = new ObservableCollection<string>();
         public string PlacementStatus
         {
@@ -728,8 +739,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             private set
             {
                 Set(ref _placementStatus, value);
-                PlacementMessages.Add($"{DateTime.Now:HH:mm:ss}  {value}");
-                if (PlacementMessages.Count > 100) PlacementMessages.RemoveAt(0);
+                PlacementMessages.Insert(0, $"{DateTime.Now:HH:mm:ss}  {value}");
+                if (PlacementMessages.Count > 100) PlacementMessages.RemoveAt(PlacementMessages.Count - 1);
             }
         }
         public bool PlacementBusy => _placementRunning || _saving;
@@ -740,6 +751,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             base.RaiseCanExecuteChanged();
             RaisePropertyChanged(nameof(PlacementBusy));
+            RaisePropertyChanged(nameof(LandmarkResult));
             RaisePropertyChanged(nameof(HasPlacementCandidate));
             RaisePropertyChanged(nameof(HasRailReferenceCandidate));
             RaisePropertyChanged(nameof(RailReferenceCandidateText));
@@ -765,6 +777,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _placementFeeder = null;
             _placementMachine = null;
             _placementRail = null;
+            LandmarkState = "Not measured";
+            RaisePropertyChanged(nameof(LandmarkResult));
             RaisePropertyChanged(nameof(HasPlacementCandidate));
             RaisePropertyChanged(nameof(HasRailReferenceCandidate));
             RaisePropertyChanged(nameof(RailReferenceCandidateText));
@@ -811,6 +825,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             _placementRunning = true;
             ClearPlacementCandidate();
             PlacementMessages.Clear();
+            LandmarkState = "Measuring";
             PlacementStatus = $"Starting placement calibration for {feeder.Name}, slot {slot}, expected ID {id}.";
             var generation = Volatile.Read(ref _placementGeneration);
             RaiseCanExecuteChanged();
@@ -901,13 +916,17 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 machine.GotoPoint(approach.Result);
                 var settled = await PlacementIdleAsync(machine, feeder, opticalSettle: true);
                 Point2D<double> measured = null;
+                // One bounded acquisition for this active optical procedure:
+                // keep illumination steady across correction moves and fresh frames.
+                await using (var light = await machine.BeginTopCameraAcquisitionAsync(90000))
+                {
                 for (int attempt = 0; attempt <= FeederAutoCornerJogMath.MaxAutomaticJogs; attempt++)
                 {
+                    light.ThrowIfInvalid();
                     Check();
                     if (machine.Busy || machine.CurrentMachineToolHead != null) throw new InvalidOperationException("Machine moved during acquisition.");
                     PlacementStatus = $"Acquiring fresh three-dot landmark (observation {attempt + 1}).";
                     FiducialCircleObservation observation;
-                    await using (var light = await machine.BeginTopCameraAcquisitionAsync(11000))
                     {
                         capture.ResetDetections();
                         var handler = new FeederFiducialObservationHandler(capture, profile, scale, settled);
@@ -921,6 +940,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         finally { _locatorViewModel.UnregisterCircleLocatedHandler(handler); }
                     }
                     Check();
+                    light.ThrowIfInvalid();
                     if (observation == null) throw new InvalidOperationException("No fresh stable feeder fiducial; check the Feeder Landmark profile and lighting.");
                     if (machine.Busy || machine.CurrentMachineToolHead != null) throw new InvalidOperationException("Machine moved during observation.");
                     var position = await machine.GetCurrentLocationAsync(5000);
@@ -934,10 +954,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     if (residual <= tolerance) { measured = target; break; }
                     if (!FeederAutoCornerJogMath.CanJogAgain(attempt)) throw new InvalidOperationException("Fiducial did not center within five corrections.");
                     Check();
+                    light.ThrowIfInvalid();
+                    PlacementStatus = $"Landmark found. Centering correction {attempt + 1}: {residual:F3} mm toward {FormatGeometry(target)}.";
                     machine.GotoPoint(target);
                     settled = await PlacementIdleAsync(machine, feeder, opticalSettle: true);
                 }
+                light.ThrowIfInvalid();
                 if (measured == null) throw new InvalidOperationException("No centered fiducial.");
+                } // Confirm illumination OFF before requesting the final preview.
                 await PlacementIdleAsync(machine, feeder);
                 Check();
                 // Stage optical evidence without RS485. SaveCoreAsync still
@@ -953,13 +977,28 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 _placementRailPitch = railPitch;
                 _placementRailRotation = railRotation;
                 _placementRailCount = rail?.NumberSlots;
-                PlacementStatus = $"Optically measured slot {slot}: {measured}; candidate offset {_placementCandidate}. " +
+                LandmarkState = "Measured - not saved";
+                RaisePropertyChanged(nameof(LandmarkResult));
+                PlacementStatus = $"SUCCESS: centered landmark at {FormatGeometry(measured)}. Measurement not saved. " +
                     (HasRailReferenceCandidate ? "First slot: choose Save Rail Reference or Save Feeder Offset, not both." : "Save Feeder Offset verifies live identity.");
                 RaisePropertyChanged(nameof(RailReferenceCandidateText));
+                try
+                {
+                    // A bounded manual preview, not an ongoing acquisition.
+                    // Preview failure does not invalidate the measured result.
+                    Check();
+                    machine.TopLightOn = true;
+                    PlacementStatus = "SUCCESS: landmark measured. Final 30-second camera preview requested. Choose a save action; nothing saved yet.";
+                }
+                catch (Exception previewError)
+                {
+                    PlacementStatus = "SUCCESS: landmark measured; final preview unavailable: " + previewError.Message + ". Nothing saved yet.";
+                }
             }
             catch (Exception ex)
             {
                 ClearPlacementCandidate();
+                LandmarkState = "Failed - not saved";
                 PlacementStatus = "Calibration stopped: " + ex.Message + " Previous offset retained.";
                 machine?.AddStatusMessage(StatusMessageTypes.Warning, PlacementStatus);
             }
@@ -1092,6 +1131,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 if (candidate != null)
                 {
                     ClearPlacementCandidate();
+                    LandmarkState = "Feeder offset saved";
                     PlacementStatus = "Feeder fiducial saved. Reload/reselect and verify Go To Fiducial.";
                 }
                 if (!placementOnly && ReferenceEquals(Current, feeder)) Current = null;
@@ -1099,6 +1139,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             catch (Exception ex)
             {
                 if (candidate != null && !saved) feeder.FiducialOffset = oldOffset;
+                if (candidate != null) LandmarkState = "Save failed";
                 PlacementStatus = "Save failed: " + ex.Message + (candidate == null ? "" : " Previous offset retained locally; reload if server outcome is uncertain.");
                 Machine?.AddStatusMessage(StatusMessageTypes.FatalError, PlacementStatus);
             }
