@@ -193,6 +193,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             machine.LineReceived += handler;
             try
             {
+                TraceOperation($"TX slot {slot} / packet {command.PacketId:X2}: {command.GCode}");
                 machine.SendCommand(command.GCode);
                 var clock = Stopwatch.StartNew();
                 while (!completion.Task.IsCompleted && clock.ElapsedMilliseconds < 1500)
@@ -202,7 +203,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 }
                 if (!Connected(machine, generation)) throw new InvalidOperationException("Disconnected during Photon request.");
                 if (!completion.Task.IsCompleted) throw new TimeoutException("No matching Photon response.");
-                return await completion.Task;
+                var reply = await completion.Task;
+                TraceOperation($"RX slot {reply.FromAddress} / packet {reply.PacketId:X2}: status 0x{reply.Status:X2}, payload {reply.TextPayload}");
+                return reply;
+            }
+            catch (Exception ex)
+            {
+                TraceOperation($"RX slot {slot} / packet {command.PacketId:X2}: {ex.Message}");
+                throw;
             }
             finally { machine.LineReceived -= handler; }
         }
@@ -269,7 +277,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         _initialized[slot] = id;
                         return InvokeResult.Success;
                     }
-                    catch (TimeoutException) when (attempt < 3) { await Task.Delay(100); }
+                    catch (TimeoutException) when (attempt < 3) { TraceOperation($"Initialization attempt {attempt} of 3 timed out; retrying identity/initialization only."); await Task.Delay(100); }
                 }
                 return InvokeResult.FromError("Initialization not confirmed.");
             });
@@ -300,7 +308,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     if (reply.Status != 0 || reply.BinaryPayload.Length != 2)
                         return InvokeResult.FromError($"Move not confirmed, status 0x{reply.Status:X2}; tape position uncertain.");
                     var expectedMs = (reply.BinaryPayload[0] << 8) | reply.BinaryPayload[1];
-                    Status = $"Slot {slot}: move acknowledged; awaiting feed status.";
+                    Status = $"Slot {slot}: move acknowledged; feeder reports {expectedMs} ms, awaiting feed status.";
                     var clock = Stopwatch.StartNew();
                     while (clock.ElapsedMilliseconds < expectedMs)
                     {
@@ -319,7 +327,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                             }
                             if (replyStatus.Status != 4) return InvokeResult.FromError($"Feed status 0x{replyStatus.Status:X2}; tape position uncertain.");
                         }
-                        catch (TimeoutException) { }
+                        catch (TimeoutException) { TraceOperation($"Feed status poll {attempt + 1} of 3 timed out; not resending movement."); }
                         await Task.Delay(100);
                     }
                     return InvokeResult.FromError("Feed completion not confirmed; tape position uncertain. Inspect and reconcile.");
@@ -380,11 +388,28 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             set => Set(ref _searchIndex, value);
         }
 
+        public event EventHandler<string> OperationMessage;
+        private void TraceOperation(string message)
+        {
+            // Observers are diagnostic only; they must never affect bus behavior.
+            var observers = OperationMessage;
+            if (observers == null) return;
+            foreach (EventHandler<string> observer in observers.GetInvocationList())
+            {
+                try { observer(this, message); }
+                catch (Exception ex) { Debug.WriteLine(ex); }
+            }
+        }
+
         private string _status;
         public string Status
         {
             get => _status;
-            set => Set(ref _status, value);
+            set
+            {
+                Set(ref _status, value);
+                if (!string.IsNullOrWhiteSpace(value)) TraceOperation(value);
+            }
         }
 
         private string _selectedAutoFeederTemplateId = "-1";

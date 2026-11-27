@@ -31,5 +31,12 @@ namespace LagoVista.PickAndPlace.App.Controls.PickAndPlace
         {
             InitializeComponent();
         }
+
+        private void OpenControlPanel_Click(object sender, RoutedEventArgs e)
+        {
+            if (!(DataContext is IPhotonFeederViewModel vm)) return;
+            var dialog = new PhotonFeederControlWindow(vm) { Owner = Window.GetWindow(this) };
+            dialog.ShowDialog();
+        }
     }
 }

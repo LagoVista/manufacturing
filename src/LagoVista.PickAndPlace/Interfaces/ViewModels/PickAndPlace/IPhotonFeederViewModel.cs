@@ -6,6 +6,7 @@ using LagoVista.Core.Commanding;
 using LagoVista.Core.Validation;
 using LagoVista.Core.ViewModels;
 using LagoVista.PickAndPlace.Models;
+using System;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Threading.Tasks;
@@ -19,6 +20,7 @@ namespace LagoVista.PickAndPlace.Interfaces.ViewModels.PickAndPlace
         byte SlotsToSearch { get; set; }
         byte SlotSearchIndex { get; set; }
         string Status { get; set; }
+        event EventHandler<string> OperationMessage;
 
         bool IsBusBusy { get; }
         bool ManualTestArmed { get; set; }
