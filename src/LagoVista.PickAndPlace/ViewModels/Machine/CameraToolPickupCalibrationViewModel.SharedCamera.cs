@@ -28,8 +28,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         private string _headTwoPickupState = "Pending";
         private string _headOnePickupResult = "Not measured";
         private string _headTwoPickupResult = "Not measured";
-        private string _headOneDiscResult = "Not measured in this session";
-        private string _headTwoDiscResult = "Not measured in this session";
+        private string _headOneDiscResult = "Not tested";
+        private string _headTwoDiscResult = "Not tested";
         private string _headOneDiscState = "Pending";
         private string _headTwoDiscState = "Pending";
         private bool _stopShared;
@@ -276,7 +276,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             Action<double> cameraSample = null, Action<double> pickupSample = null)
         {
             SelectSharedHead(index);
-            SetDiscResult(index, "Pending", "Measuring saved-offset pickup...");
+            SetDiscResult(index, "Pending", "Measuring...");
             var nozzle = await MeasureEmptyNozzleAsync(_head, frame);
             var nozzleError = CameraToolBottomCameraFraming.Radius(nozzle.OffsetMm);
             cameraSample?.Invoke(nozzleError);
@@ -338,8 +338,8 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
         {
             ClearSharedCandidate();
             ResetNozzleResults();
-            SetDiscResult(1, "Pending", "Awaiting saved-offset recheck");
-            SetDiscResult(2, "Pending", "Awaiting saved-offset recheck");
+            SetDiscResult(1, "Pending", "Awaiting recheck");
+            SetDiscResult(2, "Pending", "Awaiting recheck");
             // Reprove current saved offsets, including a previously accepted Head 2;
             // no repeat write of its pickup offset is needed.
             await SharedPickupAsync(1, true);
@@ -507,7 +507,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 if (_head != null && (mode == "propose" || mode == "repeatability"))
                 {
                     var state = _head.HeadIndex == 1 ? HeadOneDiscState : HeadTwoDiscState;
-                    if (state == "Pending") SetDiscResult(_head.HeadIndex, "Failed", "STOPPED · pickup proof incomplete");
+                    if (state == "Pending") SetDiscResult(_head.HeadIndex, "Failed", "STOPPED");
                 }
                 var recovery = await RecoverPossibleDiscAsync();
                 if (!_possibleDiscHeld && ValidMachine(out _) &&

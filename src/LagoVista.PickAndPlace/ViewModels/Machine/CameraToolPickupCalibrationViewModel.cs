@@ -272,6 +272,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
             }
             ClearSharedCandidate();
             ResetNozzleResults();
+            SharedCameraStatus = "Complete both pickup offsets, then measure the shared camera.";
             if (Int32.TryParse(HeadIndexText, out var displayHead) && (displayHead == 1 || displayHead == 2))
             {
                 SetPickupResult(displayHead, "Running", "Measuring...");

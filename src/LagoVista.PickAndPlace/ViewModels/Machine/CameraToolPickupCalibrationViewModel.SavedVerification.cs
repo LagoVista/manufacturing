@@ -409,7 +409,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 else
                     rollback = "No confirmed saved-offset change.";
 
-                SetDiscResult(head.HeadIndex, "Failed", "FAIL · saved-offset pickup not verified");
+                SetDiscResult(head.HeadIndex, "Failed", "FAIL");
                 SavedPickupVerified = false;
                 Status = "Saved-offset acceptance FAILED: " + ex.Message +
                     " " + recovery + " " + rollback;
