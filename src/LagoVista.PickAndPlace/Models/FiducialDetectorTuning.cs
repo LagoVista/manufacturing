@@ -19,6 +19,8 @@ namespace LagoVista.PickAndPlace.Models
         private double _searchRadiusMm;
         private double _centerToleranceMm;
         private int _stabilizationCount;
+        private bool _autoThreshold;
+        private byte _primaryThreshold;
 
         public double Dp { get => _dp; set => Set(ref _dp, value); }
         public double MinDistanceMm { get => _minDistanceMm; set => Set(ref _minDistanceMm, value); }
@@ -29,6 +31,9 @@ namespace LagoVista.PickAndPlace.Models
         public double SearchRadiusMm { get => _searchRadiusMm; set => Set(ref _searchRadiusMm, value); }
         public double CenterToleranceMm { get => _centerToleranceMm; set => Set(ref _centerToleranceMm, value); }
         public int StabilizationCount { get => _stabilizationCount; set => Set(ref _stabilizationCount, value); }
+
+        public bool AutoThreshold { get => _autoThreshold; set => Set(ref _autoThreshold, value); }
+        public byte PrimaryThreshold { get => _primaryThreshold; set => Set(ref _primaryThreshold, value); }
 
         public static FiducialDetectorTuning FromProfile(VisionProfile profile)
         {
@@ -43,13 +48,17 @@ namespace LagoVista.PickAndPlace.Models
                 MaximumRadiusMm = profile.HoughCirclesMaxRadius,
                 SearchRadiusMm = profile.TargetImageRadius,
                 CenterToleranceMm = profile.ErrorToleranceMM,
-                StabilizationCount = profile.StabilizationCount
+                StabilizationCount = profile.StabilizationCount,
+                AutoThreshold = profile.AutoThreshold,
+                PrimaryThreshold = profile.PrimaryThreshold
             };
         }
 
         public bool Validate(out string reason)
         {
-            if (!Between(Dp, 0.1, 10))
+            if (PrimaryThreshold > 100)
+                reason = "Manual threshold must be 0-100.";
+            else if (!Between(Dp, 0.1, 10))
                 reason = "Hough DP must be between 0.1 and 10.";
             else if (!Between(MinDistanceMm, 0.01, 100))
                 reason = "Minimum circle separation must be 0.01-100 mm.";
@@ -87,7 +96,9 @@ namespace LagoVista.PickAndPlace.Models
                    MaximumRadiusMm == profile.HoughCirclesMaxRadius &&
                    SearchRadiusMm == profile.TargetImageRadius &&
                    CenterToleranceMm == profile.ErrorToleranceMM &&
-                   StabilizationCount == profile.StabilizationCount;
+                   StabilizationCount == profile.StabilizationCount &&
+                   AutoThreshold == profile.AutoThreshold &&
+                   PrimaryThreshold == profile.PrimaryThreshold;
         }
 
         public void ApplyTo(VisionProfile profile)
@@ -105,6 +116,8 @@ namespace LagoVista.PickAndPlace.Models
             profile.TargetImageRadius = SearchRadiusMm;
             profile.ErrorToleranceMM = CenterToleranceMm;
             profile.StabilizationCount = StabilizationCount;
+            profile.PrimaryThreshold = PrimaryThreshold;
+            profile.AutoThreshold = AutoThreshold;
         }
 
         private static bool Between(double value, double min, double max) =>

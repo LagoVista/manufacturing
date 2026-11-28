@@ -215,7 +215,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
                 // thresholds). Reflect the actual applied values in the editor.
                 Tuning = FiducialDetectorTuning.FromProfile(_tuningProfile);
                 HasUnsavedTuning = !_savedTuning.Matches(_tuningProfile);
-                ClearManualObservation("Hough parameters updated for preview; prior circle evidence cleared.");
+                ClearManualObservation("Detector tuning updated for preview; prior circle evidence cleared.");
                 ManualStatus = HasUnsavedTuning
                     ? "PREVIEW ONLY — not saved. Run an 8-second detection preview, then Save Profile or Revert before automatic calibration."
                     : "Current saved parameters restored. Run a detection preview to inspect them.";
@@ -253,7 +253,7 @@ namespace LagoVista.PickAndPlace.ViewModels.Machine
 
                 _savedTuning = FiducialDetectorTuning.FromProfile(_tuningProfile);
                 HasUnsavedTuning = false;
-                ManualStatus = "macfiducial Hough tuning saved. Previous circle evidence remains invalid.";
+                ManualStatus = "macfiducial detector tuning saved. Previous circle evidence remains invalid.";
                 Log(ManualStatus);
             }
             catch (Exception ex) { ManualStatus = "Tuning save failed: " + ex.Message; }

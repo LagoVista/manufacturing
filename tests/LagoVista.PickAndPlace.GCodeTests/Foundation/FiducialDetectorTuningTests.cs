@@ -87,6 +87,46 @@ namespace LagoVista.PickAndPlace.GCodeTests.Foundation
         }
 
         [Test]
+        public void AutomaticThresholdIsStagedAndRevertsWithManualValueIntact()
+        {
+            var profile = Baseline();
+            profile.PrimaryThreshold = 37;
+            var saved = FiducialDetectorTuning.FromProfile(profile);
+            var draft = FiducialDetectorTuning.FromProfile(profile);
+            draft.AutoThreshold = true;
+            Assert.That(profile.AutoThreshold, Is.False);
+            Assert.That(draft.Matches(profile), Is.False);
+            draft.ApplyTo(profile);
+            Assert.That(profile.AutoThreshold, Is.True);
+            Assert.That(profile.PrimaryThreshold, Is.EqualTo(37));
+            Assert.That(draft.Matches(profile), Is.True);
+            Assert.That(saved.Matches(profile), Is.False);
+            saved.ApplyTo(profile);
+            Assert.That(profile.AutoThreshold, Is.False);
+            Assert.That(profile.PrimaryThreshold, Is.EqualTo(37));
+        }
+
+        [Test]
+        public void ManualThresholdDraftCanBeEditedAndRestored()
+        {
+            var profile = Baseline();
+            profile.AutoThreshold = true;
+            profile.PrimaryThreshold = 37;
+            var saved = FiducialDetectorTuning.FromProfile(profile);
+            var draft = FiducialDetectorTuning.FromProfile(profile);
+            draft.AutoThreshold = false;
+            draft.PrimaryThreshold = 52;
+            draft.ApplyTo(profile);
+            Assert.That(profile.AutoThreshold, Is.False);
+            Assert.That(profile.PrimaryThreshold, Is.EqualTo(52));
+            saved.ApplyTo(profile);
+            Assert.That(profile.AutoThreshold, Is.True);
+            Assert.That(profile.PrimaryThreshold, Is.EqualTo(37));
+            draft.PrimaryThreshold = 101;
+            Assert.That(draft.Validate(out _), Is.False);
+        }
+
+        [Test]
         public void ExistingLargeAccumulatorThresholdRemainsSupported()
         {
             var draft = FiducialDetectorTuning.FromProfile(Baseline());
