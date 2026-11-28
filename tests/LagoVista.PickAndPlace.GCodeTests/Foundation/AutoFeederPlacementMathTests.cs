@@ -37,6 +37,23 @@ namespace LagoVista.PickAndPlace.GCodeTests
                 new Point2D<double>(500,500),out _),Is.False);
         }
 
+        [TestCase(FeederRotations.Zero, 7.5, 65.5)]
+        [TestCase(FeederRotations.OneEighty, -7.5, -65.5)]
+        public void NominalLandmarkUsesHalfInstalledWidthAndEnteredDistance(FeederRotations rotation, double x, double y)
+        {
+            Assert.That(AutoFeederPlacementMath.TryNominalLandmark(15,65.5,rotation,out var nominal),Is.True);
+            Assert.That(nominal.X,Is.EqualTo(x));
+            Assert.That(nominal.Y,Is.EqualTo(y));
+            Assert.That(AutoFeederPlacementMath.TryBackfillFirstSlot(new Point2D<double>(100,100),
+                new Point2D<double>(x+2,y+3),nominal,26,26,new Point2D<double>(500,500),out var rail),Is.True);
+            Assert.That(rail.X,Is.EqualTo(102));
+            Assert.That(rail.Y,Is.EqualTo(103));
+            var measured = new Point2D<double>(100+x+2,100+y+3);
+            var correction = measured - rail - nominal;
+            Assert.That(correction.X,Is.EqualTo(0).Within(.000001));
+            Assert.That(correction.Y,Is.EqualTo(0).Within(.000001));
+        }
+
         [Test]
         public void RailBackfillUsesTemplateRatherThanPreviouslyCalibratedOffset()
         {

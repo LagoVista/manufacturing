@@ -14,6 +14,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid Background="#181F29">
     <Grid.Resources>
+        <local:FeederDiscoveryStatusConverter x:Key="FeederDiscoveryStatusConverter"/>
         <Style x:Key="WorkbenchButton" TargetType="Button">
             <Setter Property="Background" Value="#246CA5"/><Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderBrush" Value="#4D94CD"/><Setter Property="Padding" Value="12,7"/>
@@ -68,7 +69,24 @@
                     <ListBox.ItemTemplate><DataTemplate>
                       <Grid TextElement.Foreground="White"><Grid.ColumnDefinitions><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                         <Border Background="#172637" CornerRadius="5" Padding="5" Margin="0,0,9,0" VerticalAlignment="Center"><TextBlock Text="{Binding Slot}" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/></Border>
-                        <StackPanel Grid.Column="1"><TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Component.Text}" Foreground="#C9D9E9" FontSize="13" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding PartCount, StringFormat='{}{0} parts'}" FontSize="12" Foreground="#AEC5DB"/></StackPanel>
+                        <StackPanel Grid.Column="1"><TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Component.Text}" Foreground="#C9D9E9" FontSize="13" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding PartCount, StringFormat='{}{0} parts'}" FontSize="12" Foreground="#AEC5DB"/>
+                          <TextBlock FontSize="12" FontWeight="SemiBold" Margin="0,3,0,0">
+                            <TextBlock.Text><MultiBinding Converter="{StaticResource FeederDiscoveryStatusConverter}">
+                              <Binding/><Binding RelativeSource="{RelativeSource AncestorType=ListBox}" Path="DataContext.PhotonFeederViewModel"/>
+                              <Binding RelativeSource="{RelativeSource AncestorType=ListBox}" Path="DataContext.PhotonFeederViewModel.Status"/>
+                              <Binding RelativeSource="{RelativeSource AncestorType=ListBox}" Path="DataContext.PhotonFeederViewModel.DiscoveredFeeders.Count"/>
+                              <Binding RelativeSource="{RelativeSource AncestorType=ListBox}" Path="DataContext.Machine.Connected"/>
+                            </MultiBinding></TextBlock.Text>
+                            <TextBlock.Style><Style TargetType="TextBlock" BasedOn="{StaticResource WorkbenchText}">
+                              <Setter Property="Foreground" Value="#AEC5DB"/>
+                              <Style.Triggers>
+                                <Trigger Property="Text" Value="Discovered"><Setter Property="Foreground" Value="#79E1A3"/></Trigger>
+                                <Trigger Property="Text" Value="No response"><Setter Property="Foreground" Value="#FFD37B"/></Trigger>
+                                <Trigger Property="Text" Value="ID mismatch"><Setter Property="Foreground" Value="#FF9999"/></Trigger>
+                                <Trigger Property="Text" Value="Discovered in another slot"><Setter Property="Foreground" Value="#FFD37B"/></Trigger>
+                              </Style.Triggers>
+                            </Style></TextBlock.Style>
+                          </TextBlock></StackPanel>
                       </Grid>
                     </DataTemplate></ListBox.ItemTemplate>
                   </ListBox>
@@ -133,9 +151,11 @@
                     <TextBlock Text="Pickup from fiducial" Foreground="#C9D8E7" FontSize="12" Margin="0,5,0,0"/><TextBlock Text="{Binding GeometryPickOffset}" FontFamily="Consolas" FontSize="14"/>
                   </StackPanel></Border>
                   <Border Style="{StaticResource GeometryCard}"><StackPanel>
-                    <TextBlock Text="Nominal template offsets (mm)" FontSize="15" FontWeight="SemiBold"/>
+                    <TextBlock Text="Nominal geometry (mm)" FontSize="15" FontWeight="SemiBold"/>
                     <TextBlock Text="{Binding NominalFiducialOffset, StringFormat='Fiducial: {0}'}" FontFamily="Consolas" FontSize="13"/>
-                    <TextBlock Text="{Binding NominalPickOffset, StringFormat='Pickup: {0}'}" FontFamily="Consolas" FontSize="13" Margin="0,0,0,10"/>
+                    <TextBlock Text="{Binding NominalPickOffset, StringFormat='Pickup: {0}'}" FontFamily="Consolas" FontSize="13"/>
+                    <TextBlock Text="Landmark calibration correction" FontSize="14" FontWeight="SemiBold" Margin="0,6,0,0"/>
+                    <TextBlock Text="{Binding LandmarkCalibrationCorrection}" FontFamily="Consolas" FontSize="14" Foreground="#A9D9FF" Margin="0,0,0,10"/>
                     <TextBlock Text="Next calibration stages" FontSize="15" FontWeight="SemiBold"/>
                     <TextBlock Text="01  Three-dot landmark" FontSize="14" Margin="0,6,0,0"/>
                     <TextBlock Text="Find the three copper dots and center on the large middle dot." FontSize="12" Foreground="#C9D8E7" TextWrapping="Wrap"/>

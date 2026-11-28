@@ -22,6 +22,29 @@ using System.Windows.Shapes;
 
 namespace LagoVista.PickAndPlace.App.Controls.PickAndPlace
 {
+    public sealed class FeederDiscoveryStatusConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            if (values.Length < 5 || !(values[0] is LagoVista.Manufacturing.Models.AutoFeeder feeder) ||
+                !(values[1] is IPhotonFeederViewModel vm) || !(values[4] is bool connected) || !connected)
+                return "Not scanned";
+            var atSlot = vm.DiscoveredFeeders.FirstOrDefault(f => f.Slot == feeder.Slot);
+            if (atSlot != null) return string.Equals(atSlot.Address, feeder.FeederId, StringComparison.OrdinalIgnoreCase)
+                ? "Discovered" : "ID mismatch";
+            if (vm.DiscoveredFeeders.Any(f => string.Equals(f.Address, feeder.FeederId, StringComparison.OrdinalIgnoreCase)))
+                return "Discovered in another slot";
+            if (feeder.Slot < 1 || feeder.Slot > 254) return "Invalid slot";
+            var status = vm.GetDiscoveryStatus((byte)feeder.Slot);
+            if (status.StartsWith("Missing", StringComparison.OrdinalIgnoreCase)) return "No response";
+            if (status.Contains("communication error")) return "Communication error";
+            return "Not scanned";
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, System.Globalization.CultureInfo culture)
+            => throw new NotSupportedException();
+    }
+
     /// <summary>
     /// Interaction logic for AutoFeederControl.xaml
     /// </summary>

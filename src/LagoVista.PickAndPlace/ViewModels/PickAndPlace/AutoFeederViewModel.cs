@@ -346,7 +346,19 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         public string GeometryPickupLabel => UseCalculatedGeometry ? "Calculated pickup" : "Calibrated pickup";
         public string GeometryFiducial => FormatGeometry(GeometryPoint(GeometryTarget.Fiducial));
         public string GeometryPickup => FormatGeometry(GeometryPoint(GeometryTarget.Pickup));
-        public string NominalFiducialOffset => FormatGeometry(_nominalTemplate?.FiducialOffset);
+        private bool TryNominalLandmark(out Point2D<double> offset)
+        {
+            offset = null;
+            var rail = GetRail();
+            return _nominalTemplate != null && _nominalTemplate.Id == Current?.OriginalTemplate?.Id &&
+                Current?.Size != null && rail?.Rotation != null &&
+                BoardRigidTransform.Valid(_nominalTemplate.FiducialOffset) &&
+                AutoFeederPlacementMath.TryNominalLandmark(Current.Size.Height,
+                    _nominalTemplate.FiducialOffset.Y, rail.Rotation.Value, out offset);
+        }
+        public string NominalFiducialOffset => TryNominalLandmark(out var p) ? FormatGeometry(p) : "Unavailable";
+        public string LandmarkCalibrationCorrection => TryNominalLandmark(out var p) &&
+            BoardRigidTransform.Valid(Current?.FiducialOffset) ? FormatGeometry(Current.FiducialOffset - p) : "Unavailable";
         public string NominalPickOffset => FormatGeometry(_nominalTemplate?.PickOffset);
 
         private async Task LoadNominalGeometryAsync(AutoFeeder feeder, bool refresh = false)
@@ -388,11 +400,10 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         {
             var origin = GetCurrentFeederOrigin();
             if (!origin.Successful) return origin;
-            if (_nominalTemplate == null || _nominalTemplate.Id != Current?.OriginalTemplate?.Id ||
-                !BoardRigidTransform.Valid(_nominalTemplate.FiducialOffset) ||
+            if (!TryNominalLandmark(out var nominal) ||
                 (pickup && !BoardRigidTransform.Valid(_nominalTemplate.PickOffset)))
                 return InvokeResult<Point2D<double>>.FromError("Original template geometry unavailable.");
-            var point = origin.Result + _nominalTemplate.FiducialOffset;
+            var point = origin.Result + nominal;
             if (pickup) point = (point + _nominalTemplate.PickOffset).Round(2);
             return InvokeResult<Point2D<double>>.Create(point);
         }
@@ -421,6 +432,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RaisePropertyChanged(nameof(GeometryLandmarkLabel));
             RaisePropertyChanged(nameof(GeometryPickupLabel));
             RaisePropertyChanged(nameof(NominalFiducialOffset));
+            RaisePropertyChanged(nameof(LandmarkCalibrationCorrection));
             RaisePropertyChanged(nameof(NominalPickOffset));
             RaisePropertyChanged(nameof(RailReferenceCandidateText));
             RaisePropertyChanged(nameof(HasRailReferenceCandidate));
@@ -753,13 +765,13 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 BoardRigidTransform.Distance(rail.FirstFeederOrigin, _placementOrigin) <= 0.000001 &&
                 BoardRigidTransform.Valid(Current.FiducialOffset) &&
                 BoardRigidTransform.Distance(Current.FiducialOffset, _placementPrevious) <= 0.000001 &&
-                _nominalTemplate != null && _nominalTemplate.Id == Current.OriginalTemplate?.Id &&
+                TryNominalLandmark(out var nominal) &&
                 AutoFeederPlacementMath.TryBackfillFirstSlot(rail.FirstFeederOrigin, _placementCandidate,
-                    _nominalTemplate.FiducialOffset, Current.Slot, rail.SlotStartIndex, Machine?.Settings?.WorkAreaSize, out candidate);
+                    nominal, Current.Slot, rail.SlotStartIndex, Machine?.Settings?.WorkAreaSize, out candidate);
         }
         public bool HasRailReferenceCandidate => TryRailReferenceCandidate(out _);
         public string RailReferenceCandidateText => TryRailReferenceCandidate(out var p)
-            ? $"Proposed rail reference: {FormatGeometry(p)} (shift {BoardRigidTransform.Distance(p, _placementOrigin):F3} mm). Uses original template fiducial offset; affects every slot on this rail."
+            ? $"Proposed rail reference: {FormatGeometry(p)} (shift {BoardRigidTransform.Distance(p, _placementOrigin):F3} mm). Uses half feeder width and template rail-to-landmark Y; affects every slot on this rail."
             : "Rail reference adjustment requires a measured first slot and its original template.";
         public RelayCommand SaveRailReferenceCommand { get; }
 
@@ -771,6 +783,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             var rail = GetRail();
             var previous = rail.FirstFeederOrigin;
             var applied = false;
+            var railSaved = false;
+            var rebasePending = false;
             _saving = true;
             RaiseCanExecuteChanged();
             try
@@ -789,6 +803,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 applied = true;
                 var result = await MachineRepo.SaveCurrentMachineAsync();
                 if (!result.Successful) throw new InvalidOperationException(result.ErrorMessage);
+                railSaved = true;
                 // A previously calibrated first feeder has absorbed the rail error.
                 // Rebase its offset to preserve the measured absolute XY. The
                 // machine and feeder are separate cloud records; explicitly stage
@@ -799,8 +814,9 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     _placementOrigin = new Point2D<double>(candidate.X, candidate.Y);
                     _placementCandidate = rebased;
                     _placementRail = null; // Rail correction is already persisted.
+                    rebasePending = true;
                     LandmarkState = "Rail saved - feeder offset pending";
-                    PlacementStatus = $"Rail {rail.Name} reference saved at {FormatGeometry(candidate)}. Click Save Feeder Offset to rebase slot {feeder.Slot} without double-counting. Other feeder offsets unchanged.";
+                    PlacementStatus = $"Rail {rail.Name} reference saved at {FormatGeometry(candidate)}. Resetting reference feeder correction to zero. Other feeder offsets unchanged.";
                 }
                 else
                 {
@@ -811,12 +827,28 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             }
             catch (Exception ex)
             {
-                if (applied) rail.FirstFeederOrigin = previous;
+                if (applied && !railSaved) rail.FirstFeederOrigin = previous;
                 LandmarkState = "Save failed";
                 PlacementStatus = "Rail reference save failed: " + ex.Message + ". Previous origin retained locally; reload if server outcome is uncertain.";
                 machine?.AddStatusMessage(StatusMessageTypes.Warning, PlacementStatus);
             }
             finally { _saving = false; NotifyGeometryChanged(); RaiseCanExecuteChanged(); }
+            // Separate existing cloud writes; if the feeder write fails the
+            // staged rebase remains available for explicit retry, not re-calibration.
+            if (railSaved && rebasePending)
+            {
+                await SaveCoreAsync(true);
+                if (!HasPlacementCandidate && ReferenceEquals(Current, feeder))
+                {
+                    LandmarkState = "Rail reference saved";
+                    PlacementStatus = $"Rail {rail.Name} saved at {FormatGeometry(candidate)}; reference feeder calibration correction reset to zero.";
+                }
+                else if (ReferenceEquals(Current, feeder))
+                {
+                    LandmarkState = "Rail saved - feeder offset pending";
+                    PlacementStatus = "Rail saved, but reference feeder reset not confirmed. Retry Save Feeder Offset before using this feeder. " + PlacementStatus;
+                }
+            }
         }
         private string _landmarkState = "Not measured";
         public string LandmarkState

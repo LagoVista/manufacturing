@@ -22,6 +22,20 @@ namespace LagoVista.PickAndPlace.Models
             return true;
         }
 
+        // Feeder Size.Height is the installed width along the slot axis.
+        // The template Y is the entered rail-to-landmark distance in feeder-local coordinates.
+        public static bool TryNominalLandmark(double feederWidth, double railToLandmark,
+            FeederRotations rotation, out Point2D<double> offset)
+        {
+            offset = null;
+            if (!BoardRigidTransform.Finite(feederWidth) || feederWidth <= 0 ||
+                !BoardRigidTransform.Finite(railToLandmark) || railToLandmark <= 0 ||
+                (rotation != FeederRotations.Zero && rotation != FeederRotations.OneEighty)) return false;
+            var sign = rotation == FeederRotations.OneEighty ? -1 : 1;
+            offset = new Point2D<double>(sign * feederWidth / 2, sign * railToLandmark);
+            return true;
+        }
+
         public static bool TryBackfillFirstSlot(Point2D<double> oldOrigin, Point2D<double> measuredOffset,
             Point2D<double> nominalOffset, int slot, int firstSlot, Point2D<double> workArea, out Point2D<double> origin)
         {
