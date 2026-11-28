@@ -38,6 +38,23 @@ namespace LagoVista.PickAndPlace.GCodeTests
         }
 
         [Test]
+        public void RailBackfillUsesTemplateRatherThanPreviouslyCalibratedOffset()
+        {
+            var old = new Point2D<double>(66,4);
+            var nominal = new Point2D<double>(5,65.5);
+            var measured = new Point2D<double>(7,69);
+            Assert.That(AutoFeederPlacementMath.TryBackfillFirstSlot(old, measured, nominal, 26,26,
+                new Point2D<double>(500,500),out var rail),Is.True);
+            Assert.That(rail.X,Is.EqualTo(68));
+            Assert.That(rail.Y,Is.EqualTo(7.5));
+            Assert.That(AutoFeederPlacementMath.TryOrigin(rail,26,12,35,15,FeederRotations.Zero,out var slot),Is.True);
+            Assert.That(slot.X+nominal.X,Is.EqualTo(208));
+            Assert.That(slot.Y+nominal.Y,Is.EqualTo(73));
+            Assert.That((old+measured-rail).X,Is.EqualTo(nominal.X));
+            Assert.That((old+measured-rail).Y,Is.EqualTo(nominal.Y));
+        }
+
+        [Test]
         public void OpticalResidualUsesCalibratedScaleAndInvertedImageY()
         {
             var p = new Point2D<double>(100, 20);

@@ -51,7 +51,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             GoToSlotOriginCommand = CreateCommand(async () => await NavigateGeometryAsync(GeometryTarget.SlotOrigin), CanNavigateGeometry);
             GoToCalculatedFiducialCommand = CreateCommand(async () => await NavigateGeometryAsync(GeometryTarget.Fiducial), CanNavigateGeometry);
             GoToCalculatedPickupCommand = CreateCommand(async () => await NavigateGeometryAsync(GeometryTarget.Pickup), CanNavigateGeometry);
-            RefreshGeometryCommand = CreateCommand(NotifyGeometryChanged);
+            RefreshGeometryCommand = CreateCommand(async () => await LoadNominalGeometryAsync(Current, true), () => !PlacementBusy);
             PreviewGeometryCommand = CreateCommand(async () => await PreviewGeometryAsync(), CanNavigateGeometry);
             GoToPickLocationCommand = CreatedMachineConnectedCommand(GoToPickLocation, () => Current != null && !_placementRunning && !_saving);
 
@@ -321,8 +321,81 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
         }
         public string GeometryRailReference => FormatGeometry(GetRail()?.FirstFeederOrigin);
         public string GeometrySlotOrigin => FormatGeometry(GetCurrentFeederOrigin());
-        public string GeometryFiducial => FormatGeometry(FindFeederFiducial());
-        public string GeometryPickup => FormatGeometry(FindPickLocation());
+        private bool _useCalculatedGeometry;
+        private AutoFeederTemplate _nominalTemplate;
+        private readonly System.Collections.Generic.Dictionary<string, AutoFeederTemplate> _geometryTemplates =
+            new System.Collections.Generic.Dictionary<string, AutoFeederTemplate>();
+        private int _templateRequest;
+        private string _nominalGeometryStatus = "Select a feeder to load its original template.";
+        public string NominalGeometryStatus
+        {
+            get => _nominalGeometryStatus;
+            private set => Set(ref _nominalGeometryStatus, value);
+        }
+        public bool UseCalculatedGeometry
+        {
+            get => _useCalculatedGeometry;
+            set
+            {
+                if (PlacementBusy) return;
+                Set(ref _useCalculatedGeometry, value);
+                NotifyGeometryChanged();
+            }
+        }
+        public string GeometryLandmarkLabel => UseCalculatedGeometry ? "Calculated landmark" : "Calibrated landmark";
+        public string GeometryPickupLabel => UseCalculatedGeometry ? "Calculated pickup" : "Calibrated pickup";
+        public string GeometryFiducial => FormatGeometry(GeometryPoint(GeometryTarget.Fiducial));
+        public string GeometryPickup => FormatGeometry(GeometryPoint(GeometryTarget.Pickup));
+        public string NominalFiducialOffset => FormatGeometry(_nominalTemplate?.FiducialOffset);
+        public string NominalPickOffset => FormatGeometry(_nominalTemplate?.PickOffset);
+
+        private async Task LoadNominalGeometryAsync(AutoFeeder feeder, bool refresh = false)
+        {
+            var request = ++_templateRequest;
+            _nominalTemplate = null;
+            var id = feeder?.OriginalTemplate?.Id;
+            NominalGeometryStatus = string.IsNullOrWhiteSpace(id) ? "Original template not assigned." : "Loading nominal template geometry...";
+            NotifyGeometryChanged();
+            if (!string.IsNullOrWhiteSpace(id))
+            {
+                try
+                {
+                    if (refresh || !_geometryTemplates.TryGetValue(id, out var template))
+                    {
+                        var result = await _restClient.GetAsync<DetailResponse<AutoFeederTemplate>>($"/api/mfg/autofeeder/template/{id}");
+                        if (!result.Successful || result.Result?.Model == null)
+                            throw new InvalidOperationException("Could not load original feeder template.");
+                        template = result.Result.Model;
+                        if (template.Id != id) throw new InvalidOperationException("Template identity mismatch.");
+                        _geometryTemplates[id] = template;
+                    }
+                    if (request != _templateRequest || !ReferenceEquals(Current, feeder)) return;
+                    _nominalTemplate = template;
+                    NominalGeometryStatus = $"Nominal geometry: {template.Name}";
+                }
+                catch (Exception ex)
+                {
+                    if (request != _templateRequest || !ReferenceEquals(Current, feeder)) return;
+                    NominalGeometryStatus = "Nominal geometry unavailable: " + ex.Message;
+                }
+            }
+            if (request != _templateRequest || !ReferenceEquals(Current, feeder)) return;
+            NotifyGeometryChanged();
+            RaiseCanExecuteChanged();
+        }
+
+        private InvokeResult<Point2D<double>> FindNominalGeometry(bool pickup)
+        {
+            var origin = GetCurrentFeederOrigin();
+            if (!origin.Successful) return origin;
+            if (_nominalTemplate == null || _nominalTemplate.Id != Current?.OriginalTemplate?.Id ||
+                !BoardRigidTransform.Valid(_nominalTemplate.FiducialOffset) ||
+                (pickup && !BoardRigidTransform.Valid(_nominalTemplate.PickOffset)))
+                return InvokeResult<Point2D<double>>.FromError("Original template geometry unavailable.");
+            var point = origin.Result + _nominalTemplate.FiducialOffset;
+            if (pickup) point = (point + _nominalTemplate.PickOffset).Round(2);
+            return InvokeResult<Point2D<double>>.Create(point);
+        }
         public string GeometryFiducialOffset => FormatGeometry(Current?.FiducialOffset);
         public string GeometryPickOffset => FormatGeometry(Current?.PickOffset);
         public string GeometryPreflight
@@ -345,6 +418,12 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
             RaisePropertyChanged(nameof(GeometryRailSummary));
             RaisePropertyChanged(nameof(GeometryRailReference));
             RaisePropertyChanged(nameof(GeometrySlotOrigin));
+            RaisePropertyChanged(nameof(GeometryLandmarkLabel));
+            RaisePropertyChanged(nameof(GeometryPickupLabel));
+            RaisePropertyChanged(nameof(NominalFiducialOffset));
+            RaisePropertyChanged(nameof(NominalPickOffset));
+            RaisePropertyChanged(nameof(RailReferenceCandidateText));
+            RaisePropertyChanged(nameof(HasRailReferenceCandidate));
             RaisePropertyChanged(nameof(GeometryFiducial));
             RaisePropertyChanged(nameof(GeometryPickup));
             RaisePropertyChanged(nameof(GeometryFiducialOffset));
@@ -365,8 +444,8 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                         ? InvokeResult<Point2D<double>>.Create(rail.FirstFeederOrigin)
                         : InvokeResult<Point2D<double>>.FromError("Rail reference unavailable.");
                 case GeometryTarget.SlotOrigin: return GetCurrentFeederOrigin();
-                case GeometryTarget.Fiducial: return FindFeederFiducial();
-                default: return FindPickLocation();
+                case GeometryTarget.Fiducial: return UseCalculatedGeometry ? FindNominalGeometry(false) : FindFeederFiducial();
+                default: return UseCalculatedGeometry ? FindNominalGeometry(true) : FindPickLocation();
             }
         }
 
@@ -442,7 +521,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 await PlacementIdleAsync(machine, feeder);
                 await CheckAsync();
                 if (machine.CurrentMachineToolHead != null) throw new InvalidOperationException("Camera navigation unavailable.");
-                PlacementStatus = $"Moving to {target}: {FormatGeometry(point)}.";
+                PlacementStatus = $"Moving to {(UseCalculatedGeometry ? "calculated" : "calibrated")} {target}: {FormatGeometry(point)}.";
                 machine.GotoPoint(point);
                 await PlacementIdleAsync(machine, feeder);
                 await CheckAsync();
@@ -674,13 +753,14 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 BoardRigidTransform.Distance(rail.FirstFeederOrigin, _placementOrigin) <= 0.000001 &&
                 BoardRigidTransform.Valid(Current.FiducialOffset) &&
                 BoardRigidTransform.Distance(Current.FiducialOffset, _placementPrevious) <= 0.000001 &&
+                _nominalTemplate != null && _nominalTemplate.Id == Current.OriginalTemplate?.Id &&
                 AutoFeederPlacementMath.TryBackfillFirstSlot(rail.FirstFeederOrigin, _placementCandidate,
-                    _placementPrevious, Current.Slot, rail.SlotStartIndex, Machine?.Settings?.WorkAreaSize, out candidate);
+                    _nominalTemplate.FiducialOffset, Current.Slot, rail.SlotStartIndex, Machine?.Settings?.WorkAreaSize, out candidate);
         }
         public bool HasRailReferenceCandidate => TryRailReferenceCandidate(out _);
         public string RailReferenceCandidateText => TryRailReferenceCandidate(out var p)
-            ? $"Proposed rail reference: {FormatGeometry(p)} (shift {BoardRigidTransform.Distance(p, _placementOrigin):F3} mm). Uses existing fiducial offset as nominal; affects every slot on this rail."
-            : "Rail reference adjustment is available after measuring the first slot.";
+            ? $"Proposed rail reference: {FormatGeometry(p)} (shift {BoardRigidTransform.Distance(p, _placementOrigin):F3} mm). Uses original template fiducial offset; affects every slot on this rail."
+            : "Rail reference adjustment requires a measured first slot and its original template.";
         public RelayCommand SaveRailReferenceCommand { get; }
 
         private async Task SaveRailReferenceAsync()
@@ -709,9 +789,25 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                 applied = true;
                 var result = await MachineRepo.SaveCurrentMachineAsync();
                 if (!result.Successful) throw new InvalidOperationException(result.ErrorMessage);
-                ClearPlacementCandidate();
-                LandmarkState = "Rail reference saved";
-                PlacementStatus = $"Rail {rail.Name} reference saved at {FormatGeometry(candidate)}. Feeder offsets and slot numbering unchanged.";
+                // A previously calibrated first feeder has absorbed the rail error.
+                // Rebase its offset to preserve the measured absolute XY. The
+                // machine and feeder are separate cloud records; explicitly stage
+                // the feeder write rather than pretend the two saves are atomic.
+                var rebased = _placementOrigin + _placementCandidate - candidate;
+                if (BoardRigidTransform.Distance(rebased, feeder.FiducialOffset) > 0.000001)
+                {
+                    _placementOrigin = new Point2D<double>(candidate.X, candidate.Y);
+                    _placementCandidate = rebased;
+                    _placementRail = null; // Rail correction is already persisted.
+                    LandmarkState = "Rail saved - feeder offset pending";
+                    PlacementStatus = $"Rail {rail.Name} reference saved at {FormatGeometry(candidate)}. Click Save Feeder Offset to rebase slot {feeder.Slot} without double-counting. Other feeder offsets unchanged.";
+                }
+                else
+                {
+                    ClearPlacementCandidate();
+                    LandmarkState = "Rail reference saved";
+                    PlacementStatus = $"Rail {rail.Name} reference saved at {FormatGeometry(candidate)}. Feeder offsets and slot numbering unchanged.";
+                }
             }
             catch (Exception ex)
             {
@@ -1195,6 +1291,7 @@ namespace LagoVista.PickAndPlace.ViewModels.PickAndPlace
                     PlacementStatus = value == null ? "Select a feeder to inspect its geometry." :
                         $"Selected slot {value.Slot}: {value.Name}. Select a calculated target to navigate.";
                 }
+                _ = LoadNominalGeometryAsync(value);
                 NotifyGeometryChanged();
                 RaisePropertyChanged(nameof(ConfiguredFeederStatus));
                 _isEding = true;
